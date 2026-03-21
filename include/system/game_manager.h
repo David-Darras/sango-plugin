@@ -22,6 +22,7 @@
 
 class GameEventManager;
 class GameProcessManager;
+class GameDataManager;
 
 /**
  * @brief The primary singleton controller for the game engine.
@@ -53,6 +54,12 @@ class GameManager {
    */
   GameEventManager& GetGameEventManager() const { return *game_event_manager_; }
 
+  /**
+   * @brief Accessor for the Game Data.
+   * @return A reference to the active GameDataManager.
+   */
+  GameDataManager& GetGameData() const { return *game_data_; }
+
  private:
   /** @brief Private constructor to enforce singleton pattern. */
   GameManager() = default;
@@ -74,7 +81,7 @@ class GameManager {
       game_process_manager_;  ///< Pointer to the GameProcManager instance.
   GameEventManager*
       game_event_manager_;  ///< Pointer to the GameEventManager instance.
-  void* game_data_;  ///< Pointer to global game-specific data structures.
+  GameDataManager* game_data_;  ///< Pointer to global game-specific data structures.
 };
 
 #endif  // SANGO_PLUGIN_GAME_MANAGER_H
