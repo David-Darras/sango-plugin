@@ -1,0 +1,7 @@
+.idea
+bin
+cmake-build-debug
+.clang-format
+CMakeLists.txt
+sango_plugin.elf
+sango_plugin.txt
