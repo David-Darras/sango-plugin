@@ -71,13 +71,11 @@ void PluginMenu::DrawBottom() {
   c16 buffer[BUFFER_SIZE];
   void* vtable =
       &GameProcessManager::GetInstance().GetMainHandle().GetProcess();
-  Utils::Format(buffer, u"Process=%s",
-                Utils::GetClassNameFromVTable(vtable));
+  Utils::Format(buffer, u"Process=%s", Utils::GetClassNameFromVTable(vtable));
   Graphics::DrawText(5, 150, buffer);
 
   vtable = &GameEventManager::GetInstance().GetGameEvent();
-  Utils::Format(buffer, u"Event=%s",
-                Utils::GetClassNameFromVTable(vtable));
+  Utils::Format(buffer, u"Event=%s", Utils::GetClassNameFromVTable(vtable));
   Graphics::DrawText(5, 170, buffer);
 
   Color yellow{1, 1, 0, 1};
@@ -179,6 +177,18 @@ void PluginMenu::LeaveSubMenu() {
 
   ctx.display_count =
       entries_count_ > kMaxDisplayCount ? kMaxDisplayCount : entries_count_;
+}
+
+void PluginMenu::Refresh() {
+  MenuContext& ctx = GetContext();
+  entries_count_ = 0;
+  ctx.load_menu(*this);
+  ctx.display_count =
+      (entries_count_ > kMaxDisplayCount) ? kMaxDisplayCount : entries_count_;
+  if (ctx.cursor + ctx.offset >= entries_count_) {
+    ctx.cursor = 0;
+    ctx.offset = 0;
+  }
 }
 
 }  // namespace menu

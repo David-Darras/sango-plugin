@@ -23,7 +23,8 @@
 namespace savedata {
 
 class Footer;
-class Misc;
+struct Misc;
+struct BoxManager;
 
 /**
  * @class SaveData
@@ -50,6 +51,8 @@ class SaveData {
   Footer& GetFooter() { return *footer_; }
 
   Misc& GetMisc() { return *(Misc*)segments_[11]; }
+
+  BoxManager& GetBoxManager() { return *(BoxManager*)segments_[12]; }
 
   /// @brief Total number of data segments monitored for integrity.
   static constexpr u32 kSegmentCount = 58;

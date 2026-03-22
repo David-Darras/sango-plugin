@@ -14,15 +14,27 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include "savedata/savedata.h"
+#include "savedata/box_manager.h"
 
 #include "menu/plugin_menu.h"
-#include "savedata/misc.h"
 
 namespace savedata {
 
-void SaveData::LoadMenu(menu::PluginMenu& menu) {
-  menu.Add("Misc", Misc::LoadMenu);
+void BoxManager::LoadMenu(menu::PluginMenu& menu) {
+  static u8 index = 0;
+  BoxManager& data = GetInstance();
+
+  menu.Add("Box Index", index)
+      .WithBounds(0, kMaxBoxes)
+      .WithRefresh()
+      .Add("Title", data.titles[index], kMaxTitleLength)
+      .Add("Wallpaper", data.wallpapers[index])
+      .WithBounds(0, kMaxWallpapers)
+      .Add("Unlocked Boxes Count", data.unlocked_count)
+      .Add("Active Box Index", data.active_box_index)
+      .WithBounds(0, kMaxBoxes)
+      .Add("Special Wallpapers Unlocked", &data.flags, 0, 7)
+      .Add("Event Box Open", &data.flags, 7, 1);
 }
 
 }  // namespace savedata

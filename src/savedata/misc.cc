@@ -18,12 +18,11 @@
 #include "savedata/misc.h"
 
 #include "menu/plugin_menu.h"
-#include "savedata/savedata.h"
 
 namespace savedata {
 
 void Misc::LoadMenu(menu::PluginMenu& menu) {
-  Misc& data = SaveData::GetInstance().GetMisc();
+  Misc& data = GetInstance();
   menu.Add("Money", data.money)
       .Add("Battle Points", data.battle_points)
       .Add("Rival Nickname", data.rival_nickname, kNicknameLength)

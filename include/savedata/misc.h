@@ -18,6 +18,7 @@
 #ifndef SANGO_PLUGIN_SAVEDATA_MISC_H
 #define SANGO_PLUGIN_SAVEDATA_MISC_H
 #include "common.h"
+#include "savedata.h"
 
 namespace savedata {
 
@@ -29,6 +30,8 @@ namespace savedata {
  */
 struct Misc {
   static void LoadMenu(menu::PluginMenu& menu);
+
+  static Misc& GetInstance() { return SaveData::GetInstance().GetMisc(); }
 
   /// @brief Maximum character length for nicknames.
   static constexpr u32 kNicknameLength = 13;

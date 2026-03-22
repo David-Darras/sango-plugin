@@ -71,15 +71,81 @@ class PluginMenu {
    */
   void LeaveSubMenu();
 
+  /**
+   * @brief Attaches an array of string labels to the last added entry.
+   * * Allows mapping numerical values to human-readable strings
+   * (e.g., 0 = "Off", 1 = "On") for display purposes.
+   * @param array An array of C-strings containing the labels.
+   * @param array_size The total number of elements in the array.
+   * @return Reference to the PluginMenu instance for method chaining.
+   */
   PluginMenu &WithArray(const c8 *array[], u32 array_size) {
     entries_[entries_count_ - 1].WithArray(array, array_size);
     return *this;
   }
 
+  /**
+   * @brief Attaches a custom callback function to the last added entry.
+   * * The provided function will be triggered whenever the entry is
+   * executed (e.g., by pressing the 'A' button).
+   * @param callback Function pointer of type `callback_t`.
+   * @return Reference to the PluginMenu instance for method chaining.
+   */
   PluginMenu &WithCallback(callback_t callback) {
     entries_[entries_count_ - 1].WithCallback(callback);
     return *this;
   }
+
+  /**
+   * @brief Enables the refresh flag for the last added entry.
+   * * Useful for entries whose modification dynamically changes the
+   * structure or the content of the current menu view.
+   * @return Reference to the PluginMenu instance for method chaining.
+   */
+  PluginMenu &WithRefresh() {
+    entries_[entries_count_ - 1].WithRefresh();
+    return *this;
+  }
+
+  /**
+   * @brief Sets the minimum allowed value for the last added entry.
+   * @param min The lower bound value.
+   * @return Reference to the PluginMenu instance for method chaining.
+   */
+  PluginMenu &WithMin(s32 min) {
+    entries_[entries_count_ - 1].WithMin(min);
+    return *this;
+  }
+
+  /**
+   * @brief Sets the maximum allowed value for the last added entry.
+   * @param max The upper bound value.
+   * @return Reference to the PluginMenu instance for method chaining.
+   */
+  PluginMenu &WithMax(s32 max) {
+    entries_[entries_count_ - 1].WithMax(max);
+    return *this;
+  }
+
+  /**
+   * @brief Sets both minimum and maximum allowed values for the last added
+   * entry.
+   * @param min The lower bound value.
+   * @param max The upper bound value.
+   * @return Reference to the PluginMenu instance for method chaining.
+   */
+  PluginMenu &WithBounds(u32 min, u32 max) {
+    entries_[entries_count_ - 1].WithMin(min);
+    entries_[entries_count_ - 1].WithMax(max);
+    return *this;
+  }
+
+  /**
+   * @brief Rebuilds the current menu by re-executing its load callback.
+   * * This method updates the list of active entries without altering
+   * the context stack, reflecting real-time changes in game state.
+   */
+  void Refresh();
 
   /**
    * @brief Adds a simple menu entry by name, address, and type.

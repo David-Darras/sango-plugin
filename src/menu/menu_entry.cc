@@ -39,7 +39,10 @@ MenuEntry::MenuEntry()
       type_(kTypeMax),
       bit_offset_(0),
       bit_size_(0),
-      array_size_(0) {}
+      array_size_(0),
+      refresh_(0),
+      min_(kNoLimit),
+      max_(kNoLimit) {}
 
 void MenuEntry::Initialize(const c8 *name, void *addr, u8 type, u32 bit_offset,
                            u32 bit_size) {
@@ -51,6 +54,9 @@ void MenuEntry::Initialize(const c8 *name, void *addr, u8 type, u32 bit_offset,
   array_ = nullptr;
   callback_ = nullptr;
   array_size_ = 0;
+  refresh_ = 0;
+  min_ = kNoLimit;
+  max_ = kNoLimit;
 }
 
 MenuEntry &MenuEntry::WithArray(const c8 *array[], u32 array_size) {
@@ -61,6 +67,21 @@ MenuEntry &MenuEntry::WithArray(const c8 *array[], u32 array_size) {
 
 MenuEntry &MenuEntry::WithCallback(callback_t callback) {
   callback_ = callback;
+  return *this;
+}
+
+MenuEntry &MenuEntry::WithRefresh() {
+  refresh_ = 1;
+  return *this;
+}
+
+MenuEntry &MenuEntry::WithMin(s32 min) {
+  min_ = min;
+  return *this;
+}
+
+MenuEntry &MenuEntry::WithMax(s32 max) {
+  max_ = max-1;
   return *this;
 }
 
@@ -171,117 +192,156 @@ void MenuEntry::GetDisplayValue(c16 *buffer) const {
 }
 
 void MenuEntry::Increment(u32 count) {
+#define INCREMENT_WRAP(type)                                        \
+  {                                                                 \
+    type val = *(type *)address_ + (type)count;                     \
+    if (max_ != (s32)kNoLimit && (s32)val > max_) val = (type)min_; \
+    if (min_ != (s32)kNoLimit && (s32)val < min_) val = (type)min_; \
+    *(type *)address_ = val;                                        \
+  }
+
   switch (type_) {
     case kTypeU8:
     case kTypeS8:
-      *(u8 *)address_ += count;
+      INCREMENT_WRAP(u8);
       break;
     case kTypeU16:
     case kTypeS16:
-      *(u16 *)address_ += count;
+      INCREMENT_WRAP(u16);
       break;
-    case kTypePointer:
     case kTypeU32:
     case kTypeS32:
-      *(u32 *)address_ += count;
+    case kTypePointer:
+      INCREMENT_WRAP(u32);
       break;
+
     case kTypeU64:
     case kTypeS64:
       *(u64 *)address_ += count;
       break;
     case kTypeF32:
-      *(f32 *)address_ += count;
+      *(f32 *)address_ += (f32)count;
       break;
     case kTypeF64:
-      *(f64 *)address_ += count;
+      *(f64 *)address_ += (f64)count;
       break;
+
     case kTypeBits: {
-      u32 b = GET_BITS(*(u32 *)address_, bit_offset_, bit_size_);
-      b += count;
+      u32 b = GET_BITS(*(u32 *)address_, bit_offset_, bit_size_) + count;
+      if (max_ != (s32)kNoLimit && (s32)b > max_) b = (u32)min_;
       SetBits((u32 *)address_, bit_offset_, bit_size_, b);
     } break;
+
     case kTypeBoolean:
       *(bool *)address_ ^= true;
-      break;
-    case kTypeCheatCode:
-      // ((CheatCode *)address_)->Toggle();
       break;
     default:
       break;
   }
+
+#undef INCREMENT_WRAP
+  if (refresh_) PluginMenu::GetInstance().Refresh();
 }
 
 void MenuEntry::Decrement(u32 count) {
+#define DECREMENT_WRAP(type)                                        \
+  {                                                                 \
+    type val = *(type *)address_ - (type)count;                     \
+    if (min_ != (s32)kNoLimit && (s32)val < min_) val = (type)max_; \
+    if (max_ != (s32)kNoLimit && (s32)val > max_) val = (type)max_; \
+    *(type *)address_ = val;                                        \
+  }
+
   switch (type_) {
     case kTypeU8:
     case kTypeS8:
-      *(u8 *)address_ -= count;
+      DECREMENT_WRAP(u8);
       break;
     case kTypeU16:
     case kTypeS16:
-      *(u16 *)address_ -= count;
+      DECREMENT_WRAP(u16);
       break;
-    case kTypePointer:
     case kTypeU32:
     case kTypeS32:
-      *(u32 *)address_ -= count;
+    case kTypePointer:
+      DECREMENT_WRAP(u32);
       break;
+
     case kTypeU64:
     case kTypeS64:
       *(u64 *)address_ -= count;
       break;
     case kTypeF32:
-      *(f32 *)address_ -= count;
+      *(f32 *)address_ -= (f32)count;
       break;
     case kTypeF64:
-      *(f64 *)address_ -= count;
+      *(f64 *)address_ -= (f64)count;
       break;
+
     case kTypeBits: {
-      u32 b = GET_BITS(*(u32 *)address_, bit_offset_, bit_size_);
-      b -= count;
+      u32 b = GET_BITS(*(u32 *)address_, bit_offset_, bit_size_) - count;
+      if (min_ != (s32)kNoLimit && (s32)b < min_) b = (u32)max_;
       SetBits((u32 *)address_, bit_offset_, bit_size_, b);
     } break;
+
     case kTypeBoolean:
       *(bool *)address_ ^= true;
       break;
-    case kTypeCheatCode:
-      // ((CheatCode *)address_)->Toggle();
-      break;
     default:
       break;
   }
+
+#undef DECREMENT_WRAP
+  if (refresh_) PluginMenu::GetInstance().Refresh();
 }
 
 void MenuEntry::Edit(const void *value) {
+#define EDIT_CLAMP(type)                                            \
+  {                                                                 \
+    type val = *(type *)value;                                      \
+    if (min_ != (s32)kNoLimit && (s32)val < min_) val = (type)min_; \
+    if (max_ != (s32)kNoLimit && (s32)val > max_) val = (type)max_; \
+    *(type *)address_ = val;                                        \
+  }
+
   switch (type_) {
     case kTypeU8:
     case kTypeS8:
-      *(u8 *)address_ = *(u8 *)value;
+      EDIT_CLAMP(u8);
       break;
     case kTypeU16:
     case kTypeS16:
-      *(u16 *)address_ = *(u16 *)value;
+      EDIT_CLAMP(u16);
       break;
-    case kTypePointer:
     case kTypeU32:
     case kTypeS32:
-      *(u32 *)address_ = *(u32 *)value;
+    case kTypePointer:
+      EDIT_CLAMP(u32);
       break;
-    case kTypeMenu:
-      PluginMenu::GetInstance().EnterSubMenu((menu_callback_t)address_);
-      break;
+
     case kTypeBoolean:
       *(bool *)address_ = *(bool *)value;
       break;
+
+    case kTypeMenu:
+      PluginMenu::GetInstance().EnterSubMenu((menu_callback_t)address_);
+      break;
+
     case kTypeUnicode:
+      // bit_offset_ est utilisé ici comme taille max du buffer
       for (u32 i = 0; i < bit_offset_; i++) {
         *(c16 *)((uptr)address_ + i * 2) = *(c16 *)((uptr)value + i * 2);
       }
+      // Garanti la terminaison nulle
       *(c16 *)((uptr)address_ + (bit_offset_ - 1) * 2) = 0;
       break;
+
     default:
       break;
   }
+
+#undef EDIT_CLAMP
+  if (refresh_) PluginMenu::GetInstance().Refresh();
 }
 
 void MenuEntry::Execute(void *args) {

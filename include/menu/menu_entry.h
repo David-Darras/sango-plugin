@@ -51,6 +51,8 @@ enum MenuEntryType {
  */
 class MenuEntry {
  public:
+  static constexpr s16 kNoLimit = 0x7FFF;
+
   /**
    * @brief Default constructor initializing members to default/null states.
    */
@@ -81,6 +83,28 @@ class MenuEntry {
    * @return Reference to this entry for method chaining.
    */
   MenuEntry &WithCallback(callback_t callback);
+
+  /**
+   * @brief Marks the entry to request a menu refresh after modification.
+   * * Sets the internal `refresh_` flag to indicate that the current menu
+   * should be rebuilt following an interaction with this specific item.
+   * @return Reference to the current entry for method chaining.
+   */
+  MenuEntry &WithRefresh();
+
+  /**
+   * @brief Sets the minimum allowed value for this entry.
+   * @param min The lower bound value.
+   * @return Reference to this entry for method chaining.
+   */
+  MenuEntry &WithMin(s32 min);
+
+  /**
+   * @brief Sets the maximum allowed value for this entry.
+   * @param max The upper bound value.
+   * @return Reference to this entry for method chaining.
+   */
+  MenuEntry &WithMax(s32 max);
 
   /**
    * @brief Gets the current entry type.
@@ -138,7 +162,11 @@ class MenuEntry {
   u32 type_ : 6;         ///< Storage for MenuEntryType.
   u32 bit_offset_ : 6;   ///< Bit position or string capacity.
   u32 bit_size_ : 6;     ///< Number of bits to read/write.
-  u32 array_size_ : 14;  ///< Size of the mapping array.
+  u32 array_size_ : 13;  ///< Size of the mapping array.
+  u32 refresh_ : 1;      ///< Flag to trigger a menu refresh on change.
+
+  s32 min_ : 16;  ///< Minimum allowed value (0x7FFF if ignored).
+  s32 max_ : 16;  ///< Maximum allowed value (0x7FFF if ignored).
 };
 
 }  // namespace menu
