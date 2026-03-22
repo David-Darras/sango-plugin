@@ -57,6 +57,8 @@ typedef uintptr_t uptr;
   ((b) = ((b) & ~(((1u << (n)) - 1) << (p))) | ((v) << (p)))
 #define GET_BITS(b, p, n) (((b) >> (p)) & ((1u << (n)) - 1))
 
+#define SIZE(x) ((sizeof(x)) / (sizeof(x[0])))
+
 extern "C" s32 svcFlushProcessDataCache(u32 handle, u32 addr, u32 size);
 
 extern "C" s32 svcInvalidateEntireInstructionCache();

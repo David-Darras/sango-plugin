@@ -86,7 +86,7 @@ MenuEntry &MenuEntry::WithMin(s32 min) {
 }
 
 MenuEntry &MenuEntry::WithMax(s32 max) {
-  max_ = max - 1;
+  max_ = max;
   is_max_used_ = 1;
   return *this;
 }
@@ -223,11 +223,16 @@ void MenuEntry::GetDisplayValue(c16 *buffer) const {
 }
 
 void MenuEntry::Increment(u32 count) {
-#define INCREMENT_WRAP(type)                               \
-  {                                                        \
-    type val = *(type *)address_ + (type)count;            \
-    if (is_max_used_ && (s32)val > max_) val = (type)min_; \
-    *(type *)address_ = val;                               \
+#define INCREMENT_WRAP(type)                              \
+  {                                                       \
+    type val = *(type *)address_;                         \
+    /* Si on va dépasser le max, on revient au min */     \
+    if (is_max_used_ && ((s32)val + (s32)count > max_)) { \
+      val = (type)min_;                                   \
+    } else {                                              \
+      val += (type)count;                                 \
+    }                                                     \
+    *(type *)address_ = val;                              \
   }
 
   switch (type_) {
@@ -274,11 +279,16 @@ void MenuEntry::Increment(u32 count) {
 }
 
 void MenuEntry::Decrement(u32 count) {
-#define DECREMENT_WRAP(type)                               \
-  {                                                        \
-    type val = *(type *)address_ - (type)count;            \
-    if (is_min_used_ && (s32)val < min_) val = (type)max_; \
-    *(type *)address_ = val;                               \
+#define DECREMENT_WRAP(type)                                 \
+  {                                                          \
+    type val = *(type *)address_;                            \
+    /* Si on va descendre en dessous du min, on va au max */ \
+    if (is_min_used_ && ((s32)val - (s32)count < min_)) {    \
+      val = (type)max_;                                      \
+    } else {                                                 \
+      val -= (type)count;                                    \
+    }                                                        \
+    *(type *)address_ = val;                                 \
   }
 
   switch (type_) {

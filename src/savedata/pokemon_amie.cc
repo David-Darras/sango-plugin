@@ -14,21 +14,25 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include "savedata/savedata.h"
+
+#include "savedata/pokemon_amie.h"
 
 #include "menu/plugin_menu.h"
-#include "savedata/bag_manager.h"
-#include "savedata/box_manager.h"
-#include "savedata/misc.h"
-#include "savedata/pokemon_amie.h"
 
 namespace savedata {
 
-void SaveData::LoadMenu(menu::PluginMenu& menu) {
-  menu.Add("Pokemon-Amie", PokemonAmie::LoadMenu)
-      .Add("Bag", BagManager::LoadMenu)
-      .Add("Boxes", BoxManager::LoadMenu)
-      .Add("Miscellaneous", Misc::LoadMenu);
+void PokemonAmie::LoadMenu(menu::PluginMenu& menu) {
+  static u8 puff_idx = 0;
+  PokemonAmie& data = GetInstance();
+
+  menu.Add("Select Slot", puff_idx)
+      .WithBounds(0, kMaxPokePuffs - 1)
+      .WithRefresh();
+
+  menu.Add("Poké Puff ID", data.poke_puffs[puff_idx])
+      .WithBounds(0, kMaxPokePuffId);
+
+  menu.Add("Last Opened (Days)", data.last_opened_timestamp);
 }
 
 }  // namespace savedata

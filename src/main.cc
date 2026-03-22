@@ -25,9 +25,9 @@
 extern void TestMenu(menu::PluginMenu &menu);
 
 void MainMenu(menu::PluginMenu &menu) {
-  menu.Add("Test", TestMenu)
-      .Add("Sound", Sound::LoadMenu)
-      .Add("Savedata", savedata::SaveData::LoadMenu);
+  menu.Add("Savedata", savedata::SaveData::LoadMenu)
+      .Add("Test", TestMenu)
+      .Add("Sound", Sound::LoadMenu);
 }
 
 void ApplyPatches() {
