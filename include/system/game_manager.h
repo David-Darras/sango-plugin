@@ -74,7 +74,7 @@ class GameManager {
   u8 frame_mode_;            ///< Current active frame mode.
   u8 frame_count_;           ///< Global frame counter.
   u8 reserved_;              ///< Padding for memory alignment.
-  f32 unknow;
+  u32 unknow;
 
   // Sub-Managers
   GameProcessManager*

@@ -22,11 +22,13 @@
 #include "savedata/item_manager.h"
 #include "savedata/misc.h"
 #include "savedata/pokemon_amie.h"
+#include "savedata/trainer_status.h"
 
 namespace savedata {
 
 void SaveData::LoadMenu(menu::PluginMenu& menu) {
-  menu.Add("Items", ItemManager::LoadMenu)
+  menu.Add("Trainer Status", TrainerStatus::LoadMenu)
+      .Add("Items", ItemManager::LoadMenu)
       .Add("Pokemon-Amie", PokemonAmie::LoadMenu)
       .Add("Bag", BagManager::LoadMenu)
       .Add("Boxes", BoxManager::LoadMenu)

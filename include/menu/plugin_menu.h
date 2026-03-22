@@ -298,7 +298,7 @@ class PluginMenu {
     return entries_[ctx.cursor + ctx.offset];
   }
 
-  static constexpr u32 kMaxEntries = 32;
+  static constexpr u32 kMaxEntries = 64;
   static constexpr u32 kMaxContexts = 8;
   static constexpr u32 kMaxDisplayCount = 15;
   static constexpr u32 kLineHeight = 16;
@@ -306,9 +306,9 @@ class PluginMenu {
   static PluginMenu instance_;  ///< Unique instance.
 
   u32 is_opened_ : 1;       ///< True if menu is open.
-  u32 entries_count_ : 5;   ///< Active entries in current menu.
+  u32 entries_count_ : 6;   ///< Active entries in current menu.
   u32 contexts_count_ : 3;  ///< Number of submenus in the stack.
-  u32 : 23;                 ///< Reserved.
+  u32 : 22;                 ///< Reserved.
 
   MenuEntry entries_[kMaxEntries];      ///< Entry pool.
   MenuContext contexts_[kMaxContexts];  ///< Context stack.
