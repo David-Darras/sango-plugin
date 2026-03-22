@@ -15,8 +15,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_FOOTER_H
-#define SANGO_PLUGIN_FOOTER_H
+#ifndef SANGO_PLUGIN_SAVEDATA_FOOTER_H
+#define SANGO_PLUGIN_SAVEDATA_FOOTER_H
 
 #include "savedata/savedata.h"
 
@@ -64,4 +64,4 @@ class Footer {
 
 }  // namespace savedata
 
-#endif  // SANGO_PLUGIN_FOOTER_H
+#endif  // SANGO_PLUGIN_SAVEDATA_FOOTER_H

@@ -285,7 +285,11 @@ void MenuEntry::Edit(const void *value) {
 }
 
 void MenuEntry::Execute(void *args) {
-  if (callback_ != nullptr) callback_(args);
+  if (kTypeMenu == type_) {
+    PluginMenu::GetInstance().EnterSubMenu((menu_callback_t)address_);
+  } else if (callback_ != nullptr) {
+    callback_(args);
+  }
 }
 
 }  // namespace menu

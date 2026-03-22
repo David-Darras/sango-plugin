@@ -15,14 +15,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_SAVEDATA_H
-#define SANGO_PLUGIN_SAVEDATA_H
+#ifndef SANGO_PLUGIN_SAVEDATA_SAVEDATA_H
+#define SANGO_PLUGIN_SAVEDATA_SAVEDATA_H
 
 #include "system/game_data_manager.h"
 
 namespace savedata {
 
 class Footer;
+class Misc;
 
 /**
  * @class SaveData
@@ -32,6 +33,8 @@ class Footer;
  */
 class SaveData {
  public:
+  static void LoadMenu(menu::PluginMenu& menu);
+
   /**
    * @brief Accesses the global SaveData instance via the GameDataManager.
    * @return A reference to the active SaveData instance.
@@ -45,6 +48,8 @@ class SaveData {
    * @return A reference to the Footer object used for integrity validation.
    */
   Footer& GetFooter() { return *footer_; }
+
+  Misc& GetMisc() { return *(Misc*)segments_[11]; }
 
   /// @brief Total number of data segments monitored for integrity.
   static constexpr u32 kSegmentCount = 58;
@@ -62,9 +67,9 @@ class SaveData {
   /**
    * @brief Array of pointers to specific data segments within the save.
    */
-  void* segments_[kSegmentCount];
+  void* segments_[kSegmentCount];  ///< Address : 0x08CE0C68
 };
 
 }  // namespace savedata
 
-#endif  // SANGO_PLUGIN_SAVEDATA_H
+#endif  // SANGO_PLUGIN_SAVEDATA_SAVEDATA_H

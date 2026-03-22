@@ -18,7 +18,7 @@
 #ifndef SANGO_PLUGIN_GAME_MANAGER_H
 #define SANGO_PLUGIN_GAME_MANAGER_H
 
-#include "common.h"
+#include "core.h"
 
 class GameEventManager;
 class GameProcessManager;

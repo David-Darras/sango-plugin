@@ -16,10 +16,16 @@
  */
 
 #include "menu/plugin_menu.h"
+#include "savedata/savedata.h"
 #include "system/device.h"
 #include "system/file.h"
 #include "system/graphics.h"
 #include "system/sound.h"
+
+void MainMenu(menu::PluginMenu &menu) {
+  menu.Add("Sound", Sound::LoadMenu)
+      .Add("Savedata", savedata::SaveData::LoadMenu);
+}
 
 void ApplyPatches() {
   // Disables the keyboard's "No Good Word" filter to allow prohibited words,
@@ -93,7 +99,7 @@ extern "C" void Initialize() {
   }
 
   File::MountSdmc();
-  menu::PluginMenu::GetInstance().EnterSubMenu(Sound::LoadMenu);
+  menu::PluginMenu::GetInstance().EnterSubMenu(MainMenu);
   ApplyPatches();
 
   // Set a flag to ensure the initialization process is only executed once.
