@@ -38,7 +38,6 @@ void BagManager::LoadMenu(menu::PluginMenu& menu) {
       .WithBounds(0, kMaxRegisteredItems - 1)
       .WithRefresh()
       .Add("Registered Item", data.registered_items[register_idx])
-      .WithBounds(0, 0xFFFF)
       .Add("History Select", history_idx)
       .WithBounds(0, kMaxUsageHistory - 1)
       .WithRefresh()

@@ -19,13 +19,15 @@
 #include "menu/plugin_menu.h"
 #include "savedata/bag_manager.h"
 #include "savedata/box_manager.h"
+#include "savedata/item_manager.h"
 #include "savedata/misc.h"
 #include "savedata/pokemon_amie.h"
 
 namespace savedata {
 
 void SaveData::LoadMenu(menu::PluginMenu& menu) {
-  menu.Add("Pokemon-Amie", PokemonAmie::LoadMenu)
+  menu.Add("Items", ItemManager::LoadMenu)
+      .Add("Pokemon-Amie", PokemonAmie::LoadMenu)
       .Add("Bag", BagManager::LoadMenu)
       .Add("Boxes", BoxManager::LoadMenu)
       .Add("Miscellaneous", Misc::LoadMenu);
