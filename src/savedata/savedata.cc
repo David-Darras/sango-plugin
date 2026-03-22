@@ -17,13 +17,16 @@
 #include "savedata/savedata.h"
 
 #include "menu/plugin_menu.h"
+#include "savedata/bag_manager.h"
 #include "savedata/box_manager.h"
 #include "savedata/misc.h"
 
 namespace savedata {
 
 void SaveData::LoadMenu(menu::PluginMenu& menu) {
-  menu.Add("Miscellaneous", Misc::LoadMenu).Add("Boxes", BoxManager::LoadMenu);
+  menu.Add("Bag", BagManager::LoadMenu)
+      .Add("Boxes", BoxManager::LoadMenu)
+      .Add("Miscellaneous", Misc::LoadMenu);
 }
 
 }  // namespace savedata

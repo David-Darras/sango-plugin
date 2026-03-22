@@ -41,8 +41,10 @@ MenuEntry::MenuEntry()
       bit_size_(0),
       array_size_(0),
       refresh_(0),
-      min_(kNoLimit),
-      max_(kNoLimit) {}
+      min_(0),
+      max_(0),
+      is_min_used_(0),
+      is_max_used_(0) {}
 
 void MenuEntry::Initialize(const c8 *name, void *addr, u8 type, u32 bit_offset,
                            u32 bit_size) {
@@ -55,8 +57,10 @@ void MenuEntry::Initialize(const c8 *name, void *addr, u8 type, u32 bit_offset,
   callback_ = nullptr;
   array_size_ = 0;
   refresh_ = 0;
-  min_ = kNoLimit;
-  max_ = kNoLimit;
+  min_ = 0;
+  max_ = 0;
+  is_min_used_ = 0;
+  is_max_used_ = 0;
 }
 
 MenuEntry &MenuEntry::WithArray(const c8 *array[], u32 array_size) {
@@ -77,11 +81,13 @@ MenuEntry &MenuEntry::WithRefresh() {
 
 MenuEntry &MenuEntry::WithMin(s32 min) {
   min_ = min;
+  is_min_used_ = 1;
   return *this;
 }
 
 MenuEntry &MenuEntry::WithMax(s32 max) {
-  max_ = max-1;
+  max_ = max - 1;
+  is_max_used_ = 1;
   return *this;
 }
 
@@ -90,42 +96,67 @@ u8 MenuEntry::GetType() const { return type_; }
 void MenuEntry::GetDefaultDisplayValue(c16 *buffer) const {
   switch (type_) {
     case kTypeU8:
+      Utils::Format(buffer, u"%s : %u", name_, *(u8 *)address_);
+      break;
+
     case kTypeS8:
-      Utils::Format(buffer, u"%s : %d", name_, *(u8 *)address_);
+      Utils::Format(buffer, u"%s : %d", name_, *(s8 *)address_);
       break;
+
     case kTypeU16:
+      Utils::Format(buffer, u"%s : %u", name_, *(u16 *)address_);
+      break;
+
     case kTypeS16:
-      Utils::Format(buffer, u"%s : %d", name_, *(u16 *)address_);
+      Utils::Format(buffer, u"%s : %d", name_, *(s16 *)address_);
       break;
+
     case kTypePointer:
+      Utils::Format(buffer, u"%s : 0x%08X", name_, address_);
+      break;
+
     case kTypeU32:
+      Utils::Format(buffer, u"%s : %u", name_, *(u32 *)address_);
+      break;
+
     case kTypeS32:
-      Utils::Format(buffer, u"%s : %d", name_, *(u32 *)address_);
+      Utils::Format(buffer, u"%s : %d", name_, *(s32 *)address_);
       break;
+
     case kTypeU64:
-    case kTypeS64:
-      Utils::Format(buffer, u"%s : 0x%016llx", name_, *(u64 *)address_);
+      Utils::Format(buffer, u"%s : %llu", name_, *(u64 *)address_);
       break;
+
+    case kTypeS64:
+      Utils::Format(buffer, u"%s : %lld", name_, *(s64 *)address_);
+      break;
+
     case kTypeF32:
       Utils::Format(buffer, u"%s : %.2f", name_, *(f32 *)address_);
       break;
+
     case kTypeF64:
       Utils::Format(buffer, u"%s : %.2f", name_, *(f64 *)address_);
       break;
+
     case kTypeBits:
-      Utils::Format(buffer, u"%s : %d", name_,
+      Utils::Format(buffer, u"%s : %u", name_,
                     GET_BITS(*(u32 *)address_, bit_offset_, bit_size_));
       break;
+
     case kTypeBoolean:
       Utils::Format(buffer, u"%s : %ls", name_,
                     *(bool *)address_ ? u"True" : u"False");
       break;
+
     case kTypeCheatCode:
       Utils::Format(buffer, u"%s : %ls", name_, u"Off");
       break;
+
     case kTypeUnicode:
-      Utils::Format(buffer, u"%s : \"%ls\"", name_, (const c16 *)address_);
+      Utils::Format(buffer, u"%s : \"%ls\"", name_, address_);
       break;
+
     default:
       Utils::Format(buffer, u"%s : ???", name_);
       break;
@@ -192,12 +223,11 @@ void MenuEntry::GetDisplayValue(c16 *buffer) const {
 }
 
 void MenuEntry::Increment(u32 count) {
-#define INCREMENT_WRAP(type)                                        \
-  {                                                                 \
-    type val = *(type *)address_ + (type)count;                     \
-    if (max_ != (s32)kNoLimit && (s32)val > max_) val = (type)min_; \
-    if (min_ != (s32)kNoLimit && (s32)val < min_) val = (type)min_; \
-    *(type *)address_ = val;                                        \
+#define INCREMENT_WRAP(type)                               \
+  {                                                        \
+    type val = *(type *)address_ + (type)count;            \
+    if (is_max_used_ && (s32)val > max_) val = (type)min_; \
+    *(type *)address_ = val;                               \
   }
 
   switch (type_) {
@@ -228,7 +258,7 @@ void MenuEntry::Increment(u32 count) {
 
     case kTypeBits: {
       u32 b = GET_BITS(*(u32 *)address_, bit_offset_, bit_size_) + count;
-      if (max_ != (s32)kNoLimit && (s32)b > max_) b = (u32)min_;
+      if (is_max_used_ && (s32)b > max_) b = (u32)min_;
       SetBits((u32 *)address_, bit_offset_, bit_size_, b);
     } break;
 
@@ -244,12 +274,11 @@ void MenuEntry::Increment(u32 count) {
 }
 
 void MenuEntry::Decrement(u32 count) {
-#define DECREMENT_WRAP(type)                                        \
-  {                                                                 \
-    type val = *(type *)address_ - (type)count;                     \
-    if (min_ != (s32)kNoLimit && (s32)val < min_) val = (type)max_; \
-    if (max_ != (s32)kNoLimit && (s32)val > max_) val = (type)max_; \
-    *(type *)address_ = val;                                        \
+#define DECREMENT_WRAP(type)                               \
+  {                                                        \
+    type val = *(type *)address_ - (type)count;            \
+    if (is_min_used_ && (s32)val < min_) val = (type)max_; \
+    *(type *)address_ = val;                               \
   }
 
   switch (type_) {
@@ -280,7 +309,7 @@ void MenuEntry::Decrement(u32 count) {
 
     case kTypeBits: {
       u32 b = GET_BITS(*(u32 *)address_, bit_offset_, bit_size_) - count;
-      if (min_ != (s32)kNoLimit && (s32)b < min_) b = (u32)max_;
+      if (is_min_used_ && (s32)b < min_) b = (u32)max_;
       SetBits((u32 *)address_, bit_offset_, bit_size_, b);
     } break;
 
@@ -296,12 +325,12 @@ void MenuEntry::Decrement(u32 count) {
 }
 
 void MenuEntry::Edit(const void *value) {
-#define EDIT_CLAMP(type)                                            \
-  {                                                                 \
-    type val = *(type *)value;                                      \
-    if (min_ != (s32)kNoLimit && (s32)val < min_) val = (type)min_; \
-    if (max_ != (s32)kNoLimit && (s32)val > max_) val = (type)max_; \
-    *(type *)address_ = val;                                        \
+#define EDIT_CLAMP(type)                                   \
+  {                                                        \
+    type val = *(type *)value;                             \
+    if (is_min_used_ && (s32)val < min_) val = (type)min_; \
+    if (is_max_used_ && (s32)val > max_) val = (type)max_; \
+    *(type *)address_ = val;                               \
   }
 
   switch (type_) {

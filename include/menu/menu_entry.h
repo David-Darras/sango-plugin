@@ -51,8 +51,6 @@ enum MenuEntryType {
  */
 class MenuEntry {
  public:
-  static constexpr s16 kNoLimit = 0x7FFF;
-
   /**
    * @brief Default constructor initializing members to default/null states.
    */
@@ -165,8 +163,10 @@ class MenuEntry {
   u32 array_size_ : 13;  ///< Size of the mapping array.
   u32 refresh_ : 1;      ///< Flag to trigger a menu refresh on change.
 
-  s32 min_ : 16;  ///< Minimum allowed value (0x7FFF if ignored).
-  s32 max_ : 16;  ///< Maximum allowed value (0x7FFF if ignored).
+  s32 min_ : 15;
+  s32 max_ : 15;
+  s32 is_min_used_ : 1;
+  s32 is_max_used_ : 1;
 };
 
 }  // namespace menu

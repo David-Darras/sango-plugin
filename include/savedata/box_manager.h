@@ -15,8 +15,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_SAVEDATA_BOX_H
-#define SANGO_PLUGIN_SAVEDATA_BOX_H
+#ifndef SANGO_PLUGIN_SAVEDATA_BOX_MANAGER_H
+#define SANGO_PLUGIN_SAVEDATA_BOX_MANAGER_H
 
 #include "common.h"
 #include "savedata.h"
@@ -63,4 +63,4 @@ struct BoxManager {
 
 }  // namespace savedata
 
-#endif  // SANGO_PLUGIN_SAVEDATA_BOX_H
+#endif  // SANGO_PLUGIN_SAVEDATA_BOX_MANAGER_H
