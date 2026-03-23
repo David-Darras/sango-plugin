@@ -24,6 +24,7 @@ class GameEventManager;
 class GameProcessManager;
 class GameDataManager;
 class GameTimeManager;
+class WeatherManager;
 
 /**
  * @brief The primary singleton controller for the game engine.
@@ -32,40 +33,21 @@ class GameTimeManager;
  */
 class GameManager {
  public:
-  /**
-   * @brief Retrieves the static instance of the GameManager.
-   * @note The address 0x08C69094 is the hardcoded entry point in memory.
-   * @return A reference to the global GameManager instance.
-   */
   static GameManager& GetInstance() {
     return *(GameManager*)ADDRESS_GAME_MANAGER;
   }
 
-  /**
-   * @brief Accessor for the Game Process Manager.
-   * @return A reference to the active GameProcessManager.
-   */
   GameProcessManager& GetGameProcessManager() const {
     return *game_process_manager_;
   }
 
-  /**
-   * @brief Accessor for the Game Event Manager.
-   * @return A reference to the active GameEventManager.
-   */
   GameEventManager& GetGameEventManager() const { return *game_event_manager_; }
 
-  /**
-   * @brief Accessor for the Game Data.
-   * @return A reference to the active GameDataManager.
-   */
   GameDataManager& GetGameData() const { return *game_data_; }
 
-  /**
-   * @brief Accessor for the Game Time Manager.
-   * @return A reference to the active GameTimeManager.
-   */
   GameTimeManager& GetGameTimeManager() const { return *game_time_manager_; }
+
+  WeatherManager& GetWeatherManager() const { return *weather_manager_; }
 
  private:
   /** @brief Private constructor to enforce singleton pattern. */
@@ -81,7 +63,7 @@ class GameManager {
   u8 frame_mode_;            ///< Current active frame mode.
   u8 frame_count_;           ///< Global frame counter.
   u8 reserved_;              ///< Padding for memory alignment.
-  u32 unknow;
+  u32 unknow0;
 
   // Sub-Managers
   GameProcessManager*
@@ -91,6 +73,11 @@ class GameManager {
   GameDataManager*
       game_data_;  ///< Pointer to global game-specific data structures.
   GameTimeManager* game_time_manager_;
+
+  void* unknow1;
+  void* unknow2;
+
+  WeatherManager* weather_manager_;
 };
 
 #endif  // SANGO_PLUGIN_GAME_MANAGER_H
