@@ -19,13 +19,15 @@
 #include "savedata/savedata.h"
 #include "system/device.h"
 #include "system/file.h"
+#include "system/game_time_manager.h"
 #include "system/graphics.h"
 #include "system/sound.h"
 
 extern void TestMenu(menu::PluginMenu &menu);
 
 void MainMenu(menu::PluginMenu &menu) {
-  menu.Add("Savedata", savedata::SaveData::LoadMenu)
+  menu.Add("Time", GameTimeManager::LoadMenu)
+      .Add("Savedata", savedata::SaveData::LoadMenu)
       .Add("Test", TestMenu)
       .Add("Sound", Sound::LoadMenu);
 }
