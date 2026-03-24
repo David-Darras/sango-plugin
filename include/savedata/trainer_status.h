@@ -35,7 +35,7 @@ struct TrainerStatus {
   }
 
   /** @brief Initializes the plugin menu entries for real-time editing. */
-  static void LoadMenu(menu::PluginMenu& menu);
+  static void LoadMenu(menu::PluginMenu& menu, void* args);
 
   static constexpr u32 kPlayerNameLen = 13;  ///< Max name length
   static constexpr u32 kPssMessageLen = 17;  ///< Max PSS message length

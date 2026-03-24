@@ -38,7 +38,7 @@ class Sound {
    * @brief Registers sound-related entries into the provided plugin menu.
    * @param menu Reference to the PluginMenu to populate.
    */
-  static void LoadMenu(menu::PluginMenu& menu);
+  static void LoadMenu(menu::PluginMenu& menu, void* args);
 
   /**
    * @brief Directly plays a Pokémon's cry.

@@ -19,7 +19,7 @@
 
 #include "menu/plugin_menu.h"
 
-void GameTimeManager::LoadMenu(menu::PluginMenu& menu) {
+void GameTimeManager::LoadMenu(menu::PluginMenu& menu, void* args) {
   GameTimeManager& data = GetInstance();
   menu.Add("Is Enabled", data.is_enabled)
       .Add("Last Tick", data.last_tick)

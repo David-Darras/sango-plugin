@@ -28,7 +28,7 @@ namespace savedata {
  * and unlocking progression of the box system.
  */
 struct BoxManager {
-  static void LoadMenu(menu::PluginMenu& menu);
+  static void LoadMenu(menu::PluginMenu& menu, void* args);
 
   static BoxManager& GetInstance() {
     return SaveData::GetInstance().GetBoxManager();

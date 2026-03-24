@@ -24,9 +24,9 @@
 #include "system/sound.h"
 #include "system/weather_manager.h"
 
-extern void TestMenu(menu::PluginMenu &menu);
+extern void TestMenu(menu::PluginMenu &menu, void *args);
 
-void MainMenu(menu::PluginMenu &menu) {
+void MainMenu(menu::PluginMenu &menu, void *args) {
   menu.Add("Weather", WeatherManager::LoadMenu)
       .Add("Time", GameTimeManager::LoadMenu)
       .Add("Savedata", savedata::SaveData::LoadMenu)
@@ -106,7 +106,7 @@ extern "C" void Initialize() {
   }
 
   File::MountSdmc();
-  menu::PluginMenu::GetInstance().EnterSubMenu(MainMenu);
+  menu::PluginMenu::GetInstance().EnterSubMenu(MainMenu, nullptr);
   ApplyPatches();
 
   // Set a flag to ensure the initialization process is only executed once.

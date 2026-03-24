@@ -19,7 +19,7 @@
 
 #include "menu/plugin_menu.h"
 
-void WeatherManager::LoadMenu(menu::PluginMenu& menu) {
+void WeatherManager::LoadMenu(menu::PluginMenu& menu, void* args) {
   static const c8* weathers[] = {"Sunny",  "Rainy",  "Thunderstorm",
                                  "Misty",  "Ash",    "Sandstorm",
                                  "Cloudy", "Stormy", "Dry"};

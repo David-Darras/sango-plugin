@@ -45,7 +45,7 @@ const c8 *on_off[] = {"Off", "On"};
 
 static void TestToggle(void *) { test_bool ^= true; }
 
-void TestMenu(menu::PluginMenu &menu) {
+void TestMenu(menu::PluginMenu &menu, void* args) {
   menu.Add("Refresh test", test_u8)
       .WithCallback(TestToggle)
       .WithRefresh()

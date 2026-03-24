@@ -21,7 +21,7 @@
 
 namespace savedata {
 
-void PokemonAmie::LoadMenu(menu::PluginMenu& menu) {
+void PokemonAmie::LoadMenu(menu::PluginMenu& menu, void* args) {
   static u8 puff_idx = 0;
   PokemonAmie& data = GetInstance();
 

@@ -64,7 +64,7 @@ class PluginMenu {
    * @brief Enters a submenu with an optional initialization callback.
    * @param load_menu Function to call when entering the submenu.
    */
-  void EnterSubMenu(menu_callback_t load_menu);
+  void EnterSubMenu(menu_callback_t load_menu, void* args);
 
   /**
    * @brief Leaves the current submenu and returns to the previous context.
@@ -166,9 +166,12 @@ class PluginMenu {
    * @param menu Callback function to build the submenu.
    * @return Reference to the PluginMenu instance.
    */
-  PluginMenu &Add(const c8 *name, menu_callback_t menu) {
-    if (entries_count_ < kMaxEntries)
-      entries_[entries_count_++].Initialize(name, (void *)menu, kTypeMenu);
+  PluginMenu &Add(const c8 *name, menu_callback_t menu, void *args = nullptr) {
+    if (entries_count_ < kMaxEntries) {
+      entries_[entries_count_].Initialize(name, (void *)menu, kTypeMenu);
+      entries_[entries_count_].WithArgs(args);
+      entries_count_++;
+    }
     return *this;
   }
 
@@ -257,22 +260,24 @@ class PluginMenu {
     u8 offset;                  ///< Current scroll offset.
     u8 display_count;           ///< Number of entries to display.
     menu_callback_t load_menu;  ///< Initialization callback.
+    void *args;
 
     /**
      * @brief Default constructor.
      */
     MenuContext()
-        : cursor(0), offset(0), display_count(0), load_menu(nullptr) {}
+        : cursor(0), offset(0), display_count(0), load_menu(nullptr), args(nullptr) {}
 
     /**
      * @brief Resets the context with a specific callback.
      * @param menu Function to call for this context.
      */
-    void Initialize(menu_callback_t menu) {
+    void Initialize(menu_callback_t menu, void *args) {
       cursor = 0;
       offset = 0;
       display_count = 0;
       this->load_menu = menu;
+      this->args = args;
     }
   };
 

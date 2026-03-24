@@ -29,7 +29,7 @@ struct PocketMenuState {
 
 static PocketMenuState state;
 
-void ItemManager::LoadPocketMenu(menu::PluginMenu& menu) {
+void ItemManager::LoadPocketMenu(menu::PluginMenu& menu, void* args) {
   ItemManager& data = GetInstance();
   ItemSlot* target_pocket = nullptr;
   u32 max_slots = 0;
@@ -70,7 +70,7 @@ void ItemManager::LoadPocketMenu(menu::PluginMenu& menu) {
       .WithBounds(0, kMaxItemCount);
 }
 
-void ItemManager::LoadMenu(menu::PluginMenu& menu) {
+void ItemManager::LoadMenu(menu::PluginMenu& menu, void* args) {
   static const c8* pocket_names[] = {"Items", "Key Items", "TMs & HMs",
                                      "Medicine", "Berries"};
 

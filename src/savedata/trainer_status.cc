@@ -21,7 +21,7 @@
 
 namespace savedata {
 
-void TrainerStatus::LoadMenu(menu::PluginMenu& menu) {
+void TrainerStatus::LoadMenu(menu::PluginMenu& menu, void* args) {
   TrainerStatus& data = GetInstance();
 
   menu.Add("Visible Trainer ID (TID)", data.trainer_id)

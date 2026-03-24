@@ -34,10 +34,10 @@ struct ItemManager {
   };
 
   /** @brief Sub-menu for a specific pocket. */
-  static void LoadPocketMenu(menu::PluginMenu& menu);
+  static void LoadPocketMenu(menu::PluginMenu& menu, void* args);
 
   /** @brief Main menu entry point for ItemManager. */
-  static void LoadMenu(menu::PluginMenu& menu);
+  static void LoadMenu(menu::PluginMenu& menu, void* args);
 
   /** @brief Accessor for the singleton instance. */
   static ItemManager& GetInstance() {

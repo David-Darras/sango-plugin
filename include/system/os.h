@@ -38,7 +38,7 @@ struct KernelInfo {
   /**
    * @brief Configures the menu to display system information.
    */
-  static void LoadMenu(menu::PluginMenu& menu) {
+  static void LoadMenu(menu::PluginMenu& menu, void* args) {
     KernelInfo& data = GetInstance();
 
     menu.Add("Version - Major", data.version.major)

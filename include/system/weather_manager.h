@@ -21,7 +21,7 @@
 
 class WeatherManager {
  public:
-  static void LoadMenu(menu::PluginMenu& menu);
+  static void LoadMenu(menu::PluginMenu& menu, void* args);
 
   static WeatherManager& GetInstance() {
     return GameManager::GetInstance().GetWeatherManager();

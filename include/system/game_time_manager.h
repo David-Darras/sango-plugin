@@ -22,7 +22,7 @@
 #include "game_manager.h"
 
 struct GameTimeManager {
-  static void LoadMenu(menu::PluginMenu& menu);
+  static void LoadMenu(menu::PluginMenu& menu, void* args);
 
   static GameTimeManager& GetInstance() {
     return GameManager::GetInstance().GetGameTimeManager();

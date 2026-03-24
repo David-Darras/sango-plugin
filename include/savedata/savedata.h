@@ -38,7 +38,7 @@ struct TrainerStatus;
  */
 class SaveData {
  public:
-  static void LoadMenu(menu::PluginMenu& menu);
+  static void LoadMenu(menu::PluginMenu& menu, void* args);
 
   /**
    * @brief Accesses the global SaveData instance via the GameDataManager.

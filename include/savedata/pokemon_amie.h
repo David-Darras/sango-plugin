@@ -33,7 +33,7 @@ struct PokemonAmie {
    * @brief Builds the main menu for Pokémon-Amie.
    * @param menu Reference to the PluginMenu instance.
    */
-  static void LoadMenu(menu::PluginMenu& menu);
+  static void LoadMenu(menu::PluginMenu& menu, void* args);
 
   /**
    * @brief Returns the singleton instance of PokemonAmie from SaveData.

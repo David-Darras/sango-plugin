@@ -20,7 +20,7 @@
 
 namespace savedata {
 
-void BagManager::LoadMenu(menu::PluginMenu& menu) {
+void BagManager::LoadMenu(menu::PluginMenu& menu, void* args) {
   static u8 pocket_idx = 0;
   static u8 register_idx = 0;
   static u8 history_idx = 0;

@@ -50,7 +50,7 @@ void Sound::OnPlayBackgroundMusic(void*) {
  * @brief Populates the PluginMenu with audio controls.
  * Uses method chaining to add entries and their corresponding callbacks.
  */
-void Sound::LoadMenu(menu::PluginMenu& menu) {
+void Sound::LoadMenu(menu::PluginMenu& menu, void* args) {
   menu.Add("Pokemon Cry", instance_.pokemon_cry_)
       .WithCallback(OnPlayPokemonCry)
 

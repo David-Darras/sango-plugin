@@ -20,7 +20,7 @@
 
 namespace savedata {
 
-void BoxManager::LoadMenu(menu::PluginMenu& menu) {
+void BoxManager::LoadMenu(menu::PluginMenu& menu, void* args) {
   static u8 index = 0;
   BoxManager& data = GetInstance();
 

@@ -91,6 +91,11 @@ MenuEntry &MenuEntry::WithMax(s32 max) {
   return *this;
 }
 
+MenuEntry &MenuEntry::WithArgs(void *args) {
+  args_ = args;
+  return *this;
+}
+
 u8 MenuEntry::GetType() const { return type_; }
 
 void MenuEntry::GetDefaultDisplayValue(c16 *buffer) const {
@@ -363,7 +368,7 @@ void MenuEntry::Edit(const void *value) {
       break;
 
     case kTypeMenu:
-      PluginMenu::GetInstance().EnterSubMenu((menu_callback_t)address_);
+      PluginMenu::GetInstance().EnterSubMenu((menu_callback_t)address_, args_);
       break;
 
     case kTypeUnicode:
@@ -383,11 +388,11 @@ void MenuEntry::Edit(const void *value) {
   if (refresh_) PluginMenu::GetInstance().Refresh();
 }
 
-void MenuEntry::Execute(void *args) {
+void MenuEntry::Execute() {
   if (kTypeMenu == type_) {
-    PluginMenu::GetInstance().EnterSubMenu((menu_callback_t)address_);
+    PluginMenu::GetInstance().EnterSubMenu((menu_callback_t)address_, args_);
   } else if (callback_ != nullptr) {
-    callback_(args);
+    callback_(args_);
   }
 }
 

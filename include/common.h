@@ -24,8 +24,8 @@ namespace menu {
 class PluginMenu;
 }
 
-typedef void (*menu_callback_t)(menu::PluginMenu& menu);
-typedef void (*callback_t)(void*);
+typedef void (*menu_callback_t)(menu::PluginMenu& menu, void* args);
+typedef void (*callback_t)(void* args);
 
 #define TYPEDEF_INTEGER(n, t)        \
   typedef unsigned t u##n;           \

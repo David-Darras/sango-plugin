@@ -29,7 +29,7 @@ namespace savedata {
  * the rival's name, and unlock flags for game mechanics.
  */
 struct Misc {
-  static void LoadMenu(menu::PluginMenu& menu);
+  static void LoadMenu(menu::PluginMenu& menu, void* args);
 
   static Misc& GetInstance() { return SaveData::GetInstance().GetMisc(); }
 

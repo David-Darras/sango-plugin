@@ -26,7 +26,7 @@
 
 namespace savedata {
 
-void SaveData::LoadMenu(menu::PluginMenu& menu) {
+void SaveData::LoadMenu(menu::PluginMenu& menu, void* args) {
   menu.Add("Trainer Status", TrainerStatus::LoadMenu)
       .Add("Items", ItemManager::LoadMenu)
       .Add("Pokemon-Amie", PokemonAmie::LoadMenu)

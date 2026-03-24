@@ -21,7 +21,7 @@
 
 namespace savedata {
 
-void Misc::LoadMenu(menu::PluginMenu& menu) {
+void Misc::LoadMenu(menu::PluginMenu& menu, void* args) {
   Misc& data = GetInstance();
   menu.Add("Money", data.money)
       .Add("Battle Points", data.battle_points)

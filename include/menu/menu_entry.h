@@ -104,6 +104,8 @@ class MenuEntry {
    */
   MenuEntry &WithMax(s32 max);
 
+  MenuEntry &WithArgs(void *args);
+
   /**
    * @brief Gets the current entry type.
    * @return The MenuEntryType value.
@@ -136,9 +138,8 @@ class MenuEntry {
 
   /**
    * @brief Triggers the attached callback if one exists.
-   * @param args Pointer to arguments to pass to the callback.
    */
-  void Execute(void *args);
+  void Execute();
 
  private:
   /**
@@ -155,6 +156,7 @@ class MenuEntry {
   void *address_;        ///< Memory address of the targeted variable.
   const c8 **array_;     ///< Optional array for string mapping.
   callback_t callback_;  ///< Optional execution callback.
+  void *args_;           ///< Arguments for MenuEntryType
 
   // Bitfields for memory efficiency
   u32 type_ : 6;         ///< Storage for MenuEntryType.

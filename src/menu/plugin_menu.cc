@@ -136,7 +136,7 @@ void PluginMenu::Update() {
   } else if (ctrl.IsKeyReleased(Key::kB)) {
     LeaveSubMenu();
   } else if (ctrl.IsKeyReleased(Key::kA)) {
-    entry.Execute(nullptr);
+    entry.Execute();
   } else if (ctrl.IsKeyReleased(Key::kX) || numpad_.IsButtonOkReleased() ||
              keyboard_.IsButtonOkReleased()) {
     Sound::PlaySoundEffect(0);
@@ -173,14 +173,14 @@ void PluginMenu::Update() {
     offset--;
 }
 
-void PluginMenu::EnterSubMenu(menu_callback_t load_menu) {
+void PluginMenu::EnterSubMenu(menu_callback_t load_menu, void* args) {
   if (contexts_count_ >= kMaxContexts) return;
 
-  contexts_[contexts_count_].Initialize(load_menu);
+  contexts_[contexts_count_].Initialize(load_menu, args);
   contexts_count_++;
 
   entries_count_ = 0;
-  load_menu(*this);
+  load_menu(*this, args);
 
   MenuContext& ctx = GetContext();
   ctx.display_count =
@@ -195,7 +195,7 @@ void PluginMenu::LeaveSubMenu() {
   MenuContext& ctx = GetContext();
 
   entries_count_ = 0;
-  ctx.load_menu(*this);
+  ctx.load_menu(*this, ctx.args);
 
   ctx.display_count =
       entries_count_ > kMaxDisplayCount ? kMaxDisplayCount : entries_count_;
@@ -204,7 +204,7 @@ void PluginMenu::LeaveSubMenu() {
 void PluginMenu::Refresh() {
   MenuContext& ctx = GetContext();
   entries_count_ = 0;
-  ctx.load_menu(*this);
+  ctx.load_menu(*this, ctx.args);
   ctx.display_count =
       (entries_count_ > kMaxDisplayCount) ? kMaxDisplayCount : entries_count_;
   if (ctx.cursor + ctx.offset >= entries_count_) {
