@@ -17,6 +17,7 @@
 
 #include "menu/plugin_menu.h"
 
+#include "menu/log_menu.h"
 #include "system/device.h"
 #include "system/game_event_manager.h"
 #include "system/game_process_manager.h"
@@ -29,6 +30,12 @@ namespace menu {
 PluginMenu PluginMenu::instance_ = PluginMenu();
 
 void PluginMenu::DrawTop() {
+  LogMenu& log_menu = LogMenu::GetInstance();
+  if (log_menu.IsEnabled()) {
+    log_menu.Draw();
+    return;
+  }
+
   Controller& ctrl = Controller::GetInstance();
   MenuContext& ctx = GetContext();
 
@@ -69,12 +76,14 @@ void PluginMenu::DrawBottom() {
 
   // Show the current process + event of the game.
   c16 buffer[BUFFER_SIZE];
-  void* vtable =
-      &GameProcessManager::GetInstance().GetMainHandle().GetProcess();
+  uptr baseAddr =
+      (uptr)&GameProcessManager::GetInstance().GetMainHandle().GetProcess();
+  void* vtable = (void*)*(u32*)baseAddr;
   Utils::Format(buffer, u"Process=%s", Utils::GetClassNameFromVTable(vtable));
   Graphics::DrawText(5, 150, buffer);
 
-  vtable = &GameEventManager::GetInstance().GetGameEvent();
+  baseAddr = (uptr)&GameEventManager::GetInstance().GetGameEvent();
+  vtable = (void*)*(u32*)baseAddr;
   Utils::Format(buffer, u"Event=%s", Utils::GetClassNameFromVTable(vtable));
   Graphics::DrawText(5, 170, buffer);
 
@@ -97,6 +106,19 @@ void PluginMenu::Update() {
   }
 
   if (!IsOpened()) return;
+
+  LogMenu& log_menu = LogMenu::GetInstance();
+  if (ctrl.IsKeyPressed(Key::kR)) {
+    log_menu.Toggle();
+  }
+
+  if (ctrl.IsKeyPressed(Key::kL)) {
+    GameProcessManager& instance = GameProcessManager::GetInstance();
+    log_menu.Add(u"process manager=%08X", &instance);
+    log_menu.Add(u"main handle=%08X", &instance.GetMainHandle());
+    log_menu.Add(u"current process=%08X",
+                 &instance.GetMainHandle().GetProcess());
+  }
 
   MenuContext& ctx = GetContext();
   MenuEntry& entry = GetSelectedEntry();

@@ -15,18 +15,35 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "system/weather_manager.h"
+#ifndef SANGO_PLUGIN_MENU_LOG_MENU_H
+#define SANGO_PLUGIN_MENU_LOG_MENU_H
 
-#include "menu/plugin_menu.h"
+#include "core.h"
 
-void WeatherManager::LoadMenu(menu::PluginMenu& menu) {
-  static const c8* weathers[] = {"Sunny",  "Rainy",  "Thunderstorm",
-                                 "Misty",  "Ash",    "Sandstorm",
-                                 "Cloudy", "Stormy", "Dry"};
+namespace menu {
 
-  WeatherManager& data = GetInstance();
-  menu.Add("Requested Weather", data.GetRequestedWeather())
-      .WithArray(weathers, SIZE(weathers))
-      .Add("Current Weather", data.GetCurrentWeather())
-      .WithArray(weathers, SIZE(weathers));
-}
+class LogMenu {
+ public:
+  static LogMenu& GetInstance() { return instance_; }
+
+  void Toggle() { is_enabled_ ^= true; }
+  bool IsEnabled() const { return is_enabled_; }
+
+  void Draw();
+  void Add(const c16* message, ...);
+
+ private:
+  LogMenu();
+
+  static constexpr u32 kMaxEntries = 13;
+  static constexpr u32 kMaxEntryLength = 64;
+  static constexpr u32 kLineHeight = 18;
+  static LogMenu instance_;
+
+  bool is_enabled_;
+  c16 log_entries_[kMaxEntries][kMaxEntryLength];
+};
+
+}  // namespace menu
+
+#endif  // SANGO_PLUGIN_MENU_LOG_MENU_H
