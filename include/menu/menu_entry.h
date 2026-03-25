@@ -42,6 +42,7 @@ enum MenuEntryType {
   kTypeMenu,
   kTypeUnicode,
   kTypeCheatCode,
+  kTypeIdle,
   kTypeMax,
 };
 

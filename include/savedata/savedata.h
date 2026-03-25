@@ -29,6 +29,7 @@ struct BagManager;
 struct PokemonAmie;
 struct ItemManager;
 struct TrainerStatus;
+struct PokemonBox;
 
 /**
  * @class SaveData
@@ -65,6 +66,8 @@ class SaveData {
   ItemManager& GetItemManager() { return *(ItemManager*)segments_[1]; }
 
   TrainerStatus& GetTrainerStatus() { return *(TrainerStatus*)segments_[17]; }
+
+  PokemonBox& GetPokemonBox() { return *(PokemonBox*)segments_[56]; }
 
   /// @brief Total number of data segments monitored for integrity.
   static constexpr u32 kSegmentCount = 58;

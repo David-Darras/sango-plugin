@@ -14,27 +14,26 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include "savedata/savedata.h"
+
+#include "savedata/pokemon_box.h"
 
 #include "menu/plugin_menu.h"
-#include "savedata/bag_manager.h"
-#include "savedata/box_manager.h"
-#include "savedata/item_manager.h"
-#include "savedata/misc.h"
-#include "savedata/pokemon_amie.h"
-#include "savedata/pokemon_box.h"
-#include "savedata/trainer_status.h"
 
 namespace savedata {
 
-void SaveData::LoadMenu(menu::PluginMenu& menu, void* args) {
-  menu.Add("Pokemons", PokemonBox::LoadMenu)
-      .Add("Trainer Status", TrainerStatus::LoadMenu)
-      .Add("Items", ItemManager::LoadMenu)
-      .Add("Pokemon-Amie", PokemonAmie::LoadMenu)
-      .Add("Bag", BagManager::LoadMenu)
-      .Add("Boxes", BoxManager::LoadMenu)
-      .Add("Miscellaneous", Misc::LoadMenu);
+static struct PokemonBoxContext {
+  u8 box_idx;
+  u8 slot_idx;
+} ctx = {0, 0};
+
+void PokemonBox::LoadMenu(menu::PluginMenu& menu, void* args) {
+  PokemonBox& data = GetInstance();
+  menu.Add("Box Index", ctx.box_idx)
+      .WithRefresh()
+      .Add("Slot Index", ctx.slot_idx)
+      .WithRefresh()
+      .Add("Edit Pokemon", PokemonCoreData::LoadMenu,
+           &data.boxes[ctx.box_idx].pokemons[ctx.slot_idx]);
 }
 
 }  // namespace savedata

@@ -14,27 +14,28 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include "savedata/savedata.h"
 
-#include "menu/plugin_menu.h"
-#include "savedata/bag_manager.h"
-#include "savedata/box_manager.h"
-#include "savedata/item_manager.h"
-#include "savedata/misc.h"
-#include "savedata/pokemon_amie.h"
-#include "savedata/pokemon_box.h"
-#include "savedata/trainer_status.h"
+#ifndef SANGO_PLUGIN_SAVEDATA_POKEMON_BOX_H
+#define SANGO_PLUGIN_SAVEDATA_POKEMON_BOX_H
+#include "savedata.h"
+#include "savedata/pokemon_core_data.h"
 
 namespace savedata {
 
-void SaveData::LoadMenu(menu::PluginMenu& menu, void* args) {
-  menu.Add("Pokemons", PokemonBox::LoadMenu)
-      .Add("Trainer Status", TrainerStatus::LoadMenu)
-      .Add("Items", ItemManager::LoadMenu)
-      .Add("Pokemon-Amie", PokemonAmie::LoadMenu)
-      .Add("Bag", BagManager::LoadMenu)
-      .Add("Boxes", BoxManager::LoadMenu)
-      .Add("Miscellaneous", Misc::LoadMenu);
-}
+struct Box {
+  PokemonCoreData pokemons[30];
+};
+
+struct PokemonBox {
+  static PokemonBox& GetInstance() {
+    return SaveData::GetInstance().GetPokemonBox();
+  }
+  static void LoadMenu(menu::PluginMenu& menu, void* args);
+
+  void* vtable;
+  Box boxes[30];
+};
 
 }  // namespace savedata
+
+#endif  // SANGO_PLUGIN_SAVEDATA_POKEMON_BOX_H

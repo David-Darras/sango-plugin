@@ -162,6 +162,10 @@ void MenuEntry::GetDefaultDisplayValue(c16 *buffer) const {
       Utils::Format(buffer, u"%s : \"%ls\"", name_, address_);
       break;
 
+    case kTypeIdle:
+      Utils::Format(buffer, u"%s", name_);
+      break;
+
     default:
       Utils::Format(buffer, u"%s : ???", name_);
       break;

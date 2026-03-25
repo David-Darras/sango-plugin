@@ -64,7 +64,7 @@ class PluginMenu {
    * @brief Enters a submenu with an optional initialization callback.
    * @param load_menu Function to call when entering the submenu.
    */
-  void EnterSubMenu(menu_callback_t load_menu, void* args);
+  void EnterSubMenu(menu_callback_t load_menu, void *args);
 
   /**
    * @brief Leaves the current submenu and returns to the previous context.
@@ -146,6 +146,15 @@ class PluginMenu {
    * the context stack, reflecting real-time changes in game state.
    */
   void Refresh();
+
+  PluginMenu &Add(const c8 *name, callback_t callback) {
+    if (entries_count_ < kMaxEntries) {
+      entries_[entries_count_].Initialize(name, nullptr, kTypeIdle);
+      entries_[entries_count_].WithCallback(callback);
+      entries_count_++;
+    }
+    return *this;
+  }
 
   /**
    * @brief Adds a simple menu entry by name, address, and type.
@@ -266,7 +275,11 @@ class PluginMenu {
      * @brief Default constructor.
      */
     MenuContext()
-        : cursor(0), offset(0), display_count(0), load_menu(nullptr), args(nullptr) {}
+        : cursor(0),
+          offset(0),
+          display_count(0),
+          load_menu(nullptr),
+          args(nullptr) {}
 
     /**
      * @brief Resets the context with a specific callback.
