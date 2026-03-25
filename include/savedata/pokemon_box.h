@@ -22,18 +22,19 @@
 
 namespace savedata {
 
-struct Box {
-  PokemonCoreData pokemons[30];
-};
-
 struct PokemonBox {
   static PokemonBox& GetInstance() {
     return SaveData::GetInstance().GetPokemonBox();
   }
   static void LoadMenu(menu::PluginMenu& menu, void* args);
 
+  static constexpr u32 kMaxBoxes = 31;
+  static constexpr u32 kMaxSlotsPerBox = 30;
+
   void* vtable;
-  Box boxes[30];
+  struct {
+    PokemonCoreData pokemons[kMaxSlotsPerBox];
+  } boxes[kMaxBoxes];
 };
 
 }  // namespace savedata

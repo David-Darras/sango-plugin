@@ -18,6 +18,7 @@
 
 #include "menu/plugin_menu.h"
 #include "savedata/bag_manager.h"
+#include "savedata/battle_box.h"
 #include "savedata/box_manager.h"
 #include "savedata/item_manager.h"
 #include "savedata/misc.h"
@@ -28,7 +29,8 @@
 namespace savedata {
 
 void SaveData::LoadMenu(menu::PluginMenu& menu, void* args) {
-  menu.Add("Pokemons", PokemonBox::LoadMenu)
+  menu.Add("Battle Box", BattleBox::LoadMenu)
+      .Add("Pokemons", PokemonBox::LoadMenu)
       .Add("Trainer Status", TrainerStatus::LoadMenu)
       .Add("Items", ItemManager::LoadMenu)
       .Add("Pokemon-Amie", PokemonAmie::LoadMenu)

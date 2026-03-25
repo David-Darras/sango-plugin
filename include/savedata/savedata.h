@@ -30,6 +30,7 @@ struct PokemonAmie;
 struct ItemManager;
 struct TrainerStatus;
 struct PokemonBox;
+struct BattleBox;
 
 /**
  * @class SaveData
@@ -58,6 +59,8 @@ class SaveData {
   Misc& GetMisc() { return *(Misc*)segments_[11]; }
 
   BoxManager& GetBoxManager() { return *(BoxManager*)segments_[12]; }
+
+  BattleBox& GetBattleBox() { return *(BattleBox*)segments_[13]; }
 
   BagManager& GetBagManager() { return *(BagManager*)segments_[2]; }
 

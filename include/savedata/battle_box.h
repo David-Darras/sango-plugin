@@ -15,27 +15,26 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "savedata/pokemon_box.h"
+#ifndef SANGO_PLUGIN_SAVEDATA_BATTLE_BOX_H
+#define SANGO_PLUGIN_SAVEDATA_BATTLE_BOX_H
 
-#include "menu/plugin_menu.h"
+#include "pokemon_core_data.h"
+#include "savedata.h"
 
 namespace savedata {
 
-static struct PokemonBoxContext {
-  u8 box_idx;
-  u8 slot_idx;
-} ctx = {0, 0};
+struct BattleBox {
+  static BattleBox& GetInstance() {
+    return SaveData::GetInstance().GetBattleBox();
+  }
+  static void LoadMenu(menu::PluginMenu& menu, void* args);
 
-void PokemonBox::LoadMenu(menu::PluginMenu& menu, void* args) {
-  PokemonBox& data = GetInstance();
-  menu.Add("Box Index", ctx.box_idx)
-      .WithBounds(0, kMaxBoxes - 1)
-      .WithRefresh()
-      .Add("Slot Index", ctx.slot_idx)
-      .WithBounds(0, kMaxSlotsPerBox - 1)
-      .WithRefresh()
-      .Add("Edit Pokemon", PokemonCoreData::LoadMenu,
-           &data.boxes[ctx.box_idx].pokemons[ctx.slot_idx]);
-}
+  static constexpr u32 kMaxSlots = 6;
+
+  void* vtable;
+  PokemonCoreData pokemons[kMaxSlots];
+};
 
 }  // namespace savedata
+
+#endif  // SANGO_PLUGIN_SAVEDATA_BATTLE_BOX_H
