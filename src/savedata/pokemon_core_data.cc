@@ -32,7 +32,7 @@ static struct {
   PokemonCoreData* core_data;
 } ctx;
 
-void Save(void*) {
+static void Save(void*) {
   PokemonCoreData* pkm = ctx.accessor.GetCoreData();
 
   pkm->experience =

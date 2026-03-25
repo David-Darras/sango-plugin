@@ -31,6 +31,7 @@ struct ItemManager;
 struct TrainerStatus;
 struct PokemonBox;
 struct BattleBox;
+struct PokemonTeam;
 
 /**
  * @class SaveData
@@ -69,6 +70,8 @@ class SaveData {
   ItemManager& GetItemManager() { return *(ItemManager*)segments_[1]; }
 
   TrainerStatus& GetTrainerStatus() { return *(TrainerStatus*)segments_[17]; }
+
+  PokemonTeam& GetPokemonTeam() { return *(PokemonTeam*)segments_[18]; }
 
   PokemonBox& GetPokemonBox() { return *(PokemonBox*)segments_[56]; }
 

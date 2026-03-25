@@ -20,8 +20,9 @@
 #include "game_manager.h"
 
 namespace savedata {
+struct PokemonTeam;
 class SaveData;
-}
+}  // namespace savedata
 
 /**
  * @class GameDataManager
@@ -31,26 +32,16 @@ class SaveData;
  */
 class GameDataManager {
  public:
-  /**
-   * @brief Retrieves the singleton instance of GameDataManager.
-   * * Accesses the global GameDataManager via the primary GameManager
-   * singleton.
-   * @return A reference to the GameDataManager instance.
-   */
   static GameDataManager& GetInstance() {
     return GameManager::GetInstance().GetGameData();
   }
 
-  /**
-   * @brief Accesses the save data management object.
-   * @return A reference to the current SaveData instance.
-   */
   savedata::SaveData& GetSavedata() const { return *savedata_; }
+  savedata::PokemonTeam& GetPokemonTeam() const { return *pokemon_team_; }
 
-  /**
-   * @brief Internal pointer to the SaveData structure.
-   */
   savedata::SaveData* savedata_;
+  void* _0[4];
+  savedata::PokemonTeam* pokemon_team_;
 };
 
 #endif  // SANGO_PLUGIN_GAME_DATA_MANAGER_H

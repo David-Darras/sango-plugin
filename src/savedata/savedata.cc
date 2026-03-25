@@ -24,18 +24,20 @@
 #include "savedata/misc.h"
 #include "savedata/pokemon_amie.h"
 #include "savedata/pokemon_box.h"
+#include "savedata/pokemon_team.h"
 #include "savedata/trainer_status.h"
 
 namespace savedata {
 
 void SaveData::LoadMenu(menu::PluginMenu& menu, void* args) {
-  menu.Add("Battle Box", BattleBox::LoadMenu)
-      .Add("Pokemons", PokemonBox::LoadMenu)
+  menu.Add("Team", PokemonTeam::LoadMenu)
+      .Add("Battle Box", BattleBox::LoadMenu)
+      .Add("PC", PokemonBox::LoadMenu)
       .Add("Trainer Status", TrainerStatus::LoadMenu)
       .Add("Items", ItemManager::LoadMenu)
       .Add("Pokemon-Amie", PokemonAmie::LoadMenu)
-      .Add("Bag", BagManager::LoadMenu)
-      .Add("Boxes", BoxManager::LoadMenu)
+      .Add("Bag Metadata", BagManager::LoadMenu)
+      .Add("Boxes Metadata", BoxManager::LoadMenu)
       .Add("Miscellaneous", Misc::LoadMenu);
 }
 
