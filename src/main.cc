@@ -18,6 +18,7 @@
 #include "field/overworld_model_manager.h"
 #include "menu/plugin_menu.h"
 #include "savedata/savedata.h"
+#include "system/cheat_code_manager.h"
 #include "system/device.h"
 #include "system/file.h"
 #include "system/game_time_manager.h"
@@ -34,6 +35,12 @@ void MainMenu(menu::PluginMenu &menu, void *args) {
       .Add("Savedata", savedata::SaveData::LoadMenu)
       .Add("Test", TestMenu)
       .Add("Sound", Sound::LoadMenu);
+}
+
+void SetupCheatCodes() {
+  CheatCodeManager &man = CheatCodeManager::GetInstance();
+  man.Add(CheatCodeId::kNoclip, field::OverworldModelManager::Noclip);
+  man.Add(CheatCodeId::kSwarmMod, field::OverworldModelManager::SwarmMod);
 }
 
 void ApplyPatches() {
@@ -55,6 +62,8 @@ extern "C" void OnFrame() {
 
   // Updates the logic based on user input.
   menu.Update();
+
+  CheatCodeManager::GetInstance().Update();
 
   if (!menu.IsOpened()) return;
 
@@ -110,6 +119,7 @@ extern "C" void Initialize() {
   File::MountSdmc();
   menu::PluginMenu::GetInstance().EnterSubMenu(MainMenu, nullptr);
   ApplyPatches();
+  SetupCheatCodes();
 
   // Set a flag to ensure the initialization process is only executed once.
   WRITE(u32, ADDRESS_TARGET - 4, 1);

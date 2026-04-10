@@ -89,6 +89,11 @@ class Utils {
     addr = READ(u32, addr - 4);
     return (const c8*)(READ(u32, addr + 8));  // Access base class name offset
   }
+
+  // Example : overworld_models_
+  static u32 GetArrayElementSize(uptr addr) { return READ(u32, addr - 8); }
+
+  static u32 GetArrayCapacity(uptr addr) { return READ(u32, addr - 4); }
 };
 
 #endif  // SANGO_PLUGIN_UTILS_H

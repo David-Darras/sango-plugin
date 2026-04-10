@@ -26,6 +26,10 @@ class GameDataManager;
 class GameTimeManager;
 class WeatherManager;
 
+namespace field {
+class MapManager;
+}
+
 /**
  * @brief The primary singleton controller for the game engine.
  * Acts as the central hub for memory heaps, frame timing, and
@@ -74,8 +78,8 @@ class GameManager {
       game_data_;  ///< Pointer to global game-specific data structures.
   GameTimeManager* game_time_manager_;
 
-  void* unknow1;
-  void* unknow2;
+  void* _0;
+  void* _1;
 
   WeatherManager* weather_manager_;
 };

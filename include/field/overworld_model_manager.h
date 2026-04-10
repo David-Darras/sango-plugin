@@ -23,7 +23,42 @@
 
 namespace field {
 
-struct OverworldModel {};
+struct Position {
+  u32 _0;
+  Vec3 coords;
+  Vec3 _1;
+  Vec3 _2;
+  u32 _3;
+};
+
+struct OverworldModel {
+  static constexpr u32 kSize = 0xAB0;
+
+  bool IsUsed() const { return (flags[0] & 1) == 1; }
+
+  void* vtable;
+  u32 flags[2];
+
+  u16 id;  // 0xFF = player
+  u16 map_id;
+  u16 model_id;
+  u16 move_id;
+  u16 _0[4];
+
+  Vec3 facing_direction;
+  Vec3 movement_direction;
+  Vec3 prev_facing_direction;
+  Vec3 prev_movement_direction;
+
+  u16 _2[12];
+
+  Position init_pos;
+  Position prev_pos;
+  Position map_pos;
+  Position world_pos;
+  Vec3 draw_pos;
+  Vec3 draw_offset;
+};
 
 struct OverworldModelResource {
   u32 _0[5];
@@ -33,13 +68,35 @@ struct OverworldModelResource {
 
 class OverworldModelManager {
  public:
+  static constexpr u32 kPlayerId = 0xFF;
+
   static OverworldModelManager& GetInstance() {
     return GameDataManager::GetInstance().GetOverworldModelManager();
   }
 
   static void LoadMenu(menu::PluginMenu& menu, void* args);
+  static void Noclip(void*);
+  static void SwarmMod(void*);
 
   OverworldModelResource& GetResource(u32 idx) { return resources_[idx]; }
+
+  OverworldModel& GetPlayer() {
+    for (u32 i = 0; i < kMaxModels; i++) {
+      OverworldModel& model = *(OverworldModel*)((uptr)overworld_models_ +
+                                                 OverworldModel::kSize * i);
+      if (model.id == kPlayerId) {
+        return model;
+      }
+    }
+    return overworld_models_[0];
+  }
+
+  OverworldModel& GetModel(u32 idx) {
+    return *(OverworldModel*)((uptr)overworld_models_ +
+                              OverworldModel::kSize * idx);
+  }
+
+  static constexpr u32 kMaxModels = 32;
 
  private:
   void* heap_;
@@ -53,7 +110,7 @@ class OverworldModelManager {
 
   u32 resource_count_;
   u32 resource_count_2_;
-  OverworldModelResource resources_[33];
+  OverworldModelResource resources_[kMaxModels];
 };
 
 }  // namespace field

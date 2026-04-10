@@ -21,6 +21,8 @@
 #include "keyboard.h"
 #include "menu_entry.h"
 #include "numpad.h"
+#include "system/cheat_code.h"
+#include "system/cheat_code_manager.h"
 
 namespace menu {
 
@@ -147,7 +149,16 @@ class PluginMenu {
    */
   void Refresh();
 
-  PluginMenu &Add(const c8 *name, callback_t callback) {
+  PluginMenu &Add(const c8 *name, CheatCodeId id) {
+    if (entries_count_ < kMaxEntries) {
+      entries_[entries_count_].Initialize(
+          name, CheatCodeManager::GetInstance().Get(id), kTypeCheatCode);
+      entries_count_++;
+    }
+    return *this;
+  }
+
+  PluginMenu &Add(const c8 *name, callback_t callback = nullptr) {
     if (entries_count_ < kMaxEntries) {
       entries_[entries_count_].Initialize(name, nullptr, kTypeIdle);
       entries_[entries_count_].WithCallback(callback);

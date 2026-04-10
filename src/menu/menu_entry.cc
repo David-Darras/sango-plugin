@@ -18,6 +18,7 @@
 #include "menu/menu_entry.h"
 
 #include "menu/plugin_menu.h"
+#include "system/cheat_code.h"
 #include "utils.h"
 
 namespace menu {
@@ -155,7 +156,8 @@ void MenuEntry::GetDefaultDisplayValue(c16 *buffer) const {
       break;
 
     case kTypeCheatCode:
-      Utils::Format(buffer, u"%s : %ls", name_, u"Off");
+      Utils::Format(buffer, u"%s : %s", name_,
+                    ((CheatCode *)address_)->IsEnabled() ? "On" : "Off");
       break;
 
     case kTypeUnicode:
@@ -279,6 +281,11 @@ void MenuEntry::Increment(u32 count) {
     case kTypeBoolean:
       *(bool *)address_ ^= true;
       break;
+
+    case kTypeCheatCode:
+      ((CheatCode *)address_)->Toggle();
+      break;
+
     default:
       break;
   }
@@ -335,6 +342,11 @@ void MenuEntry::Decrement(u32 count) {
     case kTypeBoolean:
       *(bool *)address_ ^= true;
       break;
+
+    case kTypeCheatCode:
+      ((CheatCode *)address_)->Toggle();
+      break;
+
     default:
       break;
   }
@@ -382,6 +394,10 @@ void MenuEntry::Edit(const void *value) {
       }
       // Garanti la terminaison nulle
       *(c16 *)((uptr)address_ + (bit_offset_ - 1) * 2) = 0;
+      break;
+
+    case kTypeCheatCode:
+      ((CheatCode *)address_)->Toggle();
       break;
 
     default:

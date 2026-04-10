@@ -17,14 +17,96 @@
 
 #include "field/overworld_model_manager.h"
 
+#include <math.h>
+
+#include "menu/log_menu.h"
 #include "menu/plugin_menu.h"
+#include "system/device.h"
 
 namespace field {
 
-void OverworldModelManager::LoadMenu(menu::PluginMenu& menu, void* args) {
+static struct {
+  Vec3 speed;
+  f32 theta;
+  f32 radius;
+  f32 theta_speed;
+  u32 model_idx;
+} ctx = {{1, 1, 1}, 0, 5, 1, 0};
+
+void OverworldModelManager::Noclip(void*) {
+  OverworldModel& player = GetInstance().GetPlayer();
+  Controller& controller = Controller::GetInstance();
+
+#define ADD_MOVEMENT(key, composant, val)                                    \
+  if (controller.IsKeyDown(Key::key)) {                                      \
+    player.map_pos.coords.composant += (val) * ctx.speed.composant;          \
+    player.world_pos.coords.composant += (val) * 9.0f * ctx.speed.composant; \
+    player.draw_pos.composant += (val) * 9.0f * ctx.speed.composant;         \
+  }
+
+  ADD_MOVEMENT(kLeft, x, -1)
+  ADD_MOVEMENT(kRight, x, 1)
+  ADD_MOVEMENT(kL, y, -1)
+  ADD_MOVEMENT(kR, y, 1)
+  ADD_MOVEMENT(kUp, z, -1)
+  ADD_MOVEMENT(kDown, z, 1)
+
+#undef ADD_MOVEMENT
+}
+
+void OverworldModelManager::SwarmMod(void*) {
   OverworldModelManager& man = GetInstance();
-  OverworldModelResource& rsrc = man.GetResource(0);
-  menu.Add("Player Model Id", rsrc.model_id);
+  OverworldModel& player = man.GetPlayer();
+
+  u32 npc_count = 0;
+  for (u32 i = 0; i < kMaxModels; i++) {
+    OverworldModel& model = man.GetModel(i);
+    if (model.IsUsed() && &model != &player) {
+      npc_count++;
+    }
+  }
+
+  for (u32 i = 0; i < kMaxModels; i++) {
+    OverworldModel& model = man.GetModel(i);
+    if (!(model.IsUsed() && &model != &player)) {
+      continue;
+    }
+
+    float phi = ctx.theta + (f32)i * 2.0 * M_PI / (f32)npc_count;
+
+    model.world_pos.coords.x =
+        player.world_pos.coords.x + ctx.radius * cos(phi);
+    model.world_pos.coords.z =
+        player.world_pos.coords.z + ctx.radius * sin(phi);
+    model.world_pos.coords.y = player.world_pos.coords.y;
+
+    model.draw_pos.x = player.draw_pos.x + 9 * ctx.radius * cos(phi);
+    model.draw_pos.z = player.draw_pos.z + 9 * ctx.radius * sin(phi);
+    model.draw_pos.y = player.draw_pos.y;
+
+    ctx.theta += 0.01f * ctx.theta_speed;
+  }
+}
+
+void OverworldModelManager::LoadMenu(menu::PluginMenu& menu, void* args) {
+  static const char* sep = "--------------------";
+
+  OverworldModelManager& man = GetInstance();
+  OverworldModelResource& rsrc = man.GetResource(ctx.model_idx);
+  menu.Add(sep)
+      .Add("Noclip", CheatCodeId::kNoclip)
+      .Add("Speed-X", ctx.speed.x)
+      .Add("Speed-Y", ctx.speed.y)
+      .Add("Speed-Z", ctx.speed.z)
+      .Add(sep)
+      .Add("Swarm Mod", CheatCodeId::kSwarmMod)
+      .Add("Circle Radius", ctx.radius)
+      .Add("Rotation Speed", ctx.theta_speed)
+      .Add(sep)
+      .Add("Model Index", ctx.model_idx)
+      .WithBounds(0, kMaxModels - 1)
+      .WithRefresh()
+      .Add("Model Id", rsrc.model_id);
 }
 
 }  // namespace field
