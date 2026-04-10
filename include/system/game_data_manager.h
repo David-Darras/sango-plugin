@@ -25,6 +25,10 @@ class SaveData;
 struct PlayTime;
 }  // namespace savedata
 
+namespace field {
+class OverworldModelManager;
+}  // namespace field
+
 /**
  * @class GameDataManager
  * @brief Orchestrates access to the game data systems.
@@ -40,11 +44,16 @@ class GameDataManager {
   savedata::SaveData& GetSavedata() const { return *savedata_; }
   savedata::PokemonTeam& GetPokemonTeam() const { return *pokemon_team_; }
   savedata::PlayTime& GetPlayTime() const { return *play_time_; }
+  field::OverworldModelManager& GetOverworldModelManager() const {
+    return *overworld_model_manager_;
+  }
 
   savedata::SaveData* savedata_;
   void* _0[4];
   savedata::PokemonTeam* pokemon_team_;
   savedata::PlayTime* play_time_;
+  void* _1;
+  field::OverworldModelManager* overworld_model_manager_;
 };
 
 #endif  // SANGO_PLUGIN_GAME_DATA_MANAGER_H

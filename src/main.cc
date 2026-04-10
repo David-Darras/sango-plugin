@@ -15,6 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "field/overworld_model_manager.h"
 #include "menu/plugin_menu.h"
 #include "savedata/savedata.h"
 #include "system/device.h"
@@ -27,7 +28,8 @@
 extern void TestMenu(menu::PluginMenu &menu, void *args);
 
 void MainMenu(menu::PluginMenu &menu, void *args) {
-  menu.Add("Weather", WeatherManager::LoadMenu)
+  menu.Add("Field", field::OverworldModelManager::LoadMenu)
+      .Add("Weather", WeatherManager::LoadMenu)
       .Add("Time", GameTimeManager::LoadMenu)
       .Add("Savedata", savedata::SaveData::LoadMenu)
       .Add("Test", TestMenu)
