@@ -18,7 +18,7 @@
 #ifndef SANGO_PLUGIN_FILE_H
 #define SANGO_PLUGIN_FILE_H
 
-#include "core.h"
+#include "core/core.h"
 #include "utils.h"
 
 /**

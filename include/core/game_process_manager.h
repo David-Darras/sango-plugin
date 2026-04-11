@@ -18,8 +18,8 @@
 #ifndef SANGO_PLUGIN_PROCESS_MANAGER_H
 #define SANGO_PLUGIN_PROCESS_MANAGER_H
 
+#include "core/game_manager.h"
 #include "common.h"
-#include "game_manager.h"
 
 class ProcessHandle;
 class BaseProcess;

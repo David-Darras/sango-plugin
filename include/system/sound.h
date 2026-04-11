@@ -18,7 +18,7 @@
 #ifndef SANGO_PLUGIN_SOUND_H_
 #define SANGO_PLUGIN_SOUND_H_
 
-#include "core.h"
+#include "core/core.h"
 
 /**
  * @class Sound

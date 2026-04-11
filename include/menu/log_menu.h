@@ -18,7 +18,7 @@
 #ifndef SANGO_PLUGIN_MENU_LOG_MENU_H
 #define SANGO_PLUGIN_MENU_LOG_MENU_H
 
-#include "core.h"
+#include "common.h"
 
 namespace menu {
 

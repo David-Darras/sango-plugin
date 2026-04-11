@@ -17,8 +17,8 @@
 
 #include "menu/menu_entry.h"
 
+#include "hack/cheat_code.h"
 #include "menu/plugin_menu.h"
-#include "system/cheat_code.h"
 #include "utils.h"
 
 namespace menu {

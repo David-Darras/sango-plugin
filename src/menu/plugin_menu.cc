@@ -17,10 +17,10 @@
 
 #include "menu/plugin_menu.h"
 
+#include "core/game_process_manager.h"
 #include "menu/log_menu.h"
 #include "system/device.h"
-#include "system/game_event_manager.h"
-#include "system/game_process_manager.h"
+#include "core/game_event_manager.h"
 #include "system/graphics.h"
 #include "system/sound.h"
 #include "utils.h"

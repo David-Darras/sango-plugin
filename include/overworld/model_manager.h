@@ -18,8 +18,8 @@
 #ifndef SANGO_PLUGIN_OVERWORLD_MODEL_MANAGER_H
 #define SANGO_PLUGIN_OVERWORLD_MODEL_MANAGER_H
 
+#include "core/game_data_manager.h"
 #include "common.h"
-#include "system/game_data_manager.h"
 
 namespace overworld {
 

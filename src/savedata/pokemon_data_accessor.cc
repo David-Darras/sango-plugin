@@ -20,7 +20,7 @@
 #include <cstring>
 
 #include "common.h"
-#include "core.h"
+#include "core/core.h"
 #include "savedata/pokemon_core_data.h"
 
 static const u8 block_positions[32][4] = {

@@ -18,7 +18,7 @@
 #ifndef SANGO_PLUGIN_POKEMON_UTILS_H
 #define SANGO_PLUGIN_POKEMON_UTILS_H
 
-#include "core.h"
+#include "core/core.h"
 
 class PokemonUtils {
  public:

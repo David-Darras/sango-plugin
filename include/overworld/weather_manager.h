@@ -15,34 +15,27 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_CHEAT_CODE_H
-#define SANGO_PLUGIN_CHEAT_CODE_H
-#include "common.h"
+#ifndef SANGO_PLUGIN_WEATHER_MANAGER_H
+#define SANGO_PLUGIN_WEATHER_MANAGER_H
 
-enum class CheatCodeId { kNoclip, kSwarmMod, kMax };
+#include "core/game_manager.h"
 
-class CheatCode {
- public:
-  CheatCode() : is_enabled_(false), callback_(nullptr), args_(nullptr) {}
+namespace overworld {
 
-  void Initialize(callback_t callback, void* args) {
-    is_enabled_ = false;
-    callback_ = callback;
-    args_ = args;
+class WeatherManager {
+public:
+  static void LoadMenu(menu::PluginMenu& menu, void* args);
+
+  static WeatherManager& GetInstance() {
+    return GameManager::GetInstance().GetWeatherManager();
   }
 
-  void Toggle() { is_enabled_ = !is_enabled_; }
+  u8& GetCurrentWeather() { return *(u8*)((uptr)this + 0x1C); }
 
-  bool IsEnabled() { return is_enabled_; }
-
-  void Run() {
-    if (callback_) callback_(args_);
-  }
-
- private:
-  bool is_enabled_;
-  callback_t callback_;
-  void* args_;
+  u8& GetRequestedWeather() { return *(u8*)((uptr)this + 0x1E); }
 };
 
-#endif  // SANGO_PLUGIN_CHEAT_CODE_H
+} // namespace overworld
+
+
+#endif  // SANGO_PLUGIN_WEATHER_MANAGER_H

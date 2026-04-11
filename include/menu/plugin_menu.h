@@ -18,11 +18,11 @@
 #ifndef SANGO_PLUGIN_MENU_PLUGIN_MENU_H
 #define SANGO_PLUGIN_MENU_PLUGIN_MENU_H
 
+#include "hack/cheat_code_manager.h"
 #include "keyboard.h"
 #include "menu_entry.h"
 #include "numpad.h"
-#include "system/cheat_code.h"
-#include "system/cheat_code_manager.h"
+#include "hack/cheat_code.h"
 
 namespace menu {
 

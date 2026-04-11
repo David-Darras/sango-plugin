@@ -19,7 +19,6 @@
 
 #include <cstring>
 
-#include "menu/log_menu.h"
 #include "menu/plugin_menu.h"
 #include "savedata/pokemon_data_accessor.h"
 #include "savedata/pokemon_utils.h"

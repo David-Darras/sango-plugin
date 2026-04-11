@@ -18,8 +18,8 @@
 #ifndef SANGO_PLUGIN_GAME_TIME_MANAGER_H_
 #define SANGO_PLUGIN_GAME_TIME_MANAGER_H_
 
+#include "core/game_manager.h"
 #include "common.h"
-#include "game_manager.h"
 
 struct GameTimeManager {
   static void LoadMenu(menu::PluginMenu& menu, void* args);

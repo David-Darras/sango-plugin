@@ -16,6 +16,7 @@
  */
 
 #include "savedata/play_time.h"
+
 namespace savedata {
 
 void PlayTime::LoadMenu(menu::PluginMenu& menu, void* args) {

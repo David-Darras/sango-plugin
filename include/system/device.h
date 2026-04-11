@@ -18,7 +18,7 @@
 #ifndef SANGO_PLUGIN_DEVICE_H
 #define SANGO_PLUGIN_DEVICE_H
 
-#include "core.h"
+#include "core/core.h"
 
 class Controller;
 class TouchScreen;

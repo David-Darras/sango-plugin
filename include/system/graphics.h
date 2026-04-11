@@ -18,7 +18,7 @@
 #ifndef SANGO_PLUGIN_GRAPHICS_H
 #define SANGO_PLUGIN_GRAPHICS_H
 
-#include "core.h"
+#include "core/core.h"
 
 /**
  * @brief Identifiers for the available hardware screens.

@@ -15,22 +15,23 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "../include/overworld/model_manager.h"
+#include "core/game_time_manager.h"
+#include "hack/cheat_code.h"
+#include "hack/cheat_code_manager.h"
 #include "menu/plugin_menu.h"
+#include "overworld/model_manager.h"
+#include "overworld/weather_manager.h"
 #include "savedata/savedata.h"
-#include "system/cheat_code_manager.h"
 #include "system/device.h"
 #include "system/file.h"
-#include "system/game_time_manager.h"
 #include "system/graphics.h"
 #include "system/sound.h"
-#include "system/weather_manager.h"
 
 extern void TestMenu(menu::PluginMenu &menu, void *args);
 
 void MainMenu(menu::PluginMenu &menu, void *args) {
   menu.Add("Overworld", overworld::ModelManager::LoadMenu)
-      .Add("Weather", WeatherManager::LoadMenu)
+      .Add("Weather", overworld::WeatherManager::LoadMenu)
       .Add("Time", GameTimeManager::LoadMenu)
       .Add("Savedata", savedata::SaveData::LoadMenu)
       .Add("Test", TestMenu)

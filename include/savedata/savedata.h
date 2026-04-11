@@ -18,7 +18,7 @@
 #ifndef SANGO_PLUGIN_SAVEDATA_SAVEDATA_H
 #define SANGO_PLUGIN_SAVEDATA_SAVEDATA_H
 
-#include "system/game_data_manager.h"
+#include "core/game_data_manager.h"
 
 namespace savedata {
 

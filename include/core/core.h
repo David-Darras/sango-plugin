@@ -15,10 +15,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "common.h"
-
 #ifndef SANGO_PLUGIN_CORE_H
 #define SANGO_PLUGIN_CORE_H
+
+#include "common.h"
 
 /** * @name Entrypoint & Main Addresses
  * @{ */

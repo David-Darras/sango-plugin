@@ -18,7 +18,7 @@
 #ifndef SANGO_PLUGIN_SAVEDATA_PLAY_TIME_H
 #define SANGO_PLUGIN_SAVEDATA_PLAY_TIME_H
 #include "menu/plugin_menu.h"
-#include "system/game_data_manager.h"
+#include "core/game_data_manager.h"
 
 namespace savedata {
 

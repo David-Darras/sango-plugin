@@ -1,34 +1,34 @@
-/*
- * Copyright (C) 2026  David Darras
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
+// /*
+//  * Copyright (C) 2026  David Darras
+//  *
+//  * This program is free software: you can redistribute it and/or modify
+//  * it under the terms of the GNU General Public License as published by
+//  * the Free Software Foundation, either version 3 of the License, or
+//  * (at your option) any later version.
+//  *
+//  * This program is distributed in the hope that it will be useful,
+//  * but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//  * GNU General Public License for more details.
+//  *
+//  * You should have received a copy of the GNU General Public License
+//  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+//  *
 
 #ifndef SANGO_PLUGIN_GAME_MANAGER_H
 #define SANGO_PLUGIN_GAME_MANAGER_H
 
-#include "core.h"
+#include "core/core.h"
 
 class GameEventManager;
 class GameProcessManager;
 class GameDataManager;
 class GameTimeManager;
-class WeatherManager;
 
-namespace field {
+namespace overworld {
 class MapManager;
-}
+class WeatherManager;
+}  // namespace overworld
 
 /**
  * @brief The primary singleton controller for the game engine.
@@ -51,7 +51,13 @@ class GameManager {
 
   GameTimeManager& GetGameTimeManager() const { return *game_time_manager_; }
 
-  WeatherManager& GetWeatherManager() const { return *weather_manager_; }
+  overworld::WeatherManager& GetWeatherManager() const {
+    return *weather_manager_;
+  }
+
+  overworld::MapManager& GetOverworldMapManager() const {
+    return *overworld_map_manager_;
+  }
 
  private:
   /** @brief Private constructor to enforce singleton pattern. */
@@ -81,7 +87,11 @@ class GameManager {
   void* _0;
   void* _1;
 
-  WeatherManager* weather_manager_;
+  overworld::WeatherManager* weather_manager_;
+
+  void* _2[6];
+
+  overworld::MapManager* overworld_map_manager_;
 };
 
 #endif  // SANGO_PLUGIN_GAME_MANAGER_H

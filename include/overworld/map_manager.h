@@ -15,26 +15,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "system/cheat_code_manager.h"
+#ifndef SANGO_PLUGIN_OVERWORLD_MAP_MANAGER_H
+#define SANGO_PLUGIN_OVERWORLD_MAP_MANAGER_H
 
-CheatCodeManager CheatCodeManager::instance_ = CheatCodeManager();
+namespace overworld {
 
-void CheatCodeManager::Add(CheatCodeId id, callback_t callback,
-                           void* args) {
-  if (id >= CheatCodeId::kMax) return;
-  cheat_codes_[(u32)id].Initialize(callback, args);
-  count_++;
-}
+class MapManager {
 
-CheatCode* CheatCodeManager::Get(CheatCodeId id) {
-  if (id >= CheatCodeId::kMax) return nullptr;
-  return &cheat_codes_[(u32)id];
-}
+};
 
-void CheatCodeManager::Update() {
-  for (u32 i = 0; i < kMaxCheatCodes; ++i) {
-    if (cheat_codes_[i].IsEnabled()) {
-      cheat_codes_[i].Run();
-    }
-  }
-}
+}  // namespace overworld
+
+#endif  // SANGO_PLUGIN_OVERWORLD_MAP_MANAGER_H
