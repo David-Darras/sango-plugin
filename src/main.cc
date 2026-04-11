@@ -15,7 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "field/overworld_model_manager.h"
+#include "../include/overworld/model_manager.h"
 #include "menu/plugin_menu.h"
 #include "savedata/savedata.h"
 #include "system/cheat_code_manager.h"
@@ -29,7 +29,7 @@
 extern void TestMenu(menu::PluginMenu &menu, void *args);
 
 void MainMenu(menu::PluginMenu &menu, void *args) {
-  menu.Add("Field", field::OverworldModelManager::LoadMenu)
+  menu.Add("Overworld", overworld::ModelManager::LoadMenu)
       .Add("Weather", WeatherManager::LoadMenu)
       .Add("Time", GameTimeManager::LoadMenu)
       .Add("Savedata", savedata::SaveData::LoadMenu)
@@ -39,8 +39,8 @@ void MainMenu(menu::PluginMenu &menu, void *args) {
 
 void SetupCheatCodes() {
   CheatCodeManager &man = CheatCodeManager::GetInstance();
-  man.Add(CheatCodeId::kNoclip, field::OverworldModelManager::Noclip);
-  man.Add(CheatCodeId::kSwarmMod, field::OverworldModelManager::SwarmMod);
+  man.Add(CheatCodeId::kNoclip, overworld::ModelManager::Noclip);
+  man.Add(CheatCodeId::kSwarmMod, overworld::ModelManager::SwarmMod);
 }
 
 void ApplyPatches() {

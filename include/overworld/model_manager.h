@@ -15,13 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_FIELD_OVERWORLD_MODEL_MANAGER_H
-#define SANGO_PLUGIN_FIELD_OVERWORLD_MODEL_MANAGER_H
+#ifndef SANGO_PLUGIN_OVERWORLD_MODEL_MANAGER_H
+#define SANGO_PLUGIN_OVERWORLD_MODEL_MANAGER_H
 
 #include "common.h"
 #include "system/game_data_manager.h"
 
-namespace field {
+namespace overworld {
 
 struct Position {
   u32 _0;
@@ -31,7 +31,7 @@ struct Position {
   u32 _3;
 };
 
-struct OverworldModel {
+struct Model {
   static constexpr u32 kSize = 0xAB0;
 
   bool IsUsed() const { return (flags[0] & 1) == 1; }
@@ -60,17 +60,17 @@ struct OverworldModel {
   Vec3 draw_offset;
 };
 
-struct OverworldModelResource {
+struct ModelResource {
   u32 _0[5];
   u16 model_id;
   u16 padding;
 };
 
-class OverworldModelManager {
+class ModelManager {
  public:
   static constexpr u32 kPlayerId = 0xFF;
 
-  static OverworldModelManager& GetInstance() {
+  static ModelManager& GetInstance() {
     return GameDataManager::GetInstance().GetOverworldModelManager();
   }
 
@@ -78,12 +78,11 @@ class OverworldModelManager {
   static void Noclip(void*);
   static void SwarmMod(void*);
 
-  OverworldModelResource& GetResource(u32 idx) { return resources_[idx]; }
+  ModelResource& GetResource(u32 idx) { return resources_[idx]; }
 
-  OverworldModel& GetPlayer() {
+  Model& GetPlayer() {
     for (u32 i = 0; i < kMaxModels; i++) {
-      OverworldModel& model = *(OverworldModel*)((uptr)overworld_models_ +
-                                                 OverworldModel::kSize * i);
+      Model& model = *(Model*)((uptr)overworld_models_ + Model::kSize * i);
       if (model.id == kPlayerId) {
         return model;
       }
@@ -91,9 +90,8 @@ class OverworldModelManager {
     return overworld_models_[0];
   }
 
-  OverworldModel& GetModel(u32 idx) {
-    return *(OverworldModel*)((uptr)overworld_models_ +
-                              OverworldModel::kSize * idx);
+  Model& GetModel(u32 idx) {
+    return *(Model*)((uptr)overworld_models_ + Model::kSize * idx);
   }
 
   static constexpr u32 kMaxModels = 32;
@@ -103,16 +101,16 @@ class OverworldModelManager {
   GameDataManager* game_data_manager_;
   void* _0[5];
   u8 _1[0x3680];
-  OverworldModel* overworld_models_;
+  Model* overworld_models_;
   u32 overworld_model_count_;
 
   u32 _2[8];
 
   u32 resource_count_;
   u32 resource_count_2_;
-  OverworldModelResource resources_[kMaxModels];
+  ModelResource resources_[kMaxModels];
 };
 
-}  // namespace field
+}  // namespace overworld
 
-#endif  // SANGO_PLUGIN_FIELD_OVERWORLD_MODEL_MANAGER_H
+#endif  // SANGO_PLUGIN_OVERWORLD_MODEL_MANAGER_H

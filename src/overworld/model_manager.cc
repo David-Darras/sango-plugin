@@ -15,15 +15,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "field/overworld_model_manager.h"
+#include "overworld/model_manager.h"
 
 #include <math.h>
 
-#include "menu/log_menu.h"
 #include "menu/plugin_menu.h"
 #include "system/device.h"
 
-namespace field {
+namespace overworld {
 
 static struct {
   Vec3 speed;
@@ -33,8 +32,8 @@ static struct {
   u32 model_idx;
 } ctx = {{1, 1, 1}, 0, 5, 1, 0};
 
-void OverworldModelManager::Noclip(void*) {
-  OverworldModel& player = GetInstance().GetPlayer();
+void ModelManager::Noclip(void*) {
+  Model& player = GetInstance().GetPlayer();
   Controller& controller = Controller::GetInstance();
 
 #define ADD_MOVEMENT(key, composant, val)                                    \
@@ -54,20 +53,20 @@ void OverworldModelManager::Noclip(void*) {
 #undef ADD_MOVEMENT
 }
 
-void OverworldModelManager::SwarmMod(void*) {
-  OverworldModelManager& man = GetInstance();
-  OverworldModel& player = man.GetPlayer();
+void ModelManager::SwarmMod(void*) {
+  ModelManager& man = GetInstance();
+  Model& player = man.GetPlayer();
 
   u32 npc_count = 0;
   for (u32 i = 0; i < kMaxModels; i++) {
-    OverworldModel& model = man.GetModel(i);
+    Model& model = man.GetModel(i);
     if (model.IsUsed() && &model != &player) {
       npc_count++;
     }
   }
 
   for (u32 i = 0; i < kMaxModels; i++) {
-    OverworldModel& model = man.GetModel(i);
+    Model& model = man.GetModel(i);
     if (!(model.IsUsed() && &model != &player)) {
       continue;
     }
@@ -88,11 +87,11 @@ void OverworldModelManager::SwarmMod(void*) {
   }
 }
 
-void OverworldModelManager::LoadMenu(menu::PluginMenu& menu, void* args) {
+void ModelManager::LoadMenu(menu::PluginMenu& menu, void* args) {
   static const char* sep = "--------------------";
 
-  OverworldModelManager& man = GetInstance();
-  OverworldModelResource& rsrc = man.GetResource(ctx.model_idx);
+  ModelManager& man = GetInstance();
+  ModelResource& rsrc = man.GetResource(ctx.model_idx);
   menu.Add(sep)
       .Add("Noclip", CheatCodeId::kNoclip)
       .Add("Speed-X", ctx.speed.x)
@@ -109,4 +108,4 @@ void OverworldModelManager::LoadMenu(menu::PluginMenu& menu, void* args) {
       .Add("Model Id", rsrc.model_id);
 }
 
-}  // namespace field
+}  // namespace overworld
