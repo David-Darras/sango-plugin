@@ -175,6 +175,25 @@ void MenuEntry::GetDefaultDisplayValue(c16 *buffer) const {
       Utils::Format(buffer, u"%s", name_);
       break;
 
+    case kTypeAbility:
+      ((void (*)(String *, u8))ADDRESS_GET_ABILITY_NAME)(String::GetTmpStr(),
+                                                         *(u8 *)address_);
+      Utils::Format(buffer, u"%s : %ls", name_, String::GetTmpBuf());
+      break;
+
+    case kTypeSpecies:
+      ((void (*)(String *, u16))ADDRESS_GET_SPECIES_NAME)(String::GetTmpStr(),
+                                                          *(u16 *)address_);
+      Utils::Format(buffer, u"%s : N°%03d %ls", name_, *(u16 *)address_,
+                    String::GetTmpBuf());
+      break;
+
+    case kTypeMove:
+      ((void (*)(u16, String *))ADDRESS_GET_MOVE_NAME)(*(u16 *)address_,
+                                                       String::GetTmpStr());
+      Utils::Format(buffer, u"%s : %ls", name_, String::GetTmpBuf());
+      break;
+
     default:
       Utils::Format(buffer, u"%s : ???", name_);
       break;
@@ -186,12 +205,15 @@ void MenuEntry::GetArrayDisplayValue(c16 *buffer) const {
 
   switch (type_) {
     case kTypeU8:
+    case kTypeAbility:
       index = *(u8 *)address_;
       break;
     case kTypeS8:
       index = *(s8 *)address_;
       break;
     case kTypeU16:
+    case kTypeSpecies:
+    case kTypeMove:
       index = *(u16 *)address_;
       break;
     case kTypeS16:
@@ -255,11 +277,14 @@ void MenuEntry::Increment(u32 count) {
 
   switch (type_) {
     case kTypeU8:
+    case kTypeAbility:
     case kTypeS8:
       INCREMENT_WRAP(u8);
       break;
     case kTypeU16:
+    case kTypeSpecies:
     case kTypeS16:
+    case kTypeMove:
       INCREMENT_WRAP(u16);
       break;
     case kTypeU32:
@@ -316,11 +341,14 @@ void MenuEntry::Decrement(u32 count) {
 
   switch (type_) {
     case kTypeU8:
+    case kTypeAbility:
     case kTypeS8:
       DECREMENT_WRAP(u8);
       break;
     case kTypeU16:
+    case kTypeSpecies:
     case kTypeS16:
+    case kTypeMove:
       DECREMENT_WRAP(u16);
       break;
     case kTypeU32:
@@ -373,11 +401,14 @@ void MenuEntry::Edit(const void *value) {
 
   switch (type_) {
     case kTypeU8:
+    case kTypeAbility:
     case kTypeS8:
       EDIT_CLAMP(u8);
       break;
     case kTypeU16:
+    case kTypeSpecies:
     case kTypeS16:
+    case kTypeMove:
       EDIT_CLAMP(u16);
       break;
     case kTypeU32:

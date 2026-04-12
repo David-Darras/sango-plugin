@@ -257,6 +257,30 @@ class PluginMenu {
     return *this;
   }
 
+  PluginMenu &AddSpecies(const c8 *name, u16 &var) {
+    if (entries_count_ < kMaxEntries) {
+      entries_[entries_count_++].Initialize(name, (void *)&var, kTypeSpecies);
+      WithBounds(0, 0x2D4);
+    }
+    return *this;
+  }
+
+  PluginMenu &AddAbility(const c8 *name, u8 &var) {
+    if (entries_count_ < kMaxEntries) {
+      entries_[entries_count_++].Initialize(name, (void *)&var, kTypeAbility);
+      WithBounds(0, 0xBF);
+    }
+    return *this;
+  }
+
+  PluginMenu &AddMove(const c8 *name, u16 &var) {
+    if (entries_count_ < kMaxEntries) {
+      entries_[entries_count_++].Initialize(name, (void *)&var, kTypeMove);
+      WithBounds(0, 0x26E);
+    }
+    return *this;
+  }
+
   /**
    * @brief Macro helper for adding numeric typed entries.
    */

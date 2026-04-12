@@ -109,4 +109,28 @@ struct Aabb {
   Vec4 max;
 };
 
+#define ADDRESS_STRING_VTABLE (0x5DE3BC)
+
+struct String {
+  static String s_tmp;
+  static c16 s_buffer[128];
+
+  static String* GetTmpStr() { return &s_tmp; }
+  static c16* GetTmpBuf() { return s_buffer; }
+
+  String() {
+    vtable = (void*)ADDRESS_STRING_VTABLE;
+    buffer = s_buffer;
+    capacity = 128;
+    size = 0;
+    is_initialized = true;
+  }
+
+  void* vtable;
+  c16* buffer;
+  u16 capacity;
+  u16 size;
+  bool is_initialized;
+};
+
 #endif  // SANGO_PLUGIN_COMMON_H

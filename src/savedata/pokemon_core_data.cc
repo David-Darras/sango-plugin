@@ -63,24 +63,24 @@ void PokemonCoreData::LoadMenu(menu::PluginMenu& menu, void* args) {
   ctx.is_shiny = PokemonUtils::IsShiny(pkm->id, pkm->shiny_id);
 
   menu.Add("Save", Save)
-      .Add("Species", pkm->species)
+      .AddSpecies("Species", pkm->species)
       .Add("Is Shiny", ctx.is_shiny)
       .Add("Nickname", pkm->nickname, 13)
       .Add("Gender", &pkm->event_gender_form_flags, 1, 2)
       .Add("Form", &pkm->event_gender_form_flags, 3, 5)
       .Add("Level", ctx.level)
       .Add("Nature", pkm->nature)
-      .Add("Ability", pkm->ability)
+      .AddAbility("Ability", pkm->ability)
       .Add("Item", pkm->item)
       .Add("Ball", pkm->ball)
       .Add("O.T", pkm->original_trainer_name, 13)
       .Add("Language", pkm->language)
       .Add("In egg", &pkm->iv_flags, 30, 1);
 
-  menu.Add("Move 1", pkm->moves[0])
-      .Add("Move 2", pkm->moves[1])
-      .Add("Move 3", pkm->moves[2])
-      .Add("Move 4", pkm->moves[3]);
+  menu.AddMove("Move 1", pkm->moves[0])
+      .AddMove("Move 2", pkm->moves[1])
+      .AddMove("Move 3", pkm->moves[2])
+      .AddMove("Move 4", pkm->moves[3]);
 
   menu.Add("PP 1", pkm->pp[0])
       .Add("PP 2", pkm->pp[1])

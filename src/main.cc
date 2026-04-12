@@ -15,6 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "common.h"
 #include "core/game_time_manager.h"
 #include "hack/cheat_code.h"
 #include "hack/cheat_code_manager.h"
