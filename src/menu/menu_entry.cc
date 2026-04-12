@@ -45,6 +45,7 @@ MenuEntry::MenuEntry()
       min_(0),
       max_(0),
       is_min_used_(0),
+      factor_(1.0f),
       is_max_used_(0) {}
 
 void MenuEntry::Initialize(const c8 *name, void *addr, u8 type, u32 bit_offset,
@@ -61,6 +62,7 @@ void MenuEntry::Initialize(const c8 *name, void *addr, u8 type, u32 bit_offset,
   min_ = 0;
   max_ = 0;
   is_min_used_ = 0;
+  factor_ = 1.0f;
   is_max_used_ = 0;
 }
 
@@ -94,6 +96,11 @@ MenuEntry &MenuEntry::WithMax(s32 max) {
 
 MenuEntry &MenuEntry::WithArgs(void *args) {
   args_ = args;
+  return *this;
+}
+
+MenuEntry &MenuEntry::WithFactor(f32 factor) {
+  factor_ = factor;
   return *this;
 }
 
@@ -266,10 +273,10 @@ void MenuEntry::Increment(u32 count) {
       *(u64 *)address_ += count;
       break;
     case kTypeF32:
-      *(f32 *)address_ += (f32)count;
+      *(f32 *)address_ += (f32)count * factor_;
       break;
     case kTypeF64:
-      *(f64 *)address_ += (f64)count;
+      *(f64 *)address_ += (f64)count * factor_;
       break;
 
     case kTypeBits: {
@@ -327,10 +334,10 @@ void MenuEntry::Decrement(u32 count) {
       *(u64 *)address_ -= count;
       break;
     case kTypeF32:
-      *(f32 *)address_ -= (f32)count;
+      *(f32 *)address_ -= (f32)count * factor_;
       break;
     case kTypeF64:
-      *(f64 *)address_ -= (f64)count;
+      *(f64 *)address_ -= (f64)count * (f64)factor_;
       break;
 
     case kTypeBits: {

@@ -17,10 +17,10 @@
 
 #include "menu/plugin_menu.h"
 
+#include "core/game_event_manager.h"
 #include "core/game_process_manager.h"
 #include "menu/log_menu.h"
 #include "system/device.h"
-#include "core/game_event_manager.h"
 #include "system/graphics.h"
 #include "system/sound.h"
 #include "utils.h"
@@ -48,7 +48,12 @@ void PluginMenu::DrawTop() {
   }
 
   // Draw the background.
-  Graphics::FillScreen(0, 0, 0, 0.75);
+  if (no_background) {
+    selected_color.a = 0.6;
+    unselected_color.a = 0.6;
+  } else {
+    Graphics::FillScreen(0, 0, 0, 0.75);
+  }
 
   // Draw the cursor.
   Graphics::DrawText(5, 6 + ctx.cursor * kLineHeight, u"\uE077",
@@ -180,6 +185,7 @@ void PluginMenu::EnterSubMenu(menu_callback_t load_menu, void* args) {
   contexts_count_++;
 
   entries_count_ = 0;
+  no_background = 0;
   load_menu(*this, args);
 
   MenuContext& ctx = GetContext();
@@ -195,6 +201,7 @@ void PluginMenu::LeaveSubMenu() {
   MenuContext& ctx = GetContext();
 
   entries_count_ = 0;
+  no_background = 0;
   ctx.load_menu(*this, ctx.args);
 
   ctx.display_count =

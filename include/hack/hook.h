@@ -33,7 +33,10 @@ enum class HookID : u32 {
   kIsDPadRepeated,   ///< Hook for DPad::IsRepeated
   kIsTouchDown,      ///< Hook for TouchScreen::IsDown
   kIsTouchReleased,  ///< Hook for TouchScreen::IsReleased
-  kMax               ///< Sentinel value for array sizing
+  kUpdateMatrices,
+  kUpdateLookAt,
+  kSetProjectionMatrix,
+  kMax  ///< Sentinel value for array sizing
 };
 
 /**

@@ -107,6 +107,8 @@ class MenuEntry {
 
   MenuEntry &WithArgs(void *args);
 
+  MenuEntry &WithFactor(f32 factor);
+
   /**
    * @brief Gets the current entry type.
    * @return The MenuEntryType value.
@@ -170,6 +172,8 @@ class MenuEntry {
   s32 max_ : 15;
   s32 is_min_used_ : 1;
   s32 is_max_used_ : 1;
+
+  f32 factor_;
 };
 
 }  // namespace menu

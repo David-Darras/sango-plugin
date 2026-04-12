@@ -74,13 +74,13 @@ void ModelManager::SwarmMod(void*) {
     float phi = ctx.theta + (f32)i * 2.0 * M_PI / (f32)npc_count;
 
     model.world_pos.coords.x =
-        player.world_pos.coords.x + ctx.radius * cos(phi);
+        player.world_pos.coords.x + ctx.radius * cosf(phi);
     model.world_pos.coords.z =
-        player.world_pos.coords.z + ctx.radius * sin(phi);
+        player.world_pos.coords.z + ctx.radius * sinf(phi);
     model.world_pos.coords.y = player.world_pos.coords.y;
 
-    model.draw_pos.x = player.draw_pos.x + 9 * ctx.radius * cos(phi);
-    model.draw_pos.z = player.draw_pos.z + 9 * ctx.radius * sin(phi);
+    model.draw_pos.x = player.draw_pos.x + 9 * ctx.radius * cosf(phi);
+    model.draw_pos.z = player.draw_pos.z + 9 * ctx.radius * sinf(phi);
     model.draw_pos.y = player.draw_pos.y;
 
     ctx.theta += 0.01f * ctx.theta_speed;

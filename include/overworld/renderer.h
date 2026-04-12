@@ -15,40 +15,58 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_OVERWORLD_MAP_MANAGER_H
-#define SANGO_PLUGIN_OVERWORLD_MAP_MANAGER_H
-#include "core/game_manager.h"
+#ifndef SANGO_PLUGIN_OVERWORLD_RENDERER_H
+#define SANGO_PLUGIN_OVERWORLD_RENDERER_H
+
+#include "overworld/map_manager.h"
 
 class GameManager;
+class Graphics;
 
 namespace overworld {
 
-class Renderer;
-
-class MapManager {
+class StereoCamera {
  public:
-  static MapManager& GetInstance() {
-    return GameManager::GetInstance().GetOverworldMapManager();
-  }
-
-  Renderer& GetRenderer() { return *renderer_; }
-
-  void* GetAddr() { return &renderer_; }
+  static void LoadMenu(menu::PluginMenu& menu, void* args);
+  static void SetupHooks();
 
  private:
-  void* _0[23 + 1];
+  void* vtable_;
+  u32 _0[7];
+  u32 _1[5];
+  Mtx34 _2;
+  Vec3 _3;
+  u32 _4[10];
+
+  void* left_camera_;
+  void* right_camera_;
+};
+
+class Renderer {
+ public:
+  static Renderer& GetInstance() {
+    return MapManager::GetInstance().GetRenderer();
+  }
+
+  StereoCamera& GetStereoCamera() { return *stereo_camera2_; }
+
+ private:
+  u32 _0[5];
   GameManager* game_manager_;
-  void* _1[2 + 28 + 1 + 2 + 2];
+  Graphics* graphics_;
+  void* _1;
+  u32 _2[2];
+  void* _3[23];
 
-  u32 current_map_id;
-  void* _2;
+  u32 _4[3];
 
-  u32 next_map_id;
-  u32 _3;
+  f32 _5[640];
+  u32 _6[4];
 
-  Renderer* renderer_;
+  StereoCamera* stereo_camera_;
+  StereoCamera* stereo_camera2_;
 };
 
 }  // namespace overworld
 
-#endif  // SANGO_PLUGIN_OVERWORLD_MAP_MANAGER_H
+#endif  // SANGO_PLUGIN_OVERWORLD_RENDERER_H

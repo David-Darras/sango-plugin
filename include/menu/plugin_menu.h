@@ -18,11 +18,11 @@
 #ifndef SANGO_PLUGIN_MENU_PLUGIN_MENU_H
 #define SANGO_PLUGIN_MENU_PLUGIN_MENU_H
 
+#include "hack/cheat_code.h"
 #include "hack/cheat_code_manager.h"
 #include "keyboard.h"
 #include "menu_entry.h"
 #include "numpad.h"
-#include "hack/cheat_code.h"
 
 namespace menu {
 
@@ -139,6 +139,16 @@ class PluginMenu {
   PluginMenu &WithBounds(u32 min, u32 max) {
     entries_[entries_count_ - 1].WithMin(min);
     entries_[entries_count_ - 1].WithMax(max);
+    return *this;
+  }
+
+  PluginMenu &WithFactor(f32 factor) {
+    entries_[entries_count_ - 1].WithFactor(factor);
+    return *this;
+  }
+
+  PluginMenu &WithNoBackground() {
+    no_background = 1;
     return *this;
   }
 
@@ -308,7 +318,11 @@ class PluginMenu {
   /**
    * @brief Private constructor for singleton pattern.
    */
-  PluginMenu() : is_opened_(0), entries_count_(0), contexts_count_(0) {}
+  PluginMenu()
+      : is_opened_(0),
+        entries_count_(0),
+        contexts_count_(0),
+        no_background(0) {}
 
   /**
    * @brief Returns the currently active context.
@@ -337,7 +351,8 @@ class PluginMenu {
   u32 is_opened_ : 1;       ///< True if menu is open.
   u32 entries_count_ : 6;   ///< Active entries in current menu.
   u32 contexts_count_ : 3;  ///< Number of submenus in the stack.
-  u32 : 22;                 ///< Reserved.
+  u32 no_background : 1;
+  u32 : 21;  ///< Reserved.
 
   MenuEntry entries_[kMaxEntries];      ///< Entry pool.
   MenuContext contexts_[kMaxContexts];  ///< Context stack.

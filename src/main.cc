@@ -18,8 +18,10 @@
 #include "core/game_time_manager.h"
 #include "hack/cheat_code.h"
 #include "hack/cheat_code_manager.h"
+#include "menu/log_menu.h"
 #include "menu/plugin_menu.h"
 #include "overworld/model_manager.h"
+#include "overworld/renderer.h"
 #include "overworld/weather_manager.h"
 #include "savedata/savedata.h"
 #include "system/device.h"
@@ -30,7 +32,8 @@
 extern void TestMenu(menu::PluginMenu &menu, void *args);
 
 void MainMenu(menu::PluginMenu &menu, void *args) {
-  menu.Add("Overworld", overworld::ModelManager::LoadMenu)
+  menu.Add("Camera", overworld::StereoCamera::LoadMenu)
+      .Add("Overworld", overworld::ModelManager::LoadMenu)
       .Add("Weather", overworld::WeatherManager::LoadMenu)
       .Add("Time", GameTimeManager::LoadMenu)
       .Add("Savedata", savedata::SaveData::LoadMenu)
@@ -53,6 +56,7 @@ void ApplyPatches() {
   // Disables in-game user inputs to prevent any character actions while the
   // menu is active.
   Device::SetupHooks();
+  overworld::StereoCamera::SetupHooks();
 }
 
 // Performs logic update and rendering for both screens.
