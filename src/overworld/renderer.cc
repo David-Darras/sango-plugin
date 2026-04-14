@@ -119,8 +119,10 @@ Mtx34* UpdateLookAt(Mtx34* output, Vec3* pos, Vec3* up, Vec3* target) {
 
 void StereoCamera::LoadMenu(menu::PluginMenu& menu, void* args) {
   static const c8* STATES[] = {"Idle", "Free", "Rotate", "Fpv"};
+  bool& skybox = *(bool*)((uptr)&Renderer::GetInstance() + 0xB74);
 
   menu.WithNoBackground()
+      .Add("Skybox", skybox)
       .Add("State", ctx.state)
       .WithArray(STATES, SIZE(STATES))
       .Add("Free Pos X (Left/Right)", ctx.pos.x)

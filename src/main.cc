@@ -54,6 +54,12 @@ void ApplyPatches() {
   WRITE(u32, 0x003A47C0, 0xE3A00000);
   WRITE(u32, 0x003A47C4, 0xE12FFF1E);
 
+  // Disable material shader
+  WRITE(u32, 0x003989B0, 0xE12FFF1E);
+  WRITE(u32, 0x003881EC, 0xE12FFF1E);
+  // Disable outline
+  WRITE(u32, 0x0038BE34, 0xE12FFF1E);
+
   // Disables in-game user inputs to prevent any character actions while the
   // menu is active.
   Device::SetupHooks();
