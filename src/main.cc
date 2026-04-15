@@ -15,6 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "battle/config.h"
 #include "common.h"
 #include "core/game_time_manager.h"
 #include "hack/cheat_code.h"
@@ -33,7 +34,8 @@
 extern void TestMenu(menu::PluginMenu &menu, void *args);
 
 void MainMenu(menu::PluginMenu &menu, void *args) {
-  menu.Add("Camera", overworld::StereoCamera::LoadMenu)
+  menu.Add("Battle Config", battle::Config::LoadMenu)
+      .Add("Camera", overworld::StereoCamera::LoadMenu)
       .Add("Overworld", overworld::ModelManager::LoadMenu)
       .Add("Weather", overworld::WeatherManager::LoadMenu)
       .Add("Time", GameTimeManager::LoadMenu)
@@ -58,7 +60,7 @@ void ApplyPatches() {
   WRITE(u32, 0x003989B0, 0xE12FFF1E);
   WRITE(u32, 0x003881EC, 0xE12FFF1E);
   // Disable outline
-  WRITE(u32, 0x0038BE34, 0xE12FFF1E);
+  // WRITE(u32, 0x0038BE34, 0xE12FFF1E);
 
   // Disables in-game user inputs to prevent any character actions while the
   // menu is active.
