@@ -18,6 +18,7 @@
 #include "battle/config.h"
 #include "common.h"
 #include "core/game_time_manager.h"
+#include "data/move.h"
 #include "data/pokemon.h"
 #include "hack/cheat_code.h"
 #include "hack/cheat_code_manager.h"
@@ -36,6 +37,7 @@ extern void TestMenu(menu::PluginMenu &menu, void *args);
 
 void MainMenu(menu::PluginMenu &menu, void *args) {
   menu.Add("Pokemon Data", data::Pokemon::LoadMenu)
+      .Add("Move Data", data::Move::LoadMenu)
       .Add("Battle Config", battle::Config::LoadMenu)
       .Add("Camera", overworld::StereoCamera::LoadMenu)
       .Add("Overworld", overworld::ModelManager::LoadMenu)
