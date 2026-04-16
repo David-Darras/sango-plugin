@@ -20,6 +20,7 @@
 #include "core/game_time_manager.h"
 #include "hack/cheat_code.h"
 #include "hack/cheat_code_manager.h"
+#include "menu/log_menu.h"
 #include "menu/plugin_menu.h"
 #include "overworld/model_manager.h"
 #include "overworld/renderer.h"
@@ -101,6 +102,23 @@ extern "C" void OnFrame() {
     menu.DrawBottom();
     Graphics::DisableScissor();
   }
+
+  // Controller &ctrl = Controller::GetInstance();
+  // if (ctrl.IsKeyPressed(Key::kR)) {
+  //   Vec3 pos = {0, 0, 0};
+  //   menu::LogMenu::GetInstance().Add(u"Teleport");
+  //   ((void (*)(GameManager *, u16, Vec3 *, u8, bool, bool, bool, bool, bool,
+  //              bool))ADDRESS_CHANGE_MAP)(&GameManager::GetInstance(),
+  //                                        120,  // zone
+  //                                        &pos,
+  //                                        1,  // dir
+  //                                        true,
+  //                                        true,  // same background music
+  //                                        true,  // fade
+  //                                        true, true,
+  //                                        true  // show place name
+  //   );
+  // }
 }
 
 // Performs the system initialization and prepares the plugin environment.

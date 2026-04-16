@@ -19,6 +19,7 @@
 
 #include <math.h>
 
+#include "menu/log_menu.h"
 #include "menu/plugin_menu.h"
 #include "system/device.h"
 
@@ -30,6 +31,7 @@ static struct {
   f32 radius;
   f32 theta_speed;
   u32 model_idx;
+  u16 model_animation;
 } ctx = {{1, 1, 1}, 0, 5, 1, 0};
 
 void ModelManager::Noclip(void*) {
@@ -87,6 +89,12 @@ void ModelManager::SwarmMod(void*) {
   }
 }
 
+void PlayAnimation(void*) {
+  menu::LogMenu::GetInstance().Add(u"Play");
+  ((void (*)(Model*, u16, u8))ADDRESS_MODEL_PLAY_ANIMATION)(
+      &ModelManager::GetInstance().GetPlayer(), ctx.model_animation, 0);
+}
+
 void ModelManager::LoadMenu(menu::PluginMenu& menu, void* args) {
   static const char* sep = "--------------------";
 
@@ -105,7 +113,9 @@ void ModelManager::LoadMenu(menu::PluginMenu& menu, void* args) {
       .Add("Model Index", ctx.model_idx)
       .WithBounds(0, kMaxModels - 1)
       .WithRefresh()
-      .Add("Model Id", rsrc.model_id);
+      .Add("Model", rsrc.model_id)
+      .Add("Animation", ctx.model_animation)
+      .WithCallback(PlayAnimation);
 }
 
 }  // namespace overworld
