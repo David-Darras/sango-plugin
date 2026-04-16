@@ -265,6 +265,18 @@ class PluginMenu {
     return *this;
   }
 
+  PluginMenu &AddType(const c8 *name, u8 &var) {
+    static const c8 *TYPES[] = {
+        "Normal",   "Fighting", "Flying", "Poison", "Ground", "Rock",
+        "Bug",      "Ghost",    "Steel",  "Fire",   "Water",  "Grass",
+        "Electric", "Psychic",  "Ice",    "Dragon", "Dark",   "Fairy"};
+    if (entries_count_ < kMaxEntries) {
+      entries_[entries_count_++].Initialize(name, (void *)&var, kTypeU8);
+      WithArray(TYPES, SIZE(TYPES));
+    }
+    return *this;
+  }
+
   PluginMenu &AddAbility(const c8 *name, u8 &var) {
     if (entries_count_ < kMaxEntries) {
       entries_[entries_count_++].Initialize(name, (void *)&var, kTypeAbility);

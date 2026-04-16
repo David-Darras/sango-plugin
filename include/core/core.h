@@ -126,6 +126,8 @@
 
 #define ADDRESS_MODEL_PLAY_ANIMATION (0x003FB1B4)
 
+#define ADDRESS_DATA_POKEMON (0x00617A00)
+
 class Device;
 class Graphics;
 
