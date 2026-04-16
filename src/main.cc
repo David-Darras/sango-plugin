@@ -20,7 +20,6 @@
 #include "core/game_time_manager.h"
 #include "hack/cheat_code.h"
 #include "hack/cheat_code_manager.h"
-#include "menu/log_menu.h"
 #include "menu/plugin_menu.h"
 #include "overworld/model_manager.h"
 #include "overworld/renderer.h"
@@ -61,6 +60,10 @@ void ApplyPatches() {
   WRITE(u32, 0x003881EC, 0xE12FFF1E);
   // Disable outline
   // WRITE(u32, 0x0038BE34, 0xE12FFF1E);
+
+  // Skip script
+  // WRITE(u32, 0x003DC3DC, 0xE3A00001);
+  // WRITE(u32, 0x003DC3E0, 0xE12FFF1E);
 
   // Disables in-game user inputs to prevent any character actions while the
   // menu is active.

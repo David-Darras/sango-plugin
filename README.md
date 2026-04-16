@@ -7,9 +7,14 @@
 ![Platform](https://img.shields.io/badge/platform-Old%2FNew%202D--3DS%20%2B%20Citra-red.svg)
 ![Status](https://img.shields.io/badge/status-Work%20In%20Progress-yellow.svg)
 
-![Pokémon Alpha Sapphire](https://upload.wikimedia.org/wikipedia/en/f/f1/AlphaSapphire.jpg)
+<img src="https://upload.wikimedia.org/wikipedia/en/f/f1/AlphaSapphire.jpg" width="50%">
 
-![Sango Plugin](assets/sango-plugin-v1.0.0.jpg)
+<div style="display: flex; justify-content: space-between; gap: 10px;">
+  <img src="assets/sango-plugin-v1.0.0.jpg" alt="Sango Plugin" style="width: 25%; height: 200px; object-fit: cover;">
+  <img src="assets/camera_menu.jpg" alt="Camera Menu" style="width: 25%; height: 200px; object-fit: cover;">
+  <img src="assets/overworld_cheat_code.jpg" alt="Overworld Cheat" style="width: 25%; height: 200px; object-fit: cover;">
+  <img src="assets/pokemon_editor.jpg" alt="Pokemon Editor" style="width: 25%; height: 200px; object-fit: cover;">
+</div>
 
 </div>
 
@@ -51,32 +56,6 @@ For this purpose, a dedicated tool is required:
 https://github.com/David-Darras/elf2arcc
 
 Use the generated code with Rosalina or Citra.
-
----
-
-## 🚧 Project Status: Work In Progress
-
-This repository currently contains the **technical foundations** and the plugin infrastructure.
-
-Major features are planned for future updates, including:
-
-* **Graphics Modification:** Real-time texture and model adjustments.
-* **Battle Manipulation:** Real-time management of combat data.
-* **Savedata Edition:** Modify in-game data (bag inventory, Pokémon, etc.)
-* **Field Management:** Environment and map data handling.
-
----
-
-## Core Features (Currently Implemented)
-
-Despite being in early development, the following foundations are fully functional:
-
-* **Comprehensive Menu System:** Touch-based UI including buttons, a Unicode (UTF-16) keyboard, and a numeric keypad.
-* **System Wrappers:**
-    * `Device` & `Controller`: Hardware input management.
-    * `Graphics`: Basic 2D rendering, primitives, and text display.
-    * `Sound`: Playback control for music, SFX, and Pokémon cries.
-    * `File`: I/O operations on the SD card.
 
 ---
 

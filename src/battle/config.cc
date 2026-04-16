@@ -21,6 +21,8 @@
 #include "hack/hook_manager.h"
 #include "menu/log_menu.h"
 #include "menu/plugin_menu.h"
+#include "savedata/pokemon_data_accessor.h"
+#include "savedata/pokemon_team.h"
 
 namespace battle {
 
@@ -41,6 +43,7 @@ static struct {
   bool is_inverse_battle;
   bool is_capture_forced;
   bool no_money;
+  bool inverse_teams;
 } ctx = {.is_enabled = false,
          .battle_format = 0,  // single
          .background = 1,
@@ -50,7 +53,8 @@ static struct {
          .background_music = (1 << 16) + 2,
          .money_rate = 1.0f,
          .flags = 0,
-         .use_skybox = true};
+         .use_skybox = true,
+         .inverse_teams = false};
 
 void SetupBattleConfig(Config* config, void* game_manager, void* opponent_team,
                        void* p1, u8 battle_format, u32 effect_id, void* p2) {
@@ -60,6 +64,16 @@ void SetupBattleConfig(Config* config, void* game_manager, void* opponent_team,
                            battle_format, effect_id, p2);
 
   menu::LogMenu::GetInstance().Add(u"%p", &config->pokemon_teams[0]);
+  if (ctx.inverse_teams) {
+    savedata::PokemonTeam* team = config->pokemon_teams[0];
+    config->pokemon_teams[0] = config->pokemon_teams[1];
+    config->pokemon_teams[1] = team;
+
+    team = config->pokemon_teams[2];
+    config->pokemon_teams[2] = config->pokemon_teams[3];
+    config->pokemon_teams[3] = team;
+  }
+
   if (ctx.is_enabled) {
     config->battle_format = ctx.battle_format;
     config->background = ctx.background;
@@ -74,6 +88,14 @@ void SetupBattleConfig(Config* config, void* game_manager, void* opponent_team,
     config->is_inverse_battle = ctx.is_inverse_battle;
     config->is_capture_forced = ctx.is_capture_forced;
     config->no_money = ctx.no_money;
+
+    // config->pokemon_teams[0]->pokemons[0]->accessor->Decrypt();
+    // config->pokemon_teams[0]->pokemons[0]->core->species = 720;
+    // config->pokemon_teams[0]->pokemons[0]->accessor->Encrypt();
+    //
+    // config->pokemon_teams[1]->pokemons[0]->accessor->Decrypt();
+    // config->pokemon_teams[1]->pokemons[0]->core->species = 721;
+    // config->pokemon_teams[1]->pokemons[0]->accessor->Encrypt();
   }
 }
 
@@ -82,7 +104,8 @@ void Config::LoadMenu(menu::PluginMenu& menu, void* args) {
                                  ADDRESS_BATTLE_SETUP_CONFIG,
                                  (uptr)SetupBattleConfig);
 
-  menu.Add("Is Enabled", ctx.is_enabled)
+  menu.Add("Inverse Teams", ctx.inverse_teams)
+      .Add("Is Enabled", ctx.is_enabled)
       .Add("Battle Format", ctx.battle_format)
       .WithArray(FORMATS, SIZE(FORMATS))
       .Add("Ground", ctx.ground)
