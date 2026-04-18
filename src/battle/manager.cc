@@ -17,6 +17,8 @@
 
 #include "battle/manager.h"
 
+#include <cstring>
+
 #include "menu/log_menu.h"
 #include "menu/plugin_menu.h"
 namespace battle {
@@ -24,28 +26,39 @@ namespace battle {
 static struct {
   u8 team_idx;
   u8 pokemon_idx;
+  Pokemon* pkm_server;
+  Pokemon* pkm_client;
 } ctx{};
 
+void OnSave(void*) {
+  for (u32 i = 0; i < 4; i++) {
+    memcpy(ctx.pkm_server->moves[i].core, ctx.pkm_server->moves[i].view,
+           sizeof(ctx.pkm_server->moves[i].view));
+  }
+  memcpy(ctx.pkm_client, ctx.pkm_server, sizeof(Pokemon));
+}
+
 void Pokemon::LoadMenu(menu::PluginMenu& menu, void* args) {
-  Pokemon& pkm = *(Pokemon*)args;
+  Pokemon& pkm = *ctx.pkm_server;
 
-  menu.AddSpecies("Species", pkm.species)
+  menu.Add("Save", OnSave)
+      .AddSpecies("Species", pkm.species)
 
-      .AddMove("Move 1 - ID", pkm.moves[0].core.id)
-      .Add("Move 1 - PP", pkm.moves[0].core.pp)
-      .Add("Move 1 - Max PP", pkm.moves[0].core.max_pp)
+      .AddMove("Move 1 - ID", pkm.moves[0].view.id)
+      .Add("Move 1 - PP", pkm.moves[0].view.pp)
+      .Add("Move 1 - Max PP", pkm.moves[0].view.max_pp)
 
-      .AddMove("Move 2 - ID", pkm.moves[1].core.id)
-      .Add("Move 2 - PP", pkm.moves[1].core.pp)
-      .Add("Move 2 - Max PP", pkm.moves[1].core.max_pp)
+      .AddMove("Move 2 - ID", pkm.moves[1].view.id)
+      .Add("Move 2 - PP", pkm.moves[1].view.pp)
+      .Add("Move 2 - Max PP", pkm.moves[1].view.max_pp)
 
-      .AddMove("Move 3 - ID", pkm.moves[2].core.id)
-      .Add("Move 3 - PP", pkm.moves[2].core.pp)
-      .Add("Move 3 - Max PP", pkm.moves[2].core.max_pp)
+      .AddMove("Move 3 - ID", pkm.moves[2].view.id)
+      .Add("Move 3 - PP", pkm.moves[2].view.pp)
+      .Add("Move 3 - Max PP", pkm.moves[2].view.max_pp)
 
-      .AddMove("Move 4 - ID", pkm.moves[3].core.id)
-      .Add("Move 4 - PP", pkm.moves[3].core.pp)
-      .Add("Move 4 - Max PP", pkm.moves[3].core.max_pp)
+      .AddMove("Move 4 - ID", pkm.moves[3].view.id)
+      .Add("Move 4 - PP", pkm.moves[3].view.pp)
+      .Add("Move 4 - Max PP", pkm.moves[3].view.max_pp)
 
       .Add("Hp", pkm.hp)
       .Add("Max Hp", pkm.max_hp)
@@ -88,15 +101,14 @@ void Pokemon::LoadMenu(menu::PluginMenu& menu, void* args) {
 }
 
 void Manager::LoadMenu(menu::PluginMenu& menu, void* args) {
-  Pokemon* pkm_server = GetPokemon(true, ctx.team_idx, ctx.pokemon_idx);
-  Pokemon* pkm_client = GetPokemon(false, ctx.team_idx, ctx.pokemon_idx);
+  ctx.pkm_server = GetPokemon(true, ctx.team_idx, ctx.pokemon_idx);
+  ctx.pkm_client = GetPokemon(false, ctx.team_idx, ctx.pokemon_idx);
 
   menu.Add("Team Index", ctx.team_idx)
       .WithRefresh()
       .Add("Pokemon Index", ctx.pokemon_idx)
       .WithRefresh()
-      .Add("Pokemon (Client)", Pokemon::LoadMenu, pkm_client)
-      .Add("Pokemon (Server)", Pokemon::LoadMenu, pkm_server);
+      .Add("Pokemon Data", Pokemon::LoadMenu);
 }
 
 }  // namespace battle
