@@ -16,6 +16,7 @@
  */
 
 #include "battle/config.h"
+#include "battle/manager.h"
 #include "common.h"
 #include "core/game_time_manager.h"
 #include "data/move.h"
@@ -36,7 +37,8 @@
 extern void TestMenu(menu::PluginMenu &menu, void *args);
 
 void MainMenu(menu::PluginMenu &menu, void *args) {
-  menu.Add("Pokemon Data", data::Pokemon::LoadMenu)
+  menu.Add("Battle Teams", battle::Manager::LoadMenu)
+      .Add("Pokemon Data", data::Pokemon::LoadMenu)
       .Add("Move Data", data::Move::LoadMenu)
       .Add("Battle Config", battle::Config::LoadMenu)
       .Add("Camera", overworld::StereoCamera::LoadMenu)

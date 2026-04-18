@@ -15,8 +15,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_BATTLE_MAIN_PROCESS_H
-#define SANGO_PLUGIN_BATTLE_MAIN_PROCESS_H
+#ifndef SANGO_PLUGIN_BATTLE_PROCESS_H
+#define SANGO_PLUGIN_BATTLE_PROCESS_H
 
 #include "core/core.h"
 
@@ -24,13 +24,16 @@ class GameProcessManager;
 
 namespace battle {
 
+class Manager;
 struct Config;
 
-class MainProcess {
+class Process {
  public:
-  static MainProcess& GetInstance() {
-    return *(MainProcess*)(ADDRESS_BATTLE_MAIN_PROCESS);
+  static Process& GetInstance() {
+    return *(Process*)(ADDRESS_BATTLE_MAIN_PROCESS);
   }
+
+  Manager& GetManager() { return *manager_; }
 
  private:
   void* vtable_;
@@ -40,11 +43,11 @@ class MainProcess {
   void* heaps_[6];
 
   Config* config_;
-  void* main_data_;
+  Manager* manager_;
 
   u32 _1[2];
 };
 
 }  // namespace battle
 
-#endif  // SANGO_PLUGIN_BATTLE_MAIN_PROCESS_H
+#endif  // SANGO_PLUGIN_BATTLE_PROCESS_H
