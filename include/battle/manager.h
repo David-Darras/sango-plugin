@@ -47,7 +47,8 @@ struct Pokemon {
   u16 used_item;
   u16 base_ability;
   u8 level;
-  u8 _1[3];
+  u8 uid;
+  u8 _1[2];
   u32 status_condition[38];
   u8 status_condition_count[38];
   u8 _2[4 * 6 + 1];
@@ -111,23 +112,21 @@ class Manager {
  public:
   static void LoadMenu(menu::PluginMenu& menu, void* args);
 
+  static Manager& GetInstance() { return Process::GetInstance().GetManager(); }
+
+  static void* GetGraphics() { return GetInstance().graphics_; }
+
   static Pokemon* GetPokemon(bool is_server, u32 team_idx, u32 pkm_idx) {
     if (is_server) {
-      return (Process::GetInstance()
-                  .GetManager()
-                  .server_.teams[team_idx]
-                  .pokemon[pkm_idx]);
+      return (GetInstance().server_.teams[team_idx].pokemon[pkm_idx]);
     }
-    return (Process::GetInstance()
-                .GetManager()
-                .client_.teams[team_idx]
-                .pokemon[pkm_idx]);
+    return (GetInstance().client_.teams[team_idx].pokemon[pkm_idx]);
   }
 
  private:
   void* heaps_[4];
   Config* config_;
-  void* battle_graphics_;
+  void* graphics_;
 
   u32 _0[8];
   GameManager* game_manager_;
