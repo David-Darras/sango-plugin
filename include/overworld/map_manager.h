@@ -35,6 +35,8 @@ class MapManager {
 
   void* GetAddr() { return &renderer_; }
 
+  u16 GetMapId() { return current_map_id; }
+
  private:
   void* _0[23 + 1];
   GameManager* game_manager_;
@@ -47,6 +49,7 @@ class MapManager {
   u32 _3;
 
   Renderer* renderer_;
+  void* encounter_manager_;
 };
 
 }  // namespace overworld

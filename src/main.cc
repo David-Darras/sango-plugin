@@ -23,7 +23,6 @@
 #include "data/pokemon.h"
 #include "hack/cheat_code.h"
 #include "hack/cheat_code_manager.h"
-#include "menu/log_menu.h"
 #include "menu/plugin_menu.h"
 #include "overworld/model_manager.h"
 #include "overworld/renderer.h"
@@ -34,10 +33,15 @@
 #include "system/graphics.h"
 #include "system/sound.h"
 
-extern void TestMenu(menu::PluginMenu &menu, void *args);
+extern void TestMenu(menu::PluginMenu& menu, void* args);
 
-void MainMenu(menu::PluginMenu &menu, void *args) {
-  menu.Add("Battle Teams", battle::Manager::LoadMenu)
+namespace overworld {
+extern void FieldMove_LoadMenu(menu::PluginMenu& menu, void* args);
+}
+
+void MainMenu(menu::PluginMenu& menu, void* args) {
+  menu.Add("Field Move", overworld::FieldMove_LoadMenu)
+      .Add("Battle Teams", battle::Manager::LoadMenu)
       .Add("Pokemon Data", data::Pokemon::LoadMenu)
       .Add("Move Data", data::Move::LoadMenu)
       .Add("Battle Config", battle::Config::LoadMenu)
@@ -51,7 +55,7 @@ void MainMenu(menu::PluginMenu &menu, void *args) {
 }
 
 void SetupCheatCodes() {
-  CheatCodeManager &man = CheatCodeManager::GetInstance();
+  CheatCodeManager& man = CheatCodeManager::GetInstance();
   man.Add(CheatCodeId::kNoclip, overworld::ModelManager::Noclip);
   man.Add(CheatCodeId::kSwarmMod, overworld::ModelManager::SwarmMod);
 }
@@ -81,8 +85,8 @@ void ApplyPatches() {
 // Performs logic update and rendering for both screens.
 // Called once per frame.
 extern "C" void OnFrame() {
-  Graphics &graphics = Graphics::GetInstance();
-  menu::PluginMenu &menu = menu::PluginMenu::GetInstance();
+  Graphics& graphics = Graphics::GetInstance();
+  menu::PluginMenu& menu = menu::PluginMenu::GetInstance();
 
   // Updates the logic based on user input.
   menu.Update();
@@ -92,7 +96,7 @@ extern "C" void OnFrame() {
   if (!menu.IsOpened()) return;
 
   // Renders the top screen.
-  void *top_buffer = graphics.GetFramebuffer(Screen::kTop);
+  void* top_buffer = graphics.GetFramebuffer(Screen::kTop);
   if (graphics.BindFramebuffer(top_buffer)) {
     Graphics::EnableScissor(0, 0, 400, 240);
     Graphics::BeginRender(top_buffer);
@@ -101,30 +105,13 @@ extern "C" void OnFrame() {
   }
 
   // Renders the bottom screen.
-  void *bottom_buffer = graphics.GetFramebuffer(Screen::kBottom);
+  void* bottom_buffer = graphics.GetFramebuffer(Screen::kBottom);
   if (graphics.BindFramebuffer(bottom_buffer)) {
     Graphics::EnableScissor(0, 0, 320, 240);
     Graphics::BeginRender(bottom_buffer);
     menu.DrawBottom();
     Graphics::DisableScissor();
   }
-
-  // Controller &ctrl = Controller::GetInstance();
-  // if (ctrl.IsKeyPressed(Key::kR)) {
-  //   Vec3 pos = {0, 0, 0};
-  //   menu::LogMenu::GetInstance().Add(u"Teleport");
-  //   ((void (*)(GameManager *, u16, Vec3 *, u8, bool, bool, bool, bool, bool,
-  //              bool))ADDRESS_CHANGE_MAP)(&GameManager::GetInstance(),
-  //                                        120,  // zone
-  //                                        &pos,
-  //                                        1,  // dir
-  //                                        true,
-  //                                        true,  // same background music
-  //                                        true,  // fade
-  //                                        true, true,
-  //                                        true  // show place name
-  //   );
-  // }
 }
 
 // Performs the system initialization and prepares the plugin environment.
@@ -133,7 +120,7 @@ extern "C" void Initialize() {
   // zero.
   extern u32 __bss_start__;
   extern u32 __bss_end__;
-  for (u32 *data = &__bss_start__; data <= &__bss_end__; ++data) {
+  for (u32* data = &__bss_start__; data <= &__bss_end__; ++data) {
     *data = 0;
   }
 
