@@ -18,8 +18,8 @@
 #ifndef SANGO_PLUGIN_OVERWORLD_MODEL_MANAGER_H
 #define SANGO_PLUGIN_OVERWORLD_MODEL_MANAGER_H
 
-#include "core/game_data_manager.h"
 #include "common.h"
+#include "core/game_data_manager.h"
 
 namespace overworld {
 
@@ -31,8 +31,19 @@ struct Position {
   u32 _3;
 };
 
+struct DrawModel {
+  u8 _0[0x150];
+  Vec3 position;
+  Vec3 rotation;
+  Vec3 scale;
+};
+
 struct Model {
   static constexpr u32 kSize = 0xAB0;
+
+  DrawModel& GetDrawModel() {
+    return *((DrawModel * (*)(Model*))0x004E3F90)(this);
+  }
 
   bool IsUsed() const { return (flags[0] & 1) == 1; }
 

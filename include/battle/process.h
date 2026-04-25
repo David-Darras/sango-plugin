@@ -29,6 +29,10 @@ struct Config;
 
 class Process {
  public:
+  static bool IsInBattle() {
+    return READ(vu32, ADDRESS_BATTLE_MAIN_PROCESS) == 0x007D85D0;
+  }
+
   static Process& GetInstance() {
     return *(Process*)(ADDRESS_BATTLE_MAIN_PROCESS);
   }

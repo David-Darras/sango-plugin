@@ -19,6 +19,7 @@
 
 #include <cmath>
 
+#include "battle/manager.h"
 #include "hack/hook_manager.h"
 #include "menu/plugin_menu.h"
 #include "overworld/model_manager.h"
@@ -42,7 +43,9 @@ static struct {
 } ctx;
 
 void UpdateMatrices(StereoCamera* stereo_camera, bool update) {
-  if (&Renderer::GetInstance().GetStereoCamera() == stereo_camera) {
+  if (&Renderer::GetInstance().GetStereoCamera() == stereo_camera ||
+      (battle::Process::IsInBattle() &&
+       &battle::Graphics::GetInstance().GetStereoCamera() == stereo_camera)) {
     ctx.is_updating_camera = true;
   }
   HookManager::GetInstance()
@@ -76,7 +79,11 @@ Mtx34* UpdateLookAt(Mtx34* output, Vec3* pos, Vec3* up, Vec3* target) {
 
   switch (static_cast<CameraState>(ctx.state)) {
     case CameraState::kRotate:
-      *target = player.draw_pos;
+      if (battle::Process::IsInBattle()) {
+        *target = Vec3{0, 0, 0};
+      } else {
+        *target = player.draw_pos;
+      }
       *up = {0.0f, 1.0f, 0.0f};
       pos->x = target->x + ctx.radius * std::cos(ctx.theta);
       pos->z = target->z + ctx.radius * std::sin(ctx.theta);

@@ -29,10 +29,16 @@ struct PokemonParam;
 struct PokemonCoreData;
 }  // namespace savedata
 
+namespace overworld {
+class StereoCamera;
+}
+
 namespace battle {
 
 struct Config;
 class Manager;
+
+class Graphics;
 
 struct Pokemon {
   static void LoadMenu(menu::PluginMenu& menu, void* args);
@@ -114,7 +120,7 @@ class Manager {
 
   static Manager& GetInstance() { return Process::GetInstance().GetManager(); }
 
-  static void* GetGraphics() { return GetInstance().graphics_; }
+  Graphics& GetGraphics() { return *graphics_; }
 
   static Pokemon* GetPokemon(bool is_server, u32 team_idx, u32 pkm_idx) {
     if (is_server) {
@@ -126,7 +132,7 @@ class Manager {
  private:
   void* heaps_[4];
   Config* config_;
-  void* graphics_;
+  Graphics* graphics_;
 
   u32 _0[8];
   GameManager* game_manager_;
@@ -146,6 +152,35 @@ class Manager {
     savedata::PokemonParam* pokemon_params[4 * 6];
     u8 _0[0x2BC];
   } client_, server_;
+};
+
+struct PokemonModel {
+  static void LoadMenu(menu::PluginMenu& menu, void* args);
+
+  void* vtable;
+  Vec3 position;
+  Vec3 position_offset;
+  Vec3 rotation;
+  Vec3 rotation_offset;
+  Vec3 scale;
+  Vec3 scale_offset;
+
+  bool update;
+};
+
+class Graphics {
+ public:
+  static Graphics& GetInstance() {
+    return Manager::GetInstance().GetGraphics();
+  }
+
+  overworld::StereoCamera& GetStereoCamera() {
+    return *(overworld::StereoCamera*)((uptr)this + 0x1F0);
+  }
+
+  PokemonModel& GetPokemonModel(u32 index) {
+    return *(PokemonModel*)(READ(vu32, (uptr)this + 0x100 + index * 4));
+  }
 };
 
 }  // namespace battle

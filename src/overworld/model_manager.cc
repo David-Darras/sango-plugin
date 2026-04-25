@@ -32,7 +32,11 @@ static struct {
   f32 theta_speed;
   u32 model_idx;
   u16 model_animation;
-} ctx = {{1, 1, 1}, 0, 5, 1, 0};
+} ctx = {.speed = Vec3{1, 1, 1},
+         .theta = 0,
+         .radius = 5,
+         .theta_speed = 1,
+         .model_idx = 0};
 
 void ModelManager::Noclip(void*) {
   Model& player = GetInstance().GetPlayer();
@@ -100,7 +104,16 @@ void ModelManager::LoadMenu(menu::PluginMenu& menu, void* args) {
 
   ModelManager& man = GetInstance();
   ModelResource& rsrc = man.GetResource(ctx.model_idx);
+  DrawModel& draw_model = man.GetPlayer().GetDrawModel();
+
   menu.Add(sep)
+      .Add("Scale X", draw_model.scale.x)
+      .WithFactor(0.2f)
+      .Add("Scale Y", draw_model.scale.y)
+      .WithFactor(0.2f)
+      .Add("Scale Z", draw_model.scale.z)
+      .WithFactor(0.2f)
+      .Add(sep)
       .Add("Noclip", CheatCodeId::kNoclip)
       .Add("Speed-X", ctx.speed.x)
       .Add("Speed-Y", ctx.speed.y)

@@ -53,6 +53,11 @@ typedef uintptr_t uptr;
 #define WRITE(type, address, value) *(type*)(address) = (value)
 #define READ(type, address) *(type*)(address)
 
+#define ARM_NOP(address) *(vu32*)(address) = 0xE1A00000
+#define ARM_RET(address) *(vu32*)(address) = 0xE12FFF1E  // bx lr
+#define ARM_NO_COND(address) \
+  *(vu32*)(address) = (*(vu32*)(address) & 0x0FFFFFFF) | 0xE0000000
+
 #define SET_BITS(b, p, n, v) \
   ((b) = ((b) & ~(((1u << (n)) - 1) << (p))) | ((v) << (p)))
 #define GET_BITS(b, p, n) (((b) >> (p)) & ((1u << (n)) - 1))

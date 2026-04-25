@@ -64,11 +64,14 @@ void ApplyPatches() {
   // Disables the keyboard's "No Good Word" filter to allow prohibited words,
   // phone numbers, etc.
   WRITE(u32, 0x003A47C0, 0xE3A00000);
-  WRITE(u32, 0x003A47C4, 0xE12FFF1E);
+  ARM_RET(0x003A47C4);
 
   // Disable material shader
-  WRITE(u32, 0x003989B0, 0xE12FFF1E);
-  WRITE(u32, 0x003881EC, 0xE12FFF1E);
+  // ARM_RET(0x003989B0);
+  // ARM_RET(0x003881EC);
+
+  WRITE(u32, 0x00492280, 0xE3A06001);
+
   // Disable outline
   // WRITE(u32, 0x0038BE34, 0xE12FFF1E);
 

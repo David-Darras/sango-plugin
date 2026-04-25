@@ -17,6 +17,8 @@
 
 #include "battle/manager.h"
 
+#include <math.h>
+
 #include <cstring>
 
 #include "hack/hook_manager.h"
@@ -228,6 +230,45 @@ void PlayBattleAnimation(void* graphics, u16 animation) {
       ->CallOriginal<void>(graphics, animation);
 }
 
+void PokemonModel::LoadMenu(menu::PluginMenu& menu, void* args) {
+  PokemonModel& model =
+      Manager::GetInstance().GetGraphics().GetPokemonModel(ctx.pokemon_idx);
+
+  model.update = true;
+
+  constexpr f32 kScaleFactor = 0.05f;
+  constexpr f32 kRotationFactor = 4.0f * M_PI / 180.0f;
+  constexpr f32 kPositionFactor = 4.0f;
+
+  menu.Add("Position X", model.position.x)
+      .WithFactor(kPositionFactor)
+      .WithRefresh()
+      .Add("Position Y", model.position.y)
+      .WithFactor(kPositionFactor)
+      .WithRefresh()
+      .Add("Position Z", model.position.z)
+      .WithFactor(kPositionFactor)
+      .WithRefresh()
+      .Add("Rotation X", model.rotation.x)
+      .WithFactor(kRotationFactor)
+      .WithRefresh()
+      .Add("Rotation Y", model.rotation.y)
+      .WithFactor(kRotationFactor)
+      .WithRefresh()
+      .Add("Rotation Z", model.rotation.z)
+      .WithFactor(kRotationFactor)
+      .WithRefresh()
+      .Add("Scale X", model.scale.x)
+      .WithFactor(kScaleFactor)
+      .WithRefresh()
+      .Add("Scale Y", model.scale.y)
+      .WithFactor(kScaleFactor)
+      .WithRefresh()
+      .Add("Scale Z", model.scale.z)
+      .WithFactor(kScaleFactor)
+      .WithRefresh();
+}
+
 void Manager::LoadMenu(menu::PluginMenu& menu, void* args) {
   HookManager::GetInstance().Add(HookID::kOnStartTurn, 0x00759B74,
                                  (uptr)OnStartTurn);
@@ -242,7 +283,8 @@ void Manager::LoadMenu(menu::PluginMenu& menu, void* args) {
       .WithRefresh()
       .Add("Pokemon Index", ctx.pokemon_idx)
       .WithRefresh()
-      .Add("Pokemon Data", Pokemon::LoadMenu);
+      .Add("Pokemon Data", Pokemon::LoadMenu)
+      .Add("Pokemon Model", PokemonModel::LoadMenu);
 }
 
 }  // namespace battle
