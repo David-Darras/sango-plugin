@@ -24,6 +24,7 @@
 #include "hack/cheat_code.h"
 #include "hack/cheat_code_manager.h"
 #include "menu/plugin_menu.h"
+#include "overworld/encounter.h"
 #include "overworld/model_manager.h"
 #include "overworld/renderer.h"
 #include "overworld/weather_manager.h"
@@ -40,7 +41,8 @@ extern void FieldMove_LoadMenu(menu::PluginMenu& menu, void* args);
 }
 
 void MainMenu(menu::PluginMenu& menu, void* args) {
-  menu.Add("Field Move", overworld::FieldMove_LoadMenu)
+  menu.Add("Encounter", overworld::Encounter::LoadMenu)
+      .Add("Field Move", overworld::FieldMove_LoadMenu)
       .Add("Battle Teams", battle::Manager::LoadMenu)
       .Add("Pokemon Data", data::Pokemon::LoadMenu)
       .Add("Move Data", data::Move::LoadMenu)
@@ -69,8 +71,6 @@ void ApplyPatches() {
   // Disable material shader
   // ARM_RET(0x003989B0);
   // ARM_RET(0x003881EC);
-
-  WRITE(u32, 0x00492280, 0xE3A06001);
 
   // Disable outline
   // WRITE(u32, 0x0038BE34, 0xE12FFF1E);

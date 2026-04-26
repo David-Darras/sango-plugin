@@ -26,7 +26,7 @@
 
 namespace overworld {
 
-enum class CameraState { kIdle, kFree, kRotate, kFpv };
+enum class CameraState { kIdle, kFree, kRotate, kFpv, kTps };
 
 static struct {
   u8 state;
@@ -40,6 +40,9 @@ static struct {
   f32 theta;
   f32 theta_speed;
   bool is_updating_camera;
+  f32 tps_dist = 80.0f;
+  f32 tps_height = 33.0f;
+  f32 tps_offset = 0.0f;
 } ctx;
 
 void UpdateMatrices(StereoCamera* stereo_camera, bool update) {
@@ -114,6 +117,26 @@ Mtx34* UpdateLookAt(Mtx34* output, Vec3* pos, Vec3* up, Vec3* target) {
       *up = {0.0f, 1.0f, 0.0f};
       break;
 
+    case CameraState::kTps: {
+      Vec3 dir = player.facing_direction;
+      f32 len = std::sqrt(dir.x * dir.x + dir.y * dir.y + dir.z * dir.z);
+      if (len > 0.0f) {
+        dir.x /= len;
+        dir.z /= len;
+      }
+
+      pos->x = player.draw_pos.x - (dir.x * ctx.tps_dist) +
+               (-dir.z * ctx.tps_offset);
+      pos->y = player.draw_pos.y + ctx.tps_height;
+      pos->z =
+          player.draw_pos.z - (dir.z * ctx.tps_dist) + (dir.x * ctx.tps_offset);
+
+      *target = {player.draw_pos.x, player.draw_pos.y + ctx.tps_height,
+                 player.draw_pos.z};
+      *up = {0.0f, 1.0f, 0.0f};
+      break;
+    }
+
     case CameraState::kIdle:
     default:
       break;
@@ -125,7 +148,7 @@ Mtx34* UpdateLookAt(Mtx34* output, Vec3* pos, Vec3* up, Vec3* target) {
 }
 
 void StereoCamera::LoadMenu(menu::PluginMenu& menu, void* args) {
-  static const c8* STATES[] = {"Idle", "Free", "Rotate", "Fpv"};
+  static const c8* STATES[] = {"Idle", "Free", "Rotate", "Fpv", "Tps"};
   bool& skybox = *(bool*)((uptr)&Renderer::GetInstance() + 0xB74);
 
   menu.WithNoBackground()
@@ -147,7 +170,10 @@ void StereoCamera::LoadMenu(menu::PluginMenu& menu, void* args) {
       .Add("Height", ctx.height)
       .WithFactor(3.0f)
       .Add("Orbit Rot Speed", ctx.theta_speed)
-      .WithFactor(0.01f);
+      .WithFactor(0.01f)
+      .Add("TPS Distance", ctx.tps_dist)
+      .Add("TPS Height", ctx.tps_height)
+      .Add("TPS Shoulder Offset", ctx.tps_offset);
 }
 
 void StereoCamera::SetupHooks() {

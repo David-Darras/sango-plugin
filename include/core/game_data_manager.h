@@ -28,6 +28,7 @@ struct PlayTime;
 
 namespace overworld {
 class ModelManager;
+struct Encounter;
 }  // namespace overworld
 
 class GameDataManager {
@@ -42,6 +43,7 @@ class GameDataManager {
   overworld::ModelManager& GetOverworldModelManager() const {
     return *overworld_model_manager_;
   }
+  overworld::Encounter& GetEncounter() const { return *encounter_; }
 
   savedata::SaveData* savedata_;
   void* _0[4];
@@ -49,6 +51,10 @@ class GameDataManager {
   savedata::PlayTime* play_time_;
   void* _1;
   overworld::ModelManager* overworld_model_manager_;
+
+  u8 _2[388 - 36];
+
+  overworld::Encounter* encounter_;
 };
 
 #endif  // SANGO_PLUGIN_GAME_DATA_MANAGER_H
