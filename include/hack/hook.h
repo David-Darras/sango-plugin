@@ -38,6 +38,7 @@ enum class HookID : u32 {
   kSetupBattleConfig,
   kOnStartTurn,
   kPlayBattleAnimation,
+  kOnLoadTrainerModel,
   kMax  ///< Sentinel value for array sizing
 };
 

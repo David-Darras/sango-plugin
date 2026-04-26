@@ -27,11 +27,21 @@
 namespace battle {
 
 static struct {
+  u8 trainer_model_id = 11;
   u8 team_idx;
   u8 pokemon_idx;
   Pokemon* pkm_server;
   Pokemon* pkm_client;
 } ctx{};
+
+void OnLoadTrainerModel(uptr trainer_model, void* trainer_model_manager) {
+  *(u16*)trainer_model = ctx.trainer_model_id;
+  *(u16*)(trainer_model + 2) = 0;
+
+  return HookManager::GetInstance()
+      .Get(HookID::kOnLoadTrainerModel)
+      ->CallOriginal<void>(trainer_model, trainer_model_manager);
+}
 
 void OnSave(void*) {
   for (u32 i = 0; i < 4; i++) {
@@ -270,16 +280,27 @@ void PokemonModel::LoadMenu(menu::PluginMenu& menu, void* args) {
 }
 
 void Manager::LoadMenu(menu::PluginMenu& menu, void* args) {
-  HookManager::GetInstance().Add(HookID::kOnStartTurn, 0x00759B74,
-                                 (uptr)OnStartTurn);
+  static const c8* TRAINER_MODELS[] = {
+      "Yvonne",  "Xavier", "Malva",  "Hologram", "May",
+      "Brendan", "Wally",  "Wally2", "Steven",   "Maxie",
+      "Archie",  "Zinnia", "Shauna", "Tierno",   "Trevor"};
 
+  // HookManager::GetInstance().Add(HookID::kOnStartTurn, 0x00759B74,
+  //                                (uptr)OnStartTurn);
+  //
+  //
   HookManager::GetInstance().Add(HookID::kPlayBattleAnimation, 0x007510A8,
                                  (uptr)PlayBattleAnimation);
+
+  HookManager::GetInstance().Add(HookID::kOnLoadTrainerModel, 0x00458214,
+                                 (uptr)OnLoadTrainerModel);
 
   ctx.pkm_server = GetPokemon(true, ctx.team_idx, ctx.pokemon_idx);
   ctx.pkm_client = GetPokemon(false, ctx.team_idx, ctx.pokemon_idx);
 
-  menu.Add("Team Index", ctx.team_idx)
+  menu.Add("Trainer Model", ctx.trainer_model_id)
+      .WithArray(TRAINER_MODELS, SIZE(TRAINER_MODELS))
+      .Add("Team Index", ctx.team_idx)
       .WithRefresh()
       .Add("Pokemon Index", ctx.pokemon_idx)
       .WithRefresh()
