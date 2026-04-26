@@ -26,12 +26,14 @@
 #include "savedata/pokemon_amie.h"
 #include "savedata/pokemon_box.h"
 #include "savedata/pokemon_team.h"
+#include "savedata/settings.h"
 #include "savedata/trainer_status.h"
 
 namespace savedata {
 
 void SaveData::LoadMenu(menu::PluginMenu& menu, void* args) {
-  menu.Add("Play Time", PlayTime::LoadMenu)
+  menu.Add("Settings", Settings::LoadMenu)
+      .Add("Play Time", PlayTime::LoadMenu)
       .Add("Team", PokemonTeam::LoadMenu)
       .Add("Battle Box", BattleBox::LoadMenu)
       .Add("PC", PokemonBox::LoadMenu)

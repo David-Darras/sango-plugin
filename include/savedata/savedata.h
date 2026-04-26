@@ -32,6 +32,7 @@ struct TrainerStatus;
 struct PokemonBox;
 struct BattleBox;
 struct PokemonTeam;
+struct Settings;
 
 /**
  * @class SaveData
@@ -74,6 +75,8 @@ class SaveData {
   PokemonTeam& GetPokemonTeam() { return *(PokemonTeam*)segments_[18]; }
 
   PokemonBox& GetPokemonBox() { return *(PokemonBox*)segments_[56]; }
+
+  Settings& GetSettings() { return *(Settings*)segments_[23]; }
 
   /// @brief Total number of data segments monitored for integrity.
   static constexpr u32 kSegmentCount = 58;

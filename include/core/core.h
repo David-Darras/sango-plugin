@@ -131,6 +131,8 @@
 
 #define ADDRESS_DO_FIELD_MOVE (0x003D40EC)
 
+#define ADDRESS_LANGUAGE_ID (0x5F4F01)
+
 class Device;
 class Graphics;
 
@@ -159,12 +161,18 @@ class Core {
    */
   Graphics& GetGraphics() const { return *graphics_; }
 
+  u8& GetLanguageId() { return *language_id; }
+
  private:
   /** @brief Private constructor to prevent manual instantiation. */
   Core() = default;
 
   Device* device_;      ///< Pointer to the internal Device manager instance.
   Graphics* graphics_;  ///< Pointer to the internal Graphics manager instance.
+
+  void* _0[21];
+
+  u8* language_id;
 };
 
 #endif  // SANGO_PLUGIN_CORE_H
