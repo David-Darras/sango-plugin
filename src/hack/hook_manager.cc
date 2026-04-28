@@ -21,6 +21,7 @@ HookManager HookManager::instance_ = HookManager();
 
 void HookManager::Add(HookID id, u32 src, u32 dst) {
   if (id >= HookID::kMax) return;
+  if (hooks_[(u32)id].IsEnabled()) return;
   hooks_[(u32)id].Initialize(src, dst);
   count_++;
 }

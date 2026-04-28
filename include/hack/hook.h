@@ -39,7 +39,10 @@ enum class HookID : u32 {
   kOnStartTurn,
   kPlayBattleAnimation,
   kOnLoadTrainerModel,
-  kMax  ///< Sentinel value for array sizing
+  kOnChangeOutlineScale,
+  kOnChangeAmbientLightColor,
+  kOnChangeDiffuseLightColor,
+  kMax
 };
 
 /**
@@ -84,6 +87,8 @@ class Hook {
    * This method is reentrant; if the hook is not enabled, it does nothing.
    */
   void Disable();
+
+  bool IsEnabled() const { return is_enabled_; }
 
   /**
    * @brief Calls the original, unhooked function through the gateway.

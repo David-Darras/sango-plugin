@@ -97,6 +97,12 @@ struct Color {
   Color(f32 r0, f32 g0, f32 b0, f32 a0) : r(r0), g(g0), b(b0), a(a0) {}
 };
 
+struct Color8 {
+  u8 r, g, b, a;
+  Color8() : r(255), g(255), b(255), a(255) {}
+  Color8(u8 r0, u8 g0, u8 b0, u8 a0) : r(r0), g(g0), b(b0), a(a0) {}
+};
+
 struct Mtx33 {
   f32 m[3][3];
 };

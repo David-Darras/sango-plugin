@@ -44,6 +44,8 @@ class StereoCamera {
 
 class Renderer {
  public:
+  static void LoadMenu(menu::PluginMenu& menu, void* args);
+
   static Renderer& GetInstance() {
     return MapManager::GetInstance().GetRenderer();
   }

@@ -41,7 +41,8 @@ extern void FieldMove_LoadMenu(menu::PluginMenu& menu, void* args);
 }
 
 void MainMenu(menu::PluginMenu& menu, void* args) {
-  menu.Add("Encounter", overworld::Encounter::LoadMenu)
+  menu.Add("Renderer", overworld::Renderer::LoadMenu)
+      .Add("Encounter", overworld::Encounter::LoadMenu)
       .Add("Field Move", overworld::FieldMove_LoadMenu)
       .Add("Battle Teams", battle::Manager::LoadMenu)
       .Add("Pokemon Data", data::Pokemon::LoadMenu)
@@ -67,6 +68,9 @@ void ApplyPatches() {
   // phone numbers, etc.
   WRITE(u32, 0x003A47C0, 0xE3A00000);
   ARM_RET(0x003A47C4);
+
+  // Remove H3D MODELS
+  // ARM_RET(0x0038B928);
 
   // Disable material shader
   // ARM_RET(0x003989B0);
