@@ -23,7 +23,7 @@ include $(DEVKITARM)/3ds_rules
 TARGET          := $(notdir $(CURDIR))
 BUILD           := bin
 INCLUDES        := include
-SOURCES         := src src/battle src/core src/data src/hack src/menu src/overworld src/savedata src/system
+SOURCES         := src src/battle src/core src/data src/hack src/menu src/overworld src/savedata src/system src/layout
 
 # Architecture and Flags
 ARCH            := -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft

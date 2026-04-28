@@ -23,6 +23,8 @@
 #include "data/pokemon.h"
 #include "hack/cheat_code.h"
 #include "hack/cheat_code_manager.h"
+#include "hack/hook_manager.h"
+#include "layout/picture.h"
 #include "menu/plugin_menu.h"
 #include "overworld/encounter.h"
 #include "overworld/model_manager.h"
@@ -40,8 +42,19 @@ namespace overworld {
 extern void FieldMove_LoadMenu(menu::PluginMenu& menu, void* args);
 }
 
+namespace layout {
+extern void OnDrawPicture(Picture* picture, u32 p0, u32 p1, u32 p2);
+}
+
+void EnablePsychedelicVision(void*) {
+  HookManager::GetInstance().Add(HookID::kOnDrawPicture,
+                                 ADDRESS_LAYOUT_DRAW_PICTURE,
+                                 (uptr)layout::OnDrawPicture);
+}
+
 void MainMenu(menu::PluginMenu& menu, void* args) {
-  menu.Add("Renderer", overworld::Renderer::LoadMenu)
+  menu.Add("Psychedelic Vision", EnablePsychedelicVision)
+      .Add("Renderer", overworld::Renderer::LoadMenu)
       .Add("Encounter", overworld::Encounter::LoadMenu)
       .Add("Field Move", overworld::FieldMove_LoadMenu)
       .Add("Battle Teams", battle::Manager::LoadMenu)

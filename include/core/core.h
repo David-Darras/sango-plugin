@@ -133,6 +133,8 @@
 
 #define ADDRESS_LANGUAGE_ID (0x5F4F01)
 
+#define ADDRESS_LAYOUT_DRAW_PICTURE (0x004BE3DC)
+
 class Device;
 class Graphics;
 
