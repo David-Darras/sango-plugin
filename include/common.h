@@ -18,7 +18,7 @@
 #ifndef SANGO_PLUGIN_COMMON_H
 #define SANGO_PLUGIN_COMMON_H
 
-#include <cstdint>
+#include <types.h>
 
 namespace menu {
 class PluginMenu;
@@ -26,17 +26,6 @@ class PluginMenu;
 
 typedef void (*menu_callback_t)(menu::PluginMenu& menu, void* args);
 typedef void (*callback_t)(void* args);
-
-#define TYPEDEF_INTEGER(n, t)        \
-  typedef unsigned t u##n;           \
-  typedef volatile unsigned t vu##n; \
-  typedef signed t s##n;             \
-  typedef volatile signed t vs##n;
-
-TYPEDEF_INTEGER(8, char)
-TYPEDEF_INTEGER(16, short)
-TYPEDEF_INTEGER(32, int)
-TYPEDEF_INTEGER(64, long long)
 
 #define TYPEDEF_FLOAT(n, t) \
   typedef t f##n;           \
@@ -70,15 +59,22 @@ extern "C" s32 svcInvalidateEntireInstructionCache();
 
 struct Vec2 {
   f32 x, y;
-  Vec2() : x(0), y(0) {}
-  Vec2(f32 x0, f32 y0) : x(x0), y(y0) {}
+
+  Vec2() : x(0), y(0) {
+  }
+
+  Vec2(f32 x0, f32 y0) : x(x0), y(y0) {
+  }
 };
 
 struct Vec3 {
   f32 x, y, z;
 
-  Vec3() : x(0), y(0), z(0) {}
-  Vec3(f32 x0, f32 y0, f32 z0) : x(x0), y(y0), z(z0) {}
+  Vec3() : x(0), y(0), z(0) {
+  }
+
+  Vec3(f32 x0, f32 y0, f32 z0) : x(x0), y(y0), z(z0) {
+  }
 
   static float Dot(const Vec3& a, const Vec3& b) {
     return (a.x * b.x) + (a.y * b.y) + (a.z * b.z);
@@ -87,20 +83,32 @@ struct Vec3 {
 
 struct Vec4 {
   f32 x, y, z, w;
-  Vec4() : x(0), y(0), z(0), w(0) {}
-  Vec4(f32 x0, f32 y0, f32 z0, f32 w0) : x(x0), y(y0), z(z0), w(w0) {}
+
+  Vec4() : x(0), y(0), z(0), w(0) {
+  }
+
+  Vec4(f32 x0, f32 y0, f32 z0, f32 w0) : x(x0), y(y0), z(z0), w(w0) {
+  }
 };
 
 struct Color {
   f32 r, g, b, a;
-  Color() : r(1), g(1), b(1), a(1) {}
-  Color(f32 r0, f32 g0, f32 b0, f32 a0) : r(r0), g(g0), b(b0), a(a0) {}
+
+  Color() : r(1), g(1), b(1), a(1) {
+  }
+
+  Color(f32 r0, f32 g0, f32 b0, f32 a0) : r(r0), g(g0), b(b0), a(a0) {
+  }
 };
 
 struct Color8 {
   u8 r, g, b, a;
-  Color8() : r(255), g(255), b(255), a(255) {}
-  Color8(u8 r0, u8 g0, u8 b0, u8 a0) : r(r0), g(g0), b(b0), a(a0) {}
+
+  Color8() : r(255), g(255), b(255), a(255) {
+  }
+
+  Color8(u8 r0, u8 g0, u8 b0, u8 a0) : r(r0), g(g0), b(b0), a(a0) {
+  }
 };
 
 struct Mtx33 {

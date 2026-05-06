@@ -1,116 +1,154 @@
 #---------------------------------------------------------------------------------
-# Project Configuration
-#---------------------------------------------------------------------------------
 .SUFFIXES:
+#---------------------------------------------------------------------------------
 
-# Check if DevkitARM is defined
 ifeq ($(strip $(DEVKITARM)),)
 $(error "Please set DEVKITARM in your environment. export DEVKITARM=<path to>devkitARM")
 endif
 
-# Project Paths and Metadata
-CITRA_PATH      := C:/Users/David/AppData/Roaming/Citra/cheats/000400000011C500.txt
-ADDRESS_SOURCE  := 0x00122938
-ADDRESS_TARGET  := 0x00696000
-
-PLUGIN_VERSION  := 1.0.0
-PLUGIN_CREATOR  := ZettaD
-
-TOPDIR          ?= $(CURDIR)
+export TOPDIR ?= $(CURDIR)
 include $(DEVKITARM)/3ds_rules
 
-# Directories and Files
-TARGET          := $(notdir $(CURDIR))
-BUILD           := bin
-INCLUDES        := include
-SOURCES         := src src/battle src/core src/data src/hack src/menu src/overworld src/savedata src/system src/layout
+PLUGIN_VERSION  := 2.0.0
+PLUGIN_CREATOR  := ZettaD
 
-# Architecture and Flags
-ARCH            := -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
+DEST      := C:/Users/David/AppData/Roaming/Azahar/sdmc/luma/plugins/000400000011C500
+EMULATOR  := "C:/Program Files/Azahar/azahar.exe"
+GAME_PATH := "C:/Users/David/Desktop/ctr/cia/sango.3ds"
 
-CFLAGS          := $(ARCH) -Os -fomit-frame-pointer -mword-relocations \
-                   -ffunction-sections -fno-strict-aliasing \
-                   -DADDRESS_SOURCE=$(ADDRESS_SOURCE) -DADDRESS_TARGET=$(ADDRESS_TARGET) \
-                   -DPLUGIN_CREATOR=\"$(PLUGIN_CREATOR)\" -DPLUGIN_VERSION=\"$(PLUGIN_VERSION)\"
+CTRPFLIB	?=	$(DEVKITPRO)/libctrpf
 
-CFLAGS          += $(INCLUDE) -D__3DS__
+TARGET		:= 	$(notdir $(CURDIR))
+INCLUDES	:= 	include \
+				../Library/include
 
-CXXFLAGS        := $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
+SOURCES 	:= 	src \
+				src/battle \
+				src/core \
+				src/data \
+				src/hack \
+				src/layout \
+				src/menu \
+				src/overworld \
+				src/savedata \
+				src/system
 
-ASFLAGS         := $(ARCH) -DADDRESS_SOURCE=$(ADDRESS_SOURCE) -DADDRESS_TARGET=$(ADDRESS_TARGET)
-LDFLAGS         := -T $(TOPDIR)/arcc.ld $(ARCH) -Os -nostartfiles -fno-lto -Wl,--gc-sections,--strip-discarded,--strip-debug
+PSF 		:= 	$(notdir $(TOPDIR)).plgInfo
 
 #---------------------------------------------------------------------------------
-# Build Logic (Recursive Makefile)
+# options for code generation
+#---------------------------------------------------------------------------------
+ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
+
+CFLAGS	:=	-mword-relocations \
+ 			-ffunction-sections -fdata-sections -fno-strict-aliasing \
+			$(ARCH) $(BUILD_FLAGS) $(G) \
+		   -DPLUGIN_CREATOR=\"$(PLUGIN_CREATOR)\" -DPLUGIN_VERSION=\"$(PLUGIN_VERSION)\"
+
+CFLAGS		+=	$(INCLUDE) -D__3DS__ $(DEFINES)
+
+#-Wall -Wextra -Wdouble-promotion -Werror
+
+CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
+
+ASFLAGS		:= $(ARCH) $(G)
+LDFLAGS		:= -T $(TOPDIR)/3gx.ld $(ARCH) -Os -Wl,$(WL)--gc-sections,--section-start,.text=0x07000100 #-specs=3dsx.specs
+
+LIBS 		:=  $(BUILD_LIBS) -lm
+LIBDIRS		:= 	$(CTRPFLIB) $(CTRULIB) $(PORTLIBS)
+
+#---------------------------------------------------------------------------------
+# no real need to edit anything past this point unless you need to add additional
+# rules for different file extensions
 #---------------------------------------------------------------------------------
 ifneq ($(BUILD),$(notdir $(CURDIR)))
+#---------------------------------------------------------------------------------
+export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
+					$(foreach dir,$(DATA),$(CURDIR)/$(dir))
 
-export OUTPUT   := $(CURDIR)/$(TARGET)
-export TOPDIR   := $(CURDIR)
-export VPATH    := $(foreach dir,$(SOURCES),$(CURDIR)/$(dir))
-export DEPSDIR  := $(CURDIR)/$(BUILD)
+export DEPSDIR	:=	$(CURDIR)/$(BUILD)
 
-# Locate Source Files
-CFILES          := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
-CPPFILES        := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
+CFILES			:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
+CPPFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
 CCFILES         := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cc)))
-SFILES          := $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
+SFILES			:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
 
-export LD       := $(CXX)
-export OFILES   := $(CPPFILES:.cpp=.o) $(CCFILES:.cc=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
-export INCLUDE  := $(foreach dir,$(INCLUDES),-I $(CURDIR)/$(dir)) \
-                   -I $(CURDIR)/$(BUILD)
+export LD 		:= 	$(CXX)
+export OFILES	:=	$(CPPFILES:.cpp=.o)  $(CCFILES:.cc=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
 
-export LIBPATHS := $(foreach dir,$(LIBDIRS),-L $(dir)/lib)
+export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
+					$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
+					-I$(CURDIR)/$(BUILD)
 
-.PHONY: $(BUILD) all clean re
+export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L $(dir)/lib)
+
+.PHONY: $(BUILD) clean re relink all
 
 #---------------------------------------------------------------------------------
-# Main Rules
-#---------------------------------------------------------------------------------
-all: $(BUILD)
+all: $(TARGET)-release.3gx
 
-$(BUILD):
-	@echo "Cleaning previous build..."
-	@rm -fr $(BUILD) $(OUTPUT).txt $(OUTPUT).elf
+release:
 	@[ -d $@ ] || mkdir -p $@
-	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
-	@echo "Copying $(notdir $(OUTPUT).txt) to Citra cheats folder..."
-	@cp "$(OUTPUT).txt" "$(CITRA_PATH)"
-	@echo "Done!"
 
-clean:
-	@echo "Cleaning project..."
-	@rm -fr $(BUILD) $(OUTPUT).txt $(OUTPUT).elf
+debug:
+	@[ -d $@ ] || mkdir -p $@
 
-re: all
+$(TARGET)-release.3gx : release
+	@$(MAKE) BUILD=release OUTPUT=$(CURDIR)/$@ BUILD_LIBS="-lctrpf -lctru" WL=--strip-discarded,--strip-debug, \
+	BUILD_CFLAGS="-DNDEBUG=1 -O2 -fomit-frame-pointer" DEPSDIR=$(CURDIR)/release \
+	--no-print-directory -C release	-f $(CURDIR)/Makefile
+
+$(TARGET)-debug.3gx : debug
+	@$(MAKE) BUILD=debug OUTPUT=$(CURDIR)/$@ BUILD_LIBS="-lctrpfd -lctrud" BUILD_CFLAGS="-DDEBUG=1 -Og" G=-g \
+	DEPSDIR=$(CURDIR)/debug --no-print-directory -C debug -f $(CURDIR)/Makefile
 
 #---------------------------------------------------------------------------------
+clean:
+	@echo clean ...
+	@rm -fr release debug *.elf *.3gx
+
+re: clean all
+
+relink:
+	@rm -f *.elf *.3gx
+	@$(MAKE)
+	@cp $(TARGET)-release.3gx "$(DEST)/$(TARGET).3gx"
+	@$(EMULATOR) $(GAME_PATH)
+
+#---------------------------------------------------------------------------------
+
 else
 
-# Sub-process compilation rules
-DEPENDS := $(OFILES:.o=.d)
+#---------------------------------------------------------------------------------
+# main targets
+#---------------------------------------------------------------------------------
 
-$(OUTPUT).txt : $(OFILES)
+DEPENDS	:=	$(OFILES:.o=.d)
 
-# Rules for binary data
-%.bin.o : %.bin
+
+$(OUTPUT) : $(basename $(OUTPUT)).elf
+$(basename $(OUTPUT)).elf : $(OFILES)
+#---------------------------------------------------------------------------------
+# you need a rule like this for each extension you use as binary data
+#---------------------------------------------------------------------------------
+%.bin.o	:	%.bin
+#---------------------------------------------------------------------------------
 	@echo $(notdir $<)
 	@$(bin2o)
 
-# Rules for C++ files
+#---------------------------------------------------------------------------------
 %.o: %.cc
 	$(SILENTMSG) $(notdir $<)
 	$(ADD_COMPILE_COMMAND) add $(CXX) "$(_EXTRADEFS) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@" $<
 	$(SILENTCMD)$(CXX) -MMD -MP -MF $(DEPSDIR)/$*.d $(_EXTRADEFS) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@ $(ERROR_FILTER)
 
-# Final conversion to text format
-.PRECIOUS: %.elf
-%.txt: %.elf
-	@echo "Creating $(notdir $@)..."
-	@pwd
-	@elf2arcc $< $(ADDRESS_SOURCE) $(ADDRESS_TARGET) > $@
+#---------------------------------------------------------------------------------
+%.3gx: %.elf
+	@echo creating $(notdir $@)
+	@3gxtool -s $^ $(TOPDIR)/$(PSF) $@
 
 -include $(DEPENDS)
 
+#---------------------------------------------------------------------------------------
 endif
+#---------------------------------------------------------------------------------------

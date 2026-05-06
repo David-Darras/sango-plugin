@@ -1,3 +1,4 @@
+
 OUTPUT_FORMAT("elf32-littlearm", "elf32-bigarm", "elf32-littlearm")
 OUTPUT_ARCH(arm)
 ENTRY(_start)
@@ -13,7 +14,7 @@ SECTIONS
 {
 	/* =========== CODE section =========== */
 
-	PROVIDE(__start__ = 0x00696000);
+	PROVIDE(__start__ = 0x07000100);
 	. = __start__;
 
 	.text ALIGN(4) :
@@ -37,6 +38,7 @@ SECTIONS
 		KEEP( *(.fini) )
 		. = ALIGN(4);
 	} : code
+	__text_end__ = .;
 
 	/* =========== RODATA section =========== */
 
@@ -70,7 +72,7 @@ SECTIONS
 		. = ALIGN(4);
 	} : data
 
-	.tdata ALIGN(4) :
+	.tdata : ALIGN(4)
 	{
 		__tdata_lma = .;
 		*(.tdata)
@@ -80,7 +82,7 @@ SECTIONS
 		__tdata_lma_end = .;
 	} : data
 
-	.tbss ALIGN(4) :
+	.tbss : ALIGN(4)
 	{
 		*(.tbss)
 		*(.tbss.*)
@@ -143,9 +145,14 @@ SECTIONS
 		   ARM_TLS_LE32 relocation, we just fake it by subtracting 8 from the data
 		   offset.
 		 */
-		. = 8 + ABSOLUTE(ALIGN(ABSOLUTE(. - 8), MAX(4, ALIGNOF(.tdata))));
+		. = 8 + ABSOLUTE(ALIGN(ABSOLUTE(. - 8), ALIGNOF(.tdata)));
 		__tls_start = .;
-		. += SIZEOF(.tdata) + SIZEOF(.tbss);
+		. += SIZEOF(.tdata);
+		/* Ensure the alignment of .tbss is accounted for in the total size,
+           since SIZEOF(.tdata) doesn't include any padding before .tbss.
+         */
+		. = ALIGN(ALIGNOF(.tbss));
+        . += SIZEOF(.tbss);
 		__tls_end = .;
 	} : data
 	__bss_end__ = .;

@@ -36,6 +36,9 @@
 #include "system/graphics.h"
 #include "system/sound.h"
 
+String String::s_tmp;
+c16 String::s_buffer[128];
+
 extern void TestMenu(menu::PluginMenu& menu, void* args);
 
 namespace overworld {
@@ -108,14 +111,12 @@ extern "C" void OnFrame() {
   Graphics& graphics = Graphics::GetInstance();
   menu::PluginMenu& menu = menu::PluginMenu::GetInstance();
 
-  // Updates the logic based on user input.
   menu.Update();
 
   CheatCodeManager::GetInstance().Update();
 
   if (!menu.IsOpened()) return;
 
-  // Renders the top screen.
   void* top_buffer = graphics.GetFramebuffer(Screen::kTop);
   if (graphics.BindFramebuffer(top_buffer)) {
     Graphics::EnableScissor(0, 0, 400, 240);
@@ -124,7 +125,6 @@ extern "C" void OnFrame() {
     Graphics::DisableScissor();
   }
 
-  // Renders the bottom screen.
   void* bottom_buffer = graphics.GetFramebuffer(Screen::kBottom);
   if (graphics.BindFramebuffer(bottom_buffer)) {
     Graphics::EnableScissor(0, 0, 320, 240);
@@ -134,54 +134,22 @@ extern "C" void OnFrame() {
   }
 }
 
-// Performs the system initialization and prepares the plugin environment.
+
 extern "C" void Initialize() {
-  // Clear BSS section to ensure all uninitialized global variables start at
-  // zero.
-  extern u32 __bss_start__;
-  extern u32 __bss_end__;
-  for (u32* data = &__bss_start__; data <= &__bss_end__; ++data) {
-    *data = 0;
-  }
-
-  // Function pointer arrays used to call global constructors and static
-  // initializers.
-  extern void (*__preinit_array_start[])() __attribute__((weak));
-  extern void (*__preinit_array_end[])() __attribute__((weak));
-  extern void (*__init_array_start[])() __attribute__((weak));
-  extern void (*__init_array_end[])() __attribute__((weak));
-
-  // Execute pre-initialization arrays (rarely used, but handled by the CRT).
-  const u32 preinit_count = __preinit_array_end - __preinit_array_start;
-  for (u32 i = 0; i < preinit_count; ++i) {
-    __preinit_array_start[i]();
-  }
-
-  // Execute initialization arrays: this calls constructors for global and
-  // static C++ objects.
-  const u32 init_count = __init_array_end - __init_array_start;
-  for (u32 i = 0; i < init_count; ++i) {
-    __init_array_start[i]();
-  }
-
   File::MountSdmc();
   menu::PluginMenu::GetInstance().EnterSubMenu(MainMenu, nullptr);
   ApplyPatches();
   SetupCheatCodes();
-
-  // Set a flag to ensure the initialization process is only executed once.
-  WRITE(u32, ADDRESS_TARGET - 4, 1);
 }
 
-// Cleans up the plugin environment and executes termination arrays.
-extern "C" void Finalize() {
-  extern void (*__fini_array_start[])() __attribute__((weak));
-  extern void (*__fini_array_end[])() __attribute__((weak));
+#include <CTRPluginFramework.hpp>
 
-  // Execute termination arrays: this calls destructors for global and static
-  // C++ objects.
-  const u32 fini_count = __fini_array_end - __fini_array_start;
-  for (u32 i = fini_count; i > 0; i--) {
-    __fini_array_start[i - 1]();
-  }
+namespace CTRPluginFramework {
+int main() {
+  Initialize();
+  Hook hook;
+  hook.InitializeForMitm(0x00122938, (uptr)OnFrame);
+  hook.Enable();
+  return 0;
 }
+} // namespace CTRPluginFramework

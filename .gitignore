@@ -5,3 +5,6 @@ cmake-build-debug
 CMakeLists.txt
 sango_plugin.elf
 sango_plugin.txt
+/release
+*.3gx
+*.elf
