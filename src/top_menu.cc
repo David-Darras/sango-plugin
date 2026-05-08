@@ -62,13 +62,32 @@ void OverworldMenu(menu::PluginMenu& menu, void* args) {
   overworld::FieldMove_LoadMenu(menu, args);
 }
 
+static u8 s_game_speed = 2;
+
+// See : https://gbatemp.net/threads/how-to-change-game-speed-independently-of-fps-example-with-pokemon-oras.680385/
+void UpdateGameSpeed(void*) {
+  u32 data[] = {
+      0xE3A06001, 0xE3A0C000 | s_game_speed, 0xE58FC010, 0xE59FC00C, 0xE25CC001,
+      0x0A000075,
+      0xE58FC000, 0xEA00000E, 0xFFFFFFFF
+  };
+  for (u32 i = 0; i < SIZE(data); ++i) {
+    WRITE(u32, 0x0010E36C + i * 4, data[i]);
+  }
+  WRITE(u32, 0x0010E528, 0xEAFFFF92);
+  menu::PluginMenu::GetInstance().ForceClose();
+}
+
 void TopMenu(menu::PluginMenu& menu, void* args) {
   menu.Add("Global Data", GlobalDataMenu)
       .Add("Save Data", savedata::SaveData::LoadMenu)
       .Add("Overworld", OverworldMenu)
       .Add("Layout", LayoutMenu)
       .Add("Battle", battle::Manager::LoadMenu)
-      .Add("Sound", Sound::LoadMenu);
+      .Add("Sound", Sound::LoadMenu)
+      .Add("Game Speed", s_game_speed)
+      .WithBounds(2, 4)
+      .Add("Update Game Speed", UpdateGameSpeed);
 }
 
 void Initialize() {

@@ -61,6 +61,8 @@ public:
    */
   bool IsOpened() const { return is_opened_; };
 
+  void ForceClose() { is_opened_ = false; };
+
   /**
    * @brief Enters a submenu with an optional initialization callback.
    * @param load_menu Function to call when entering the submenu.
