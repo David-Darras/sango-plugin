@@ -15,20 +15,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <CTRPluginFramework/System/Hook.hpp>
+#ifndef SANGO_PLUGIN_OVERWORLD_FIELD_MOVE_H
+#define SANGO_PLUGIN_OVERWORLD_FIELD_MOVE_H
 
 #include "core/core.h"
 
-extern void Initialize();
-extern void OnFrame();
+namespace overworld {
+extern void FieldMove_LoadMenu(menu::PluginMenu& menu, void* args);
+} // namespace overworld
 
-namespace CTRPluginFramework {
-int main() {
-  Initialize();
-  Hook hook;
-  hook.InitializeForMitm(
-      ADDRESS_ENTRYPOINT, (uintptr_t)OnFrame);
-  hook.Enable();
-  return 0;
-}
-} // namespace CTRPluginFramework
+
+#endif  // SANGO_PLUGIN_OVERWORLD_ENCOUNTER_H

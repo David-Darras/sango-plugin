@@ -26,7 +26,6 @@
 #include "utils.h"
 
 namespace menu {
-
 PluginMenu PluginMenu::instance_ = PluginMenu();
 
 void PluginMenu::DrawTop() {
@@ -81,16 +80,16 @@ void PluginMenu::DrawBottom() {
 
   // Show the current process + event of the game.
   c16 buffer[BUFFER_SIZE];
-  uptr baseAddr =
-      (uptr)&GameProcessManager::GetInstance().GetMainHandle().GetProcess();
-  void* vtable = (void*)*(u32*)baseAddr;
-  Utils::Format(buffer, u"Process=%s", Utils::GetClassNameFromVTable(vtable));
-  Graphics::DrawText(5, 150, buffer);
-
-  baseAddr = (uptr)&GameEventManager::GetInstance().GetGameEvent();
-  vtable = (void*)*(u32*)baseAddr;
-  Utils::Format(buffer, u"Event=%s", Utils::GetClassNameFromVTable(vtable));
-  Graphics::DrawText(5, 170, buffer);
+  // uptr baseAddr =
+  //     (uptr)&GameProcessManager::GetInstance().GetMainHandle().GetProcess();
+  // void* vtable = (void*)*(u32*)baseAddr;
+  // Utils::Format(buffer, u"Process=%s", Utils::GetClassNameFromVTable(vtable));
+  // Graphics::DrawText(5, 150, buffer);
+  //
+  // baseAddr = (uptr)&GameEventManager::GetInstance().GetGameEvent();
+  // vtable = (void*)*(u32*)baseAddr;
+  // Utils::Format(buffer, u"Event=%s", Utils::GetClassNameFromVTable(vtable));
+  // Graphics::DrawText(5, 170, buffer);
 
   Color yellow{1, 1, 0, 1};
   Graphics::SetTextScale(0.5, 0.5);
@@ -119,10 +118,6 @@ void PluginMenu::Update() {
 
   if (ctrl.IsKeyPressed(Key::kL)) {
     GameProcessManager& instance = GameProcessManager::GetInstance();
-    log_menu.Add(u"process manager=%08X", &instance);
-    log_menu.Add(u"main handle=%08X", &instance.GetMainHandle());
-    log_menu.Add(u"current process=%08X",
-                 &instance.GetMainHandle().GetProcess());
   }
 
   MenuContext& ctx = GetContext();
@@ -219,5 +214,4 @@ void PluginMenu::Refresh() {
     ctx.offset = 0;
   }
 }
-
-}  // namespace menu
+} // namespace menu

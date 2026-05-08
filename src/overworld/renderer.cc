@@ -24,9 +24,19 @@
 #include "menu/log_menu.h"
 #include "menu/plugin_menu.h"
 #include "overworld/model_manager.h"
+#include "layout/picture.h"
+
+namespace layout {
+extern void OnDrawPicture(Picture* picture, u32 p0, u32 p1, u32 p2);
+}
+
+void EnablePsychedelicVision(void*) {
+  HookManager::GetInstance().Add(HookID::kOnDrawPicture,
+                                 ADDRESS_LAYOUT_DRAW_PICTURE,
+                                 (uptr)layout::OnDrawPicture);
+}
 
 namespace overworld {
-
 enum class CameraState { kIdle, kFree, kRotate, kFpv, kTps };
 
 static struct {
@@ -65,8 +75,8 @@ void UpdateMatrices(StereoCamera* stereo_camera, bool update) {
 Mtx34* UpdateLookAt(Mtx34* output, Vec3* pos, Vec3* up, Vec3* target) {
   if (!ctx.is_updating_camera) {
     return HookManager::GetInstance()
-        .Get(HookID::kUpdateLookAt)
-        ->CallOriginal<Mtx34*>(output, pos, up, target);
+           .Get(HookID::kUpdateLookAt)
+           ->CallOriginal<Mtx34*>(output, pos, up, target);
   }
   ctx.is_updating_camera = false;
 
@@ -149,13 +159,15 @@ Mtx34* UpdateLookAt(Mtx34* output, Vec3* pos, Vec3* up, Vec3* target) {
   }
 
   return HookManager::GetInstance()
-      .Get(HookID::kUpdateLookAt)
-      ->CallOriginal<Mtx34*>(output, pos, up, target);
+         .Get(HookID::kUpdateLookAt)
+         ->CallOriginal<Mtx34*>(output, pos, up, target);
 }
 
 void StereoCamera::LoadMenu(menu::PluginMenu& menu, void* args) {
   static const c8* STATES[] = {"Idle", "Free", "Rotate", "Fpv", "Tps"};
   bool& skybox = *(bool*)((uptr)&Renderer::GetInstance() + 0xB74);
+
+  SetupHooks();
 
   menu.WithNoBackground()
       .Add("Skybox", skybox)
@@ -237,7 +249,8 @@ void Renderer::LoadMenu(menu::PluginMenu& menu, void* args) {
   man.Add(HookID::kOnChangeDiffuseLightColor, 0x001397C0,
           (uptr)OnChangeDiffuseLightColor);
 
-  menu.Add("Outline Scale", ctx.outline_scale)
+  menu.Add("Psychedelic Vision", EnablePsychedelicVision)
+      .Add("Outline Scale", ctx.outline_scale)
       .Add("Outline Color - Red", ctx.outline_color.r)
       .Add("Outline Color - Green", ctx.outline_color.g)
       .Add("Outline Color - Blue", ctx.outline_color.b)
@@ -251,5 +264,4 @@ void Renderer::LoadMenu(menu::PluginMenu& menu, void* args) {
       .Add("Diffuse Light - Blue", ctx.diffuse_light_color.b)
       .Add("Diffuse Light - Alpha", ctx.diffuse_light_color.a);
 }
-
-}  // namespace overworld
+} // namespace overworld

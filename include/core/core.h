@@ -22,7 +22,7 @@
 
 /** * @name Entrypoint & Main Addresses
  * @{ */
-#define ADDRESS_RENDER_HOME_BUTTON_BLOCKED (ADDRESS_SOURCE)
+#define ADDRESS_ENTRYPOINT (0x00122938) // Render Home Button Blocked
 #define ADDRESS_CORE (0x0063106C)
 #define ADDRESS_GAME_MANAGER (0x08C69094)
 /** @} */
