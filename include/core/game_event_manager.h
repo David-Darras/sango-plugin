@@ -18,52 +18,42 @@
 #ifndef SANGO_PLUGIN_GAME_EVENT_MANAGER_H
 #define SANGO_PLUGIN_GAME_EVENT_MANAGER_H
 
+#include "utils.h"
 #include "core/game_manager.h"
 
 class GameManager;
 class GameEvent;
 
-/**
- * @brief Represents an individual game event or scene logic.
- * This struct maps to the engine's internal event structure used for
- * sequenced gameplay logic.
- */
-class GameEvent {
-  void* vtable_;       ///< Pointer to the virtual method table.
-  GameEvent* parent_;  ///< Pointer to the parent event, if any.
-  u32 sequence_;       ///< Current sequence identifier within the event.
-  void* heap_;         ///< Pointer to the heap memory allocated for this event.
-  u32 state_;          ///< Current execution state of the event.
-  void* ro_;           ///< Pointer to the associated executable module.
+struct GameEvent {
+  void* vtable;
+  GameEvent* parent;
+  u32 sequence;
+  void* heap;
+  u32 state;
+  void* ro;
 };
 
-/**
- * @brief Singleton manager that coordinates game-wide events and transitions.
- */
 class GameEventManager {
-  /** @brief Private constructor to prevent manual instantiation. */
   GameEventManager() = default;
 
- public:
-  /**
-   * @brief Retrieves the singleton instance of the GameEventManager.
-   * @return A reference to the active event manager instance.
-   */
-  static GameEventManager& GetInstance() {
+public:
+  static FORCE_INLINE GameEventManager& GetInstance() {
     return GameManager::GetInstance().GetGameEventManager();
   }
 
-  /**
-   * @brief Gets the currently active game event.
-   * @return A reference to the active GameEvent.
-   */
   GameEvent& GetGameEvent() const { return *current_game_event_; }
 
-  // Member fields mapped to the engine memory layout
-  GameEvent* current_game_event_;  ///< The current event being processed.
-  GameManager* game_manager_;      ///< Pointer back to the parent GameManager.
-  GameEvent* pending_game_event_;  ///< The event scheduled to be loaded next.
-  bool executed_;  ///< Flag indicating if event processing is active.
+  const char* GetCurrentEventName() const {
+    if (current_game_event_ == nullptr || current_game_event_->vtable ==
+        nullptr)
+      return "";
+    return Utils::GetClassNameFromVTable(current_game_event_->vtable);
+  }
+
+  GameEvent* current_game_event_;
+  GameManager* game_manager_;
+  GameEvent* pending_game_event_;
+  bool executed_;
 };
 
 #endif  // SANGO_PLUGIN_GAME_EVENT_MANAGER_H

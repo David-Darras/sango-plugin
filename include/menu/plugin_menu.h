@@ -38,7 +38,7 @@ class PluginMenu {
    * @brief Returns the singleton instance of the PluginMenu.
    * @return Reference to the unique PluginMenu instance.
    */
-  static PluginMenu &GetInstance() { return instance_; }
+  static FORCE_INLINE PluginMenu &GetInstance() { return instance_; }
 
   /**
    * @brief Draws the top section of the menu with menu entries.
@@ -148,7 +148,7 @@ class PluginMenu {
   }
 
   PluginMenu &WithNoBackground() {
-    no_background = 1;
+    no_background_ = 1;
     return *this;
   }
 
@@ -358,7 +358,7 @@ class PluginMenu {
       : is_opened_(0),
         entries_count_(0),
         contexts_count_(0),
-        no_background(0) {}
+        no_background_(0) {}
 
   /**
    * @brief Returns the currently active context.
@@ -387,7 +387,7 @@ class PluginMenu {
   u32 is_opened_ : 1;       ///< True if menu is open.
   u32 entries_count_ : 6;   ///< Active entries in current menu.
   u32 contexts_count_ : 3;  ///< Number of submenus in the stack.
-  u32 no_background : 1;
+  u32 no_background_ : 1;
   u32 : 21;  ///< Reserved.
 
   MenuEntry entries_[kMaxEntries];      ///< Entry pool.

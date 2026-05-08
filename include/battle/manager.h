@@ -118,9 +118,9 @@ class Manager {
  public:
   static void LoadMenu(menu::PluginMenu& menu, void* args);
 
-  static Manager& GetInstance() { return Process::GetInstance().GetManager(); }
+  static FORCE_INLINE Manager& GetInstance() { return Process::GetInstance().GetManager(); }
 
-  Graphics& GetGraphics() { return *graphics_; }
+  FORCE_INLINE Graphics& GetGraphics() { return *graphics_; }
 
   static Pokemon* GetPokemon(bool is_server, u32 team_idx, u32 pkm_idx) {
     if (is_server) {
@@ -170,7 +170,7 @@ struct PokemonModel {
 
 class Graphics {
  public:
-  static Graphics& GetInstance() {
+  static FORCE_INLINE Graphics& GetInstance() {
     return Manager::GetInstance().GetGraphics();
   }
 

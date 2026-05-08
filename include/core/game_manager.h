@@ -37,25 +37,25 @@ class WeatherManager;
  */
 class GameManager {
  public:
-  static GameManager& GetInstance() {
+  static FORCE_INLINE GameManager& GetInstance() {
     return *(GameManager*)ADDRESS_GAME_MANAGER;
   }
 
-  GameProcessManager& GetGameProcessManager() const {
+  FORCE_INLINE GameProcessManager& GetGameProcessManager() const {
     return *game_process_manager_;
   }
 
-  GameEventManager& GetGameEventManager() const { return *game_event_manager_; }
+  FORCE_INLINE GameEventManager& GetGameEventManager() const { return *game_event_manager_; }
 
-  GameDataManager& GetGameData() const { return *game_data_; }
+  FORCE_INLINE GameDataManager& GetGameData() const { return *game_data_; }
 
-  GameTimeManager& GetGameTimeManager() const { return *game_time_manager_; }
+  FORCE_INLINE GameTimeManager& GetGameTimeManager() const { return *game_time_manager_; }
 
-  overworld::WeatherManager& GetWeatherManager() const {
+  FORCE_INLINE overworld::WeatherManager& GetWeatherManager() const {
     return *weather_manager_;
   }
 
-  overworld::MapManager& GetOverworldMapManager() const {
+  FORCE_INLINE overworld::MapManager& GetOverworldMapManager() const {
     return *overworld_map_manager_;
   }
 

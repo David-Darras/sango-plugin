@@ -39,7 +39,7 @@ struct PokemonAmie {
    * @brief Returns the singleton instance of PokemonAmie from SaveData.
    * @return Reference to the unique PokemonAmie instance.
    */
-  static PokemonAmie& GetInstance() {
+  static FORCE_INLINE PokemonAmie& GetInstance() {
     return SaveData::GetInstance().GetPokemonAmie();
   }
 

@@ -46,11 +46,11 @@ class Renderer {
  public:
   static void LoadMenu(menu::PluginMenu& menu, void* args);
 
-  static Renderer& GetInstance() {
+  static FORCE_INLINE Renderer& GetInstance() {
     return MapManager::GetInstance().GetRenderer();
   }
 
-  StereoCamera& GetStereoCamera() { return *stereo_camera2_; }
+  FORCE_INLINE StereoCamera& GetStereoCamera() { return *stereo_camera2_; }
 
  private:
   u32 _0[5];

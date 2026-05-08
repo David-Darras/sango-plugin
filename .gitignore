@@ -9,3 +9,8 @@ sango_plugin.txt
 *.3gx
 *.elf
 *.idb
+*.id0
+*.id1
+*.id2
+*.nam
+*.til

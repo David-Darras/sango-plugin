@@ -18,8 +18,11 @@
 #ifndef SANGO_PLUGIN_PROCESS_MANAGER_H
 #define SANGO_PLUGIN_PROCESS_MANAGER_H
 
+#include <cstring>
+
 #include "core/game_manager.h"
 #include "common.h"
+#include "utils.h"
 
 class ProcessHandle;
 class BaseProcess;
@@ -28,12 +31,12 @@ class BaseProcess;
  * @brief Execution states for the game processes.
  */
 enum class ProcessState : u32 {
-  kLoading = 0,   ///< Process is loading resources.
-  kInitializing,  ///< Process is setting up internal data.
-  kRunning,       ///< Process is actively updating.
-  kStopped,       ///< Process is paused or halted.
-  kCustom,        ///< Custom engine-specific state.
-  kMax            ///< State count sentinel.
+  kLoading = 0, ///< Process is loading resources.
+  kInitializing, ///< Process is setting up internal data.
+  kRunning, ///< Process is actively updating.
+  kStopped, ///< Process is paused or halted.
+  kCustom, ///< Custom engine-specific state.
+  kMax ///< State count sentinel.
 };
 
 /**
@@ -41,14 +44,14 @@ enum class ProcessState : u32 {
  * This structure reflects the memory layout of the engine's base process.
  */
 class BaseProcess {
- public:
-  void* vtable;          ///< Pointer to the virtual method table.
-  u32 sub_state;         ///< Internal sub-state of the process.
-  bool is_done;          ///< Flag indicating if the process has finished.
-  BaseProcess* parent_;  ///< Pointer to the parent process logic.
-  void* ro_;             ///< Pointer to the associated executable module.
-  void** ro_child_;      ///< Array of child module pointers.
-  u32 ro_child_count_;   ///< Number of child modules attached.
+public:
+  void* vtable; ///< Pointer to the virtual method table.
+  u32 sub_state; ///< Internal sub-state of the process.
+  bool is_done; ///< Flag indicating if the process has finished.
+  BaseProcess* parent_; ///< Pointer to the parent process logic.
+  void* ro_; ///< Pointer to the associated executable module.
+  void** ro_child_; ///< Array of child module pointers.
+  u32 ro_child_count_; ///< Number of child modules attached.
 };
 
 /**
@@ -56,18 +59,18 @@ class BaseProcess {
  * Links the logical BaseProcess with its position in the process tree.
  */
 class ProcessHandle {
- public:
+public:
   /**
    * @brief Accesses the underlying process logic.
    * @return A reference to the BaseProcess.
    */
-  BaseProcess& GetProcess() const { return *process_; }
+  BaseProcess* GetProcess() const { return process_; }
 
- private:
-  ProcessState state_;     ///< Current execution state of the handle.
-  ProcessHandle* parent_;  ///< Pointer to the parent handle.
-  ProcessHandle* child_;   ///< Pointer to the first child handle.
-  BaseProcess* process_;   ///< Pointer to the underlying process logic.
+private:
+  ProcessState state_; ///< Current execution state of the handle.
+  ProcessHandle* parent_; ///< Pointer to the parent handle.
+  ProcessHandle* child_; ///< Pointer to the first child handle.
+  BaseProcess* process_; ///< Pointer to the underlying process logic.
 };
 
 class GameManager;
@@ -76,17 +79,17 @@ class GameManager;
  * @brief Singleton manager that controls the lifecycle of game processes.
  */
 class GameProcessManager {
- private:
+private:
   /** @brief Private constructor to enforce singleton pattern or memory mapping.
    */
   GameProcessManager() = default;
 
- public:
+public:
   /**
    * @brief Retrieves the singleton instance of the GameProcManager.
    * @return A reference to the active manager instance.
    */
-  static GameProcessManager& GetInstance() {
+  static FORCE_INLINE GameProcessManager& GetInstance() {
     return GameManager::GetInstance().GetGameProcessManager();
   }
 
@@ -94,18 +97,29 @@ class GameProcessManager {
    * @brief Retrieves the main (root) process handle.
    * @return A reference to the main ProcessHandle.
    */
-  ProcessHandle& GetMainHandle() const { return *handle_; }
+  FORCE_INLINE ProcessHandle& GetMainHandle() const { return *handle_; }
 
- private:
+  const char* GetCurrentProcessName() const {
+    if (handle_ == nullptr) return "";
+    BaseProcess* process = handle_->GetProcess();
+    if (process == nullptr && process->vtable != nullptr) return "";
+    return Utils::GetClassNameFromVTable(process->vtable);
+  }
+
+  FORCE_INLINE bool IsCurrentProcess(const char* name) const {
+    return std::strcmp(GetCurrentProcessName(), name) == 0;
+  }
+
+private:
   // Member fields mapped to the engine memory layout
-  void* vtable_;    ///< Pointer to the virtual method table.
-  void* heap_base_;  ///< Base address of the process heap.
+  void* vtable_; ///< Pointer to the virtual method table.
+  void* heap_base_; ///< Base address of the process heap.
 
   u32 flags_;
   void* data_;
 
-  ProcessHandle* handle_;      ///< Pointer to the root process handle.
-  GameManager* game_manager_;  ///< Pointer back to the parent GameManager.
+  ProcessHandle* handle_; ///< Pointer to the root process handle.
+  GameManager* game_manager_; ///< Pointer back to the parent GameManager.
 };
 
 #endif  // SANGO_PLUGIN_PROCESS_MANAGER_H

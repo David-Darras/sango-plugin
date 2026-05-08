@@ -53,14 +53,14 @@ class Graphics {
    * @brief Retrieves the singleton instance of the Graphics controller.
    * @return A reference to the active Graphics instance.
    */
-  static Graphics& GetInstance() { return Core::GetInstance().GetGraphics(); }
+  static FORCE_INLINE Graphics& GetInstance() { return Core::GetInstance().GetGraphics(); }
 
   /**
    * @brief Gets the raw framebuffer pointer for a specific screen.
    * @param screen The target screen (Top or Bottom).
    * @return A pointer to the memory-mapped framebuffer.
    */
-  void* GetFramebuffer(Screen screen) {
+  FORCE_INLINE void* GetFramebuffer(Screen screen) {
     return ((void* (*)(Graphics*, Screen))ADDRESS_GRAPHICS_GET_FRAMEBUFFER)(
         this, screen);
   }
@@ -70,7 +70,7 @@ class Graphics {
    * @param framebuffer Pointer to the framebuffer to bind.
    * @return True if the binding was successful, false otherwise.
    */
-  bool BindFramebuffer(void* framebuffer) {
+  FORCE_INLINE bool BindFramebuffer(void* framebuffer) {
     return ((bool (*)(Graphics*, void*))ADDRESS_GRAPHICS_BIND_FRAMEBUFFER)(
         this, framebuffer);
   }
@@ -82,7 +82,7 @@ class Graphics {
    * @param width  The width of the scissor box.
    * @param height The height of the scissor box.
    */
-  static void EnableScissor(u32 x, u32 y, u32 width, u32 height) {
+  static FORCE_INLINE void EnableScissor(u32 x, u32 y, u32 width, u32 height) {
     ((void (*)(u32, u32, u32, u32))ADDRESS_GRAPHICS_ENABLE_SCISSOR)(x, y, width,
                                                                     height);
   }
@@ -90,7 +90,7 @@ class Graphics {
   /**
    * @brief Disables the current scissor test.
    */
-  static void DisableScissor() {
+  static FORCE_INLINE void DisableScissor() {
     ((void (*)())ADDRESS_GRAPHICS_DISABLE_SCISSOR)();
   }
 
@@ -98,7 +98,7 @@ class Graphics {
    * @brief Initiates the rendering sequence for a specific framebuffer.
    * @param framebuffer Pointer to the target framebuffer.
    */
-  static void BeginRender(void* framebuffer) {
+  static FORCE_INLINE void BeginRender(void* framebuffer) {
     ((void (*)(void*))ADDRESS_GRAPHICS_BEGIN_RENDER)(framebuffer);
   }
 
@@ -110,7 +110,7 @@ class Graphics {
    * @param color  The RGBA color to apply (defaults to white).
    * @param pFont  Optional pointer to a custom font.
    */
-  static void DrawText(s32 x, s32 y, const c16* str,
+  static FORCE_INLINE void DrawText(s32 x, s32 y, const c16* str,
                        const Color color = {1.0f, 1.0f, 1.0f, 1.0f},
                        void* pFont = nullptr) {
     Color clr = color;
@@ -123,7 +123,7 @@ class Graphics {
    * @param x Scale factor on the X axis.
    * @param y Scale factor on the Y axis.
    */
-  static void SetTextScale(f32 x, f32 y) {
+  static FORCE_INLINE void SetTextScale(f32 x, f32 y) {
     ((void (*)(f32, f32))ADDRESS_GRAPHICS_SET_TEXT_SCALE)(x, y);
   }
 
@@ -135,7 +135,7 @@ class Graphics {
    * @param b Blue component (0.0 - 1.0).
    * @param a Alpha component (0.0 - 1.0).
    */
-  static void FillScreen(f32 r, f32 g, f32 b, f32 a) {
+  static FORCE_INLINE void FillScreen(f32 r, f32 g, f32 b, f32 a) {
     const Color color{r, g, b, a};
     SetTextScale(kScalePrimitiveX, kScalePrimitiveY);
     DrawText(-10, -10, u"\uE080", color);
@@ -150,7 +150,7 @@ class Graphics {
    * @param height Height of the rectangle.
    * @param color  The color of the rectangle.
    */
-  static void DrawRect(s32 x, s32 y, s32 width, s32 height, Color color) {
+  static FORCE_INLINE void DrawRect(s32 x, s32 y, s32 width, s32 height, Color color) {
     EnableScissor(x, y, width, height);
     SetTextScale(kScalePrimitiveX, kScalePrimitiveY);
     DrawText(-10, -10, u"\uE080", color);

@@ -24,10 +24,10 @@ namespace menu {
 
 class LogMenu {
  public:
-  static LogMenu& GetInstance() { return instance_; }
+  static FORCE_INLINE LogMenu& GetInstance() { return instance_; }
 
-  void Toggle() { is_enabled_ ^= true; }
-  bool IsEnabled() const { return is_enabled_; }
+  FORCE_INLINE void Toggle() { is_enabled_ ^= true; }
+  FORCE_INLINE bool IsEnabled() const { return is_enabled_; }
 
   void Draw();
   void Add(const c16* message, ...);

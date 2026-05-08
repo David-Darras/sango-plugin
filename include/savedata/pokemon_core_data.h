@@ -129,7 +129,7 @@ struct PokemonCoreData {
   static constexpr u32 kBlockSize = 0x38;
   static constexpr u32 kBlockCount = 4;
 
-  void* GetBlock(u32 index) {
+  FORCE_INLINE void* GetBlock(u32 index) {
     uptr addr = (uptr)this;
     return (void*)(addr + 8 + index * kBlockSize);
   }

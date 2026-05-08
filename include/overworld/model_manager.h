@@ -41,11 +41,11 @@ struct DrawModel {
 struct Model {
   static constexpr u32 kSize = 0xAB0;
 
-  DrawModel& GetDrawModel() {
+  FORCE_INLINE DrawModel& GetDrawModel() {
     return *((DrawModel * (*)(Model*))0x004E3F90)(this);
   }
 
-  bool IsUsed() const { return (flags[0] & 1) == 1; }
+  FORCE_INLINE bool IsUsed() const { return (flags[0] & 1) == 1; }
 
   void* vtable;
   u32 flags[2];
@@ -81,7 +81,7 @@ class ModelManager {
  public:
   static constexpr u32 kPlayerId = 0xFF;
 
-  static ModelManager& GetInstance() {
+  static FORCE_INLINE ModelManager& GetInstance() {
     return GameDataManager::GetInstance().GetOverworldModelManager();
   }
 
@@ -89,7 +89,7 @@ class ModelManager {
   static void Noclip(void*);
   static void SwarmMod(void*);
 
-  ModelResource& GetResource(u32 idx) { return resources_[idx]; }
+  FORCE_INLINE ModelResource& GetResource(u32 idx) { return resources_[idx]; }
 
   Model& GetPlayer() {
     for (u32 i = 0; i < kMaxModels; i++) {
@@ -101,7 +101,7 @@ class ModelManager {
     return overworld_models_[0];
   }
 
-  Model& GetModel(u32 idx) {
+  FORCE_INLINE Model& GetModel(u32 idx) {
     return *(Model*)((uptr)overworld_models_ + Model::kSize * idx);
   }
 

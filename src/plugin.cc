@@ -39,7 +39,6 @@ String String::s_tmp;
 c16 String::s_buffer[128];
 
 void MainMenu(menu::PluginMenu& menu, void* args) {
-  extern void TestMenu(menu::PluginMenu& menu, void* args);
   menu.Add("Renderer", overworld::Renderer::LoadMenu)
       .Add("Encounter", overworld::Encounter::LoadMenu)
       .Add("Field Move", overworld::FieldMove_LoadMenu)
@@ -52,8 +51,7 @@ void MainMenu(menu::PluginMenu& menu, void* args) {
       .Add("Weather", overworld::WeatherManager::LoadMenu)
       .Add("Time", GameTimeManager::LoadMenu)
       .Add("SaveData", savedata::SaveData::LoadMenu)
-      .Add("Sound", Sound::LoadMenu)
-      .Add("Test", TestMenu);
+      .Add("Sound", Sound::LoadMenu);
 }
 
 void Initialize() {

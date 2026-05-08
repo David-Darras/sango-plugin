@@ -27,15 +27,15 @@ class Renderer;
 
 class MapManager {
  public:
-  static MapManager& GetInstance() {
+  static FORCE_INLINE MapManager& GetInstance() {
     return GameManager::GetInstance().GetOverworldMapManager();
   }
 
-  Renderer& GetRenderer() { return *renderer_; }
+  FORCE_INLINE Renderer& GetRenderer() { return *renderer_; }
 
-  void* GetAddr() { return &renderer_; }
+  FORCE_INLINE void* GetAddr() { return &renderer_; }
 
-  u16 GetMapId() { return current_map_id; }
+  FORCE_INLINE u16 GetMapId() { return current_map_id; }
 
  private:
   void* _0[23 + 1];

@@ -30,7 +30,7 @@ namespace savedata {
  */
 struct TrainerStatus {
   /** @brief Accessor for the singleton instance. */
-  static TrainerStatus& GetInstance() {
+  static FORCE_INLINE TrainerStatus& GetInstance() {
     return SaveData::GetInstance().GetTrainerStatus();
   }
 

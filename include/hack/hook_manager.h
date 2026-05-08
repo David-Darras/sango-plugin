@@ -29,7 +29,7 @@ class HookManager {
    * @brief Retrieves the singleton instance of the HookManager.
    * @return Reference to the HookManager instance.
    */
-  static HookManager &GetInstance() { return instance_; }
+  static FORCE_INLINE HookManager &GetInstance() { return instance_; }
 
   /**
    * @brief Registers and creates a new hook in the manager.

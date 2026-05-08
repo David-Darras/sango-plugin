@@ -48,7 +48,7 @@ enum class HookID : u32 {
 
 /**
  * @brief Handles function redirection (Hooking) via instruction overwriting.
- * * This class implements an inline hook by replacing function headers with
+ * * This class implements an FORCE_INLINE hook by replacing function headers with
  * an absolute jump. It uses a gateway (trampoline) to execute the original
  * logic.
  */

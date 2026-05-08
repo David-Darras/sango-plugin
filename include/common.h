@@ -39,6 +39,8 @@ typedef char c8;
 
 typedef uintptr_t uptr;
 
+#define FORCE_INLINE inline __attribute__((always_inline))
+
 #define WRITE(type, address, value) *(type*)(address) = (value)
 #define READ(type, address) *(type*)(address)
 

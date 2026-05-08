@@ -32,11 +32,11 @@ class CheatCode {
     args_ = args;
   }
 
-  void Toggle() { is_enabled_ = !is_enabled_; }
+  FORCE_INLINE void Toggle() { is_enabled_ = !is_enabled_; }
 
-  bool IsEnabled() { return is_enabled_; }
+  FORCE_INLINE bool IsEnabled() { return is_enabled_; }
 
-  void Run() {
+  FORCE_INLINE void Run() {
     if (callback_) callback_(args_);
   }
 

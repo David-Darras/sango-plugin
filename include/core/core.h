@@ -149,21 +149,21 @@ class Core {
    * @brief Retrieves the singleton instance of the Core bridge.
    * @return A reference to the static Core instance.
    */
-  static Core& GetInstance() { return *(Core*)ADDRESS_CORE; }
+  static FORCE_INLINE Core& GetInstance() { return *(Core*)ADDRESS_CORE; }
 
   /**
    * @brief Accesses the hardware device manager (Input/HID).
    * @return A reference to the Device manager.
    */
-  Device& GetDevice() const { return *device_; }
+  FORCE_INLINE Device& GetDevice() const { return *device_; }
 
   /**
    * @brief Accesses the global graphics manager.
    * @return A reference to the Graphics manager.
    */
-  Graphics& GetGraphics() const { return *graphics_; }
+  FORCE_INLINE Graphics& GetGraphics() const { return *graphics_; }
 
-  u8& GetLanguageId() { return *language_id; }
+  FORCE_INLINE u8& GetLanguageId() { return *language_id; }
 
  private:
   /** @brief Private constructor to prevent manual instantiation. */

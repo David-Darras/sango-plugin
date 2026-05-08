@@ -47,7 +47,7 @@ void PluginMenu::DrawTop() {
   }
 
   // Draw the background.
-  if (no_background) {
+  if (no_background_) {
     selected_color.a = 0.6;
     unselected_color.a = 0.6;
   } else {
@@ -80,16 +80,15 @@ void PluginMenu::DrawBottom() {
 
   // Show the current process + event of the game.
   c16 buffer[BUFFER_SIZE];
-  // uptr baseAddr =
-  //     (uptr)&GameProcessManager::GetInstance().GetMainHandle().GetProcess();
-  // void* vtable = (void*)*(u32*)baseAddr;
-  // Utils::Format(buffer, u"Process=%s", Utils::GetClassNameFromVTable(vtable));
-  // Graphics::DrawText(5, 150, buffer);
-  //
-  // baseAddr = (uptr)&GameEventManager::GetInstance().GetGameEvent();
-  // vtable = (void*)*(u32*)baseAddr;
-  // Utils::Format(buffer, u"Event=%s", Utils::GetClassNameFromVTable(vtable));
-  // Graphics::DrawText(5, 170, buffer);
+  const char* process_name = GameProcessManager::GetInstance().
+      GetCurrentProcessName();
+  Utils::Format(buffer, u"Process=%s", process_name);
+  Graphics::DrawText(5, 150, buffer);
+
+  const char* event_name = GameEventManager::GetInstance().
+      GetCurrentEventName();
+  Utils::Format(buffer, u"Event=%s", event_name);
+  Graphics::DrawText(5, 170, buffer);
 
   Color yellow{1, 1, 0, 1};
   Graphics::SetTextScale(0.5, 0.5);
@@ -180,7 +179,7 @@ void PluginMenu::EnterSubMenu(menu_callback_t load_menu, void* args) {
   contexts_count_++;
 
   entries_count_ = 0;
-  no_background = 0;
+  no_background_ = 0;
   load_menu(*this, args);
 
   MenuContext& ctx = GetContext();
@@ -196,7 +195,7 @@ void PluginMenu::LeaveSubMenu() {
   MenuContext& ctx = GetContext();
 
   entries_count_ = 0;
-  no_background = 0;
+  no_background_ = 0;
   ctx.load_menu(*this, ctx.args);
 
   ctx.display_count =

@@ -30,7 +30,7 @@ namespace savedata {
 struct BoxManager {
   static void LoadMenu(menu::PluginMenu& menu, void* args);
 
-  static BoxManager& GetInstance() {
+  static FORCE_INLINE BoxManager& GetInstance() {
     return SaveData::GetInstance().GetBoxManager();
   }
 

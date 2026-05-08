@@ -28,21 +28,21 @@ class DPad;
  * @brief Bitmask values for physical hardware buttons.
  */
 enum class Key {
-  kLeft = 1 << 0,     ///< D-Pad Left
-  kRight = 1 << 1,    ///< D-Pad Right
-  kUp = 1 << 2,       ///< D-Pad Up
-  kDown = 1 << 3,     ///< D-Pad Down
-  kA = 1 << 4,        ///< A Button
-  kB = 1 << 5,        ///< B Button
-  kX = 1 << 6,        ///< X Button
-  kY = 1 << 7,        ///< Y Button
-  kL = 1 << 8,        ///< L Shoulder Button
-  kR = 1 << 9,        ///< R Shoulder Button
-  kZl = 1 << 10,      ///< ZL Shoulder Button
-  kZr = 1 << 11,      ///< ZR Shoulder Button
-  kStart = 1 << 12,   ///< Start Button
-  kSelect = 1 << 13,  ///< Select Button
-  kHome = 1 << 14,    ///< Home Button
+  kLeft = 1 << 0, ///< D-Pad Left
+  kRight = 1 << 1, ///< D-Pad Right
+  kUp = 1 << 2, ///< D-Pad Up
+  kDown = 1 << 3, ///< D-Pad Down
+  kA = 1 << 4, ///< A Button
+  kB = 1 << 5, ///< B Button
+  kX = 1 << 6, ///< X Button
+  kY = 1 << 7, ///< Y Button
+  kL = 1 << 8, ///< L Shoulder Button
+  kR = 1 << 9, ///< R Shoulder Button
+  kZl = 1 << 10, ///< ZL Shoulder Button
+  kZr = 1 << 11, ///< ZR Shoulder Button
+  kStart = 1 << 12, ///< Start Button
+  kSelect = 1 << 13, ///< Select Button
+  kHome = 1 << 14, ///< Home Button
 };
 
 /**
@@ -54,7 +54,7 @@ class Device {
   /** @brief Private constructor for singleton pattern. */
   Device() = default;
 
- public:
+public:
   /** @brief Custom input channel identifier used for filtered input polling. */
   static constexpr u8 kCustomChannel = 0x13;
 
@@ -62,14 +62,14 @@ class Device {
    * @brief Retrieves the singleton instance of the Device manager.
    * @return Reference to the Device instance.
    */
-  static Device& GetInstance() { return Core::GetInstance().GetDevice(); }
+  static FORCE_INLINE Device& GetInstance() { return Core::GetInstance().GetDevice(); }
 
   /**
    * @brief Accesses the primary controller subsystem.
    * @return Reference to the Controller instance.
    */
-  Controller& GetController() {
-    return ((Controller & (*)(Device*, u32)) ADDRESS_DEVICE_GET_CONTROLLER)(
+  FORCE_INLINE Controller& GetController() {
+    return ((Controller & (*)(Device*, u32))ADDRESS_DEVICE_GET_CONTROLLER)(
         this, 0);
   }
 
@@ -77,16 +77,16 @@ class Device {
    * @brief Accesses the D-Pad subsystem.
    * @return Reference to the DPad instance.
    */
-  DPad& GetDPad() {
-    return ((DPad & (*)(Device*, u32)) ADDRESS_DEVICE_GET_DPAD)(this, 0);
+  FORCE_INLINE DPad& GetDPad() {
+    return ((DPad & (*)(Device*, u32))ADDRESS_DEVICE_GET_DPAD)(this, 0);
   }
 
   /**
    * @brief Accesses the TouchScreen subsystem.
    * @return Reference to the TouchScreen instance.
    */
-  TouchScreen& GetTouchScreen() {
-    return ((TouchScreen & (*)(Device*, u32)) ADDRESS_DEVICE_GET_TOUCHSCREEN)(
+  FORCE_INLINE TouchScreen& GetTouchScreen() {
+    return ((TouchScreen & (*)(Device*, u32))ADDRESS_DEVICE_GET_TOUCHSCREEN)(
         this, 0);
   }
 
@@ -102,32 +102,32 @@ class Device {
 class Controller {
   Controller() = default;
 
- public:
+public:
   /** @return Singleton reference to the controller. */
-  static Controller& GetInstance() {
+  static FORCE_INLINE Controller& GetInstance() {
     return Device::GetInstance().GetController();
   }
 
   /** @brief Checks if a key was just pressed this frame. */
-  bool IsKeyPressed(Key key) {
+  FORCE_INLINE bool IsKeyPressed(Key key) {
     return ((bool (*)(Controller*, Key, u8))ADDRESS_CONTROLLER_IS_KEY_PRESSED)(
         this, key, Device::kCustomChannel);
   }
 
   /** @brief Checks if a key was just released this frame. */
-  bool IsKeyReleased(Key key) {
+  FORCE_INLINE bool IsKeyReleased(Key key) {
     return ((bool (*)(Controller*, Key, u8))ADDRESS_CONTROLLER_IS_KEY_RELEASED)(
         this, key, Device::kCustomChannel);
   }
 
   /** @brief Checks if a key is being held down with repeat logic. */
-  bool IsKeyRepeated(Key key) {
+  FORCE_INLINE bool IsKeyRepeated(Key key) {
     return ((bool (*)(Controller*, Key, u8))ADDRESS_CONTROLLER_IS_KEY_REPEATED)(
         this, key, Device::kCustomChannel);
   }
 
   /** @brief Checks if a key is currently held down. */
-  bool IsKeyDown(Key key) {
+  FORCE_INLINE bool IsKeyDown(Key key) {
     return ((bool (*)(Controller*, Key, u8))ADDRESS_CONTROLLER_IS_KEY_DOWN)(
         this, key, Device::kCustomChannel);
   }
@@ -139,32 +139,32 @@ class Controller {
 class TouchScreen {
   TouchScreen() = default;
 
- public:
+public:
   /** @return Singleton reference to the touchscreen. */
-  static TouchScreen& GetInstance() {
+  static FORCE_INLINE TouchScreen& GetInstance() {
     return Device::GetInstance().GetTouchScreen();
   }
 
   /** @return The current X coordinate of the touch point. */
-  s32 GetX() {
+  FORCE_INLINE s32 GetX() {
     return ((s32 (*)(TouchScreen*, u8))ADDRESS_TOUCHSCREEN_GET_X)(
         this, Device::kCustomChannel);
   }
 
   /** @return The current Y coordinate of the touch point. */
-  s32 GetY() {
+  FORCE_INLINE s32 GetY() {
     return ((s32 (*)(TouchScreen*, u8))ADDRESS_TOUCHSCREEN_GET_Y)(
         this, Device::kCustomChannel);
   }
 
   /** @brief Checks if the screen was just released. */
-  bool IsReleased() {
+  FORCE_INLINE bool IsReleased() {
     return ((bool (*)(TouchScreen*, u8))ADDRESS_TOUCHSCREEN_IS_RELEASED)(
         this, Device::kCustomChannel);
   }
 
   /** @brief Checks if the screen is currently being touched. */
-  bool IsDown() {
+  FORCE_INLINE bool IsDown() {
     return ((bool (*)(TouchScreen*, u8))ADDRESS_TOUCHSCREEN_IS_DOWN)(
         this, Device::kCustomChannel);
   }
@@ -176,9 +176,9 @@ class TouchScreen {
 class DPad {
   DPad() = default;
 
- public:
+public:
   /** @return Singleton reference to the D-Pad handler. */
-  static DPad& GetInstance() { return Device::GetInstance().GetDPad(); }
+  static FORCE_INLINE DPad& GetInstance() { return Device::GetInstance().GetDPad(); }
 };
 
 #endif  // SANGO_PLUGIN_DEVICE_H

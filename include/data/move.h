@@ -24,7 +24,7 @@ namespace data {
 
 struct Move {
   static void LoadMenu(menu::PluginMenu& menu, void* args);
-  static Move& GetInstance(u16 id) {
+  static FORCE_INLINE Move& GetInstance(u16 id) {
     return *(Move*)(READ(u32, ADDRESS_DATA_MOVE) + sizeof(Move) * id);
   }
 

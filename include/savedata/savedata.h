@@ -48,7 +48,7 @@ class SaveData {
    * @brief Accesses the global SaveData instance via the GameDataManager.
    * @return A reference to the active SaveData instance.
    */
-  static SaveData& GetInstance() {
+  static FORCE_INLINE SaveData& GetInstance() {
     return GameDataManager::GetInstance().GetSavedata();
   }
 
@@ -56,27 +56,27 @@ class SaveData {
    * @brief Retrieves the footer associated with this save data.
    * @return A reference to the Footer object used for integrity validation.
    */
-  Footer& GetFooter() { return *footer_; }
+  FORCE_INLINE Footer& GetFooter() { return *footer_; }
 
-  Misc& GetMisc() { return *(Misc*)segments_[11]; }
+  FORCE_INLINE Misc& GetMisc() { return *(Misc*)segments_[11]; }
 
-  BoxManager& GetBoxManager() { return *(BoxManager*)segments_[12]; }
+  FORCE_INLINE BoxManager& GetBoxManager() { return *(BoxManager*)segments_[12]; }
 
-  BattleBox& GetBattleBox() { return *(BattleBox*)segments_[13]; }
+  FORCE_INLINE BattleBox& GetBattleBox() { return *(BattleBox*)segments_[13]; }
 
-  BagManager& GetBagManager() { return *(BagManager*)segments_[2]; }
+  FORCE_INLINE BagManager& GetBagManager() { return *(BagManager*)segments_[2]; }
 
-  PokemonAmie& GetPokemonAmie() { return *(PokemonAmie*)segments_[0]; }
+  FORCE_INLINE PokemonAmie& GetPokemonAmie() { return *(PokemonAmie*)segments_[0]; }
 
-  ItemManager& GetItemManager() { return *(ItemManager*)segments_[1]; }
+  FORCE_INLINE ItemManager& GetItemManager() { return *(ItemManager*)segments_[1]; }
 
-  TrainerStatus& GetTrainerStatus() { return *(TrainerStatus*)segments_[17]; }
+  FORCE_INLINE TrainerStatus& GetTrainerStatus() { return *(TrainerStatus*)segments_[17]; }
 
-  PokemonTeam& GetPokemonTeam() { return *(PokemonTeam*)segments_[18]; }
+  FORCE_INLINE PokemonTeam& GetPokemonTeam() { return *(PokemonTeam*)segments_[18]; }
 
-  PokemonBox& GetPokemonBox() { return *(PokemonBox*)segments_[56]; }
+  FORCE_INLINE PokemonBox& GetPokemonBox() { return *(PokemonBox*)segments_[56]; }
 
-  Settings& GetSettings() { return *(Settings*)segments_[23]; }
+  FORCE_INLINE Settings& GetSettings() { return *(Settings*)segments_[23]; }
 
   /// @brief Total number of data segments monitored for integrity.
   static constexpr u32 kSegmentCount = 58;

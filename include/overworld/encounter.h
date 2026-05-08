@@ -25,7 +25,7 @@ namespace overworld {
 
 struct Encounter {
   static void LoadMenu(menu::PluginMenu& menu, void* args);
-  static Encounter& GetInstance() {
+  static FORCE_INLINE Encounter& GetInstance() {
     return GameDataManager::GetInstance().GetEncounter();
   }
 

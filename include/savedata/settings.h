@@ -24,7 +24,7 @@
 namespace savedata {
 
 struct Settings {
-  static Settings& GetInstance() {
+  static FORCE_INLINE Settings& GetInstance() {
     return SaveData::GetInstance().GetSettings();
   }
   static void LoadMenu(menu::PluginMenu& menu, void* args);

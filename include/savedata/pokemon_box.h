@@ -23,7 +23,7 @@
 namespace savedata {
 
 struct PokemonBox {
-  static PokemonBox& GetInstance() {
+  static FORCE_INLINE PokemonBox& GetInstance() {
     return SaveData::GetInstance().GetPokemonBox();
   }
   static void LoadMenu(menu::PluginMenu& menu, void* args);

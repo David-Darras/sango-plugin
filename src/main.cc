@@ -16,19 +16,32 @@
  */
 
 #include <CTRPluginFramework/System/Hook.hpp>
+#include <CTRPluginFramework/Menu/PluginMenu.hpp>
 
 #include "core/core.h"
+
+#define ENABLE_SANGO_PLGUIN
+#define ENABLE_DEFAULT_CTRPF
 
 extern void Initialize();
 extern void OnFrame();
 
 namespace CTRPluginFramework {
 int main() {
+#ifdef ENABLE_SANGO_PLGUIN
   Initialize();
   Hook hook;
   hook.InitializeForMitm(
       ADDRESS_ENTRYPOINT, (uintptr_t)OnFrame);
   hook.Enable();
+#endif
+
+#ifdef ENABLE_DEFAULT_CTRPF
+  PluginMenu menu("Sango Plugin", 2, 0, 0);
+  menu.SynchronizeWithFrame(true);
+  menu.Run();
+#endif
+
   return 0;
 }
 } // namespace CTRPluginFramework

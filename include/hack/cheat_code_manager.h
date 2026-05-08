@@ -22,7 +22,7 @@
 
 class CheatCodeManager {
  public:
-  static CheatCodeManager &GetInstance() { return instance_; }
+  static FORCE_INLINE CheatCodeManager &GetInstance() { return instance_; }
   void Add(CheatCodeId id, callback_t callback, void *args = nullptr);
   CheatCode *Get(CheatCodeId id);
   void Update();

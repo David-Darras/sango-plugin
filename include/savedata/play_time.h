@@ -25,7 +25,7 @@ namespace savedata {
 struct PlayTime {
   static void LoadMenu(menu::PluginMenu& menu, void* args);
 
-  static PlayTime& GetInstance() {
+  static FORCE_INLINE PlayTime& GetInstance() {
     return GameDataManager::GetInstance().GetPlayTime();
   }
 
