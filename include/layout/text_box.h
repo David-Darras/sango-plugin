@@ -15,33 +15,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <CTRPluginFramework/System/Hook.hpp>
-#include <CTRPluginFramework/Menu/PluginMenu.hpp>
+#ifndef SANGO_PLUGIN_LAYOUT_TEXT_BOX_H
+#define SANGO_PLUGIN_LAYOUT_TEXT_BOX_H
+#include "pane.h"
 
-#include "core/core.h"
+namespace layout {
+struct TextBox {
+  Pane pane;
+  c16* text;
+  Color8 top_color;
+  Color8 bottom_color;
 
-#define ENABLE_SANGO_PLGUIN
-// #define ENABLE_DEFAULT_CTRPF
-
-extern void Initialize();
-extern void OnFrame();
-
-namespace CTRPluginFramework {
-int main() {
-#ifdef ENABLE_SANGO_PLGUIN
-  Initialize();
-  Hook hook;
-  hook.InitializeForMitm(
-      ADDRESS_ENTRYPOINT, (uintptr_t)OnFrame);
-  hook.Enable();
-#endif
-
-#ifdef ENABLE_DEFAULT_CTRPF
-  PluginMenu menu("Sango Plugin", 2, 0, 0);
-  menu.SynchronizeWithFrame(true);
-  menu.Run();
-#endif
-
-  return 0;
+  static void LoadMenu(menu::PluginMenu& menu, void* args);
+};
 }
-} // namespace CTRPluginFramework
+
+#endif // SANGO_PLUGIN_LAYOUT_TEXT_BOX_H

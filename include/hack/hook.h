@@ -43,6 +43,7 @@ enum class HookID : u32 {
   kOnChangeAmbientLightColor,
   kOnChangeDiffuseLightColor,
   kOnDrawPicture,
+  kOnDrawTextBox,
   kMax
 };
 

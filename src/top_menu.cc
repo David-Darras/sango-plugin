@@ -23,6 +23,8 @@
 #include "data/pokemon.h"
 #include "hack/cheat_code.h"
 #include "hack/cheat_code_manager.h"
+#include "layout/picture.h"
+#include "layout/text_box.h"
 #include "menu/plugin_menu.h"
 #include "overworld/encounter.h"
 #include "overworld/field_move.h"
@@ -37,6 +39,11 @@
 
 String String::s_tmp;
 c16 String::s_buffer[128];
+
+void LayoutMenu(menu::PluginMenu& menu, void* args) {
+  menu.Add("Text Box", layout::TextBox::LoadMenu)
+      .Add("Picture", layout::Picture::LoadMenu);
+}
 
 void GlobalDataMenu(menu::PluginMenu& menu, void* args) {
   menu.Add("Global Pokemon Data", data::Pokemon::LoadMenu)
@@ -59,6 +66,7 @@ void TopMenu(menu::PluginMenu& menu, void* args) {
   menu.Add("Global Data", GlobalDataMenu)
       .Add("Save Data", savedata::SaveData::LoadMenu)
       .Add("Overworld", OverworldMenu)
+      .Add("Layout", LayoutMenu)
       .Add("Battle", battle::Manager::LoadMenu)
       .Add("Sound", Sound::LoadMenu);
 }

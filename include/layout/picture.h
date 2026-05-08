@@ -28,6 +28,8 @@ struct Picture {
   Vec4 _1[6];
   void* material;
   Color8 colors[4];
+
+  static void LoadMenu(menu::PluginMenu& menu, void* args);
 };
 
 }  // namespace layout

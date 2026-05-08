@@ -26,15 +26,11 @@
 #include "menu/plugin_menu.h"
 #include "overworld/model_manager.h"
 #include "layout/picture.h"
+#include "layout/text_box.h"
 
 namespace layout {
+extern void OnDrawTextBox(TextBox* text_box, u32 writer);
 extern void OnDrawPicture(Picture* picture, u32 p0, u32 p1, u32 p2);
-}
-
-void EnablePsychedelicVision(void*) {
-  HookManager::GetInstance().Add(HookID::kOnDrawPicture,
-                                 ADDRESS_LAYOUT_DRAW_PICTURE,
-                                 (uptr)layout::OnDrawPicture);
 }
 
 namespace overworld {
@@ -253,6 +249,7 @@ void OnChangeDiffuseLightColor(void* light_manager, f32* colors) {
       ->CallOriginal<void>(light_manager, colors);
 }
 
+
 void Renderer::LoadMenu(menu::PluginMenu& menu, void* args) {
   if (menu.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
 
@@ -279,8 +276,6 @@ void Renderer::LoadMenu(menu::PluginMenu& menu, void* args) {
       .Add("Diffuse Light - Red", ctx.diffuse_light_color.r)
       .Add("Diffuse Light - Green", ctx.diffuse_light_color.g)
       .Add("Diffuse Light - Blue", ctx.diffuse_light_color.b)
-      .Add("Diffuse Light - Alpha", ctx.diffuse_light_color.a)
-      .AddSeparator()
-      .Add("Psychedelic Vision", EnablePsychedelicVision);
+      .Add("Diffuse Light - Alpha", ctx.diffuse_light_color.a);
 }
 } // namespace overworld
