@@ -20,6 +20,7 @@
 #include <cmath>
 
 #include "battle/manager.h"
+#include "core/game_process_manager.h"
 #include "hack/hook_manager.h"
 #include "menu/log_menu.h"
 #include "menu/plugin_menu.h"
@@ -62,10 +63,16 @@ static struct {
 } ctx;
 
 void UpdateMatrices(StereoCamera* stereo_camera, bool update) {
-  if (&Renderer::GetInstance().GetStereoCamera() == stereo_camera ||
-      (battle::Process::IsInBattle() &&
-       &battle::Graphics::GetInstance().GetStereoCamera() == stereo_camera)) {
-    ctx.is_updating_camera = true;
+  if (GameProcessManager::GetInstance().
+    IsCurrentProcess(PROCESS_NAME_FIELD_MAP)) {
+    if (&Renderer::GetInstance().GetStereoCamera() == stereo_camera) {
+      ctx.is_updating_camera = true;
+    }
+  }
+  if (GameProcessManager::GetInstance().IsCurrentProcess(PROCESS_NAME_BATTLE)) {
+    if (&battle::Graphics::GetInstance().GetStereoCamera() == stereo_camera) {
+      ctx.is_updating_camera = true;
+    }
   }
   HookManager::GetInstance()
       .Get(HookID::kUpdateMatrices)
@@ -164,6 +171,8 @@ Mtx34* UpdateLookAt(Mtx34* output, Vec3* pos, Vec3* up, Vec3* target) {
 }
 
 void StereoCamera::LoadMenu(menu::PluginMenu& menu, void* args) {
+  if (menu.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
+
   static const c8* STATES[] = {"Idle", "Free", "Rotate", "Fpv", "Tps"};
   bool& skybox = *(bool*)((uptr)&Renderer::GetInstance() + 0xB74);
 
@@ -171,8 +180,10 @@ void StereoCamera::LoadMenu(menu::PluginMenu& menu, void* args) {
 
   menu.WithNoBackground()
       .Add("Skybox", skybox)
+      .AddSeparator()
       .Add("State", ctx.state)
       .WithArray(STATES, SIZE(STATES))
+      .AddSeparator()
       .Add("Free Pos X (Left/Right)", ctx.pos.x)
       .WithFactor(5.0f)
       .Add("Free Pos Y (Up/Down)", ctx.pos.y)
@@ -183,15 +194,17 @@ void StereoCamera::LoadMenu(menu::PluginMenu& menu, void* args) {
       .WithFactor(0.05f)
       .Add("Free Pitch (Look)", ctx.rot.x)
       .WithFactor(0.05f)
+      .AddSeparator()
+      .Add("TPS Distance", ctx.tps_dist)
+      .Add("TPS Height", ctx.tps_height)
+      .Add("TPS Shoulder Offset", ctx.tps_offset)
+      .AddSeparator()
       .Add("Radius", ctx.radius)
       .WithFactor(3.0f)
       .Add("Height", ctx.height)
       .WithFactor(3.0f)
       .Add("Orbit Rot Speed", ctx.theta_speed)
-      .WithFactor(0.01f)
-      .Add("TPS Distance", ctx.tps_dist)
-      .Add("TPS Height", ctx.tps_height)
-      .Add("TPS Shoulder Offset", ctx.tps_offset);
+      .WithFactor(0.01f);
 }
 
 void StereoCamera::SetupHooks() {
@@ -241,6 +254,8 @@ void OnChangeDiffuseLightColor(void* light_manager, f32* colors) {
 }
 
 void Renderer::LoadMenu(menu::PluginMenu& menu, void* args) {
+  if (menu.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
+
   HookManager& man = HookManager::GetInstance();
   man.Add(HookID::kOnChangeOutlineScale, 0x00379E3C,
           (uptr)OnChangeOutlineScale);
@@ -249,19 +264,23 @@ void Renderer::LoadMenu(menu::PluginMenu& menu, void* args) {
   man.Add(HookID::kOnChangeDiffuseLightColor, 0x001397C0,
           (uptr)OnChangeDiffuseLightColor);
 
-  menu.Add("Psychedelic Vision", EnablePsychedelicVision)
+  menu.WithNoBackground()
       .Add("Outline Scale", ctx.outline_scale)
       .Add("Outline Color - Red", ctx.outline_color.r)
       .Add("Outline Color - Green", ctx.outline_color.g)
       .Add("Outline Color - Blue", ctx.outline_color.b)
       .Add("Outline Color - Alpha", ctx.outline_color.a)
+      .AddSeparator()
       .Add("Ambient Light - Red", ctx.ambient_light_color.r)
       .Add("Ambient Light - Green", ctx.ambient_light_color.g)
       .Add("Ambient Light - Blue", ctx.ambient_light_color.b)
       .Add("Ambient Light - Alpha", ctx.ambient_light_color.a)
+      .AddSeparator()
       .Add("Diffuse Light - Red", ctx.diffuse_light_color.r)
       .Add("Diffuse Light - Green", ctx.diffuse_light_color.g)
       .Add("Diffuse Light - Blue", ctx.diffuse_light_color.b)
-      .Add("Diffuse Light - Alpha", ctx.diffuse_light_color.a);
+      .Add("Diffuse Light - Alpha", ctx.diffuse_light_color.a)
+      .AddSeparator()
+      .Add("Psychedelic Vision", EnablePsychedelicVision);
 }
 } // namespace overworld

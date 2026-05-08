@@ -30,19 +30,19 @@
 #include "savedata/trainer_status.h"
 
 namespace savedata {
-
 void SaveData::LoadMenu(menu::PluginMenu& menu, void* args) {
-  menu.Add("Settings", Settings::LoadMenu)
-      .Add("Play Time", PlayTime::LoadMenu)
-      .Add("Team", PokemonTeam::LoadMenu)
+  menu.Add("Team", PokemonTeam::LoadMenu)
       .Add("Battle Box", BattleBox::LoadMenu)
       .Add("PC", PokemonBox::LoadMenu)
-      .Add("Trainer Status", TrainerStatus::LoadMenu)
-      .Add("Items", ItemManager::LoadMenu)
-      .Add("Pokemon-Amie", PokemonAmie::LoadMenu)
-      .Add("Bag Metadata", BagManager::LoadMenu)
       .Add("Boxes Metadata", BoxManager::LoadMenu)
-      .Add("Miscellaneous", Misc::LoadMenu);
+      .AddSeparator()
+      .Add("Trainer Status", TrainerStatus::LoadMenu)
+      .Add("Miscellaneous", Misc::LoadMenu)
+      .Add("Settings", Settings::LoadMenu)
+      .Add("Play Time", PlayTime::LoadMenu)
+      .AddSeparator()
+      .Add("Pokemon-Amie", PokemonAmie::LoadMenu)
+      .Add("Items", ItemManager::LoadMenu)
+      .Add("Bag Metadata", BagManager::LoadMenu);
 }
-
-}  // namespace savedata
+} // namespace savedata

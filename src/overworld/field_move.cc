@@ -20,7 +20,6 @@
 #include "overworld/map_manager.h"
 
 namespace overworld {
-
 static u32 choice = 0;
 
 void DoFieldMove(void*) {
@@ -36,14 +35,15 @@ void DoFieldMove(void*) {
 }
 
 void FieldMove_LoadMenu(menu::PluginMenu& menu, void* args) {
-  static const c8* MOVES[] = {"Cut",         "Surf",       "Waterfall",
-                              "Strength",    "Rock Smash", "Fly",
-                              "Flash",       "Teleport",   "Dig",
-                              "Sweet Scent", "Dive",       "Secret Power"};
+  if (menu.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
 
-  menu.Add("Choice", choice)
+  static const c8* MOVES[] = {"Cut", "Surf", "Waterfall",
+                              "Strength", "Rock Smash", "Fly",
+                              "Flash", "Teleport", "Dig",
+                              "Sweet Scent", "Dive", "Secret Power"};
+
+  menu.Add("Field Move", choice)
       .WithArray(MOVES, SIZE(MOVES))
       .Add("Execute", DoFieldMove);
 }
-
-}  // namespace overworld
+} // namespace overworld

@@ -25,7 +25,6 @@
 #include "numpad.h"
 
 namespace menu {
-
 /**
  * @brief Singleton class representing the plugin menu system.
  *
@@ -33,12 +32,12 @@ namespace menu {
  * submenus, and context tracking using a stack-based approach.
  */
 class PluginMenu {
- public:
+public:
   /**
    * @brief Returns the singleton instance of the PluginMenu.
    * @return Reference to the unique PluginMenu instance.
    */
-  static FORCE_INLINE PluginMenu &GetInstance() { return instance_; }
+  static FORCE_INLINE PluginMenu& GetInstance() { return instance_; }
 
   /**
    * @brief Draws the top section of the menu with menu entries.
@@ -66,7 +65,7 @@ class PluginMenu {
    * @brief Enters a submenu with an optional initialization callback.
    * @param load_menu Function to call when entering the submenu.
    */
-  void EnterSubMenu(menu_callback_t load_menu, void *args);
+  void EnterSubMenu(menu_callback_t load_menu, void* args);
 
   /**
    * @brief Leaves the current submenu and returns to the previous context.
@@ -81,7 +80,7 @@ class PluginMenu {
    * @param array_size The total number of elements in the array.
    * @return Reference to the PluginMenu instance for method chaining.
    */
-  PluginMenu &WithArray(const c8 *array[], u32 array_size) {
+  PluginMenu& WithArray(const c8* array[], u32 array_size) {
     entries_[entries_count_ - 1].WithArray(array, array_size);
     return *this;
   }
@@ -93,7 +92,7 @@ class PluginMenu {
    * @param callback Function pointer of type `callback_t`.
    * @return Reference to the PluginMenu instance for method chaining.
    */
-  PluginMenu &WithCallback(callback_t callback) {
+  PluginMenu& WithCallback(callback_t callback) {
     entries_[entries_count_ - 1].WithCallback(callback);
     return *this;
   }
@@ -104,7 +103,7 @@ class PluginMenu {
    * structure or the content of the current menu view.
    * @return Reference to the PluginMenu instance for method chaining.
    */
-  PluginMenu &WithRefresh() {
+  PluginMenu& WithRefresh() {
     entries_[entries_count_ - 1].WithRefresh();
     return *this;
   }
@@ -114,7 +113,7 @@ class PluginMenu {
    * @param min The lower bound value.
    * @return Reference to the PluginMenu instance for method chaining.
    */
-  PluginMenu &WithMin(s32 min) {
+  PluginMenu& WithMin(s32 min) {
     entries_[entries_count_ - 1].WithMin(min);
     return *this;
   }
@@ -124,7 +123,7 @@ class PluginMenu {
    * @param max The upper bound value.
    * @return Reference to the PluginMenu instance for method chaining.
    */
-  PluginMenu &WithMax(s32 max) {
+  PluginMenu& WithMax(s32 max) {
     entries_[entries_count_ - 1].WithMax(max);
     return *this;
   }
@@ -136,21 +135,23 @@ class PluginMenu {
    * @param max The upper bound value.
    * @return Reference to the PluginMenu instance for method chaining.
    */
-  PluginMenu &WithBounds(u32 min, u32 max) {
+  PluginMenu& WithBounds(u32 min, u32 max) {
     entries_[entries_count_ - 1].WithMin(min);
     entries_[entries_count_ - 1].WithMax(max);
     return *this;
   }
 
-  PluginMenu &WithFactor(f32 factor) {
+  PluginMenu& WithFactor(f32 factor) {
     entries_[entries_count_ - 1].WithFactor(factor);
     return *this;
   }
 
-  PluginMenu &WithNoBackground() {
+  PluginMenu& WithNoBackground() {
     no_background_ = 1;
     return *this;
   }
+
+  bool CheckProcess(const char* name);
 
   /**
    * @brief Rebuilds the current menu by re-executing its load callback.
@@ -159,7 +160,7 @@ class PluginMenu {
    */
   void Refresh();
 
-  PluginMenu &Add(const c8 *name, CheatCodeId id) {
+  PluginMenu& Add(const c8* name, CheatCodeId id) {
     if (entries_count_ < kMaxEntries) {
       entries_[entries_count_].Initialize(
           name, CheatCodeManager::GetInstance().Get(id), kTypeCheatCode);
@@ -168,7 +169,7 @@ class PluginMenu {
     return *this;
   }
 
-  PluginMenu &Add(const c8 *name, callback_t callback = nullptr) {
+  PluginMenu& Add(const c8* name, callback_t callback = nullptr) {
     if (entries_count_ < kMaxEntries) {
       entries_[entries_count_].Initialize(name, nullptr, kTypeIdle);
       entries_[entries_count_].WithCallback(callback);
@@ -184,7 +185,7 @@ class PluginMenu {
    * @param type Entry type (MenuEntryType).
    * @return Reference to the PluginMenu instance.
    */
-  PluginMenu &Add(const c8 *name, void *addr, u8 type) {
+  PluginMenu& Add(const c8* name, void* addr, u8 type) {
     if (entries_count_ < kMaxEntries)
       entries_[entries_count_++].Initialize(name, addr, type);
     return *this;
@@ -196,9 +197,9 @@ class PluginMenu {
    * @param menu Callback function to build the submenu.
    * @return Reference to the PluginMenu instance.
    */
-  PluginMenu &Add(const c8 *name, menu_callback_t menu, void *args = nullptr) {
+  PluginMenu& Add(const c8* name, menu_callback_t menu, void* args = nullptr) {
     if (entries_count_ < kMaxEntries) {
-      entries_[entries_count_].Initialize(name, (void *)menu, kTypeMenu);
+      entries_[entries_count_].Initialize(name, (void*)menu, kTypeMenu);
       entries_[entries_count_].WithArgs(args);
       entries_count_++;
     }
@@ -211,7 +212,7 @@ class PluginMenu {
    * @param addr Reference to the pointer.
    * @return Reference to the PluginMenu instance.
    */
-  PluginMenu &Add(const c8 *name, void *&addr) {
+  PluginMenu& Add(const c8* name, void*& addr) {
     if (entries_count_ < kMaxEntries)
       entries_[entries_count_++].Initialize(name, &addr, kTypePointer);
     return *this;
@@ -223,7 +224,7 @@ class PluginMenu {
    * @param addr Reference to the boolean variable.
    * @return Reference to the PluginMenu instance.
    */
-  PluginMenu &Add(const c8 *name, bool &addr) {
+  PluginMenu& Add(const c8* name, bool& addr) {
     if (entries_count_ < kMaxEntries)
       entries_[entries_count_++].Initialize(name, &addr, kTypeBoolean);
     return *this;
@@ -237,7 +238,7 @@ class PluginMenu {
    * @param size Bit size.
    * @return Reference to the PluginMenu instance.
    */
-  PluginMenu &Add(const c8 *name, void *addr, u32 offset, u32 size) {
+  PluginMenu& Add(const c8* name, void* addr, u32 offset, u32 size) {
     if (entries_count_ < kMaxEntries)
       entries_[entries_count_++].Initialize(name, addr, kTypeBits, offset,
                                             size);
@@ -251,44 +252,51 @@ class PluginMenu {
    * @param size Maximum length/size of the string.
    * @return Reference to the PluginMenu instance.
    */
-  PluginMenu &Add(const c8 *name, c16 *addr, u32 size) {
+  PluginMenu& Add(const c8* name, c16* addr, u32 size) {
     if (entries_count_ < kMaxEntries)
       entries_[entries_count_++].Initialize(name, addr, kTypeUnicode, size);
     return *this;
   }
 
-  PluginMenu &AddSpecies(const c8 *name, u16 &var) {
+  PluginMenu& AddSpecies(const c8* name, u16& var) {
     if (entries_count_ < kMaxEntries) {
-      entries_[entries_count_++].Initialize(name, (void *)&var, kTypeSpecies);
+      entries_[entries_count_++].Initialize(name, (void*)&var, kTypeSpecies);
       WithBounds(0, 0x2D4);
     }
     return *this;
   }
 
-  PluginMenu &AddType(const c8 *name, u8 &var) {
-    static const c8 *TYPES[] = {
-        "Normal",   "Fighting", "Flying", "Poison", "Ground", "Rock",
-        "Bug",      "Ghost",    "Steel",  "Fire",   "Water",  "Grass",
-        "Electric", "Psychic",  "Ice",    "Dragon", "Dark",   "Fairy"};
+  PluginMenu& AddType(const c8* name, u8& var) {
+    static const c8* TYPES[] = {
+        "Normal", "Fighting", "Flying", "Poison", "Ground", "Rock",
+        "Bug", "Ghost", "Steel", "Fire", "Water", "Grass",
+        "Electric", "Psychic", "Ice", "Dragon", "Dark", "Fairy"};
     if (entries_count_ < kMaxEntries) {
-      entries_[entries_count_++].Initialize(name, (void *)&var, kTypeU8);
+      entries_[entries_count_++].Initialize(name, (void*)&var, kTypeU8);
       WithArray(TYPES, SIZE(TYPES));
     }
     return *this;
   }
 
-  PluginMenu &AddAbility(const c8 *name, u8 &var) {
+  PluginMenu& AddAbility(const c8* name, u8& var) {
     if (entries_count_ < kMaxEntries) {
-      entries_[entries_count_++].Initialize(name, (void *)&var, kTypeAbility);
+      entries_[entries_count_++].Initialize(name, (void*)&var, kTypeAbility);
       WithBounds(0, 0xBF);
     }
     return *this;
   }
 
-  PluginMenu &AddMove(const c8 *name, u16 &var) {
+  PluginMenu& AddMove(const c8* name, u16& var) {
     if (entries_count_ < kMaxEntries) {
-      entries_[entries_count_++].Initialize(name, (void *)&var, kTypeMove);
+      entries_[entries_count_++].Initialize(name, (void*)&var, kTypeMove);
       WithBounds(0, 0x26E);
+    }
+    return *this;
+  }
+
+  PluginMenu& AddSeparator() {
+    if (entries_count_ < kMaxEntries) {
+      entries_[entries_count_++].Initialize("", nullptr, kTypeSeparator);
     }
     return *this;
   }
@@ -317,32 +325,33 @@ class PluginMenu {
 
 #undef ADD
 
- private:
+private:
   /**
    * @brief Internal structure representing a menu context (for submenus).
    */
   struct MenuContext {
-    u8 cursor;                  ///< Current cursor position.
-    u8 offset;                  ///< Current scroll offset.
-    u8 display_count;           ///< Number of entries to display.
-    menu_callback_t load_menu;  ///< Initialization callback.
-    void *args;
+    u8 cursor; ///< Current cursor position.
+    u8 offset; ///< Current scroll offset.
+    u8 display_count; ///< Number of entries to display.
+    menu_callback_t load_menu; ///< Initialization callback.
+    void* args;
 
     /**
      * @brief Default constructor.
      */
     MenuContext()
-        : cursor(0),
-          offset(0),
-          display_count(0),
-          load_menu(nullptr),
-          args(nullptr) {}
+      : cursor(0),
+        offset(0),
+        display_count(0),
+        load_menu(nullptr),
+        args(nullptr) {
+    }
 
     /**
      * @brief Resets the context with a specific callback.
      * @param menu Function to call for this context.
      */
-    void Initialize(menu_callback_t menu, void *args) {
+    void Initialize(menu_callback_t menu, void* args) {
       cursor = 0;
       offset = 0;
       display_count = 0;
@@ -355,16 +364,18 @@ class PluginMenu {
    * @brief Private constructor for singleton pattern.
    */
   PluginMenu()
-      : is_opened_(0),
-        entries_count_(0),
-        contexts_count_(0),
-        no_background_(0) {}
+    : is_opened_(0),
+      entries_count_(0),
+      contexts_count_(0),
+      no_background_(0),
+      process_name_(nullptr) {
+  }
 
   /**
    * @brief Returns the currently active context.
    * @return Reference to the top context on the stack.
    */
-  MenuContext &GetContext() {
+  MenuContext& GetContext() {
     return contexts_[contexts_count_ > 0 ? contexts_count_ - 1 : 0];
   }
 
@@ -372,8 +383,8 @@ class PluginMenu {
    * @brief Returns the currently selected menu entry in the current context.
    * @return Reference to the selected MenuEntry.
    */
-  MenuEntry &GetSelectedEntry() {
-    MenuContext &ctx = GetContext();
+  MenuEntry& GetSelectedEntry() {
+    MenuContext& ctx = GetContext();
     return entries_[ctx.cursor + ctx.offset];
   }
 
@@ -382,20 +393,21 @@ class PluginMenu {
   static constexpr u32 kMaxDisplayCount = 15;
   static constexpr u32 kLineHeight = 16;
 
-  static PluginMenu instance_;  ///< Unique instance.
+  static PluginMenu instance_; ///< Unique instance.
 
-  u32 is_opened_ : 1;       ///< True if menu is open.
-  u32 entries_count_ : 6;   ///< Active entries in current menu.
-  u32 contexts_count_ : 3;  ///< Number of submenus in the stack.
+  u32 is_opened_ : 1; ///< True if menu is open.
+  u32 entries_count_ : 6; ///< Active entries in current menu.
+  u32 contexts_count_ : 3; ///< Number of submenus in the stack.
   u32 no_background_ : 1;
-  u32 : 21;  ///< Reserved.
+  u32  : 21; ///< Reserved.
 
-  MenuEntry entries_[kMaxEntries];      ///< Entry pool.
-  MenuContext contexts_[kMaxContexts];  ///< Context stack.
-  Numpad numpad_;                       ///< Numpad logic.
-  Keyboard keyboard_;                   ///< Keyboard logic.
+  const char* process_name_;
+
+  MenuEntry entries_[kMaxEntries]; ///< Entry pool.
+  MenuContext contexts_[kMaxContexts]; ///< Context stack.
+  Numpad numpad_; ///< Numpad logic.
+  Keyboard keyboard_; ///< Keyboard logic.
 };
-
-}  // namespace menu
+} // namespace menu
 
 #endif  // SANGO_PLUGIN_MENU_PLUGIN_MENU_H

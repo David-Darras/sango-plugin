@@ -110,13 +110,15 @@ void PluginMenu::Update() {
 
   if (!IsOpened()) return;
 
+  if (process_name_ != nullptr && !GameProcessManager::GetInstance().
+      IsCurrentProcess(process_name_)) {
+    LeaveSubMenu();
+    return;
+  }
+
   LogMenu& log_menu = LogMenu::GetInstance();
   if (ctrl.IsKeyPressed(Key::kR)) {
     log_menu.Toggle();
-  }
-
-  if (ctrl.IsKeyPressed(Key::kL)) {
-    GameProcessManager& instance = GameProcessManager::GetInstance();
   }
 
   MenuContext& ctx = GetContext();
@@ -180,6 +182,7 @@ void PluginMenu::EnterSubMenu(menu_callback_t load_menu, void* args) {
 
   entries_count_ = 0;
   no_background_ = 0;
+  process_name_ = nullptr;
   load_menu(*this, args);
 
   MenuContext& ctx = GetContext();
@@ -196,6 +199,7 @@ void PluginMenu::LeaveSubMenu() {
 
   entries_count_ = 0;
   no_background_ = 0;
+  process_name_ = nullptr;
   ctx.load_menu(*this, ctx.args);
 
   ctx.display_count =
@@ -212,5 +216,17 @@ void PluginMenu::Refresh() {
     ctx.cursor = 0;
     ctx.offset = 0;
   }
+}
+
+bool PluginMenu::CheckProcess(const char* name) {
+  if (!GameProcessManager::GetInstance().IsCurrentProcess(name)) {
+    while (contexts_count_ > 1) {
+      LeaveSubMenu();
+    }
+    Sound::PlaySoundEffect(21);
+    return true;
+  }
+  process_name_ = name;
+  return false;
 }
 } // namespace menu

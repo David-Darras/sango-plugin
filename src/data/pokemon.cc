@@ -20,7 +20,6 @@
 #include "menu/plugin_menu.h"
 
 namespace data {
-
 void Pokemon::LoadMenu(menu::PluginMenu& menu, void* args) {
   static u16 species = 1;
 
@@ -44,7 +43,8 @@ void Pokemon::LoadMenu(menu::PluginMenu& menu, void* args) {
 
   menu.AddType("Type 1", data.type[0])
       .AddType("Type 2", data.type[1])
-      .Add("Capture Rate", data.capture_rate)
+      .Add("Capture Rate (%)", data.capture_rate)
+      .WithBounds(0, 100)
       .Add("Base Friendship", data.base_friendship);
 
   menu.Add("Held Item 1", data.give_item[0])
@@ -62,5 +62,4 @@ void Pokemon::LoadMenu(menu::PluginMenu& menu, void* args) {
   menu.Add("Form Count", data.form_count)
       .Add("Egg Hatch Steps", data.egg_hatch_steps);
 }
-
-}  // namespace data
+} // namespace data

@@ -24,8 +24,8 @@
 #include "hack/hook_manager.h"
 #include "menu/log_menu.h"
 #include "menu/plugin_menu.h"
-namespace battle {
 
+namespace battle {
 static struct {
   u8 trainer_model_id = 11;
   u8 team_idx;
@@ -39,8 +39,8 @@ void OnLoadTrainerModel(uptr trainer_model, void* trainer_model_manager) {
   *(u16*)(trainer_model + 2) = 0;
 
   return HookManager::GetInstance()
-      .Get(HookID::kOnLoadTrainerModel)
-      ->CallOriginal<void>(trainer_model, trainer_model_manager);
+         .Get(HookID::kOnLoadTrainerModel)
+         ->CallOriginal<void>(trainer_model, trainer_model_manager);
 }
 
 void OnSave(void*) {
@@ -52,37 +52,37 @@ void OnSave(void*) {
 }
 
 void Pokemon::LoadMenu(menu::PluginMenu& menu, void* args) {
+  if (menu.CheckProcess(PROCESS_NAME_BATTLE)) return;
+
   Pokemon& pkm = *ctx.pkm_server;
 
   menu.Add("Save", OnSave)
       .Add("UID", pkm.uid)
       .AddSpecies("Species", pkm.species)
 
+      .AddSeparator()
       .AddMove("Move 1 - ID", pkm.moves[0].view.id)
       .Add("Move 1 - PP", pkm.moves[0].view.pp)
-      .Add("Move 1 - Max PP", pkm.moves[0].view.max_pp)
 
       .AddMove("Move 2 - ID", pkm.moves[1].view.id)
       .Add("Move 2 - PP", pkm.moves[1].view.pp)
-      .Add("Move 2 - Max PP", pkm.moves[1].view.max_pp)
 
       .AddMove("Move 3 - ID", pkm.moves[2].view.id)
       .Add("Move 3 - PP", pkm.moves[2].view.pp)
-      .Add("Move 3 - Max PP", pkm.moves[2].view.max_pp)
 
       .AddMove("Move 4 - ID", pkm.moves[3].view.id)
       .Add("Move 4 - PP", pkm.moves[3].view.pp)
-      .Add("Move 4 - Max PP", pkm.moves[3].view.max_pp)
 
+      .AddSeparator()
       .Add("Hp", pkm.hp)
       .Add("Max Hp", pkm.max_hp)
-
       .Add("Attack", pkm.attack)
       .Add("Defense", pkm.defense)
       .Add("Sp. Attack", pkm.special_attack)
       .Add("Sp. Defense", pkm.special_defense)
       .Add("Speed", pkm.speed)
 
+      .AddSeparator()
       .Add("Atk Stage", pkm.stat_attack)
       .Add("Def Stage", pkm.stat_defense)
       .Add("SpA Stage", pkm.stat_special_attack)
@@ -91,6 +91,7 @@ void Pokemon::LoadMenu(menu::PluginMenu& menu, void* args) {
       .Add("Acc Stage", pkm.stat_accuracy)
       .Add("Eva Stage", pkm.stat_evasion)
 
+      .AddSeparator()
       .Add("EV Total", pkm.ev_sum)
       .Add("EV HP", pkm.ev_hp)
       .Add("EV Atk", pkm.ev_attack)
@@ -99,6 +100,7 @@ void Pokemon::LoadMenu(menu::PluginMenu& menu, void* args) {
       .Add("EV SpA", pkm.ev_special_attack)
       .Add("EV SpD", pkm.ev_special_defense)
 
+      .AddSeparator()
       .AddType("Type 1", pkm.types[0])
       .AddType("Type 2", pkm.types[1])
       .AddType("Type 3", pkm.types[2])
@@ -190,7 +192,7 @@ u32 OnStartTurn(uptr server, u32 action) {
     struct {
       u32 flags : 8;
       u32 source : 5;
-      u32 : 19;
+      u32  : 19;
       u8 target;
       u32 msg[9];
     } cmd{};
@@ -209,8 +211,8 @@ u32 OnStartTurn(uptr server, u32 action) {
       u32 move : 16;
     } cmd{};
 
-    cmd.action = 1;  // attack
-    cmd.target = 1;  // enemy
+    cmd.action = 1; // attack
+    cmd.target = 1; // enemy
     cmd.move = 588;
 
     ((void (*)(uptr, Pokemon*, void*, u32, u32))0x0070EC48)(
@@ -226,8 +228,8 @@ u32 OnStartTurn(uptr server, u32 action) {
   }
 
   return HookManager::GetInstance()
-      .Get(HookID::kOnStartTurn)
-      ->CallOriginal<u32>(server, action);
+         .Get(HookID::kOnStartTurn)
+         ->CallOriginal<u32>(server, action);
 }
 
 void PlayBattleAnimation(void* graphics, u16 animation) {
@@ -241,6 +243,8 @@ void PlayBattleAnimation(void* graphics, u16 animation) {
 }
 
 void PokemonModel::LoadMenu(menu::PluginMenu& menu, void* args) {
+  if (menu.CheckProcess(PROCESS_NAME_BATTLE)) return;
+
   PokemonModel& model =
       Manager::GetInstance().GetGraphics().GetPokemonModel(ctx.pokemon_idx);
 
@@ -259,6 +263,7 @@ void PokemonModel::LoadMenu(menu::PluginMenu& menu, void* args) {
       .Add("Position Z", model.position.z)
       .WithFactor(kPositionFactor)
       .WithRefresh()
+      .AddSeparator()
       .Add("Rotation X", model.rotation.x)
       .WithFactor(kRotationFactor)
       .WithRefresh()
@@ -268,6 +273,7 @@ void PokemonModel::LoadMenu(menu::PluginMenu& menu, void* args) {
       .Add("Rotation Z", model.rotation.z)
       .WithFactor(kRotationFactor)
       .WithRefresh()
+      .AddSeparator()
       .Add("Scale X", model.scale.x)
       .WithFactor(kScaleFactor)
       .WithRefresh()
@@ -280,32 +286,36 @@ void PokemonModel::LoadMenu(menu::PluginMenu& menu, void* args) {
 }
 
 void Manager::LoadMenu(menu::PluginMenu& menu, void* args) {
-  static const c8* TRAINER_MODELS[] = {
-      "Yvonne",  "Xavier", "Malva",  "Hologram", "May",
-      "Brendan", "Wally",  "Wally2", "Steven",   "Maxie",
-      "Archie",  "Zinnia", "Shauna", "Tierno",   "Trevor"};
+  if (menu.CheckProcess(PROCESS_NAME_BATTLE)) return;
+
+  // static const c8* TRAINER_MODELS[] = {
+  //     "Yvonne", "Xavier", "Malva", "Hologram", "May",
+  //     "Brendan", "Wally", "Wally2", "Steven", "Maxie",
+  //     "Archie", "Zinnia", "Shauna", "Tierno", "Trevor"};
 
   // HookManager::GetInstance().Add(HookID::kOnStartTurn, 0x00759B74,
   //                                (uptr)OnStartTurn);
   //
   //
-  HookManager::GetInstance().Add(HookID::kPlayBattleAnimation, 0x007510A8,
-                                 (uptr)PlayBattleAnimation);
-
-  HookManager::GetInstance().Add(HookID::kOnLoadTrainerModel, 0x00458214,
-                                 (uptr)OnLoadTrainerModel);
+  // HookManager::GetInstance().Add(HookID::kPlayBattleAnimation, 0x007510A8,
+  //                                (uptr)PlayBattleAnimation);
+  //
+  // HookManager::GetInstance().Add(HookID::kOnLoadTrainerModel, 0x00458214,
+  //                                (uptr)OnLoadTrainerModel);
 
   ctx.pkm_server = GetPokemon(true, ctx.team_idx, ctx.pokemon_idx);
   ctx.pkm_client = GetPokemon(false, ctx.team_idx, ctx.pokemon_idx);
 
-  menu.Add("Trainer Model", ctx.trainer_model_id)
-      .WithArray(TRAINER_MODELS, SIZE(TRAINER_MODELS))
+  menu
+      // .Add("Trainer Model", ctx.trainer_model_id)
+      // .WithArray(TRAINER_MODELS, SIZE(TRAINER_MODELS))
       .Add("Team Index", ctx.team_idx)
+      .WithBounds(0, 3)
       .WithRefresh()
       .Add("Pokemon Index", ctx.pokemon_idx)
+      .WithBounds(0, 5)
       .WithRefresh()
       .Add("Pokemon Data", Pokemon::LoadMenu)
       .Add("Pokemon Model", PokemonModel::LoadMenu);
 }
-
-}  // namespace battle
+} // namespace battle

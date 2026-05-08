@@ -34,7 +34,7 @@ void PokemonBox::LoadMenu(menu::PluginMenu& menu, void* args) {
       .Add("Slot Index", ctx.slot_idx)
       .WithBounds(0, kMaxSlotsPerBox - 1)
       .WithRefresh()
-      .Add("Edit Pokemon", PokemonCoreData::LoadMenu,
+      .Add("Pokemon Editor", PokemonCoreData::LoadMenu,
            &data.boxes[ctx.box_idx].pokemons[ctx.slot_idx]);
 }
 

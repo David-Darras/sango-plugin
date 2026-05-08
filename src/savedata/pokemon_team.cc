@@ -20,18 +20,17 @@
 #include "menu/plugin_menu.h"
 
 namespace savedata {
-
 static u8 slot_idx = 0;
 
 void PokemonTeam::LoadMenu(menu::PluginMenu& menu, void* args) {
   PokemonTeam& data = GetInstance();
 
   menu.Add("Count", data.count)
+      .WithBounds(0, kMaxSlots)
       .Add("Slot Index", slot_idx)
       .WithBounds(0, kMaxSlots - 1)
       .WithRefresh()
-      .Add("Edit Pokemon", PokemonCoreData::LoadMenu,
+      .Add("Pokemon Editor", PokemonCoreData::LoadMenu,
            data.pokemons[slot_idx]->core);
 }
-
-}  // namespace savedata
+} // namespace savedata

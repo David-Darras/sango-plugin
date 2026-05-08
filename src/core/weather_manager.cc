@@ -20,17 +20,15 @@
 #include "menu/plugin_menu.h"
 
 namespace overworld {
-
 void WeatherManager::LoadMenu(menu::PluginMenu& menu, void* args) {
-  static const c8* weathers[] = {"Sunny",  "Rainy",  "Thunderstorm",
-                                 "Misty",  "Ash",    "Sandstorm",
+  static const c8* weathers[] = {"Sunny", "Rainy", "Thunderstorm",
+                                 "Misty", "Ash", "Sandstorm",
                                  "Cloudy", "Stormy", "Dry"};
 
   WeatherManager& data = GetInstance();
-  menu.Add("Requested Weather", data.GetRequestedWeather())
-      .WithArray(weathers, SIZE(weathers))
-      .Add("Current Weather", data.GetCurrentWeather())
+  menu.Add("Weather", data.GetRequestedWeather())
       .WithArray(weathers, SIZE(weathers));
+  // .Add("Current Weather", data.GetCurrentWeather())
+  // .WithArray(weathers, SIZE(weathers));
 }
-
-}  // namespace overworld
+} // namespace overworld

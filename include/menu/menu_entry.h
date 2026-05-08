@@ -46,6 +46,7 @@ enum MenuEntryType {
   kTypeSpecies,
   kTypeAbility,
   kTypeMove,
+  kTypeSeparator,
   kTypeMax,
 };
 

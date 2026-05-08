@@ -96,7 +96,8 @@ void Move::LoadMenu(menu::PluginMenu& menu, void* args) {
       .WithArray(DAMAGE_CATEGORIES, SIZE(DAMAGE_CATEGORIES))
 
       .Add("Power", data.power)
-      .Add("Accuracy", data.accuracy)
+      .Add("Accuracy (%)", data.accuracy)
+      .WithBounds(0, 100)
       .Add("Base PP", data.base_pp)
       .Add("Priority", data.priority)
       .Add("Min Hit Count", &data.hit_count, 0, 4)

@@ -135,6 +135,9 @@
 
 #define ADDRESS_LAYOUT_DRAW_PICTURE (0x004BE3DC)
 
+#define PROCESS_NAME_FIELD_MAP ("N5field12FieldmapProcE")
+#define PROCESS_NAME_BATTLE ("N3btl14BattleMainProcE")
+
 class Device;
 class Graphics;
 

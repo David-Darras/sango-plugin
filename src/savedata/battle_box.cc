@@ -29,7 +29,7 @@ void BattleBox::LoadMenu(menu::PluginMenu& menu, void* args) {
   menu.Add("Slot Index", slot_idx)
       .WithBounds(0, kMaxSlots - 1)
       .WithRefresh()
-      .Add("Edit Pokemon", PokemonCoreData::LoadMenu, &data.pokemons[slot_idx]);
+      .Add("Pokemon Editor", PokemonCoreData::LoadMenu, &data.pokemons[slot_idx]);
 }
 
 }  // namespace savedata

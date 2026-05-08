@@ -78,7 +78,7 @@ void ItemManager::LoadMenu(menu::PluginMenu& menu, void* args) {
       .WithArray(pocket_names, 5)
       .WithRefresh();
 
-  menu.Add("Edit Selected Pocket", LoadPocketMenu);
+  menu.Add("Item Editor", LoadPocketMenu);
 }
 
 }  // namespace savedata

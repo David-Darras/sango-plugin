@@ -1,6 +1,6 @@
 <div align="center">
 
-# Sango Plugin (v2.0.0) | A new CTRPF for Pokémon ORAS
+# Sango Plugin (v2.1.0) | A new CTRPF for Pokémon ORAS
 
 ![License](https://img.shields.io/badge/license-GPL--3.0-blue.svg)
 ![Language](https://img.shields.io/badge/language-C%2B%2B-orange.svg)

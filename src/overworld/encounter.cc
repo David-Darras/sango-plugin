@@ -17,16 +17,18 @@
 
 #include "overworld/encounter.h"
 
+#include "battle/config.h"
 #include "menu/plugin_menu.h"
 
 namespace overworld {
-
 void Encounter::LoadMenu(menu::PluginMenu& menu, void* args) {
+  if (menu.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
+
   Encounter& data = GetInstance();
 
   menu.Add("Walk Count", data.walk_count)
       .Add("Encounter Rate", data.encounter_rate)
-      .Add("Fishing Chain", data.fishing_chain_count);
+      .Add("Fishing Chain", data.fishing_chain_count)
+      .Add("Battle Config", battle::Config::LoadMenu);
 }
-
-}  // namespace overworld
+} // namespace overworld

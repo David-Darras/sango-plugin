@@ -38,24 +38,33 @@
 String String::s_tmp;
 c16 String::s_buffer[128];
 
-void MainMenu(menu::PluginMenu& menu, void* args) {
+void GlobalDataMenu(menu::PluginMenu& menu, void* args) {
+  menu.Add("Global Pokemon Data", data::Pokemon::LoadMenu)
+      .Add("Global Move Data", data::Move::LoadMenu)
+      .Add("Global Time", GameTimeManager::LoadMenu);
+}
+
+void OverworldMenu(menu::PluginMenu& menu, void* args) {
   menu.Add("Renderer", overworld::Renderer::LoadMenu)
-      .Add("Encounter", overworld::Encounter::LoadMenu)
-      .Add("Field Move", overworld::FieldMove_LoadMenu)
-      .Add("Battle Teams", battle::Manager::LoadMenu)
-      .Add("Pokemon Data", data::Pokemon::LoadMenu)
-      .Add("Move Data", data::Move::LoadMenu)
-      .Add("Battle Config", battle::Config::LoadMenu)
       .Add("Camera", overworld::StereoCamera::LoadMenu)
-      .Add("Overworld", overworld::ModelManager::LoadMenu)
-      .Add("Weather", overworld::WeatherManager::LoadMenu)
-      .Add("Time", GameTimeManager::LoadMenu)
-      .Add("SaveData", savedata::SaveData::LoadMenu)
+      .Add("Model", overworld::ModelManager::LoadMenu)
+      .Add("Encounter", overworld::Encounter::LoadMenu);
+  menu.AddSeparator();
+  overworld::WeatherManager::LoadMenu(menu, args);
+  menu.AddSeparator();
+  overworld::FieldMove_LoadMenu(menu, args);
+}
+
+void TopMenu(menu::PluginMenu& menu, void* args) {
+  menu.Add("Global Data", GlobalDataMenu)
+      .Add("Save Data", savedata::SaveData::LoadMenu)
+      .Add("Overworld", OverworldMenu)
+      .Add("Battle", battle::Manager::LoadMenu)
       .Add("Sound", Sound::LoadMenu);
 }
 
 void Initialize() {
-  menu::PluginMenu::GetInstance().EnterSubMenu(MainMenu, nullptr);
+  menu::PluginMenu::GetInstance().EnterSubMenu(TopMenu, nullptr);
 
   File::MountSdmc();
 

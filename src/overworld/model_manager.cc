@@ -21,10 +21,12 @@
 
 #include "menu/log_menu.h"
 #include "menu/plugin_menu.h"
+#include "overworld/field_move.h"
+#include "overworld/renderer.h"
+#include "overworld/weather_manager.h"
 #include "system/device.h"
 
 namespace overworld {
-
 static struct {
   Vec3 speed;
   f32 theta;
@@ -94,35 +96,33 @@ void ModelManager::SwarmMod(void*) {
 }
 
 void PlayAnimation(void*) {
-  menu::LogMenu::GetInstance().Add(u"Play");
   ((void (*)(Model*, u16, u8))ADDRESS_MODEL_PLAY_ANIMATION)(
       &ModelManager::GetInstance().GetPlayer(), ctx.model_animation, 0);
 }
 
 void ModelManager::LoadMenu(menu::PluginMenu& menu, void* args) {
-  static const char* sep = "--------------------";
+  if (menu.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
 
   ModelManager& man = GetInstance();
   ModelResource& rsrc = man.GetResource(ctx.model_idx);
   DrawModel& draw_model = man.GetPlayer().GetDrawModel();
 
-  menu.Add(sep)
-      .Add("Scale X", draw_model.scale.x)
+  menu.Add("Scale X", draw_model.scale.x)
       .WithFactor(0.2f)
       .Add("Scale Y", draw_model.scale.y)
       .WithFactor(0.2f)
       .Add("Scale Z", draw_model.scale.z)
       .WithFactor(0.2f)
-      .Add(sep)
+      .AddSeparator()
       .Add("Noclip", CheatCodeId::kNoclip)
       .Add("Speed-X", ctx.speed.x)
       .Add("Speed-Y", ctx.speed.y)
       .Add("Speed-Z", ctx.speed.z)
-      .Add(sep)
+      .AddSeparator()
       .Add("Swarm Mod", CheatCodeId::kSwarmMod)
       .Add("Circle Radius", ctx.radius)
       .Add("Rotation Speed", ctx.theta_speed)
-      .Add(sep)
+      .AddSeparator()
       .Add("Model Index", ctx.model_idx)
       .WithBounds(0, kMaxModels - 1)
       .WithRefresh()
@@ -130,5 +130,4 @@ void ModelManager::LoadMenu(menu::PluginMenu& menu, void* args) {
       .Add("Animation", ctx.model_animation)
       .WithCallback(PlayAnimation);
 }
-
-}  // namespace overworld
+} // namespace overworld
