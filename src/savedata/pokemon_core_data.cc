@@ -71,7 +71,7 @@ void PokemonCoreData::LoadMenu(menu::PluginMenu& menu, void* args) {
       .Add("Level", ctx.level)
       .Add("Nature", pkm->nature)
       .AddAbility("Ability", pkm->ability)
-      .Add("Item", pkm->item)
+      .AddItem("Item", pkm->item)
       .Add("Ball", pkm->ball)
       .Add("O.T", pkm->original_trainer_name, 13)
       .Add("Language", pkm->language)

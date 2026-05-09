@@ -64,7 +64,7 @@ void ItemManager::LoadPocketMenu(menu::PluginMenu& menu, void* args) {
       .WithBounds(0, max_slots - 1)
       .WithRefresh();
 
-  menu.Add("Item ID", target_pocket[state.slot_idx].id);
+  menu.AddItem("Item", target_pocket[state.slot_idx].id);
 
   menu.Add("Quantity", target_pocket[state.slot_idx].count)
       .WithBounds(0, kMaxItemCount);

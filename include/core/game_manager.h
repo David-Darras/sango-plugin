@@ -28,7 +28,7 @@ class GameTimeManager;
 namespace overworld {
 class MapManager;
 class WeatherManager;
-}  // namespace overworld
+} // namespace overworld
 
 /**
  * @brief The primary singleton controller for the game engine.
@@ -36,7 +36,7 @@ class WeatherManager;
  * high-level managers (Process and Event).
  */
 class GameManager {
- public:
+public:
   static FORCE_INLINE GameManager& GetInstance() {
     return *(GameManager*)ADDRESS_GAME_MANAGER;
   }
@@ -45,11 +45,15 @@ class GameManager {
     return *game_process_manager_;
   }
 
-  FORCE_INLINE GameEventManager& GetGameEventManager() const { return *game_event_manager_; }
+  FORCE_INLINE GameEventManager& GetGameEventManager() const {
+    return *game_event_manager_;
+  }
 
   FORCE_INLINE GameDataManager& GetGameData() const { return *game_data_; }
 
-  FORCE_INLINE GameTimeManager& GetGameTimeManager() const { return *game_time_manager_; }
+  FORCE_INLINE GameTimeManager& GetGameTimeManager() const {
+    return *game_time_manager_;
+  }
 
   FORCE_INLINE overworld::WeatherManager& GetWeatherManager() const {
     return *weather_manager_;
@@ -59,29 +63,29 @@ class GameManager {
     return *overworld_map_manager_;
   }
 
- private:
-  /** @brief Private constructor to enforce singleton pattern. */
+  FORCE_INLINE void* GetSystemHeap() const {
+    return system_heap_;
+  }
+
+private:
   GameManager() = default;
 
   // Memory Heaps
-  void* system_heap_;        ///< Main system memory heap.
-  void* device_heap_;        ///< GPU/Hardware-specific memory heap.
-  void* process_cell_heap_;  ///< Heap dedicated to process-cell allocations.
+  void* system_heap_; ///< Main system memory heap.
+  void* device_heap_; ///< GPU/Hardware-specific memory heap.
+  void* process_cell_heap_; ///< Heap dedicated to process-cell allocations.
 
   // Frame Management
-  u8 frame_mode_requested_;  ///< The frame mode requested for the next update.
-  u8 frame_mode_;            ///< Current active frame mode.
-  u8 frame_count_;           ///< Global frame counter.
-  u8 reserved_;              ///< Padding for memory alignment.
+  u8 frame_mode_requested_; ///< The frame mode requested for the next update.
+  u8 frame_mode_; ///< Current active frame mode.
+  u8 frame_count_; ///< Global frame counter.
+  u8 reserved_; ///< Padding for memory alignment.
   u32 unknow0;
 
   // Sub-Managers
-  GameProcessManager*
-      game_process_manager_;  ///< Pointer to the GameProcManager instance.
-  GameEventManager*
-      game_event_manager_;  ///< Pointer to the GameEventManager instance.
-  GameDataManager*
-      game_data_;  ///< Pointer to global game-specific data structures.
+  GameProcessManager* game_process_manager_;
+  GameEventManager* game_event_manager_;
+  GameDataManager* game_data_;
   GameTimeManager* game_time_manager_;
 
   void* _0;

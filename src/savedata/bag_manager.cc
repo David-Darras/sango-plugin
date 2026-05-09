@@ -37,11 +37,11 @@ void BagManager::LoadMenu(menu::PluginMenu& menu, void* args) {
       .Add("Shortcut Select", register_idx)
       .WithBounds(0, kMaxRegisteredItems - 1)
       .WithRefresh()
-      .Add("Registered Item", data.registered_items[register_idx])
+      .AddItem("Registered Item", data.registered_items[register_idx])
       .Add("History Select", history_idx)
       .WithBounds(0, kMaxUsageHistory - 1)
       .WithRefresh()
-      .Add("Last Item Used", data.last_items_used[history_idx]);
+      .AddItem("Last Item Used", data.last_items_used[history_idx]);
 }
 
 }  // namespace savedata

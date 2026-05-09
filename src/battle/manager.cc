@@ -112,7 +112,7 @@ void Pokemon::LoadMenu(menu::PluginMenu& menu, void* args) {
       .Add("Gender", pkm.gender)
 
       .AddAbility("Ability", pkm.ability)
-      .Add("Item", pkm.item)
+      .AddItem("Item", pkm.item)
       .Add("Weight", pkm.weight);
 }
 
