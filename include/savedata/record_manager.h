@@ -15,40 +15,25 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_SAVEDATA_POKEDEX_H
-#define SANGO_PLUGIN_SAVEDATA_POKEDEX_H
+#ifndef SANGO_PLUGIN_SAVEDATA_RECORD_H
+#define SANGO_PLUGIN_SAVEDATA_RECORD_H
 #include "savedata.h"
-#include "core/game_data_manager.h"
+#include "menu/plugin_menu.h"
 
 namespace savedata {
-struct Pokedex {
+struct RecordManager {
   static void LoadMenu(menu::PluginMenu& menu, void* args);
 
-  static FORCE_INLINE Pokedex& GetInstance() {
-    return SaveData::GetInstance().GetPokedex();
-  }
-
-  /**
-   * @return Form index, or -1 if the species has no alternative forms.
-   */
-  FORCE_INLINE s32 GetFormIndex(u16 species) {
-    return ((s32(*)(Pokedex*, u16))ADDRESS_POKEDEX_GET_FORM_INDEX)(
-        this, species);
+  static FORCE_INLINE RecordManager& GetInstance() {
+    return SaveData::GetInstance().GetRecordManager();
   }
 
   void* vtable;
-  u32 signature;
+  u32 records_0[100];
+  u16 records_1[100];
   u32 _0;
-  u32 captured_flags[24];
-  u32 gender_seen_flags[4][24];
-  u32 displayed_gender_flags[4][24];
-  u8 form_seen_flags[2][38];
-  u8 displayed_form_flags[2][38];
-  u8 language_version_flags[640];
-  u32 spinda_pattern;
-  u16 seen_count[722];
-  u16 captured_count[722]; // unused
+  bool is_disabled;
 };
 } // namespace savedata
 
-#endif  // SANGO_PLUGIN_SAVEDATA_POKEDEX_H
+#endif  // SANGO_PLUGIN_SAVEDATA_RECORD_H

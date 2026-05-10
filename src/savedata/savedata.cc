@@ -27,6 +27,7 @@
 #include "savedata/pokemon_amie.h"
 #include "savedata/pokemon_box.h"
 #include "savedata/pokemon_team.h"
+#include "savedata/record_manager.h"
 #include "savedata/settings.h"
 #include "savedata/trainer_status.h"
 
@@ -38,6 +39,7 @@ void SaveData::LoadMenu(menu::PluginMenu& menu, void* args) {
       .Add("Boxes Metadata", BoxManager::LoadMenu)
       .Add("Pokedex", Pokedex::LoadMenu)
       .AddSeparator()
+      .Add("Records", RecordManager::LoadMenu)
       .Add("Trainer Status", TrainerStatus::LoadMenu)
       .Add("Miscellaneous", Misc::LoadMenu)
       .Add("Settings", Settings::LoadMenu)

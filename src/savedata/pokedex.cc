@@ -16,6 +16,7 @@
  */
 
 #include "savedata/pokedex.h"
+#include "menu/plugin_menu.h"
 
 namespace savedata {
 #include "savedata/pokedex_form.inc"
