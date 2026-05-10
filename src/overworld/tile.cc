@@ -62,6 +62,22 @@ Tile OnGetTile(void* data, Vec3* pos) {
     tile.foot_step_id = ctx.foot_step_id;
     tile.battle_background_id = ctx.battle_background_id;
     tile.ground_id = ctx.ground_id;
+  } else {
+    ctx.is_impassable = tile.is_impassable;
+    ctx.is_water = tile.is_water;
+    ctx.permits_encounters = tile.permits_encounters;
+    ctx.allows_diagonal_movement = tile.allows_diagonal_movement;
+    ctx.has_reflection_0 = tile.has_reflection_0;
+    ctx.has_shadow = tile.has_shadow;
+    ctx.blocks_trainer_movement = tile.blocks_trainer_movement;
+    ctx.can_place_decorations = tile.can_place_decorations;
+    ctx.can_move_decoration_cursor = tile.can_move_decoration_cursor;
+    ctx.has_reflection_1 = tile.has_reflection_1;
+    ctx.has_reflection_2 = tile.has_reflection_2;
+    ctx.has_reflection_3 = tile.has_reflection_3;
+    ctx.foot_step_id = tile.foot_step_id;
+    ctx.battle_background_id = tile.battle_background_id;
+    ctx.ground_id = tile.ground_id;
   }
 
   return tile;
