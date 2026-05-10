@@ -23,6 +23,7 @@
 #include "savedata/item_manager.h"
 #include "savedata/misc.h"
 #include "savedata/play_time.h"
+#include "savedata/pokedex.h"
 #include "savedata/pokemon_amie.h"
 #include "savedata/pokemon_box.h"
 #include "savedata/pokemon_team.h"
@@ -35,6 +36,7 @@ void SaveData::LoadMenu(menu::PluginMenu& menu, void* args) {
       .Add("Battle Box", BattleBox::LoadMenu)
       .Add("PC", PokemonBox::LoadMenu)
       .Add("Boxes Metadata", BoxManager::LoadMenu)
+      .Add("Pokedex", Pokedex::LoadMenu)
       .AddSeparator()
       .Add("Trainer Status", TrainerStatus::LoadMenu)
       .Add("Miscellaneous", Misc::LoadMenu)

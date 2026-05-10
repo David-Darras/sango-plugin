@@ -33,6 +33,7 @@ struct PokemonBox;
 struct BattleBox;
 struct PokemonTeam;
 struct Settings;
+struct Pokedex;
 
 /**
  * @class SaveData
@@ -77,6 +78,8 @@ class SaveData {
   FORCE_INLINE PokemonBox& GetPokemonBox() { return *(PokemonBox*)segments_[56]; }
 
   FORCE_INLINE Settings& GetSettings() { return *(Settings*)segments_[23]; }
+
+  FORCE_INLINE Pokedex& GetPokedex() { return *(Pokedex*)segments_[20]; }
 
   /// @brief Total number of data segments monitored for integrity.
   static constexpr u32 kSegmentCount = 58;
