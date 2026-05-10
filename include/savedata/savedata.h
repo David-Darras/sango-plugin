@@ -77,7 +77,7 @@ class SaveData {
 
   FORCE_INLINE TrainerStatus& GetTrainerStatus() { return *(TrainerStatus*)segments_[17]; }
 
-  FORCE_INLINE PokemonTeam& GetPokemonTeam() { return *(PokemonTeam*)segments_[18]; }
+  // FORCE_INLINE PokemonTeam& GetPokemonTeam() { return *(PokemonTeam*)segments_[18]; }
 
   FORCE_INLINE PokemonBox& GetPokemonBox() { return *(PokemonBox*)segments_[56]; }
 

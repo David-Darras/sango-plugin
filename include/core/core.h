@@ -144,6 +144,9 @@
 #define PROCESS_NAME_FIELD_MAP ("N5field12FieldmapProcE")
 #define PROCESS_NAME_BATTLE ("N3btl14BattleMainProcE")
 
+#define ADDRESS_MAP_BLOCK_VTABLE (0x007FD7DC)
+#define ADDRESS_MAP_GET_TILE (0x00403DAC)
+
 class Device;
 class Graphics;
 

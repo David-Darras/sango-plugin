@@ -30,6 +30,7 @@
 #include "overworld/field_move.h"
 #include "overworld/model_manager.h"
 #include "overworld/renderer.h"
+#include "overworld/tile.h"
 #include "overworld/weather_manager.h"
 #include "savedata/savedata.h"
 #include "system/device.h"
@@ -52,7 +53,8 @@ void GlobalDataMenu(menu::PluginMenu& menu, void* args) {
 }
 
 void OverworldMenu(menu::PluginMenu& menu, void* args) {
-  menu.Add("Renderer", overworld::Renderer::LoadMenu)
+  menu.Add("Map Tile", overworld::Tile::LoadMenu)
+      .Add("Renderer", overworld::Renderer::LoadMenu)
       .Add("Camera", overworld::StereoCamera::LoadMenu)
       .Add("Model", overworld::ModelManager::LoadMenu)
       .Add("Encounter", overworld::Encounter::LoadMenu);
