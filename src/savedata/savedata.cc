@@ -21,6 +21,7 @@
 #include "savedata/battle_box.h"
 #include "savedata/box_manager.h"
 #include "savedata/item_manager.h"
+#include "savedata/minigame.h"
 #include "savedata/misc.h"
 #include "savedata/play_time.h"
 #include "savedata/pokedex.h"
@@ -46,6 +47,8 @@ void SaveData::LoadMenu(menu::PluginMenu& menu, void* args) {
       .Add("Play Time", PlayTime::LoadMenu)
       .AddSeparator()
       .Add("Pokemon-Amie", PokemonAmie::LoadMenu)
+      .Add("Minigame", Minigame::LoadMenu)
+      .AddSeparator()
       .Add("Items", ItemManager::LoadMenu)
       .Add("Bag Metadata", BagManager::LoadMenu);
 }

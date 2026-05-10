@@ -35,6 +35,7 @@ struct PokemonTeam;
 struct Settings;
 struct Pokedex;
 struct RecordManager;
+struct Minigame;
 
 /**
  * @class SaveData
@@ -63,6 +64,8 @@ class SaveData {
   FORCE_INLINE Misc& GetMisc() { return *(Misc*)segments_[11]; }
 
   FORCE_INLINE BoxManager& GetBoxManager() { return *(BoxManager*)segments_[12]; }
+
+  FORCE_INLINE Minigame& GetMinigame() { return *(Minigame*)segments_[8]; }
 
   FORCE_INLINE BattleBox& GetBattleBox() { return *(BattleBox*)segments_[13]; }
 
