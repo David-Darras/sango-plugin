@@ -26,6 +26,7 @@
 #include "layout/picture.h"
 #include "layout/text_box.h"
 #include "menu/plugin_menu.h"
+#include "menu/theme.h"
 #include "overworld/encounter.h"
 #include "overworld/field_move.h"
 #include "overworld/model_manager.h"
@@ -89,7 +90,8 @@ void TopMenu(menu::PluginMenu& menu, void* args) {
       .Add("Sound", Sound::LoadMenu)
       .Add("Game Speed", s_game_speed)
       .WithBounds(2, 4)
-      .Add("Update Game Speed", UpdateGameSpeed);
+      .Add("Update Game Speed", UpdateGameSpeed)
+      .Add("Plugin Theme", menu::Theme::LoadMenu);
 }
 
 void Initialize() {

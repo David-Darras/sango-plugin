@@ -17,12 +17,13 @@
 
 #include "menu/button.h"
 
+#include "menu/theme.h"
 #include "system/device.h"
 #include "system/graphics.h"
 
 namespace menu {
-
-Button::Button() : x_(0), width_(0), y_(0), state_(kIdle), height_(0) {}
+Button::Button() : x_(0), width_(0), y_(0), state_(kIdle), height_(0) {
+}
 
 void Button::Initialize(u32 x, u32 y, u32 width, u32 height) {
   x_ = x;
@@ -32,15 +33,16 @@ void Button::Initialize(u32 x, u32 y, u32 width, u32 height) {
   state_ = kIdle;
 }
 
-void Button::Draw(const c16 *label, u32 offset_x, u32 offset_y) const {
-  Color foreground_color{1, 1, 1, 1};
-  if (IsDown()) foreground_color = {0, 1, 0, 1};
+void Button::Draw(const c16* label, u32 offset_x, u32 offset_y) const {
+  Theme& theme = Theme::GetInstance();
+  Color foreground_color = theme.unselected_text_color;
+  if (IsDown()) foreground_color = theme.selected_text_color;
 
   Graphics::DrawText(x_ + offset_x, y_ + offset_y, label, foreground_color);
 }
 
 bool Button::IsDown() const {
-  TouchScreen &touch_screen = TouchScreen::GetInstance();
+  TouchScreen& touch_screen = TouchScreen::GetInstance();
 
   if (!touch_screen.IsDown()) return false;
 
@@ -53,7 +55,7 @@ bool Button::IsDown() const {
 bool Button::IsReleased() const { return state_ == kReleased; }
 
 void Button::Update() {
-  TouchScreen &ts = TouchScreen::GetInstance();
+  TouchScreen& ts = TouchScreen::GetInstance();
   const s32 x = ts.GetX();
   const s32 y = ts.GetY();
   const bool is_down = ts.IsDown();
@@ -80,5 +82,4 @@ void Button::Update() {
       break;
   }
 }
-
-}  // namespace menu
+} // namespace menu

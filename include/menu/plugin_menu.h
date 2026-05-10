@@ -23,8 +23,12 @@
 #include "keyboard.h"
 #include "menu_entry.h"
 #include "numpad.h"
+#include "theme.h"
+
+class Controller;
 
 namespace menu {
+struct Theme;
 /**
  * @brief Singleton class representing the plugin menu system.
  *
@@ -378,7 +382,8 @@ private:
       entries_count_(0),
       contexts_count_(0),
       no_background_(0),
-      process_name_(nullptr) {
+      process_name_(nullptr),
+      theme_(Theme::GetInstance()) {
   }
 
   /**
@@ -397,6 +402,8 @@ private:
     MenuContext& ctx = GetContext();
     return entries_[ctx.cursor + ctx.offset];
   }
+
+  bool AreKeysReleased(Controller& ctrl);
 
   static constexpr u32 kMaxEntries = 64;
   static constexpr u32 kMaxContexts = 8;
@@ -417,6 +424,8 @@ private:
   MenuContext contexts_[kMaxContexts]; ///< Context stack.
   Numpad numpad_; ///< Numpad logic.
   Keyboard keyboard_; ///< Keyboard logic.
+
+  Theme& theme_;
 };
 } // namespace menu
 

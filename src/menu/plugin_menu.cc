@@ -24,12 +24,14 @@
 #include "system/graphics.h"
 #include "system/sound.h"
 #include "utils.h"
+#include "menu/theme.h"
 
 namespace menu {
 PluginMenu PluginMenu::instance_ = PluginMenu();
 
 void PluginMenu::DrawTop() {
   LogMenu& log_menu = LogMenu::GetInstance();
+
   if (log_menu.IsEnabled()) {
     log_menu.Draw();
     return;
@@ -38,12 +40,12 @@ void PluginMenu::DrawTop() {
   Controller& ctrl = Controller::GetInstance();
   MenuContext& ctx = GetContext();
 
-  Color unselected_color{1, 1, 1, 1};
-  Color selected_color{0, 1, 0, 1};
+  Color unselected_color = theme_.unselected_text_color;
+  Color selected_color = theme_.selected_text_color;
 
   if (ctrl.IsKeyDown(Key::kLeft) || ctrl.IsKeyDown(Key::kRight) ||
       ctrl.IsKeyReleased(Key::kA)) {
-    selected_color = {1, 0, 0, 1};
+    selected_color = theme_.edited_text_color;
   }
 
   // Draw the background.
@@ -51,7 +53,7 @@ void PluginMenu::DrawTop() {
     selected_color.a = 0.6;
     unselected_color.a = 0.6;
   } else {
-    Graphics::FillScreen(0, 0, 0, 0.75);
+    Graphics::FillScreen(theme_.background_color);
   }
 
   // Draw the cursor.
@@ -69,7 +71,7 @@ void PluginMenu::DrawTop() {
 
 void PluginMenu::DrawBottom() {
   // Draw the background.
-  Graphics::FillScreen(0, 0, 0, 0.75);
+  Graphics::FillScreen(theme_.background_color);
 
   // Draw the keyboard/numpad.
   if (GetSelectedEntry().GetType() == kTypeUnicode) {
@@ -83,27 +85,26 @@ void PluginMenu::DrawBottom() {
   const char* process_name = GameProcessManager::GetInstance().
       GetCurrentProcessName();
   Utils::Format(buffer, u"Process=%s", process_name);
-  Graphics::DrawText(5, 150, buffer);
+  Graphics::DrawText(5, 150, buffer, theme_.unselected_text_color);
 
   const char* event_name = GameEventManager::GetInstance().
       GetCurrentEventName();
   Utils::Format(buffer, u"Event=%s", event_name);
-  Graphics::DrawText(5, 170, buffer);
+  Graphics::DrawText(5, 170, buffer, theme_.unselected_text_color);
 
-  Color yellow{1, 1, 0, 1};
   Graphics::SetTextScale(0.5, 0.5);
   Utils::Format(buffer, u"Plugin by: %s", PLUGIN_CREATOR);
-  Graphics::DrawText(5, 200, buffer, yellow);
+  Graphics::DrawText(5, 200, buffer, theme_.edited_text_color);
   Utils::Format(buffer, u"Ver: %s (Build: %s %s)", PLUGIN_VERSION, __DATE__,
                 __TIME__);
-  Graphics::DrawText(5, 216, buffer, yellow);
+  Graphics::DrawText(5, 216, buffer, theme_.edited_text_color);
 }
 
 void PluginMenu::Update() {
   Controller& ctrl = Controller::GetInstance();
 
-  if (ctrl.IsKeyReleased(Key::kStart)) {
-    Sound::PlaySoundEffect(IsOpened() ? 8 : 7);
+  if (AreKeysReleased(ctrl)) {
+    Sound::PlaySoundEffect(IsOpened() ? theme_.close_sound : theme_.open_sound);
     is_opened_ ^= 1;
     return;
   }
@@ -137,10 +138,11 @@ void PluginMenu::Update() {
   } else if (ctrl.IsKeyReleased(Key::kB)) {
     LeaveSubMenu();
   } else if (ctrl.IsKeyReleased(Key::kA)) {
+    Sound::PlaySoundEffect(theme_.confirm_sound);
     entry.Execute();
   } else if (ctrl.IsKeyReleased(Key::kX) || numpad_.IsButtonOkReleased() ||
              keyboard_.IsButtonOkReleased()) {
-    Sound::PlaySoundEffect(0);
+    Sound::PlaySoundEffect(theme_.confirm_sound);
 
     switch (entry.GetType()) {
       case kTypeUnicode:
@@ -155,7 +157,7 @@ void PluginMenu::Update() {
 
   if (ctrl.IsKeyRepeated(Key::kLeft) || ctrl.IsKeyRepeated(Key::kRight) ||
       ctrl.IsKeyRepeated(Key::kDown) || ctrl.IsKeyReleased(Key::kUp)) {
-    Sound::PlaySoundEffect(4);
+    Sound::PlaySoundEffect(theme_.next_sound);
   }
 
   u8& offset = ctx.offset;
@@ -223,10 +225,32 @@ bool PluginMenu::CheckProcess(const char* name) {
     while (contexts_count_ > 1) {
       LeaveSubMenu();
     }
-    Sound::PlaySoundEffect(21);
+    Sound::PlaySoundEffect(theme_.error_sound);
     return true;
   }
   process_name_ = name;
   return false;
+}
+
+bool PluginMenu::AreKeysReleased(Controller& ctrl) {
+  if (theme_.keys[0] == 0) {
+    return ctrl.IsKeyReleased(Key::kStart);
+  }
+
+  u32 key = 1 << (theme_.keys[0] - 1);
+  bool res = ctrl.IsKeyReleased((Key)key);
+  if (theme_.keys[1] == 0) {
+    return res;
+  }
+
+  key = 1 << (theme_.keys[1] - 1);
+  res &= ctrl.IsKeyReleased((Key)key);
+  if (theme_.keys[2] == 0) {
+    return res;
+  }
+
+  key = 1 << (theme_.keys[2] - 1);
+  res &= ctrl.IsKeyReleased((Key)key);
+  return res;
 }
 } // namespace menu

@@ -70,6 +70,8 @@ void MenuEntry::Initialize(const c8* name, void* addr, u8 type, u32 bit_offset,
 MenuEntry& MenuEntry::WithArray(const c8* array[], u32 array_size) {
   array_ = array;
   array_size_ = array_size;
+  WithMin(0);
+  WithMax(array_size - 1);
   return *this;
 }
 
@@ -263,7 +265,8 @@ void MenuEntry::GetArrayDisplayValue(c16* buffer) const {
   }
 
   index %= array_size_;
-  Utils::Format(buffer, u"%s : <%s> [%d/%d]", name_, array_[index], index + 1,
+  Utils::Format(buffer, u"%s : <%s> [%d/%d] %d", name_, array_[index],
+                index + 1,
                 array_size_);
 }
 
@@ -314,12 +317,22 @@ void MenuEntry::Increment(u32 count) {
     case kTypeS64:
       *(u64*)address_ += count;
       break;
-    case kTypeF32:
-      *(f32*)address_ += (f32)count * factor_;
+    case kTypeF32: {
+      f32 val = *(f32*)address_ + ((f32)count * factor_);
+      if (is_max_used_ && val > (f32)max_) {
+        val = (f32)min_;
+      }
+      *(f32*)address_ = val;
       break;
-    case kTypeF64:
-      *(f64*)address_ += (f64)count * factor_;
+    }
+    case kTypeF64: {
+      f64 val = *(f64*)address_ + ((f64)count * (f64)factor_);
+      if (is_max_used_ && val > max_) {
+        val = min_;
+      }
+      *(f64*)address_ = val;
       break;
+    }
 
     case kTypeBits: {
       u32 b = GET_BITS(*(u32 *)address_, bit_offset_, bit_size_) + count;
@@ -379,12 +392,22 @@ void MenuEntry::Decrement(u32 count) {
     case kTypeS64:
       *(u64*)address_ -= count;
       break;
-    case kTypeF32:
-      *(f32*)address_ -= (f32)count * factor_;
+    case kTypeF32: {
+      f32 val = *(f32*)address_ - ((f32)count * factor_);
+      if (is_min_used_ && val < (f32)min_) {
+        val = (f32)max_;
+      }
+      *(f32*)address_ = val;
       break;
-    case kTypeF64:
-      *(f64*)address_ -= (f64)count * (f64)factor_;
+    }
+    case kTypeF64: {
+      f64 val = *(f64*)address_ - ((f64)count * (f64)factor_);
+      if (is_min_used_ && val < min_) {
+        val = max_;
+      }
+      *(f64*)address_ = val;
       break;
+    }
 
     case kTypeBits: {
       u32 b = GET_BITS(*(u32 *)address_, bit_offset_, bit_size_) - count;
@@ -436,6 +459,21 @@ void MenuEntry::Edit(const void* value) {
       EDIT_CLAMP(u32);
       break;
 
+    case kTypeF32: {
+      f32 val = (f32)(*(u32*)value);
+      if (is_min_used_ && val < (f32)min_) val = (f32)min_;
+      if (is_max_used_ && val > (f32)max_) val = (f32)max_;
+      *(f32*)address_ = val;
+      break;
+    }
+    case kTypeF64: {
+      f64 val = (f64)(*(u32*)value);
+      if (is_min_used_ && val < min_) val = min_;
+      if (is_max_used_ && val > max_) val = max_;
+      *(f64*)address_ = val;
+      break;
+    }
+
     case kTypeBoolean:
       *(bool*)address_ = *(bool*)value;
       break;
@@ -445,11 +483,9 @@ void MenuEntry::Edit(const void* value) {
       break;
 
     case kTypeUnicode:
-      // bit_offset_ est utilisé ici comme taille max du buffer
       for (u32 i = 0; i < bit_offset_; i++) {
         *(c16*)((uptr)address_ + i * 2) = *(c16*)((uptr)value + i * 2);
       }
-      // Garanti la terminaison nulle
       *(c16*)((uptr)address_ + (bit_offset_ - 1) * 2) = 0;
       break;
 

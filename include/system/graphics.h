@@ -134,9 +134,15 @@ class Graphics {
    * @param g Green component (0.0 - 1.0).
    * @param b Blue component (0.0 - 1.0).
    * @param a Alpha component (0.0 - 1.0).
-   */
+  */
   static FORCE_INLINE void FillScreen(f32 r, f32 g, f32 b, f32 a) {
     const Color color{r, g, b, a};
+    SetTextScale(kScalePrimitiveX, kScalePrimitiveY);
+    DrawText(-10, -10, u"\uE080", color);
+    SetTextScale(kScaleDefaultX, kScaleDefaultY);
+  }
+
+  static FORCE_INLINE void FillScreen(Color color) {
     SetTextScale(kScalePrimitiveX, kScalePrimitiveY);
     DrawText(-10, -10, u"\uE080", color);
     SetTextScale(kScaleDefaultX, kScaleDefaultY);
