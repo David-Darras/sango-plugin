@@ -23,6 +23,7 @@
 #include "savedata/item_manager.h"
 #include "savedata/minigame.h"
 #include "savedata/misc.h"
+#include "savedata/opower_manager.h"
 #include "savedata/play_time.h"
 #include "savedata/pokedex.h"
 #include "savedata/pokemon_amie.h"
@@ -45,6 +46,7 @@ void SaveData::LoadMenu(menu::PluginMenu& menu, void* args) {
       .Add("Miscellaneous", Misc::LoadMenu)
       .Add("Settings", Settings::LoadMenu)
       .Add("Play Time", PlayTime::LoadMenu)
+      .Add("O-Power", OPowerManager::LoadMenu)
       .AddSeparator()
       .Add("Pokemon-Amie", PokemonAmie::LoadMenu)
       .Add("Minigame", Minigame::LoadMenu)

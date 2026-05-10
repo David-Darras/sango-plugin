@@ -15,24 +15,25 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_SAVEDATA_RECORD_MANAGER_H
-#define SANGO_PLUGIN_SAVEDATA_RECORD_MANAGER_H
+#ifndef SANGO_PLUGIN_SAVEDATA_OPOWER_MANAGER_H
+#define SANGO_PLUGIN_SAVEDATA_OPOWER_MANAGER_H
 #include "savedata.h"
-#include "menu/plugin_menu.h"
 
 namespace savedata {
-struct RecordManager {
+struct OPowerManager {
   static void LoadMenu(menu::PluginMenu& menu, void* args);
 
-  static FORCE_INLINE RecordManager& GetInstance() {
-    return SaveData::GetInstance().GetRecordManager();
+  static FORCE_INLINE OPowerManager& GetInstance() {
+    return SaveData::GetInstance().GetOPowerManager();
   }
 
   void* vtable;
-  u32 records_0[100];
-  u16 records_1[100];
-  u32 _0;
-  bool is_disabled;
+  bool learned_powers[65];
+  u8 power_points;
+  u8 field_power_level_1_uses[10];
+  u8 field_power_level_2_uses[10];
+  u8 battle_power_level_1_uses[7];
+  u8 battle_power_level_2_uses[7];
 };
 } // namespace savedata
 

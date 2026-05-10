@@ -21,7 +21,6 @@
 #include "core/game_data_manager.h"
 
 namespace savedata {
-
 class Footer;
 struct Misc;
 struct BoxManager;
@@ -36,6 +35,7 @@ struct Settings;
 struct Pokedex;
 struct RecordManager;
 struct Minigame;
+struct OPowerManager;
 
 /**
  * @class SaveData
@@ -44,7 +44,7 @@ struct Minigame;
  * and the integrity-checking Footer.
  */
 class SaveData {
- public:
+public:
   static void LoadMenu(menu::PluginMenu& menu, void* args);
 
   /**
@@ -63,25 +63,43 @@ class SaveData {
 
   FORCE_INLINE Misc& GetMisc() { return *(Misc*)segments_[11]; }
 
-  FORCE_INLINE BoxManager& GetBoxManager() { return *(BoxManager*)segments_[12]; }
+  FORCE_INLINE BoxManager& GetBoxManager() {
+    return *(BoxManager*)segments_[12];
+  }
 
   FORCE_INLINE Minigame& GetMinigame() { return *(Minigame*)segments_[8]; }
 
   FORCE_INLINE BattleBox& GetBattleBox() { return *(BattleBox*)segments_[13]; }
 
-  FORCE_INLINE BagManager& GetBagManager() { return *(BagManager*)segments_[2]; }
+  FORCE_INLINE BagManager& GetBagManager() {
+    return *(BagManager*)segments_[2];
+  }
 
-  FORCE_INLINE PokemonAmie& GetPokemonAmie() { return *(PokemonAmie*)segments_[0]; }
+  FORCE_INLINE PokemonAmie& GetPokemonAmie() {
+    return *(PokemonAmie*)segments_[0];
+  }
 
-  FORCE_INLINE ItemManager& GetItemManager() { return *(ItemManager*)segments_[1]; }
+  FORCE_INLINE ItemManager& GetItemManager() {
+    return *(ItemManager*)segments_[1];
+  }
 
-  FORCE_INLINE TrainerStatus& GetTrainerStatus() { return *(TrainerStatus*)segments_[17]; }
+  FORCE_INLINE TrainerStatus& GetTrainerStatus() {
+    return *(TrainerStatus*)segments_[17];
+  }
 
   // FORCE_INLINE PokemonTeam& GetPokemonTeam() { return *(PokemonTeam*)segments_[18]; }
 
-  FORCE_INLINE PokemonBox& GetPokemonBox() { return *(PokemonBox*)segments_[56]; }
+  FORCE_INLINE PokemonBox& GetPokemonBox() {
+    return *(PokemonBox*)segments_[56];
+  }
 
-  FORCE_INLINE RecordManager& GetRecordManager() { return *(RecordManager*)segments_[44]; }
+  FORCE_INLINE OPowerManager& GetOPowerManager() {
+    return *(OPowerManager*)segments_[25];
+  }
+
+  FORCE_INLINE RecordManager& GetRecordManager() {
+    return *(RecordManager*)segments_[44];
+  }
 
   FORCE_INLINE Settings& GetSettings() { return *(Settings*)segments_[23]; }
 
@@ -90,9 +108,9 @@ class SaveData {
   /// @brief Total number of data segments monitored for integrity.
   static constexpr u32 kSegmentCount = 58;
 
- private:
-  void* vtable_;    ///< Pointer to the virtual method table.
-  Footer* footer_;  ///< Pointer to the integrity and checksum footer.
+private:
+  void* vtable_; ///< Pointer to the virtual method table.
+  Footer* footer_; ///< Pointer to the integrity and checksum footer.
 
   /**
    * @brief Raw save data buffer.
@@ -103,9 +121,8 @@ class SaveData {
   /**
    * @brief Array of pointers to specific data segments within the save.
    */
-  void* segments_[kSegmentCount];  ///< Address : 0x08CE0C68
+  void* segments_[kSegmentCount]; ///< Address : 0x08CE0C68
 };
-
-}  // namespace savedata
+} // namespace savedata
 
 #endif  // SANGO_PLUGIN_SAVEDATA_SAVEDATA_H
