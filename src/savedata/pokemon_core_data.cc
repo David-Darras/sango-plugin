@@ -77,6 +77,10 @@ void PokemonCoreData::LoadMenu(menu::PluginMenu& menu, void* args) {
       .Add("Language", pkm->language)
       .Add("In egg", &pkm->iv_flags, 30, 1);
 
+  if ((pkm->iv_flags >> 30) & 1) {
+    menu.Add("Remaining Steps Before Hatch", pkm->remaining_steps_before_hatch);
+  }
+
   menu.AddMove("Move 1", pkm->moves[0])
       .AddMove("Move 2", pkm->moves[1])
       .AddMove("Move 3", pkm->moves[2])

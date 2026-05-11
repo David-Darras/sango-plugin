@@ -147,6 +147,8 @@
 #define ADDRESS_MAP_BLOCK_VTABLE (0x007FD7DC)
 #define ADDRESS_MAP_GET_TILE (0x00403DAC)
 
+#define ADDRESS_CHECK_EGG_HATCHING (0x00715D8C)
+
 class Device;
 class Graphics;
 
@@ -156,7 +158,7 @@ class Graphics;
  * high-level graphics managers.
  */
 class Core {
- public:
+public:
   /**
    * @brief Retrieves the singleton instance of the Core bridge.
    * @return A reference to the static Core instance.
@@ -177,12 +179,12 @@ class Core {
 
   FORCE_INLINE u8& GetLanguageId() { return *language_id; }
 
- private:
+private:
   /** @brief Private constructor to prevent manual instantiation. */
   Core() = default;
 
-  Device* device_;      ///< Pointer to the internal Device manager instance.
-  Graphics* graphics_;  ///< Pointer to the internal Graphics manager instance.
+  Device* device_; ///< Pointer to the internal Device manager instance.
+  Graphics* graphics_; ///< Pointer to the internal Graphics manager instance.
 
   void* _0[21];
 

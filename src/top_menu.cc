@@ -82,6 +82,12 @@ void UpdateGameSpeed(void*) {
   menu::PluginMenu::GetInstance().ForceClose();
 }
 
+void EnableInstantEggHatching(void*) {
+  // don't check if pkm->remaining_steps_before_hatch == 0
+  // (cf. savedata/pokemon_core_data.h)
+  WRITE(u32, 0x00715EF0, 0xEA000007);
+}
+
 void TopMenu(menu::PluginMenu& menu, void* args) {
   menu.Add("Global Data", GlobalDataMenu)
       .Add("Save Data", savedata::SaveData::LoadMenu)
@@ -93,6 +99,7 @@ void TopMenu(menu::PluginMenu& menu, void* args) {
       .Add("Game Speed", s_game_speed)
       .WithBounds(2, 4)
       .Add("Update Game Speed", UpdateGameSpeed)
+      .Add("Instant Egg Hatching", EnableInstantEggHatching)
       .Add("Plugin Theme", menu::Theme::LoadMenu);
 }
 
