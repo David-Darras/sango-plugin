@@ -25,6 +25,7 @@
 #include "savedata/minigame.h"
 #include "savedata/misc.h"
 #include "savedata/opower_manager.h"
+#include "savedata/overworld_menu.h"
 #include "savedata/play_time.h"
 #include "savedata/pokedex.h"
 #include "savedata/pokemon_amie.h"
@@ -43,6 +44,7 @@ void SaveData::LoadMenu(menu::PluginMenu& menu, void* args) {
       .Add("PC", PokemonBox::LoadMenu)
       .Add("Boxes Metadata", BoxManager::LoadMenu)
       .Add("Pokedex", Pokedex::LoadMenu)
+      .Add("Menu", OverworldMenu::LoadMenu)
       .AddSeparator()
       .Add("Records", RecordManager::LoadMenu)
       .Add("Trainer Status", TrainerStatus::LoadMenu)

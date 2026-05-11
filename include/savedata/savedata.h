@@ -38,6 +38,7 @@ struct Minigame;
 struct OPowerManager;
 struct PssGroup;
 struct Encounter;
+struct OverworldMenu;
 
 /**
  * @class SaveData
@@ -113,6 +114,10 @@ public:
 
   FORCE_INLINE Encounter& GetEncounter() {
     return *(Encounter*)segments_[31];
+  }
+
+  FORCE_INLINE OverworldMenu& GetOverworldMenu() {
+    return *(OverworldMenu*)segments_[29];
   }
 
   FORCE_INLINE RecordManager& GetRecordManager() {
