@@ -16,6 +16,7 @@
  */
 
 #include "savedata/pss.h"
+#include "menu/plugin_menu.h"
 
 namespace savedata {
 #include "savedata/pss.inc"
@@ -28,8 +29,10 @@ void PssProfilePayload::LoadMenu(menu::PluginMenu& menu, void* args) {
       .Add("Principal Id", profile.principal_id)
       .Add("Local Friend Code", profile.local_friend_code)
 
-      .Add("Icon For Friends", &profile.flags, 0, 8)
-      .Add("Icon For Passerby", &profile.flags, 8, 8)
+      .Add("Icon (For X/Y)", &profile.flags, 8, 8)
+      .WithArray(ICONS, SIZE(ICONS))
+      .Add("Icon (For OR/AS)", &profile.flags2, 13, 8)
+      .WithArray(ICONS, SIZE(ICONS))
       .Add("Gender", &profile.flags, 16, 4)
       .Add("Has Accepted EULA", &profile.flags, 20, 1)
       .Add("Has Promotion Video", &profile.flags, 21, 1)
@@ -54,15 +57,13 @@ void PssProfilePayload::LoadMenu(menu::PluginMenu& menu, void* args) {
       .Add("Has Shout-Out Message", &profile.flags2, 1, 1)
       .Add("Meets Trade Conditions", &profile.flags2, 2, 1)
       .Add("Rejects Lower Version Battles", &profile.flags2, 3, 1)
-      .Add("Rejects Lower Version PR Videos", &profile.flags2, 4, 1)
-      .Add("Icon For Friend 2 (ORAS)", &profile.flags2, 5, 8)
-      .Add("Icon For Passerby 2 (ORAS)", &profile.flags2, 13, 8);
+      .Add("Rejects Lower Version PR Videos", &profile.flags2, 4, 1);
 }
 
 void PssGroup::LoadMenu(menu::PluginMenu& menu, void* args) {
   static u32 choice = 0;
   PssGroup& grp = *(PssGroup*)args;
-  menu.Add("Profile n°", choice)
+  menu.Add("Profile", choice)
       .Add("Profile Editor", PssProfilePayload::LoadMenu,
            &grp.user_data[choice].datagram.profile);
 }

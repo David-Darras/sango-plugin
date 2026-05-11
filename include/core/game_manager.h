@@ -24,6 +24,7 @@ class GameEventManager;
 class GameProcessManager;
 class GameDataManager;
 class GameTimeManager;
+class PssManager;
 
 namespace overworld {
 class MapManager;
@@ -63,6 +64,10 @@ public:
     return *overworld_map_manager_;
   }
 
+  FORCE_INLINE PssManager& GetPssManager() const {
+    return *pss_manager_;
+  }
+
   FORCE_INLINE void* GetSystemHeap() const {
     return system_heap_;
   }
@@ -75,11 +80,10 @@ private:
   void* device_heap_; ///< GPU/Hardware-specific memory heap.
   void* process_cell_heap_; ///< Heap dedicated to process-cell allocations.
 
-  // Frame Management
-  u8 frame_mode_requested_; ///< The frame mode requested for the next update.
-  u8 frame_mode_; ///< Current active frame mode.
-  u8 frame_count_; ///< Global frame counter.
-  u8 reserved_; ///< Padding for memory alignment.
+  u8 frame_mode_requested_;
+  u8 frame_mode_;
+  u8 frame_count_;
+  u8 reserved_;
   u32 unknow0;
 
   // Sub-Managers
@@ -87,14 +91,12 @@ private:
   GameEventManager* game_event_manager_;
   GameDataManager* game_data_;
   GameTimeManager* game_time_manager_;
-
   void* _0;
   void* _1;
-
   overworld::WeatherManager* weather_manager_;
-
-  void* _2[6];
-
+  void* _2[2];
+  PssManager* pss_manager_;
+  void* _3[3];
   overworld::MapManager* overworld_map_manager_;
 };
 

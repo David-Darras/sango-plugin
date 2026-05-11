@@ -82,3 +82,50 @@ static const char* REQUESTS[] =
     // Invalid / terminate
     "Terminate"
 };
+
+static const char* ICONS[130] =
+{
+    "Serena", "Calem", "Professor Sycamore", "Champion Diantha",
+    "Elite Four Wikstrom (Steel)", "Elite Four Malva (Fire)",
+    "Elite Four Drasna (Dragon)", "Elite Four Siebold (Water)",
+    "Gym Leader Viola (Bug)", "Gym Leader Grant (Rock)",
+    "Gym Leader Korrina (Fighting)", "Gym Leader Ramos (Grass)",
+    "Gym Leader Clemont (Electric)", "Gym Leader Valerie (Fairy)",
+    "Gym Leader Olympia (Psychic)", "Gym Leader Wulfric (Ice)",
+    "Youngster", "Twins", "Lass", "Lady", "Schoolgirl", "Battle Girl",
+    "Schoolboy", "Rich Boy",
+    "Ace Trainer (Female)", "Veteran (Female)", "Pokemon Ranger (Female)",
+    "Ace Trainer (Male)",
+    "Pokemon Ranger (Male)", "Madame", "Monsieur", "Black Belt", "Bald Man",
+    "Fairy Tale Girl",
+    "Shauna", "Tierno", "Trevor", "Brendan", "May", "Unused", "Hiker",
+    "Aroma Lady",
+    "School Kid (Male)", "School Kid (Female)", "Black Belt (Alt)",
+    "Battle Girl (Alt)",
+    "Poke Maniac", "Fairy Tale Girl (Alt)", "Poke Fan (Male)",
+    "Poke Fan (Female)",
+    "Pokemon Ranger (Male)", "Pokemon Ranger (Female)", "Swimmer (Male)",
+    "Hex Maniac",
+    "Ace Trainer (Male)", "Ace Trainer (Female)", "Roughneck", "Delinquent",
+    "Expert (Male)",
+    "Expert (Female)", "Lady (Alt)", "Rich Boy (Alt)", "Ninja Boy", "Beauty",
+    "Guitarist",
+    "Lass (Alt)", "Pokemon Breeder (Male)", "Pokemon Breeder (Female)",
+    "Camper", "Picnicker",
+    "Wally (Full Power)", "Steven", "Maxie", "Archie",
+
+    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+    nullptr, nullptr,
+    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+    nullptr, nullptr,
+    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+    nullptr, nullptr,
+    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+    nullptr, nullptr,
+    nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr,
+    nullptr, nullptr,
+    nullptr, nullptr, nullptr, nullptr,
+
+    "Poke Center", // 128
+    "Gift" // 129
+};

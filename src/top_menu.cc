@@ -19,6 +19,7 @@
 #include "battle/manager.h"
 #include "common.h"
 #include "core/game_time_manager.h"
+#include "core/pss_manager.h"
 #include "data/move.h"
 #include "data/pokemon.h"
 #include "hack/cheat_code.h"
@@ -87,6 +88,7 @@ void TopMenu(menu::PluginMenu& menu, void* args) {
       .Add("Overworld", OverworldMenu)
       .Add("Layout", LayoutMenu)
       .Add("Battle", battle::Manager::LoadMenu)
+      .Add("PSS", PssManager::LoadMenu)
       .Add("Sound", Sound::LoadMenu)
       .Add("Game Speed", s_game_speed)
       .WithBounds(2, 4)

@@ -32,7 +32,7 @@ struct PssProfilePayload {
   union {
     u32 flags;
 
-    u32 icon_for_friends : 8;
+    u32  : 8;
     u32 icon_for_passerby : 8;
     u32 gender : 4;
     u32 has_accepted_eula : 1;
@@ -64,7 +64,7 @@ struct PssProfilePayload {
     u32 meets_trade_conditions : 1;
     u32 rejects_lower_version_battles : 1;
     u32 rejects_lower_version_pr_videos : 1;
-    u32 icon_for_friend_2 : 8;
+    u32 : 8;
     u32 icon_for_passerby_2 : 8;
     u32  : 11;
   };
