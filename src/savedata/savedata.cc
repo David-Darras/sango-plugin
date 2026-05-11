@@ -29,12 +29,14 @@
 #include "savedata/pokemon_amie.h"
 #include "savedata/pokemon_box.h"
 #include "savedata/pokemon_team.h"
+#include "savedata/pss.h"
 #include "savedata/record_manager.h"
 #include "savedata/settings.h"
 #include "savedata/trainer_status.h"
 
 namespace savedata {
 void SaveData::LoadMenu(menu::PluginMenu& menu, void* args) {
+  SaveData& sv = GetInstance();
   menu.Add("Team", PokemonTeam::LoadMenu)
       .Add("Battle Box", BattleBox::LoadMenu)
       .Add("PC", PokemonBox::LoadMenu)
@@ -52,6 +54,11 @@ void SaveData::LoadMenu(menu::PluginMenu& menu, void* args) {
       .Add("Minigame", Minigame::LoadMenu)
       .AddSeparator()
       .Add("Items", ItemManager::LoadMenu)
-      .Add("Bag Metadata", BagManager::LoadMenu);
+      .Add("Bag Metadata", BagManager::LoadMenu)
+      .AddSeparator()
+      .Add("PSS - Favourites", PssGroup::LoadMenu, &sv.GetPssFavouriteGroup())
+      .Add("PSS - Friends", PssGroup::LoadMenu, &sv.GetPssFriendGroup())
+      .Add("PSS - Acquaintances", PssGroup::LoadMenu,
+           &sv.GetPssAcquaintanceGroup());
 }
 } // namespace savedata

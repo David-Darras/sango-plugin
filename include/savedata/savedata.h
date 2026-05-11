@@ -36,6 +36,7 @@ struct Pokedex;
 struct RecordManager;
 struct Minigame;
 struct OPowerManager;
+struct PssGroup;
 
 /**
  * @class SaveData
@@ -70,6 +71,18 @@ public:
   FORCE_INLINE Minigame& GetMinigame() { return *(Minigame*)segments_[8]; }
 
   FORCE_INLINE BattleBox& GetBattleBox() { return *(BattleBox*)segments_[13]; }
+
+  FORCE_INLINE PssGroup& GetPssFavouriteGroup() {
+    return *(PssGroup*)segments_[14];
+  }
+
+  FORCE_INLINE PssGroup& GetPssFriendGroup() {
+    return *(PssGroup*)segments_[15];
+  }
+
+  FORCE_INLINE PssGroup& GetPssAcquaintanceGroup() {
+    return *(PssGroup*)segments_[16];
+  }
 
   FORCE_INLINE BagManager& GetBagManager() {
     return *(BagManager*)segments_[2];

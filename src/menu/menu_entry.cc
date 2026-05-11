@@ -265,7 +265,7 @@ void MenuEntry::GetArrayDisplayValue(c16* buffer) const {
   }
 
   index %= array_size_;
-  Utils::Format(buffer, u"%s : <%s> [%d/%d] %d", name_, array_[index],
+  Utils::Format(buffer, u"%s : <%s> [%d/%d]", name_, array_[index],
                 index + 1,
                 array_size_);
 }
