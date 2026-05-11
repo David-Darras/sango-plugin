@@ -37,6 +37,7 @@ struct RecordManager;
 struct Minigame;
 struct OPowerManager;
 struct PssGroup;
+struct Encounter;
 
 /**
  * @class SaveData
@@ -110,6 +111,10 @@ public:
     return *(OPowerManager*)segments_[25];
   }
 
+  FORCE_INLINE Encounter& GetEncounter() {
+    return *(Encounter*)segments_[31];
+  }
+
   FORCE_INLINE RecordManager& GetRecordManager() {
     return *(RecordManager*)segments_[44];
   }
@@ -117,6 +122,7 @@ public:
   FORCE_INLINE Settings& GetSettings() { return *(Settings*)segments_[23]; }
 
   FORCE_INLINE Pokedex& GetPokedex() { return *(Pokedex*)segments_[20]; }
+
 
   /// @brief Total number of data segments monitored for integrity.
   static constexpr u32 kSegmentCount = 58;

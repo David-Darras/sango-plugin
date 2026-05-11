@@ -148,6 +148,7 @@
 #define ADDRESS_MAP_GET_TILE (0x00403DAC)
 
 #define ADDRESS_CHECK_EGG_HATCHING (0x00715D8C)
+#define ADDRESS_DAY_CARE_UPDATE (0x007111F8)
 
 class Device;
 class Graphics;

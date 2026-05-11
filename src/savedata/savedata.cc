@@ -20,6 +20,7 @@
 #include "savedata/bag_manager.h"
 #include "savedata/battle_box.h"
 #include "savedata/box_manager.h"
+#include "savedata/savedata_encounter.h"
 #include "savedata/item_manager.h"
 #include "savedata/minigame.h"
 #include "savedata/misc.h"
@@ -53,6 +54,7 @@ void SaveData::LoadMenu(menu::PluginMenu& menu, void* args) {
       .Add("Pokemon-Amie", PokemonAmie::LoadMenu)
       .Add("Minigame", Minigame::LoadMenu)
       .AddSeparator()
+      .Add("Encounter", Encounter::LoadMenu)
       .Add("Items", ItemManager::LoadMenu)
       .Add("Bag Metadata", BagManager::LoadMenu)
       .AddSeparator()

@@ -15,24 +15,23 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_SAVEDATA_RECORD_MANAGER_H
-#define SANGO_PLUGIN_SAVEDATA_RECORD_MANAGER_H
+#ifndef SANGO_PLUGIN_SAVEDATA_ENCOUNTER_H
+#define SANGO_PLUGIN_SAVEDATA_ENCOUNTER_H
+
 #include "savedata.h"
 
 namespace savedata {
-struct RecordManager {
+struct Encounter {
   static void LoadMenu(menu::PluginMenu& menu, void* args);
 
-  static FORCE_INLINE RecordManager& GetInstance() {
-    return SaveData::GetInstance().GetRecordManager();
+  static FORCE_INLINE Encounter& GetInstance() {
+    return SaveData::GetInstance().GetEncounter();
   }
 
   void* vtable;
-  u32 records_0[100];
-  u16 records_1[100];
-  u32 _0;
-  bool is_disabled;
+  u16 spray_id;
+  u8 spray_count;
 };
 } // namespace savedata
 
-#endif  // SANGO_PLUGIN_SAVEDATA_RECORD_MANAGER_H
+#endif  // SANGO_PLUGIN_SAVEDATA_ENCOUNTER_H

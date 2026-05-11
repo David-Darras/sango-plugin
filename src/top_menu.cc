@@ -82,10 +82,25 @@ void UpdateGameSpeed(void*) {
   menu::PluginMenu::GetInstance().ForceClose();
 }
 
-void EnableInstantEggHatching(void*) {
-  // don't check if pkm->remaining_steps_before_hatch == 0
+void EnableInstantEggHatch(void*) {
+  // Skip check for remaining hatch steps
   // (cf. savedata/pokemon_core_data.h)
   WRITE(u32, 0x00715EF0, 0xEA000007);
+}
+
+void EnableInstantEggGeneration(void*) {
+  WRITE(u32, 0x00711364, 0xE1A00000);
+}
+
+void EnableInstantMaxExp(void*) {
+  WRITE(u32, 0x00465A34, 0x15824004);
+  WRITE(u32, 0x00465A54, 0x158240F4);
+}
+
+void DayCareMenu(menu::PluginMenu& menu, void* args) {
+  menu.Add("Instant Egg Hatch", EnableInstantEggHatch)
+      .Add("Instant Egg Generation", EnableInstantEggGeneration)
+      .Add("Instant Max Exp", EnableInstantMaxExp);
 }
 
 void TopMenu(menu::PluginMenu& menu, void* args) {
@@ -95,11 +110,11 @@ void TopMenu(menu::PluginMenu& menu, void* args) {
       .Add("Layout", LayoutMenu)
       .Add("Battle", battle::Manager::LoadMenu)
       .Add("PSS", PssManager::LoadMenu)
+      .Add("Day Care", DayCareMenu)
       .Add("Sound", Sound::LoadMenu)
       .Add("Game Speed", s_game_speed)
       .WithBounds(2, 4)
       .Add("Update Game Speed", UpdateGameSpeed)
-      .Add("Instant Egg Hatching", EnableInstantEggHatching)
       .Add("Plugin Theme", menu::Theme::LoadMenu);
 }
 
