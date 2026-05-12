@@ -45,6 +45,9 @@ enum class HookID : u32 {
   kOnDrawPicture,
   kOnDrawTextBox,
   kOnGetTile,
+  kOnLoadCroFile,
+  kOnSaveGameData,
+  kOnUpdateFrame,
   kMax
 };
 

@@ -24,8 +24,10 @@
 #include "data/pokemon.h"
 #include "hack/cheat_code.h"
 #include "hack/cheat_code_manager.h"
+#include "hack/hook_manager.h"
 #include "layout/picture.h"
 #include "layout/text_box.h"
+#include "menu/log_menu.h"
 #include "menu/plugin_menu.h"
 #include "menu/theme.h"
 #include "overworld/encounter.h"
@@ -43,6 +45,34 @@
 String String::s_tmp;
 c16 String::s_buffer[128];
 
+static s32 s_game_speed = 2;
+static u32 s_frame_count = 0;
+
+s32 OnUpdateFrame(uptr addr) {
+  s32 res = 0;
+  s_frame_count++;
+
+  if (s_game_speed >= 1) {
+    for (s32 i = 0; i < s_game_speed; i++) {
+      res = HookManager::GetInstance().Get(HookID::kOnUpdateFrame)->CallOriginal
+          <s32>(addr);
+    }
+    return res;
+  }
+
+  if (s_game_speed < 0) {
+    s32 divider = -s_game_speed;
+    if (s_frame_count % divider == 0) {
+      return HookManager::GetInstance().Get(HookID::kOnUpdateFrame)->
+                                        CallOriginal<s32>(addr);
+    }
+    return 1;
+  }
+
+  return HookManager::GetInstance().Get(HookID::kOnUpdateFrame)->CallOriginal<
+    s32>(addr);
+}
+
 void LayoutMenu(menu::PluginMenu& menu, void* args) {
   menu.Add("Text Box", layout::TextBox::LoadMenu)
       .Add("Picture", layout::Picture::LoadMenu);
@@ -51,11 +81,14 @@ void LayoutMenu(menu::PluginMenu& menu, void* args) {
 void GlobalDataMenu(menu::PluginMenu& menu, void* args) {
   menu.Add("Global Pokemon Data", data::Pokemon::LoadMenu)
       .Add("Global Move Data", data::Move::LoadMenu)
-      .Add("Global Time", GameTimeManager::LoadMenu);
+      .Add("Global Time", GameTimeManager::LoadMenu)
+      .Add("Date Time (ms)", *(s64*)ADDRESS_DATE_TIME);
 }
 
 void OverworldMenu(menu::PluginMenu& menu, void* args) {
-  menu.Add("Map Tile", overworld::Tile::LoadMenu)
+  overworld::MapManager& man = overworld::MapManager::GetInstance();
+  menu.Add("Reload Map", man.GetMapId())
+      .Add("Map Tile", overworld::Tile::LoadMenu)
       .Add("Renderer", overworld::Renderer::LoadMenu)
       .Add("Camera", overworld::StereoCamera::LoadMenu)
       .Add("Model", overworld::ModelManager::LoadMenu)
@@ -64,22 +97,6 @@ void OverworldMenu(menu::PluginMenu& menu, void* args) {
   overworld::WeatherManager::LoadMenu(menu, args);
   menu.AddSeparator();
   overworld::FieldMove_LoadMenu(menu, args);
-}
-
-static u8 s_game_speed = 2;
-
-// See : https://gbatemp.net/threads/how-to-change-game-speed-independently-of-fps-example-with-pokemon-oras.680385/
-void UpdateGameSpeed(void*) {
-  static u32 opcodes[] = {
-      0xE3A06001, 0xE3A0C000 | s_game_speed, 0xE58FC010, 0xE59FC00C, 0xE25CC001,
-      0x0A000075,
-      0xE58FC000, 0xEA00000E, 0xFFFFFFFF
-  };
-  for (u32 i = 0; i < SIZE(opcodes); ++i) {
-    WRITE(u32, 0x0010E36C + i * 4, opcodes[i]);
-  }
-  WRITE(u32, 0x0010E528, 0xEAFFFF92);
-  menu::PluginMenu::GetInstance().ForceClose();
 }
 
 void EnableInstantEggHatch(void*) {
@@ -104,7 +121,10 @@ void DayCareMenu(menu::PluginMenu& menu, void* args) {
 }
 
 void TopMenu(menu::PluginMenu& menu, void* args) {
-  menu.Add("Global Data", GlobalDataMenu)
+  overworld::MapManager& man = overworld::MapManager::GetInstance();
+
+  menu.Add("Game Speed", s_game_speed)
+      .Add("Global Data", GlobalDataMenu)
       .Add("Save Data", savedata::SaveData::LoadMenu)
       .Add("Overworld", OverworldMenu)
       .Add("Layout", LayoutMenu)
@@ -112,10 +132,23 @@ void TopMenu(menu::PluginMenu& menu, void* args) {
       .Add("PSS", PssManager::LoadMenu)
       .Add("Day Care", DayCareMenu)
       .Add("Sound", Sound::LoadMenu)
-      .Add("Game Speed", s_game_speed)
-      .WithBounds(2, 4)
-      .Add("Update Game Speed", UpdateGameSpeed)
       .Add("Plugin Theme", menu::Theme::LoadMenu);
+}
+
+u32 OnSaveGameData(u32 fs) {
+  u32 result = HookManager::GetInstance().Get(HookID::kOnSaveGameData)->
+                                          CallOriginal<u32>(fs);
+  menu::LogMenu::GetInstance().Add(u"Saving...");
+  return result;
+}
+
+uptr OnLoadCroFile(uptr man, uptr heap, const char* filename, u32* size) {
+  uptr buffer = HookManager::GetInstance().Get(HookID::kOnLoadCroFile)->
+                                           CallOriginal<uptr>(
+                                               man, heap, filename, size);
+  menu::LogMenu::GetInstance().Add(u"%s loaded at 0x%X (0x%X bytes)",
+                                   filename, buffer, *size);
+  return buffer;
 }
 
 void Initialize() {
@@ -139,6 +172,14 @@ void Initialize() {
   CheatCodeManager& man = CheatCodeManager::GetInstance();
   man.Add(CheatCodeId::kNoclip, overworld::ModelManager::Noclip);
   man.Add(CheatCodeId::kSwarmMod, overworld::ModelManager::SwarmMod);
+
+  HookManager& hook_manager = HookManager::GetInstance();
+  hook_manager.Add(HookID::kOnLoadCroFile, 0x00110E2C,
+                   (uptr)OnLoadCroFile);
+  hook_manager.Add(HookID::kOnSaveGameData, 0x0036C47C,
+                   (uptr)OnSaveGameData);
+  hook_manager.Add(HookID::kOnUpdateFrame, 0x0011EEA4,
+                   (uptr)OnUpdateFrame);
 }
 
 // Performs logic update and rendering for both screens.

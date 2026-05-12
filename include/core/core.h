@@ -150,6 +150,8 @@
 #define ADDRESS_CHECK_EGG_HATCHING (0x00715D8C)
 #define ADDRESS_DAY_CARE_UPDATE (0x007111F8)
 
+#define ADDRESS_DATE_TIME (0x006174F8)
+
 class Device;
 class Graphics;
 

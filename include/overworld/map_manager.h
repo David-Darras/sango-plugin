@@ -22,11 +22,10 @@
 class GameManager;
 
 namespace overworld {
-
 class Renderer;
 
 class MapManager {
- public:
+public:
   static FORCE_INLINE MapManager& GetInstance() {
     return GameManager::GetInstance().GetOverworldMapManager();
   }
@@ -35,9 +34,11 @@ class MapManager {
 
   FORCE_INLINE void* GetAddr() { return &renderer_; }
 
-  FORCE_INLINE u16 GetMapId() { return current_map_id; }
+  FORCE_INLINE u32& GetMapId() { return current_map_id; }
 
- private:
+  FORCE_INLINE u32& GetNextMapId() { return next_map_id; }
+
+private:
   void* _0[23 + 1];
   GameManager* game_manager_;
   void* _1[2 + 28 + 1 + 2 + 2];
@@ -51,7 +52,6 @@ class MapManager {
   Renderer* renderer_;
   void* encounter_manager_;
 };
-
-}  // namespace overworld
+} // namespace overworld
 
 #endif  // SANGO_PLUGIN_OVERWORLD_MAP_MANAGER_H
