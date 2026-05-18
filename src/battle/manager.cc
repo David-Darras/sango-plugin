@@ -242,10 +242,10 @@ void PlayBattleAnimation(void* graphics, u16 animation) {
       ->CallOriginal<void>(graphics, animation);
 }
 
-void PokemonModel::LoadMenu(menu::PluginMenu& menu, void* args) {
+void Model::LoadMenu(menu::PluginMenu& menu, void* args) {
   if (menu.CheckProcess(PROCESS_NAME_BATTLE)) return;
 
-  PokemonModel& model =
+  Model& model =
       Manager::GetInstance().GetGraphics().GetPokemonModel(ctx.pokemon_idx);
 
   model.update = true;
@@ -316,6 +316,6 @@ void Manager::LoadMenu(menu::PluginMenu& menu, void* args) {
       .WithBounds(0, 5)
       .WithRefresh()
       .Add("Pokemon Data", Pokemon::LoadMenu)
-      .Add("Pokemon Model", PokemonModel::LoadMenu);
+      .Add("Pokemon Model", Model::LoadMenu);
 }
 } // namespace battle

@@ -15,10 +15,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "battle/config.h"
+#include <cstring>
+
 #include "battle/manager.h"
 #include "common.h"
 #include "core/game_time_manager.h"
+#include "core/pokemon_model.h"
 #include "core/pss_manager.h"
 #include "data/move.h"
 #include "data/pokemon.h"
@@ -120,10 +122,17 @@ void DayCareMenu(menu::PluginMenu& menu, void* args) {
       .Add("Instant Max Exp", EnableInstantMaxExp);
 }
 
+void FixPokemonColor(void*) {
+  HookManager& hook_manager = HookManager::GetInstance();
+  hook_manager.Add(HookID::kOnCreatePokemonModel, 0x0046FE44,
+                   (uptr)OnCreatePokemonModel);
+}
+
 void TopMenu(menu::PluginMenu& menu, void* args) {
   overworld::MapManager& man = overworld::MapManager::GetInstance();
 
   menu.Add("Game Speed", s_game_speed)
+      .Add("Fix Pokemon Color", FixPokemonColor)
       .Add("Global Data", GlobalDataMenu)
       .Add("Save Data", savedata::SaveData::LoadMenu)
       .Add("Overworld", OverworldMenu)
@@ -148,6 +157,8 @@ uptr OnLoadCroFile(uptr man, uptr heap, const char* filename, u32* size) {
                                                man, heap, filename, size);
   menu::LogMenu::GetInstance().Add(u"%s loaded at 0x%X (0x%X bytes)",
                                    filename, buffer, *size);
+  // if (strcmp(filename, "rom2:/DllBattle.cro") == 0) {
+  // }
   return buffer;
 }
 
@@ -160,6 +171,9 @@ void Initialize() {
   // phone numbers, etc.
   WRITE(u32, 0x003A47C0, 0xE3A00000);
   ARM_RET(0x003A47C4);
+
+  // Disable Shiny
+  // WRITE(u8, 0x00168F60, 0);
 
   // Disable material shader
   // ARM_RET(0x003989B0);

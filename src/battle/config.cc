@@ -25,7 +25,6 @@
 #include "savedata/pokemon_team.h"
 
 namespace battle {
-
 #include "battle/config.inc"
 
 static struct {
@@ -45,11 +44,11 @@ static struct {
   bool no_money;
   bool inverse_teams;
 } ctx = {.is_enabled = false,
-         .battle_format = 0,  // single
-         .background = 1,
-         .platform = 12,
-         .ground = 2,
-         .encounter_animation = 3,
+         .battle_format = 0, // single
+         .background = 87,
+         .platform = 87,
+         .ground = 87,
+         .encounter_animation = 22,
          .background_music = (1 << 16) + 2,
          .money_rate = 1.0f,
          .flags = 0,
@@ -90,11 +89,12 @@ void SetupBattleConfig(Config* config, void* game_manager, void* opponent_team,
     config->no_money = ctx.no_money;
 
     // config->pokemon_teams[0]->pokemons[0]->accessor->Decrypt();
-    // config->pokemon_teams[0]->pokemons[0]->core->species = 720;
+    // config->pokemon_teams[0]->pokemons[0]->core->species = 94;
     // config->pokemon_teams[0]->pokemons[0]->accessor->Encrypt();
     //
     // config->pokemon_teams[1]->pokemons[0]->accessor->Decrypt();
-    // config->pokemon_teams[1]->pokemons[0]->core->species = 721;
+    // config->pokemon_teams[1]->pokemons[0]->core->species = 487;
+    // config->pokemon_teams[1]->pokemons[0]->core->form = 1;
     // config->pokemon_teams[1]->pokemons[0]->accessor->Encrypt();
   }
 }
@@ -124,5 +124,4 @@ void Config::LoadMenu(menu::PluginMenu& menu, void* args) {
       .Add("Long animation", &ctx.flags, 16, 1)
       .Add("Is Deoxys Event", &ctx.flags, 19, 1);
 }
-
-}  // namespace battle
+} // namespace battle

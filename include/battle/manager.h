@@ -27,14 +27,13 @@ namespace savedata {
 class PokemonTeam;
 struct PokemonParam;
 struct PokemonCoreData;
-}  // namespace savedata
+} // namespace savedata
 
 namespace overworld {
 class StereoCamera;
 }
 
 namespace battle {
-
 struct Config;
 class Manager;
 
@@ -94,6 +93,7 @@ struct Pokemon {
       u8 max_pp;
       u8 _0[2];
     } core, view;
+
     u8 _0;
   } moves[4];
 
@@ -115,10 +115,12 @@ struct Team {
 };
 
 class Manager {
- public:
+public:
   static void LoadMenu(menu::PluginMenu& menu, void* args);
 
-  static FORCE_INLINE Manager& GetInstance() { return Process::GetInstance().GetManager(); }
+  static FORCE_INLINE Manager& GetInstance() {
+    return Process::GetInstance().GetManager();
+  }
 
   FORCE_INLINE Graphics& GetGraphics() { return *graphics_; }
 
@@ -129,7 +131,7 @@ class Manager {
     return (GetInstance().client_.teams[team_idx].pokemon[pkm_idx]);
   }
 
- private:
+private:
   void* heaps_[4];
   Config* config_;
   Graphics* graphics_;
@@ -154,7 +156,7 @@ class Manager {
   } client_, server_;
 };
 
-struct PokemonModel {
+struct Model {
   static void LoadMenu(menu::PluginMenu& menu, void* args);
 
   void* vtable;
@@ -164,12 +166,16 @@ struct PokemonModel {
   Vec3 rotation_offset;
   Vec3 scale;
   Vec3 scale_offset;
-
   bool update;
+  u8 _0[0x164 - 4 + 6 * sizeof(Vec3) - 1];
+  void* pokemon_model;
+  void* _1[2];
+  u16 species;
+  u16 form;
 };
 
 class Graphics {
- public:
+public:
   static FORCE_INLINE Graphics& GetInstance() {
     return Manager::GetInstance().GetGraphics();
   }
@@ -178,11 +184,10 @@ class Graphics {
     return *(overworld::StereoCamera*)((uptr)this + 0x1F0);
   }
 
-  PokemonModel& GetPokemonModel(u32 index) {
-    return *(PokemonModel*)(READ(vu32, (uptr)this + 0x100 + index * 4));
+  Model& GetPokemonModel(u32 index) {
+    return *(Model*)(READ(vu32, (uptr)this + 0x100 + index * 4));
   }
 };
-
-}  // namespace battle
+} // namespace battle
 
 #endif  // SANGO_PLUGIN_BATTLE_MANAGER_H

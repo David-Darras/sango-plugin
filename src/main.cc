@@ -19,8 +19,6 @@
 #include <CTRPluginFramework/Menu/PluginMenu.hpp>
 
 #include "core/core.h"
-#include "menu/log_menu.h"
-#include "menu/plugin_menu.h"
 
 #define ENABLE_SANGO_PLGUIN
 #define ENABLE_DEFAULT_CTRPF
