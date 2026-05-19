@@ -122,17 +122,11 @@ void DayCareMenu(menu::PluginMenu& menu, void* args) {
       .Add("Instant Max Exp", EnableInstantMaxExp);
 }
 
-void FixPokemonColor(void*) {
-  HookManager& hook_manager = HookManager::GetInstance();
-  hook_manager.Add(HookID::kOnCreatePokemonModel, 0x0046FE44,
-                   (uptr)OnCreatePokemonModel);
-}
-
 void TopMenu(menu::PluginMenu& menu, void* args) {
   overworld::MapManager& man = overworld::MapManager::GetInstance();
 
   menu.Add("Game Speed", s_game_speed)
-      .Add("Fix Pokemon Color", FixPokemonColor)
+      .Add("Pokemon Model", PokemonModelMenu)
       .Add("Global Data", GlobalDataMenu)
       .Add("Save Data", savedata::SaveData::LoadMenu)
       .Add("Overworld", OverworldMenu)
@@ -194,6 +188,8 @@ void Initialize() {
                    (uptr)OnSaveGameData);
   hook_manager.Add(HookID::kOnUpdateFrame, 0x0011EEA4,
                    (uptr)OnUpdateFrame);
+  hook_manager.Add(HookID::kOnCreatePokemonModel, 0x0046FE44,
+                   (uptr)OnCreatePokemonModel);
 }
 
 // Performs logic update and rendering for both screens.
