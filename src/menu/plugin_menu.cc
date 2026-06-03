@@ -24,6 +24,7 @@
 #include "system/graphics.h"
 #include "system/sound.h"
 #include "utils.h"
+#include "feature/feature_device.h"
 #include "menu/theme.h"
 
 namespace menu {
@@ -108,6 +109,7 @@ void PluginMenu::Update(Controller& controller) {
   if (AreKeysReleased(controller)) {
     Sound::PlaySoundEffect(IsOpened() ? theme_.close_sound : theme_.open_sound);
     is_opened_ ^= 1;
+    feature::DeviceHookContext::GetInstance().use_redirection = is_opened_;
     return;
   }
 

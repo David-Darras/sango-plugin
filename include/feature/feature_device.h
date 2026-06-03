@@ -20,12 +20,13 @@
 #include "common.h"
 #include "core/core.h"
 #include "feature/hook_manager.h"
-#include "menu/plugin_menu.h"
 #include "system/device.h"
 
 namespace feature {
 struct DeviceHookContext {
   MAKE_SINGLETON(DeviceHookContext)
+  bool use_redirection = false;
+
   STATIC_INLINE void Initialize() {
 #define ADD_HOOK(ID, Address) HookManager::Initialize(HookID::ID, Address, (uptr)Hook##ID)
 
@@ -42,7 +43,7 @@ struct DeviceHookContext {
 
 #define DEFINE_INPUT_HOOK(FuncName)                         \
 static bool Hook##FuncName(void *pDevice, u32 key, u8 channel) { \
-if (menu::PluginMenu::GetInstance().IsOpened() &&       \
+if (DeviceHookContext::GetInstance().use_redirection &&       \
 channel != Device::kCustomChannel)                  \
 return false;                                         \
 \
@@ -60,7 +61,7 @@ return HookManager::Call<bool>(HookID::FuncName, pDevice, key, channel);\
 
 #define DEFINE_TOUCH_HOOK(FuncName)                   \
     static bool Hook##FuncName(void *pTouch, u8 channel) {     \
-    if (menu::PluginMenu::GetInstance().IsOpened() && \
+    if (DeviceHookContext::GetInstance().use_redirection && \
     channel != Device::kCustomChannel)            \
     return false;                                   \
     \

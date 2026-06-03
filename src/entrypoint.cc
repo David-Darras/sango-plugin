@@ -21,14 +21,15 @@
 #include "feature/feature_picture.h"
 #include "feature/feature_pokemon_texture.h"
 #include "feature/feature_text_box.h"
-#include "../include/feature/hook_manager.h"
-#include "feature/feature_device.h"
 #include "feature/feature_device.h"
 #include "menu/plugin_menu.h"
 #include "system/device.h"
 #include "system/file.h"
 #include "system/graphics.h"
 #include "ui/application_manager.h"
+
+String String::s_tmp;
+c16 String::s_buffer[128];
 
 void Initialize() {
   File::MountSdmc();
