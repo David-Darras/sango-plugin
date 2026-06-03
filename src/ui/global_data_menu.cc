@@ -20,14 +20,13 @@
 #include "global_data/pokemon.h"
 #include "global_data/move.inc"
 #include "menu/plugin_menu.h"
-#include "ui/menu_context.h"
 
 namespace ui {
 void LoadMoveMenu(menu::PluginMenu& menu, void* args) {
-  auto& ctx = *(GlobalDataMoveMenuContext*)args;
-  auto& data = global_data::Move::GetInstance(ctx.move);
+  static u16 move = 0;
+  auto& data = global_data::Move::GetInstance(move);
 
-  menu.AddMove("Move", ctx.move).WithRefresh();
+  menu.AddMove("Move", move).WithRefresh();
 
   menu.AddType("Type", data.type)
 
@@ -79,10 +78,10 @@ void LoadMoveMenu(menu::PluginMenu& menu, void* args) {
 }
 
 void LoadPokemonMenu(menu::PluginMenu& menu, void* args) {
-  auto& ctx = *(GlobalDataPokemonMenuContext*)args;
-  auto& data = global_data::Pokemon::GetInstance(ctx.species);
+  static u16 species = 0;
+  auto& data = global_data::Pokemon::GetInstance(species);
 
-  menu.AddSpecies("Species", ctx.species).WithBounds(0, 721).WithRefresh();
+  menu.AddSpecies("Species", species).WithRefresh();
 
   menu.Add("Base HP", data.base_hp)
       .Add("Base Attack", data.base_attack)
@@ -121,9 +120,7 @@ void LoadPokemonMenu(menu::PluginMenu& menu, void* args) {
 }
 
 void LoadGlobalDataMenu(menu::PluginMenu& menu, void* args) {
-  auto& ctx = *(GlobalDataMenuContext*)args;
-
-  menu.Add("Global Pokemon Data", LoadPokemonMenu, &ctx.global_data_pokemon)
-      .Add("Global Move Data", LoadMoveMenu, &ctx.global_data_move);
+  menu.Add("Global Pokemon Data", LoadPokemonMenu)
+      .Add("Global Move Data", LoadMoveMenu);
 }
 } // namespace global_data

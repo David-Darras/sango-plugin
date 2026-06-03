@@ -25,15 +25,12 @@
 #include "system/sound.h"
 #include "ui/game_time_menu.h"
 #include "ui/global_data_menu.h"
-#include "ui/menu_context.h"
 #include "ui/renderer_menu.h"
 
 namespace ui {
 void LoadTopMenu(menu::PluginMenu& menu, void* args) {
-  TopMenuContext& ctx = *(TopMenuContext*)args;
-
-  menu.Add("Renderer", LoadRendererMenu, &ctx.renderer)
-      .Add("Global Data", LoadGlobalDataMenu, &ctx.global_data)
+  menu.Add("Renderer", LoadRendererMenu)
+      .Add("Global Data", LoadGlobalDataMenu)
       .Add("Game Time", LoadGameTimeMenu)
       .Add("Save Data", savedata::SaveData::LoadMenu)
       .Add("Overworld", overworld::OverworldMenu)

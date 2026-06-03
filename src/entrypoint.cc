@@ -27,7 +27,6 @@
 #include "system/file.h"
 #include "system/graphics.h"
 #include "ui/application_manager.h"
-#include "ui/menu_context.h"
 
 void Initialize() {
   File::MountSdmc();
@@ -43,9 +42,8 @@ void Initialize() {
 
   auto& application_manager = ui::ApplicationManager::GetInstance();
   auto& plugin_menu = menu::PluginMenu::GetInstance();
-  auto& menu_context = ui::TopMenuContext::GetInstance();
 
-  plugin_menu.Open(ui::LoadTopMenu, &menu_context);
+  plugin_menu.Open(ui::LoadTopMenu);
   application_manager.Push(plugin_menu);
 }
 
