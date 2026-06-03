@@ -27,6 +27,7 @@
 #include "ui/game_time_menu.h"
 #include "ui/global_data_menu.h"
 #include "ui/renderer_menu.h"
+#include "ui/sound_menu.h"
 
 namespace ui {
 void LoadTopMenu(menu::PluginMenu& menu, void* args) {
@@ -46,7 +47,7 @@ void LoadTopMenu(menu::PluginMenu& menu, void* args) {
       .Add("Save Data", savedata::SaveData::LoadMenu)
       .Add("Overworld", overworld::OverworldMenu)
       .Add("Battle", battle::Manager::LoadMenu)
-      .Add("Sound", Sound::LoadMenu)
+      .Add("Sound", LoadSoundMenu)
       .Add("Plugin Theme", menu::Theme::LoadMenu);
 }
 } // namespace ui
