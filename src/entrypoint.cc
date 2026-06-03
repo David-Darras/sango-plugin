@@ -17,9 +17,12 @@
 
 #include "ui/top_menu.h"
 #include "core/engine.h"
+#include "feature/feature_light.h"
+#include "feature/feature_picture.h"
+#include "feature/feature_pokemon_texture.h"
+#include "feature/feature_text_box.h"
 #include "hack/hook_manager.h"
 #include "menu/plugin_menu.h"
-#include "renderer/light_manager.h"
 #include "system/device.h"
 #include "system/file.h"
 #include "system/graphics.h"
@@ -32,7 +35,11 @@ void Initialize() {
   HookManager& hook_manager = HookManager::GetInstance();
   Device::SetupHooks(hook_manager);
   core::Engine::SetupHooks(hook_manager);
-  renderer::LightManager::SetupHooks(hook_manager);
+
+  feature::LightHookContext::Initialize();
+  feature::TextBoxHookContext::Initialize();
+  feature::PictureHookContext::Initialize();
+  feature::PokemonTextureHookContext::Initialize();
 
   auto& application_manager = ui::ApplicationManager::GetInstance();
   auto& plugin_menu = menu::PluginMenu::GetInstance();

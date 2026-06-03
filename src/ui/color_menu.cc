@@ -15,6 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "menu/log_menu.h"
 #include "menu/plugin_menu.h"
 
 namespace ui {
@@ -26,5 +27,14 @@ void LoadColorMenu(menu::PluginMenu& menu, void* args) {
       .Add("Green", color.g).WithFactor(kFactor).WithBounds(0, 1)
       .Add("Blue", color.b).WithFactor(kFactor).WithBounds(0, 1)
       .Add("Alpha", color.a).WithFactor(kFactor).WithBounds(0, 1);
+}
+
+void LoadColor8Menu(menu::PluginMenu& menu, void* args) {
+  Color8& color = *(Color8*)args;
+
+  menu.Add("Red", color.r)
+      .Add("Green", color.g)
+      .Add("Blue", color.b)
+      .Add("Alpha", color.a);
 }
 } // namespace ui

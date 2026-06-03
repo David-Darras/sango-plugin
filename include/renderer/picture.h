@@ -15,15 +15,23 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_LAYOUT_H
-#define SANGO_PLUGIN_LAYOUT_H
+#ifndef SANGO_PLUGIN_RENDERER_PICTURE_H
+#define SANGO_PLUGIN_RENDERER_PICTURE_H
 
-namespace menu {
-class PluginMenu;
-}
+#include "renderer/pane.h"
 
-namespace layout {
-void LayoutMenu(menu::PluginMenu& menu, void* args);
-}
+namespace renderer {
+struct Picture {
+  Pane pane;
+  bool is_initialized;
+  u8 _0[3 + 4];
+  Vec4 _1[6];
+  void* material;
+  Color8 top_left_color;
+  Color8 top_right_color;
+  Color8 bottom_left_color;
+  Color8 bottom_right_color;
+};
+} // namespace renderer
 
-#endif //SANGO_PLUGIN_LAYOUT_H
+#endif  // SANGO_PLUGIN_RENDERER_PICTURE_H

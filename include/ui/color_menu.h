@@ -21,6 +21,7 @@
 
 namespace ui {
 void LoadColorMenu(menu::PluginMenu& menu, void* args);
+void LoadColor8Menu(menu::PluginMenu& menu, void* args);
 } // namespace ui
 
 #endif // SANGO_PLUGIN_UI_COLOR_MENU_H

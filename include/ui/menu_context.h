@@ -34,14 +34,18 @@ struct GlobalDataMenuContext {
 };
 
 struct RendererLightMenuContext {
-  f32 outline_scale = 1.0f;
-  Color outline_color = Color{0, 0, 0, 1};
-  Color ambient_color = Color{1, 1, 1, 1};
-  Color diffuse_color = Color{1, 1, 1, 1};
+};
+
+struct RendererTextBoxMenuContext {
+};
+
+struct RendererPictureMenuContext {
 };
 
 struct RendererMenuContext {
   RendererLightMenuContext light;
+  RendererTextBoxMenuContext text_box;
+  RendererPictureMenuContext picture;
 };
 
 struct TopMenuContext {

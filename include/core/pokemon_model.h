@@ -139,8 +139,4 @@ struct PokemonModel {
   ResourcePack* texture;
 };
 
-void OnCreatePokemonModel(PokemonModel* model, u32 a, u32 b);
-
-void PokemonModelMenu(menu::PluginMenu& menu, void* args);
-
 #endif // SANGO_PLUGIN_POKEMON_MODEL_H

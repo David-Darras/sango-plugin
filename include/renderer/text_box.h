@@ -15,19 +15,20 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_LAYOUT_TEXT_BOX_H
-#define SANGO_PLUGIN_LAYOUT_TEXT_BOX_H
-#include "pane.h"
+#ifndef SANGO_PLUGIN_RENDERER_TEXT_BOX_H
+#define SANGO_PLUGIN_RENDERER_TEXT_BOX_H
 
-namespace layout {
+#include "renderer/pane.h"
+
+class HookManager;
+
+namespace renderer {
 struct TextBox {
   Pane pane;
   c16* text;
   Color8 top_color;
   Color8 bottom_color;
-
-  static void LoadMenu(menu::PluginMenu& menu, void* args);
 };
-}
+} // namespace renderer
 
-#endif // SANGO_PLUGIN_LAYOUT_TEXT_BOX_H
+#endif // SANGO_PLUGIN_RENDERER_TEXT_BOX_H

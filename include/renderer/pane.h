@@ -15,13 +15,38 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "layout/picture.h"
-#include "layout/text_box.h"
-#include "menu/plugin_menu.h"
+#ifndef SANGO_PLUGIN_RENDERER_PANE_H
+#define SANGO_PLUGIN_RENDERER_PANE_H
 
-namespace layout {
-void LayoutMenu(menu::PluginMenu& menu, void* args) {
-  menu.Add("Text Box", TextBox::LoadMenu)
-      .Add("Picture", Picture::LoadMenu);
-}
-}
+#include "core/core.h"
+
+namespace renderer {
+struct Pane {
+  void* vtable;
+  Pane* next_pane;
+  Pane* prev_pane;
+  Pane* parent;
+
+  struct {
+    u32 count;
+    Pane* next_pane;
+    Pane* prev_pane;
+  } children, animations;
+
+  Vec3 position;
+  Vec3 rotation;
+  Vec2 scale;
+  Vec2 scale2;
+  Mtx34 matrix;
+  Mtx34 matrix2;
+  void* _0;
+  u8 alpha;
+  u8 alpha2;
+  u8 _1;
+  u8 flags; // bit 0 : visible
+  char id[17];
+  u8 _2[11];
+};
+} // namespace renderer
+
+#endif  // SANGO_PLUGIN_RENDERER_PANE_H

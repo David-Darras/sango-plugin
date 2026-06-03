@@ -22,16 +22,8 @@
 #include "battle/manager.h"
 #include "core/game_process_manager.h"
 #include "hack/hook_manager.h"
-#include "menu/log_menu.h"
 #include "menu/plugin_menu.h"
 #include "overworld/model_manager.h"
-#include "layout/picture.h"
-#include "layout/text_box.h"
-
-namespace layout {
-extern void OnDrawTextBox(TextBox* text_box, u32 writer);
-extern void OnDrawPicture(Picture* picture, u32 p0, u32 p1, u32 p2);
-}
 
 namespace overworld {
 enum class CameraState { kIdle, kFree, kRotate, kFpv, kTps };

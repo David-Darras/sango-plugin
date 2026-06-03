@@ -17,10 +17,7 @@
 
 #include "battle/manager.h"
 #include "core/engine.h"
-#include "core/game_time_manager.h"
-#include "core/pokemon_model.h"
 #include "core/pss_manager.h"
-#include "layout/layout.h"
 #include "menu/plugin_menu.h"
 #include "menu/theme.h"
 #include "overworld/overworld.h"
@@ -40,9 +37,7 @@ void LoadTopMenu(menu::PluginMenu& menu, void* args) {
       .Add("Game Time", LoadGameTimeMenu)
       .Add("Save Data", savedata::SaveData::LoadMenu)
       .Add("Overworld", overworld::OverworldMenu)
-      .Add("Layout", layout::LayoutMenu)
       .Add("Battle", battle::Manager::LoadMenu)
-      .Add("Pokemon Model", PokemonModelMenu)
       .Add("Game Speed", core::Engine::GetInstance().GetGameSpeed())
       .Add("PSS", PssManager::LoadMenu)
       .Add("Sound", Sound::LoadMenu)

@@ -24,12 +24,12 @@
  * @brief Singleton registry for managing the lifecycle of all plugin hooks.
  */
 class HookManager {
- public:
+public:
   /**
    * @brief Retrieves the singleton instance of the HookManager.
    * @return Reference to the HookManager instance.
    */
-  STATIC_INLINE HookManager &GetInstance() { return instance_; }
+  STATIC_INLINE HookManager& GetInstance() { return instance_; }
 
   /**
    * @brief Registers and creates a new hook in the manager.
@@ -44,17 +44,27 @@ class HookManager {
    * @param id The ID of the hook to find.
    * @return Pointer to the Hook if found, nullptr otherwise.
    */
-  Hook *Get(HookID id);
+  Hook* Get(HookID id);
 
- private:
+  template <typename R, typename... Args>
+  STATIC_INLINE R Call(HookID id, Args... args) {
+    return GetInstance().Get(id)->CallOriginal<R>(args...);
+  }
+
+  STATIC_INLINE void Initialize(HookID id, u32 src, u32 dst) {
+    GetInstance().Add(id, src, dst);
+  }
+
+private:
   /** @brief Private constructor for singleton pattern. */
-  HookManager() : count_(0) {}
+  HookManager() : count_(0) {
+  }
 
   static constexpr int kMaxHooks = (int)HookID::kMax;
-  static HookManager instance_;  ///< Global static instance.
+  static HookManager instance_; ///< Global static instance.
 
-  Hook hooks_[kMaxHooks];  ///< Array of pre-allocated Hook objects.
-  u32 count_;              ///< Current number of registered hooks.
+  Hook hooks_[kMaxHooks]; ///< Array of pre-allocated Hook objects.
+  u32 count_; ///< Current number of registered hooks.
 };
 
 #endif  // SANGO_PLUGIN_HOOK_MANAGER_H

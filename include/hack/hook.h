@@ -25,14 +25,14 @@
  * Used by the HookManager to track and manage multiple hooks.
  */
 enum class HookID : u32 {
-  kIsKeyPressed,     ///< Hook for Controller::IsKeyPressed
-  kIsKeyReleased,    ///< Hook for Controller::IsKeyReleased
-  kIsKeyDown,        ///< Hook for Controller::IsKeyDown
-  kIsKeyRepeated,    ///< Hook for Controller::IsKeyRepeated
-  kIsDPadDown,       ///< Hook for DPad::IsDown
-  kIsDPadRepeated,   ///< Hook for DPad::IsRepeated
-  kIsTouchDown,      ///< Hook for TouchScreen::IsDown
-  kIsTouchReleased,  ///< Hook for TouchScreen::IsReleased
+  kIsKeyPressed, ///< Hook for Controller::IsKeyPressed
+  kIsKeyReleased, ///< Hook for Controller::IsKeyReleased
+  kIsKeyDown, ///< Hook for Controller::IsKeyDown
+  kIsKeyRepeated, ///< Hook for Controller::IsKeyRepeated
+  kIsDPadDown, ///< Hook for DPad::IsDown
+  kIsDPadRepeated, ///< Hook for DPad::IsRepeated
+  kIsTouchDown, ///< Hook for TouchScreen::IsDown
+  kIsTouchReleased, ///< Hook for TouchScreen::IsReleased
   kUpdateMatrices,
   kUpdateLookAt,
   kSetupBattleConfig,
@@ -42,13 +42,13 @@ enum class HookID : u32 {
   kChangeOutlineScale,
   kChangeAmbientLightColor,
   kChangeDiffuseLightColor,
-  kOnDrawPicture,
-  kOnDrawTextBox,
+  kDrawPicture,
+  kDrawTextBox,
   kOnGetTile,
   kOnLoadCroFile,
   kOnSaveGameData,
   kUpdateFrame,
-  kOnCreatePokemonModel,
+  kCreatePokemonModel,
   kMax
 };
 
@@ -59,7 +59,7 @@ enum class HookID : u32 {
  * logic.
  */
 class Hook {
- public:
+public:
   /**
    * @brief Default constructor.
    * Used exclusively to initialize an empty array of hooks within the
@@ -112,10 +112,10 @@ class Hook {
     return func(args...);
   }
 
- private:
-  bool is_enabled_;  ///< Tracking state to prevent double-enabling.
-  u32 src_addr_;     ///< Original function entry point address.
-  u32 dst_addr_;     ///< Redirected function entry point address.
+private:
+  bool is_enabled_; ///< Tracking state to prevent double-enabling.
+  u32 src_addr_; ///< Original function entry point address.
+  u32 dst_addr_; ///< Redirected function entry point address.
   /**
    * @brief Backup of the first two instructions (8 bytes) of the source.
    */

@@ -32,6 +32,7 @@ SOURCES 	:= 	src \
 				src/savedata \
 				src/system \
 				src/renderer \
+				src/feature \
 				src/ui
 
 PSF 		:= 	$(notdir $(TOPDIR)).plgInfo

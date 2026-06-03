@@ -54,6 +54,20 @@ ClassName& operator=(ClassName&&)      = delete;\
 private:\
 ClassName() = default;
 
+#define MAKE_SINGLETON(ClassName)\
+public:\
+ClassName(const ClassName&)            = delete;\
+ClassName& operator=(const ClassName&) = delete;\
+ClassName(ClassName&&)                 = delete;\
+ClassName& operator=(ClassName&&)      = delete;\
+static inline __attribute__((always_inline)) ClassName& GetInstance() {\
+  static ClassName instance;\
+  return instance;\
+}\
+private:\
+ClassName() = default;\
+public:
+
 #define WRITE(type, address, value) *(type*)(address) = (value)
 #define READ(type, address) *(type*)(address)
 
