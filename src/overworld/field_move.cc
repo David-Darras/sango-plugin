@@ -29,7 +29,7 @@ void DoFieldMove(void*) {
     u16 zone_id;
     u16 team_index;
     MapManager* map_manager;
-  } context = {map_manager.GetMapId(), 0, &map_manager};
+  } context = {(u16)map_manager.GetMapId(), 0, &map_manager};
 
   ((void (*)(void*, u32))ADDRESS_DO_FIELD_MOVE)(&context, choice);
 }

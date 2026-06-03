@@ -9,7 +9,7 @@ endif
 export TOPDIR ?= $(CURDIR)
 include $(DEVKITARM)/3ds_rules
 
-PLUGIN_VERSION  := 2.2.0
+PLUGIN_VERSION  := 3.0.0
 PLUGIN_CREATOR  := ZettaD
 
 DEST      := C:/Users/David/AppData/Roaming/Azahar/sdmc/luma/plugins/000400000011C500
@@ -43,7 +43,8 @@ ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 CFLAGS	:=	-mword-relocations \
  			-ffunction-sections -fdata-sections -fno-strict-aliasing \
 			$(ARCH) $(BUILD_FLAGS) $(G) \
-		   -DPLUGIN_CREATOR=\"$(PLUGIN_CREATOR)\" -DPLUGIN_VERSION=\"$(PLUGIN_VERSION)\"
+		   -DPLUGIN_CREATOR=\"$(PLUGIN_CREATOR)\" -DPLUGIN_VERSION=\"$(PLUGIN_VERSION)\" \
+		   -DENABLE_SANGO_PLUGIN=1 -DENABLE_DEFAULT_CTRPF=1
 
 CFLAGS		+=	$(INCLUDE) -D__3DS__ $(DEFINES)
 
