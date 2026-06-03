@@ -16,7 +16,7 @@
  */
 
 #include "ui/top_menu.h"
-#include "core/engine.h"
+#include "feature/feature_engine.h"
 #include "feature/feature_light.h"
 #include "feature/feature_picture.h"
 #include "feature/feature_pokemon_texture.h"
@@ -33,8 +33,8 @@ void Initialize() {
 
   HookManager& hook_manager = HookManager::GetInstance();
   Device::SetupHooks(hook_manager);
-  core::Engine::SetupHooks(hook_manager);
 
+  feature::EngineHookContext::Initialize();
   feature::LightHookContext::Initialize();
   feature::TextBoxHookContext::Initialize();
   feature::PictureHookContext::Initialize();

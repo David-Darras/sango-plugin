@@ -16,8 +16,8 @@
  */
 
 #include "battle/manager.h"
-#include "core/engine.h"
 #include "core/pss_manager.h"
+#include "feature/feature_engine.h"
 #include "menu/plugin_menu.h"
 #include "menu/theme.h"
 #include "overworld/overworld.h"
@@ -29,13 +29,13 @@
 
 namespace ui {
 void LoadTopMenu(menu::PluginMenu& menu, void* args) {
-  menu.Add("Renderer", LoadRendererMenu)
+  menu.Add("Game Speed", feature::EngineHookContext::GetInstance().game_speed)
+      .Add("Renderer", LoadRendererMenu)
       .Add("Global Data", LoadGlobalDataMenu)
       .Add("Game Time", LoadGameTimeMenu)
       .Add("Save Data", savedata::SaveData::LoadMenu)
       .Add("Overworld", overworld::OverworldMenu)
       .Add("Battle", battle::Manager::LoadMenu)
-      .Add("Game Speed", core::Engine::GetInstance().GetGameSpeed())
       .Add("PSS", PssManager::LoadMenu)
       .Add("Sound", Sound::LoadMenu)
       .Add("Plugin Theme", menu::Theme::LoadMenu);
