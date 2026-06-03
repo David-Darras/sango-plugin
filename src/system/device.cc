@@ -17,7 +17,7 @@
 
 #include "system/device.h"
 
-#include "hack/hook_manager.h"
+#include "feature/hook_manager.h"
 #include "menu/plugin_menu.h"
 
 #define DEFINE_INPUT_HOOK(FuncName)                         \

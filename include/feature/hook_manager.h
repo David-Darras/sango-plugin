@@ -18,7 +18,7 @@
 #ifndef SANGO_PLUGIN_HOOK_MANAGER_H
 #define SANGO_PLUGIN_HOOK_MANAGER_H
 
-#include "hack/hook.h"
+#include "feature/hook.h"
 
 /**
  * @brief Singleton registry for managing the lifecycle of all plugin hooks.

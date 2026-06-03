@@ -15,18 +15,26 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "hack/hook_manager.h"
+#include "feature/cheat_code_manager.h"
 
-HookManager HookManager::instance_ = HookManager();
+CheatCodeManager CheatCodeManager::instance_ = CheatCodeManager();
 
-void HookManager::Add(HookID id, u32 src, u32 dst) {
-  if (id >= HookID::kMax) return;
-  if (hooks_[(u32)id].IsEnabled()) return;
-  hooks_[(u32)id].Initialize(src, dst);
+void CheatCodeManager::Add(CheatCodeId id, callback_t callback,
+                           void* args) {
+  if (id >= CheatCodeId::kMax) return;
+  cheat_codes_[(u32)id].Initialize(callback, args);
   count_++;
 }
 
-Hook *HookManager::Get(HookID id) {
-  if (id >= HookID::kMax) return nullptr;
-  return &hooks_[(u32)id];
+CheatCode* CheatCodeManager::Get(CheatCodeId id) {
+  if (id >= CheatCodeId::kMax) return nullptr;
+  return &cheat_codes_[(u32)id];
+}
+
+void CheatCodeManager::Update() {
+  for (u32 i = 0; i < kMaxCheatCodes; ++i) {
+    if (cheat_codes_[i].IsEnabled()) {
+      cheat_codes_[i].Run();
+    }
+  }
 }

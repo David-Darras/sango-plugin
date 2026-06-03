@@ -20,7 +20,7 @@
 
 #include "common.h"
 #include "core/core.h"
-#include "hack/hook_manager.h"
+#include "feature/hook_manager.h"
 #include "core/pokemon_model.h"
 
 namespace feature {

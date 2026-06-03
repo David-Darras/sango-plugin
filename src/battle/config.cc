@@ -18,7 +18,7 @@
 #include "battle/config.h"
 
 #include "core/core.h"
-#include "hack/hook_manager.h"
+#include "feature/hook_manager.h"
 #include "menu/log_menu.h"
 #include "menu/plugin_menu.h"
 #include "savedata/pokemon_data_accessor.h"

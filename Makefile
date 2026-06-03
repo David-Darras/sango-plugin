@@ -25,7 +25,6 @@ INCLUDES	:= 	include \
 SOURCES 	:= 	src \
 				src/battle \
 				src/core \
-				src/hack \
 				src/layout \
 				src/menu \
 				src/overworld \

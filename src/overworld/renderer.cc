@@ -21,7 +21,7 @@
 
 #include "battle/manager.h"
 #include "core/game_process_manager.h"
-#include "hack/hook_manager.h"
+#include "feature/hook_manager.h"
 #include "menu/plugin_menu.h"
 #include "overworld/model_manager.h"
 

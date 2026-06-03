@@ -15,7 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "hack/hook.h"
+#include "feature/hook.h"
 
 Hook::Hook() : src_addr_(0), dst_addr_(0), is_enabled_(false) {
   // Explicitly initialize members to safe defaults for the empty array

@@ -17,7 +17,7 @@
 
 #include "menu/menu_entry.h"
 
-#include "hack/cheat_code.h"
+#include "feature/cheat_code.h"
 #include "menu/plugin_menu.h"
 #include "utils.h"
 #include "global_data/item.h"

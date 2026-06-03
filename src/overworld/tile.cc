@@ -18,7 +18,7 @@
 #include "menu/plugin_menu.h"
 #include "overworld/tile.h"
 
-#include "hack/hook_manager.h"
+#include "feature/hook_manager.h"
 
 namespace overworld {
 #include "overworld/tile.inc"

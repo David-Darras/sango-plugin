@@ -15,35 +15,26 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_CHEAT_CODE_H
-#define SANGO_PLUGIN_CHEAT_CODE_H
+#ifndef SANGO_PLUGIN_CHEAT_CODE_MANAGER_H
+#define SANGO_PLUGIN_CHEAT_CODE_MANAGER_H
 
-#include "common.h"
+#include "feature/cheat_code.h"
 
-enum class CheatCodeId { kNoclip, kSwarmMod, kMax };
-
-class CheatCode {
+class CheatCodeManager {
  public:
-  CheatCode() : is_enabled_(false), callback_(nullptr), args_(nullptr) {}
-
-  void Initialize(callback_t callback, void* args) {
-    is_enabled_ = false;
-    callback_ = callback;
-    args_ = args;
-  }
-
-  INLINE void Toggle() { is_enabled_ = !is_enabled_; }
-
-  INLINE bool IsEnabled() { return is_enabled_; }
-
-  INLINE void Run() {
-    if (callback_) callback_(args_);
-  }
+  STATIC_INLINE CheatCodeManager &GetInstance() { return instance_; }
+  void Add(CheatCodeId id, callback_t callback, void *args = nullptr);
+  CheatCode *Get(CheatCodeId id);
+  void Update();
 
  private:
-  bool is_enabled_;
-  callback_t callback_;
-  void* args_;
+  CheatCodeManager() : count_(0) {}
+
+  static constexpr u32 kMaxCheatCodes = (u32)CheatCodeId::kMax;
+  static CheatCodeManager instance_;
+
+  CheatCode cheat_codes_[kMaxCheatCodes];
+  u32 count_;
 };
 
-#endif  // SANGO_PLUGIN_CHEAT_CODE_H
+#endif  // SANGO_PLUGIN_CHEAT_CODE_MANAGER_H

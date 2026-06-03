@@ -21,7 +21,7 @@
 #include "feature/feature_picture.h"
 #include "feature/feature_pokemon_texture.h"
 #include "feature/feature_text_box.h"
-#include "hack/hook_manager.h"
+#include "../include/feature/hook_manager.h"
 #include "menu/plugin_menu.h"
 #include "system/device.h"
 #include "system/file.h"
