@@ -35,8 +35,6 @@ void OverworldMenu(menu::PluginMenu& menu, void* args) {
       .Add("Encounter", Encounter::LoadMenu)
       .Add("Day Care", DayCareMenu);
   menu.AddSeparator();
-  WeatherManager::LoadMenu(menu, args);
-  menu.AddSeparator();
   FieldMove_LoadMenu(menu, args);
 }
 }

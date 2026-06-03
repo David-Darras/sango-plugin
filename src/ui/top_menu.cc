@@ -21,6 +21,7 @@
 #include "menu/plugin_menu.h"
 #include "menu/theme.h"
 #include "overworld/overworld.h"
+#include "overworld/weather_manager.h"
 #include "savedata/savedata.h"
 #include "system/sound.h"
 #include "ui/game_time_menu.h"
@@ -29,14 +30,22 @@
 
 namespace ui {
 void LoadTopMenu(menu::PluginMenu& menu, void* args) {
+  static const c8* WEATHERS[] = {"Sunny", "Rainy", "Thunderstorm",
+                                 "Misty", "Ash", "Sandstorm",
+                                 "Cloudy", "Stormy", "Dry"};
+
+  auto& weather_manager = overworld::WeatherManager::GetInstance();
   menu.Add("Game Speed", feature::EngineHookContext::GetInstance().game_speed)
-      .Add("Renderer", LoadRendererMenu)
+      .Add("Weather", weather_manager.GetRequestedWeather())
+      .WithArray(WEATHERS, SIZE(WEATHERS))
+      .AddSeparator();
+
+  menu.Add("Renderer", LoadRendererMenu)
       .Add("Global Data", LoadGlobalDataMenu)
       .Add("Game Time", LoadGameTimeMenu)
       .Add("Save Data", savedata::SaveData::LoadMenu)
       .Add("Overworld", overworld::OverworldMenu)
       .Add("Battle", battle::Manager::LoadMenu)
-      .Add("PSS", PssManager::LoadMenu)
       .Add("Sound", Sound::LoadMenu)
       .Add("Plugin Theme", menu::Theme::LoadMenu);
 }
