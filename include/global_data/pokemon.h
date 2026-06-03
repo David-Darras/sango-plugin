@@ -23,7 +23,7 @@
 namespace global_data {
 struct Pokemon {
   STATIC_INLINE Pokemon& GetInstance(const u16 species) {
-    Pokemon* table = *(Pokemon*)READ(u32, ADDRESS_GLOBAL_DATA_POKEMON_TABLE);
+    Pokemon* table = (Pokemon*)READ(u32, ADDRESS_GLOBAL_DATA_POKEMON_TABLE);
     return table[species];
   }
 

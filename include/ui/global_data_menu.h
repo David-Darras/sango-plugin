@@ -28,4 +28,4 @@ void LoadPokemonMenu(menu::PluginMenu& menu, void* args);
 void LoadGlobalDataMenu(menu::PluginMenu& menu, void* args);
 }
 
-#endif //SANGO_PLUGIN_GLOBAL_DATA_MENU_H
+#endif // SANGO_PLUGIN_GLOBAL_DATA_MENU_H

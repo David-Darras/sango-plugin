@@ -27,11 +27,14 @@
 #include "savedata/savedata.h"
 #include "system/sound.h"
 #include "ui/global_data_menu.h"
+#include "ui/menu_context.h"
 
 namespace ui {
 void LoadTopMenu(menu::PluginMenu& menu, void* args) {
+  TopMenuContext& ctx = *(TopMenuContext*)args;
+
   menu.Add("Game Speed", core::Engine::GetInstance().GetGameSpeed())
-      .Add("Global Data", LoadGlobalDataMenu)
+      .Add("Global Data", LoadGlobalDataMenu, &ctx.global_data)
       .Add("Save Data", savedata::SaveData::LoadMenu)
       .Add("Overworld", overworld::OverworldMenu)
       .Add("Layout", layout::LayoutMenu)

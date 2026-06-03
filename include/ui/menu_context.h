@@ -15,16 +15,35 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_TOP_MENU_H
-#define SANGO_PLUGIN_TOP_MENU_H
+#ifndef SANGO_PLUGIN_UI_MENU_CONTEXT_H
+#define SANGO_PLUGIN_UI_MENU_CONTEXT_H
 #include "common.h"
 
-namespace menu {
-class PluginMenu;
-}
-
 namespace ui {
-void LoadTopMenu(menu::PluginMenu& menu, void* args);
-}
+struct GlobalDataPokemonMenuContext {
+  u16 species;
+};
 
-#endif //SANGO_PLUGIN_TOP_MENU_H
+struct GlobalDataMoveMenuContext {
+  u16 move;
+};
+
+struct GlobalDataMenuContext {
+  GlobalDataPokemonMenuContext global_data_pokemon;
+  GlobalDataMoveMenuContext global_data_move;
+};
+
+struct TopMenuContext {
+  SINGLETON(TopMenuContext)
+
+public:
+  static TopMenuContext& GetInstance() {
+    static TopMenuContext instance;
+    return instance;
+  }
+
+  GlobalDataMenuContext global_data;
+};
+} // namespace ui
+
+#endif // SANGO_PLUGIN_UI_MENU_CONTEXT_H
