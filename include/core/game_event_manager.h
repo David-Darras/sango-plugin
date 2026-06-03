@@ -37,7 +37,7 @@ class GameEventManager {
   GameEventManager() = default;
 
 public:
-  static FORCE_INLINE GameEventManager& GetInstance() {
+  STATIC_INLINE GameEventManager& GetInstance() {
     return GameManager::GetInstance().GetGameEventManager();
   }
 

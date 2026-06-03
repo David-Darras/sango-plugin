@@ -38,37 +38,37 @@ class WeatherManager;
  */
 class GameManager {
 public:
-  static FORCE_INLINE GameManager& GetInstance() {
+  STATIC_INLINE GameManager& GetInstance() {
     return *(GameManager*)ADDRESS_GAME_MANAGER;
   }
 
-  FORCE_INLINE GameProcessManager& GetGameProcessManager() const {
+  INLINE GameProcessManager& GetGameProcessManager() const {
     return *game_process_manager_;
   }
 
-  FORCE_INLINE GameEventManager& GetGameEventManager() const {
+  INLINE GameEventManager& GetGameEventManager() const {
     return *game_event_manager_;
   }
 
-  FORCE_INLINE GameDataManager& GetGameData() const { return *game_data_; }
+  INLINE GameDataManager& GetGameData() const { return *game_data_; }
 
-  FORCE_INLINE GameTimeManager& GetGameTimeManager() const {
+  INLINE GameTimeManager& GetGameTimeManager() const {
     return *game_time_manager_;
   }
 
-  FORCE_INLINE overworld::WeatherManager& GetWeatherManager() const {
+  INLINE overworld::WeatherManager& GetWeatherManager() const {
     return *weather_manager_;
   }
 
-  FORCE_INLINE overworld::MapManager& GetOverworldMapManager() const {
+  INLINE overworld::MapManager& GetOverworldMapManager() const {
     return *overworld_map_manager_;
   }
 
-  FORCE_INLINE PssManager& GetPssManager() const {
+  INLINE PssManager& GetPssManager() const {
     return *pss_manager_;
   }
 
-  FORCE_INLINE void* GetSystemHeap() const {
+  INLINE void* GetSystemHeap() const {
     return system_heap_;
   }
 

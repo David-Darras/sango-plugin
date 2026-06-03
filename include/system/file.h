@@ -41,7 +41,7 @@ class File {
    * @brief Mounts the SD card archive.
    * @param archiveName The mounting point name (defaults to "sdmc:").
    */
-  static FORCE_INLINE void MountSdmc(const c8* archiveName = "sdmc:") {
+  STATIC_INLINE void MountSdmc(const c8* archiveName = "sdmc:") {
     ((void (*)(const c8*))ADDRESS_FS_MOUNT_SDMC)(archiveName);
   }
 
@@ -50,7 +50,7 @@ class File {
    * @param filename Path to the file.
    * @param size     Initial allocated size for the file.
    */
-  static FORCE_INLINE void Create(const c16* filename, s64 size = 0) {
+  STATIC_INLINE void Create(const c16* filename, s64 size = 0) {
     ((void (*)(const c16*, s64))ADDRESS_FS_CREATE_FILE)(filename, size);
   }
 
@@ -58,7 +58,7 @@ class File {
    * @brief Deletes a file from the filesystem.
    * @param filename Path to the file to be removed.
    */
-  static FORCE_INLINE void Delete(const c16* filename) {
+  STATIC_INLINE void Delete(const c16* filename) {
     ((void (*)(const c16*))ADDRESS_FS_DELETE_FILE)(filename);
   }
 
@@ -87,7 +87,7 @@ class File {
    * @param filename Path to the file.
    * @param mode     Bitmask of Mode flags.
    */
-  FORCE_INLINE void Open(const c16* filename, u32 mode = kRead | kWrite | kCreate) {
+  INLINE void Open(const c16* filename, u32 mode = kRead | kWrite | kCreate) {
     ((void (*)(void**, const c16*, u32))ADDRESS_FILE_OPEN)(&handle_, filename,
                                                            mode);
   }
@@ -95,7 +95,7 @@ class File {
   /**
    * @brief Closes the file handle and releases resources.
    */
-  FORCE_INLINE void Close() {
+  INLINE void Close() {
     if (handle_) {
       // Vtable call to close the handle (offset 44)
       (*(void (**)())(*(u32*)handle_ + 44))();
@@ -109,7 +109,7 @@ class File {
    * @param size   Number of bytes to read.
    * @param offset Optional offset to apply before reading.
    */
-  FORCE_INLINE void Read(void* buffer, u32 size, s64 offset = 0) {
+  INLINE void Read(void* buffer, u32 size, s64 offset = 0) {
     s32 out;
     pos_ += offset;
     ((void (*)(s32*, void*, s64, void*, u32))ADDRESS_FILE_READ)(
@@ -124,7 +124,7 @@ class File {
    * @param offset Optional offset to apply before writing.
    * @param flush  If true, flushes the write buffer to disk.
    */
-  FORCE_INLINE void Write(const void* buffer, u32 size, s64 offset = 0, bool flush = true) {
+  INLINE void Write(const void* buffer, u32 size, s64 offset = 0, bool flush = true) {
     s32 out;
     pos_ += offset;
     ((void (*)(s32*, void*, s64, const void*, u32, bool))ADDRESS_FILE_WRITE)(

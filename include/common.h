@@ -39,10 +39,11 @@ typedef char c8;
 
 typedef uintptr_t uptr;
 
-#define FORCE_INLINE inline __attribute__((always_inline))
+#define INLINE inline __attribute__((always_inline))
+#define STATIC_INLINE static inline __attribute__((always_inline))
 
 // #define INLINE inline __attribute__((always_inline))
-// #define STATIC_INLINE static inline __attribute__((always_inline))
+// #define STATIC_INLINE STATIC_INLINE __attribute__((always_inline))
 
 #define SINGLETON(ClassName)\
 public:\

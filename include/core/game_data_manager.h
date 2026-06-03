@@ -33,17 +33,17 @@ struct Encounter;
 
 class GameDataManager {
  public:
-  static FORCE_INLINE GameDataManager& GetInstance() {
+  STATIC_INLINE GameDataManager& GetInstance() {
     return GameManager::GetInstance().GetGameData();
   }
 
-  FORCE_INLINE savedata::SaveData& GetSavedata() const { return *savedata_; }
-  FORCE_INLINE savedata::PokemonTeam& GetPokemonTeam() const { return *pokemon_team_; }
-  FORCE_INLINE savedata::PlayTime& GetPlayTime() const { return *play_time_; }
-  FORCE_INLINE overworld::ModelManager& GetOverworldModelManager() const {
+  INLINE savedata::SaveData& GetSavedata() const { return *savedata_; }
+  INLINE savedata::PokemonTeam& GetPokemonTeam() const { return *pokemon_team_; }
+  INLINE savedata::PlayTime& GetPlayTime() const { return *play_time_; }
+  INLINE overworld::ModelManager& GetOverworldModelManager() const {
     return *overworld_model_manager_;
   }
-  FORCE_INLINE overworld::Encounter& GetEncounter() const { return *encounter_; }
+  INLINE overworld::Encounter& GetEncounter() const { return *encounter_; }
 
   savedata::SaveData* savedata_;
   void* _0[4];

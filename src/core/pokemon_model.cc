@@ -13,25 +13,25 @@ static struct {
   u8 blue;
 } ctx;
 
-static FORCE_INLINE void PermuteBGR(u8& r, u8& g, u8& b) {
+STATIC_INLINE void PermuteBGR(u8& r, u8& g, u8& b) {
   u8 tmp = r;
   r = b;
   b = tmp;
 }
 
-static FORCE_INLINE void PermuteGRB(u8& r, u8& g, u8& b) {
+STATIC_INLINE void PermuteGRB(u8& r, u8& g, u8& b) {
   u8 tmp = r;
   r = g;
   g = tmp;
 }
 
-static FORCE_INLINE void PermuteRBG(u8& r, u8& g, u8& b) {
+STATIC_INLINE void PermuteRBG(u8& r, u8& g, u8& b) {
   u8 tmp = g;
   g = b;
   b = tmp;
 }
 
-static FORCE_INLINE void PermuteBRG(u8& r, u8& g, u8& b) {
+STATIC_INLINE void PermuteBRG(u8& r, u8& g, u8& b) {
   u8 old_r = r;
   u8 old_g = g;
   r = b;
@@ -39,7 +39,7 @@ static FORCE_INLINE void PermuteBRG(u8& r, u8& g, u8& b) {
   b = old_g;
 }
 
-static FORCE_INLINE void PermuteGBR(u8& r, u8& g, u8& b) {
+STATIC_INLINE void PermuteGBR(u8& r, u8& g, u8& b) {
   u8 old_r = r;
   u8 old_g = g;
   r = old_g;
@@ -47,34 +47,34 @@ static FORCE_INLINE void PermuteGBR(u8& r, u8& g, u8& b) {
   b = old_r;
 }
 
-static FORCE_INLINE void GrayscalePixel(u8& r, u8& g, u8& b) {
+STATIC_INLINE void GrayscalePixel(u8& r, u8& g, u8& b) {
   const u8 gray = (u8)((77 * r + 150 * g + 29 * b) >> 8);
   r = g = b = gray;
 }
 
-static FORCE_INLINE void InvertPixel(u8& r, u8& g, u8& b) {
+STATIC_INLINE void InvertPixel(u8& r, u8& g, u8& b) {
   r ^= 0xFF;
   g ^= 0xFF;
   b ^= 0xFF;
 }
 
-static FORCE_INLINE void WarmPixel(u8& r, u8& g, u8& b) {
+STATIC_INLINE void WarmPixel(u8& r, u8& g, u8& b) {
   r = r + 20 > 255 ? 255 : r + 20;
   b = b < 20 ? 0 : b - 20;
 }
 
-static FORCE_INLINE void CoolPixel(u8& r, u8& g, u8& b) {
+STATIC_INLINE void CoolPixel(u8& r, u8& g, u8& b) {
   b = b + 20 > 255 ? 255 : b + 20;
   r = r < 20 ? 0 : r - 20;
 }
 
-static FORCE_INLINE void ThresholdPixel(u8& r, u8& g, u8& b) {
+STATIC_INLINE void ThresholdPixel(u8& r, u8& g, u8& b) {
   const u8 luma = (u8)((77 * r + 150 * g + 29 * b) >> 8);
   const u8 v = luma >= 128 ? 255 : 0;
   r = g = b = v;
 }
 
-static FORCE_INLINE void SepiaPixel(u8& r, u8& g, u8& b) {
+STATIC_INLINE void SepiaPixel(u8& r, u8& g, u8& b) {
   const u16 sr = (u16)((r * 112 + g * 88 + b * 56) >> 8);
   const u16 sg = (u16)((r * 100 + g * 78 + b * 48) >> 8);
   const u16 sb = (u16)((r * 78 + g * 61 + b * 38) >> 8);
@@ -83,7 +83,7 @@ static FORCE_INLINE void SepiaPixel(u8& r, u8& g, u8& b) {
   b = sb > 255 ? 255 : (u8)sb;
 }
 
-static FORCE_INLINE void SaturatePixel(u8& r, u8& g, u8& b) {
+STATIC_INLINE void SaturatePixel(u8& r, u8& g, u8& b) {
   const s16 gray = (77 * r + 150 * g + 29 * b) >> 8;
 
   const s16 dr = (s16)r - gray;
@@ -105,13 +105,13 @@ static FORCE_INLINE void SaturatePixel(u8& r, u8& g, u8& b) {
   b = (u8)(nb < 0 ? 0 : nb > 240 ? 240 : nb);
 }
 
-static FORCE_INLINE void FillPixel(u8& r, u8& g, u8& b) {
+STATIC_INLINE void FillPixel(u8& r, u8& g, u8& b) {
   r = ctx.red;
   g = ctx.green;
   b = ctx.blue;
 }
 
-static FORCE_INLINE void GetTextureInfo(TextureFormat& format, u16& width,
+STATIC_INLINE void GetTextureInfo(TextureFormat& format, u16& width,
                                         u16& height,
                                         u32& address, const u32* cmd,
                                         u32 count) {
@@ -152,7 +152,7 @@ static FORCE_INLINE void GetTextureInfo(TextureFormat& format, u16& width,
   break;\
 }
 
-static FORCE_INLINE void ApplyFilterToPokemon(Resource& resource) {
+STATIC_INLINE void ApplyFilterToPokemon(Resource& resource) {
   if (!resource.IsValid() || ctx.filter == 0) return;
 
   const u32 count = resource.GetContent().textures.count;

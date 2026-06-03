@@ -26,13 +26,13 @@ class WeatherManager {
 public:
   static void LoadMenu(menu::PluginMenu& menu, void* args);
 
-  static FORCE_INLINE WeatherManager& GetInstance() {
+  STATIC_INLINE WeatherManager& GetInstance() {
     return GameManager::GetInstance().GetWeatherManager();
   }
 
-  FORCE_INLINE u8& GetCurrentWeather() { return *(u8*)((uptr)this + 0x1C); }
+  INLINE u8& GetCurrentWeather() { return *(u8*)((uptr)this + 0x1C); }
 
-  FORCE_INLINE u8& GetRequestedWeather() { return *(u8*)((uptr)this + 0x1E); }
+  INLINE u8& GetRequestedWeather() { return *(u8*)((uptr)this + 0x1E); }
 };
 
 } // namespace overworld

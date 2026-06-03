@@ -40,7 +40,7 @@ struct ItemManager {
   static void LoadMenu(menu::PluginMenu& menu, void* args);
 
   /** @brief Accessor for the singleton instance. */
-  static FORCE_INLINE ItemManager& GetInstance() {
+  STATIC_INLINE ItemManager& GetInstance() {
     return SaveData::GetInstance().GetItemManager();
   }
 

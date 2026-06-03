@@ -21,7 +21,7 @@
 namespace savedata {
 #include "savedata/pokedex_form.inc"
 
-static FORCE_INLINE void GetTableIndexAndFormMax(s32& table_idx, s32& form_max,
+STATIC_INLINE void GetTableIndexAndFormMax(s32& table_idx, s32& form_max,
                                                  u16 species) {
   struct Entry {
     u16 species;

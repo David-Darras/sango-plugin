@@ -24,7 +24,7 @@
 namespace savedata {
 
 struct BattleBox {
-  static FORCE_INLINE BattleBox& GetInstance() {
+  STATIC_INLINE BattleBox& GetInstance() {
     return SaveData::GetInstance().GetBattleBox();
   }
   static void LoadMenu(menu::PluginMenu& menu, void* args);

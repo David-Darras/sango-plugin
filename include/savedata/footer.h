@@ -35,7 +35,7 @@ class Footer {
    * @brief Retrieves the singleton instance of Footer from the global SaveData.
    * @return A reference to the Footer instance.
    */
-  static FORCE_INLINE Footer& GetInstance() { return SaveData::GetFooter(); }
+  STATIC_INLINE Footer& GetInstance() { return SaveData::GetFooter(); }
 
  private:
   void* vtable_;  ///< Pointer to the virtual method table.

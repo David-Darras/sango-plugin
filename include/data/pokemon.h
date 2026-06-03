@@ -24,7 +24,7 @@ namespace data {
 
 struct Pokemon {
   static void LoadMenu(menu::PluginMenu& menu, void* args);
-  static FORCE_INLINE Pokemon& GetInstance(u16 species) {
+  STATIC_INLINE Pokemon& GetInstance(u16 species) {
     return *(Pokemon*)(READ(u32, ADDRESS_DATA_POKEMON) +
                        sizeof(Pokemon) * species);
   }

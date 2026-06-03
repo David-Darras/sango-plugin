@@ -23,7 +23,7 @@ namespace savedata {
 struct OverworldMenu {
   static void LoadMenu(menu::PluginMenu& menu, void* args);
 
-  static FORCE_INLINE OverworldMenu& GetInstance() {
+  STATIC_INLINE OverworldMenu& GetInstance() {
     return SaveData::GetInstance().GetOverworldMenu();
   }
 

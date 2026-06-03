@@ -91,15 +91,15 @@ struct Resource {
   u16 _0;
   u16 count;
 
-  FORCE_INLINE bool IsValid() const {
+  INLINE bool IsValid() const {
     return signature == 0x484342;
   }
 
-  FORCE_INLINE Content& GetContent() {
+  INLINE Content& GetContent() {
     return *(Content*)((uptr)this + offset.content);
   }
 
-  FORCE_INLINE u32* GetGpuCommands(u32 tex_idx, u32& cmd_count) {
+  INLINE u32* GetGpuCommands(u32 tex_idx, u32& cmd_count) {
     u32* elements = (u32*)GetContent().textures.elements;
     u32* cmd = (u32*)elements[tex_idx];
     cmd_count = cmd[1];
@@ -124,11 +124,11 @@ struct ResourcePack {
 };
 
 struct PokemonModel {
-  FORCE_INLINE Resource& GetModel() const {
+  INLINE Resource& GetModel() const {
     return model->GetResource(0);
   }
 
-  FORCE_INLINE Resource& GetTexture() const {
+  INLINE Resource& GetTexture() const {
     return texture->GetResource(0);
   }
 

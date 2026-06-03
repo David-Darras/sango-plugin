@@ -42,7 +42,7 @@ public:
    * @brief Returns the singleton instance of the PluginMenu.
    * @return Reference to the unique PluginMenu instance.
    */
-  static FORCE_INLINE PluginMenu& GetInstance() { return instance_; }
+  STATIC_INLINE PluginMenu& GetInstance() { return instance_; }
 
   /**
    * @brief Draws the top section of the menu with menu entries.

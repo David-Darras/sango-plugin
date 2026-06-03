@@ -22,29 +22,29 @@
 
 class PokemonUtils {
  public:
-  static FORCE_INLINE u32 GetExperienceFromLevel(u16 species, u8 form, u16 level) {
+  STATIC_INLINE u32 GetExperienceFromLevel(u16 species, u8 form, u16 level) {
     ((void (*)(u16, u8))ADDRESS_POKEMON_UTILS_LOAD_POKEMON_EXPERIENCE_TABLE)(
         species, form);
     return ((u32 (*)(u8))ADDRESS_POKEMON_UTILS_GET_POKEMON_MINIMUM_EXPERIENCE)(
         level);
   }
 
-  static FORCE_INLINE u8 GetLevelFromExperience(u16 species, u8 form, u32 experience) {
+  STATIC_INLINE u8 GetLevelFromExperience(u16 species, u8 form, u32 experience) {
     return ((u8 (*)(
         u16, u8, u32))ADDRESS_POKEMON_UTILS_GET_POKEMON_LEVEL_FROM_EXPERIENCE)(
         species, form, experience);
   }
 
-  static FORCE_INLINE bool IsShiny(u32 id, u32 shiny_id) {
+  STATIC_INLINE bool IsShiny(u32 id, u32 shiny_id) {
     return ((bool (*)(u32, u32))ADDRESS_POKEMON_UTILS_IS_SHINY)(id, shiny_id);
   }
 
-  static FORCE_INLINE void ConvertToShiny(u32 id, u32* shiny_id) {
+  STATIC_INLINE void ConvertToShiny(u32 id, u32* shiny_id) {
     *shiny_id =
         ((u32 (*)(u32, u32))ADDRESS_POKEMON_UTILS_TO_SHINY)(id, *shiny_id);
   }
 
-  static FORCE_INLINE void ConvertToNormal(u32 id, u32* shiny_id) {
+  STATIC_INLINE void ConvertToNormal(u32 id, u32* shiny_id) {
     *shiny_id =
         ((u32 (*)(u32, u32))ADDRESS_POKEMON_UTILS_TO_NORMAL)(id, *shiny_id);
   }

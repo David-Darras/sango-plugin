@@ -29,8 +29,8 @@ public:
     if (enable) Enable();
   }
 
-  FORCE_INLINE void Enable() { hook_.Enable(); }
-  FORCE_INLINE void Disable() { hook_.Disable(); }
+  INLINE void Enable() { hook_.Enable(); }
+  INLINE void Disable() { hook_.Disable(); }
 
 private:
   CTRPluginFramework::Hook hook_;

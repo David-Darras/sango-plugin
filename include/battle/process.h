@@ -29,15 +29,15 @@ struct Config;
 
 class Process {
  public:
-  static FORCE_INLINE bool IsInBattle() {
+  STATIC_INLINE bool IsInBattle() {
     return READ(vu32, ADDRESS_BATTLE_MAIN_PROCESS) == 0x007D85D0;
   }
 
-  static FORCE_INLINE Process& GetInstance() {
+  STATIC_INLINE Process& GetInstance() {
     return *(Process*)(ADDRESS_BATTLE_MAIN_PROCESS);
   }
 
-  FORCE_INLINE Manager& GetManager() { return *manager_; }
+  INLINE Manager& GetManager() { return *manager_; }
 
  private:
   void* vtable_;

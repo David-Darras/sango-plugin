@@ -89,7 +89,7 @@ public:
    * @brief Retrieves the singleton instance of the GameProcManager.
    * @return A reference to the active manager instance.
    */
-  static FORCE_INLINE GameProcessManager& GetInstance() {
+  STATIC_INLINE GameProcessManager& GetInstance() {
     return GameManager::GetInstance().GetGameProcessManager();
   }
 
@@ -97,7 +97,7 @@ public:
    * @brief Retrieves the main (root) process handle.
    * @return A reference to the main ProcessHandle.
    */
-  FORCE_INLINE ProcessHandle& GetMainHandle() const { return *handle_; }
+  INLINE ProcessHandle& GetMainHandle() const { return *handle_; }
 
   const char* GetCurrentProcessName() const {
     if (handle_ == nullptr) return "";
@@ -106,7 +106,7 @@ public:
     return Utils::GetClassNameFromVTable(process->vtable);
   }
 
-  FORCE_INLINE bool IsCurrentProcess(const char* name) const {
+  INLINE bool IsCurrentProcess(const char* name) const {
     return std::strcmp(GetCurrentProcessName(), name) == 0;
   }
 

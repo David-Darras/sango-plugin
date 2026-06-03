@@ -24,12 +24,12 @@
 namespace data {
 struct Item {
 
-  FORCE_INLINE Item(u16 id) {
+  INLINE Item(u16 id) {
     ((void(*)(Item*, u16, void*))ADDRESS_ITEM_DATA_INITIALIZE)
         (this, id, GameManager::GetInstance().GetSystemHeap());
   }
 
-  FORCE_INLINE void GetName(String* str) {
+  INLINE void GetName(String* str) {
     ((void(*)(Item*, String*, void*))ADDRESS_GET_ITEM_NAME)
         (this, str, GameManager::GetInstance().GetSystemHeap());
   }

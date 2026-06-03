@@ -54,7 +54,7 @@ public:
    * @brief Accesses the global SaveData instance via the GameDataManager.
    * @return A reference to the active SaveData instance.
    */
-  static FORCE_INLINE SaveData& GetInstance() {
+  STATIC_INLINE SaveData& GetInstance() {
     return GameDataManager::GetInstance().GetSavedata();
   }
 
@@ -62,71 +62,71 @@ public:
    * @brief Retrieves the footer associated with this save data.
    * @return A reference to the Footer object used for integrity validation.
    */
-  FORCE_INLINE Footer& GetFooter() { return *footer_; }
+  INLINE Footer& GetFooter() { return *footer_; }
 
-  FORCE_INLINE Misc& GetMisc() { return *(Misc*)segments_[11]; }
+  INLINE Misc& GetMisc() { return *(Misc*)segments_[11]; }
 
-  FORCE_INLINE BoxManager& GetBoxManager() {
+  INLINE BoxManager& GetBoxManager() {
     return *(BoxManager*)segments_[12];
   }
 
-  FORCE_INLINE Minigame& GetMinigame() { return *(Minigame*)segments_[8]; }
+  INLINE Minigame& GetMinigame() { return *(Minigame*)segments_[8]; }
 
-  FORCE_INLINE BattleBox& GetBattleBox() { return *(BattleBox*)segments_[13]; }
+  INLINE BattleBox& GetBattleBox() { return *(BattleBox*)segments_[13]; }
 
-  FORCE_INLINE PssGroup& GetPssFavouriteGroup() {
+  INLINE PssGroup& GetPssFavouriteGroup() {
     return *(PssGroup*)segments_[14];
   }
 
-  FORCE_INLINE PssGroup& GetPssFriendGroup() {
+  INLINE PssGroup& GetPssFriendGroup() {
     return *(PssGroup*)segments_[15];
   }
 
-  FORCE_INLINE PssGroup& GetPssAcquaintanceGroup() {
+  INLINE PssGroup& GetPssAcquaintanceGroup() {
     return *(PssGroup*)segments_[16];
   }
 
-  FORCE_INLINE BagManager& GetBagManager() {
+  INLINE BagManager& GetBagManager() {
     return *(BagManager*)segments_[2];
   }
 
-  FORCE_INLINE PokemonAmie& GetPokemonAmie() {
+  INLINE PokemonAmie& GetPokemonAmie() {
     return *(PokemonAmie*)segments_[0];
   }
 
-  FORCE_INLINE ItemManager& GetItemManager() {
+  INLINE ItemManager& GetItemManager() {
     return *(ItemManager*)segments_[1];
   }
 
-  FORCE_INLINE TrainerStatus& GetTrainerStatus() {
+  INLINE TrainerStatus& GetTrainerStatus() {
     return *(TrainerStatus*)segments_[17];
   }
 
-  // FORCE_INLINE PokemonTeam& GetPokemonTeam() { return *(PokemonTeam*)segments_[18]; }
+  // INLINE PokemonTeam& GetPokemonTeam() { return *(PokemonTeam*)segments_[18]; }
 
-  FORCE_INLINE PokemonBox& GetPokemonBox() {
+  INLINE PokemonBox& GetPokemonBox() {
     return *(PokemonBox*)segments_[56];
   }
 
-  FORCE_INLINE OPowerManager& GetOPowerManager() {
+  INLINE OPowerManager& GetOPowerManager() {
     return *(OPowerManager*)segments_[25];
   }
 
-  FORCE_INLINE Encounter& GetEncounter() {
+  INLINE Encounter& GetEncounter() {
     return *(Encounter*)segments_[31];
   }
 
-  FORCE_INLINE OverworldMenu& GetOverworldMenu() {
+  INLINE OverworldMenu& GetOverworldMenu() {
     return *(OverworldMenu*)segments_[29];
   }
 
-  FORCE_INLINE RecordManager& GetRecordManager() {
+  INLINE RecordManager& GetRecordManager() {
     return *(RecordManager*)segments_[44];
   }
 
-  FORCE_INLINE Settings& GetSettings() { return *(Settings*)segments_[23]; }
+  INLINE Settings& GetSettings() { return *(Settings*)segments_[23]; }
 
-  FORCE_INLINE Pokedex& GetPokedex() { return *(Pokedex*)segments_[20]; }
+  INLINE Pokedex& GetPokedex() { return *(Pokedex*)segments_[20]; }
 
 
   /// @brief Total number of data segments monitored for integrity.

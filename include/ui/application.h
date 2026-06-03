@@ -31,11 +31,11 @@ public:
   virtual void DrawTop(Graphics& graphics) = 0;
   virtual void DrawBottom(Graphics& graphics) = 0;
 
-  FORCE_INLINE void SetParent(Application* parent) {
+  INLINE void SetParent(Application* parent) {
     parent_ = parent;
   }
 
-  FORCE_INLINE Application* GetParent() const {
+  INLINE Application* GetParent() const {
     return parent_;
   }
 

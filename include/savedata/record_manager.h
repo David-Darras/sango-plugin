@@ -23,7 +23,7 @@ namespace savedata {
 struct RecordManager {
   static void LoadMenu(menu::PluginMenu& menu, void* args);
 
-  static FORCE_INLINE RecordManager& GetInstance() {
+  STATIC_INLINE RecordManager& GetInstance() {
     return SaveData::GetInstance().GetRecordManager();
   }
 

@@ -35,7 +35,7 @@ struct PokemonParam {
 
 struct PokemonTeam {
   static void LoadMenu(menu::PluginMenu& menu, void* args);
-  static FORCE_INLINE PokemonTeam& GetInstance() {
+  STATIC_INLINE PokemonTeam& GetInstance() {
     return GameDataManager::GetInstance().GetPokemonTeam();
   }
   static constexpr u32 kMaxSlots = 6;

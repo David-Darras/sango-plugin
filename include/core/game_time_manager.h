@@ -24,7 +24,7 @@
 struct GameTimeManager {
   static void LoadMenu(menu::PluginMenu& menu, void* args);
 
-  static FORCE_INLINE GameTimeManager& GetInstance() {
+  STATIC_INLINE GameTimeManager& GetInstance() {
     return GameManager::GetInstance().GetGameTimeManager();
   }
 

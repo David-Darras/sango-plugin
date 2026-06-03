@@ -24,14 +24,14 @@ namespace savedata {
 struct Pokedex {
   static void LoadMenu(menu::PluginMenu& menu, void* args);
 
-  static FORCE_INLINE Pokedex& GetInstance() {
+  STATIC_INLINE Pokedex& GetInstance() {
     return SaveData::GetInstance().GetPokedex();
   }
 
   /**
    * @return Form index, or -1 if the species has no alternative forms.
    */
-  FORCE_INLINE s32 GetFormIndex(u16 species) {
+  INLINE s32 GetFormIndex(u16 species) {
     return ((s32(*)(Pokedex*, u16))ADDRESS_POKEDEX_GET_FORM_INDEX)(
         this, species);
   }

@@ -39,7 +39,7 @@ struct BagManager {
    * @brief Returns the singleton instance of the BagManager from the SaveData.
    * @return Reference to the unique BagManager instance.
    */
-  static FORCE_INLINE BagManager& GetInstance() {
+  STATIC_INLINE BagManager& GetInstance() {
     return SaveData::GetInstance().GetBagManager();
   }
 

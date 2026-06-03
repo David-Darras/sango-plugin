@@ -45,11 +45,11 @@ class PssManager {
 public:
   static void LoadMenu(menu::PluginMenu& menu, void* args);
 
-  static FORCE_INLINE PssManager& GetInstance() {
+  STATIC_INLINE PssManager& GetInstance() {
     return GameManager::GetInstance().GetPssManager();
   }
 
-  FORCE_INLINE savedata::PssProfilePayload& GetMyProfile() {
+  INLINE savedata::PssProfilePayload& GetMyProfile() {
     return self_data_.user_data.datagram.profile;
   }
 

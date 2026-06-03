@@ -31,7 +31,7 @@ namespace savedata {
 struct Misc {
   static void LoadMenu(menu::PluginMenu& menu, void* args);
 
-  static FORCE_INLINE Misc& GetInstance() { return SaveData::GetInstance().GetMisc(); }
+  STATIC_INLINE Misc& GetInstance() { return SaveData::GetInstance().GetMisc(); }
 
   /// @brief Maximum character length for nicknames.
   static constexpr u32 kNicknameLength = 13;

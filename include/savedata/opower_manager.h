@@ -23,7 +23,7 @@ namespace savedata {
 struct OPowerManager {
   static void LoadMenu(menu::PluginMenu& menu, void* args);
 
-  static FORCE_INLINE OPowerManager& GetInstance() {
+  STATIC_INLINE OPowerManager& GetInstance() {
     return SaveData::GetInstance().GetOPowerManager();
   }
 
