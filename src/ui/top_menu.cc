@@ -26,6 +26,7 @@
 #include "overworld/overworld.h"
 #include "savedata/savedata.h"
 #include "system/sound.h"
+#include "ui/game_time_menu.h"
 #include "ui/global_data_menu.h"
 #include "ui/menu_context.h"
 
@@ -33,16 +34,16 @@ namespace ui {
 void LoadTopMenu(menu::PluginMenu& menu, void* args) {
   TopMenuContext& ctx = *(TopMenuContext*)args;
 
-  menu.Add("Game Speed", core::Engine::GetInstance().GetGameSpeed())
-      .Add("Global Data", LoadGlobalDataMenu, &ctx.global_data)
+  menu.Add("Global Data", LoadGlobalDataMenu, &ctx.global_data)
+      .Add("Game Time", LoadGameTimeMenu)
       .Add("Save Data", savedata::SaveData::LoadMenu)
       .Add("Overworld", overworld::OverworldMenu)
       .Add("Layout", layout::LayoutMenu)
       .Add("Battle", battle::Manager::LoadMenu)
       .Add("Pokemon Model", PokemonModelMenu)
-      .Add("Time", GameTimeManager::LoadMenu)
+      .Add("Game Speed", core::Engine::GetInstance().GetGameSpeed())
       .Add("PSS", PssManager::LoadMenu)
       .Add("Sound", Sound::LoadMenu)
       .Add("Plugin Theme", menu::Theme::LoadMenu);
 }
-}
+} // namespace ui

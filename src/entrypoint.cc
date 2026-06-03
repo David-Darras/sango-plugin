@@ -15,7 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "../include/ui/top_menu.h"
+#include "ui/top_menu.h"
 #include "core/engine.h"
 #include "menu/plugin_menu.h"
 #include "system/device.h"
@@ -32,6 +32,7 @@ void Initialize() {
   auto& application_manager = ui::ApplicationManager::GetInstance();
   auto& plugin_menu = menu::PluginMenu::GetInstance();
   auto& menu_context = ui::TopMenuContext::GetInstance();
+
   plugin_menu.Open(ui::LoadTopMenu, &menu_context);
   application_manager.Push(plugin_menu);
 }

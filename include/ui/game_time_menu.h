@@ -15,26 +15,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_GAME_TIME_MANAGER_H_
-#define SANGO_PLUGIN_GAME_TIME_MANAGER_H_
+#ifndef SANGO_PLUGIN_GAME_TIME_MENU_H
+#define SANGO_PLUGIN_GAME_TIME_MENU_H
 
-#include "core/game_manager.h"
-#include "common.h"
+namespace menu {
+class PluginMenu;
+}
 
-namespace game {
-struct TimeManager {
-  STATIC_INLINE TimeManager& GetInstance() {
-    return GameManager::GetInstance().GetGameTimeManager();
-  }
+namespace ui {
+void LoadGameTimeMenu(menu::PluginMenu& menu, void* args);
+}
 
-  bool is_enabled;
-  u64 last_tick;
-  u64 accumulated_seconds;
-  u64 first_tick;
-  ///< Throttles calls to svcGetSystemTick()
-  ///< (only once every 20 frames to reduce CPU usage).
-  u32 frame_counter;
-};
-} // namespace game
-
-#endif  // SANGO_PLUGIN_GAME_TIME_MANAGER_H_
+#endif // SANGO_PLUGIN_GAME_TIME_MENU_H

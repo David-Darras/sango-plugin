@@ -16,17 +16,18 @@
  */
 
 #include "core/game_time_manager.h"
-
 #include "menu/plugin_menu.h"
 
-void GameTimeManager::LoadMenu(menu::PluginMenu& menu, void* args) {
-  GameTimeManager& data = GetInstance();
+namespace ui {
+void LoadGameTimeMenu(menu::PluginMenu& menu, void* args) {
+  auto& data = game::TimeManager::GetInstance();
 
   menu.Add("Date Time (ms)", *(s64*)ADDRESS_DATE_TIME)
       .AddSeparator()
-      .Add("Is Enabled", data.is_enabled)
+      .Add("Is Game Time Enabled", data.is_enabled)
       .Add("Last Tick", data.last_tick)
       .Add("First Tick", data.first_tick)
       .Add("Accumulated Seconds", data.accumulated_seconds)
       .Add("Frame Counter", data.frame_counter);
 }
+} // namespace ui

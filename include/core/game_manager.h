@@ -23,8 +23,11 @@
 class GameEventManager;
 class GameProcessManager;
 class GameDataManager;
-class GameTimeManager;
 class PssManager;
+
+namespace game {
+class TimeManager;
+} // namespace game
 
 namespace overworld {
 class MapManager;
@@ -52,7 +55,7 @@ public:
 
   INLINE GameDataManager& GetGameData() const { return *game_data_; }
 
-  INLINE GameTimeManager& GetGameTimeManager() const {
+  INLINE game::TimeManager& GetGameTimeManager() const {
     return *game_time_manager_;
   }
 
@@ -90,7 +93,7 @@ private:
   GameProcessManager* game_process_manager_;
   GameEventManager* game_event_manager_;
   GameDataManager* game_data_;
-  GameTimeManager* game_time_manager_;
+  game::TimeManager* game_time_manager_;
   void* _0;
   void* _1;
   overworld::WeatherManager* weather_manager_;
