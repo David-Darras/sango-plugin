@@ -92,11 +92,6 @@ public:
     return ((TouchScreen & (*)(Device*, u32))ADDRESS_DEVICE_GET_TOUCHSCREEN)(
         this, 0);
   }
-
-  /**
-   * @brief Initializes system hooks required for input interception.
-   */
-  static void SetupHooks(HookManager& hook_manager);
 };
 
 /**

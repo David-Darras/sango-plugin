@@ -22,6 +22,8 @@
 #include "feature/feature_pokemon_texture.h"
 #include "feature/feature_text_box.h"
 #include "../include/feature/hook_manager.h"
+#include "feature/feature_device.h"
+#include "feature/feature_device.h"
 #include "menu/plugin_menu.h"
 #include "system/device.h"
 #include "system/file.h"
@@ -31,9 +33,7 @@
 void Initialize() {
   File::MountSdmc();
 
-  HookManager& hook_manager = HookManager::GetInstance();
-  Device::SetupHooks(hook_manager);
-
+  feature::DeviceHookContext::Initialize();
   feature::EngineHookContext::Initialize();
   feature::LightHookContext::Initialize();
   feature::TextBoxHookContext::Initialize();
