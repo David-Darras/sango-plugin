@@ -21,7 +21,10 @@
 
 void GameTimeManager::LoadMenu(menu::PluginMenu& menu, void* args) {
   GameTimeManager& data = GetInstance();
-  menu.Add("Is Enabled", data.is_enabled)
+
+  menu.Add("Date Time (ms)", *(s64*)ADDRESS_DATE_TIME)
+      .AddSeparator()
+      .Add("Is Enabled", data.is_enabled)
       .Add("Last Tick", data.last_tick)
       .Add("First Tick", data.first_tick)
       .Add("Accumulated Seconds", data.accumulated_seconds)

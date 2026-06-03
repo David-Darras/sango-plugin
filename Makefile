@@ -25,13 +25,13 @@ INCLUDES	:= 	include \
 SOURCES 	:= 	src \
 				src/battle \
 				src/core \
-				src/data \
 				src/hack \
 				src/layout \
 				src/menu \
 				src/overworld \
 				src/savedata \
-				src/system
+				src/system \
+				src/ui
 
 PSF 		:= 	$(notdir $(TOPDIR)).plgInfo
 

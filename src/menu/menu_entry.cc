@@ -20,7 +20,7 @@
 #include "hack/cheat_code.h"
 #include "menu/plugin_menu.h"
 #include "utils.h"
-#include "data/item.h"
+#include "global_data/item.h"
 
 namespace menu {
 /**
@@ -198,7 +198,7 @@ void MenuEntry::GetDefaultDisplayValue(c16* buffer) const {
       break;
 
     case kTypeItem: {
-      data::Item item(*(u16*)address_);
+      global_data::Item item(*(u16*)address_);
       item.GetName(String::GetTmpStr());
       Utils::Format(buffer, u"%s : %ls", name_, String::GetTmpBuf());
     }

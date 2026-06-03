@@ -17,30 +17,29 @@
 
 #include "battle/manager.h"
 #include "core/engine.h"
+#include "core/game_time_manager.h"
 #include "core/pokemon_model.h"
 #include "core/pss_manager.h"
-#include "data/global_data.h"
 #include "layout/layout.h"
 #include "menu/plugin_menu.h"
 #include "menu/theme.h"
-#include "overworld/day_care.h"
 #include "overworld/overworld.h"
-#include "overworld/renderer.h"
 #include "savedata/savedata.h"
 #include "system/sound.h"
+#include "ui/global_data_menu.h"
 
-void TopMenu(menu::PluginMenu& menu, void* args) {
-  overworld::MapManager& man = overworld::MapManager::GetInstance();
-
+namespace ui {
+void LoadTopMenu(menu::PluginMenu& menu, void* args) {
   menu.Add("Game Speed", core::Engine::GetInstance().GetGameSpeed())
-      .Add("Pokemon Model", PokemonModelMenu)
-      .Add("Global Data", global_data::GlobalDataMenu)
+      .Add("Global Data", LoadGlobalDataMenu)
       .Add("Save Data", savedata::SaveData::LoadMenu)
       .Add("Overworld", overworld::OverworldMenu)
       .Add("Layout", layout::LayoutMenu)
       .Add("Battle", battle::Manager::LoadMenu)
+      .Add("Pokemon Model", PokemonModelMenu)
+      .Add("Time", GameTimeManager::LoadMenu)
       .Add("PSS", PssManager::LoadMenu)
-      .Add("Day Care", overworld::DayCareMenu)
       .Add("Sound", Sound::LoadMenu)
       .Add("Plugin Theme", menu::Theme::LoadMenu);
+}
 }

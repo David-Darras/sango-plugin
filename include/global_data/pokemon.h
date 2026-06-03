@@ -15,50 +15,50 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_DATA_MOVE_H
-#define SANGO_PLUGIN_DATA_MOVE_H
+#ifndef SANGO_PLUGIN_DATA_POKEMON_H
+#define SANGO_PLUGIN_DATA_POKEMON_H
 
 #include "core/core.h"
 
-namespace data {
+namespace global_data {
 
-struct Move {
+struct Pokemon {
   static void LoadMenu(menu::PluginMenu& menu, void* args);
-  STATIC_INLINE Move& GetInstance(u16 id) {
-    return *(Move*)(READ(u32, ADDRESS_DATA_MOVE) + sizeof(Move) * id);
+  STATIC_INLINE Pokemon& GetInstance(u16 species) {
+    return *(Pokemon*)(READ(u32, ADDRESS_DATA_POKEMON) +
+                       sizeof(Pokemon) * species);
   }
 
-  u8 type;
-  u8 category;
-  u8 damage_category;
-  u8 power;
-
-  u8 accuracy;
-  u8 base_pp;
-  s8 priority;
-  u8 hit_count;
-
-  u16 effect_id;
-  u8 effect_rate;
-  u8 effect_turn_type;
-
-  u8 min_turns;
-  u8 max_turns;
-  u8 crit_stage;
-  u8 flinch_rate;
-
-  u16 _0;
-  s8 recoil;
-  s8 drain;
-
-  u8 target;
-  u8 stat_id[3];
-  s8 stat_stages[3];
-  u8 stat_rate[3];
-
-  u32 flags;
+  u8 base_hp;
+  u8 base_attack;
+  u8 base_defense;
+  u8 base_speed;
+  u8 base_special_attack;
+  u8 base_special_defense;
+  u8 type[2];
+  u8 capture_rate;
+  u8 _0;
+  u16 give_effort_values;
+  u16 give_item[3];
+  u8 gender;
+  u8 egg_hatch_steps;
+  u8 base_friendship;
+  u8 _1;
+  u8 egg_group[2];
+  u8 ability[3];
+  u8 escape_rate;
+  u16 form[2];
+  u8 form_count;
+  u8 _2;
+  u16 give_experience;
+  u16 height;
+  u16 weight;
+  u32 _3[5];
+  u16 fake_height;
+  u16 _4;
+  u32 _5[4];
 };
 
 }  // namespace data
 
-#endif  // SANGO_PLUGIN_DATA_MOVE_H
+#endif  // SANGO_PLUGIN_DATA_POKEMON_H

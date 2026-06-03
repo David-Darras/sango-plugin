@@ -23,6 +23,7 @@
 #include "overworld/renderer.h"
 #include "overworld/tile.h"
 #include "overworld/weather_manager.h"
+#include "overworld/day_care.h"
 
 namespace overworld {
 void OverworldMenu(menu::PluginMenu& menu, void* args) {
@@ -32,7 +33,8 @@ void OverworldMenu(menu::PluginMenu& menu, void* args) {
       .Add("Renderer", Renderer::LoadMenu)
       .Add("Camera", StereoCamera::LoadMenu)
       .Add("Model", ModelManager::LoadMenu)
-      .Add("Encounter", Encounter::LoadMenu);
+      .Add("Encounter", Encounter::LoadMenu)
+      .Add("Day Care", DayCareMenu);
   menu.AddSeparator();
   WeatherManager::LoadMenu(menu, args);
   menu.AddSeparator();

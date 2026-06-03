@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026  David Darras
+* Copyright (C) 2026  David Darras
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,15 +15,28 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_GLOBAL_DATA_H
-#define SANGO_PLUGIN_GLOBAL_DATA_H
+#ifndef SANGO_PLUGIN_DATA_ITEM_H
+#define SANGO_PLUGIN_DATA_ITEM_H
 
-namespace menu {
-class PluginMenu;
-}
+#include "core/core.h"
+#include "core/game_manager.h"
 
 namespace global_data {
-void GlobalDataMenu(menu::PluginMenu& menu, void* args);
-} // namespace global_data
+struct Item {
+  INLINE Item(u16 id) {
+    ((void(*)(Item*, u16, void*))ADDRESS_ITEM_DATA_INITIALIZE)
+        (this, id, GameManager::GetInstance().GetSystemHeap());
+  }
 
-#endif //SANGO_PLUGIN_GLOBAL_DATA_H
+  INLINE void GetName(String* str) {
+    ((void(*)(Item*, String*, void*))ADDRESS_GET_ITEM_NAME)
+        (this, str, GameManager::GetInstance().GetSystemHeap());
+  }
+
+  u16 price;
+  u8 _0[34];
+  u32 id;
+};
+} // namespace data
+
+#endif  // SANGO_PLUGIN_DATA_ITEM_H
