@@ -24,6 +24,7 @@
 #include "menu_entry.h"
 #include "numpad.h"
 #include "theme.h"
+#include "ui/application.h"
 
 class Controller;
 
@@ -35,7 +36,7 @@ struct Theme;
  * Handles the display, input, and management of menu entries,
  * submenus, and context tracking using a stack-based approach.
  */
-class PluginMenu {
+class PluginMenu : public ui::Application {
 public:
   /**
    * @brief Returns the singleton instance of the PluginMenu.
@@ -46,18 +47,18 @@ public:
   /**
    * @brief Draws the top section of the menu with menu entries.
    */
-  void DrawTop();
+  void DrawTop() override;
 
   /**
    * @brief Draws the bottom section of the menu (numpad or keyboard).
    */
-  void DrawBottom();
+  void DrawBottom() override;
 
   /**
    * @brief Updates the menu state and input handling.
    * Must be called once per frame.
    */
-  void Update();
+  void Update() override;
 
   /**
    * @brief Checks if the menu is currently opened.

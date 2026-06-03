@@ -44,10 +44,7 @@
 #include "system/file.h"
 #include "system/graphics.h"
 #include "system/sound.h"
-
-String String::s_tmp;
-c16 String::s_buffer[128];
-
+#include "ui/application_manager.h"
 
 void Initialize() {
   menu::PluginMenu::GetInstance().EnterSubMenu(TopMenu, nullptr);
@@ -83,31 +80,34 @@ void Initialize() {
   //                  (uptr)OnUpdateFrame);
   hook_manager.Add(HookID::kOnCreatePokemonModel, 0x0046FE44,
                    (uptr)OnCreatePokemonModel);
+
+  ui::ApplicationManager::GetInstance().Push(
+      &menu::PluginMenu::GetInstance()
+      );
 }
 
 void Entrypoint() {
+  ///////////////////////////////////////////////////////////////
   Graphics& graphics = Graphics::GetInstance();
-  menu::PluginMenu& menu = menu::PluginMenu::GetInstance();
-
-  menu.Update();
-
-  CheatCodeManager::GetInstance().Update();
-
-  if (!menu.IsOpened()) return;
-
+  ui::ApplicationManager& manager = ui::ApplicationManager::GetInstance();
+  ui::Application* application = manager.GetCurrentApplication();
+  ///////////////////////////////////////////////////////////////
+  application->Update();
+  ///////////////////////////////////////////////////////////////
   void* top_buffer = graphics.GetFramebuffer(Screen::kTop);
   if (graphics.BindFramebuffer(top_buffer)) {
     Graphics::EnableScissor(0, 0, 400, 240);
     Graphics::BeginRender(top_buffer);
-    menu.DrawTop();
+    application->DrawTop();
     Graphics::DisableScissor();
   }
-
+  ///////////////////////////////////////////////////////////////
   void* bottom_buffer = graphics.GetFramebuffer(Screen::kBottom);
   if (graphics.BindFramebuffer(bottom_buffer)) {
     Graphics::EnableScissor(0, 0, 320, 240);
     Graphics::BeginRender(bottom_buffer);
-    menu.DrawBottom();
+    application->DrawBottom();
     Graphics::DisableScissor();
   }
+  ///////////////////////////////////////////////////////////////
 }

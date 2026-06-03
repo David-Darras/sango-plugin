@@ -30,6 +30,8 @@ namespace menu {
 PluginMenu PluginMenu::instance_ = PluginMenu();
 
 void PluginMenu::DrawTop() {
+  if (!IsOpened()) return;
+
   LogMenu& log_menu = LogMenu::GetInstance();
 
   if (log_menu.IsEnabled()) {
@@ -70,6 +72,8 @@ void PluginMenu::DrawTop() {
 }
 
 void PluginMenu::DrawBottom() {
+  if (!IsOpened()) return;
+
   // Draw the background.
   Graphics::FillScreen(theme_.background_color);
 

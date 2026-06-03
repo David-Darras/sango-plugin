@@ -41,6 +41,18 @@ typedef uintptr_t uptr;
 
 #define FORCE_INLINE inline __attribute__((always_inline))
 
+// #define INLINE inline __attribute__((always_inline))
+// #define STATIC_INLINE static inline __attribute__((always_inline))
+
+#define SINGLETON(ClassName)\
+public:\
+ClassName(const ClassName&)            = delete;\
+ClassName& operator=(const ClassName&) = delete;\
+ClassName(ClassName&&)                 = delete;\
+ClassName& operator=(ClassName&&)      = delete;\
+private:\
+ClassName() = default;
+
 #define WRITE(type, address, value) *(type*)(address) = (value)
 #define READ(type, address) *(type*)(address)
 
