@@ -16,6 +16,7 @@
  */
 
 #include "top_menu.h"
+#include "core/engine.h"
 #include "menu/plugin_menu.h"
 #include "system/device.h"
 #include "system/file.h"
@@ -25,10 +26,11 @@
 void Initialize() {
   File::MountSdmc();
   Device::Initialize();
+  core::Engine::Initialize();
 
   auto& application_manager = ui::ApplicationManager::GetInstance();
   auto& plugin_menu = menu::PluginMenu::GetInstance();
-  plugin_menu.Open(TopMenu, nullptr);
+  plugin_menu.Open(TopMenu);
   application_manager.Push(plugin_menu);
 }
 

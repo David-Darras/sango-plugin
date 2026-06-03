@@ -15,142 +15,32 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
-#include <cstring>
-
 #include "battle/manager.h"
-#include "common.h"
-#include "core/game_time_manager.h"
+#include "core/engine.h"
 #include "core/pokemon_model.h"
 #include "core/pss_manager.h"
-#include "data/move.h"
-#include "data/pokemon.h"
-#include "hack/cheat_code.h"
-#include "hack/cheat_code_manager.h"
-#include "hack/hook_manager.h"
-#include "layout/picture.h"
-#include "layout/text_box.h"
-#include "menu/log_menu.h"
+#include "data/global_data.h"
+#include "layout/layout.h"
 #include "menu/plugin_menu.h"
 #include "menu/theme.h"
-#include "overworld/encounter.h"
-#include "overworld/field_move.h"
-#include "overworld/model_manager.h"
+#include "overworld/day_care.h"
+#include "overworld/overworld.h"
 #include "overworld/renderer.h"
-#include "overworld/tile.h"
-#include "overworld/weather_manager.h"
 #include "savedata/savedata.h"
-#include "system/device.h"
-#include "system/file.h"
-#include "system/graphics.h"
 #include "system/sound.h"
-
-
-static s32 s_game_speed = 2;
-static u32 s_frame_count = 0;
-
-s32 OnUpdateFrame(uptr addr) {
-  s32 res = 0;
-  s_frame_count++;
-
-  if (s_game_speed >= 1) {
-    for (s32 i = 0; i < s_game_speed; i++) {
-      res = HookManager::GetInstance().Get(HookID::kOnUpdateFrame)->CallOriginal
-          <s32>(addr);
-    }
-    return res;
-  }
-
-  if (s_game_speed < 0) {
-    s32 divider = -s_game_speed;
-    if (s_frame_count % divider == 0) {
-      return HookManager::GetInstance().Get(HookID::kOnUpdateFrame)->
-                                        CallOriginal<s32>(addr);
-    }
-    return 1;
-  }
-
-  return HookManager::GetInstance().Get(HookID::kOnUpdateFrame)->CallOriginal<
-    s32>(addr);
-}
-
-void LayoutMenu(menu::PluginMenu& menu, void* args) {
-  menu.Add("Text Box", layout::TextBox::LoadMenu)
-      .Add("Picture", layout::Picture::LoadMenu);
-}
-
-void GlobalDataMenu(menu::PluginMenu& menu, void* args) {
-  menu.Add("Global Pokemon Data", data::Pokemon::LoadMenu)
-      .Add("Global Move Data", data::Move::LoadMenu)
-      .Add("Global Time", GameTimeManager::LoadMenu)
-      .Add("Date Time (ms)", *(s64*)ADDRESS_DATE_TIME);
-}
-
-void OverworldMenu(menu::PluginMenu& menu, void* args) {
-  overworld::MapManager& man = overworld::MapManager::GetInstance();
-  menu.Add("Reload Map", man.GetMapId())
-      .Add("Map Tile", overworld::Tile::LoadMenu)
-      .Add("Renderer", overworld::Renderer::LoadMenu)
-      .Add("Camera", overworld::StereoCamera::LoadMenu)
-      .Add("Model", overworld::ModelManager::LoadMenu)
-      .Add("Encounter", overworld::Encounter::LoadMenu);
-  menu.AddSeparator();
-  overworld::WeatherManager::LoadMenu(menu, args);
-  menu.AddSeparator();
-  overworld::FieldMove_LoadMenu(menu, args);
-}
-
-void EnableInstantEggHatch(void*) {
-  // Skip check for remaining hatch steps
-  // (cf. savedata/pokemon_core_data.h)
-  WRITE(u32, 0x00715EF0, 0xEA000007);
-}
-
-void EnableInstantEggGeneration(void*) {
-  WRITE(u32, 0x00711364, 0xE1A00000);
-}
-
-void EnableInstantMaxExp(void*) {
-  WRITE(u32, 0x00465A34, 0x15824004);
-  WRITE(u32, 0x00465A54, 0x158240F4);
-}
-
-void DayCareMenu(menu::PluginMenu& menu, void* args) {
-  menu.Add("Instant Egg Hatch", EnableInstantEggHatch)
-      .Add("Instant Egg Generation", EnableInstantEggGeneration)
-      .Add("Instant Max Exp", EnableInstantMaxExp);
-}
 
 void TopMenu(menu::PluginMenu& menu, void* args) {
   overworld::MapManager& man = overworld::MapManager::GetInstance();
 
-  menu.Add("Game Speed", s_game_speed)
+  menu.Add("Game Speed", core::Engine::GetInstance().GetGameSpeed())
       .Add("Pokemon Model", PokemonModelMenu)
-      .Add("Global Data", GlobalDataMenu)
+      .Add("Global Data", global_data::GlobalDataMenu)
       .Add("Save Data", savedata::SaveData::LoadMenu)
-      .Add("Overworld", OverworldMenu)
-      .Add("Layout", LayoutMenu)
+      .Add("Overworld", overworld::OverworldMenu)
+      .Add("Layout", layout::LayoutMenu)
       .Add("Battle", battle::Manager::LoadMenu)
       .Add("PSS", PssManager::LoadMenu)
-      .Add("Day Care", DayCareMenu)
+      .Add("Day Care", overworld::DayCareMenu)
       .Add("Sound", Sound::LoadMenu)
       .Add("Plugin Theme", menu::Theme::LoadMenu);
-}
-
-u32 OnSaveGameData(u32 fs) {
-  u32 result = HookManager::GetInstance().Get(HookID::kOnSaveGameData)->
-                                          CallOriginal<u32>(fs);
-  menu::LogMenu::GetInstance().Add(u"Saving...");
-  return result;
-}
-
-uptr OnLoadCroFile(uptr man, uptr heap, const char* filename, u32* size) {
-  uptr buffer = HookManager::GetInstance().Get(HookID::kOnLoadCroFile)->
-                                           CallOriginal<uptr>(
-                                               man, heap, filename, size);
-  menu::LogMenu::GetInstance().Add(u"%s loaded at 0x%X (0x%X bytes)",
-                                   filename, buffer, *size);
-  // if (strcmp(filename, "rom2:/DllBattle.cro") == 0) {
-  // }
-  return buffer;
 }
