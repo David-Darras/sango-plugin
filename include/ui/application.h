@@ -17,21 +17,25 @@
 
 #ifndef SANGO_PLUGIN_APPLICATION_H
 #define SANGO_PLUGIN_APPLICATION_H
+
 #include "common.h"
+
+class Controller;
+class Graphics;
 
 namespace ui {
 class Application {
 public:
   virtual ~Application() = default;
-  virtual void Update() = 0;
-  virtual void DrawTop() = 0;
-  virtual void DrawBottom() = 0;
+  virtual void Update(Controller& controller) = 0;
+  virtual void DrawTop(Graphics& graphics) = 0;
+  virtual void DrawBottom(Graphics& graphics) = 0;
 
   FORCE_INLINE void SetParent(Application* parent) {
     parent_ = parent;
   }
 
-  FORCE_INLINE Application* GetParent() {
+  FORCE_INLINE Application* GetParent() const {
     return parent_;
   }
 

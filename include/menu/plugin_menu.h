@@ -47,18 +47,18 @@ public:
   /**
    * @brief Draws the top section of the menu with menu entries.
    */
-  void DrawTop() override;
+  void DrawTop(Graphics& graphics) override;
 
   /**
    * @brief Draws the bottom section of the menu (numpad or keyboard).
    */
-  void DrawBottom() override;
+  void DrawBottom(Graphics& graphics) override;
 
   /**
    * @brief Updates the menu state and input handling.
    * Must be called once per frame.
    */
-  void Update() override;
+  void Update(Controller& controller) override;
 
   /**
    * @brief Checks if the menu is currently opened.

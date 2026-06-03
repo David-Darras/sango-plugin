@@ -29,7 +29,7 @@
 namespace menu {
 PluginMenu PluginMenu::instance_ = PluginMenu();
 
-void PluginMenu::DrawTop() {
+void PluginMenu::DrawTop(Graphics& graphics) {
   if (!IsOpened()) return;
 
   LogMenu& log_menu = LogMenu::GetInstance();
@@ -39,14 +39,14 @@ void PluginMenu::DrawTop() {
     return;
   }
 
-  Controller& ctrl = Controller::GetInstance();
+  Controller& controller = Controller::GetInstance();
   MenuContext& ctx = GetContext();
 
   Color unselected_color = theme_.unselected_text_color;
   Color selected_color = theme_.selected_text_color;
 
-  if (ctrl.IsKeyDown(Key::kLeft) || ctrl.IsKeyDown(Key::kRight) ||
-      ctrl.IsKeyReleased(Key::kA)) {
+  if (controller.IsKeyDown(Key::kLeft) || controller.IsKeyDown(Key::kRight) ||
+      controller.IsKeyReleased(Key::kA)) {
     selected_color = theme_.edited_text_color;
   }
 
@@ -71,7 +71,7 @@ void PluginMenu::DrawTop() {
   }
 }
 
-void PluginMenu::DrawBottom() {
+void PluginMenu::DrawBottom(Graphics& graphics) {
   if (!IsOpened()) return;
 
   // Draw the background.
@@ -104,10 +104,8 @@ void PluginMenu::DrawBottom() {
   Graphics::DrawText(5, 216, buffer, theme_.edited_text_color);
 }
 
-void PluginMenu::Update() {
-  Controller& ctrl = Controller::GetInstance();
-
-  if (AreKeysReleased(ctrl)) {
+void PluginMenu::Update(Controller& controller) {
+  if (AreKeysReleased(controller)) {
     Sound::PlaySoundEffect(IsOpened() ? theme_.close_sound : theme_.open_sound);
     is_opened_ ^= 1;
     return;
@@ -122,7 +120,7 @@ void PluginMenu::Update() {
   }
 
   LogMenu& log_menu = LogMenu::GetInstance();
-  if (ctrl.IsKeyPressed(Key::kR)) {
+  if (controller.IsKeyPressed(Key::kR)) {
     log_menu.Toggle();
   }
 
@@ -135,16 +133,17 @@ void PluginMenu::Update() {
     numpad_.Update();
   }
 
-  if (ctrl.IsKeyRepeated(Key::kRight)) {
+  if (controller.IsKeyRepeated(Key::kRight)) {
     entry.Increment();
-  } else if (ctrl.IsKeyRepeated(Key::kLeft)) {
+  } else if (controller.IsKeyRepeated(Key::kLeft)) {
     entry.Decrement();
-  } else if (ctrl.IsKeyReleased(Key::kB)) {
+  } else if (controller.IsKeyReleased(Key::kB)) {
     LeaveSubMenu();
-  } else if (ctrl.IsKeyReleased(Key::kA)) {
+  } else if (controller.IsKeyReleased(Key::kA)) {
     Sound::PlaySoundEffect(theme_.confirm_sound);
     entry.Execute();
-  } else if (ctrl.IsKeyReleased(Key::kX) || numpad_.IsButtonOkReleased() ||
+  } else if (controller.IsKeyReleased(Key::kX) || numpad_.IsButtonOkReleased()
+             ||
              keyboard_.IsButtonOkReleased()) {
     Sound::PlaySoundEffect(theme_.confirm_sound);
 
@@ -159,8 +158,10 @@ void PluginMenu::Update() {
     }
   }
 
-  if (ctrl.IsKeyRepeated(Key::kLeft) || ctrl.IsKeyRepeated(Key::kRight) ||
-      ctrl.IsKeyRepeated(Key::kDown) || ctrl.IsKeyReleased(Key::kUp)) {
+  if (controller.IsKeyRepeated(Key::kLeft) || controller.IsKeyRepeated(
+          Key::kRight) ||
+      controller.IsKeyRepeated(Key::kDown) || controller.
+      IsKeyReleased(Key::kUp)) {
     Sound::PlaySoundEffect(theme_.next_sound);
   }
 
@@ -168,15 +169,15 @@ void PluginMenu::Update() {
   u8& cursor = ctx.cursor;
   u8& display_count = ctx.display_count;
 
-  if (ctrl.IsKeyRepeated(Key::kDown) && cursor < display_count - 1)
+  if (controller.IsKeyRepeated(Key::kDown) && cursor < display_count - 1)
     cursor++;
-  else if (ctrl.IsKeyRepeated(Key::kUp) && cursor > 0)
+  else if (controller.IsKeyRepeated(Key::kUp) && cursor > 0)
     cursor--;
-  else if (ctrl.IsKeyRepeated(Key::kDown) &&
+  else if (controller.IsKeyRepeated(Key::kDown) &&
            (cursor + offset < entries_count_ - 1) &&
            (cursor == display_count - 1))
     offset++;
-  else if (ctrl.IsKeyRepeated(Key::kUp) && (offset > 0) && (cursor == 0))
+  else if (controller.IsKeyRepeated(Key::kUp) && (offset > 0) && (cursor == 0))
     offset--;
 }
 
@@ -236,25 +237,25 @@ bool PluginMenu::CheckProcess(const char* name) {
   return false;
 }
 
-bool PluginMenu::AreKeysReleased(Controller& ctrl) {
+bool PluginMenu::AreKeysReleased(Controller& controller) {
   if (theme_.keys[0] == 0) {
-    return ctrl.IsKeyReleased(Key::kStart);
+    return controller.IsKeyReleased(Key::kStart);
   }
 
   u32 key = 1 << (theme_.keys[0] - 1);
-  bool res = ctrl.IsKeyReleased((Key)key);
+  bool res = controller.IsKeyReleased((Key)key);
   if (theme_.keys[1] == 0) {
     return res;
   }
 
   key = 1 << (theme_.keys[1] - 1);
-  res &= ctrl.IsKeyReleased((Key)key);
+  res &= controller.IsKeyReleased((Key)key);
   if (theme_.keys[2] == 0) {
     return res;
   }
 
   key = 1 << (theme_.keys[2] - 1);
-  res &= ctrl.IsKeyReleased((Key)key);
+  res &= controller.IsKeyReleased((Key)key);
   return res;
 }
 } // namespace menu

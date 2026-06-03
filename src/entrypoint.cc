@@ -87,27 +87,26 @@ void Initialize() {
 }
 
 void Entrypoint() {
-  ///////////////////////////////////////////////////////////////
   Graphics& graphics = Graphics::GetInstance();
+  Controller& controller = Controller::GetInstance();
   ui::ApplicationManager& manager = ui::ApplicationManager::GetInstance();
   ui::Application* application = manager.GetCurrentApplication();
-  ///////////////////////////////////////////////////////////////
-  application->Update();
-  ///////////////////////////////////////////////////////////////
+
+  application->Update(controller);
+
   void* top_buffer = graphics.GetFramebuffer(Screen::kTop);
   if (graphics.BindFramebuffer(top_buffer)) {
     Graphics::EnableScissor(0, 0, 400, 240);
     Graphics::BeginRender(top_buffer);
-    application->DrawTop();
+    application->DrawTop(graphics);
     Graphics::DisableScissor();
   }
-  ///////////////////////////////////////////////////////////////
+
   void* bottom_buffer = graphics.GetFramebuffer(Screen::kBottom);
   if (graphics.BindFramebuffer(bottom_buffer)) {
     Graphics::EnableScissor(0, 0, 320, 240);
     Graphics::BeginRender(bottom_buffer);
-    application->DrawBottom();
+    application->DrawBottom(graphics);
     Graphics::DisableScissor();
   }
-  ///////////////////////////////////////////////////////////////
 }
