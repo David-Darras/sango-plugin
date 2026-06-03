@@ -15,21 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <CTRPluginFramework/System/Hook.hpp>
 #include <CTRPluginFramework/Menu/PluginMenu.hpp>
 
+#include "entrypoint.h"
+#include "hook_proxy.h"
 #include "core/core.h"
-#include "top_menu.h"
 
 namespace CTRPluginFramework {
 int main() {
   //==========================================
 #ifdef ENABLE_SANGO_PLUGIN
   Initialize();
-  Hook hook;
-  hook.InitializeForMitm(
-      ADDRESS_ENTRYPOINT, (uptr)OnFrame);
-  hook.Enable();
+  HookProxy(ADDRESS_ENTRYPOINT, (uptr)Entrypoint, true);
 #endif // ENABLE_SANGO_PLUGIN
   //==========================================
 

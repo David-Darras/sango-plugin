@@ -15,6 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+
 #include <cstring>
 
 #include "battle/manager.h"
@@ -44,8 +45,6 @@
 #include "system/graphics.h"
 #include "system/sound.h"
 
-String String::s_tmp;
-c16 String::s_buffer[128];
 
 static s32 s_game_speed = 2;
 static u32 s_frame_count = 0;
@@ -154,69 +153,4 @@ uptr OnLoadCroFile(uptr man, uptr heap, const char* filename, u32* size) {
   // if (strcmp(filename, "rom2:/DllBattle.cro") == 0) {
   // }
   return buffer;
-}
-
-void Initialize() {
-  menu::PluginMenu::GetInstance().EnterSubMenu(TopMenu, nullptr);
-
-  File::MountSdmc();
-
-  // Disables the keyboard's "No Good Word" filter to allow prohibited words,
-  // phone numbers, etc.
-  WRITE(u32, 0x003A47C0, 0xE3A00000);
-  ARM_RET(0x003A47C4);
-
-  // Disable Shiny
-  // WRITE(u8, 0x00168F60, 0);
-
-  // Disable material shader
-  // ARM_RET(0x003989B0);
-  // ARM_RET(0x003881EC);
-
-  // Disables in-game user inputs to prevent any character actions while the
-  // menu is active.
-  Device::SetupHooks();
-
-  CheatCodeManager& man = CheatCodeManager::GetInstance();
-  man.Add(CheatCodeId::kNoclip, overworld::ModelManager::Noclip);
-  man.Add(CheatCodeId::kSwarmMod, overworld::ModelManager::SwarmMod);
-
-  HookManager& hook_manager = HookManager::GetInstance();
-  hook_manager.Add(HookID::kOnLoadCroFile, 0x00110E2C,
-                   (uptr)OnLoadCroFile);
-  hook_manager.Add(HookID::kOnSaveGameData, 0x0036C47C,
-                   (uptr)OnSaveGameData);
-  hook_manager.Add(HookID::kOnUpdateFrame, 0x0011EEA4,
-                   (uptr)OnUpdateFrame);
-  hook_manager.Add(HookID::kOnCreatePokemonModel, 0x0046FE44,
-                   (uptr)OnCreatePokemonModel);
-}
-
-// Performs logic update and rendering for both screens.
-// Called once per frame.
-void OnFrame() {
-  Graphics& graphics = Graphics::GetInstance();
-  menu::PluginMenu& menu = menu::PluginMenu::GetInstance();
-
-  menu.Update();
-
-  CheatCodeManager::GetInstance().Update();
-
-  if (!menu.IsOpened()) return;
-
-  void* top_buffer = graphics.GetFramebuffer(Screen::kTop);
-  if (graphics.BindFramebuffer(top_buffer)) {
-    Graphics::EnableScissor(0, 0, 400, 240);
-    Graphics::BeginRender(top_buffer);
-    menu.DrawTop();
-    Graphics::DisableScissor();
-  }
-
-  void* bottom_buffer = graphics.GetFramebuffer(Screen::kBottom);
-  if (graphics.BindFramebuffer(bottom_buffer)) {
-    Graphics::EnableScissor(0, 0, 320, 240);
-    Graphics::BeginRender(bottom_buffer);
-    menu.DrawBottom();
-    Graphics::DisableScissor();
-  }
 }

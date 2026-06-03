@@ -15,13 +15,25 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_TOP_MENU_H
-#define SANGO_PLUGIN_TOP_MENU_H
+#ifndef SANGO_PLUGIN_HOOK_H
+#define SANGO_PLUGIN_HOOK_H
 
-namespace menu {
-class PluginMenu;
-}
+#include <CTRPluginFramework/System/Hook.hpp>
 
-extern void TopMenu(menu::PluginMenu& menu, void* args);
+#include "common.h"
 
-#endif //SANGO_PLUGIN_TOP_MENU_H
+class HookProxy {
+public:
+  HookProxy(u32 target_address, u32 callback_address, bool enable = true) {
+    hook_.InitializeForMitm(target_address, callback_address);
+    if (enable) Enable();
+  }
+
+  FORCE_INLINE void Enable() { hook_.Enable(); }
+  FORCE_INLINE void Disable() { hook_.Disable(); }
+
+private:
+  CTRPluginFramework::Hook hook_;
+};
+
+#endif //SANGO_PLUGIN_HOOK_H

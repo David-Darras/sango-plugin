@@ -15,13 +15,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_TOP_MENU_H
-#define SANGO_PLUGIN_TOP_MENU_H
+#ifndef SANGO_PLUGIN_ENTRYPOINT_H
+#define SANGO_PLUGIN_ENTRYPOINT_H
 
-namespace menu {
-class PluginMenu;
-}
+extern void Initialize();
+extern void Entrypoint();
 
-extern void TopMenu(menu::PluginMenu& menu, void* args);
-
-#endif //SANGO_PLUGIN_TOP_MENU_H
+#endif // SANGO_PLUGIN_ENTRYPOINT_H
