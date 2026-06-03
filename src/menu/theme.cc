@@ -17,17 +17,9 @@
 
 #include "menu/theme.h"
 #include "menu/plugin_menu.h"
+#include "ui/color_menu.h"
 
 namespace menu {
-void ColorMenu(PluginMenu& menu, void* args) {
-  Color& color = *(Color*)args;
-  const f32 kFactor = 0.025f;
-  menu.Add("Red", color.r).WithFactor(kFactor).WithBounds(0, 1)
-      .Add("Green", color.g).WithFactor(kFactor).WithBounds(0, 1)
-      .Add("Blue", color.b).WithFactor(kFactor).WithBounds(0, 1)
-      .Add("Alpha", color.a).WithFactor(kFactor).WithBounds(0, 1);
-}
-
 Theme Theme::instance;
 
 Theme::Theme() {
@@ -46,10 +38,11 @@ Theme::Theme() {
 void Theme::LoadMenu(PluginMenu& menu, void* args) {
   Theme& theme = GetInstance();
 
-  menu.Add("Background Color", ColorMenu, &theme.background_color)
-      .Add("Unselected Text Color", ColorMenu, &theme.unselected_text_color)
-      .Add("Selected Text Color", ColorMenu, &theme.selected_text_color)
-      .Add("Edited Text Color", ColorMenu, &theme.edited_text_color);
+  menu.Add("Background Color", ui::LoadColorMenu, &theme.background_color)
+      .Add("Unselected Text Color", ui::LoadColorMenu,
+           &theme.unselected_text_color)
+      .Add("Selected Text Color", ui::LoadColorMenu, &theme.selected_text_color)
+      .Add("Edited Text Color", ui::LoadColorMenu, &theme.edited_text_color);
 
   menu.AddSeparator()
       .Add("Open Plugin Sound Effect", theme.open_sound)

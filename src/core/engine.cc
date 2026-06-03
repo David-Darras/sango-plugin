@@ -21,14 +21,14 @@
 #include "hack/hook_manager.h"
 
 namespace core {
-void Engine::Initialize() {
-  HookManager::GetInstance().Add(HookID::kOnUpdateFrame, ADDRESS_UPDATE_FRAME,
-                                 (uptr)Engine::UpdateFrame);
+void Engine::SetupHooks(HookManager& hook_manager) {
+  hook_manager.Add(HookID::kUpdateFrame, ADDRESS_UPDATE_FRAME,
+                   (uptr)UpdateFrameHook);
 }
 
-s32 Engine::UpdateFrame(uptr addr) {
+s32 Engine::UpdateFrameHook(uptr addr) {
   Engine& engine = GetInstance();
-  Hook* hook = HookManager::GetInstance().Get(HookID::kOnUpdateFrame);
+  Hook* hook = HookManager::GetInstance().Get(HookID::kUpdateFrame);
 
   s32 res = 0;
   s32 frame_count = engine.UpdateFrameCount();

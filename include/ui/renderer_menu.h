@@ -15,16 +15,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_UI_TOP_MENU_H
-#define SANGO_PLUGIN_UI_TOP_MENU_H
-#include "common.h"
+#ifndef SANGO_PLUGIN_UI_RENDERER_MENU_H
+#define SANGO_PLUGIN_UI_RENDERER_MENU_H
 
 namespace menu {
 class PluginMenu;
 }
 
 namespace ui {
-void LoadTopMenu(menu::PluginMenu& menu, void* args);
-}
+void LoadRendererMenu(menu::PluginMenu& menu, void* args);
+} // namespace ui
 
-#endif // SANGO_PLUGIN_UI_TOP_MENU_H
+#endif // SANGO_PLUGIN_UI_RENDERER_MENU_H

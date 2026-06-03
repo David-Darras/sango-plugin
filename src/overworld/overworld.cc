@@ -30,7 +30,6 @@ void OverworldMenu(menu::PluginMenu& menu, void* args) {
   MapManager& man = MapManager::GetInstance();
   menu.Add("Reload Map", man.GetMapId())
       .Add("Map Tile", Tile::LoadMenu)
-      .Add("Renderer", Renderer::LoadMenu)
       .Add("Camera", StereoCamera::LoadMenu)
       .Add("Model", ModelManager::LoadMenu)
       .Add("Encounter", Encounter::LoadMenu)

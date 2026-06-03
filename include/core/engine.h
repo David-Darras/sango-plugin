@@ -19,19 +19,19 @@
 #define SANGO_PLUGIN_ENGINE_H
 
 #include "common.h"
+#include "hack/hook_manager.h"
 
 namespace core {
 class Engine {
   SINGLETON(Engine)
 
 public:
-  static Engine& GetInstance() {
+  STATIC_INLINE Engine& GetInstance() {
     static Engine instance;
     return instance;
   }
 
-  static void Initialize();
-  static s32 UpdateFrame(uptr addr);
+  static void SetupHooks(HookManager& hook_manager);
 
   INLINE s32& GetGameSpeed() {
     return game_speed_;
@@ -42,6 +42,8 @@ public:
   }
 
 private:
+  static s32 UpdateFrameHook(uptr addr);
+
   s32 game_speed_ = 1;
   s32 frame_count_ = 0;
 };

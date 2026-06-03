@@ -17,7 +17,9 @@
 
 #include "ui/top_menu.h"
 #include "core/engine.h"
+#include "hack/hook_manager.h"
 #include "menu/plugin_menu.h"
+#include "renderer/light_manager.h"
 #include "system/device.h"
 #include "system/file.h"
 #include "system/graphics.h"
@@ -26,8 +28,11 @@
 
 void Initialize() {
   File::MountSdmc();
-  Device::Initialize();
-  core::Engine::Initialize();
+
+  HookManager& hook_manager = HookManager::GetInstance();
+  Device::SetupHooks(hook_manager);
+  core::Engine::SetupHooks(hook_manager);
+  renderer::LightManager::SetupHooks(hook_manager);
 
   auto& application_manager = ui::ApplicationManager::GetInstance();
   auto& plugin_menu = menu::PluginMenu::GetInstance();

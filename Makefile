@@ -31,6 +31,7 @@ SOURCES 	:= 	src \
 				src/overworld \
 				src/savedata \
 				src/system \
+				src/renderer \
 				src/ui
 
 PSF 		:= 	$(notdir $(TOPDIR)).plgInfo

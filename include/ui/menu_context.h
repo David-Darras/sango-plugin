@@ -21,11 +21,11 @@
 
 namespace ui {
 struct GlobalDataPokemonMenuContext {
-  u16 species;
+  u16 species = 0;
 };
 
 struct GlobalDataMoveMenuContext {
-  u16 move;
+  u16 move = 0;
 };
 
 struct GlobalDataMenuContext {
@@ -33,16 +33,28 @@ struct GlobalDataMenuContext {
   GlobalDataMoveMenuContext global_data_move;
 };
 
+struct RendererLightMenuContext {
+  f32 outline_scale = 1.0f;
+  Color outline_color = Color{0, 0, 0, 1};
+  Color ambient_color = Color{1, 1, 1, 1};
+  Color diffuse_color = Color{1, 1, 1, 1};
+};
+
+struct RendererMenuContext {
+  RendererLightMenuContext light;
+};
+
 struct TopMenuContext {
   SINGLETON(TopMenuContext)
 
 public:
-  static TopMenuContext& GetInstance() {
+  STATIC_INLINE TopMenuContext& GetInstance() {
     static TopMenuContext instance;
     return instance;
   }
 
   GlobalDataMenuContext global_data;
+  RendererMenuContext renderer;
 };
 } // namespace ui
 

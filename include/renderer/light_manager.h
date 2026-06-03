@@ -15,16 +15,23 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_UI_TOP_MENU_H
-#define SANGO_PLUGIN_UI_TOP_MENU_H
+#ifndef SANGO_PLUGIN_RENDERER_LIGHT_H
+#define SANGO_PLUGIN_RENDERER_LIGHT_H
 #include "common.h"
 
-namespace menu {
-class PluginMenu;
-}
+class HookManager;
 
-namespace ui {
-void LoadTopMenu(menu::PluginMenu& menu, void* args);
-}
+namespace renderer {
+class LightManager {
+public:
+  static void SetupHooks(HookManager& hook_manager);
 
-#endif // SANGO_PLUGIN_UI_TOP_MENU_H
+private:
+  static void ChangeOutlineScaleHook(void* outline_manager, f32 screen_width,
+                                     f32 screen_height, f32 scale);
+  static void ChangeAmbientLightColorHook(void* light_manager, Color* color);
+  static void ChangeDiffuseLightColorHook(void* light_manager, Color* color);
+};
+} // namespace renderer
+
+#endif // SANGO_PLUGIN_RENDERER_LIGHT_H

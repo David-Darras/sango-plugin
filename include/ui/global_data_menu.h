@@ -15,8 +15,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_GLOBAL_DATA_MENU_H
-#define SANGO_PLUGIN_GLOBAL_DATA_MENU_H
+#ifndef SANGO_PLUGIN_GLOBAL_UI_DATA_MENU_H
+#define SANGO_PLUGIN_GLOBAL_UI_DATA_MENU_H
 
 namespace menu {
 class PluginMenu;
@@ -28,4 +28,4 @@ void LoadPokemonMenu(menu::PluginMenu& menu, void* args);
 void LoadGlobalDataMenu(menu::PluginMenu& menu, void* args);
 }
 
-#endif // SANGO_PLUGIN_GLOBAL_DATA_MENU_H
+#endif // SANGO_PLUGIN_GLOBAL_UI_DATA_MENU_H

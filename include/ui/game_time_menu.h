@@ -15,8 +15,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_GAME_TIME_MENU_H
-#define SANGO_PLUGIN_GAME_TIME_MENU_H
+#ifndef SANGO_PLUGIN_UI_GAME_TIME_MENU_H
+#define SANGO_PLUGIN_UI_GAME_TIME_MENU_H
 
 namespace menu {
 class PluginMenu;
@@ -26,4 +26,4 @@ namespace ui {
 void LoadGameTimeMenu(menu::PluginMenu& menu, void* args);
 }
 
-#endif // SANGO_PLUGIN_GAME_TIME_MENU_H
+#endif // SANGO_PLUGIN_UI_GAME_TIME_MENU_H

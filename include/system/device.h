@@ -20,6 +20,7 @@
 
 #include "core/core.h"
 
+class HookManager;
 class Controller;
 class TouchScreen;
 class DPad;
@@ -95,7 +96,7 @@ public:
   /**
    * @brief Initializes system hooks required for input interception.
    */
-  static void Initialize();
+  static void SetupHooks(HookManager& hook_manager);
 };
 
 /**

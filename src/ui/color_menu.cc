@@ -15,16 +15,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_UI_TOP_MENU_H
-#define SANGO_PLUGIN_UI_TOP_MENU_H
-#include "common.h"
-
-namespace menu {
-class PluginMenu;
-}
+#include "menu/plugin_menu.h"
 
 namespace ui {
-void LoadTopMenu(menu::PluginMenu& menu, void* args);
-}
+void LoadColorMenu(menu::PluginMenu& menu, void* args) {
+  constexpr f32 kFactor = 0.025f;
+  Color& color = *(Color*)args;
 
-#endif // SANGO_PLUGIN_UI_TOP_MENU_H
+  menu.Add("Red", color.r).WithFactor(kFactor).WithBounds(0, 1)
+      .Add("Green", color.g).WithFactor(kFactor).WithBounds(0, 1)
+      .Add("Blue", color.b).WithFactor(kFactor).WithBounds(0, 1)
+      .Add("Alpha", color.a).WithFactor(kFactor).WithBounds(0, 1);
+}
+} // namespace ui
