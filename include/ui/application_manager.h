@@ -30,14 +30,12 @@ public:
     return instance;
   }
 
-  void Push(Application* application) {
-    if (application == nullptr) return;
-
+  void Push(Application& application) {
     if (application_ != nullptr) {
-      application->SetParent(application_);
+      application.SetParent(application_);
     }
 
-    application_ = application;
+    application_ = &application;
   }
 
   void Pop() {

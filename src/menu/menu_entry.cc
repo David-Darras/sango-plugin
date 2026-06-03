@@ -479,7 +479,7 @@ void MenuEntry::Edit(const void* value) {
       break;
 
     case kTypeMenu:
-      PluginMenu::GetInstance().EnterSubMenu((menu_callback_t)address_, args_);
+      PluginMenu::GetInstance().Open((menu_callback_t)address_, args_);
       break;
 
     case kTypeUnicode:
@@ -503,7 +503,7 @@ void MenuEntry::Edit(const void* value) {
 
 void MenuEntry::Execute() {
   if (kTypeMenu == type_) {
-    PluginMenu::GetInstance().EnterSubMenu((menu_callback_t)address_, args_);
+    PluginMenu::GetInstance().Open((menu_callback_t)address_, args_);
   } else if (callback_ != nullptr) {
     callback_(args_);
   }

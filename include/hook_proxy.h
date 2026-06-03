@@ -32,6 +32,22 @@ public:
   INLINE void Enable() { hook_.Enable(); }
   INLINE void Disable() { hook_.Disable(); }
 
+  template <typename TResult, typename... Args>
+  STATIC_INLINE typename std::enable_if<
+    !std::is_same<TResult, void>::value, TResult>::type
+  CallOriginal(Args... args) {
+    auto& ctx = CTRPluginFramework::HookContext::GetCurrent();
+    return ctx.OriginalFunction<TResult, Args...>(args...);
+  }
+
+  template <typename TResult, typename... Args>
+  STATIC_INLINE typename std::enable_if<
+    std::is_same<TResult, void>::value, void>::type
+  CallOriginal(Args... args) {
+    auto& ctx = CTRPluginFramework::HookContext::GetCurrent();
+    ctx.OriginalFunction<TResult, Args...>(args...);
+  }
+
 private:
   CTRPluginFramework::Hook hook_;
 };

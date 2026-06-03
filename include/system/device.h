@@ -62,7 +62,9 @@ public:
    * @brief Retrieves the singleton instance of the Device manager.
    * @return Reference to the Device instance.
    */
-  STATIC_INLINE Device& GetInstance() { return Core::GetInstance().GetDevice(); }
+  STATIC_INLINE Device& GetInstance() {
+    return Core::GetInstance().GetDevice();
+  }
 
   /**
    * @brief Accesses the primary controller subsystem.
@@ -93,7 +95,7 @@ public:
   /**
    * @brief Initializes system hooks required for input interception.
    */
-  static void SetupHooks();
+  static void Initialize();
 };
 
 /**

@@ -115,7 +115,7 @@ void PluginMenu::Update(Controller& controller) {
 
   if (process_name_ != nullptr && !GameProcessManager::GetInstance().
       IsCurrentProcess(process_name_)) {
-    LeaveSubMenu();
+    Close();
     return;
   }
 
@@ -138,7 +138,7 @@ void PluginMenu::Update(Controller& controller) {
   } else if (controller.IsKeyRepeated(Key::kLeft)) {
     entry.Decrement();
   } else if (controller.IsKeyReleased(Key::kB)) {
-    LeaveSubMenu();
+    Close();
   } else if (controller.IsKeyReleased(Key::kA)) {
     Sound::PlaySoundEffect(theme_.confirm_sound);
     entry.Execute();
@@ -181,7 +181,7 @@ void PluginMenu::Update(Controller& controller) {
     offset--;
 }
 
-void PluginMenu::EnterSubMenu(menu_callback_t load_menu, void* args) {
+void PluginMenu::Open(menu_callback_t load_menu, void* args) {
   if (contexts_count_ >= kMaxContexts) return;
 
   contexts_[contexts_count_].Initialize(load_menu, args);
@@ -197,7 +197,7 @@ void PluginMenu::EnterSubMenu(menu_callback_t load_menu, void* args) {
       entries_count_ > kMaxDisplayCount ? kMaxDisplayCount : entries_count_;
 }
 
-void PluginMenu::LeaveSubMenu() {
+void PluginMenu::Close() {
   if (contexts_count_ <= 1) return;
 
   contexts_count_--;
@@ -228,7 +228,7 @@ void PluginMenu::Refresh() {
 bool PluginMenu::CheckProcess(const char* name) {
   if (!GameProcessManager::GetInstance().IsCurrentProcess(name)) {
     while (contexts_count_ > 1) {
-      LeaveSubMenu();
+      Close();
     }
     Sound::PlaySoundEffect(theme_.error_sound);
     return true;

@@ -56,8 +56,8 @@ DEFINE_TOUCH_HOOK(kIsTouchReleased)
 
 #undef DEFINE_TOUCH_HOOK
 
-void Device::SetupHooks() {
-  HookManager &hm = HookManager::GetInstance();
+void Device::Initialize() {
+  HookManager& hm = HookManager::GetInstance();
 
 #define ADD_HOOK(ID, Address) hm.Add(HookID::ID, Address, (uptr)Hook##ID)
 

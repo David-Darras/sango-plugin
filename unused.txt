@@ -1,0 +1,29 @@
+
+  CheatCodeManager& man = CheatCodeManager::GetInstance();
+  man.Add(CheatCodeId::kNoclip, overworld::ModelManager::Noclip);
+  man.Add(CheatCodeId::kSwarmMod, overworld::ModelManager::SwarmMod);
+
+  HookManager& hook_manager = HookManager::GetInstance();
+  // hook_manager.Add(HookID::kOnLoadCroFile, 0x00110E2C,
+  //                  (uptr)OnLoadCroFile);
+  // hook_manager.Add(HookID::kOnSaveGameData, 0x0036C47C,
+  //                  (uptr)OnSaveGameData);
+  // hook_manager.Add(HookID::kOnUpdateFrame, 0x0011EEA4,
+  //                  (uptr)OnUpdateFrame);
+  hook_manager.Add(HookID::kOnCreatePokemonModel, 0x0046FE44,
+                   (uptr)OnCreatePokemonModel);
+
+  // Disables the keyboard's "No Good Word" filter to allow prohibited words,
+  // phone numbers, etc.
+  WRITE(u32, 0x003A47C0, 0xE3A00000);
+  ARM_RET(0x003A47C4);
+
+  // Disable Shiny
+  // WRITE(u8, 0x00168F60, 0);
+
+  // Disable material shader
+  // ARM_RET(0x003989B0);
+  // ARM_RET(0x003881EC);
+
+  // Disables in-game user inputs to prevent any character actions while the
+  // menu is active.

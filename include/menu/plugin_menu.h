@@ -72,12 +72,12 @@ public:
    * @brief Enters a submenu with an optional initialization callback.
    * @param load_menu Function to call when entering the submenu.
    */
-  void EnterSubMenu(menu_callback_t load_menu, void* args);
+  void Open(menu_callback_t load_menu, void* args);
 
   /**
    * @brief Leaves the current submenu and returns to the previous context.
    */
-  void LeaveSubMenu();
+  void Close();
 
   /**
    * @brief Attaches an array of string labels to the last added entry.

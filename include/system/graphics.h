@@ -24,8 +24,8 @@
  * @brief Identifiers for the available hardware screens.
  */
 enum class Screen : u8 {
-  kTop,    ///< The upper display.
-  kBottom  ///< The lower display.
+  kTop, ///< The upper display.
+  kBottom ///< The lower display.
 };
 
 /**
@@ -35,7 +35,7 @@ enum class Screen : u8 {
  * calls.
  */
 class Graphics {
- private:
+private:
   /** @brief Scale factor used to simulate large primitives using specific
    * glyphs. */
   static constexpr f32 kScalePrimitiveX = 25.0f;
@@ -48,12 +48,14 @@ class Graphics {
   /** @brief Internal constructor to prevent manual instantiation. */
   Graphics() = default;
 
- public:
+public:
   /**
    * @brief Retrieves the singleton instance of the Graphics controller.
    * @return A reference to the active Graphics instance.
    */
-  STATIC_INLINE Graphics& GetInstance() { return Core::GetInstance().GetGraphics(); }
+  STATIC_INLINE Graphics& GetInstance() {
+    return Core::GetInstance().GetGraphics();
+  }
 
   /**
    * @brief Gets the raw framebuffer pointer for a specific screen.
@@ -84,7 +86,7 @@ class Graphics {
    */
   STATIC_INLINE void EnableScissor(u32 x, u32 y, u32 width, u32 height) {
     ((void (*)(u32, u32, u32, u32))ADDRESS_GRAPHICS_ENABLE_SCISSOR)(x, y, width,
-                                                                    height);
+      height);
   }
 
   /**
@@ -111,8 +113,8 @@ class Graphics {
    * @param pFont  Optional pointer to a custom font.
    */
   STATIC_INLINE void DrawText(s32 x, s32 y, const c16* str,
-                       const Color color = {1.0f, 1.0f, 1.0f, 1.0f},
-                       void* pFont = nullptr) {
+                              const Color color = {1.0f, 1.0f, 1.0f, 1.0f},
+                              void* pFont = nullptr) {
     Color clr = color;
     ((void (*)(s32, s32, const c16*, Color*, void*))ADDRESS_GRAPHICS_DRAW_TEXT)(
         x, y, str, &clr, pFont);
@@ -156,7 +158,8 @@ class Graphics {
    * @param height Height of the rectangle.
    * @param color  The color of the rectangle.
    */
-  STATIC_INLINE void DrawRect(s32 x, s32 y, s32 width, s32 height, Color color) {
+  STATIC_INLINE void
+  DrawRect(s32 x, s32 y, s32 width, s32 height, Color color) {
     EnableScissor(x, y, width, height);
     SetTextScale(kScalePrimitiveX, kScalePrimitiveY);
     DrawText(-10, -10, u"\uE080", color);
