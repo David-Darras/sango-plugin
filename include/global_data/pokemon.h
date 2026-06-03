@@ -15,18 +15,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_DATA_POKEMON_H
-#define SANGO_PLUGIN_DATA_POKEMON_H
+#ifndef SANGO_PLUGIN_GLOBAL_DATA_POKEMON_H
+#define SANGO_PLUGIN_GLOBAL_DATA_POKEMON_H
 
 #include "core/core.h"
 
 namespace global_data {
-
 struct Pokemon {
-  static void LoadMenu(menu::PluginMenu& menu, void* args);
-  STATIC_INLINE Pokemon& GetInstance(u16 species) {
-    return *(Pokemon*)(READ(u32, ADDRESS_DATA_POKEMON) +
-                       sizeof(Pokemon) * species);
+  STATIC_INLINE Pokemon& GetInstance(const u16 species) {
+    Pokemon* table = *(Pokemon*)READ(u32, ADDRESS_GLOBAL_DATA_POKEMON_TABLE);
+    return table[species];
   }
 
   u8 base_hp;
@@ -58,7 +56,6 @@ struct Pokemon {
   u16 _4;
   u32 _5[4];
 };
+} // namespace global_data
 
-}  // namespace data
-
-#endif  // SANGO_PLUGIN_DATA_POKEMON_H
+#endif  // SANGO_PLUGIN_GLOBAL_DATA_POKEMON_H

@@ -15,17 +15,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_DATA_MOVE_H
-#define SANGO_PLUGIN_DATA_MOVE_H
+#ifndef SANGO_PLUGIN_GLOBAL_DATA_MOVE_H
+#define SANGO_PLUGIN_GLOBAL_DATA_MOVE_H
 
 #include "core/core.h"
 
 namespace global_data {
-
 struct Move {
-  static void LoadMenu(menu::PluginMenu& menu, void* args);
-  STATIC_INLINE Move& GetInstance(u16 id) {
-    return *(Move*)(READ(u32, ADDRESS_DATA_MOVE) + sizeof(Move) * id);
+  STATIC_INLINE Move& GetInstance(const u16 move) {
+    Move* table = (Move*)READ(u32, ADDRESS_GLOBAL_DATA_MOVE_TABLE);
+    return table[move];
   }
 
   u8 type;
@@ -58,7 +57,6 @@ struct Move {
 
   u32 flags;
 };
+} // namespace global_data
 
-}  // namespace data
-
-#endif  // SANGO_PLUGIN_DATA_MOVE_H
+#endif  // SANGO_PLUGIN_GLOBAL_DATA_MOVE_H

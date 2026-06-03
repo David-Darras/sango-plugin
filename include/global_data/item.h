@@ -15,21 +15,21 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_DATA_ITEM_H
-#define SANGO_PLUGIN_DATA_ITEM_H
+#ifndef SANGO_PLUGIN_GLOBAL_DATA_ITEM_H
+#define SANGO_PLUGIN_GLOBAL_DATA_ITEM_H
 
 #include "core/core.h"
 #include "core/game_manager.h"
 
 namespace global_data {
 struct Item {
-  INLINE Item(u16 id) {
-    ((void(*)(Item*, u16, void*))ADDRESS_ITEM_DATA_INITIALIZE)
+  INLINE Item(const u16 id) {
+    ((void(*)(Item*, u16, void*))ADDRESS_GLOBAL_DATA_ITEM_INITIALIZE)
         (this, id, GameManager::GetInstance().GetSystemHeap());
   }
 
   INLINE void GetName(String* str) {
-    ((void(*)(Item*, String*, void*))ADDRESS_GET_ITEM_NAME)
+    ((void(*)(Item*, String*, void*))ADDRESS_GLOBAL_DATA_ITEM_GET_NAME)
         (this, str, GameManager::GetInstance().GetSystemHeap());
   }
 
@@ -37,6 +37,6 @@ struct Item {
   u8 _0[34];
   u32 id;
 };
-} // namespace data
+} // namespace global_data
 
-#endif  // SANGO_PLUGIN_DATA_ITEM_H
+#endif  // SANGO_PLUGIN_GLOBAL_DATA_ITEM_H
