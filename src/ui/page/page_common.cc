@@ -15,7 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "ui/log_menu.h"
+#include "ui/log_application.h"
 #include "ui/main_application.h"
 
 namespace ui {

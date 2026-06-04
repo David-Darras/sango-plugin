@@ -19,7 +19,6 @@
 
 #include "game/event_manager.h"
 #include "game/process_manager.h"
-#include "ui/log_menu.h"
 #include "system/device.h"
 #include "system/graphics.h"
 #include "system/sound.h"
@@ -32,13 +31,6 @@ MainApplication MainApplication::instance_ = MainApplication();
 
 void MainApplication::DrawTop(Graphics& graphics) {
   if (!IsOpened()) return;
-
-  LogMenu& log_menu = LogMenu::GetInstance();
-
-  if (log_menu.IsEnabled()) {
-    log_menu.Draw();
-    return;
-  }
 
   Controller& controller = Controller::GetInstance();
   MenuContext& ctx = GetContext();
@@ -119,11 +111,6 @@ void MainApplication::Update(Controller& controller) {
       IsCurrentProcess(process_name_)) {
     Close();
     return;
-  }
-
-  LogMenu& log_menu = LogMenu::GetInstance();
-  if (controller.IsKeyPressed(Key::kR)) {
-    log_menu.Toggle();
   }
 
   MenuContext& ctx = GetContext();

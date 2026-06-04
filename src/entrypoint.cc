@@ -32,6 +32,7 @@
 #include "system/file.h"
 #include "system/graphics.h"
 #include "ui/application_manager.h"
+#include "ui/root_application.h"
 
 String String::s_tmp;
 c16 String::s_buffer[128];
@@ -52,10 +53,11 @@ void Initialize() {
   feature::OverworldModelCheatCode::Initialize();
 
   auto& application_manager = ui::ApplicationManager::GetInstance();
-  auto& plugin_menu = ui::MainApplication::GetInstance();
+  auto& root_app = ui::RootApplication::GetInstance();
+  auto& main_app = ui::MainApplication::GetInstance();
 
-  plugin_menu.Open(ui::LoadTopPage);
-  application_manager.Push(plugin_menu);
+  main_app.Open(ui::LoadTopPage);
+  application_manager.Push(root_app);
 }
 
 void Entrypoint() {
