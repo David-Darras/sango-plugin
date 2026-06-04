@@ -32,52 +32,22 @@ MainApplication MainApplication::instance_ = MainApplication();
 void MainApplication::DrawTop(Graphics& graphics) {
   if (!IsOpened()) return;
 
-  Controller& controller = Controller::GetInstance();
-  MenuContext& ctx = GetContext();
-
-  Color unselected_color = theme_.unselected_text_color;
-  Color selected_color = theme_.selected_text_color;
-
-  if (controller.IsKeyDown(Key::kLeft) || controller.IsKeyDown(Key::kRight) ||
-      controller.IsKeyReleased(Key::kA)) {
-    selected_color = theme_.edited_text_color;
-  }
-
-  // Draw the background.
-  if (no_background_) {
-    selected_color.a = 0.6;
-    unselected_color.a = 0.6;
-  } else {
-    Graphics::FillScreen(theme_.background_color);
-  }
-
-  // Draw the cursor.
-  Graphics::DrawText(5, 6 + ctx.cursor * kLineHeight, u"\uE077",
-                     selected_color);
-
-  // Draw the entries.
-  c16 buffer[BUFFER_SIZE];
-  for (u32 i = 0; i < ctx.display_count; i++) {
-    entries_[i + ctx.offset].GetDisplayValue(buffer);
-    Graphics::DrawText(25, 5 + i * kLineHeight, buffer,
-                       ctx.cursor == i ? selected_color : unselected_color);
-  }
+  painter_->DrawPageBackground(*this);
+  painter_->DrawPageCursor(*this);
+  painter_->DrawPageItems(*this);
 }
 
 void MainApplication::DrawBottom(Graphics& graphics) {
-  if (!IsOpened()) return;
+  if (!IsOpened() || !painter_->ShowBottom()) return;
 
-  // Draw the background.
   Graphics::FillScreen(theme_.background_color);
 
-  // Draw the keyboard/numpad.
   if (GetSelectedEntry().GetType() == kTypeUnicode) {
     keyboard_.Draw();
   } else {
     numpad_.Draw();
   }
 
-  // Show the current process + event of the game.
   c16 buffer[BUFFER_SIZE];
   const char* process_name = game::ProcessManager::GetInstance().
       GetCurrentProcessName();
@@ -116,10 +86,12 @@ void MainApplication::Update(Controller& controller) {
   MenuContext& ctx = GetContext();
   PageItem& entry = GetSelectedEntry();
 
-  if (entry.GetType() == kTypeUnicode) {
-    keyboard_.Update();
-  } else {
-    numpad_.Update();
+  if (painter_->ShowBottom()) {
+    if (entry.GetType() == kTypeUnicode) {
+      keyboard_.Update();
+    } else {
+      numpad_.Update();
+    }
   }
 
   if (controller.IsKeyRepeated(Key::kRight)) {
@@ -246,5 +218,40 @@ bool MainApplication::AreKeysReleased(Controller& controller) {
   key = 1 << (theme_.keys[2] - 1);
   res &= controller.IsKeyReleased((Key)key);
   return res;
+}
+
+void MainAppPainter::DrawPageBackground(MainApplication& app) {
+  if (app.no_background_) return;
+  Graphics::FillScreen(app.theme_.background_color);
+}
+
+void MainAppPainter::DrawPageCursor(MainApplication& app) {
+  MainApplication::MenuContext& ctx = app.GetContext();
+
+  Graphics::DrawText(5, 6 + ctx.cursor * MainApplication::kLineHeight,
+                     u"\uE077", app.theme_.selected_text_color);
+}
+
+void MainAppPainter::DrawPageItems(MainApplication& app) {
+  MainApplication::MenuContext& ctx = app.GetContext();
+  c16 buffer[BUFFER_SIZE];
+  for (u32 i = 0; i < ctx.display_count; i++) {
+    app.entries_[i + ctx.offset].GetDisplayValue(buffer);
+    Graphics::DrawText(25, 5 + i * MainApplication::kLineHeight, buffer,
+                       ctx.cursor == i
+                         ? app.theme_.selected_text_color
+                         : app.theme_.unselected_text_color);
+  }
+}
+
+void RetroAppPainter::DrawPageBackground(MainApplication& app) {
+  Graphics::FillScreen(0.9f, 0.9f, 0.9f, 1.0f);
+}
+
+void RetroAppPainter::DrawPageCursor(MainApplication& app) {
+}
+
+void RetroAppPainter::DrawPageItems(MainApplication& app) {
+  Graphics::DrawText(10, 10, u"Hello", Color(0, 0, 0, 1));
 }
 } // namespace ui

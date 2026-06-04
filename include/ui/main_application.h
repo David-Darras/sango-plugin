@@ -19,7 +19,8 @@
 
 #include "feature/cheat_code.h"
 #include "feature/cheat_code_manager.h"
-#include "page_item.h"
+#include "ui/page_item.h"
+#include "ui/painter.h"
 #include "ui/theme.h"
 #include "ui/application.h"
 #include "ui/widget/keyboard.h"
@@ -37,6 +38,9 @@ struct Theme;
 */
 class MainApplication : public Application {
 public:
+  friend class MainAppPainter;
+  friend class RetroAppPainter;
+
   /**
 * @brief Returns the singleton instance of the MainApplication.
 * @return Reference to the unique MainApplication instance.
@@ -77,6 +81,10 @@ public:
 * @brief Leaves the current submenu and returns to the previous context.
 */
   void Close();
+
+  void SetPainter(Painter& painter) {
+    painter_ = &painter;
+  }
 
   /**
 * @brief Attaches an array of string labels to the last added entry.
@@ -203,7 +211,8 @@ public:
 * @param menu Callback function to build the submenu.
 * @return Reference to the MainApplication instance.
 */
-  MainApplication& Add(const c8* name, menu_callback_t menu, void* args = nullptr) {
+  MainApplication& Add(const c8* name, menu_callback_t menu,
+                       void* args = nullptr) {
     if (entries_count_ < kMaxEntries) {
       entries_[entries_count_].Initialize(name, (void*)menu, kTypeMenu);
       entries_[entries_count_].WithArgs(args);
@@ -427,5 +436,6 @@ private:
   Keyboard keyboard_; ///< Keyboard logic.
 
   Theme& theme_;
+  Painter* painter_ = nullptr;
 };
 } // namespace ui

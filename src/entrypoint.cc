@@ -55,6 +55,8 @@ void Initialize() {
   auto& application_manager = ui::ApplicationManager::GetInstance();
   auto& root_app = ui::RootApplication::GetInstance();
   auto& main_app = ui::MainApplication::GetInstance();
+  auto& painter = ui::RetroAppPainter::GetInstance();
+  main_app.SetPainter(painter);
 
   main_app.Open(ui::LoadTopPage);
   application_manager.Push(root_app);

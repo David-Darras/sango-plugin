@@ -33,6 +33,6 @@ struct Theme {
   u16 next_sound = 4;
   u16 error_sound = 21;
 
-  u8 keys[3];
+  u8 keys[3] = {};
 };
 } // namespace ui
