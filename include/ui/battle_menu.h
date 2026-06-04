@@ -15,19 +15,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "overworld/encounter.h"
+#ifndef SANGO_PLUGIN_BATTLE_MENU_H
+#define SANGO_PLUGIN_BATTLE_MENU_H
 
-#include "battle/config.h"
-#include "menu/plugin_menu.h"
-
-namespace overworld {
-void Encounter::LoadMenu(menu::PluginMenu& menu, void* args) {
-  if (menu.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
-
-  Encounter& data = GetInstance();
-
-  menu.Add("Walk Count", data.walk_count)
-      .Add("Encounter Rate", data.encounter_rate)
-      .Add("Fishing Chain", data.fishing_chain_count);
+namespace menu {
+class PluginMenu;
 }
-} // namespace overworld
+
+namespace ui {
+void LoadBattleConfigMenu(menu::PluginMenu& menu, void* args);
+void LoadBattleMenu(menu::PluginMenu& menu, void* args);
+} // namespace ui
+
+#endif //SANGO_PLUGIN_BATTLE_MENU_H

@@ -15,6 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "feature/feature_battle_config.h"
 #include "ui/top_menu.h"
 #include "feature/feature_engine.h"
 #include "feature/feature_light.h"
@@ -40,6 +41,7 @@ void Initialize() {
   feature::TextBoxHookContext::Initialize();
   feature::PictureHookContext::Initialize();
   feature::PokemonTextureHookContext::Initialize();
+  feature::BattleConfigHookContext::Initialize();
 
   auto& application_manager = ui::ApplicationManager::GetInstance();
   auto& plugin_menu = menu::PluginMenu::GetInstance();

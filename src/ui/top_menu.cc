@@ -24,6 +24,7 @@
 #include "overworld/weather_manager.h"
 #include "savedata/savedata.h"
 #include "system/sound.h"
+#include "ui/battle_menu.h"
 #include "ui/game_time_menu.h"
 #include "ui/global_data_menu.h"
 #include "ui/renderer_menu.h"
@@ -37,6 +38,9 @@ void LoadTopMenu(menu::PluginMenu& menu, void* args) {
                                  "Cloudy", "Stormy", "Dry"};
 
   auto& weather_manager = overworld::WeatherManager::GetInstance();
+
+  menu.Add("Battle Config", LoadBattleConfigMenu);
+
   menu.Add("Game Speed", feature::EngineHookContext::GetInstance().game_speed)
       .Add("Weather", weather_manager.GetRequestedWeather())
       .WithArray(WEATHERS, SIZE(WEATHERS))
@@ -47,7 +51,7 @@ void LoadTopMenu(menu::PluginMenu& menu, void* args) {
       .Add("Game Time", LoadGameTimeMenu)
       .Add("Save Data", LoadSaveDataMenu)
       .Add("Overworld", overworld::OverworldMenu)
-      .Add("Battle", battle::Manager::LoadMenu)
+      .Add("Battle", LoadBattleMenu)
       .Add("Sound", LoadSoundMenu)
       .Add("Plugin Theme", menu::Theme::LoadMenu);
 }
