@@ -17,13 +17,13 @@
 
 #pragma once
 
-#include "game_manager.h"
+#include "manager.h"
 #include "common.h"
 
 namespace game {
 struct TimeManager {
   STATIC_INLINE TimeManager& GetInstance() {
-    return GameManager::GetInstance().GetGameTimeManager();
+    return Manager::GetInstance().GetGameTimeManager();
   }
 
   bool is_enabled;

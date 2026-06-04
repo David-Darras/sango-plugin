@@ -18,11 +18,9 @@
 #pragma once
 
 #include "utils.h"
-#include "game/game_manager.h"
+#include "game/manager.h"
 
-class GameManager;
-class GameEvent;
-
+namespace game {
 struct GameEvent {
   void* vtable;
   GameEvent* parent;
@@ -32,12 +30,12 @@ struct GameEvent {
   void* ro;
 };
 
-class GameEventManager {
-  GameEventManager() = default;
+class EventManager {
+  EventManager() = default;
 
 public:
-  STATIC_INLINE GameEventManager& GetInstance() {
-    return game::GameManager::GetInstance().GetGameEventManager();
+  STATIC_INLINE EventManager& GetInstance() {
+    return Manager::GetInstance().GetGameEventManager();
   }
 
   GameEvent& GetGameEvent() const { return *current_game_event_; }
@@ -50,7 +48,8 @@ public:
   }
 
   GameEvent* current_game_event_;
-  game::GameManager* game_manager_;
+  Manager* game_manager_;
   GameEvent* pending_game_event_;
   bool executed_;
 };
+}

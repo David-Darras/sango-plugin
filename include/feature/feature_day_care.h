@@ -19,7 +19,6 @@
 #include "cheat_code_manager.h"
 #include "common.h"
 #include "core/core.h"
-#include "../ui/log_menu.h"
 
 namespace feature {
 class DayCareCheatCode {

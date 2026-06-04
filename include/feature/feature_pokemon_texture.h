@@ -20,7 +20,7 @@
 #include "common.h"
 #include "core/core.h"
 #include "feature/hook_manager.h"
-#include "../renderer/pokemon_model.h"
+#include "renderer/pokemon_model.h"
 
 namespace feature {
 struct PokemonTextureHookContext {

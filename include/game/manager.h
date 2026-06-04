@@ -19,14 +19,7 @@
 
 #include "core/core.h"
 
-class GameEventManager;
-class GameProcessManager;
 class PssManager;
-
-namespace game {
-class TimeManager;
-class DataManager;
-} // namespace game
 
 namespace overworld {
 class MapManager;
@@ -39,23 +32,28 @@ class WeatherManager;
  * high-level managers (Process and Event).
  */
 namespace game {
-class GameManager {
+class ProcessManager;
+class EventManager;
+class TimeManager;
+class DataManager;
+
+class Manager {
 public:
-  STATIC_INLINE GameManager& GetInstance() {
-    return *(GameManager*)ADDRESS_GAME_MANAGER;
+  STATIC_INLINE Manager& GetInstance() {
+    return *(Manager*)ADDRESS_GAME_MANAGER;
   }
 
-  INLINE GameProcessManager& GetGameProcessManager() const {
+  INLINE ProcessManager& GetProcessManager() const {
     return *game_process_manager_;
   }
 
-  INLINE GameEventManager& GetGameEventManager() const {
+  INLINE EventManager& GetGameEventManager() const {
     return *game_event_manager_;
   }
 
-  INLINE game::DataManager& GetGameData() const { return *game_data_; }
+  INLINE DataManager& GetGameData() const { return *game_data_; }
 
-  INLINE game::TimeManager& GetGameTimeManager() const {
+  INLINE TimeManager& GetGameTimeManager() const {
     return *game_time_manager_;
   }
 
@@ -76,7 +74,7 @@ public:
   }
 
 private:
-  GameManager() = default;
+  Manager() = default;
 
   // Memory Heaps
   void* system_heap_; ///< Main system memory heap.
@@ -90,10 +88,10 @@ private:
   u32 unknow0;
 
   // Sub-Managers
-  GameProcessManager* game_process_manager_;
-  GameEventManager* game_event_manager_;
-  game::DataManager* game_data_;
-  game::TimeManager* game_time_manager_;
+  ProcessManager* game_process_manager_;
+  EventManager* game_event_manager_;
+  DataManager* game_data_;
+  TimeManager* game_time_manager_;
   void* _0;
   void* _1;
   overworld::WeatherManager* weather_manager_;

@@ -19,7 +19,7 @@
 
 #include "core/core.h"
 
-class GameProcessManager;
+class ProcessManager;
 
 namespace battle {
 class Manager;
@@ -41,7 +41,7 @@ private:
   void* vtable_;
   u32 _0[6];
 
-  GameProcessManager* game_process_manager_;
+  ProcessManager* game_process_manager_;
   void* heaps_[6];
 
   Config* config_;

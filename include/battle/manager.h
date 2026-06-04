@@ -21,7 +21,7 @@
 #include "process.h"
 
 namespace game {
-class GameManager;
+class Manager;
 } // namespace game
 
 namespace savedata {
@@ -133,7 +133,7 @@ private:
   Graphics* graphics_;
 
   u32 _0[8];
-  game::GameManager* game_manager_;
+  game::Manager* game_manager_;
   Device* device_;
 
   u32 _1[6];

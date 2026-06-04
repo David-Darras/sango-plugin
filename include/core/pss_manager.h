@@ -43,7 +43,7 @@ struct PssData {
 class PssManager {
 public:
   STATIC_INLINE PssManager& GetInstance() {
-    return game::GameManager::GetInstance().GetPssManager();
+    return game::Manager::GetInstance().GetPssManager();
   }
 
   INLINE savedata::PssProfilePayload& GetMyProfile() {

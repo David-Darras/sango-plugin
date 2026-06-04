@@ -15,7 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "game/game_time_manager.h"
+#include "game/time_manager.h"
 #include "global_data/move.h"
 #include "global_data/pokemon.h"
 #include "global_data/move.inc"

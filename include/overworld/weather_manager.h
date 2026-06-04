@@ -17,13 +17,13 @@
 
 #pragma once
 
-#include "../game/game_manager.h"
+#include "game/manager.h"
 
 namespace overworld {
 class WeatherManager {
 public:
   STATIC_INLINE WeatherManager& GetInstance() {
-    return game::GameManager::GetInstance().GetWeatherManager();
+    return game::Manager::GetInstance().GetWeatherManager();
   }
 
   INLINE u8& GetCurrentWeather() { return *(u8*)((uptr)this + 0x1C); }

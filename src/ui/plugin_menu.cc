@@ -17,8 +17,8 @@
 
 #include "ui/plugin_menu.h"
 
-#include "core/game_event_manager.h"
-#include "core/game_process_manager.h"
+#include "game/event_manager.h"
+#include "game/process_manager.h"
 #include "ui/log_menu.h"
 #include "system/device.h"
 #include "system/graphics.h"
@@ -87,12 +87,12 @@ void PluginMenu::DrawBottom(Graphics& graphics) {
 
   // Show the current process + event of the game.
   c16 buffer[BUFFER_SIZE];
-  const char* process_name = GameProcessManager::GetInstance().
+  const char* process_name = game::ProcessManager::GetInstance().
       GetCurrentProcessName();
   Utils::Format(buffer, u"Process=%s", process_name);
   Graphics::DrawText(5, 150, buffer, theme_.unselected_text_color);
 
-  const char* event_name = GameEventManager::GetInstance().
+  const char* event_name = game::EventManager::GetInstance().
       GetCurrentEventName();
   Utils::Format(buffer, u"Event=%s", event_name);
   Graphics::DrawText(5, 170, buffer, theme_.unselected_text_color);
@@ -115,7 +115,7 @@ void PluginMenu::Update(Controller& controller) {
 
   if (!IsOpened()) return;
 
-  if (process_name_ != nullptr && !GameProcessManager::GetInstance().
+  if (process_name_ != nullptr && !game::ProcessManager::GetInstance().
       IsCurrentProcess(process_name_)) {
     Close();
     return;
@@ -228,7 +228,7 @@ void PluginMenu::Refresh() {
 }
 
 bool PluginMenu::CheckProcess(const char* name) {
-  if (!GameProcessManager::GetInstance().IsCurrentProcess(name)) {
+  if (!game::ProcessManager::GetInstance().IsCurrentProcess(name)) {
     while (contexts_count_ > 1) {
       Close();
     }

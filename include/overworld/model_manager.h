@@ -18,7 +18,7 @@
 #pragma once
 
 #include "common.h"
-#include "game/game_data_manager.h"
+#include "game/data_manager.h"
 
 namespace overworld {
 struct Position {

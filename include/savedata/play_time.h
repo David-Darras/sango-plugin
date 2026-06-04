@@ -17,7 +17,7 @@
 
 #pragma once
 #include "ui/plugin_menu.h"
-#include "game/game_data_manager.h"
+#include "game/data_manager.h"
 
 namespace savedata {
 struct PlayTime {

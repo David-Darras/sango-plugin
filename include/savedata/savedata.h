@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include "game/game_data_manager.h"
+#include "game/data_manager.h"
 
 namespace savedata {
 class Footer;

@@ -16,10 +16,10 @@
  */
 
 #pragma once
-#include "../game/game_manager.h"
+#include "game/manager.h"
 
 namespace game {
-class GameManager;
+class Manager;
 } // namespace game
 
 namespace overworld {
@@ -28,7 +28,7 @@ class Renderer;
 class MapManager {
 public:
   STATIC_INLINE MapManager& GetInstance() {
-    return game::GameManager::GetInstance().GetOverworldMapManager();
+    return game::Manager::GetInstance().GetOverworldMapManager();
   }
 
   INLINE Renderer& GetRenderer() { return *renderer_; }
@@ -41,7 +41,7 @@ public:
 
 private:
   void* _0[23 + 1];
-  game::GameManager* game_manager_;
+  game::Manager* game_manager_;
   void* _1[2 + 28 + 1 + 2 + 2];
 
   u32 current_map_id;

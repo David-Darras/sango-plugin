@@ -21,7 +21,7 @@
 #include "common.h"
 #include "hook_manager.h"
 #include "battle/manager.h"
-#include "core/game_process_manager.h"
+#include "game/process_manager.h"
 #include "overworld/model_manager.h"
 #include "overworld/renderer.h"
 
@@ -62,14 +62,14 @@ struct CameraHookContext {
                                 bool update) {
     auto& ctx = GetInstance();
 
-    if (GameProcessManager::GetInstance().
+    if (game::ProcessManager::GetInstance().
       IsCurrentProcess(PROCESS_NAME_FIELD_MAP)) {
       if (&overworld::Renderer::GetInstance().GetStereoCamera() ==
           stereo_camera) {
         ctx.is_updating_camera = true;
       }
     }
-    // if (GameProcessManager::GetInstance().IsCurrentProcess(PROCESS_NAME_BATTLE)) {
+    // if (ProcessManager::GetInstance().IsCurrentProcess(PROCESS_NAME_BATTLE)) {
     //   if (&battle::Graphics::GetInstance().GetStereoCamera() == stereo_camera) {
     //     is_updating_camera = true;
     //   }

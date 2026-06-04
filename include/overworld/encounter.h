@@ -18,7 +18,7 @@
 #pragma once
 
 #include "core/core.h"
-#include "game/game_data_manager.h"
+#include "game/data_manager.h"
 
 namespace overworld {
 struct Encounter {

@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include "game_manager.h"
+#include "manager.h"
 
 namespace savedata {
 struct PokemonTeam;
@@ -34,7 +34,7 @@ namespace game {
 class DataManager {
 public:
   STATIC_INLINE DataManager& GetInstance() {
-    return GameManager::GetInstance().GetGameData();
+    return Manager::GetInstance().GetGameData();
   }
 
   INLINE savedata::SaveData& GetSavedata() const { return *savedata_; }

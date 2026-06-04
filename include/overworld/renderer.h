@@ -20,7 +20,7 @@
 #include "overworld/map_manager.h"
 
 namespace game {
-class GameManager;
+class Manager;
 } // namespace game
 class Graphics;
 
@@ -47,7 +47,7 @@ public:
 
 private:
   u32 _0[5];
-  game::GameManager* game_manager_;
+  game::Manager* game_manager_;
   Graphics* graphics_;
   void* _1;
   u32 _2[2];
