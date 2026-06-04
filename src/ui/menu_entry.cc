@@ -15,14 +15,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "menu/menu_entry.h"
+#include "../../include/ui/menu_entry.h"
 
 #include "feature/cheat_code.h"
-#include "menu/plugin_menu.h"
+#include "ui/plugin_menu.h"
 #include "utils.h"
 #include "global_data/item.h"
 
-namespace menu {
+namespace ui {
 /**
 * @brief Helper to set specific bits in memory.
 */
@@ -524,4 +524,4 @@ void MenuEntry::Execute() {
     callback_(args_);
   }
 }
-} // namespace menu
+} // namespace ui

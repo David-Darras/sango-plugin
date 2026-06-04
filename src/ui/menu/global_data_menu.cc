@@ -19,10 +19,10 @@
 #include "global_data/move.h"
 #include "global_data/pokemon.h"
 #include "global_data/move.inc"
-#include "menu/plugin_menu.h"
+#include "../../../include/ui/plugin_menu.h"
 
 namespace ui {
-void LoadMoveMenu(menu::PluginMenu& menu, void* args) {
+void LoadMoveMenu(PluginMenu& menu, void* args) {
   static u16 move = 0;
   auto& data = global_data::Move::GetInstance(move);
 
@@ -77,7 +77,7 @@ void LoadMoveMenu(menu::PluginMenu& menu, void* args) {
   menu.Add("Flags", data.flags);
 }
 
-void LoadPokemonMenu(menu::PluginMenu& menu, void* args) {
+void LoadPokemonMenu(PluginMenu& menu, void* args) {
   static u16 species = 0;
   auto& data = global_data::Pokemon::GetInstance(species);
 
@@ -119,7 +119,7 @@ void LoadPokemonMenu(menu::PluginMenu& menu, void* args) {
       .Add("Egg Hatch Steps", data.egg_hatch_steps);
 }
 
-void LoadGlobalDataMenu(menu::PluginMenu& menu, void* args) {
+void LoadGlobalDataMenu(PluginMenu& menu, void* args) {
   menu.Add("Global Pokemon Data", LoadPokemonMenu)
       .Add("Global Move Data", LoadMoveMenu);
 }

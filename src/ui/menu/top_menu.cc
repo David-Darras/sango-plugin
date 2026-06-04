@@ -16,12 +16,12 @@
  */
 
 #include "feature/feature_engine.h"
-#include "menu/plugin_menu.h"
+#include "../../../include/ui/plugin_menu.h"
 #include "overworld/weather_manager.h"
 #include "ui/top_menu.h"
 
 namespace ui {
-void LoadTopMenu(menu::PluginMenu& menu, void* args) {
+void LoadTopMenu(PluginMenu& menu, void* args) {
   static const c8* WEATHERS[] = {
       "Sunny", "Rainy", "Thunderstorm",
       "Misty", "Ash", "Sandstorm",

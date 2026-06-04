@@ -15,11 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "menu/log_menu.h"
-#include "menu/plugin_menu.h"
+#include "../../../include/ui/log_menu.h"
+#include "ui/plugin_menu.h"
 
 namespace ui {
-void LoadColorMenu(menu::PluginMenu& menu, void* args) {
+void LoadColorMenu(PluginMenu& menu, void* args) {
   constexpr f32 kFactor = 0.025f;
   Color& color = *(Color*)args;
 
@@ -29,7 +29,7 @@ void LoadColorMenu(menu::PluginMenu& menu, void* args) {
       .Add("Alpha", color.a).WithFactor(kFactor).WithBounds(0, 1);
 }
 
-void LoadColor8Menu(menu::PluginMenu& menu, void* args) {
+void LoadColor8Menu(PluginMenu& menu, void* args) {
   Color8& color = *(Color8*)args;
 
   menu.Add("Red", color.r)

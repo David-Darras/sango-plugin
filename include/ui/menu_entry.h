@@ -19,7 +19,7 @@
 
 #include "common.h"
 
-namespace menu {
+namespace ui {
 /**
 * @brief Enumeration of supported data types for a menu entry.
 */
@@ -178,4 +178,4 @@ private:
 
   f32 factor_;
 };
-} // namespace menu
+} // namespace ui

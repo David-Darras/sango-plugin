@@ -21,12 +21,12 @@
 
 #include "battle/manager.h"
 #include "feature/feature_battle_config.h"
-#include "menu/plugin_menu.h"
+#include "../../../include/ui/plugin_menu.h"
 
 namespace ui {
 #include "battle/config.inc"
 
-void LoadBattleConfigMenu(menu::PluginMenu& menu, void* args) {
+void LoadBattleConfigMenu(PluginMenu& menu, void* args) {
   auto& ctx = feature::BattleConfigHookContext::GetInstance();
 
   menu.Add("Inverse Teams", ctx.inverse_teams)
@@ -63,7 +63,7 @@ static void SavePokemon(void*) {
   memcpy(pkm_client, pkm_server, sizeof(battle::Pokemon));
 }
 
-void LoadBattlePokemonDataMenu(menu::PluginMenu& menu, void* args) {
+void LoadBattlePokemonDataMenu(PluginMenu& menu, void* args) {
   if (menu.CheckProcess(PROCESS_NAME_BATTLE)) return;
 
   auto& pkm = *pkm_server;
@@ -128,7 +128,7 @@ void LoadBattlePokemonDataMenu(menu::PluginMenu& menu, void* args) {
       .Add("Weight", pkm.weight);
 }
 
-void LoadBattlePokemonModelMenu(menu::PluginMenu& menu, void* args) {
+void LoadBattlePokemonModelMenu(PluginMenu& menu, void* args) {
   if (menu.CheckProcess(PROCESS_NAME_BATTLE)) return;
 
   auto& model =
@@ -172,7 +172,7 @@ void LoadBattlePokemonModelMenu(menu::PluginMenu& menu, void* args) {
       .WithRefresh();
 }
 
-void LoadBattleMenu(menu::PluginMenu& menu, void* args) {
+void LoadBattleMenu(PluginMenu& menu, void* args) {
   if (menu.CheckProcess(PROCESS_NAME_BATTLE)) return;
 
   pkm_server = battle::Manager::GetPokemon(true, team_idx, pokemon_idx);

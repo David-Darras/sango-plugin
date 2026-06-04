@@ -17,7 +17,7 @@
 
 #include <cstring>
 
-#include "menu/plugin_menu.h"
+#include "../../../include/ui/plugin_menu.h"
 #include "savedata/bag_manager.h"
 #include "savedata/battle_box.h"
 #include "savedata/box_manager.h"
@@ -66,7 +66,7 @@ static void SavePokemon(void*) {
   ctx.accessor.Decrypt();
 }
 
-void LoadSaveDataPokemonMenu(menu::PluginMenu& menu, void* args) {
+void LoadSaveDataPokemonMenu(PluginMenu& menu, void* args) {
   ctx.core_data = (PokemonCoreData*)args;
   std::memcpy(&ctx.backup_core_data, ctx.core_data,
               sizeof(ctx.backup_core_data));
@@ -138,7 +138,7 @@ void LoadSaveDataPokemonMenu(menu::PluginMenu& menu, void* args) {
       .Add("Contest - Sheen", pkm->contest.sheen);
 }
 
-void LoadSaveDataTeamMenu(menu::PluginMenu& menu, void* args) {
+void LoadSaveDataTeamMenu(PluginMenu& menu, void* args) {
   static u8 slot_idx = 0;
   auto& data = savedata::PokemonTeam::GetInstance();
 
@@ -152,7 +152,7 @@ void LoadSaveDataTeamMenu(menu::PluginMenu& menu, void* args) {
   LoadSaveDataPokemonMenu(menu, data.pokemons[slot_idx]->core);
 }
 
-void LoadSaveDataBattleBoxMenu(menu::PluginMenu& menu, void* args) {
+void LoadSaveDataBattleBoxMenu(PluginMenu& menu, void* args) {
   static u8 slot_idx = 0;
   auto& data = savedata::BattleBox::GetInstance();
 
@@ -164,7 +164,7 @@ void LoadSaveDataBattleBoxMenu(menu::PluginMenu& menu, void* args) {
   LoadSaveDataPokemonMenu(menu, &data.pokemons[slot_idx]);
 }
 
-void LoadSaveDataPokemonBoxMenu(menu::PluginMenu& menu, void* args) {
+void LoadSaveDataPokemonBoxMenu(PluginMenu& menu, void* args) {
   static u8 box_idx = 0;
   static u8 slot_idx = 0;
 
@@ -181,7 +181,7 @@ void LoadSaveDataPokemonBoxMenu(menu::PluginMenu& menu, void* args) {
       menu, &data.boxes[box_idx].pokemons[slot_idx]);
 }
 
-void LoadSaveDataBoxesMetadataMenu(menu::PluginMenu& menu, void* args) {
+void LoadSaveDataBoxesMetadataMenu(PluginMenu& menu, void* args) {
   static u8 index = 0;
   auto& data = savedata::BoxManager::GetInstance();
 
@@ -199,7 +199,7 @@ void LoadSaveDataBoxesMetadataMenu(menu::PluginMenu& menu, void* args) {
       .Add("Event Box Open", &data.flags, 7, 1);
 }
 
-void LoadSaveDataBagItemsMenu(menu::PluginMenu& menu, void* args) {
+void LoadSaveDataBagItemsMenu(PluginMenu& menu, void* args) {
   static u32 pocket_id = 0;
   static u32 slot_idx = 0;
 
@@ -253,7 +253,7 @@ void LoadSaveDataBagItemsMenu(menu::PluginMenu& menu, void* args) {
 
 #include "savedata/records.inc"
 
-void LoadSaveDataRecordsMenu(menu::PluginMenu& menu, void* args) {
+void LoadSaveDataRecordsMenu(PluginMenu& menu, void* args) {
   static u32 record_0_idx = 0;
   static u32 record_1_idx = 0;
 
@@ -272,7 +272,7 @@ void LoadSaveDataRecordsMenu(menu::PluginMenu& menu, void* args) {
       .Add("Value", data.records_1[record_1_idx]);
 }
 
-void LoadSaveDataMiscellaneousMenu(menu::PluginMenu& menu, void* args) {
+void LoadSaveDataMiscellaneousMenu(PluginMenu& menu, void* args) {
   auto& data = savedata::Misc::GetInstance();
 
   menu.Add("Money", data.money)
@@ -300,7 +300,7 @@ void LoadSaveDataMiscellaneousMenu(menu::PluginMenu& menu, void* args) {
       .Add("TV Navi Tutorial Seen", &data.flags, 14, 1);
 }
 
-void LoadSaveDataTrainerStatusMenu(menu::PluginMenu& menu, void* args) {
+void LoadSaveDataTrainerStatusMenu(PluginMenu& menu, void* args) {
   auto& data = savedata::TrainerStatus::GetInstance();
 
   menu.Add("Player Name", data.name, savedata::TrainerStatus::kPlayerNameLen)
@@ -347,7 +347,7 @@ void LoadSaveDataTrainerStatusMenu(menu::PluginMenu& menu, void* args) {
       .Add("COPPA Restriction", data.coppa_restriction);
 }
 
-void LoadSaveDataOverworldMenuMenu(menu::PluginMenu& menu, void* args) {
+void LoadSaveDataOverworldMenuMenu(PluginMenu& menu, void* args) {
   auto& data = savedata::OverworldMenu::GetInstance();
 
   menu.Add("Is Pokemon List Visible", &data.flags, 0, 1)
@@ -374,7 +374,7 @@ void LoadSaveDataOverworldMenuMenu(menu::PluginMenu& menu, void* args) {
       .Add("Options Position", &data.flags, 21, 3);
 }
 
-void LoadSaveDataMinigameMenu(menu::PluginMenu& menu, void* args) {
+void LoadSaveDataMinigameMenu(PluginMenu& menu, void* args) {
   static u32 choice = 0;
   static u32 puzzle_idx = 0;
 
@@ -420,7 +420,7 @@ void LoadSaveDataMinigameMenu(menu::PluginMenu& menu, void* args) {
       .WithArray(RATINGS, SIZE(RATINGS));
 }
 
-void LoadSaveDataPokemonAmieMenu(menu::PluginMenu& menu, void* args) {
+void LoadSaveDataPokemonAmieMenu(PluginMenu& menu, void* args) {
   static u8 puff_idx = 0;
   auto& data = savedata::PokemonAmie::GetInstance();
 
@@ -434,7 +434,7 @@ void LoadSaveDataPokemonAmieMenu(menu::PluginMenu& menu, void* args) {
   menu.Add("Last Opened (Days)", data.last_opened_timestamp);
 }
 
-void LoadSaveDataBagMetadataMenu(menu::PluginMenu& menu, void* args) {
+void LoadSaveDataBagMetadataMenu(PluginMenu& menu, void* args) {
   static u8 pocket_idx = 0;
   static u8 register_idx = 0;
   static u8 history_idx = 0;
@@ -463,7 +463,7 @@ void LoadSaveDataBagMetadataMenu(menu::PluginMenu& menu, void* args) {
 
 #include "savedata/pokedex_form.inc"
 
-void LoadSaveDataPokedexMenu(menu::PluginMenu& menu, void* args) {
+void LoadSaveDataPokedexMenu(PluginMenu& menu, void* args) {
   static u16 species = 1;
   static u8 form = 0;
   static u16 prev_species = species;
@@ -540,7 +540,7 @@ void LoadSaveDataPokedexMenu(menu::PluginMenu& menu, void* args) {
 
 #include "savedata/opower.inc"
 
-void LoadSaveDataOPowerMenu(menu::PluginMenu& menu, void* args) {
+void LoadSaveDataOPowerMenu(PluginMenu& menu, void* args) {
   static u32 learned_opower_idx = 0;
   static u32 field_opower_idx = 0;
   static u32 battle_opower_idx = 0;
@@ -568,7 +568,7 @@ void LoadSaveDataOPowerMenu(menu::PluginMenu& menu, void* args) {
            man.battle_power_level_2_uses[battle_opower_idx]);
 }
 
-void LoadSaveDataPlayTimeMenu(menu::PluginMenu& menu, void* args) {
+void LoadSaveDataPlayTimeMenu(PluginMenu& menu, void* args) {
   auto& data = savedata::PlayTime::GetInstance();
 
   menu.Add("Hour", data.hour)
@@ -582,7 +582,7 @@ void OnUpdateLanguage(void*) {
   WRITE(vu32, ADDRESS_LANGUAGE_ID, settings.language_id);
 }
 
-void LoadSaveDataSettingsMenu(menu::PluginMenu& menu, void* args) {
+void LoadSaveDataSettingsMenu(PluginMenu& menu, void* args) {
   static const c8* TEXT_SPEED[] = {"Slow", "Normal", "Fast", "Instant"};
   static const c8* TOGGLE_OFF_ON[] = {"Off", "On"};
   static const c8* BATTLE_STYLE[] = {"Shift", "Set"};
@@ -629,7 +629,7 @@ void LoadSaveDataSettingsMenu(menu::PluginMenu& menu, void* args) {
       .WithArray(TOGGLE_OFF_ON, SIZE(TOGGLE_OFF_ON));
 }
 
-void LoadSaveDataEncounterMenu(menu::PluginMenu& menu, void* args) {
+void LoadSaveDataEncounterMenu(PluginMenu& menu, void* args) {
   auto& data = savedata::Encounter::GetInstance();
 
   menu.AddItem("Spray Type", data.spray_id)
@@ -638,7 +638,7 @@ void LoadSaveDataEncounterMenu(menu::PluginMenu& menu, void* args) {
 
 #include "savedata/pss.inc"
 
-void LoadSaveDataPssProfileMenu(menu::PluginMenu& menu, void* args) {
+void LoadSaveDataPssProfileMenu(PluginMenu& menu, void* args) {
   auto& profile = *(savedata::PssProfilePayload*)args;
 
   menu.Add("Name", profile.name, 13)
@@ -677,14 +677,14 @@ void LoadSaveDataPssProfileMenu(menu::PluginMenu& menu, void* args) {
       .Add("Rejects Lower Version PR Videos", &profile.flags2, 4, 1);
 }
 
-void LoadSaveDataPssGroupMenu(menu::PluginMenu& menu, void* args) {
+void LoadSaveDataPssGroupMenu(PluginMenu& menu, void* args) {
   static u32 choice = 0;
   auto& grp = *(savedata::PssGroup*)args;
   menu.Add("Profile Index", choice).AddSeparator();
   LoadSaveDataPssProfileMenu(menu, &grp.user_data[choice].datagram.profile);
 }
 
-void LoadSaveDataMenu(menu::PluginMenu& menu, void* args) {
+void LoadSaveDataMenu(PluginMenu& menu, void* args) {
   auto& sv = savedata::SaveData::GetInstance();
 
   menu.Add("Team", LoadSaveDataTeamMenu)

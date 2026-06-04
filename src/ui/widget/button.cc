@@ -17,7 +17,7 @@
 
 #include "ui/widget/button.h"
 
-#include "menu/theme.h"
+#include "../../../include/ui/theme.h"
 #include "system/device.h"
 #include "system/graphics.h"
 
@@ -34,7 +34,7 @@ void Button::Initialize(u32 x, u32 y, u32 width, u32 height) {
 }
 
 void Button::Draw(const c16* label, u32 offset_x, u32 offset_y) const {
-  auto& theme = menu::Theme::GetInstance();
+  auto& theme = ui::Theme::GetInstance();
   Color foreground_color = theme.unselected_text_color;
   if (IsDown()) foreground_color = theme.selected_text_color;
 

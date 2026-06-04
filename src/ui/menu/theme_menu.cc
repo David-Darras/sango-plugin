@@ -15,12 +15,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "menu/plugin_menu.h"
+#include "../../../include/ui/plugin_menu.h"
 #include "ui/common_menu.h"
 
 namespace ui {
-void LoadThemeMenu(menu::PluginMenu& menu, void* args) {
-  auto& theme = menu::Theme::GetInstance();
+void LoadThemeMenu(PluginMenu& menu, void* args) {
+  auto& theme = Theme::GetInstance();
 
   menu.Add("Background Color", LoadColorMenu, &theme.background_color)
       .Add("Unselected Text Color", LoadColorMenu,

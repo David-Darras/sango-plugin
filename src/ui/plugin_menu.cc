@@ -15,19 +15,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "menu/plugin_menu.h"
+#include "ui/plugin_menu.h"
 
 #include "core/game_event_manager.h"
 #include "core/game_process_manager.h"
-#include "menu/log_menu.h"
+#include "../../include/ui/log_menu.h"
 #include "system/device.h"
 #include "system/graphics.h"
 #include "system/sound.h"
 #include "utils.h"
 #include "feature/feature_device.h"
-#include "menu/theme.h"
+#include "ui/theme.h"
 
-namespace menu {
+namespace ui {
 PluginMenu PluginMenu::instance_ = PluginMenu();
 
 void PluginMenu::DrawTop(Graphics& graphics) {
@@ -260,4 +260,4 @@ bool PluginMenu::AreKeysReleased(Controller& controller) {
   res &= controller.IsKeyReleased((Key)key);
   return res;
 }
-} // namespace menu
+} // namespace ui

@@ -18,20 +18,20 @@
 #pragma once
 #include "common.h"
 
-namespace menu {
+namespace ui {
 class PluginMenu;
 }
 
 namespace ui {
-void LoadThemeMenu(menu::PluginMenu& menu, void* args);
-void LoadBattleConfigMenu(menu::PluginMenu& menu, void* args);
-void LoadBattleMenu(menu::PluginMenu& menu, void* args);
-void LoadDayCareMenu(menu::PluginMenu& menu, void* args);
-void LoadGameTimeMenu(menu::PluginMenu& menu, void* args);
-void LoadGlobalDataMenu(menu::PluginMenu& menu, void* args);
-void LoadOverworldMenu(menu::PluginMenu& menu, void* args);
-void LoadRendererMenu(menu::PluginMenu& menu, void* args);
-void LoadSaveDataMenu(menu::PluginMenu& menu, void* args);
-void LoadSoundMenu(menu::PluginMenu& menu, void* args);
-void LoadTopMenu(menu::PluginMenu& menu, void* args);
+void LoadThemeMenu(PluginMenu& menu, void* args);
+void LoadBattleConfigMenu(PluginMenu& menu, void* args);
+void LoadBattleMenu(PluginMenu& menu, void* args);
+void LoadDayCareMenu(PluginMenu& menu, void* args);
+void LoadGameTimeMenu(PluginMenu& menu, void* args);
+void LoadGlobalDataMenu(PluginMenu& menu, void* args);
+void LoadOverworldMenu(PluginMenu& menu, void* args);
+void LoadRendererMenu(PluginMenu& menu, void* args);
+void LoadSaveDataMenu(PluginMenu& menu, void* args);
+void LoadSoundMenu(PluginMenu& menu, void* args);
+void LoadTopMenu(PluginMenu& menu, void* args);
 }

@@ -32,7 +32,7 @@
 u32 OnSaveGameData(u32 fs) {
   u32 result = HookManager::GetInstance().Get(HookID::kOnSaveGameData)->
                                           CallOriginal<u32>(fs);
-  menu::LogMenu::GetInstance().Add(u"Saving...");
+  ui::LogMenu::GetInstance().Add(u"Saving...");
   return result;
 }
 
@@ -40,7 +40,7 @@ uptr OnLoadCroFile(uptr man, uptr heap, const char* filename, u32* size) {
   uptr buffer = HookManager::GetInstance().Get(HookID::kOnLoadCroFile)->
                                            CallOriginal<uptr>(
                                                man, heap, filename, size);
-  menu::LogMenu::GetInstance().Add(u"%s loaded at 0x%X (0x%X bytes)",
+  ui::LogMenu::GetInstance().Add(u"%s loaded at 0x%X (0x%X bytes)",
                                    filename, buffer, *size);
   // if (strcmp(filename, "rom2:/DllBattle.cro") == 0) {
   // }

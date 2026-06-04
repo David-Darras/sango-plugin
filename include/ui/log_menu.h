@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2026  David Darras
+ * Copyright (C) 2026  David Darras
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,20 +19,26 @@
 
 #include "common.h"
 
-namespace menu {
-struct Theme {
-  MAKE_SINGLETON(Theme)
-  Color background_color = Color{0, 0, 0, 0.75f};
-  Color unselected_text_color = Color{1, 1, 1, 1};
-  Color selected_text_color = Color{0, 1, 0, 1};
-  Color edited_text_color = Color{1, 0, 0, 1};
+namespace ui {
+class LogMenu {
+public:
+  STATIC_INLINE LogMenu& GetInstance() { return instance_; }
 
-  u16 open_sound = 7;
-  u16 close_sound = 8;
-  u16 confirm_sound = 0;
-  u16 next_sound = 4;
-  u16 error_sound = 21;
+  INLINE void Toggle() { is_enabled_ ^= true; }
+  INLINE bool IsEnabled() const { return is_enabled_; }
 
-  u8 keys[3];
+  void Draw();
+  void Add(const c16* message, ...);
+
+private:
+  LogMenu();
+
+  static constexpr u32 kMaxEntries = 13;
+  static constexpr u32 kMaxEntryLength = 64;
+  static constexpr u32 kLineHeight = 18;
+  static LogMenu instance_;
+
+  bool is_enabled_;
+  c16 log_entries_[kMaxEntries][kMaxEntryLength];
 };
-} // namespace menu
+} // namespace ui

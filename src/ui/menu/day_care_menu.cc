@@ -15,10 +15,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "menu/plugin_menu.h"
+#include "../../../include/ui/plugin_menu.h"
 
 namespace ui {
-void LoadDayCareMenu(menu::PluginMenu& menu, void* args) {
+void LoadDayCareMenu(PluginMenu& menu, void* args) {
   menu.Add("Instant Egg Hatch", CheatCodeId::kInstantEggHatch)
       .Add("Instant Egg Generation", CheatCodeId::kInstantEggGeneration)
       .Add("Instant Max Exp", CheatCodeId::kInstantMaxExpForDayCare);

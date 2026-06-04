@@ -19,15 +19,15 @@
 
 #include "feature/cheat_code.h"
 #include "feature/cheat_code_manager.h"
-#include "menu/menu_entry.h"
-#include "menu/theme.h"
+#include "menu_entry.h"
+#include "ui/theme.h"
 #include "ui/application.h"
 #include "ui/widget/keyboard.h"
 #include "ui/widget/numpad.h"
 
 class Controller;
 
-namespace menu {
+namespace ui {
 struct Theme;
 /**
 * @brief Singleton class representing the plugin menu system.
@@ -35,7 +35,7 @@ struct Theme;
 * Handles the display, input, and management of menu entries,
 * submenus, and context tracking using a stack-based approach.
 */
-class PluginMenu : public ui::Application {
+class PluginMenu : public Application {
 public:
   /**
 * @brief Returns the singleton instance of the PluginMenu.
@@ -423,9 +423,9 @@ private:
 
   MenuEntry entries_[kMaxEntries]; ///< Entry pool.
   MenuContext contexts_[kMaxContexts]; ///< Context stack.
-  ui::Numpad numpad_; ///< Numpad logic.
-  ui::Keyboard keyboard_; ///< Keyboard logic.
+  Numpad numpad_; ///< Numpad logic.
+  Keyboard keyboard_; ///< Keyboard logic.
 
   Theme& theme_;
 };
-} // namespace menu
+} // namespace ui

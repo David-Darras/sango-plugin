@@ -19,13 +19,13 @@
 #include "feature/feature_field_move.h"
 #include "feature/feature_map_tile.h"
 #include "feature/feature_overworld_model.h"
-#include "menu/plugin_menu.h"
+#include "../../../include/ui/plugin_menu.h"
 #include "overworld/encounter.h"
 
 namespace ui {
 #include "overworld/tile.inc"
 
-void LoadOverworldMapTileMenu(menu::PluginMenu& menu, void* args) {
+void LoadOverworldMapTileMenu(PluginMenu& menu, void* args) {
   auto& ctx = feature::MapTileHookContext::GetInstance();
 
   menu.Add("Is Enabled", ctx.is_enabled)
@@ -52,7 +52,7 @@ void LoadOverworldMapTileMenu(menu::PluginMenu& menu, void* args) {
       .WithArray(GROUNDS, SIZE(GROUNDS));
 }
 
-void LoadOverworldEncounterMenu(menu::PluginMenu& menu, void* args) {
+void LoadOverworldEncounterMenu(PluginMenu& menu, void* args) {
   if (menu.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
 
   auto& data = overworld::Encounter::GetInstance();
@@ -62,7 +62,7 @@ void LoadOverworldEncounterMenu(menu::PluginMenu& menu, void* args) {
       .Add("Fishing Chain", data.fishing_chain_count);
 }
 
-void LoadOverworldFieldMoveMenu(menu::PluginMenu& menu, void* args) {
+void LoadOverworldFieldMoveMenu(PluginMenu& menu, void* args) {
   static u32 choice = 0;
 
   if (menu.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
@@ -79,7 +79,7 @@ void LoadOverworldFieldMoveMenu(menu::PluginMenu& menu, void* args) {
   menu.Add("Execute", [&](void*) { feature::FieldMove::Execute(choice); });
 }
 
-void LoadOverworldCameraMenu(menu::PluginMenu& menu, void* args) {
+void LoadOverworldCameraMenu(PluginMenu& menu, void* args) {
   if (menu.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
 
   static const c8* STATES[] = {"Idle", "Free", "Rotate", "Fpv", "Tps"};
@@ -115,7 +115,7 @@ void LoadOverworldCameraMenu(menu::PluginMenu& menu, void* args) {
       .WithFactor(0.01f);
 }
 
-void LoadOverworldModelMenu(menu::PluginMenu& menu, void* args) {
+void LoadOverworldModelMenu(PluginMenu& menu, void* args) {
   if (menu.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
 
   auto& ctx = feature::OverworldModelCheatCode::GetInstance();
@@ -147,7 +147,7 @@ void LoadOverworldModelMenu(menu::PluginMenu& menu, void* args) {
       .WithCallback(feature::OverworldModelCheatCode::PlayAnimation);
 }
 
-void LoadOverworldMenu(menu::PluginMenu& menu, void* args) {
+void LoadOverworldMenu(PluginMenu& menu, void* args) {
   if (menu.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
 
   auto& man = overworld::MapManager::GetInstance();

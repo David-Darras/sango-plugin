@@ -27,7 +27,7 @@
 #include "feature/feature_device.h"
 #include "feature/feature_map_tile.h"
 #include "feature/feature_overworld_model.h"
-#include "menu/plugin_menu.h"
+#include "../include/ui/plugin_menu.h"
 #include "system/device.h"
 #include "system/file.h"
 #include "system/graphics.h"
@@ -52,7 +52,7 @@ void Initialize() {
   feature::OverworldModelCheatCode::Initialize();
 
   auto& application_manager = ui::ApplicationManager::GetInstance();
-  auto& plugin_menu = menu::PluginMenu::GetInstance();
+  auto& plugin_menu = ui::PluginMenu::GetInstance();
 
   plugin_menu.Open(ui::LoadTopMenu);
   application_manager.Push(plugin_menu);

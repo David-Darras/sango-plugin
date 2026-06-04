@@ -21,11 +21,11 @@
 
 #include <functional>
 
-namespace menu {
+namespace ui {
 class PluginMenu;
 }
 
-typedef void (*menu_callback_t)(menu::PluginMenu& menu, void* args);
+typedef void (*menu_callback_t)(ui::PluginMenu& menu, void* args);
 // typedef void (*callback_t)(void* args);
 typedef std::function<void(void*)> callback_t;
 typedef std::function<void()> cheat_code_callback_t;

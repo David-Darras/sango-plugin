@@ -16,10 +16,10 @@
  */
 
 #include "core/game_time_manager.h"
-#include "menu/plugin_menu.h"
+#include "../../../include/ui/plugin_menu.h"
 
 namespace ui {
-void LoadGameTimeMenu(menu::PluginMenu& menu, void* args) {
+void LoadGameTimeMenu(PluginMenu& menu, void* args) {
   auto& data = game::TimeManager::GetInstance();
 
   menu.Add("Date Time (ms)", *(s64*)ADDRESS_DATE_TIME)

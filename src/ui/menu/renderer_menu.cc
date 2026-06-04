@@ -19,11 +19,11 @@
 #include "feature/feature_picture.h"
 #include "feature/feature_pokemon_texture.h"
 #include "feature/feature_text_box.h"
-#include "menu/plugin_menu.h"
+#include "../../../include/ui/plugin_menu.h"
 #include "ui/common_menu.h"
 
 namespace ui {
-void LoadPokemonTextureMenu(menu::PluginMenu& menu, void* args) {
+void LoadPokemonTextureMenu(PluginMenu& menu, void* args) {
   static const char* FILTERS[] = {
       "RGB",
       "BGR",
@@ -50,7 +50,7 @@ void LoadPokemonTextureMenu(menu::PluginMenu& menu, void* args) {
       .Add("Fill - Blue", ctx.blue);
 }
 
-void LoadLightMenu(menu::PluginMenu& menu, void* args) {
+void LoadLightMenu(PluginMenu& menu, void* args) {
   auto& ctx = feature::LightHookContext::GetInstance();
 
   menu.Add("Use Outline", ctx.use_outline)
@@ -64,7 +64,7 @@ void LoadLightMenu(menu::PluginMenu& menu, void* args) {
       .Add("Diffuse Light Color", LoadColorMenu, &ctx.diffuse_color);
 }
 
-void LoadLayoutTextBoxMenu(menu::PluginMenu& menu, void* args) {
+void LoadLayoutTextBoxMenu(PluginMenu& menu, void* args) {
   auto& ctx = feature::TextBoxHookContext::GetInstance();
 
   menu.Add("Is Enabled", ctx.is_enabled)
@@ -78,7 +78,7 @@ void LoadLayoutTextBoxMenu(menu::PluginMenu& menu, void* args) {
       .Add("Bottom Color", LoadColor8Menu, &ctx.bottom_color);
 }
 
-void LoadLayoutPictureMenu(menu::PluginMenu& menu, void* args) {
+void LoadLayoutPictureMenu(PluginMenu& menu, void* args) {
   auto& ctx = feature::PictureHookContext::GetInstance();
 
   menu.Add("Is Enabled", ctx.is_enabled)
@@ -95,7 +95,7 @@ void LoadLayoutPictureMenu(menu::PluginMenu& menu, void* args) {
       .Add("Bottom Right Color", LoadColor8Menu, &ctx.bottom_right_color);
 }
 
-void LoadRendererMenu(menu::PluginMenu& menu, void* args) {
+void LoadRendererMenu(PluginMenu& menu, void* args) {
   menu.Add("Light", LoadLightMenu)
       .Add("Layout - Text Box", LoadLayoutTextBoxMenu)
       .Add("Layout - Picture", LoadLayoutPictureMenu)
