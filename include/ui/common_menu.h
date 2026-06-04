@@ -16,9 +16,9 @@
  */
 
 #pragma once
-#include "plugin_menu.h"
 
 namespace ui {
-void LoadColorMenu(PluginMenu& menu, void* args);
-void LoadColor8Menu(PluginMenu& menu, void* args);
+class MainApplication;
+void LoadColorPage(MainApplication& app, void* args);
+void LoadColor8Page(MainApplication& app, void* args);
 } // namespace ui

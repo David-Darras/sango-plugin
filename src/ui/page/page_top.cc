@@ -16,12 +16,12 @@
  */
 
 #include "feature/feature_engine.h"
-#include "ui/plugin_menu.h"
+#include "ui/main_application.h"
 #include "game/overworld/weather_manager.h"
-#include "ui/top_menu.h"
+#include "ui/page_top.h"
 
 namespace ui {
-void LoadTopMenu(PluginMenu& menu, void* args) {
+void LoadTopPage(MainApplication& app, void* args) {
   static const c8* WEATHERS[] = {
       "Sunny", "Rainy", "Thunderstorm",
       "Misty", "Ash", "Sandstorm",
@@ -30,21 +30,21 @@ void LoadTopMenu(PluginMenu& menu, void* args) {
 
   auto& weather_manager = overworld::WeatherManager::GetInstance();
 
-  menu.Add("Battle Config", LoadBattleConfigMenu);
+  app.Add("Battle Config", LoadBattleConfigPage);
 
-  menu.Add("Game Speed", feature::EngineHookContext::GetInstance().game_speed)
+  app.Add("Game Speed", feature::EngineHookContext::GetInstance().game_speed)
       .Add("Weather", weather_manager.GetRequestedWeather())
       .WithArray(WEATHERS, SIZE(WEATHERS))
       .AddSeparator();
 
-  menu.Add("Renderer", LoadRendererMenu)
-      .Add("Global Data", LoadGlobalDataMenu)
-      .Add("Game Time", LoadGameTimeMenu)
-      .Add("Save Data", LoadSaveDataMenu)
-      .Add("Overworld", LoadOverworldMenu)
-      .Add("Day Care", LoadDayCareMenu)
-      .Add("Battle", LoadBattleMenu)
-      .Add("Sound", LoadSoundMenu)
-      .Add("Plugin Theme", LoadThemeMenu);
+  app.Add("Renderer", LoadRendererPage)
+      .Add("Global Data", LoadGlobalDataPage)
+      .Add("Game Time", LoadGameTimePage)
+      .Add("Save Data", LoadSaveDataPage)
+      .Add("Overworld", LoadOverworldPage)
+      .Add("Day Care", LoadDayCarePage)
+      .Add("Battle", LoadBattlePage)
+      .Add("Sound", LoadSoundPage)
+      .Add("Plugin Theme", LoadThemePage);
 }
 } // namespace ui

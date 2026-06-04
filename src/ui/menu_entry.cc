@@ -18,7 +18,7 @@
 #include "ui/menu_entry.h"
 
 #include "feature/cheat_code.h"
-#include "ui/plugin_menu.h"
+#include "ui/main_application.h"
 #include "utils.h"
 #include "game/global_data/item.h"
 
@@ -360,7 +360,7 @@ void MenuEntry::Increment(u32 count) {
   }
 
 #undef INCREMENT_WRAP
-  if (refresh_) PluginMenu::GetInstance().Refresh();
+  if (refresh_) MainApplication::GetInstance().Refresh();
 }
 
 void MenuEntry::Decrement(u32 count) {
@@ -436,7 +436,7 @@ void MenuEntry::Decrement(u32 count) {
   }
 
 #undef DECREMENT_WRAP
-  if (refresh_) PluginMenu::GetInstance().Refresh();
+  if (refresh_) MainApplication::GetInstance().Refresh();
 }
 
 void MenuEntry::Edit(const void* value) {
@@ -494,7 +494,7 @@ void MenuEntry::Edit(const void* value) {
       break;
 
     case kTypeMenu:
-      PluginMenu::GetInstance().Open((menu_callback_t)address_, args_);
+      MainApplication::GetInstance().Open((menu_callback_t)address_, args_);
       break;
 
     case kTypeUnicode:
@@ -514,12 +514,12 @@ void MenuEntry::Edit(const void* value) {
   }
 
 #undef EDIT_CLAMP
-  if (refresh_) PluginMenu::GetInstance().Refresh();
+  if (refresh_) MainApplication::GetInstance().Refresh();
 }
 
 void MenuEntry::Execute() {
   if (kTypeMenu == type_) {
-    PluginMenu::GetInstance().Open((menu_callback_t)address_, args_);
+    MainApplication::GetInstance().Open((menu_callback_t)address_, args_);
   } else if (callback_ != nullptr) {
     callback_(args_);
   }

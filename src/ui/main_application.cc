@@ -15,7 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "ui/plugin_menu.h"
+#include "ui/main_application.h"
 
 #include "game/event_manager.h"
 #include "game/process_manager.h"
@@ -28,9 +28,9 @@
 #include "ui/theme.h"
 
 namespace ui {
-PluginMenu PluginMenu::instance_ = PluginMenu();
+MainApplication MainApplication::instance_ = MainApplication();
 
-void PluginMenu::DrawTop(Graphics& graphics) {
+void MainApplication::DrawTop(Graphics& graphics) {
   if (!IsOpened()) return;
 
   LogMenu& log_menu = LogMenu::GetInstance();
@@ -72,7 +72,7 @@ void PluginMenu::DrawTop(Graphics& graphics) {
   }
 }
 
-void PluginMenu::DrawBottom(Graphics& graphics) {
+void MainApplication::DrawBottom(Graphics& graphics) {
   if (!IsOpened()) return;
 
   // Draw the background.
@@ -105,7 +105,7 @@ void PluginMenu::DrawBottom(Graphics& graphics) {
   Graphics::DrawText(5, 216, buffer, theme_.edited_text_color);
 }
 
-void PluginMenu::Update(Controller& controller) {
+void MainApplication::Update(Controller& controller) {
   if (AreKeysReleased(controller)) {
     Sound::PlaySoundEffect(IsOpened() ? theme_.close_sound : theme_.open_sound);
     is_opened_ ^= 1;
@@ -183,7 +183,7 @@ void PluginMenu::Update(Controller& controller) {
     offset--;
 }
 
-void PluginMenu::Open(menu_callback_t load_menu, void* args) {
+void MainApplication::Open(menu_callback_t load_menu, void* args) {
   if (contexts_count_ >= kMaxContexts) return;
 
   contexts_[contexts_count_].Initialize(load_menu, args);
@@ -199,7 +199,7 @@ void PluginMenu::Open(menu_callback_t load_menu, void* args) {
       entries_count_ > kMaxDisplayCount ? kMaxDisplayCount : entries_count_;
 }
 
-void PluginMenu::Close() {
+void MainApplication::Close() {
   if (contexts_count_ <= 1) return;
 
   contexts_count_--;
@@ -215,7 +215,7 @@ void PluginMenu::Close() {
       entries_count_ > kMaxDisplayCount ? kMaxDisplayCount : entries_count_;
 }
 
-void PluginMenu::Refresh() {
+void MainApplication::Refresh() {
   MenuContext& ctx = GetContext();
   entries_count_ = 0;
   ctx.load_menu(*this, ctx.args);
@@ -227,7 +227,7 @@ void PluginMenu::Refresh() {
   }
 }
 
-bool PluginMenu::CheckProcess(const char* name) {
+bool MainApplication::CheckProcess(const char* name) {
   if (!game::ProcessManager::GetInstance().IsCurrentProcess(name)) {
     while (contexts_count_ > 1) {
       Close();
@@ -239,7 +239,7 @@ bool PluginMenu::CheckProcess(const char* name) {
   return false;
 }
 
-bool PluginMenu::AreKeysReleased(Controller& controller) {
+bool MainApplication::AreKeysReleased(Controller& controller) {
   if (theme_.keys[0] == 0) {
     return controller.IsKeyReleased(Key::kStart);
   }

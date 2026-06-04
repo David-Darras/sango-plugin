@@ -15,19 +15,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "game/time_manager.h"
-#include "ui/plugin_menu.h"
+#include "ui/main_application.h"
 
 namespace ui {
-void LoadGameTimeMenu(PluginMenu& menu, void* args) {
-  auto& data = game::TimeManager::GetInstance();
-
-  menu.Add("Date Time (ms)", *(s64*)ADDRESS_DATE_TIME)
-      .AddSeparator()
-      .Add("Is Game Time Enabled", data.is_enabled)
-      .Add("Last Tick", data.last_tick)
-      .Add("First Tick", data.first_tick)
-      .Add("Accumulated Seconds", data.accumulated_seconds)
-      .Add("Frame Counter", data.frame_counter);
+void LoadDayCarePage(MainApplication& app, void* args) {
+  app.Add("Instant Egg Hatch", CheatCodeId::kInstantEggHatch)
+      .Add("Instant Egg Generation", CheatCodeId::kInstantEggGeneration)
+      .Add("Instant Max Exp", CheatCodeId::kInstantMaxExpForDayCare);
 }
 } // namespace ui

@@ -15,26 +15,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "ui/log_menu.h"
-#include "ui/plugin_menu.h"
+#include "game/time_manager.h"
+#include "ui/main_application.h"
 
 namespace ui {
-void LoadColorMenu(PluginMenu& menu, void* args) {
-  constexpr f32 kFactor = 0.025f;
-  Color& color = *(Color*)args;
+void LoadGameTimePage(MainApplication& app, void* args) {
+  auto& data = game::TimeManager::GetInstance();
 
-  menu.Add("Red", color.r).WithFactor(kFactor).WithBounds(0, 1)
-      .Add("Green", color.g).WithFactor(kFactor).WithBounds(0, 1)
-      .Add("Blue", color.b).WithFactor(kFactor).WithBounds(0, 1)
-      .Add("Alpha", color.a).WithFactor(kFactor).WithBounds(0, 1);
-}
-
-void LoadColor8Menu(PluginMenu& menu, void* args) {
-  Color8& color = *(Color8*)args;
-
-  menu.Add("Red", color.r)
-      .Add("Green", color.g)
-      .Add("Blue", color.b)
-      .Add("Alpha", color.a);
+  app.Add("Date Time (ms)", *(s64*)ADDRESS_DATE_TIME)
+      .AddSeparator()
+      .Add("Is Game Time Enabled", data.is_enabled)
+      .Add("Last Tick", data.last_tick)
+      .Add("First Tick", data.first_tick)
+      .Add("Accumulated Seconds", data.accumulated_seconds)
+      .Add("Frame Counter", data.frame_counter);
 }
 } // namespace ui

@@ -19,16 +19,16 @@
 #include "game/global_data/move.h"
 #include "game/global_data/pokemon.h"
 #include "game/global_data/move.inc"
-#include "ui/plugin_menu.h"
+#include "ui/main_application.h"
 
 namespace ui {
-void LoadMoveMenu(PluginMenu& menu, void* args) {
+void LoadMovePage(MainApplication& app, void* args) {
   static u16 move = 0;
   auto& data = global_data::Move::GetInstance(move);
 
-  menu.AddMove("Move", move).WithRefresh();
+  app.AddMove("Move", move).WithRefresh();
 
-  menu.AddType("Type", data.type)
+  app.AddType("Type", data.type)
 
       .Add("Category", data.category)
       .WithArray(CATEGORY_TYPES, SIZE(CATEGORY_TYPES))
@@ -44,7 +44,7 @@ void LoadMoveMenu(PluginMenu& menu, void* args) {
       .Add("Min Hit Count", &data.hit_count, 0, 4)
       .Add("Max Hit Count", &data.hit_count, 4, 4);
 
-  menu.Add("Effect", data.effect_id)
+  app.Add("Effect", data.effect_id)
       .WithArray(EFFECTS, SIZE(EFFECTS))
 
       .Add("Effect Rate", data.effect_rate)
@@ -56,12 +56,12 @@ void LoadMoveMenu(PluginMenu& menu, void* args) {
       .Add("Crit Stage", data.crit_stage)
       .Add("Flinch Rate", data.flinch_rate);
 
-  menu.Add("Recoil", data.recoil)
+  app.Add("Recoil", data.recoil)
       .Add("Drain", data.drain)
       .Add("Target", data.target)
       .WithArray(TARGETS, SIZE(TARGETS));
 
-  menu.Add("Stat 1", data.stat_id[0])
+  app.Add("Stat 1", data.stat_id[0])
       .WithArray(STATS, SIZE(STATS))
       .Add("Stat Stage 1", data.stat_stages[0])
       .Add("Stat Rate 1", data.stat_rate[0])
@@ -74,40 +74,40 @@ void LoadMoveMenu(PluginMenu& menu, void* args) {
       .Add("Stat Stage 3", data.stat_stages[2])
       .Add("Stat Rate 3", data.stat_rate[2]);
 
-  menu.Add("Flags", data.flags);
+  app.Add("Flags", data.flags);
 }
 
-void LoadPokemonMenu(PluginMenu& menu, void* args) {
+void LoadPokemonPage(MainApplication& app, void* args) {
   static u16 species = 0;
   auto& data = global_data::Pokemon::GetInstance(species);
 
-  menu.AddSpecies("Species", species).WithRefresh();
+  app.AddSpecies("Species", species).WithRefresh();
 
-  menu.Add("Base HP", data.base_hp)
+  app.Add("Base HP", data.base_hp)
       .Add("Base Attack", data.base_attack)
       .Add("Base Defense", data.base_defense)
       .Add("Base Speed", data.base_speed)
       .Add("Base Sp. Atk", data.base_special_attack)
       .Add("Base Sp. Def", data.base_special_defense);
 
-  menu.Add("EV Yield HP", &data.give_effort_values, 0, 2)
+  app.Add("EV Yield HP", &data.give_effort_values, 0, 2)
       .Add("EV Yield Attack", &data.give_effort_values, 2, 2)
       .Add("EV Yield Defense", &data.give_effort_values, 4, 2)
       .Add("EV Yield Speed", &data.give_effort_values, 6, 2)
       .Add("EV Yield SpAtk", &data.give_effort_values, 8, 2)
       .Add("EV Yield SpDef", &data.give_effort_values, 10, 2);
 
-  menu.AddType("Type 1", data.type[0])
+  app.AddType("Type 1", data.type[0])
       .AddType("Type 2", data.type[1])
       .Add("Capture Rate (%)", data.capture_rate)
       .WithBounds(0, 100)
       .Add("Base Friendship", data.base_friendship);
 
-  menu.Add("Held Item 1", data.give_item[0])
+  app.Add("Held Item 1", data.give_item[0])
       .Add("Held Item 2", data.give_item[1])
       .Add("Held Item 3", data.give_item[2]);
 
-  menu.Add("Exp Yield", data.give_experience)
+  app.Add("Exp Yield", data.give_experience)
       .Add("Height", data.height)
       .Add("Weight", data.weight)
       .AddAbility("Ability 1", data.ability[0])
@@ -115,12 +115,12 @@ void LoadPokemonMenu(PluginMenu& menu, void* args) {
       .AddAbility("Ability 3 (Hidden)", data.ability[2])
       .Add("Gender", data.gender);
 
-  menu.Add("Form Count", data.form_count)
+  app.Add("Form Count", data.form_count)
       .Add("Egg Hatch Steps", data.egg_hatch_steps);
 }
 
-void LoadGlobalDataMenu(PluginMenu& menu, void* args) {
-  menu.Add("Global Pokemon Data", LoadPokemonMenu)
-      .Add("Global Move Data", LoadMoveMenu);
+void LoadGlobalDataPage(MainApplication& app, void* args) {
+  app.Add("Global Pokemon Data", LoadPokemonPage)
+      .Add("Global Move Data", LoadMovePage);
 }
 } // namespace global_data

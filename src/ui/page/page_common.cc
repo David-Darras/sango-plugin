@@ -15,12 +15,26 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "ui/plugin_menu.h"
+#include "ui/log_menu.h"
+#include "ui/main_application.h"
 
 namespace ui {
-void LoadDayCareMenu(PluginMenu& menu, void* args) {
-  menu.Add("Instant Egg Hatch", CheatCodeId::kInstantEggHatch)
-      .Add("Instant Egg Generation", CheatCodeId::kInstantEggGeneration)
-      .Add("Instant Max Exp", CheatCodeId::kInstantMaxExpForDayCare);
+void LoadColorPage(MainApplication& app, void* args) {
+  constexpr f32 kFactor = 0.025f;
+  Color& color = *(Color*)args;
+
+  app.Add("Red", color.r).WithFactor(kFactor).WithBounds(0, 1)
+      .Add("Green", color.g).WithFactor(kFactor).WithBounds(0, 1)
+      .Add("Blue", color.b).WithFactor(kFactor).WithBounds(0, 1)
+      .Add("Alpha", color.a).WithFactor(kFactor).WithBounds(0, 1);
+}
+
+void LoadColor8Page(MainApplication& app, void* args) {
+  Color8& color = *(Color8*)args;
+
+  app.Add("Red", color.r)
+      .Add("Green", color.g)
+      .Add("Blue", color.b)
+      .Add("Alpha", color.a);
 }
 } // namespace ui

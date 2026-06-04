@@ -35,13 +35,13 @@ struct Theme;
 * Handles the display, input, and management of menu entries,
 * submenus, and context tracking using a stack-based approach.
 */
-class PluginMenu : public Application {
+class MainApplication : public Application {
 public:
   /**
-* @brief Returns the singleton instance of the PluginMenu.
-* @return Reference to the unique PluginMenu instance.
+* @brief Returns the singleton instance of the MainApplication.
+* @return Reference to the unique MainApplication instance.
 */
-  STATIC_INLINE PluginMenu& GetInstance() { return instance_; }
+  STATIC_INLINE MainApplication& GetInstance() { return instance_; }
 
   /**
 * @brief Draws the top section of the menu with menu entries.
@@ -84,9 +84,9 @@ public:
 * (e.g., 0 = "Off", 1 = "On") for display purposes.
 * @param array An array of C-strings containing the labels.
 * @param array_size The total number of elements in the array.
-* @return Reference to the PluginMenu instance for method chaining.
+* @return Reference to the MainApplication instance for method chaining.
 */
-  PluginMenu& WithArray(const c8* array[], u32 array_size) {
+  MainApplication& WithArray(const c8* array[], u32 array_size) {
     entries_[entries_count_ - 1].WithArray(array, array_size);
     return *this;
   }
@@ -96,9 +96,9 @@ public:
 * * The provided function will be triggered whenever the entry is
 * executed (e.g., by pressing the 'A' button).
 * @param callback Function pointer of type `callback_t`.
-* @return Reference to the PluginMenu instance for method chaining.
+* @return Reference to the MainApplication instance for method chaining.
 */
-  PluginMenu& WithCallback(callback_t callback) {
+  MainApplication& WithCallback(callback_t callback) {
     entries_[entries_count_ - 1].WithCallback(callback);
     return *this;
   }
@@ -107,9 +107,9 @@ public:
 * @brief Enables the refresh flag for the last added entry.
 * * Useful for entries whose modification dynamically changes the
 * structure or the content of the current menu view.
-* @return Reference to the PluginMenu instance for method chaining.
+* @return Reference to the MainApplication instance for method chaining.
 */
-  PluginMenu& WithRefresh() {
+  MainApplication& WithRefresh() {
     entries_[entries_count_ - 1].WithRefresh();
     return *this;
   }
@@ -117,9 +117,9 @@ public:
   /**
 * @brief Sets the minimum allowed value for the last added entry.
 * @param min The lower bound value.
-* @return Reference to the PluginMenu instance for method chaining.
+* @return Reference to the MainApplication instance for method chaining.
 */
-  PluginMenu& WithMin(s32 min) {
+  MainApplication& WithMin(s32 min) {
     entries_[entries_count_ - 1].WithMin(min);
     return *this;
   }
@@ -127,9 +127,9 @@ public:
   /**
 * @brief Sets the maximum allowed value for the last added entry.
 * @param max The upper bound value.
-* @return Reference to the PluginMenu instance for method chaining.
+* @return Reference to the MainApplication instance for method chaining.
 */
-  PluginMenu& WithMax(s32 max) {
+  MainApplication& WithMax(s32 max) {
     entries_[entries_count_ - 1].WithMax(max);
     return *this;
   }
@@ -139,20 +139,20 @@ public:
 * entry.
 * @param min The lower bound value.
 * @param max The upper bound value.
-* @return Reference to the PluginMenu instance for method chaining.
+* @return Reference to the MainApplication instance for method chaining.
 */
-  PluginMenu& WithBounds(u32 min, u32 max) {
+  MainApplication& WithBounds(u32 min, u32 max) {
     entries_[entries_count_ - 1].WithMin(min);
     entries_[entries_count_ - 1].WithMax(max);
     return *this;
   }
 
-  PluginMenu& WithFactor(f32 factor) {
+  MainApplication& WithFactor(f32 factor) {
     entries_[entries_count_ - 1].WithFactor(factor);
     return *this;
   }
 
-  PluginMenu& WithNoBackground() {
+  MainApplication& WithNoBackground() {
     no_background_ = 1;
     return *this;
   }
@@ -166,7 +166,7 @@ public:
 */
   void Refresh();
 
-  PluginMenu& Add(const c8* name, CheatCodeId id) {
+  MainApplication& Add(const c8* name, CheatCodeId id) {
     if (entries_count_ < kMaxEntries) {
       entries_[entries_count_].Initialize(
           name, CheatCodeManager::GetInstance().Get(id), kTypeCheatCode);
@@ -175,7 +175,7 @@ public:
     return *this;
   }
 
-  PluginMenu& Add(const c8* name, callback_t callback = nullptr) {
+  MainApplication& Add(const c8* name, callback_t callback = nullptr) {
     if (entries_count_ < kMaxEntries) {
       entries_[entries_count_].Initialize(name, nullptr, kTypeIdle);
       entries_[entries_count_].WithCallback(callback);
@@ -189,9 +189,9 @@ public:
 * @param name Display name.
 * @param addr Memory address.
 * @param type Entry type (MenuEntryType).
-* @return Reference to the PluginMenu instance.
+* @return Reference to the MainApplication instance.
 */
-  PluginMenu& Add(const c8* name, void* addr, u8 type) {
+  MainApplication& Add(const c8* name, void* addr, u8 type) {
     if (entries_count_ < kMaxEntries)
       entries_[entries_count_++].Initialize(name, addr, type);
     return *this;
@@ -201,9 +201,9 @@ public:
 * @brief Adds a submenu entry.
 * @param name Display name of the submenu.
 * @param menu Callback function to build the submenu.
-* @return Reference to the PluginMenu instance.
+* @return Reference to the MainApplication instance.
 */
-  PluginMenu& Add(const c8* name, menu_callback_t menu, void* args = nullptr) {
+  MainApplication& Add(const c8* name, menu_callback_t menu, void* args = nullptr) {
     if (entries_count_ < kMaxEntries) {
       entries_[entries_count_].Initialize(name, (void*)menu, kTypeMenu);
       entries_[entries_count_].WithArgs(args);
@@ -216,9 +216,9 @@ public:
 * @brief Adds a pointer entry.
 * @param name Display name.
 * @param addr Reference to the pointer.
-* @return Reference to the PluginMenu instance.
+* @return Reference to the MainApplication instance.
 */
-  PluginMenu& Add(const c8* name, void*& addr) {
+  MainApplication& Add(const c8* name, void*& addr) {
     if (entries_count_ < kMaxEntries)
       entries_[entries_count_++].Initialize(name, &addr, kTypePointer);
     return *this;
@@ -228,9 +228,9 @@ public:
 * @brief Adds a boolean entry.
 * @param name Display name.
 * @param addr Reference to the boolean variable.
-* @return Reference to the PluginMenu instance.
+* @return Reference to the MainApplication instance.
 */
-  PluginMenu& Add(const c8* name, bool& addr) {
+  MainApplication& Add(const c8* name, bool& addr) {
     if (entries_count_ < kMaxEntries)
       entries_[entries_count_++].Initialize(name, &addr, kTypeBoolean);
     return *this;
@@ -242,9 +242,9 @@ public:
 * @param addr Address of the integer containing the bits.
 * @param offset Bit offset.
 * @param size Bit size.
-* @return Reference to the PluginMenu instance.
+* @return Reference to the MainApplication instance.
 */
-  PluginMenu& Add(const c8* name, void* addr, u32 offset, u32 size) {
+  MainApplication& Add(const c8* name, void* addr, u32 offset, u32 size) {
     if (entries_count_ < kMaxEntries)
       entries_[entries_count_++].Initialize(name, addr, kTypeBits, offset,
                                             size);
@@ -256,15 +256,15 @@ public:
 * @param name Display name.
 * @param addr Pointer to the UTF-16 string.
 * @param size Maximum length/size of the string.
-* @return Reference to the PluginMenu instance.
+* @return Reference to the MainApplication instance.
 */
-  PluginMenu& Add(const c8* name, c16* addr, u32 size) {
+  MainApplication& Add(const c8* name, c16* addr, u32 size) {
     if (entries_count_ < kMaxEntries)
       entries_[entries_count_++].Initialize(name, addr, kTypeUnicode, size);
     return *this;
   }
 
-  PluginMenu& AddSpecies(const c8* name, u16& var) {
+  MainApplication& AddSpecies(const c8* name, u16& var) {
     if (entries_count_ < kMaxEntries) {
       entries_[entries_count_++].Initialize(name, (void*)&var, kTypeSpecies);
       WithBounds(0, 0x2D4);
@@ -272,7 +272,7 @@ public:
     return *this;
   }
 
-  PluginMenu& AddType(const c8* name, u8& var) {
+  MainApplication& AddType(const c8* name, u8& var) {
     static const c8* TYPES[] = {
         "Normal", "Fighting", "Flying", "Poison", "Ground", "Rock",
         "Bug", "Ghost", "Steel", "Fire", "Water", "Grass",
@@ -285,7 +285,7 @@ public:
     return *this;
   }
 
-  PluginMenu& AddAbility(const c8* name, u8& var) {
+  MainApplication& AddAbility(const c8* name, u8& var) {
     if (entries_count_ < kMaxEntries) {
       entries_[entries_count_++].Initialize(name, (void*)&var, kTypeAbility);
       WithBounds(0, 0xBF);
@@ -293,7 +293,7 @@ public:
     return *this;
   }
 
-  PluginMenu& AddMove(const c8* name, u16& var) {
+  MainApplication& AddMove(const c8* name, u16& var) {
     if (entries_count_ < kMaxEntries) {
       entries_[entries_count_++].Initialize(name, (void*)&var, kTypeMove);
       WithBounds(0, 0x26E);
@@ -301,7 +301,7 @@ public:
     return *this;
   }
 
-  PluginMenu& AddItem(const c8* name, u16& var) {
+  MainApplication& AddItem(const c8* name, u16& var) {
     if (entries_count_ < kMaxEntries) {
       entries_[entries_count_++].Initialize(name, (void*)&var, kTypeItem);
       WithBounds(0, 775);
@@ -309,7 +309,7 @@ public:
     return *this;
   }
 
-  PluginMenu& AddSeparator() {
+  MainApplication& AddSeparator() {
     if (entries_count_ < kMaxEntries) {
       entries_[entries_count_++].Initialize("", nullptr, kTypeSeparator);
     }
@@ -320,7 +320,7 @@ public:
 * @brief Macro helper for adding numeric typed entries.
 */
 #define ADD(type, type_id)                                      \
-  PluginMenu &Add(const c8 *name, type &var) {                  \
+  MainApplication &Add(const c8 *name, type &var) {                  \
     if (entries_count_ < kMaxEntries)                           \
       entries_[entries_count_++].Initialize(name, (void *)&var, \
                                             kType##type_id);    \
@@ -378,7 +378,7 @@ private:
   /**
 * @brief Private constructor for singleton pattern.
 */
-  PluginMenu()
+  MainApplication()
     : is_opened_(0),
       entries_count_(0),
       contexts_count_(0),
@@ -411,10 +411,10 @@ private:
   static constexpr u32 kMaxDisplayCount = 15;
   static constexpr u32 kLineHeight = 16;
 
-  static PluginMenu instance_; ///< Unique instance.
+  static MainApplication instance_; ///< Unique instance.
 
   u32 is_opened_ : 1; ///< True if menu is open.
-  u32 entries_count_ : 6; ///< Active entries in current menu.
+  u32 entries_count_ : 6; ///< Active entries in current app.
   u32 contexts_count_ : 3; ///< Number of submenus in the stack.
   u32 no_background_ : 1;
   u32  : 21; ///< Reserved.

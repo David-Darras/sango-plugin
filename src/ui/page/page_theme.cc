@@ -15,20 +15,20 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "ui/plugin_menu.h"
+#include "ui/main_application.h"
 #include "ui/common_menu.h"
 
 namespace ui {
-void LoadThemeMenu(PluginMenu& menu, void* args) {
+void LoadThemePage(MainApplication& app, void* args) {
   auto& theme = Theme::GetInstance();
 
-  menu.Add("Background Color", LoadColorMenu, &theme.background_color)
-      .Add("Unselected Text Color", LoadColorMenu,
+  app.Add("Background Color", LoadColorPage, &theme.background_color)
+      .Add("Unselected Text Color", LoadColorPage,
            &theme.unselected_text_color)
-      .Add("Selected Text Color", LoadColorMenu, &theme.selected_text_color)
-      .Add("Edited Text Color", LoadColorMenu, &theme.edited_text_color);
+      .Add("Selected Text Color", LoadColorPage, &theme.selected_text_color)
+      .Add("Edited Text Color", LoadColorPage, &theme.edited_text_color);
 
-  menu.AddSeparator()
+  app.AddSeparator()
       .Add("Open Plugin Sound Effect", theme.open_sound)
       .Add("Close Plugin Sound Effect", theme.close_sound)
       .Add("Confirm Sound Effect", theme.confirm_sound)
@@ -40,7 +40,7 @@ void LoadThemeMenu(PluginMenu& menu, void* args) {
       "ZL", "ZR", "Start/Select"
   };
 
-  menu.AddSeparator()
+  app.AddSeparator()
       .Add("Key 1", theme.keys[0])
       .WithArray(KEYS, SIZE(KEYS))
       .Add("Key 2", theme.keys[1])

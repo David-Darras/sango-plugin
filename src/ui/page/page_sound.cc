@@ -15,7 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "ui/plugin_menu.h"
+#include "ui/main_application.h"
 #include "system/sound.h"
 
 namespace ui {
@@ -40,8 +40,8 @@ void PlayBackgroundMusic(void*) {
   Sound::PlayBackgroundMusic(background_music_id);
 }
 
-void LoadSoundMenu(PluginMenu& menu, void* args) {
-  menu.Add("Pokemon Cry Volume", pokemon_cry_volume)
+void LoadSoundPage(MainApplication& app, void* args) {
+  app.Add("Pokemon Cry Volume", pokemon_cry_volume)
       .WithCallback(ChangePokemonCryVolume)
       .Add("Pokemon Cry Id", pokemon_cry_id)
       .WithCallback(PlayPokemonCry)

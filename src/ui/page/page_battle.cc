@@ -21,15 +21,15 @@
 
 #include "game/battle/manager.h"
 #include "feature/feature_battle_config.h"
-#include "ui/plugin_menu.h"
+#include "ui/main_application.h"
 
 namespace ui {
 #include "game/battle/config.inc"
 
-void LoadBattleConfigMenu(PluginMenu& menu, void* args) {
+void LoadBattleConfigPage(MainApplication& app, void* args) {
   auto& ctx = feature::BattleConfigHookContext::GetInstance();
 
-  menu.Add("Inverse Teams", ctx.inverse_teams)
+  app.Add("Inverse Teams", ctx.inverse_teams)
       .Add("Is Enabled", ctx.is_enabled)
       .Add("Battle Format", ctx.battle_format)
       .WithArray(FORMATS, SIZE(FORMATS))
@@ -63,12 +63,12 @@ static void SavePokemon(void*) {
   memcpy(pkm_client, pkm_server, sizeof(battle::Pokemon));
 }
 
-void LoadBattlePokemonDataMenu(PluginMenu& menu, void* args) {
-  if (menu.CheckProcess(PROCESS_NAME_BATTLE)) return;
+void LoadBattlePokemonDataPage(MainApplication& app, void* args) {
+  if (app.CheckProcess(PROCESS_NAME_BATTLE)) return;
 
   auto& pkm = *pkm_server;
 
-  menu.Add("Save", SavePokemon)
+  app.Add("Save", SavePokemon)
       .Add("UID", pkm.uid)
       .AddSpecies("Species", pkm.species)
 
@@ -128,8 +128,8 @@ void LoadBattlePokemonDataMenu(PluginMenu& menu, void* args) {
       .Add("Weight", pkm.weight);
 }
 
-void LoadBattlePokemonModelMenu(PluginMenu& menu, void* args) {
-  if (menu.CheckProcess(PROCESS_NAME_BATTLE)) return;
+void LoadBattlePokemonModelPage(MainApplication& app, void* args) {
+  if (app.CheckProcess(PROCESS_NAME_BATTLE)) return;
 
   auto& model =
       battle::Manager::GetInstance().GetGraphics().GetPokemonModel(
@@ -141,7 +141,7 @@ void LoadBattlePokemonModelMenu(PluginMenu& menu, void* args) {
   constexpr f32 kRotationFactor = 4.0f * M_PI / 180.0f;
   constexpr f32 kPositionFactor = 4.0f;
 
-  menu.Add("Position X", model.position.x)
+  app.Add("Position X", model.position.x)
       .WithFactor(kPositionFactor)
       .WithRefresh()
       .Add("Position Y", model.position.y)
@@ -172,20 +172,20 @@ void LoadBattlePokemonModelMenu(PluginMenu& menu, void* args) {
       .WithRefresh();
 }
 
-void LoadBattleMenu(PluginMenu& menu, void* args) {
-  if (menu.CheckProcess(PROCESS_NAME_BATTLE)) return;
+void LoadBattlePage(MainApplication& app, void* args) {
+  if (app.CheckProcess(PROCESS_NAME_BATTLE)) return;
 
   pkm_server = battle::Manager::GetPokemon(true, team_idx, pokemon_idx);
   pkm_client = battle::Manager::GetPokemon(false, team_idx, pokemon_idx);
 
-  menu.Add("Team Index", team_idx)
+  app.Add("Team Index", team_idx)
       .WithBounds(0, 3)
       .WithRefresh()
       .Add("Pokemon Index", pokemon_idx)
       .WithBounds(0, 5)
       .WithRefresh()
-      .Add("Pokemon Data", LoadBattlePokemonDataMenu)
-      .Add("Pokemon Model", LoadBattlePokemonModelMenu);
+      .Add("Pokemon Data", LoadBattlePokemonDataPage)
+      .Add("Pokemon Model", LoadBattlePokemonModelPage);
 
   // static u8 trainer_model_id = 11;
   // static const c8* TRAINER_MODELS[] = {

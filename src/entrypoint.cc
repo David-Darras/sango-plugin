@@ -18,7 +18,7 @@
 #include "feature/feature_battle_config.h"
 #include "feature/feature_camera.h"
 #include "feature/feature_day_care.h"
-#include "ui/top_menu.h"
+#include "ui/page_top.h"
 #include "feature/feature_engine.h"
 #include "feature/feature_light.h"
 #include "feature/feature_picture.h"
@@ -27,7 +27,7 @@
 #include "feature/feature_device.h"
 #include "feature/feature_map_tile.h"
 #include "feature/feature_overworld_model.h"
-#include "ui/plugin_menu.h"
+#include "ui/main_application.h"
 #include "system/device.h"
 #include "system/file.h"
 #include "system/graphics.h"
@@ -52,9 +52,9 @@ void Initialize() {
   feature::OverworldModelCheatCode::Initialize();
 
   auto& application_manager = ui::ApplicationManager::GetInstance();
-  auto& plugin_menu = ui::PluginMenu::GetInstance();
+  auto& plugin_menu = ui::MainApplication::GetInstance();
 
-  plugin_menu.Open(ui::LoadTopMenu);
+  plugin_menu.Open(ui::LoadTopPage);
   application_manager.Push(plugin_menu);
 }
 

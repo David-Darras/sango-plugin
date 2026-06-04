@@ -16,7 +16,7 @@
  */
 
 #pragma once
-#include "ui/plugin_menu.h"
+#include "ui/main_application.h"
 #include "game/data_manager.h"
 
 namespace savedata {

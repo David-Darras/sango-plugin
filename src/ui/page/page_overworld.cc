@@ -19,16 +19,16 @@
 #include "feature/feature_field_move.h"
 #include "feature/feature_map_tile.h"
 #include "feature/feature_overworld_model.h"
-#include "ui/plugin_menu.h"
+#include "ui/main_application.h"
 #include "game/overworld/encounter.h"
 
 namespace ui {
 #include "game/overworld/tile.inc"
 
-void LoadOverworldMapTileMenu(PluginMenu& menu, void* args) {
+void LoadOverworldMapTilePage(MainApplication& app, void* args) {
   auto& ctx = feature::MapTileHookContext::GetInstance();
 
-  menu.Add("Is Enabled", ctx.is_enabled)
+  app.Add("Is Enabled", ctx.is_enabled)
       .AddSeparator()
       .Add("Is Impassable", ctx.is_impassable)
       .Add("Is Water", ctx.is_water)
@@ -52,20 +52,20 @@ void LoadOverworldMapTileMenu(PluginMenu& menu, void* args) {
       .WithArray(GROUNDS, SIZE(GROUNDS));
 }
 
-void LoadOverworldEncounterMenu(PluginMenu& menu, void* args) {
-  if (menu.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
+void LoadOverworldEncounterPage(MainApplication& app, void* args) {
+  if (app.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
 
   auto& data = overworld::Encounter::GetInstance();
 
-  menu.Add("Walk Count", data.walk_count)
+  app.Add("Walk Count", data.walk_count)
       .Add("Encounter Rate", data.encounter_rate)
       .Add("Fishing Chain", data.fishing_chain_count);
 }
 
-void LoadOverworldFieldMoveMenu(PluginMenu& menu, void* args) {
+void LoadOverworldFieldMovePage(MainApplication& app, void* args) {
   static u32 choice = 0;
 
-  if (menu.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
+  if (app.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
 
   static const c8* MOVES[] = {
       "Cut", "Surf", "Waterfall",
@@ -74,19 +74,19 @@ void LoadOverworldFieldMoveMenu(PluginMenu& menu, void* args) {
       "Sweet Scent", "Dive", "Secret Power"
   };
 
-  menu.Add("Field Move", choice);
-  menu.WithArray(MOVES, SIZE(MOVES));
-  menu.Add("Execute", [&](void*) { feature::FieldMove::Execute(choice); });
+  app.Add("Field Move", choice);
+  app.WithArray(MOVES, SIZE(MOVES));
+  app.Add("Execute", [&](void*) { feature::FieldMove::Execute(choice); });
 }
 
-void LoadOverworldCameraMenu(PluginMenu& menu, void* args) {
-  if (menu.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
+void LoadOverworldCameraPage(MainApplication& app, void* args) {
+  if (app.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
 
   static const c8* STATES[] = {"Idle", "Free", "Rotate", "Fpv", "Tps"};
   bool& skybox = *(bool*)((uptr)&overworld::Renderer::GetInstance() + 0xB74);
   auto& ctx = feature::CameraHookContext::GetInstance();
 
-  menu.WithNoBackground()
+  app.WithNoBackground()
       .Add("Skybox", skybox)
       .AddSeparator()
       .Add("State", ctx.state)
@@ -115,15 +115,15 @@ void LoadOverworldCameraMenu(PluginMenu& menu, void* args) {
       .WithFactor(0.01f);
 }
 
-void LoadOverworldModelMenu(PluginMenu& menu, void* args) {
-  if (menu.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
+void LoadOverworldModelPage(MainApplication& app, void* args) {
+  if (app.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
 
   auto& ctx = feature::OverworldModelCheatCode::GetInstance();
   auto& man = overworld::ModelManager::GetInstance();
   auto& rsrc = man.GetResource(ctx.model_idx);
   auto& draw_model = man.GetPlayer().GetDrawModel();
 
-  menu.Add("Scale X", draw_model.scale.x)
+  app.Add("Scale X", draw_model.scale.x)
       .WithFactor(0.2f)
       .Add("Scale Y", draw_model.scale.y)
       .WithFactor(0.2f)
@@ -147,14 +147,14 @@ void LoadOverworldModelMenu(PluginMenu& menu, void* args) {
       .WithCallback(feature::OverworldModelCheatCode::PlayAnimation);
 }
 
-void LoadOverworldMenu(PluginMenu& menu, void* args) {
-  if (menu.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
+void LoadOverworldPage(MainApplication& app, void* args) {
+  if (app.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
 
   auto& man = overworld::MapManager::GetInstance();
-  menu.Add("Reload Map", man.GetMapId())
-      .Add("Encounter", LoadOverworldEncounterMenu)
-      .Add("Map Tile", LoadOverworldMapTileMenu)
-      .Add("Field Move", LoadOverworldFieldMoveMenu)
-      .Add("Camera", LoadOverworldCameraMenu);
+  app.Add("Reload Map", man.GetMapId())
+      .Add("Encounter", LoadOverworldEncounterPage)
+      .Add("Map Tile", LoadOverworldMapTilePage)
+      .Add("Field Move", LoadOverworldFieldMovePage)
+      .Add("Camera", LoadOverworldCameraPage);
 }
 } // namespace ui

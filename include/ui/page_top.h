@@ -19,19 +19,16 @@
 #include "common.h"
 
 namespace ui {
-class PluginMenu;
-}
-
-namespace ui {
-void LoadThemeMenu(PluginMenu& menu, void* args);
-void LoadBattleConfigMenu(PluginMenu& menu, void* args);
-void LoadBattleMenu(PluginMenu& menu, void* args);
-void LoadDayCareMenu(PluginMenu& menu, void* args);
-void LoadGameTimeMenu(PluginMenu& menu, void* args);
-void LoadGlobalDataMenu(PluginMenu& menu, void* args);
-void LoadOverworldMenu(PluginMenu& menu, void* args);
-void LoadRendererMenu(PluginMenu& menu, void* args);
-void LoadSaveDataMenu(PluginMenu& menu, void* args);
-void LoadSoundMenu(PluginMenu& menu, void* args);
-void LoadTopMenu(PluginMenu& menu, void* args);
+class MainApplication;
+void LoadThemePage(MainApplication& app, void* args);
+void LoadBattleConfigPage(MainApplication& app, void* args);
+void LoadBattlePage(MainApplication& app, void* args);
+void LoadDayCarePage(MainApplication& app, void* args);
+void LoadGameTimePage(MainApplication& app, void* args);
+void LoadGlobalDataPage(MainApplication& app, void* args);
+void LoadOverworldPage(MainApplication& app, void* args);
+void LoadRendererPage(MainApplication& app, void* args);
+void LoadSaveDataPage(MainApplication& app, void* args);
+void LoadSoundPage(MainApplication& app, void* args);
+void LoadTopPage(MainApplication& app, void* args);
 }
