@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include "core/core.h"
+#include "core.h"
 #include "game/manager.h"
 
 namespace global_data {

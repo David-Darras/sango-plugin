@@ -19,7 +19,7 @@
 #include "common.h"
 #include "hook_manager.h"
 #include "battle/config.h"
-#include "core/core.h"
+#include "core.h"
 
 namespace feature {
 struct BattleConfigHookContext {

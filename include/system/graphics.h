@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include "core/core.h"
+#include "core.h"
 
 /**
  * @brief Identifiers for the available hardware screens.

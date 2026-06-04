@@ -18,7 +18,7 @@
 #pragma once
 #include "cheat_code_manager.h"
 #include "common.h"
-#include "core/core.h"
+#include "core.h"
 
 namespace feature {
 class DayCareCheatCode {

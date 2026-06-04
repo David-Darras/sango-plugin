@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include "core/core.h"
+#include "core.h"
 
 namespace global_data {
 struct Pokemon {

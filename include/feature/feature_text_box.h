@@ -18,7 +18,7 @@
 #pragma once
 
 #include "common.h"
-#include "core/core.h"
+#include "core.h"
 #include "feature/hook_manager.h"
 #include "renderer/text_box.h"
 

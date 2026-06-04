@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include "core/core.h"
+#include "core.h"
 
 enum TextureFormat {
   rgba8 = 0,
