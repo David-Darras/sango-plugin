@@ -23,16 +23,9 @@ INCLUDES	:= 	include \
 				../Library/include
 
 SOURCES 	:= 	src \
-				src/battle \
-				src/core \
-				src/layout \
 				src/menu \
-				src/overworld \
-				src/savedata \
-				src/system \
-				src/renderer \
-				src/feature \
-				src/ui
+				src/ui \
+				src/ui/widget
 
 PSF 		:= 	$(notdir $(TOPDIR)).plgInfo
 

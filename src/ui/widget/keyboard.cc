@@ -15,7 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "menu/keyboard.h"
+#include "ui/widget/keyboard.h"
 
 #include <cstring>
 
@@ -23,7 +23,7 @@
 #include "system/sound.h"
 #include "utils.h"
 
-namespace menu {
+namespace ui {
 
 Keyboard::Keyboard() : page_index_(0), cursor_(0) {
   memset(input_, 0, sizeof(input_));
@@ -166,4 +166,4 @@ void Keyboard::RemoveLastChar() {
   input_[cursor_] = 0;
 }
 
-}  // namespace menu
+}  // namespace ui

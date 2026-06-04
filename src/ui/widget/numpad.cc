@@ -15,14 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "menu/numpad.h"
+#include "ui/widget/numpad.h"
 
 #include <string.h>
 
 #include "system/sound.h"
 
-namespace menu {
-
+namespace ui {
 Numpad::Numpad() : cursor_(0) {
   memset(input_, 0, sizeof(input_));
 
@@ -116,14 +115,14 @@ void Numpad::RemoveLastDigit() {
   input_[cursor_] = 0;
 }
 
-u32 Numpad::UnicodeToInteger(const c16 *str) {
+u32 Numpad::UnicodeToInteger(const c16* str) {
   if (*str == 0) {
     return 0;
   }
 
   u32 result = 0;
   u32 base = 10;
-  const c16 *current = str;
+  const c16* current = str;
 
   // Check for hex prefix
   if (current[0] == u'0' && (current[1] == u'x' || current[1] == u'X')) {
@@ -151,5 +150,4 @@ u32 Numpad::UnicodeToInteger(const c16 *str) {
 
   return result;
 }
-
-}  // namespace menu
+} // namespace ui

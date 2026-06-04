@@ -15,18 +15,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_MENU_NUMPAD_H
-#define SANGO_PLUGIN_MENU_NUMPAD_H
+#pragma once
 
-#include "button.h"
+#include "ui/widget/button.h"
 
-namespace menu {
-
+namespace ui {
 /**
  * @brief A visual numeric keypad for entering integer and hexadecimal values.
  */
 class Numpad {
- public:
+public:
   /**
    * @brief Constructor that initializes button positions and dimensions.
    */
@@ -56,26 +54,26 @@ class Numpad {
    */
   u32 GetInput() const;
 
- private:
+private:
   /**
    * @brief Internal button identifiers for array mapping.
    */
   enum ButtonId {
-    kButton0 = 0,   ///< Number 0
-    kButton1,       ///< Number 1
-    kButton2,       ///< Number 2
-    kButton3,       ///< Number 3
-    kButton4,       ///< Number 4
-    kButton5,       ///< Number 5
-    kButton6,       ///< Number 6
-    kButton7,       ///< Number 7
-    kButton8,       ///< Number 8
-    kButton9,       ///< Number 9
-    kButtonInput,   ///< Input display bar
-    kButtonCancel,  ///< CLR/Cancel action
-    kButtonDelete,  ///< DEL/Backspace action
-    kButtonOk,      ///< OK/Confirm action
-    kButtonMax      ///< Sentinel for array size
+    kButton0 = 0, ///< Number 0
+    kButton1, ///< Number 1
+    kButton2, ///< Number 2
+    kButton3, ///< Number 3
+    kButton4, ///< Number 4
+    kButton5, ///< Number 5
+    kButton6, ///< Number 6
+    kButton7, ///< Number 7
+    kButton8, ///< Number 8
+    kButton9, ///< Number 9
+    kButtonInput, ///< Input display bar
+    kButtonCancel, ///< CLR/Cancel action
+    kButtonDelete, ///< DEL/Backspace action
+    kButtonOk, ///< OK/Confirm action
+    kButtonMax ///< Sentinel for array size
   };
 
   /**
@@ -94,13 +92,10 @@ class Numpad {
    * @param str The source string.
    * @return The converted integer.
    */
-  static u32 UnicodeToInteger(const c16 *str);
+  static u32 UnicodeToInteger(const c16* str);
 
-  Button buttons_[kButtonMax];  ///< Array of interactive buttons.
-  c16 input_[16];               ///< Internal UTF-16 buffer for digits.
-  s8 cursor_;                   ///< Current position in the buffer.
+  Button buttons_[kButtonMax]; ///< Array of interactive buttons.
+  c16 input_[16]; ///< Internal UTF-16 buffer for digits.
+  s8 cursor_; ///< Current position in the buffer.
 };
-
-}  // namespace menu
-
-#endif  // SANGO_PLUGIN_MENU_NUMPAD_H
+} // namespace ui

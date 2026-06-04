@@ -15,13 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "menu/button.h"
+#include "ui/widget/button.h"
 
 #include "menu/theme.h"
 #include "system/device.h"
 #include "system/graphics.h"
 
-namespace menu {
+namespace ui {
 Button::Button() : x_(0), width_(0), y_(0), state_(kIdle), height_(0) {
 }
 
@@ -34,7 +34,7 @@ void Button::Initialize(u32 x, u32 y, u32 width, u32 height) {
 }
 
 void Button::Draw(const c16* label, u32 offset_x, u32 offset_y) const {
-  Theme& theme = Theme::GetInstance();
+  auto& theme = menu::Theme::GetInstance();
   Color foreground_color = theme.unselected_text_color;
   if (IsDown()) foreground_color = theme.selected_text_color;
 
@@ -82,4 +82,4 @@ void Button::Update() {
       break;
   }
 }
-} // namespace menu
+} // namespace ui

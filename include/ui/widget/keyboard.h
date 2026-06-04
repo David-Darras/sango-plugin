@@ -15,19 +15,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_MENU_KEYBOARD_H
-#define SANGO_PLUGIN_MENU_KEYBOARD_H
+#pragma once
 
-#include "button.h"
+#include "ui/widget/button.h"
 
-namespace menu {
-
+namespace ui {
 /**
  * @brief A visual Unicode keyboard for text input using a touch interface.
  * Supports pagination, character selection, and basic editing (DEL/CLR).
  */
 class Keyboard {
- public:
+public:
   /**
    * @brief Initializes the keyboard layout, buttons, and input buffer.
    */
@@ -55,7 +53,7 @@ class Keyboard {
    */
   const c16* GetInput() const;
 
- private:
+private:
   /**
    * @brief Appends a character to the input buffer if space is available.
    * @param character The UTF-16 character to add.
@@ -68,34 +66,31 @@ class Keyboard {
   void RemoveLastChar();
 
   // Layout Constants
-  static constexpr u32 kColNum = 15;  ///< Number of columns in the grid.
-  static constexpr u32 kRowNum = 4;   ///< Number of rows in the grid.
-  static constexpr u32 kPageSize = kColNum * kRowNum;  ///< Characters per page.
+  static constexpr u32 kColNum = 15; ///< Number of columns in the grid.
+  static constexpr u32 kRowNum = 4; ///< Number of rows in the grid.
+  static constexpr u32 kPageSize = kColNum * kRowNum; ///< Characters per page.
   static constexpr u32 kBufferSize =
-      17;  ///< Max string length including null terminator.
+      17; ///< Max string length including null terminator.
 
   /**
    * @brief Button ID mapping for the internal button array.
    */
   enum {
-    kButtonInput = 0,  ///< The text display bar.
-    kButtonPrev10,     ///< Jump back 10 pages.
-    kButtonPrev,       ///< Previous page.
-    kButtonNext,       ///< Next page.
-    kButtonNext10,     ///< Jump forward 10 pages.
-    kButtonCancel,     ///< Clear (CLR) action.
-    kButtonDelete,     ///< Backspace (DEL) action.
-    kButtonOk,         ///< Confirm (OK) action.
-    kButtonGridStart,  ///< Start index for the character keys.
+    kButtonInput = 0, ///< The text display bar.
+    kButtonPrev10, ///< Jump back 10 pages.
+    kButtonPrev, ///< Previous page.
+    kButtonNext, ///< Next page.
+    kButtonNext10, ///< Jump forward 10 pages.
+    kButtonCancel, ///< Clear (CLR) action.
+    kButtonDelete, ///< Backspace (DEL) action.
+    kButtonOk, ///< Confirm (OK) action.
+    kButtonGridStart, ///< Start index for the character keys.
     kButtonMax = kButtonGridStart + kPageSize
   };
 
-  Button buttons_[kButtonMax];  ///< Array of all interactive screen regions.
-  c16 input_[kBufferSize];      ///< UTF-16 input buffer.
-  u16 page_index_ : 11;  ///< Current Unicode page (supports up to 2048 pages).
-  u16 cursor_ : 5;       ///< Current character position (0 to 16).
+  Button buttons_[kButtonMax]; ///< Array of all interactive screen regions.
+  c16 input_[kBufferSize]; ///< UTF-16 input buffer.
+  u16 page_index_ : 11; ///< Current Unicode page (supports up to 2048 pages).
+  u16 cursor_ : 5; ///< Current character position (0 to 16).
 };
-
-}  // namespace menu
-
-#endif  // SANGO_PLUGIN_MENU_KEYBOARD_H
+} // namespace ui

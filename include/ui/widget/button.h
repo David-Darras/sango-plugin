@@ -15,19 +15,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_MENU_BUTTON_H
-#define SANGO_PLUGIN_MENU_BUTTON_H
+#pragma once
 
 #include "common.h"
 
-namespace menu {
-
+namespace ui {
 /**
  * @brief A simple UI Button class for handling touch interactions and
  * rendering.
  */
 class Button {
- public:
+public:
   /**
    * @brief Default constructor.
    */
@@ -48,7 +46,7 @@ class Button {
    * @param offset_x Horizontal padding for the text.
    * @param offset_y Vertical padding for the text.
    */
-  void Draw(const c16 *label, u32 offset_x, u32 offset_y) const;
+  void Draw(const c16* label, u32 offset_x, u32 offset_y) const;
 
   /**
    * @brief Checks if the button is currently being pressed.
@@ -69,7 +67,7 @@ class Button {
    */
   void Update();
 
- private:
+private:
   enum State {
     kIdle,
     kHold,
@@ -80,12 +78,9 @@ class Button {
   u32 width_ : 9;
   u32 y_ : 8;
   u32 state_ : 2;
-  u32 : 4;
+  u32  : 4;
 
   u32 height_ : 8;
-  u32 : 24;
+  u32  : 24;
 };
-
-} // namespace menu
-
-#endif  // SANGO_PLUGIN_MENU_BUTTON_H
+} // namespace ui

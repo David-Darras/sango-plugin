@@ -20,11 +20,11 @@
 
 #include "feature/cheat_code.h"
 #include "feature/cheat_code_manager.h"
-#include "keyboard.h"
-#include "menu_entry.h"
-#include "numpad.h"
-#include "theme.h"
+#include "menu/menu_entry.h"
+#include "menu/theme.h"
 #include "ui/application.h"
+#include "ui/widget/keyboard.h"
+#include "ui/widget/numpad.h"
 
 class Controller;
 
@@ -423,8 +423,8 @@ private:
 
   MenuEntry entries_[kMaxEntries]; ///< Entry pool.
   MenuContext contexts_[kMaxContexts]; ///< Context stack.
-  Numpad numpad_; ///< Numpad logic.
-  Keyboard keyboard_; ///< Keyboard logic.
+  ui::Numpad numpad_; ///< Numpad logic.
+  ui::Keyboard keyboard_; ///< Keyboard logic.
 
   Theme& theme_;
 };
