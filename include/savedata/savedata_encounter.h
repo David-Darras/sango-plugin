@@ -22,8 +22,6 @@
 
 namespace savedata {
 struct Encounter {
-  static void LoadMenu(menu::PluginMenu& menu, void* args);
-
   STATIC_INLINE Encounter& GetInstance() {
     return SaveData::GetInstance().GetEncounter();
   }

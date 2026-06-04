@@ -30,12 +30,6 @@ namespace savedata {
  */
 struct BagManager {
   /**
-   * @brief Builds the menu interface for Bag-related cheats/modifications.
-   * @param menu Reference to the PluginMenu instance.
-   */
-  static void LoadMenu(menu::PluginMenu& menu, void* args);
-
-  /**
    * @brief Returns the singleton instance of the BagManager from the SaveData.
    * @return Reference to the unique BagManager instance.
    */

@@ -20,8 +20,6 @@
 #include "common.h"
 
 struct PokemonCoreData {
-  static void LoadMenu(menu::PluginMenu& menu, void* args);
-
   // HEADER [0x08 bytes]
   u32 encryption_key; // 04
   u16 _0; // 06

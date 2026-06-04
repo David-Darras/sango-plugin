@@ -21,8 +21,6 @@
 
 namespace savedata {
 struct RecordManager {
-  static void LoadMenu(menu::PluginMenu& menu, void* args);
-
   STATIC_INLINE RecordManager& GetInstance() {
     return SaveData::GetInstance().GetRecordManager();
   }

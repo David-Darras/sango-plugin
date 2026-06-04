@@ -161,6 +161,9 @@
 
 #define ADDRESS_DATE_TIME (0x006174F8)
 
+#define ADDRESS_RECORD_MAX_VALUE_TABLE (0x0058DE14) // 999999999, 9999999, etc.
+#define ADDRESS_RECORD_MAX_VALUE_INDEX_TABLE (0x0058DD4A) // 0, 0, 0, 1, 1, etc.
+
 class Device;
 class Graphics;
 

@@ -22,43 +22,23 @@
 #include "savedata.h"
 
 namespace savedata {
-
 /**
  * @brief Manages the Pokémon-Amie (Kawaigari) system data.
  * * This structure handles the inventory of Poké Puffs and global
  * interaction timestamps for the Amie system in Pokémon ORAS.
  */
 struct PokemonAmie {
-  /**
-   * @brief Builds the main menu for Pokémon-Amie.
-   * @param menu Reference to the PluginMenu instance.
-   */
-  static void LoadMenu(menu::PluginMenu& menu, void* args);
-
-  /**
-   * @brief Returns the singleton instance of PokemonAmie from SaveData.
-   * @return Reference to the unique PokemonAmie instance.
-   */
   STATIC_INLINE PokemonAmie& GetInstance() {
     return SaveData::GetInstance().GetPokemonAmie();
   }
 
-  /** @brief Maximum ID value for a Poké Puff item. */
   static constexpr u32 kMaxPokePuffId = 24;
-
-  /** @brief Maximum number of Poké Puffs storage slots. */
   static constexpr u32 kMaxPokePuffs = 100;
 
-  /** @brief Pointer to the virtual method table. */
   void* vtable;
-
-  /** @brief Inventory array containing Poké Puff IDs. */
   u8 poke_puffs[kMaxPokePuffs];
-
-  /** @brief Timestamp (in days) of the last access to the Amie system. */
   s32 last_opened_timestamp;
 };
-
-}  // namespace savedata
+} // namespace savedata
 
 #endif  // SANGO_PLUGIN_SAVEDATA_POKEMON_AMIE_H

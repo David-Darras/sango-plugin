@@ -21,10 +21,7 @@
 #include "core/game_data_manager.h"
 
 namespace savedata {
-
 struct PlayTime {
-  static void LoadMenu(menu::PluginMenu& menu, void* args);
-
   STATIC_INLINE PlayTime& GetInstance() {
     return GameDataManager::GetInstance().GetPlayTime();
   }
@@ -35,7 +32,6 @@ struct PlayTime {
   u8 second;
   u32 save_flags;
 };
-
-}  // namespace savedata
+} // namespace savedata
 
 #endif  // SANGO_PLUGIN_SAVEDATA_PLAY_TIME_H

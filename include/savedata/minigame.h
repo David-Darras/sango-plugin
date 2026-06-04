@@ -22,8 +22,6 @@
 
 namespace savedata {
 struct Minigame {
-  static void LoadMenu(menu::PluginMenu& menu, void* args);
-
   STATIC_INLINE Minigame& GetInstance() {
     return SaveData::GetInstance().GetMinigame();
   }

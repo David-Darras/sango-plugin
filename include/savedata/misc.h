@@ -21,7 +21,6 @@
 #include "savedata.h"
 
 namespace savedata {
-
 /**
  * @struct Misc
  * @brief Container for general player progress and metadata.
@@ -29,29 +28,29 @@ namespace savedata {
  * the rival's name, and unlock flags for game mechanics.
  */
 struct Misc {
-  static void LoadMenu(menu::PluginMenu& menu, void* args);
-
-  STATIC_INLINE Misc& GetInstance() { return SaveData::GetInstance().GetMisc(); }
+  STATIC_INLINE Misc& GetInstance() {
+    return SaveData::GetInstance().GetMisc();
+  }
 
   /// @brief Maximum character length for nicknames.
   static constexpr u32 kNicknameLength = 13;
 
-  void* vtable;      ///< Pointer to the virtual method table.
-  u32 padding0;      ///< Alignment padding.
-  u64 random_value;  ///< Seed or value used for RNG-related save state.
+  void* vtable; ///< Pointer to the virtual method table.
+  u32 padding0; ///< Alignment padding.
+  u64 random_value; ///< Seed or value used for RNG-related save state.
 
-  u32 money;   ///< Current amount of player currency.
-  u32 badges;  ///< Bitmask or count of obtained gym badges.
+  u32 money; ///< Current amount of player currency.
+  u32 badges; ///< Bitmask or count of obtained gym badges.
 
   /**
    * @brief The name assigned to the rival character.
    * Stored as a 16-bit character array (UTF-16/UCS-2).
    */
   c16 rival_nickname[kNicknameLength];
-  c16 padding1;  ///< Alignment padding after nickname.
+  c16 padding1; ///< Alignment padding after nickname.
 
-  u32 flags;          ///< General purpose game state flags.
-  u32 battle_points;  ///< Currency earned from battle facilities.
+  u32 flags; ///< General purpose game state flags.
+  u32 battle_points; ///< Currency earned from battle facilities.
 
   /**
    * @brief Bitmask tracking encountered Mega Evolutions.
@@ -64,7 +63,6 @@ struct Misc {
    */
   u8 has_encountered_mega_evolution[8];
 };
-
-}  // namespace savedata
+} // namespace savedata
 
 #endif  // SANGO_PLUGIN_MISC_H

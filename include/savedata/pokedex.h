@@ -22,8 +22,6 @@
 
 namespace savedata {
 struct Pokedex {
-  static void LoadMenu(menu::PluginMenu& menu, void* args);
-
   STATIC_INLINE Pokedex& GetInstance() {
     return SaveData::GetInstance().GetPokedex();
   }
@@ -34,6 +32,27 @@ struct Pokedex {
   INLINE s32 GetFormIndex(u16 species) {
     return ((s32(*)(Pokedex*, u16))ADDRESS_POKEDEX_GET_FORM_INDEX)(
         this, species);
+  }
+
+  static void GetTableIndexAndFormMax(s32& table_idx, s32& form_max,
+                                      u16 species) {
+    struct Entry {
+      u16 species;
+      u16 form_max;
+      bool is_mega_evolution;
+    };
+
+    Entry* entry = (Entry*)ADDRESS_POKEDEX_FORM_TABLE;
+    table_idx = 0;
+    form_max = -1;
+    while (entry->species != 0) {
+      if (entry->species == species) {
+        form_max = entry->form_max;
+        return;
+      }
+      table_idx++;
+      entry++;
+    }
   }
 
   void* vtable;

@@ -25,7 +25,6 @@
 class PokemonDataAccessor;
 
 namespace savedata {
-
 struct PokemonParam {
   void* vtable;
   PokemonCoreData* core;
@@ -34,10 +33,10 @@ struct PokemonParam {
 };
 
 struct PokemonTeam {
-  static void LoadMenu(menu::PluginMenu& menu, void* args);
   STATIC_INLINE PokemonTeam& GetInstance() {
     return GameDataManager::GetInstance().GetPokemonTeam();
   }
+
   static constexpr u32 kMaxSlots = 6;
 
   PokemonParam* pokemons[kMaxSlots];
@@ -60,7 +59,6 @@ struct PokemonTeam {
 //   u8 count;
 //   u8 pokemon_amie_index;
 // };
-
-}  // namespace savedata
+} // namespace savedata
 
 #endif  // SANGO_PLUGIN_POKEMON_TEAM_H

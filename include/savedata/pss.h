@@ -21,8 +21,6 @@
 
 namespace savedata {
 struct PssProfilePayload {
-  static void LoadMenu(menu::PluginMenu& menu, void* args);
-
   c16 name[13];
   c16 shoutout_message[17];
 
@@ -64,7 +62,7 @@ struct PssProfilePayload {
     u32 meets_trade_conditions : 1;
     u32 rejects_lower_version_battles : 1;
     u32 rejects_lower_version_pr_videos : 1;
-    u32 : 8;
+    u32  : 8;
     u32 icon_for_passerby_2 : 8;
     u32  : 11;
   };
@@ -263,8 +261,6 @@ struct PssUserData {
 
 // Friends, Acquaintances, Passerby
 struct PssGroup {
-  static void LoadMenu(menu::PluginMenu& menu, void* args);
-
   void* vtable;
   PssUserData user_data[100];
   u32 count;

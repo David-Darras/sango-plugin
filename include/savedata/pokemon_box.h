@@ -26,7 +26,6 @@ struct PokemonBox {
   STATIC_INLINE PokemonBox& GetInstance() {
     return SaveData::GetInstance().GetPokemonBox();
   }
-  static void LoadMenu(menu::PluginMenu& menu, void* args);
 
   static constexpr u32 kMaxBoxes = 31;
   static constexpr u32 kMaxSlotsPerBox = 30;

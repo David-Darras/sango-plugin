@@ -27,7 +27,6 @@ struct Settings {
   STATIC_INLINE Settings& GetInstance() {
     return SaveData::GetInstance().GetSettings();
   }
-  static void LoadMenu(menu::PluginMenu& menu, void* args);
 
   void* vtable;
   union {

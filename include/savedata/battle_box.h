@@ -22,19 +22,16 @@
 #include "savedata.h"
 
 namespace savedata {
-
 struct BattleBox {
   STATIC_INLINE BattleBox& GetInstance() {
     return SaveData::GetInstance().GetBattleBox();
   }
-  static void LoadMenu(menu::PluginMenu& menu, void* args);
 
   static constexpr u32 kMaxSlots = 6;
 
   void* vtable;
   PokemonCoreData pokemons[kMaxSlots];
 };
-
-}  // namespace savedata
+} // namespace savedata
 
 #endif  // SANGO_PLUGIN_SAVEDATA_BATTLE_BOX_H

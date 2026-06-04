@@ -28,8 +28,6 @@ namespace savedata {
  * and unlocking progression of the box system.
  */
 struct BoxManager {
-  static void LoadMenu(menu::PluginMenu& menu, void* args);
-
   STATIC_INLINE BoxManager& GetInstance() {
     return SaveData::GetInstance().GetBoxManager();
   }
@@ -60,7 +58,6 @@ struct BoxManager {
   /** @brief Index of the last visited or currently active box. */
   u8 active_box_index;
 };
-
-}  // namespace savedata
+} // namespace savedata
 
 #endif  // SANGO_PLUGIN_SAVEDATA_BOX_MANAGER_H

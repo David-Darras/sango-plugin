@@ -22,22 +22,15 @@
 #include "savedata.h"
 
 namespace savedata {
-
 /**
  * @brief Manages the player's inventory (Bag) items.
  */
 struct ItemManager {
   /** @brief Represents a single item stack in the bag. */
   struct ItemSlot {
-    u16 id;     ///< Item ID.
-    u16 count;  ///< Quantity held (max 999).
+    u16 id; ///< Item ID.
+    u16 count; ///< Quantity held (max 999).
   };
-
-  /** @brief Sub-menu for a specific pocket. */
-  static void LoadPocketMenu(menu::PluginMenu& menu, void* args);
-
-  /** @brief Main menu entry point for ItemManager. */
-  static void LoadMenu(menu::PluginMenu& menu, void* args);
 
   /** @brief Accessor for the singleton instance. */
   STATIC_INLINE ItemManager& GetInstance() {
@@ -48,11 +41,11 @@ struct ItemManager {
   static constexpr u16 kMaxItemCount = 999;
 
   /** @brief Pocket Size Constants. */
-  static constexpr u32 kMaxNormalItems = 400;  ///< "Items" pocket.
-  static constexpr u32 kMaxMedicine = 64;      ///< "Medicine" pocket.
-  static constexpr u32 kMaxTMsHMs = 108;       ///< "TMs & HMs" pocket.
-  static constexpr u32 kMaxBerries = 72;       ///< "Berries" pocket.
-  static constexpr u32 kMaxKeyItems = 96;      ///< "Key Items" pocket.
+  static constexpr u32 kMaxNormalItems = 400; ///< "Items" pocket.
+  static constexpr u32 kMaxMedicine = 64; ///< "Medicine" pocket.
+  static constexpr u32 kMaxTMsHMs = 108; ///< "TMs & HMs" pocket.
+  static constexpr u32 kMaxBerries = 72; ///< "Berries" pocket.
+  static constexpr u32 kMaxKeyItems = 96; ///< "Key Items" pocket.
 
   /** @brief Total number of slots across all pockets. */
   static constexpr u32 kTotalSlots =
@@ -67,14 +60,15 @@ struct ItemManager {
   ItemSlot* GetNormalItems() { return &items[0]; }
   ItemSlot* GetKeyItems() { return &items[kMaxNormalItems]; }
   ItemSlot* GetTMsHMs() { return &items[kMaxNormalItems + kMaxKeyItems]; }
+
   ItemSlot* GetMedicine() {
     return &items[kMaxNormalItems + kMaxKeyItems + kMaxTMsHMs];
   }
+
   ItemSlot* GetBerries() {
     return &items[kMaxNormalItems + kMaxKeyItems + kMaxTMsHMs + kMaxMedicine];
   }
 };
-
-}  // namespace savedata
+} // namespace savedata
 
 #endif  // SANGO_PLUGIN_SAVEDATA_ITEM_MANAGER_H
