@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_BATTLE_MANAGER_H
-#define SANGO_PLUGIN_BATTLE_MANAGER_H
+#pragma once
 
 #include "core/core.h"
 #include "process.h"
@@ -182,5 +181,3 @@ public:
   }
 };
 } // namespace battle
-
-#endif  // SANGO_PLUGIN_BATTLE_MANAGER_H

@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_MENU_THEME_H
-#define SANGO_PLUGIN_MENU_THEME_H
+#pragma once
 
 #include "common.h"
 
@@ -37,5 +36,3 @@ struct Theme {
   u8 keys[3];
 };
 } // namespace menu
-
-#endif // SANGO_PLUGIN_MENU_THEME_H

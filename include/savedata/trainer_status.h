@@ -15,18 +15,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_SAVEDATA_TRAINER_STATUS_H
-#define SANGO_PLUGIN_SAVEDATA_TRAINER_STATUS_H
+#pragma once
 
 #include "common.h"
 #include "savedata.h"
 
 namespace savedata {
 /**
- * @class TrainerStatus
- * @brief Manages player identity, network synchronization, and PSS
- * configurations.
- */
+* @class TrainerStatus
+* @brief Manages player identity, network synchronization, and PSS
+* configurations.
+*/
 struct TrainerStatus {
   /** @brief Accessor for the singleton instance. */
   STATIC_INLINE TrainerStatus& GetInstance() {
@@ -54,7 +53,7 @@ struct TrainerStatus {
   u64 nex_id; ///< Unique Nintendo Network identifier (NEX)
   u64 current_console_id;
   ///< Current hardware ID (AccountID /
-                             ///< LocalFriendCodeSeed)
+                       ///< LocalFriendCodeSeed)
   u64 original_console_id; ///< ID of the console where the save was created
   u32 principal_id; ///< Principal ID linked to Friend Code
   u32 unknow3; ///< Undocumented network-related data
@@ -71,7 +70,7 @@ struct TrainerStatus {
   /** @name Parental Controls & Privacy */
   ///@{
   /** @brief Children's Online Privacy Protection Act (COPPA) flag.
-   * If true, restricts Voice Chat and Picture Exchange on the PSS. */
+* If true, restricts Voice Chat and Picture Exchange on the PSS. */
   bool coppa_restriction;
   u8 coppa_value; ///< Detailed restriction levels/values
   ///@}
@@ -85,19 +84,17 @@ struct TrainerStatus {
   c16 nickname[kPlayerNameLen]; ///< Player nickname
   c16 pss_messages[6][kPssMessageLen];
   ///< Set of 6 customizable PSS shout-out
-                                         ///< messages
+                                   ///< messages
   ///@}
 
   /** @name Progression & Attributes */
   ///@{
   u16 unknow1;
   /** @brief Special progression flags (e.g., Bit 0: Mega Ring, Bit 1: Mega
-   * Rayquaza). */
+* Rayquaza). */
   u16 mega_flags;
   u8 unknow2[28];
   u64 pss_id;
   ///@}
 };
 } // namespace savedata
-
-#endif  // SANGO_PLUGIN_SAVEDATA_TRAINER_STATUS_H

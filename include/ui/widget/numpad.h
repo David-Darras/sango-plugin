@@ -21,43 +21,43 @@
 
 namespace ui {
 /**
- * @brief A visual numeric keypad for entering integer and hexadecimal values.
- */
+* @brief A visual numeric keypad for entering integer and hexadecimal values.
+*/
 class Numpad {
 public:
   /**
-   * @brief Constructor that initializes button positions and dimensions.
-   */
+* @brief Constructor that initializes button positions and dimensions.
+*/
   Numpad();
 
   /**
-   * @brief Renders the numpad and all its buttons to the screen.
-   */
+* @brief Renders the numpad and all its buttons to the screen.
+*/
   void Draw() const;
 
   /**
-   * @brief Updates the state of the buttons and handles digit input.
-   * Must be called once per frame.
-   */
+* @brief Updates the state of the buttons and handles digit input.
+* Must be called once per frame.
+*/
   void Update();
 
   /**
-   * @brief Checks if the 'OK' button was pressed and released.
-   * @return True if the user confirmed the input.
-   */
+* @brief Checks if the 'OK' button was pressed and released.
+* @return True if the user confirmed the input.
+*/
   bool IsButtonOkReleased() const;
 
   /**
-   * @brief Converts the current buffer input into a numeric value.
-   * Handles both decimal and hexadecimal (0x) formats.
-   * @return The resulting unsigned 32-bit integer.
-   */
+* @brief Converts the current buffer input into a numeric value.
+* Handles both decimal and hexadecimal (0x) formats.
+* @return The resulting unsigned 32-bit integer.
+*/
   u32 GetInput() const;
 
 private:
   /**
-   * @brief Internal button identifiers for array mapping.
-   */
+* @brief Internal button identifiers for array mapping.
+*/
   enum ButtonId {
     kButton0 = 0, ///< Number 0
     kButton1, ///< Number 1
@@ -77,21 +77,21 @@ private:
   };
 
   /**
-   * @brief Adds a digit to the current input buffer.
-   * @param digit The digit (0-9) to add.
-   */
+* @brief Adds a digit to the current input buffer.
+* @param digit The digit (0-9) to add.
+*/
   void AddDigit(u32 digit);
 
   /**
-   * @brief Removes the last character from the input buffer.
-   */
+* @brief Removes the last character from the input buffer.
+*/
   void RemoveLastDigit();
 
   /**
-   * @brief Helper to convert UTF-16 string to integer.
-   * @param str The source string.
-   * @return The converted integer.
-   */
+* @brief Helper to convert UTF-16 string to integer.
+* @param str The source string.
+* @return The converted integer.
+*/
   static u32 UnicodeToInteger(const c16* str);
 
   Button buttons_[kButtonMax]; ///< Array of interactive buttons.

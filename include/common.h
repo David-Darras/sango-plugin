@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_COMMON_H
-#define SANGO_PLUGIN_COMMON_H
+#pragma once
 
 #include <types.h>
 
@@ -184,5 +183,3 @@ struct String {
   u16 size;
   bool is_initialized;
 };
-
-#endif  // SANGO_PLUGIN_COMMON_H

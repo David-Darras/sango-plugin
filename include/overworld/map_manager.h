@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_OVERWORLD_MAP_MANAGER_H
-#define SANGO_PLUGIN_OVERWORLD_MAP_MANAGER_H
+#pragma once
 #include "core/game_manager.h"
 
 class GameManager;
@@ -53,5 +52,3 @@ private:
   void* encounter_manager_;
 };
 } // namespace overworld
-
-#endif  // SANGO_PLUGIN_OVERWORLD_MAP_MANAGER_H

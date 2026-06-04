@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_FEATURE_MAP_TILE_H
-#define SANGO_PLUGIN_FEATURE_MAP_TILE_H
+#pragma once
 #include "common.h"
 #include "hook_manager.h"
 #include "overworld/tile.h"
@@ -91,5 +90,3 @@ struct MapTileHookContext {
   }
 };
 }
-
-#endif //SANGO_PLUGIN_FEATURE_MAP_TILE_H

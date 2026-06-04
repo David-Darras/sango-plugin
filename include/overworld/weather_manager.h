@@ -15,13 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_WEATHER_MANAGER_H
-#define SANGO_PLUGIN_WEATHER_MANAGER_H
+#pragma once
 
 #include "core/game_manager.h"
 
 namespace overworld {
-
 class WeatherManager {
 public:
   STATIC_INLINE WeatherManager& GetInstance() {
@@ -32,8 +30,4 @@ public:
 
   INLINE u8& GetRequestedWeather() { return *(u8*)((uptr)this + 0x1E); }
 };
-
 } // namespace overworld
-
-
-#endif  // SANGO_PLUGIN_WEATHER_MANAGER_H

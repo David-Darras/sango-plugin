@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_SAVEDATA_ENCOUNTER_H
-#define SANGO_PLUGIN_SAVEDATA_ENCOUNTER_H
+#pragma once
 
 #include "savedata.h"
 
@@ -31,5 +30,3 @@ struct Encounter {
   u8 spray_count;
 };
 } // namespace savedata
-
-#endif  // SANGO_PLUGIN_SAVEDATA_ENCOUNTER_H

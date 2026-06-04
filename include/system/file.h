@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_FILE_H
-#define SANGO_PLUGIN_FILE_H
+#pragma once
 
 #include "core/core.h"
 #include "utils.h"
@@ -27,74 +26,75 @@
  * individual file I/O.
  */
 class File {
- public:
+public:
   /**
-   * @brief File access and creation modes.
-   */
+ * @brief File access and creation modes.
+ */
   enum Mode {
-    kRead = 1 << 0,    ///< Open for reading.
-    kWrite = 1 << 1,   ///< Open for writing.
-    kCreate = 1 << 2,  ///< Create file if it does not exist.
+    kRead = 1 << 0, ///< Open for reading.
+    kWrite = 1 << 1, ///< Open for writing.
+    kCreate = 1 << 2, ///< Create file if it does not exist.
   };
 
   /**
-   * @brief Mounts the SD card archive.
-   * @param archiveName The mounting point name (defaults to "sdmc:").
-   */
+ * @brief Mounts the SD card archive.
+ * @param archiveName The mounting point name (defaults to "sdmc:").
+ */
   STATIC_INLINE void MountSdmc(const c8* archiveName = "sdmc:") {
     ((void (*)(const c8*))ADDRESS_FS_MOUNT_SDMC)(archiveName);
   }
 
   /**
-   * @brief Creates a new file on the filesystem.
-   * @param filename Path to the file.
-   * @param size     Initial allocated size for the file.
-   */
+ * @brief Creates a new file on the filesystem.
+ * @param filename Path to the file.
+ * @param size     Initial allocated size for the file.
+ */
   STATIC_INLINE void Create(const c16* filename, s64 size = 0) {
     ((void (*)(const c16*, s64))ADDRESS_FS_CREATE_FILE)(filename, size);
   }
 
   /**
-   * @brief Deletes a file from the filesystem.
-   * @param filename Path to the file to be removed.
-   */
+ * @brief Deletes a file from the filesystem.
+ * @param filename Path to the file to be removed.
+ */
   STATIC_INLINE void Delete(const c16* filename) {
     ((void (*)(const c16*))ADDRESS_FS_DELETE_FILE)(filename);
   }
 
   /**
-   * @brief Default constructor.
-   */
-  File() : handle_(nullptr), pos_(0) {}
+ * @brief Default constructor.
+ */
+  File() : handle_(nullptr), pos_(0) {
+  }
 
   /**
-   * @brief Constructor that opens or resets a file immediately.
-   * @param filename Path to the file.
-   * @param reset    If true, deletes the existing file before opening.
-   */
+ * @brief Constructor that opens or resets a file immediately.
+ * @param filename Path to the file.
+ * @param reset    If true, deletes the existing file before opening.
+ */
   File(const c16* filename, bool reset) : handle_(nullptr), pos_(0) {
     if (reset) Delete(filename);
     Open(filename);
   }
 
   /**
-   * @brief Destructor. Automatically closes the file handle if open.
-   */
+ * @brief Destructor. Automatically closes the file handle if open.
+ */
   ~File() { Close(); }
 
   /**
-   * @brief Opens a file with the specified modes.
-   * @param filename Path to the file.
-   * @param mode     Bitmask of Mode flags.
-   */
+ * @brief Opens a file with the specified modes.
+ * @param filename Path to the file.
+ * @param mode     Bitmask of Mode flags.
+ */
   INLINE void Open(const c16* filename, u32 mode = kRead | kWrite | kCreate) {
     ((void (*)(void**, const c16*, u32))ADDRESS_FILE_OPEN)(&handle_, filename,
-                                                           mode);
+      mode);
   }
 
   /**
-   * @brief Closes the file handle and releases resources.
-   */
+ * @brief Closes the file handle and releases resources.
+ */
   INLINE void Close() {
     if (handle_) {
       // Vtable call to close the handle (offset 44)
@@ -104,11 +104,11 @@ class File {
   }
 
   /**
-   * @brief Reads data from the file into a buffer.
-   * @param buffer Destination buffer.
-   * @param size   Number of bytes to read.
-   * @param offset Optional offset to apply before reading.
-   */
+ * @brief Reads data from the file into a buffer.
+ * @param buffer Destination buffer.
+ * @param size   Number of bytes to read.
+ * @param offset Optional offset to apply before reading.
+ */
   INLINE void Read(void* buffer, u32 size, s64 offset = 0) {
     s32 out;
     pos_ += offset;
@@ -118,13 +118,14 @@ class File {
   }
 
   /**
-   * @brief Writes data from a buffer to the file.
-   * @param buffer Source buffer.
-   * @param size   Number of bytes to write.
-   * @param offset Optional offset to apply before writing.
-   * @param flush  If true, flushes the write buffer to disk.
-   */
-  INLINE void Write(const void* buffer, u32 size, s64 offset = 0, bool flush = true) {
+ * @brief Writes data from a buffer to the file.
+ * @param buffer Source buffer.
+ * @param size   Number of bytes to write.
+ * @param offset Optional offset to apply before writing.
+ * @param flush  If true, flushes the write buffer to disk.
+ */
+  INLINE void Write(const void* buffer, u32 size, s64 offset = 0,
+                    bool flush = true) {
     s32 out;
     pos_ += offset;
     ((void (*)(s32*, void*, s64, const void*, u32, bool))ADDRESS_FILE_WRITE)(
@@ -133,10 +134,10 @@ class File {
   }
 
   /**
-   * @brief Formats and writes a UTF-16 string to the file.
-   * @param in  Format string (printf style).
-   * @param ... Variadic arguments for formatting.
-   */
+ * @brief Formats and writes a UTF-16 string to the file.
+ * @param in  Format string (printf style).
+ * @param ... Variadic arguments for formatting.
+ */
   void WriteText(const c16* in, ...) {
     c16 out[BUFFER_SIZE];
     va_list args;
@@ -147,9 +148,7 @@ class File {
     Write(out, Utils::GetSize(out));
   }
 
- private:
-  void* handle_;  ///< Internal engine handle for the opened file.
-  s64 pos_;       ///< Current cursor position in the file.
+private:
+  void* handle_; ///< Internal engine handle for the opened file.
+  s64 pos_; ///< Current cursor position in the file.
 };
-
-#endif  // SANGO_PLUGIN_FILE_H

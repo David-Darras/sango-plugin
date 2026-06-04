@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_RENDERER_TEXT_BOX_H
-#define SANGO_PLUGIN_RENDERER_TEXT_BOX_H
+#pragma once
 
 #include "renderer/pane.h"
 
@@ -30,5 +29,3 @@ struct TextBox {
   Color8 bottom_color;
 };
 } // namespace renderer
-
-#endif // SANGO_PLUGIN_RENDERER_TEXT_BOX_H

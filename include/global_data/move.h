@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_GLOBAL_DATA_MOVE_H
-#define SANGO_PLUGIN_GLOBAL_DATA_MOVE_H
+#pragma once
 
 #include "core/core.h"
 
@@ -58,5 +57,3 @@ struct Move {
   u32 flags;
 };
 } // namespace global_data
-
-#endif  // SANGO_PLUGIN_GLOBAL_DATA_MOVE_H

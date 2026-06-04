@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_FEATURE_TEXT_BOX_H
-#define SANGO_PLUGIN_FEATURE_TEXT_BOX_H
+#pragma once
 
 #include "common.h"
 #include "core/core.h"
@@ -50,5 +49,3 @@ struct TextBoxHookContext {
   }
 };
 } // namespace feature
-
-#endif // SANGO_PLUGIN_FEATURE_TEXT_BOX_H

@@ -21,48 +21,48 @@
 
 namespace ui {
 /**
- * @brief A visual Unicode keyboard for text input using a touch interface.
- * Supports pagination, character selection, and basic editing (DEL/CLR).
- */
+* @brief A visual Unicode keyboard for text input using a touch interface.
+* Supports pagination, character selection, and basic editing (DEL/CLR).
+*/
 class Keyboard {
 public:
   /**
-   * @brief Initializes the keyboard layout, buttons, and input buffer.
-   */
+* @brief Initializes the keyboard layout, buttons, and input buffer.
+*/
   Keyboard();
 
   /**
-   * @brief Renders the input field, the character grid, and navigation buttons.
-   */
+* @brief Renders the input field, the character grid, and navigation buttons.
+*/
   void Draw() const;
 
   /**
-   * @brief Processes touch input and updates the state of all internal buttons.
-   */
+* @brief Processes touch input and updates the state of all internal buttons.
+*/
   void Update();
 
   /**
-   * @brief Checks if the 'OK' button was pressed and released.
-   * @return True if the user confirmed the input.
-   */
+* @brief Checks if the 'OK' button was pressed and released.
+* @return True if the user confirmed the input.
+*/
   bool IsButtonOkReleased() const;
 
   /**
-   * @brief Gets the current string entered by the user.
-   * @return A pointer to the UTF-16 character buffer.
-   */
+* @brief Gets the current string entered by the user.
+* @return A pointer to the UTF-16 character buffer.
+*/
   const c16* GetInput() const;
 
 private:
   /**
-   * @brief Appends a character to the input buffer if space is available.
-   * @param character The UTF-16 character to add.
-   */
+* @brief Appends a character to the input buffer if space is available.
+* @param character The UTF-16 character to add.
+*/
   void AddChar(c16 character);
 
   /**
-   * @brief Removes the last character from the input buffer.
-   */
+* @brief Removes the last character from the input buffer.
+*/
   void RemoveLastChar();
 
   // Layout Constants
@@ -73,8 +73,8 @@ private:
       17; ///< Max string length including null terminator.
 
   /**
-   * @brief Button ID mapping for the internal button array.
-   */
+* @brief Button ID mapping for the internal button array.
+*/
   enum {
     kButtonInput = 0, ///< The text display bar.
     kButtonPrev10, ///< Jump back 10 pages.

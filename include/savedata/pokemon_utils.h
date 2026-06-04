@@ -15,13 +15,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_POKEMON_UTILS_H
-#define SANGO_PLUGIN_POKEMON_UTILS_H
+#pragma once
 
 #include "core/core.h"
 
 class PokemonUtils {
- public:
+public:
   STATIC_INLINE u32 GetExperienceFromLevel(u16 species, u8 form, u16 level) {
     ((void (*)(u16, u8))ADDRESS_POKEMON_UTILS_LOAD_POKEMON_EXPERIENCE_TABLE)(
         species, form);
@@ -29,7 +28,8 @@ class PokemonUtils {
         level);
   }
 
-  STATIC_INLINE u8 GetLevelFromExperience(u16 species, u8 form, u32 experience) {
+  STATIC_INLINE u8
+  GetLevelFromExperience(u16 species, u8 form, u32 experience) {
     return ((u8 (*)(
         u16, u8, u32))ADDRESS_POKEMON_UTILS_GET_POKEMON_LEVEL_FROM_EXPERIENCE)(
         species, form, experience);
@@ -49,5 +49,3 @@ class PokemonUtils {
         ((u32 (*)(u32, u32))ADDRESS_POKEMON_UTILS_TO_NORMAL)(id, *shiny_id);
   }
 };
-
-#endif  // SANGO_PLUGIN_POKEMON_UTILS_H

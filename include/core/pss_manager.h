@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_PSS_MANAGER_H
-#define SANGO_PLUGIN_PSS_MANAGER_H
+#pragma once
 
 #include "savedata/pss.h"
 
@@ -33,7 +32,7 @@ struct PssData {
   u32 message_displayed : 1;
   u32 affection_anim_done : 1;
   u32 active_opower : 8;
-  u32 : 15;
+  u32  : 15;
 
   struct {
     void* next;
@@ -54,5 +53,3 @@ public:
 private:
   PssData self_data_;
 };
-
-#endif // SANGO_PLUGIN_PSS_MANAGER_H

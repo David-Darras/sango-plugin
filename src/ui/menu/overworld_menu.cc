@@ -67,10 +67,12 @@ void LoadOverworldFieldMoveMenu(menu::PluginMenu& menu, void* args) {
 
   if (menu.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
 
-  static const c8* MOVES[] = {"Cut", "Surf", "Waterfall",
-                              "Strength", "Rock Smash", "Fly",
-                              "Flash", "Teleport", "Dig",
-                              "Sweet Scent", "Dive", "Secret Power"};
+  static const c8* MOVES[] = {
+      "Cut", "Surf", "Waterfall",
+      "Strength", "Rock Smash", "Fly",
+      "Flash", "Teleport", "Dig",
+      "Sweet Scent", "Dive", "Secret Power"
+  };
 
   menu.Add("Field Move", choice);
   menu.WithArray(MOVES, SIZE(MOVES));

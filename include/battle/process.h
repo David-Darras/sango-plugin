@@ -15,20 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_BATTLE_PROCESS_H
-#define SANGO_PLUGIN_BATTLE_PROCESS_H
+#pragma once
 
 #include "core/core.h"
 
 class GameProcessManager;
 
 namespace battle {
-
 class Manager;
 struct Config;
 
 class Process {
- public:
+public:
   STATIC_INLINE bool IsInBattle() {
     return READ(vu32, ADDRESS_BATTLE_MAIN_PROCESS) == 0x007D85D0;
   }
@@ -39,7 +37,7 @@ class Process {
 
   INLINE Manager& GetManager() { return *manager_; }
 
- private:
+private:
   void* vtable_;
   u32 _0[6];
 
@@ -51,7 +49,4 @@ class Process {
 
   u32 _1[2];
 };
-
-}  // namespace battle
-
-#endif  // SANGO_PLUGIN_BATTLE_PROCESS_H
+} // namespace battle

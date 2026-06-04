@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_FEATURE_OVERWORLD_MODEL_H
-#define SANGO_PLUGIN_FEATURE_OVERWORLD_MODEL_H
+#pragma once
 #include <math.h>
 
 #include "cheat_code_manager.h"
@@ -114,5 +113,3 @@ player.draw_pos.composant += (val) * 9.0f * ctx.speed.composant;         \
   }
 };
 }
-
-#endif //SANGO_PLUGIN_FEATURE_OVERWORLD_MODEL_H

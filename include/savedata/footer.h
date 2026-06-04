@@ -15,53 +15,48 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_SAVEDATA_FOOTER_H
-#define SANGO_PLUGIN_SAVEDATA_FOOTER_H
+#pragma once
 
 #include "savedata/savedata.h"
 
 namespace savedata {
-
 /**
- * @class Footer
- * @brief Manages save data integrity through checksums and signatures.
- * * This class is responsible for verifying that save data has not been
- * corrupted or externally tampered with by comparing checksums and
- * validating a specific signature.
- */
+* @class Footer
+* @brief Manages save data integrity through checksums and signatures.
+* * This class is responsible for verifying that save data has not been
+* corrupted or externally tampered with by comparing checksums and
+* validating a specific signature.
+*/
 class Footer {
- public:
+public:
   /**
-   * @brief Retrieves the singleton instance of Footer from the global SaveData.
-   * @return A reference to the Footer instance.
-   */
+* @brief Retrieves the singleton instance of Footer from the global SaveData.
+* @return A reference to the Footer instance.
+*/
   STATIC_INLINE Footer& GetInstance() { return SaveData::GetFooter(); }
 
- private:
-  void* vtable_;  ///< Pointer to the virtual method table.
-  u32 padding0_;  ///< Memory alignment padding.
+private:
+  void* vtable_; ///< Pointer to the virtual method table.
+  u32 padding0_; ///< Memory alignment padding.
 
-  u64 checksum_;       ///< Current checksum of the save data.
-  u64 last_checksum_;  ///< Previous valid checksum recorded.
+  u64 checksum_; ///< Current checksum of the save data.
+  u64 last_checksum_; ///< Previous valid checksum recorded.
 
   /**
-   * @brief Magic signature for format identification (Expected value: "BEEF").
-   */
+* @brief Magic signature for format identification (Expected value: "BEEF").
+*/
   u32 signature_;
 
   /**
-   * @struct Entry
-   * @brief Individual entry structure for tracking save data segments.
-   */
+* @struct Entry
+* @brief Individual entry structure for tracking save data segments.
+*/
   struct Entry {
-    u32 size;      ///< Size of the associated data segment.
-    u16 id;        ///< Unique identifier for the entry.
-    u16 checksum;  ///< Partial checksum for this specific segment.
-  } entries_[SaveData::kSegmentCount];  ///< Array of save segment entries.
+    u32 size; ///< Size of the associated data segment.
+    u16 id; ///< Unique identifier for the entry.
+    u16 checksum; ///< Partial checksum for this specific segment.
+  } entries_[SaveData::kSegmentCount]; ///< Array of save segment entries.
 
-  u64 padding1_;  ///< Final padding for structure alignment.
+  u64 padding1_; ///< Final padding for structure alignment.
 };
-
-}  // namespace savedata
-
-#endif  // SANGO_PLUGIN_SAVEDATA_FOOTER_H
+} // namespace savedata

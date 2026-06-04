@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_CHEAT_CODE_H
-#define SANGO_PLUGIN_CHEAT_CODE_H
+#pragma once
 
 #include "common.h"
 
@@ -55,5 +54,3 @@ private:
   cheat_code_callback_t on_enable_ = nullptr;
   cheat_code_callback_t on_disable_ = nullptr;
 };
-
-#endif  // SANGO_PLUGIN_CHEAT_CODE_H

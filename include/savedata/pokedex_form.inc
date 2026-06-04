@@ -17,8 +17,11 @@
 
 static const char* FORMS[][30] =
 {
-    {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O",
-     "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "!", "?"}, // Unown
+    {
+        "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N",
+        "O",
+        "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "!", "?"
+    }, // Unown
     {"Normal", "Attack", "Defense", "Speed"}, // Deoxys
     {"Land", "Sky"}, // Shaymin
     {"Altered", "Origin"}, // Giratina
@@ -41,10 +44,12 @@ static const char* FORMS[][30] =
     {"Incarnate", "Therian"}, // Tornadus
     {"Incarnate", "Therian"}, // Landorus
 
-    {"Icy Snow", "Polar", "Tundra", "Continental", "Garden", "Elegant",
-     "Meadow", "Modern", "Marine", "Archipelago", "High Plains", "Sandstorm",
-     "River", "Monsoon", "Savanna", "Sun", "Ocean", "Jungle", "Fancy",
-     "Poké Ball"}, // Vivillon
+    {
+        "Icy Snow", "Polar", "Tundra", "Continental", "Garden", "Elegant",
+        "Meadow", "Modern", "Marine", "Archipelago", "High Plains", "Sandstorm",
+        "River", "Monsoon", "Savanna", "Sun", "Ocean", "Jungle", "Fancy",
+        "Poké Ball"
+    }, // Vivillon
     {"Red", "Yellow", "Orange", "Blue", "White"}, // Flabébé
     {"Red", "Yellow", "Orange", "Blue", "White", "Eternal"}, // Floette
     {"Red", "Yellow", "Orange", "Blue", "White"}, // Florges
@@ -107,10 +112,16 @@ static const char* FORMS[][30] =
     {"Normal", "Primal"}, // Kyogre
     {"Normal", "Primal"}, // Groudon
 
-    {"Normal", "Fighting", "Flying", "Poison", "Ground", "Rock", "Bug", "Ghost",
-     "Steel", "Fire", "Water", "Grass", "Electric", "Psychic", "Ice", "Dragon",
-     "Dark", "Fairy"}, // Arceus
+    {
+        "Normal", "Fighting", "Flying", "Poison", "Ground", "Rock", "Bug",
+        "Ghost",
+        "Steel", "Fire", "Water", "Grass", "Electric", "Psychic", "Ice",
+        "Dragon",
+        "Dark", "Fairy"
+    }, // Arceus
     {"Normal", "Douse", "Shock", "Burn", "Chill"}, // Genesect
-    {"Natural", "Heart", "Star", "Diamond", "Debutante", "Matron", "Dandy",
-     "La Reine", "Kabuki", "Pharaoh"}, // Furfrou
+    {
+        "Natural", "Heart", "Star", "Diamond", "Debutante", "Matron", "Dandy",
+        "La Reine", "Kabuki", "Pharaoh"
+    }, // Furfrou
 };

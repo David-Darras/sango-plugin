@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_RENDERER_PANE_H
-#define SANGO_PLUGIN_RENDERER_PANE_H
+#pragma once
 
 #include "core/core.h"
 
@@ -48,5 +47,3 @@ struct Pane {
   u8 _2[11];
 };
 } // namespace renderer
-
-#endif  // SANGO_PLUGIN_RENDERER_PANE_H

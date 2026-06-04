@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_FEATURE_DAY_CARE_H
-#define SANGO_PLUGIN_FEATURE_DAY_CARE_H
+#pragma once
 #include "cheat_code_manager.h"
 #include "common.h"
 #include "core/core.h"
@@ -58,5 +57,3 @@ class DayCareCheatCode {
   }
 };
 } // namespace feature
-
-#endif //SANGO_PLUGIN_FEATURE_DAY_CARE_H

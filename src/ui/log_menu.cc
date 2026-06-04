@@ -23,7 +23,6 @@
 #include "utils.h"
 
 namespace menu {
-
 LogMenu LogMenu::instance_ = LogMenu();
 
 LogMenu::LogMenu() : is_enabled_(false) {
@@ -68,5 +67,4 @@ void LogMenu::Add(const c16* message, ...) {
   std::memcpy(log_entries_[kMaxEntries - 1], buffer,
               sizeof(c16) * kMaxEntryLength);
 }
-
-}  // namespace menu
+} // namespace menu

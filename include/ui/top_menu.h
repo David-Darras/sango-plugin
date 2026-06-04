@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_UI_TOP_MENU_H
-#define SANGO_PLUGIN_UI_TOP_MENU_H
+#pragma once
 #include "common.h"
 
 namespace menu {
@@ -36,5 +35,3 @@ void LoadSaveDataMenu(menu::PluginMenu& menu, void* args);
 void LoadSoundMenu(menu::PluginMenu& menu, void* args);
 void LoadTopMenu(menu::PluginMenu& menu, void* args);
 }
-
-#endif // SANGO_PLUGIN_UI_TOP_MENU_H

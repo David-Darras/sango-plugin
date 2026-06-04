@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_GLOBAL_DATA_POKEMON_H
-#define SANGO_PLUGIN_GLOBAL_DATA_POKEMON_H
+#pragma once
 
 #include "core/core.h"
 
@@ -57,5 +56,3 @@ struct Pokemon {
   u32 _5[4];
 };
 } // namespace global_data
-
-#endif  // SANGO_PLUGIN_GLOBAL_DATA_POKEMON_H

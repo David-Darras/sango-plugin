@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_POKEMON_RUNTIME_DATA_H
-#define SANGO_PLUGIN_POKEMON_RUNTIME_DATA_H
+#pragma once
 #include "common.h"
 
 struct PokemonRuntimeData {
@@ -37,5 +36,3 @@ struct PokemonRuntimeData {
   u8 last_form;
   u16 _1;
 };
-
-#endif  // SANGO_PLUGIN_POKEMON_RUNTIME_DATA_H

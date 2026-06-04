@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_GAME_MANAGER_H
-#define SANGO_PLUGIN_GAME_MANAGER_H
+#pragma once
 
 #include "core/core.h"
 
@@ -102,5 +101,3 @@ private:
   void* _3[3];
   overworld::MapManager* overworld_map_manager_;
 };
-
-#endif  // SANGO_PLUGIN_GAME_MANAGER_H

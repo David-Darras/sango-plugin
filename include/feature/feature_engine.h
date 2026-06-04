@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_FEATURE_ENGINE_H
-#define SANGO_PLUGIN_FEATURE_ENGINE_H
+#pragma once
 
 #include "common.h"
 #include "core/core.h"
@@ -59,5 +58,3 @@ struct EngineHookContext {
   }
 };
 } // namespace feature
-
-#endif //SANGO_PLUGIN_FEATURE_ENGINE_H

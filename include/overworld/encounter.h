@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_OVERWORLD_ENCOUNTER_H
-#define SANGO_PLUGIN_OVERWORLD_ENCOUNTER_H
+#pragma once
 
 #include "core/core.h"
 #include "core/game_data_manager.h"
@@ -34,5 +33,3 @@ struct Encounter {
   u16 fishing_chain_count;
 };
 } // namespace overworld
-
-#endif  // SANGO_PLUGIN_OVERWORLD_ENCOUNTER_H

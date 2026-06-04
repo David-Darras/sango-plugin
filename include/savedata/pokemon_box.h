@@ -15,13 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_SAVEDATA_POKEMON_BOX_H
-#define SANGO_PLUGIN_SAVEDATA_POKEMON_BOX_H
+#pragma once
 #include "savedata.h"
 #include "savedata/pokemon_core_data.h"
 
 namespace savedata {
-
 struct PokemonBox {
   STATIC_INLINE PokemonBox& GetInstance() {
     return SaveData::GetInstance().GetPokemonBox();
@@ -31,11 +29,9 @@ struct PokemonBox {
   static constexpr u32 kMaxSlotsPerBox = 30;
 
   void* vtable;
+
   struct {
     PokemonCoreData pokemons[kMaxSlotsPerBox];
   } boxes[kMaxBoxes];
 };
-
-}  // namespace savedata
-
-#endif  // SANGO_PLUGIN_SAVEDATA_POKEMON_BOX_H
+} // namespace savedata

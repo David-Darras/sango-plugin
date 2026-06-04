@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_FEATURE_BATTLE_CONFIG_H
-#define SANGO_PLUGIN_FEATURE_BATTLE_CONFIG_H
+#pragma once
 #include "common.h"
 #include "hook_manager.h"
 #include "battle/config.h"
@@ -48,9 +47,9 @@ struct BattleConfigHookContext {
   }
 
   static void SetupBattleConfigHook(battle::Config* config, void* game_manager,
-                             void* opponent_team,
-                             void* p1, u8 battle_format, u32 effect_id,
-                             void* p2) {
+                                    void* opponent_team,
+                                    void* p1, u8 battle_format, u32 effect_id,
+                                    void* p2) {
     HookManager::Call<void>(HookID::kSetupBattleConfig, config, game_manager,
                             opponent_team, p1,
                             battle_format, effect_id, p2);
@@ -94,5 +93,3 @@ struct BattleConfigHookContext {
   }
 };
 } // namespace feature
-
-#endif //SANGO_PLUGIN_FEATURE_BATTLE_CONFIG_H

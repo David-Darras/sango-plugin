@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_FEATURE_DEVICE_H
-#define SANGO_PLUGIN_FEATURE_DEVICE_H
+#pragma once
 #include "common.h"
 #include "core/core.h"
 #include "feature/hook_manager.h"
@@ -74,5 +73,3 @@ return HookManager::Call<bool>(HookID::FuncName, pDevice, key, channel);\
 #undef DEFINE_TOUCH_HOOK
 };
 } // namespace feature
-
-#endif // SANGO_PLUGIN_FEATURE_DEVICE_H

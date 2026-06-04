@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_GAME_DATA_MANAGER_H
-#define SANGO_PLUGIN_GAME_DATA_MANAGER_H
+#pragma once
 
 #include "core/game_manager.h"
 
@@ -24,25 +23,30 @@ namespace savedata {
 struct PokemonTeam;
 class SaveData;
 struct PlayTime;
-}  // namespace savedata
+} // namespace savedata
 
 namespace overworld {
 class ModelManager;
 struct Encounter;
-}  // namespace overworld
+} // namespace overworld
 
 class GameDataManager {
- public:
+public:
   STATIC_INLINE GameDataManager& GetInstance() {
     return GameManager::GetInstance().GetGameData();
   }
 
   INLINE savedata::SaveData& GetSavedata() const { return *savedata_; }
-  INLINE savedata::PokemonTeam& GetPokemonTeam() const { return *pokemon_team_; }
+  INLINE savedata::PokemonTeam& GetPokemonTeam() const {
+    return *pokemon_team_;
+  }
+
   INLINE savedata::PlayTime& GetPlayTime() const { return *play_time_; }
+
   INLINE overworld::ModelManager& GetOverworldModelManager() const {
     return *overworld_model_manager_;
   }
+
   INLINE overworld::Encounter& GetEncounter() const { return *encounter_; }
 
   savedata::SaveData* savedata_;
@@ -56,5 +60,3 @@ class GameDataManager {
 
   overworld::Encounter* encounter_;
 };
-
-#endif  // SANGO_PLUGIN_GAME_DATA_MANAGER_H

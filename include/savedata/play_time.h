@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_SAVEDATA_PLAY_TIME_H
-#define SANGO_PLUGIN_SAVEDATA_PLAY_TIME_H
+#pragma once
 #include "menu/plugin_menu.h"
 #include "core/game_data_manager.h"
 
@@ -33,5 +32,3 @@ struct PlayTime {
   u32 save_flags;
 };
 } // namespace savedata
-
-#endif  // SANGO_PLUGIN_SAVEDATA_PLAY_TIME_H

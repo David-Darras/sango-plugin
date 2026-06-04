@@ -15,16 +15,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_SAVEDATA_ITEM_MANAGER_H
-#define SANGO_PLUGIN_SAVEDATA_ITEM_MANAGER_H
+#pragma once
 
 #include "common.h"
 #include "savedata.h"
 
 namespace savedata {
 /**
- * @brief Manages the player's inventory (Bag) items.
- */
+* @brief Manages the player's inventory (Bag) items.
+*/
 struct ItemManager {
   /** @brief Represents a single item stack in the bag. */
   struct ItemSlot {
@@ -70,5 +69,3 @@ struct ItemManager {
   }
 };
 } // namespace savedata
-
-#endif  // SANGO_PLUGIN_SAVEDATA_ITEM_MANAGER_H

@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_HOOK_MANAGER_H
-#define SANGO_PLUGIN_HOOK_MANAGER_H
+#pragma once
 
 #include "feature/hook.h"
 
@@ -57,13 +56,14 @@ enum class HookID : u32 {
  */
 class HookManager {
   MAKE_SINGLETON(HookManager)
+
 public:
   /**
-   * @brief Registers and creates a new hook in the manager.
-   * @param id   The identifier for the hook.
-   * @param src  The source address to hook.
-   * @param dst  The destination address to redirect execution to.
-   */
+ * @brief Registers and creates a new hook in the manager.
+ * @param id   The identifier for the hook.
+ * @param src  The source address to hook.
+ * @param dst  The destination address to redirect execution to.
+ */
   void Add(HookID id, u32 src, u32 dst, bool enable) {
     if (id >= HookID::kMax) return;
     if (hooks_[(u32)id].IsEnabled()) return;
@@ -75,10 +75,10 @@ public:
   }
 
   /**
-   * @brief Searches for a registered hook by its ID.
-   * @param id The ID of the hook to find.
-   * @return Pointer to the Hook if found, nullptr otherwise.
-   */
+ * @brief Searches for a registered hook by its ID.
+ * @param id The ID of the hook to find.
+ * @return Pointer to the Hook if found, nullptr otherwise.
+ */
   Hook* Get(HookID id) {
     if (id >= HookID::kMax) return nullptr;
     return &hooks_[(u32)id];
@@ -100,5 +100,3 @@ private:
   Hook hooks_[kMaxHooks]; ///< Array of pre-allocated Hook objects.
   u32 count_ = 0; ///< Current number of registered hooks.
 };
-
-#endif  // SANGO_PLUGIN_HOOK_MANAGER_H

@@ -15,24 +15,22 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_SAVEDATA_BAG_MANAGER_H
-#define SANGO_PLUGIN_SAVEDATA_BAG_MANAGER_H
+#pragma once
 
 #include "common.h"
 #include "savedata.h"
 
 namespace savedata {
-
 /**
- * @brief Manages the player's inventory (Bag) state and metadata.
- * * This structure handles the organization of item pockets, registered
- * shortcut items, and the history of recently used items.
- */
+* @brief Manages the player's inventory (Bag) state and metadata.
+* * This structure handles the organization of item pockets, registered
+* shortcut items, and the history of recently used items.
+*/
 struct BagManager {
   /**
-   * @brief Returns the singleton instance of the BagManager from the SaveData.
-   * @return Reference to the unique BagManager instance.
-   */
+* @brief Returns the singleton instance of the BagManager from the SaveData.
+* @return Reference to the unique BagManager instance.
+*/
   STATIC_INLINE BagManager& GetInstance() {
     return SaveData::GetInstance().GetBagManager();
   }
@@ -58,7 +56,4 @@ struct BagManager {
   /** @brief List of recently used item IDs for quick access in the UI. */
   u16 last_items_used[kMaxUsageHistory];
 };
-
-}  // namespace savedata
-
-#endif  // SANGO_PLUGIN_SAVEDATA_BAG_MANAGER_H
+} // namespace savedata

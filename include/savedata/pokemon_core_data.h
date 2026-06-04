@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_POKEMON_CORE_DATA_H
-#define SANGO_PLUGIN_POKEMON_CORE_DATA_H
+#pragma once
 #include "common.h"
 
 struct PokemonCoreData {
@@ -103,6 +102,7 @@ struct PokemonCoreData {
     u8 training_friendship; // 1B
     u8 remaining_steps_before_hatch;
   };
+
   u8 contest_friendship; // 1C
   u8 _3[5]; // 21
 
@@ -137,5 +137,3 @@ struct PokemonCoreData {
     return (void*)(addr + 8 + index * kBlockSize);
   }
 };
-
-#endif  // SANGO_PLUGIN_POKEMON_CORE_DATA_H

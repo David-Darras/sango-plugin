@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_HOOK_H
-#define SANGO_PLUGIN_HOOK_H
+#pragma once
 
 #include "common.h"
 
@@ -29,34 +28,34 @@
 class Hook {
 public:
   /**
-   * @brief Default constructor.
-   * Used exclusively to initialize an empty array of hooks within the
-   * HookManager.
-   */
+ * @brief Default constructor.
+ * Used exclusively to initialize an empty array of hooks within the
+ * HookManager.
+ */
   Hook() = default;
 
   /**
-   * @brief Initializes and enables a new hook.
-   * Used by the HookManager to populate its hook array. This constructor
-   * automatically sets up the gateway and enables the hook upon creation.
-   *
-   * @param id   The identifier of the hook.
-   * @param src  The address of the original source function to be hooked.
-   * @param dst  The address of the destination function to execute instead of
-   * src.
-   */
+ * @brief Initializes and enables a new hook.
+ * Used by the HookManager to populate its hook array. This constructor
+ * automatically sets up the gateway and enables the hook upon creation.
+ *
+ * @param id   The identifier of the hook.
+ * @param src  The address of the original source function to be hooked.
+ * @param dst  The address of the destination function to execute instead of
+ * src.
+ */
   void Initialize(u32 src, u32 dst) {
     src_addr_ = src;
     dst_addr_ = dst;
   }
 
   /**
-   * @brief Enables the hook.
-   * Replaces the first 8 bytes of the source function with an absolute jump
-   * (ldr pc, [pc, #-4] followed by the destination address). Flushes the data
-   * and instruction caches to ensure safe execution.
-   * This method is reentrant; if the hook is already enabled, it does nothing.
-   */
+ * @brief Enables the hook.
+ * Replaces the first 8 bytes of the source function with an absolute jump
+ * (ldr pc, [pc, #-4] followed by the destination address). Flushes the data
+ * and instruction caches to ensure safe execution.
+ * This method is reentrant; if the hook is already enabled, it does nothing.
+ */
   void Enable(bool force = false) {
     if (!force && is_enabled_) return;
 
@@ -86,10 +85,10 @@ public:
   }
 
   /**
-   * @brief Disables the hook.
-   * Restores the two original instructions that were overwritten by the jump.
-   * This method is reentrant; if the hook is not enabled, it does nothing.
-   */
+ * @brief Disables the hook.
+ * Restores the two original instructions that were overwritten by the jump.
+ * This method is reentrant; if the hook is not enabled, it does nothing.
+ */
   void Disable() {
     if (!is_enabled_) return;
 
@@ -107,12 +106,12 @@ public:
   INLINE bool IsEnabled() const { return is_enabled_; }
 
   /**
-   * @brief Calls the original, unhooked function through the gateway.
-   * @tparam R    The return type of the original function.
-   * @tparam Args The argument types of the original function.
-   * @param args  The arguments to pass to the original function.
-   * @return      The result of the original function call.
-   */
+ * @brief Calls the original, unhooked function through the gateway.
+ * @tparam R    The return type of the original function.
+ * @tparam Args The argument types of the original function.
+ * @param args  The arguments to pass to the original function.
+ * @return      The result of the original function call.
+ */
   template <typename R, typename... Args>
   R CallOriginal(Args... args) {
     using FunctionType = R (*)(Args...);
@@ -126,14 +125,12 @@ private:
   u32 src_addr_ = 0; ///< Original function entry point address.
   u32 dst_addr_ = 0; ///< Redirected function entry point address.
   /**
-   * @brief Backup of the first two instructions (8 bytes) of the source.
-   */
+ * @brief Backup of the first two instructions (8 bytes) of the source.
+ */
   u32 original_code_[2];
   /**
-   * @brief Trampoline code to jump back to original logic.
-   * Usually contains: [Orig Inst 1][Orig Inst 2][LDR PC, [PC, #-4]][Src + 8]
-   */
+ * @brief Trampoline code to jump back to original logic.
+ * Usually contains: [Orig Inst 1][Orig Inst 2][LDR PC, [PC, #-4]][Src + 8]
+ */
   u32 gateway_[4];
 };
-
-#endif  // SANGO_PLUGIN_HOOK_H

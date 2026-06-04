@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_BATTLE_CONFIG_H
-#define SANGO_PLUGIN_BATTLE_CONFIG_H
+#pragma once
 
 #include "common.h"
 
@@ -60,5 +59,3 @@ struct Config {
   bool no_money;
 };
 } // namespace battle
-
-#endif  // SANGO_PLUGIN_BATTLE_CONFIG_H

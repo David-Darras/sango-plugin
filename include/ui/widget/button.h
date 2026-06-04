@@ -21,50 +21,50 @@
 
 namespace ui {
 /**
- * @brief A simple UI Button class for handling touch interactions and
- * rendering.
- */
+* @brief A simple UI Button class for handling touch interactions and
+* rendering.
+*/
 class Button {
 public:
   /**
-   * @brief Default constructor.
-   */
+* @brief Default constructor.
+*/
   Button();
 
   /**
-   * @brief Initializes a button with specific dimensions and position.
-   * @param x The X coordinate of the top-left corner.
-   * @param y The Y coordinate of the top-left corner.
-   * @param width The width of the button.
-   * @param height The height of the button.
-   */
+* @brief Initializes a button with specific dimensions and position.
+* @param x The X coordinate of the top-left corner.
+* @param y The Y coordinate of the top-left corner.
+* @param width The width of the button.
+* @param height The height of the button.
+*/
   void Initialize(u32 x, u32 y, u32 width, u32 height);
 
   /**
-   * @brief Renders the button and its label on the screen.
-   * @param label The text to display (UTF-16).
-   * @param offset_x Horizontal padding for the text.
-   * @param offset_y Vertical padding for the text.
-   */
+* @brief Renders the button and its label on the screen.
+* @param label The text to display (UTF-16).
+* @param offset_x Horizontal padding for the text.
+* @param offset_y Vertical padding for the text.
+*/
   void Draw(const c16* label, u32 offset_x, u32 offset_y) const;
 
   /**
-   * @brief Checks if the button is currently being pressed.
-   * @return True if the touchscreen is active within the button's bounds.
-   */
+* @brief Checks if the button is currently being pressed.
+* @return True if the touchscreen is active within the button's bounds.
+*/
   bool IsDown() const;
 
   /**
-   * @brief Checks if the button was just released.
-   * @note Resets the internal state to IDLE after being called.
-   * @return True if the button transition from HOLD to RELEASED occurred.
-   */
+* @brief Checks if the button was just released.
+* @note Resets the internal state to IDLE after being called.
+* @return True if the button transition from HOLD to RELEASED occurred.
+*/
   bool IsReleased() const;
 
   /**
-   * @brief Updates the internal state machine based on touch input.
-   * Must be called once per frame.
-   */
+* @brief Updates the internal state machine based on touch input.
+* Must be called once per frame.
+*/
   void Update();
 
 private:

@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_CORE_H
-#define SANGO_PLUGIN_CORE_H
+#pragma once
 
 #include "common.h"
 
@@ -179,21 +178,21 @@ class Graphics;
 class Core {
 public:
   /**
-   * @brief Retrieves the singleton instance of the Core bridge.
-   * @return A reference to the static Core instance.
-   */
+ * @brief Retrieves the singleton instance of the Core bridge.
+ * @return A reference to the static Core instance.
+ */
   STATIC_INLINE Core& GetInstance() { return *(Core*)ADDRESS_CORE; }
 
   /**
-   * @brief Accesses the hardware device manager (Input/HID).
-   * @return A reference to the Device manager.
-   */
+ * @brief Accesses the hardware device manager (Input/HID).
+ * @return A reference to the Device manager.
+ */
   INLINE Device& GetDevice() const { return *device_; }
 
   /**
-   * @brief Accesses the global graphics manager.
-   * @return A reference to the Graphics manager.
-   */
+ * @brief Accesses the global graphics manager.
+ * @return A reference to the Graphics manager.
+ */
   INLINE Graphics& GetGraphics() const { return *graphics_; }
 
   INLINE u8& GetLanguageId() { return *language_id; }
@@ -209,5 +208,3 @@ private:
 
   u8* language_id;
 };
-
-#endif  // SANGO_PLUGIN_CORE_H

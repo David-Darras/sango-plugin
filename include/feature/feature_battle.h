@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_FEATURE_BATTLE_H
-#define SANGO_PLUGIN_FEATURE_BATTLE_H
+#pragma once
 
 #include "common.h"
 #include "hook_manager.h"
@@ -173,5 +172,3 @@ struct BattleHookContext {
   }
 };
 } // namespace feature
-
-#endif //SANGO_PLUGIN_FEATURE_BATTLE_H

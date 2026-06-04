@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_GAME_TIME_MANAGER_H_
-#define SANGO_PLUGIN_GAME_TIME_MANAGER_H_
+#pragma once
 
 #include "core/game_manager.h"
 #include "common.h"
@@ -32,9 +31,7 @@ struct TimeManager {
   u64 accumulated_seconds;
   u64 first_tick;
   ///< Throttles calls to svcGetSystemTick()
-  ///< (only once every 20 frames to reduce CPU usage).
+///< (only once every 20 frames to reduce CPU usage).
   u32 frame_counter;
 };
 } // namespace game
-
-#endif  // SANGO_PLUGIN_GAME_TIME_MANAGER_H_

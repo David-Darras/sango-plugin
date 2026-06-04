@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_FEATURE_CAMERA_H
-#define SANGO_PLUGIN_FEATURE_CAMERA_H
+#pragma once
 #include <cmath>
 
 #include "common.h"
@@ -121,13 +120,17 @@ struct CameraHookContext {
         break;
 
       case CameraState::kFree: {
-        Vec3 forward = {std::cos(ctx.rot.y) * std::cos(ctx.rot.x),
-                        std::sin(ctx.rot.x),
-                        std::sin(ctx.rot.y) * std::cos(ctx.rot.x)};
+        Vec3 forward = {
+            std::cos(ctx.rot.y) * std::cos(ctx.rot.x),
+            std::sin(ctx.rot.x),
+            std::sin(ctx.rot.y) * std::cos(ctx.rot.x)
+        };
 
         *pos = ctx.pos;
-        *target = {ctx.pos.x + forward.x, ctx.pos.y + forward.y,
-                   ctx.pos.z + forward.z};
+        *target = {
+            ctx.pos.x + forward.x, ctx.pos.y + forward.y,
+            ctx.pos.z + forward.z
+        };
         *up = {0.0f, 1.0f, 0.0f};
         break;
       }
@@ -137,9 +140,11 @@ struct CameraHookContext {
         pos->y = player.draw_pos.y + 30.0f;
         pos->z = player.draw_pos.z;
 
-        *target = {pos->x + player.facing_direction.x,
-                   pos->y + player.facing_direction.y,
-                   pos->z + player.facing_direction.z};
+        *target = {
+            pos->x + player.facing_direction.x,
+            pos->y + player.facing_direction.y,
+            pos->z + player.facing_direction.z
+        };
         *up = {0.0f, 1.0f, 0.0f};
         break;
 
@@ -158,8 +163,10 @@ struct CameraHookContext {
             player.draw_pos.z - (dir.z * ctx.tps_dist) + (
               dir.x * ctx.tps_offset);
 
-        *target = {player.draw_pos.x, player.draw_pos.y + ctx.tps_height,
-                   player.draw_pos.z};
+        *target = {
+            player.draw_pos.x, player.draw_pos.y + ctx.tps_height,
+            player.draw_pos.z
+        };
         *up = {0.0f, 1.0f, 0.0f};
         break;
       }
@@ -175,5 +182,3 @@ struct CameraHookContext {
   }
 };
 } // namespace feature
-
-#endif //SANGO_PLUGIN_FEATURE_CAMERA_H

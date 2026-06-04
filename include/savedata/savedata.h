@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_SAVEDATA_SAVEDATA_H
-#define SANGO_PLUGIN_SAVEDATA_SAVEDATA_H
+#pragma once
 
 #include "core/game_data_manager.h"
 
@@ -41,25 +40,25 @@ struct Encounter;
 struct OverworldMenu;
 
 /**
- * @class SaveData
- * @brief Represents the structure and management of the game's save data.
- * * This class provides access to the raw save buffer, the segment pointers,
- * and the integrity-checking Footer.
- */
+* @class SaveData
+* @brief Represents the structure and management of the game's save data.
+* * This class provides access to the raw save buffer, the segment pointers,
+* and the integrity-checking Footer.
+*/
 class SaveData {
 public:
   /**
-   * @brief Accesses the global SaveData instance via the GameDataManager.
-   * @return A reference to the active SaveData instance.
-   */
+* @brief Accesses the global SaveData instance via the GameDataManager.
+* @return A reference to the active SaveData instance.
+*/
   STATIC_INLINE SaveData& GetInstance() {
     return GameDataManager::GetInstance().GetSavedata();
   }
 
   /**
-   * @brief Retrieves the footer associated with this save data.
-   * @return A reference to the Footer object used for integrity validation.
-   */
+* @brief Retrieves the footer associated with this save data.
+* @return A reference to the Footer object used for integrity validation.
+*/
   INLINE Footer& GetFooter() { return *footer_; }
 
   INLINE Misc& GetMisc() { return *(Misc*)segments_[11]; }
@@ -135,16 +134,14 @@ private:
   Footer* footer_; ///< Pointer to the integrity and checksum footer.
 
   /**
-   * @brief Raw save data buffer.
-   * Total size: 0x722C8 bytes.
-   */
+* @brief Raw save data buffer.
+* Total size: 0x722C8 bytes.
+*/
   u8 data_[0x722C8];
 
   /**
-   * @brief Array of pointers to specific data segments within the save.
-   */
+* @brief Array of pointers to specific data segments within the save.
+*/
   void* segments_[kSegmentCount]; ///< Address : 0x08CE0C68
 };
 } // namespace savedata
-
-#endif  // SANGO_PLUGIN_SAVEDATA_SAVEDATA_H

@@ -24,7 +24,6 @@
 #include "utils.h"
 
 namespace ui {
-
 Keyboard::Keyboard() : page_index_(0), cursor_(0) {
   memset(input_, 0, sizeof(input_));
 
@@ -165,5 +164,4 @@ void Keyboard::RemoveLastChar() {
   cursor_--;
   input_[cursor_] = 0;
 }
-
-}  // namespace ui
+} // namespace ui

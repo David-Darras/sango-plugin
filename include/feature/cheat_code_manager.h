@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_CHEAT_CODE_MANAGER_H
-#define SANGO_PLUGIN_CHEAT_CODE_MANAGER_H
+#pragma once
 
 #include "feature/cheat_code.h"
 
@@ -31,6 +30,7 @@ enum class CheatCodeId {
 
 class CheatCodeManager {
   MAKE_SINGLETON(CheatCodeManager)
+
 public:
   void Add(CheatCodeId id, cheat_code_callback_t on_enable,
            cheat_code_callback_t on_disable,
@@ -65,5 +65,3 @@ private:
   CheatCode cheat_codes_[kMaxCheatCodes];
   u32 count_ = 0;
 };
-
-#endif  // SANGO_PLUGIN_CHEAT_CODE_MANAGER_H

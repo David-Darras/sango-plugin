@@ -18,27 +18,25 @@
 #include <CTRPluginFramework/Menu/PluginMenu.hpp>
 #include <CTRPluginFramework/System/Hook.hpp>
 
-#include "entrypoint.h"
 #include "core/core.h"
+
+extern void Initialize();
+extern void Entrypoint();
 
 namespace CTRPluginFramework {
 int main() {
-  //==========================================
 #ifdef ENABLE_SANGO_PLUGIN
   Initialize();
   CTRPluginFramework::Hook hook;
   hook.InitializeForMitm(ADDRESS_ENTRYPOINT, (uptr)Entrypoint);
   hook.Enable();
-#endif // ENABLE_SANGO_PLUGIN
-  //==========================================
+#endif
 
-  //==========================================
 #ifdef ENABLE_DEFAULT_CTRPF
   PluginMenu menu;
   menu.SynchronizeWithFrame(true);
   menu.Run();
-#endif // ENABLE_DEFAULT_CTRPF
-  //==========================================
+#endif
 
   return 0;
 }

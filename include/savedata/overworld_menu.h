@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_SAVEDATA_OVERWORLD_MENU_H
-#define SANGO_PLUGIN_SAVEDATA_OVERWORLD_MENU_H
+#pragma once
 #include "savedata.h"
 
 namespace savedata {
@@ -48,5 +47,3 @@ struct OverworldMenu {
   };
 };
 } // namespace savedata
-
-#endif  // SANGO_PLUGIN_SAVEDATA_OVERWORLD_MENU_H

@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_POKEMON_TEAM_H
-#define SANGO_PLUGIN_POKEMON_TEAM_H
+#pragma once
 #include "common.h"
 #include "savedata.h"
 #include "savedata/pokemon_core_data.h"
@@ -59,5 +58,3 @@ struct PokemonTeam {
 //   u8 pokemon_amie_index;
 // };
 } // namespace savedata
-
-#endif  // SANGO_PLUGIN_POKEMON_TEAM_H

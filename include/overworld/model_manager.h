@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_OVERWORLD_MODEL_MANAGER_H
-#define SANGO_PLUGIN_OVERWORLD_MODEL_MANAGER_H
+#pragma once
 
 #include "common.h"
 #include "core/game_data_manager.h"
@@ -117,5 +116,3 @@ private:
   ModelResource resources_[kMaxModels];
 };
 } // namespace overworld
-
-#endif  // SANGO_PLUGIN_OVERWORLD_MODEL_MANAGER_H

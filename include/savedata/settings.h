@@ -15,22 +15,22 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_SAVEDATA_SETTINGS_H
-#define SANGO_PLUGIN_SAVEDATA_SETTINGS_H
+#pragma once
 
 #include "core/core.h"
 #include "savedata.h"
 
 namespace savedata {
-
 struct Settings {
   STATIC_INLINE Settings& GetInstance() {
     return SaveData::GetInstance().GetSettings();
   }
 
   void* vtable;
+
   union {
     u32 core;
+
     struct {
       u32 text_speed : 2;
       u32 show_battle_animations : 1;
@@ -41,11 +41,8 @@ struct Settings {
       u32 prompt_save_before_net : 1;
       u32 enable_spotpass : 1;
       u32 enable_pss : 1;
-      u32 : 14;
+      u32  : 14;
     };
   };
 };
-
-}  // namespace savedata
-
-#endif  // SANGO_PLUGIN_SETTINGS_H
+} // namespace savedata

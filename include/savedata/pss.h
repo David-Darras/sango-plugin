@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_SAVEDATA_PSS_H
-#define SANGO_PLUGIN_SAVEDATA_PSS_H
+#pragma once
 #include "savedata.h"
 
 namespace savedata {
@@ -266,5 +265,3 @@ struct PssGroup {
   u32 count;
 };
 } // namespace savedata
-
-#endif  // SANGO_PLUGIN_SAVEDATA_PSS_H

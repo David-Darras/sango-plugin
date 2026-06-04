@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_FEATURE_POKEMON_TEXTURE_H
-#define SANGO_PLUGIN_FEATURE_POKEMON_TEXTURE_H
+#pragma once
 
 #include "common.h"
 #include "core/core.h"
@@ -218,5 +217,3 @@ struct PokemonTextureHookContext {
   }
 };
 } // namespace feature
-
-#endif //SANGO_PLUGIN_FEATURE_POKEMON_TEXTURE_H

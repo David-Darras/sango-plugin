@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_FEATURE_LIGHT_H
-#define SANGO_PLUGIN_FEATURE_LIGHT_H
+#pragma once
 #include "common.h"
 #include "core/core.h"
 #include "feature/hook_manager.h"
@@ -91,5 +90,3 @@ struct LightHookContext {
   }
 };
 } // namespace feature
-
-#endif //SANGO_PLUGIN_FEATURE_LIGHT_H

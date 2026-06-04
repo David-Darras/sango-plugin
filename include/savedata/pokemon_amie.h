@@ -15,18 +15,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_SAVEDATA_POKEMON_AMIE_H
-#define SANGO_PLUGIN_SAVEDATA_POKEMON_AMIE_H
+#pragma once
 
 #include "common.h"
 #include "savedata.h"
 
 namespace savedata {
 /**
- * @brief Manages the Pokémon-Amie (Kawaigari) system data.
- * * This structure handles the inventory of Poké Puffs and global
- * interaction timestamps for the Amie system in Pokémon ORAS.
- */
+* @brief Manages the Pokémon-Amie (Kawaigari) system data.
+* * This structure handles the inventory of Poké Puffs and global
+* interaction timestamps for the Amie system in Pokémon ORAS.
+*/
 struct PokemonAmie {
   STATIC_INLINE PokemonAmie& GetInstance() {
     return SaveData::GetInstance().GetPokemonAmie();
@@ -40,5 +39,3 @@ struct PokemonAmie {
   s32 last_opened_timestamp;
 };
 } // namespace savedata
-
-#endif  // SANGO_PLUGIN_SAVEDATA_POKEMON_AMIE_H

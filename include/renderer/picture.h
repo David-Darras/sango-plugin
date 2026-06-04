@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_RENDERER_PICTURE_H
-#define SANGO_PLUGIN_RENDERER_PICTURE_H
+#pragma once
 
 #include "renderer/pane.h"
 
@@ -33,5 +32,3 @@ struct Picture {
   Color8 bottom_right_color;
 };
 } // namespace renderer
-
-#endif  // SANGO_PLUGIN_RENDERER_PICTURE_H

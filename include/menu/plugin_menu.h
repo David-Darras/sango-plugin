@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_MENU_PLUGIN_MENU_H
-#define SANGO_PLUGIN_MENU_PLUGIN_MENU_H
+#pragma once
 
 #include "feature/cheat_code.h"
 #include "feature/cheat_code_manager.h"
@@ -31,117 +30,117 @@ class Controller;
 namespace menu {
 struct Theme;
 /**
- * @brief Singleton class representing the plugin menu system.
- *
- * Handles the display, input, and management of menu entries,
- * submenus, and context tracking using a stack-based approach.
- */
+* @brief Singleton class representing the plugin menu system.
+*
+* Handles the display, input, and management of menu entries,
+* submenus, and context tracking using a stack-based approach.
+*/
 class PluginMenu : public ui::Application {
 public:
   /**
-   * @brief Returns the singleton instance of the PluginMenu.
-   * @return Reference to the unique PluginMenu instance.
-   */
+* @brief Returns the singleton instance of the PluginMenu.
+* @return Reference to the unique PluginMenu instance.
+*/
   STATIC_INLINE PluginMenu& GetInstance() { return instance_; }
 
   /**
-   * @brief Draws the top section of the menu with menu entries.
-   */
+* @brief Draws the top section of the menu with menu entries.
+*/
   void DrawTop(Graphics& graphics) override;
 
   /**
-   * @brief Draws the bottom section of the menu (numpad or keyboard).
-   */
+* @brief Draws the bottom section of the menu (numpad or keyboard).
+*/
   void DrawBottom(Graphics& graphics) override;
 
   /**
-   * @brief Updates the menu state and input handling.
-   * Must be called once per frame.
-   */
+* @brief Updates the menu state and input handling.
+* Must be called once per frame.
+*/
   void Update(Controller& controller) override;
 
   /**
-   * @brief Checks if the menu is currently opened.
-   * @return True if the menu is visible, false otherwise.
-   */
+* @brief Checks if the menu is currently opened.
+* @return True if the menu is visible, false otherwise.
+*/
   bool IsOpened() const { return is_opened_; };
 
   void ForceClose() { is_opened_ = false; };
 
   /**
-   * @brief Enters a submenu with an optional initialization callback.
-   * @param load_menu Function to call when entering the submenu.
-   */
+* @brief Enters a submenu with an optional initialization callback.
+* @param load_menu Function to call when entering the submenu.
+*/
   void Open(menu_callback_t load_menu, void* args = nullptr);
 
   /**
-   * @brief Leaves the current submenu and returns to the previous context.
-   */
+* @brief Leaves the current submenu and returns to the previous context.
+*/
   void Close();
 
   /**
-   * @brief Attaches an array of string labels to the last added entry.
-   * * Allows mapping numerical values to human-readable strings
-   * (e.g., 0 = "Off", 1 = "On") for display purposes.
-   * @param array An array of C-strings containing the labels.
-   * @param array_size The total number of elements in the array.
-   * @return Reference to the PluginMenu instance for method chaining.
-   */
+* @brief Attaches an array of string labels to the last added entry.
+* * Allows mapping numerical values to human-readable strings
+* (e.g., 0 = "Off", 1 = "On") for display purposes.
+* @param array An array of C-strings containing the labels.
+* @param array_size The total number of elements in the array.
+* @return Reference to the PluginMenu instance for method chaining.
+*/
   PluginMenu& WithArray(const c8* array[], u32 array_size) {
     entries_[entries_count_ - 1].WithArray(array, array_size);
     return *this;
   }
 
   /**
-   * @brief Attaches a custom callback function to the last added entry.
-   * * The provided function will be triggered whenever the entry is
-   * executed (e.g., by pressing the 'A' button).
-   * @param callback Function pointer of type `callback_t`.
-   * @return Reference to the PluginMenu instance for method chaining.
-   */
+* @brief Attaches a custom callback function to the last added entry.
+* * The provided function will be triggered whenever the entry is
+* executed (e.g., by pressing the 'A' button).
+* @param callback Function pointer of type `callback_t`.
+* @return Reference to the PluginMenu instance for method chaining.
+*/
   PluginMenu& WithCallback(callback_t callback) {
     entries_[entries_count_ - 1].WithCallback(callback);
     return *this;
   }
 
   /**
-   * @brief Enables the refresh flag for the last added entry.
-   * * Useful for entries whose modification dynamically changes the
-   * structure or the content of the current menu view.
-   * @return Reference to the PluginMenu instance for method chaining.
-   */
+* @brief Enables the refresh flag for the last added entry.
+* * Useful for entries whose modification dynamically changes the
+* structure or the content of the current menu view.
+* @return Reference to the PluginMenu instance for method chaining.
+*/
   PluginMenu& WithRefresh() {
     entries_[entries_count_ - 1].WithRefresh();
     return *this;
   }
 
   /**
-   * @brief Sets the minimum allowed value for the last added entry.
-   * @param min The lower bound value.
-   * @return Reference to the PluginMenu instance for method chaining.
-   */
+* @brief Sets the minimum allowed value for the last added entry.
+* @param min The lower bound value.
+* @return Reference to the PluginMenu instance for method chaining.
+*/
   PluginMenu& WithMin(s32 min) {
     entries_[entries_count_ - 1].WithMin(min);
     return *this;
   }
 
   /**
-   * @brief Sets the maximum allowed value for the last added entry.
-   * @param max The upper bound value.
-   * @return Reference to the PluginMenu instance for method chaining.
-   */
+* @brief Sets the maximum allowed value for the last added entry.
+* @param max The upper bound value.
+* @return Reference to the PluginMenu instance for method chaining.
+*/
   PluginMenu& WithMax(s32 max) {
     entries_[entries_count_ - 1].WithMax(max);
     return *this;
   }
 
   /**
-   * @brief Sets both minimum and maximum allowed values for the last added
-   * entry.
-   * @param min The lower bound value.
-   * @param max The upper bound value.
-   * @return Reference to the PluginMenu instance for method chaining.
-   */
+* @brief Sets both minimum and maximum allowed values for the last added
+* entry.
+* @param min The lower bound value.
+* @param max The upper bound value.
+* @return Reference to the PluginMenu instance for method chaining.
+*/
   PluginMenu& WithBounds(u32 min, u32 max) {
     entries_[entries_count_ - 1].WithMin(min);
     entries_[entries_count_ - 1].WithMax(max);
@@ -161,10 +160,10 @@ public:
   bool CheckProcess(const char* name);
 
   /**
-   * @brief Rebuilds the current menu by re-executing its load callback.
-   * * This method updates the list of active entries without altering
-   * the context stack, reflecting real-time changes in game state.
-   */
+* @brief Rebuilds the current menu by re-executing its load callback.
+* * This method updates the list of active entries without altering
+* the context stack, reflecting real-time changes in game state.
+*/
   void Refresh();
 
   PluginMenu& Add(const c8* name, CheatCodeId id) {
@@ -186,12 +185,12 @@ public:
   }
 
   /**
-   * @brief Adds a simple menu entry by name, address, and type.
-   * @param name Display name.
-   * @param addr Memory address.
-   * @param type Entry type (MenuEntryType).
-   * @return Reference to the PluginMenu instance.
-   */
+* @brief Adds a simple menu entry by name, address, and type.
+* @param name Display name.
+* @param addr Memory address.
+* @param type Entry type (MenuEntryType).
+* @return Reference to the PluginMenu instance.
+*/
   PluginMenu& Add(const c8* name, void* addr, u8 type) {
     if (entries_count_ < kMaxEntries)
       entries_[entries_count_++].Initialize(name, addr, type);
@@ -199,11 +198,11 @@ public:
   }
 
   /**
-   * @brief Adds a submenu entry.
-   * @param name Display name of the submenu.
-   * @param menu Callback function to build the submenu.
-   * @return Reference to the PluginMenu instance.
-   */
+* @brief Adds a submenu entry.
+* @param name Display name of the submenu.
+* @param menu Callback function to build the submenu.
+* @return Reference to the PluginMenu instance.
+*/
   PluginMenu& Add(const c8* name, menu_callback_t menu, void* args = nullptr) {
     if (entries_count_ < kMaxEntries) {
       entries_[entries_count_].Initialize(name, (void*)menu, kTypeMenu);
@@ -214,11 +213,11 @@ public:
   }
 
   /**
-   * @brief Adds a pointer entry.
-   * @param name Display name.
-   * @param addr Reference to the pointer.
-   * @return Reference to the PluginMenu instance.
-   */
+* @brief Adds a pointer entry.
+* @param name Display name.
+* @param addr Reference to the pointer.
+* @return Reference to the PluginMenu instance.
+*/
   PluginMenu& Add(const c8* name, void*& addr) {
     if (entries_count_ < kMaxEntries)
       entries_[entries_count_++].Initialize(name, &addr, kTypePointer);
@@ -226,11 +225,11 @@ public:
   }
 
   /**
-   * @brief Adds a boolean entry.
-   * @param name Display name.
-   * @param addr Reference to the boolean variable.
-   * @return Reference to the PluginMenu instance.
-   */
+* @brief Adds a boolean entry.
+* @param name Display name.
+* @param addr Reference to the boolean variable.
+* @return Reference to the PluginMenu instance.
+*/
   PluginMenu& Add(const c8* name, bool& addr) {
     if (entries_count_ < kMaxEntries)
       entries_[entries_count_++].Initialize(name, &addr, kTypeBoolean);
@@ -238,13 +237,13 @@ public:
   }
 
   /**
-   * @brief Adds a bitfield entry.
-   * @param name Display name.
-   * @param addr Address of the integer containing the bits.
-   * @param offset Bit offset.
-   * @param size Bit size.
-   * @return Reference to the PluginMenu instance.
-   */
+* @brief Adds a bitfield entry.
+* @param name Display name.
+* @param addr Address of the integer containing the bits.
+* @param offset Bit offset.
+* @param size Bit size.
+* @return Reference to the PluginMenu instance.
+*/
   PluginMenu& Add(const c8* name, void* addr, u32 offset, u32 size) {
     if (entries_count_ < kMaxEntries)
       entries_[entries_count_++].Initialize(name, addr, kTypeBits, offset,
@@ -253,12 +252,12 @@ public:
   }
 
   /**
-   * @brief Adds a Unicode string entry.
-   * @param name Display name.
-   * @param addr Pointer to the UTF-16 string.
-   * @param size Maximum length/size of the string.
-   * @return Reference to the PluginMenu instance.
-   */
+* @brief Adds a Unicode string entry.
+* @param name Display name.
+* @param addr Pointer to the UTF-16 string.
+* @param size Maximum length/size of the string.
+* @return Reference to the PluginMenu instance.
+*/
   PluginMenu& Add(const c8* name, c16* addr, u32 size) {
     if (entries_count_ < kMaxEntries)
       entries_[entries_count_++].Initialize(name, addr, kTypeUnicode, size);
@@ -277,7 +276,8 @@ public:
     static const c8* TYPES[] = {
         "Normal", "Fighting", "Flying", "Poison", "Ground", "Rock",
         "Bug", "Ghost", "Steel", "Fire", "Water", "Grass",
-        "Electric", "Psychic", "Ice", "Dragon", "Dark", "Fairy"};
+        "Electric", "Psychic", "Ice", "Dragon", "Dark", "Fairy"
+    };
     if (entries_count_ < kMaxEntries) {
       entries_[entries_count_++].Initialize(name, (void*)&var, kTypeU8);
       WithArray(TYPES, SIZE(TYPES));
@@ -317,8 +317,8 @@ public:
   }
 
   /**
-   * @brief Macro helper for adding numeric typed entries.
-   */
+* @brief Macro helper for adding numeric typed entries.
+*/
 #define ADD(type, type_id)                                      \
   PluginMenu &Add(const c8 *name, type &var) {                  \
     if (entries_count_ < kMaxEntries)                           \
@@ -342,8 +342,8 @@ public:
 
 private:
   /**
-   * @brief Internal structure representing a menu context (for submenus).
-   */
+* @brief Internal structure representing a menu context (for submenus).
+*/
   struct MenuContext {
     u8 cursor; ///< Current cursor position.
     u8 offset; ///< Current scroll offset.
@@ -352,8 +352,8 @@ private:
     void* args;
 
     /**
-     * @brief Default constructor.
-     */
+* @brief Default constructor.
+*/
     MenuContext()
       : cursor(0),
         offset(0),
@@ -363,9 +363,9 @@ private:
     }
 
     /**
-     * @brief Resets the context with a specific callback.
-     * @param menu Function to call for this context.
-     */
+* @brief Resets the context with a specific callback.
+* @param menu Function to call for this context.
+*/
     void Initialize(menu_callback_t menu, void* args) {
       cursor = 0;
       offset = 0;
@@ -376,8 +376,8 @@ private:
   };
 
   /**
-   * @brief Private constructor for singleton pattern.
-   */
+* @brief Private constructor for singleton pattern.
+*/
   PluginMenu()
     : is_opened_(0),
       entries_count_(0),
@@ -388,17 +388,17 @@ private:
   }
 
   /**
-   * @brief Returns the currently active context.
-   * @return Reference to the top context on the stack.
-   */
+* @brief Returns the currently active context.
+* @return Reference to the top context on the stack.
+*/
   MenuContext& GetContext() {
     return contexts_[contexts_count_ > 0 ? contexts_count_ - 1 : 0];
   }
 
   /**
-   * @brief Returns the currently selected menu entry in the current context.
-   * @return Reference to the selected MenuEntry.
-   */
+* @brief Returns the currently selected menu entry in the current context.
+* @return Reference to the selected MenuEntry.
+*/
   MenuEntry& GetSelectedEntry() {
     MenuContext& ctx = GetContext();
     return entries_[ctx.cursor + ctx.offset];
@@ -429,5 +429,3 @@ private:
   Theme& theme_;
 };
 } // namespace menu
-
-#endif  // SANGO_PLUGIN_MENU_PLUGIN_MENU_H

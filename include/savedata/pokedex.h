@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_SAVEDATA_POKEDEX_H
-#define SANGO_PLUGIN_SAVEDATA_POKEDEX_H
+#pragma once
 #include "savedata.h"
 #include "core/game_data_manager.h"
 
@@ -27,8 +26,8 @@ struct Pokedex {
   }
 
   /**
-   * @return Form index, or -1 if the species has no alternative forms.
-   */
+* @return Form index, or -1 if the species has no alternative forms.
+*/
   INLINE s32 GetFormIndex(u16 species) {
     return ((s32(*)(Pokedex*, u16))ADDRESS_POKEDEX_GET_FORM_INDEX)(
         this, species);
@@ -69,5 +68,3 @@ struct Pokedex {
   u16 captured_count[722]; // unused
 };
 } // namespace savedata
-
-#endif  // SANGO_PLUGIN_SAVEDATA_POKEDEX_H

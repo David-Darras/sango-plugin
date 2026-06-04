@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_FEATURE_FIELD_MOVE_H
-#define SANGO_PLUGIN_FEATURE_FIELD_MOVE_H
+#pragma once
 #include "overworld/map_manager.h"
 
 namespace feature {
@@ -34,5 +33,3 @@ struct FieldMove {
   }
 };
 }
-
-#endif //SANGO_PLUGIN_FEATURE_FIELD_MOVE_H

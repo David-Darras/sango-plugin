@@ -22,9 +22,11 @@
 
 namespace ui {
 void LoadTopMenu(menu::PluginMenu& menu, void* args) {
-  static const c8* WEATHERS[] = {"Sunny", "Rainy", "Thunderstorm",
-                                 "Misty", "Ash", "Sandstorm",
-                                 "Cloudy", "Stormy", "Dry"};
+  static const c8* WEATHERS[] = {
+      "Sunny", "Rainy", "Thunderstorm",
+      "Misty", "Ash", "Sandstorm",
+      "Cloudy", "Stormy", "Dry"
+  };
 
   auto& weather_manager = overworld::WeatherManager::GetInstance();
 

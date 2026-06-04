@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_APPLICATION_H
-#define SANGO_PLUGIN_APPLICATION_H
+#pragma once
 
 #include "common.h"
 
@@ -43,5 +42,3 @@ private:
   Application* parent_ = nullptr;
 };
 }
-
-#endif //SANGO_PLUGIN_APPLICATION_H

@@ -203,8 +203,10 @@ void LoadSaveDataBagItemsMenu(menu::PluginMenu& menu, void* args) {
   static u32 pocket_id = 0;
   static u32 slot_idx = 0;
 
-  static const c8* pocket_names[] = {"Items", "Key Items", "TMs & HMs",
-                                     "Medicine", "Berries"};
+  static const c8* pocket_names[] = {
+      "Items", "Key Items", "TMs & HMs",
+      "Medicine", "Berries"
+  };
 
   menu.Add("Pocket Select", pocket_id)
       .WithArray(pocket_names, 5)
@@ -438,7 +440,8 @@ void LoadSaveDataBagMetadataMenu(menu::PluginMenu& menu, void* args) {
   static u8 history_idx = 0;
   static const c8* pocket_type[savedata::BagManager::kMaxPockets] = {
       "Items", "Medecine", "TMs & HMs",
-      "Berries", "Key Items"};
+      "Berries", "Key Items"
+  };
 
   auto& data = savedata::BagManager::GetInstance();
 
@@ -584,13 +587,16 @@ void LoadSaveDataSettingsMenu(menu::PluginMenu& menu, void* args) {
   static const c8* TOGGLE_OFF_ON[] = {"Off", "On"};
   static const c8* BATTLE_STYLE[] = {"Shift", "Set"};
   static const c8* BUTTON_MODE[] = {"Normal", "L=A", "LR Disabled"};
-  static const c8* LANGUAGES[] = {"None", "Japanese", "English",
-                                  "French", "Italian", "German",
-                                  "---", "Spanish", "Korean"};
+  static const c8* LANGUAGES[] = {
+      "None", "Japanese", "English",
+      "French", "Italian", "German",
+      "---", "Spanish", "Korean"
+  };
   static const c8* BATTLE_BACKGROUNDS[] = {
       "Default", "Red", "Blue", "Pikachu", "Starters",
       "Eevee", "Monochrome", "Stickers", "Tatami", "Floral Pattern",
-      "Elegant", "Tall Grass", "Poke Ball", "Cockpit", "Carbon"};
+      "Elegant", "Tall Grass", "Poke Ball", "Cockpit", "Carbon"
+  };
 
   auto& settings = savedata::Settings::GetInstance();
 

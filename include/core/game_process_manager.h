@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_PROCESS_MANAGER_H
-#define SANGO_PLUGIN_PROCESS_MANAGER_H
+#pragma once
 
 #include <cstring>
 
@@ -61,9 +60,9 @@ public:
 class ProcessHandle {
 public:
   /**
-   * @brief Accesses the underlying process logic.
-   * @return A reference to the BaseProcess.
-   */
+ * @brief Accesses the underlying process logic.
+ * @return A reference to the BaseProcess.
+ */
   BaseProcess* GetProcess() const { return process_; }
 
 private:
@@ -81,22 +80,22 @@ class GameManager;
 class GameProcessManager {
 private:
   /** @brief Private constructor to enforce singleton pattern or memory mapping.
-   */
+ */
   GameProcessManager() = default;
 
 public:
   /**
-   * @brief Retrieves the singleton instance of the GameProcManager.
-   * @return A reference to the active manager instance.
-   */
+ * @brief Retrieves the singleton instance of the GameProcManager.
+ * @return A reference to the active manager instance.
+ */
   STATIC_INLINE GameProcessManager& GetInstance() {
     return GameManager::GetInstance().GetGameProcessManager();
   }
 
   /**
-   * @brief Retrieves the main (root) process handle.
-   * @return A reference to the main ProcessHandle.
-   */
+ * @brief Retrieves the main (root) process handle.
+ * @return A reference to the main ProcessHandle.
+ */
   INLINE ProcessHandle& GetMainHandle() const { return *handle_; }
 
   const char* GetCurrentProcessName() const {
@@ -121,5 +120,3 @@ private:
   ProcessHandle* handle_; ///< Pointer to the root process handle.
   GameManager* game_manager_; ///< Pointer back to the parent GameManager.
 };
-
-#endif  // SANGO_PLUGIN_PROCESS_MANAGER_H

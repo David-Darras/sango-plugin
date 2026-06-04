@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_POKEMON_DATA_ACCESSOR_H
-#define SANGO_PLUGIN_POKEMON_DATA_ACCESSOR_H
+#pragma once
 #include <cstring>
 
 #include "common.h"
@@ -104,5 +103,3 @@ private:
   bool is_encrypted_;
   bool state_[3];
 };
-
-#endif  // SANGO_PLUGIN_POKEMON_DATA_ACCESSOR_H

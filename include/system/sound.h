@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_SOUND_H_
-#define SANGO_PLUGIN_SOUND_H_
+#pragma once
 
 #include "core/core.h"
 
@@ -29,27 +28,27 @@
 class Sound {
 public:
   /**
-   * @brief Directly plays a Pokémon's cry.
-   * @param pokemon The ID of the Pokémon to play.
-   */
+ * @brief Directly plays a Pokémon's cry.
+ * @param pokemon The ID of the Pokémon to play.
+ */
   STATIC_INLINE void PlayPokemonCry(u16 pokemon) {
     ((void (*)(u8, u16, u16, u8, u8))ADDRESS_SOUND_PLAY_POKEMON_CRY)(0, pokemon,
       0, 0, 0);
   }
 
   /**
-   * @brief Sets the volume for Pokémon cries.
-   * @param volume Floating point multiplier for volume.
-   */
+ * @brief Sets the volume for Pokémon cries.
+ * @param volume Floating point multiplier for volume.
+ */
   STATIC_INLINE void ChangePokemonCryVolume(f32 volume) {
     ((void (*)(u8, f32, u32))ADDRESS_SOUND_CHANGE_POKEMON_CRY_VOLUME)(0, volume,
       0);
   }
 
   /**
-   * @brief Plays a specific sound effect from the game's bank.
-   * @param index The sound effect index.
-   */
+ * @brief Plays a specific sound effect from the game's bank.
+ * @param index The sound effect index.
+ */
   STATIC_INLINE void PlaySoundEffect(u32 index) {
     // Note: (6 << 16) is the bitmask for the SE bank
     ((void (*)(u32, u32, s32, u32))ADDRESS_SOUND_PLAY_SOUND_EFFECT)(
@@ -57,14 +56,12 @@ public:
   }
 
   /**
-   * @brief Starts playing a specific background music track.
-   * @param index The BGM track index.
-   */
+ * @brief Starts playing a specific background music track.
+ * @param index The BGM track index.
+ */
   STATIC_INLINE void PlayBackgroundMusic(u32 index) {
     // Note: (1 << 16) is the bitmask for the BGM bank
     ((void (*)(u32, u32, u32, u32))ADDRESS_SOUND_PLAY_BACKGROUND_MUSIC)(
         (1 << 16) + index, 10, 10, 1);
   }
 };
-
-#endif  // SANGO_PLUGIN_SOUND_H_

@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_APPLICATION_MANAGER_H
-#define SANGO_PLUGIN_APPLICATION_MANAGER_H
+#pragma once
 #include "application.h"
 #include "common.h"
 
@@ -53,5 +52,3 @@ private:
   Application* application_ = nullptr;
 };
 }
-
-#endif //SANGO_PLUGIN_APPLICATION_MANAGER_H

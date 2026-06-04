@@ -15,15 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_MENU_LOG_MENU_H
-#define SANGO_PLUGIN_MENU_LOG_MENU_H
+#pragma once
 
 #include "common.h"
 
 namespace menu {
-
 class LogMenu {
- public:
+public:
   STATIC_INLINE LogMenu& GetInstance() { return instance_; }
 
   INLINE void Toggle() { is_enabled_ ^= true; }
@@ -32,7 +30,7 @@ class LogMenu {
   void Draw();
   void Add(const c16* message, ...);
 
- private:
+private:
   LogMenu();
 
   static constexpr u32 kMaxEntries = 13;
@@ -43,7 +41,4 @@ class LogMenu {
   bool is_enabled_;
   c16 log_entries_[kMaxEntries][kMaxEntryLength];
 };
-
-}  // namespace menu
-
-#endif  // SANGO_PLUGIN_MENU_LOG_MENU_H
+} // namespace menu

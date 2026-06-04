@@ -15,18 +15,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_SAVEDATA_BOX_MANAGER_H
-#define SANGO_PLUGIN_SAVEDATA_BOX_MANAGER_H
+#pragma once
 
 #include "common.h"
 #include "savedata.h"
 
 namespace savedata {
 /**
- * @brief Manages the collection of storage boxes and their metadata.
- * * This structure handles the naming, visual appearance (wallpapers),
- * and unlocking progression of the box system.
- */
+* @brief Manages the collection of storage boxes and their metadata.
+* * This structure handles the naming, visual appearance (wallpapers),
+* and unlocking progression of the box system.
+*/
 struct BoxManager {
   STATIC_INLINE BoxManager& GetInstance() {
     return SaveData::GetInstance().GetBoxManager();
@@ -59,5 +58,3 @@ struct BoxManager {
   u8 active_box_index;
 };
 } // namespace savedata
-
-#endif  // SANGO_PLUGIN_SAVEDATA_BOX_MANAGER_H

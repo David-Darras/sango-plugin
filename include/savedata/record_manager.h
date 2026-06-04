@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_SAVEDATA_RECORD_MANAGER_H
-#define SANGO_PLUGIN_SAVEDATA_RECORD_MANAGER_H
+#pragma once
 #include "savedata.h"
 
 namespace savedata {
@@ -32,5 +31,3 @@ struct RecordManager {
   bool is_disabled;
 };
 } // namespace savedata
-
-#endif  // SANGO_PLUGIN_SAVEDATA_RECORD_MANAGER_H

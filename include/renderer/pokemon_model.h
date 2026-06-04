@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_POKEMON_MODEL_H
-#define SANGO_PLUGIN_POKEMON_MODEL_H
+#pragma once
 
 #include "core/core.h"
 
@@ -138,5 +137,3 @@ struct PokemonModel {
   ResourcePack* face_animation;
   ResourcePack* texture;
 };
-
-#endif // SANGO_PLUGIN_POKEMON_MODEL_H

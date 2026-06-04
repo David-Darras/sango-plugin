@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_GLOBAL_DATA_ITEM_H
-#define SANGO_PLUGIN_GLOBAL_DATA_ITEM_H
+#pragma once
 
 #include "core/core.h"
 #include "core/game_manager.h"
@@ -38,5 +37,3 @@ struct Item {
   u32 id;
 };
 } // namespace global_data
-
-#endif  // SANGO_PLUGIN_GLOBAL_DATA_ITEM_H

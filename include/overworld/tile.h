@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_OVERWORLD_TILE_H
-#define SANGO_PLUGIN_OVERWORLD_TILE_H
+#pragma once
 
 #include "core/core.h"
 
@@ -39,5 +38,3 @@ struct Tile {
   u32 ground_id : 8;
 };
 } // namespace overworld
-
-#endif // SANGO_PLUGIN_OVERWORLD_TILE_H

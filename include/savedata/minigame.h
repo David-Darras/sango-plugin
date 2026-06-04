@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_SAVEDATA_MINIGAME_H
-#define SANGO_PLUGIN_SAVEDATA_MINIGAME_H
+#pragma once
 #include "savedata.h"
 #include "core/game_data_manager.h"
 
@@ -43,5 +42,3 @@ struct Minigame {
 };
 } // namespace savedata
 // 08C6FBC0
-
-#endif  // SANGO_PLUGIN_SAVEDATA_MINIGAME_H

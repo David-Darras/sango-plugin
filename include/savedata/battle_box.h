@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_SAVEDATA_BATTLE_BOX_H
-#define SANGO_PLUGIN_SAVEDATA_BATTLE_BOX_H
+#pragma once
 
 #include "pokemon_core_data.h"
 #include "savedata.h"
@@ -33,5 +32,3 @@ struct BattleBox {
   PokemonCoreData pokemons[kMaxSlots];
 };
 } // namespace savedata
-
-#endif  // SANGO_PLUGIN_SAVEDATA_BATTLE_BOX_H

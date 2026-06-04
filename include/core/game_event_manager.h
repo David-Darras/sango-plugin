@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_GAME_EVENT_MANAGER_H
-#define SANGO_PLUGIN_GAME_EVENT_MANAGER_H
+#pragma once
 
 #include "utils.h"
 #include "core/game_manager.h"
@@ -55,5 +54,3 @@ public:
   GameEvent* pending_game_event_;
   bool executed_;
 };
-
-#endif  // SANGO_PLUGIN_GAME_EVENT_MANAGER_H

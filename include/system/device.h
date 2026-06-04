@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_DEVICE_H
-#define SANGO_PLUGIN_DEVICE_H
+#pragma once
 
 #include "core/core.h"
 
@@ -60,34 +59,34 @@ public:
   static constexpr u8 kCustomChannel = 0x13;
 
   /**
-   * @brief Retrieves the singleton instance of the Device manager.
-   * @return Reference to the Device instance.
-   */
+ * @brief Retrieves the singleton instance of the Device manager.
+ * @return Reference to the Device instance.
+ */
   STATIC_INLINE Device& GetInstance() {
     return Core::GetInstance().GetDevice();
   }
 
   /**
-   * @brief Accesses the primary controller subsystem.
-   * @return Reference to the Controller instance.
-   */
+ * @brief Accesses the primary controller subsystem.
+ * @return Reference to the Controller instance.
+ */
   INLINE Controller& GetController() {
     return ((Controller & (*)(Device*, u32))ADDRESS_DEVICE_GET_CONTROLLER)(
         this, 0);
   }
 
   /**
-   * @brief Accesses the D-Pad subsystem.
-   * @return Reference to the DPad instance.
-   */
+ * @brief Accesses the D-Pad subsystem.
+ * @return Reference to the DPad instance.
+ */
   INLINE DPad& GetDPad() {
     return ((DPad & (*)(Device*, u32))ADDRESS_DEVICE_GET_DPAD)(this, 0);
   }
 
   /**
-   * @brief Accesses the TouchScreen subsystem.
-   * @return Reference to the TouchScreen instance.
-   */
+ * @brief Accesses the TouchScreen subsystem.
+ * @return Reference to the TouchScreen instance.
+ */
   INLINE TouchScreen& GetTouchScreen() {
     return ((TouchScreen & (*)(Device*, u32))ADDRESS_DEVICE_GET_TOUCHSCREEN)(
         this, 0);
@@ -178,5 +177,3 @@ public:
   /** @return Singleton reference to the D-Pad handler. */
   STATIC_INLINE DPad& GetInstance() { return Device::GetInstance().GetDPad(); }
 };
-
-#endif  // SANGO_PLUGIN_DEVICE_H

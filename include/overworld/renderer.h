@@ -15,8 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_OVERWORLD_RENDERER_H
-#define SANGO_PLUGIN_OVERWORLD_RENDERER_H
+#pragma once
 
 #include "overworld/map_manager.h"
 
@@ -61,5 +60,3 @@ private:
   StereoCamera* stereo_camera2_;
 };
 } // namespace overworld
-
-#endif  // SANGO_PLUGIN_OVERWORLD_RENDERER_H

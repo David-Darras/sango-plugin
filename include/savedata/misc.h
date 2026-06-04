@@ -15,18 +15,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_SAVEDATA_MISC_H
-#define SANGO_PLUGIN_SAVEDATA_MISC_H
+#pragma once
 #include "common.h"
 #include "savedata.h"
 
 namespace savedata {
 /**
- * @struct Misc
- * @brief Container for general player progress and metadata.
- * * This structure holds various information such as currency, badges,
- * the rival's name, and unlock flags for game mechanics.
- */
+* @struct Misc
+* @brief Container for general player progress and metadata.
+* * This structure holds various information such as currency, badges,
+* the rival's name, and unlock flags for game mechanics.
+*/
 struct Misc {
   STATIC_INLINE Misc& GetInstance() {
     return SaveData::GetInstance().GetMisc();
@@ -43,9 +42,9 @@ struct Misc {
   u32 badges; ///< Bitmask or count of obtained gym badges.
 
   /**
-   * @brief The name assigned to the rival character.
-   * Stored as a 16-bit character array (UTF-16/UCS-2).
-   */
+* @brief The name assigned to the rival character.
+* Stored as a 16-bit character array (UTF-16/UCS-2).
+*/
   c16 rival_nickname[kNicknameLength];
   c16 padding1; ///< Alignment padding after nickname.
 
@@ -53,16 +52,14 @@ struct Misc {
   u32 battle_points; ///< Currency earned from battle facilities.
 
   /**
-   * @brief Bitmask tracking encountered Mega Evolutions.
-   * Each bit represents a specific Pokémon species from the Mega Table.
-   * - Bit 0: Gengar
-   * - Bit 1: Gardevoir
-   * - Bit 2: Ampharos
-   * - Bit 3: Venusaur
-   * - etc.
-   */
+* @brief Bitmask tracking encountered Mega Evolutions.
+* Each bit represents a specific Pokémon species from the Mega Table.
+* - Bit 0: Gengar
+* - Bit 1: Gardevoir
+* - Bit 2: Ampharos
+* - Bit 3: Venusaur
+* - etc.
+*/
   u8 has_encountered_mega_evolution[8];
 };
 } // namespace savedata
-
-#endif  // SANGO_PLUGIN_MISC_H
