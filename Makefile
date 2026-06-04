@@ -23,9 +23,9 @@ INCLUDES	:= 	include \
 				../Library/include
 
 SOURCES 	:= 	src \
-				src/menu \
 				src/ui \
-				src/ui/widget
+				src/ui/widget \
+				src/ui/menu
 
 PSF 		:= 	$(notdir $(TOPDIR)).plgInfo
 
