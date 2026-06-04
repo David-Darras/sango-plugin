@@ -38,6 +38,7 @@ class WeatherManager;
  * Acts as the central hub for memory heaps, frame timing, and
  * high-level managers (Process and Event).
  */
+namespace game {
 class GameManager {
 public:
   STATIC_INLINE GameManager& GetInstance() {
@@ -101,3 +102,4 @@ private:
   void* _3[3];
   overworld::MapManager* overworld_map_manager_;
 };
+} // namespace game

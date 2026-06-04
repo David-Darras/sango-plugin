@@ -19,7 +19,7 @@
 
 #include "core/game_event_manager.h"
 #include "core/game_process_manager.h"
-#include "../../include/ui/log_menu.h"
+#include "ui/log_menu.h"
 #include "system/device.h"
 #include "system/graphics.h"
 #include "system/sound.h"

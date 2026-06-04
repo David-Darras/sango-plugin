@@ -18,7 +18,7 @@
 #pragma once
 
 #include "utils.h"
-#include "core/game_manager.h"
+#include "game/game_manager.h"
 
 class GameManager;
 class GameEvent;
@@ -37,7 +37,7 @@ class GameEventManager {
 
 public:
   STATIC_INLINE GameEventManager& GetInstance() {
-    return GameManager::GetInstance().GetGameEventManager();
+    return game::GameManager::GetInstance().GetGameEventManager();
   }
 
   GameEvent& GetGameEvent() const { return *current_game_event_; }
@@ -50,7 +50,7 @@ public:
   }
 
   GameEvent* current_game_event_;
-  GameManager* game_manager_;
+  game::GameManager* game_manager_;
   GameEvent* pending_game_event_;
   bool executed_;
 };

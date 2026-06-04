@@ -20,7 +20,9 @@
 #include "core/core.h"
 #include "process.h"
 
+namespace game {
 class GameManager;
+} // namespace game
 
 namespace savedata {
 class PokemonTeam;
@@ -131,7 +133,7 @@ private:
   Graphics* graphics_;
 
   u32 _0[8];
-  GameManager* game_manager_;
+  game::GameManager* game_manager_;
   Device* device_;
 
   u32 _1[6];

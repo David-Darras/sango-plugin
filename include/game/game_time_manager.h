@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include "core/game_manager.h"
+#include "game_manager.h"
 #include "common.h"
 
 namespace game {

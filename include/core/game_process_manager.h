@@ -19,7 +19,7 @@
 
 #include <cstring>
 
-#include "core/game_manager.h"
+#include "../game/game_manager.h"
 #include "common.h"
 #include "utils.h"
 
@@ -72,7 +72,9 @@ private:
   BaseProcess* process_; ///< Pointer to the underlying process logic.
 };
 
+namespace game {
 class GameManager;
+} // namespace game
 
 /**
  * @brief Singleton manager that controls the lifecycle of game processes.
@@ -89,7 +91,7 @@ public:
  * @return A reference to the active manager instance.
  */
   STATIC_INLINE GameProcessManager& GetInstance() {
-    return GameManager::GetInstance().GetGameProcessManager();
+    return game::GameManager::GetInstance().GetGameProcessManager();
   }
 
   /**
@@ -118,5 +120,5 @@ private:
   void* data_;
 
   ProcessHandle* handle_; ///< Pointer to the root process handle.
-  GameManager* game_manager_; ///< Pointer back to the parent GameManager.
+  game::GameManager* game_manager_; ///< Pointer back to the parent game::GameManager.
 };
