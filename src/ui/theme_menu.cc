@@ -15,34 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "menu/theme.h"
 #include "menu/plugin_menu.h"
-#include "ui/color_menu.h"
+#include "ui/common_menu.h"
 
-namespace menu {
-Theme Theme::instance;
+namespace ui {
+void LoadThemeMenu(menu::PluginMenu& menu, void* args) {
+  auto& theme = menu::Theme::GetInstance();
 
-Theme::Theme() {
-  background_color = Color{0, 0, 0, 0.75f};
-  unselected_text_color = Color{1, 1, 1, 1};
-  selected_text_color = Color{0, 1, 0, 1};
-  edited_text_color = Color{1, 0, 0, 1};
-
-  open_sound = 7;
-  close_sound = 8;
-  confirm_sound = 0;
-  next_sound = 4;
-  error_sound = 21;
-}
-
-void Theme::LoadMenu(PluginMenu& menu, void* args) {
-  Theme& theme = GetInstance();
-
-  menu.Add("Background Color", ui::LoadColorMenu, &theme.background_color)
-      .Add("Unselected Text Color", ui::LoadColorMenu,
+  menu.Add("Background Color", LoadColorMenu, &theme.background_color)
+      .Add("Unselected Text Color", LoadColorMenu,
            &theme.unselected_text_color)
-      .Add("Selected Text Color", ui::LoadColorMenu, &theme.selected_text_color)
-      .Add("Edited Text Color", ui::LoadColorMenu, &theme.edited_text_color);
+      .Add("Selected Text Color", LoadColorMenu, &theme.selected_text_color)
+      .Add("Edited Text Color", LoadColorMenu, &theme.edited_text_color);
 
   menu.AddSeparator()
       .Add("Open Plugin Sound Effect", theme.open_sound)
@@ -64,4 +48,4 @@ void Theme::LoadMenu(PluginMenu& menu, void* args) {
       .Add("Key 3", theme.keys[2])
       .WithArray(KEYS, SIZE(KEYS));
 }
-} // namespace menu
+} // namespace ui

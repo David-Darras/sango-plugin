@@ -48,8 +48,6 @@ struct OverworldMenu;
  */
 class SaveData {
 public:
-  static void LoadMenu(menu::PluginMenu& menu, void* args);
-
   /**
    * @brief Accesses the global SaveData instance via the GameDataManager.
    * @return A reference to the active SaveData instance.

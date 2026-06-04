@@ -22,7 +22,6 @@
 #include "core/game_data_manager.h"
 
 namespace overworld {
-
 struct Position {
   u32 _0;
   Vec3 coords;
@@ -50,7 +49,7 @@ struct Model {
   void* vtable;
   u32 flags[2];
 
-  u16 id;  // 0xFF = player
+  u16 id; // 0xFF = player
   u16 map_id;
   u16 model_id;
   u16 move_id;
@@ -78,16 +77,12 @@ struct ModelResource {
 };
 
 class ModelManager {
- public:
+public:
   static constexpr u32 kPlayerId = 0xFF;
 
   STATIC_INLINE ModelManager& GetInstance() {
     return GameDataManager::GetInstance().GetOverworldModelManager();
   }
-
-  static void LoadMenu(menu::PluginMenu& menu, void* args);
-  static void Noclip(void*);
-  static void SwarmMod(void*);
 
   INLINE ModelResource& GetResource(u32 idx) { return resources_[idx]; }
 
@@ -107,7 +102,7 @@ class ModelManager {
 
   static constexpr u32 kMaxModels = 32;
 
- private:
+private:
   void* heap_;
   GameDataManager* game_data_manager_;
   void* _0[5];
@@ -121,7 +116,6 @@ class ModelManager {
   u32 resource_count_2_;
   ModelResource resources_[kMaxModels];
 };
-
-}  // namespace overworld
+} // namespace overworld
 
 #endif  // SANGO_PLUGIN_OVERWORLD_MODEL_MANAGER_H

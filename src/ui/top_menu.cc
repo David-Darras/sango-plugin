@@ -15,23 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "battle/manager.h"
-#include "core/pss_manager.h"
 #include "feature/feature_engine.h"
 #include "menu/plugin_menu.h"
 #include "menu/theme.h"
-#include "overworld/overworld.h"
 #include "overworld/weather_manager.h"
-#include "savedata/savedata.h"
-#include "system/sound.h"
-#include "ui/battle_menu.h"
-#include "ui/day_care_menu.h"
-#include "ui/game_time_menu.h"
-#include "ui/global_data_menu.h"
-#include "ui/overworld_menu.h"
-#include "ui/renderer_menu.h"
-#include "ui/save_data_menu.h"
-#include "ui/sound_menu.h"
+#include "ui/top_menu.h"
 
 namespace ui {
 void LoadTopMenu(menu::PluginMenu& menu, void* args) {
@@ -56,6 +44,6 @@ void LoadTopMenu(menu::PluginMenu& menu, void* args) {
       .Add("Day Care", LoadDayCareMenu)
       .Add("Battle", LoadBattleMenu)
       .Add("Sound", LoadSoundMenu)
-      .Add("Plugin Theme", menu::Theme::LoadMenu);
+      .Add("Plugin Theme", LoadThemeMenu);
 }
 } // namespace ui

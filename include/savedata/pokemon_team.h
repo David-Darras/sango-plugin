@@ -45,7 +45,6 @@ struct PokemonTeam {
 };
 
 // struct PokemonTeam {
-//   static void LoadMenu(menu::PluginMenu& menu, void* args);
 //   static PokemonTeam& GetInstance() {
 //     return SaveData::GetInstance().GetPokemonTeam();
 //   }

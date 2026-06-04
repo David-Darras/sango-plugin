@@ -24,8 +24,6 @@ namespace overworld {
 
 class WeatherManager {
 public:
-  static void LoadMenu(menu::PluginMenu& menu, void* args);
-
   STATIC_INLINE WeatherManager& GetInstance() {
     return GameManager::GetInstance().GetWeatherManager();
   }

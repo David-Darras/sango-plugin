@@ -22,29 +22,20 @@
 
 namespace menu {
 struct Theme {
-  Color background_color;
-  Color unselected_text_color;
-  Color selected_text_color;
-  Color edited_text_color;
+  MAKE_SINGLETON(Theme)
+  Color background_color = Color{0, 0, 0, 0.75f};
+  Color unselected_text_color = Color{1, 1, 1, 1};
+  Color selected_text_color = Color{0, 1, 0, 1};
+  Color edited_text_color = Color{1, 0, 0, 1};
 
-  u16 open_sound;
-  u16 close_sound;
-  u16 confirm_sound;
-  u16 next_sound;
-  u16 error_sound;
+  u16 open_sound = 7;
+  u16 close_sound = 8;
+  u16 confirm_sound = 0;
+  u16 next_sound = 4;
+  u16 error_sound = 21;
 
   u8 keys[3];
-
-  static void LoadMenu(PluginMenu& menu, void* args);
-
-  static Theme& GetInstance() {
-    return instance;
-  }
-
-private:
-  Theme();
-  static Theme instance;
 };
 } // namespace menu
 
-#endif //CTR_PLUGIN_TOOLKIT_THEME_H
+#endif // SANGO_PLUGIN_MENU_THEME_H

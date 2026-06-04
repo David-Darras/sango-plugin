@@ -20,7 +20,7 @@
 #include "feature/feature_pokemon_texture.h"
 #include "feature/feature_text_box.h"
 #include "menu/plugin_menu.h"
-#include "ui/color_menu.h"
+#include "ui/common_menu.h"
 
 namespace ui {
 void LoadPokemonTextureMenu(menu::PluginMenu& menu, void* args) {

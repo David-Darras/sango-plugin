@@ -43,8 +43,6 @@ struct PssData {
 
 class PssManager {
 public:
-  static void LoadMenu(menu::PluginMenu& menu, void* args);
-
   STATIC_INLINE PssManager& GetInstance() {
     return GameManager::GetInstance().GetPssManager();
   }

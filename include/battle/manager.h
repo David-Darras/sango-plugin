@@ -31,17 +31,14 @@ struct PokemonCoreData;
 
 namespace overworld {
 class StereoCamera;
-}
+} // namespace overworld
 
 namespace battle {
 struct Config;
 class Manager;
-
 class Graphics;
 
 struct Pokemon {
-  static void LoadMenu(menu::PluginMenu& menu, void* args);
-
   savedata::PokemonCoreData* core_data;
   u32 _0;
   u32 experience;
@@ -116,8 +113,6 @@ struct Team {
 
 class Manager {
 public:
-  static void LoadMenu(menu::PluginMenu& menu, void* args);
-
   STATIC_INLINE Manager& GetInstance() {
     return Process::GetInstance().GetManager();
   }
@@ -157,8 +152,6 @@ private:
 };
 
 struct Model {
-  static void LoadMenu(menu::PluginMenu& menu, void* args);
-
   void* vtable;
   Vec3 position;
   Vec3 position_offset;

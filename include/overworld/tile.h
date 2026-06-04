@@ -37,8 +37,6 @@ struct Tile {
   u32 foot_step_id : 5;
   u32 battle_background_id : 7;
   u32 ground_id : 8;
-
-  static void LoadMenu(menu::PluginMenu& menu, void* args);
 };
 } // namespace overworld
 

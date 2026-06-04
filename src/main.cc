@@ -16,9 +16,9 @@
  */
 
 #include <CTRPluginFramework/Menu/PluginMenu.hpp>
+#include <CTRPluginFramework/System/Hook.hpp>
 
 #include "entrypoint.h"
-#include "hook_proxy.h"
 #include "core/core.h"
 
 namespace CTRPluginFramework {
@@ -26,7 +26,9 @@ int main() {
   //==========================================
 #ifdef ENABLE_SANGO_PLUGIN
   Initialize();
-  HookProxy(ADDRESS_ENTRYPOINT, (uptr)Entrypoint, true);
+  CTRPluginFramework::Hook hook;
+  hook.InitializeForMitm(ADDRESS_ENTRYPOINT, (uptr)Entrypoint);
+  hook.Enable();
 #endif // ENABLE_SANGO_PLUGIN
   //==========================================
 

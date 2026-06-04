@@ -23,13 +23,10 @@
 namespace savedata {
 struct PokemonTeam;
 struct TrainerStatus;
-}  // namespace savedata
+} // namespace savedata
 
 namespace battle {
-
 struct Config {
-  static void LoadMenu(menu::PluginMenu& menu, void* args);
-
   u8 _0;
   u8 battle_format;
   u16 _1;
@@ -62,7 +59,6 @@ struct Config {
   bool is_capture_forced;
   bool no_money;
 };
-
-}  // namespace battle
+} // namespace battle
 
 #endif  // SANGO_PLUGIN_BATTLE_CONFIG_H
