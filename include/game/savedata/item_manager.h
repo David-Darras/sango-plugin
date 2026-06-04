@@ -25,6 +25,8 @@ namespace savedata {
 * @brief Manages the player's inventory (Bag) items.
 */
 struct ItemManager {
+  SINGLETON(ItemManager)
+
   /** @brief Represents a single item stack in the bag. */
   struct ItemSlot {
     u16 id; ///< Item ID.

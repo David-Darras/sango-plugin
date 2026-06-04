@@ -27,6 +27,8 @@ namespace savedata {
 * interaction timestamps for the Amie system in Pokémon ORAS.
 */
 struct PokemonAmie {
+  SINGLETON(PokemonAmie)
+
   STATIC_INLINE PokemonAmie& GetInstance() {
     return SaveData::GetInstance().GetPokemonAmie();
   }

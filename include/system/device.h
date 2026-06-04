@@ -52,8 +52,7 @@ enum class Key {
  * and D-Pad.
  */
 class Device {
-  /** @brief Private constructor for singleton pattern. */
-  Device() = default;
+  SINGLETON(Device)
 
 public:
   /** @brief Custom input channel identifier used for filtered input polling. */
@@ -98,7 +97,7 @@ public:
  * @brief Handles digital button inputs and state detection.
  */
 class Controller {
-  Controller() = default;
+  SINGLETON(Controller)
 
 public:
   /** @return Singleton reference to the controller. */
@@ -135,7 +134,7 @@ public:
  * @brief Handles touch input coordinates and states.
  */
 class TouchScreen {
-  TouchScreen() = default;
+  SINGLETON(TouchScreen)
 
 public:
   /** @return Singleton reference to the touchscreen. */
@@ -172,7 +171,7 @@ public:
  * @brief Specialized handler for D-Pad specific interactions.
  */
 class DPad {
-  DPad() = default;
+  SINGLETON(DPad)
 
 public:
   /** @return Singleton reference to the D-Pad handler. */

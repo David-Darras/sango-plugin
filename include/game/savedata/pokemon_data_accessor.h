@@ -19,7 +19,6 @@
 #include <cstring>
 
 #include "common.h"
-#include "common.h"
 
 struct PokemonCoreData;
 struct PokemonRuntimeData;

@@ -27,6 +27,8 @@ namespace savedata {
 * the rival's name, and unlock flags for game mechanics.
 */
 struct Misc {
+  SINGLETON(Misc)
+
   STATIC_INLINE Misc& GetInstance() {
     return SaveData::GetInstance().GetMisc();
   }

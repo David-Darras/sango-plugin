@@ -26,6 +26,8 @@ namespace overworld {
 class Renderer;
 
 class MapManager {
+  SINGLETON(MapManager)
+
 public:
   STATIC_INLINE MapManager& GetInstance() {
     return game::Manager::GetInstance().GetOverworldMapManager();

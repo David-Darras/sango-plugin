@@ -28,6 +28,8 @@ namespace savedata {
 * validating a specific signature.
 */
 class Footer {
+  SINGLETON(Footer)
+
 public:
   /**
 * @brief Retrieves the singleton instance of Footer from the global SaveData.

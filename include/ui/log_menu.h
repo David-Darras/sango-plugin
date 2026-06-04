@@ -21,9 +21,8 @@
 
 namespace ui {
 class LogMenu {
+  MAKE_SINGLETON(LogMenu)
 public:
-  STATIC_INLINE LogMenu& GetInstance() { return instance_; }
-
   INLINE void Toggle() { is_enabled_ ^= true; }
   INLINE bool IsEnabled() const { return is_enabled_; }
 
@@ -31,14 +30,11 @@ public:
   void Add(const c16* message, ...);
 
 private:
-  LogMenu();
-
   static constexpr u32 kMaxEntries = 13;
   static constexpr u32 kMaxEntryLength = 64;
   static constexpr u32 kLineHeight = 18;
-  static LogMenu instance_;
 
-  bool is_enabled_;
-  c16 log_entries_[kMaxEntries][kMaxEntryLength];
+  bool is_enabled_ = 0;
+  c16 log_entries_[kMaxEntries][kMaxEntryLength] = {};
 };
 } // namespace ui

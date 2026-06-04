@@ -23,14 +23,6 @@
 #include "utils.h"
 
 namespace ui {
-LogMenu LogMenu::instance_ = LogMenu();
-
-LogMenu::LogMenu() : is_enabled_(false) {
-  for (u32 i = 0; i < kMaxEntries; i++) {
-    log_entries_[i][0] = u'\0';
-  }
-}
-
 void LogMenu::Draw() {
   if (!is_enabled_) return;
 

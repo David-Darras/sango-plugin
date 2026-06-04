@@ -28,6 +28,8 @@ class Graphics;
  * high-level graphics managers.
  */
 class Core {
+  SINGLETON(Core)
+
 public:
   /**
  * @brief Retrieves the singleton instance of the Core bridge.
@@ -50,9 +52,6 @@ public:
   INLINE u8& GetLanguageId() { return *language_id; }
 
 private:
-  /** @brief Private constructor to prevent manual instantiation. */
-  Core() = default;
-
   Device* device_; ///< Pointer to the internal Device manager instance.
   Graphics* graphics_; ///< Pointer to the internal Graphics manager instance.
 

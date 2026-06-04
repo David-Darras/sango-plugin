@@ -32,6 +32,8 @@ struct PokemonParam {
 };
 
 struct PokemonTeam {
+  SINGLETON(PokemonTeam)
+
   STATIC_INLINE PokemonTeam& GetInstance() {
     return game::DataManager::GetInstance().GetPokemonTeam();
   }

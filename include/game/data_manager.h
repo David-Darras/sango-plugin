@@ -32,6 +32,7 @@ struct Encounter;
 
 namespace game {
 class DataManager {
+  SINGLETON(DataManager)
 public:
   STATIC_INLINE DataManager& GetInstance() {
     return Manager::GetInstance().GetGameData();

@@ -21,14 +21,8 @@
 
 namespace ui {
 class ApplicationManager {
-  SINGLETON(ApplicationManager)
-
+  MAKE_SINGLETON(ApplicationManager)
 public:
-  static ApplicationManager& GetInstance() {
-    static ApplicationManager instance;
-    return instance;
-  }
-
   void Push(Application& application) {
     if (application_ != nullptr) {
       application.SetParent(application_);

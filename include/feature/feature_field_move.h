@@ -20,6 +20,7 @@
 
 namespace feature {
 struct FieldMove {
+  MAKE_SINGLETON(FieldMove)
   static void Execute(u32 choice) {
     auto& map_manager = overworld::MapManager::GetInstance();
 

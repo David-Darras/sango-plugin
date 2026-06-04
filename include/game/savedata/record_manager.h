@@ -20,6 +20,8 @@
 
 namespace savedata {
 struct RecordManager {
+  SINGLETON(RecordManager)
+
   STATIC_INLINE RecordManager& GetInstance() {
     return SaveData::GetInstance().GetRecordManager();
   }

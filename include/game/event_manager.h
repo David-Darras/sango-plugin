@@ -31,7 +31,7 @@ struct GameEvent {
 };
 
 class EventManager {
-  EventManager() = default;
+  SINGLETON(EventManager)
 
 public:
   STATIC_INLINE EventManager& GetInstance() {

@@ -21,6 +21,8 @@
 
 namespace savedata {
 struct PlayTime {
+  SINGLETON(PlayTime)
+
   STATIC_INLINE PlayTime& GetInstance() {
     return game::DataManager::GetInstance().GetPlayTime();
   }

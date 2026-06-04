@@ -27,6 +27,7 @@ namespace savedata {
 * shortcut items, and the history of recently used items.
 */
 struct BagManager {
+  SINGLETON(BagManager)
   /**
 * @brief Returns the singleton instance of the BagManager from the SaveData.
 * @return Reference to the unique BagManager instance.

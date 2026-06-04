@@ -35,7 +35,7 @@ enum class Screen : u8 {
  * calls.
  */
 class Graphics {
-private:
+  SINGLETON(Graphics)
   /** @brief Scale factor used to simulate large primitives using specific
  * glyphs. */
   static constexpr f32 kScalePrimitiveX = 25.0f;
@@ -44,9 +44,6 @@ private:
   /** @brief Default scale factor for standard text rendering. */
   static constexpr f32 kScaleDefaultX = 0.6f;
   static constexpr f32 kScaleDefaultY = 0.6f;
-
-  /** @brief Internal constructor to prevent manual instantiation. */
-  Graphics() = default;
 
 public:
   /**

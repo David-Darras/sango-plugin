@@ -27,6 +27,8 @@ namespace savedata {
 * and unlocking progression of the box system.
 */
 struct BoxManager {
+  SINGLETON(BoxManager)
+
   STATIC_INLINE BoxManager& GetInstance() {
     return SaveData::GetInstance().GetBoxManager();
   }

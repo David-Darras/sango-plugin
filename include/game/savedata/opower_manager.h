@@ -20,6 +20,8 @@
 
 namespace savedata {
 struct OPowerManager {
+  SINGLETON(OPowerManager)
+
   STATIC_INLINE OPowerManager& GetInstance() {
     return SaveData::GetInstance().GetOPowerManager();
   }

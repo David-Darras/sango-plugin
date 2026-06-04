@@ -21,6 +21,8 @@
 
 namespace savedata {
 struct Encounter {
+  SINGLETON(Encounter)
+
   STATIC_INLINE Encounter& GetInstance() {
     return SaveData::GetInstance().GetEncounter();
   }

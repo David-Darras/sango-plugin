@@ -26,6 +26,8 @@
  * Pokemon cries, sound effects, and background music.
  */
 class Sound {
+  SINGLETON(Sound)
+
 public:
   /**
  * @brief Directly plays a Pokémon's cry.

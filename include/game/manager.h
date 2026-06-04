@@ -38,6 +38,8 @@ class TimeManager;
 class DataManager;
 
 class Manager {
+  SINGLETON(Manager)
+
 public:
   STATIC_INLINE Manager& GetInstance() {
     return *(Manager*)ADDRESS_GAME_MANAGER;
@@ -74,8 +76,6 @@ public:
   }
 
 private:
-  Manager() = default;
-
   // Memory Heaps
   void* system_heap_; ///< Main system memory heap.
   void* device_heap_; ///< GPU/Hardware-specific memory heap.

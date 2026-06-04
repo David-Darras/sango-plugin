@@ -38,6 +38,7 @@ struct StereoCamera {
 };
 
 class Renderer {
+  SINGLETON(Renderer)
 public:
   STATIC_INLINE Renderer& GetInstance() {
     return MapManager::GetInstance().GetRenderer();

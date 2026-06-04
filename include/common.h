@@ -57,7 +57,8 @@ ClassName& operator=(const ClassName&) = delete;\
 ClassName(ClassName&&)                 = delete;\
 ClassName& operator=(ClassName&&)      = delete;\
 private:\
-ClassName() = default;
+ClassName() = default; \
+public:
 
 #define MAKE_SINGLETON(ClassName)\
 public:\

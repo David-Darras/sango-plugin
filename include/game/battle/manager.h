@@ -115,6 +115,7 @@ struct Team {
 };
 
 class Manager {
+  SINGLETON(Manager)
 public:
   STATIC_INLINE Manager& GetInstance() {
     return Process::GetInstance().GetManager();
@@ -171,6 +172,7 @@ struct Model {
 };
 
 class Graphics {
+  SINGLETON(Graphics)
 public:
   STATIC_INLINE Graphics& GetInstance() {
     return Manager::GetInstance().GetGraphics();

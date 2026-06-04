@@ -21,6 +21,8 @@
 
 namespace savedata {
 struct PokemonBox {
+  SINGLETON(PokemonBox)
+  
   STATIC_INLINE PokemonBox& GetInstance() {
     return SaveData::GetInstance().GetPokemonBox();
   }

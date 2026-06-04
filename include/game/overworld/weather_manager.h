@@ -21,6 +21,7 @@
 
 namespace overworld {
 class WeatherManager {
+  SINGLETON(WeatherManager)
 public:
   STATIC_INLINE WeatherManager& GetInstance() {
     return game::Manager::GetInstance().GetWeatherManager();

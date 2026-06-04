@@ -26,6 +26,7 @@ class Manager;
 struct Config;
 
 class Process {
+  SINGLETON(Process)
 public:
   STATIC_INLINE bool IsInBattle() {
     return READ(vu32, ADDRESS_BATTLE_MAIN_PROCESS) == 0x007D85D0;

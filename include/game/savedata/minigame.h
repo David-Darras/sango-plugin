@@ -21,6 +21,8 @@
 
 namespace savedata {
 struct Minigame {
+  SINGLETON(Minigame)
+
   STATIC_INLINE Minigame& GetInstance() {
     return SaveData::GetInstance().GetMinigame();
   }

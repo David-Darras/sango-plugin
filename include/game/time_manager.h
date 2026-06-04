@@ -22,6 +22,8 @@
 
 namespace game {
 struct TimeManager {
+  SINGLETON(TimeManager)
+public:
   STATIC_INLINE TimeManager& GetInstance() {
     return Manager::GetInstance().GetGameTimeManager();
   }

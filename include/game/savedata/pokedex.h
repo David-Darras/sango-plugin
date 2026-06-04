@@ -21,6 +21,8 @@
 
 namespace savedata {
 struct Pokedex {
+  SINGLETON(Pokedex)
+
   STATIC_INLINE Pokedex& GetInstance() {
     return SaveData::GetInstance().GetPokedex();
   }

@@ -20,6 +20,8 @@
 
 namespace savedata {
 struct OverworldMenu {
+  SINGLETON(OverworldMenu)
+
   STATIC_INLINE OverworldMenu& GetInstance() {
     return SaveData::GetInstance().GetOverworldMenu();
   }

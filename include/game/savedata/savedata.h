@@ -46,6 +46,8 @@ struct OverworldMenu;
 * and the integrity-checking Footer.
 */
 class SaveData {
+  SINGLETON(SaveData)
+
 public:
   /**
 * @brief Accesses the global SaveData instance via the GameDataManager.

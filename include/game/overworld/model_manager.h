@@ -76,6 +76,8 @@ struct ModelResource {
 };
 
 class ModelManager {
+  SINGLETON(ModelManager)
+
 public:
   static constexpr u32 kPlayerId = 0xFF;
 

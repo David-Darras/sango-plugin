@@ -22,6 +22,8 @@
 
 namespace overworld {
 struct Encounter {
+  SINGLETON(Encounter)
+
   STATIC_INLINE Encounter& GetInstance() {
     return game::DataManager::GetInstance().GetEncounter();
   }

@@ -22,6 +22,8 @@
 
 namespace savedata {
 struct BattleBox {
+  SINGLETON(BattleBox)
+
   STATIC_INLINE BattleBox& GetInstance() {
     return SaveData::GetInstance().GetBattleBox();
   }

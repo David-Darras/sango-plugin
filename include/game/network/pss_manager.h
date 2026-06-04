@@ -41,6 +41,8 @@ struct PssData {
 };
 
 class PssManager {
+  SINGLETON(Process)
+
 public:
   STATIC_INLINE PssManager& GetInstance() {
     return game::Manager::GetInstance().GetPssManager();

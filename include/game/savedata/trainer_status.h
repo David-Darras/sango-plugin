@@ -27,6 +27,8 @@ namespace savedata {
 * configurations.
 */
 struct TrainerStatus {
+  SINGLETON(TrainerStatus)
+
   /** @brief Accessor for the singleton instance. */
   STATIC_INLINE TrainerStatus& GetInstance() {
     return SaveData::GetInstance().GetTrainerStatus();

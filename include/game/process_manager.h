@@ -79,10 +79,7 @@ class Manager;
  * @brief Singleton manager that controls the lifecycle of game processes.
  */
 class ProcessManager {
-private:
-  /** @brief Private constructor to enforce singleton pattern or memory mapping.
- */
-  ProcessManager() = default;
+  SINGLETON(ProcessManager)
 
 public:
   /**

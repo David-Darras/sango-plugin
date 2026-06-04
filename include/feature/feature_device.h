@@ -17,7 +17,6 @@
 
 #pragma once
 #include "common.h"
-#include "common.h"
 #include "feature/hook_manager.h"
 #include "system/device.h"
 

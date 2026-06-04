@@ -22,6 +22,8 @@
 
 namespace savedata {
 struct Settings {
+  SINGLETON(Settings)
+
   STATIC_INLINE Settings& GetInstance() {
     return SaveData::GetInstance().GetSettings();
   }
