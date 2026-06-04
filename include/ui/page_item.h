@@ -23,7 +23,7 @@ namespace ui {
 /**
 * @brief Enumeration of supported data types for a menu entry.
 */
-enum MenuEntryType {
+enum PageItemType {
   kTypeU8,
   kTypeU16,
   kTypeU32,
@@ -53,18 +53,18 @@ enum MenuEntryType {
 * @brief Represents a single item in the menu, linked to a memory address.
 * Handles display formatting, increment/decrement logic, and execution.
 */
-class MenuEntry {
+class PageItem {
 public:
   /**
 * @brief Default constructor initializing members to default/null states.
 */
-  MenuEntry();
+  PageItem();
 
   /**
 * @brief Initializes the entry with core properties.
 * @param name The display name of the entry.
 * @param addr Pointer to the data in memory.
-* @param type The data type (from MenuEntryType).
+* @param type The data type (from PageItemType).
 * @param bit_offset Offset in bits (used for kTypeBits or string length).
 * @param bit_size Size in bits (used for kTypeBits).
 */
@@ -77,14 +77,14 @@ public:
 * @param array_size Number of elements in the array.
 * @return Reference to this entry for method chaining.
 */
-  MenuEntry& WithArray(const c8* array[], u32 array_size);
+  PageItem& WithArray(const c8* array[], u32 array_size);
 
   /**
 * @brief Attaches a custom callback function to be triggered on execution.
 * @param callback Function pointer of type callback_t.
 * @return Reference to this entry for method chaining.
 */
-  MenuEntry& WithCallback(callback_t callback);
+  PageItem& WithCallback(callback_t callback);
 
   /**
 * @brief Marks the entry to request a menu refresh after modification.
@@ -92,29 +92,29 @@ public:
 * should be rebuilt following an interaction with this specific item.
 * @return Reference to the current entry for method chaining.
 */
-  MenuEntry& WithRefresh();
+  PageItem& WithRefresh();
 
   /**
 * @brief Sets the minimum allowed value for this entry.
 * @param min The lower bound value.
 * @return Reference to this entry for method chaining.
 */
-  MenuEntry& WithMin(s32 min);
+  PageItem& WithMin(s32 min);
 
   /**
 * @brief Sets the maximum allowed value for this entry.
 * @param max The upper bound value.
 * @return Reference to this entry for method chaining.
 */
-  MenuEntry& WithMax(s32 max);
+  PageItem& WithMax(s32 max);
 
-  MenuEntry& WithArgs(void* args);
+  PageItem& WithArgs(void* args);
 
-  MenuEntry& WithFactor(f32 factor);
+  PageItem& WithFactor(f32 factor);
 
   /**
 * @brief Gets the current entry type.
-* @return The MenuEntryType value.
+* @return The PageItemType value.
 */
   u8 GetType() const;
 
@@ -162,10 +162,10 @@ private:
   void* address_; ///< Memory address of the targeted variable.
   const c8** array_; ///< Optional array for string mapping.
   callback_t callback_; ///< Optional execution callback.
-  void* args_; ///< Arguments for MenuEntryType
+  void* args_; ///< Arguments for PageItemType
 
   // Bitfields for memory efficiency
-  u32 type_ : 6; ///< Storage for MenuEntryType.
+  u32 type_ : 6; ///< Storage for PageItemType.
   u32 bit_offset_ : 6; ///< Bit position or string capacity.
   u32 bit_size_ : 6; ///< Number of bits to read/write.
   u32 array_size_ : 13; ///< Size of the mapping array.

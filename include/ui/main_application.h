@@ -19,7 +19,7 @@
 
 #include "feature/cheat_code.h"
 #include "feature/cheat_code_manager.h"
-#include "menu_entry.h"
+#include "page_item.h"
 #include "ui/theme.h"
 #include "ui/application.h"
 #include "ui/widget/keyboard.h"
@@ -188,7 +188,7 @@ public:
 * @brief Adds a simple menu entry by name, address, and type.
 * @param name Display name.
 * @param addr Memory address.
-* @param type Entry type (MenuEntryType).
+* @param type Entry type (PageItemType).
 * @return Reference to the MainApplication instance.
 */
   MainApplication& Add(const c8* name, void* addr, u8 type) {
@@ -397,9 +397,9 @@ private:
 
   /**
 * @brief Returns the currently selected menu entry in the current context.
-* @return Reference to the selected MenuEntry.
+* @return Reference to the selected PageItem.
 */
-  MenuEntry& GetSelectedEntry() {
+  PageItem& GetSelectedEntry() {
     MenuContext& ctx = GetContext();
     return entries_[ctx.cursor + ctx.offset];
   }
@@ -421,7 +421,7 @@ private:
 
   const char* process_name_;
 
-  MenuEntry entries_[kMaxEntries]; ///< Entry pool.
+  PageItem entries_[kMaxEntries]; ///< Entry pool.
   MenuContext contexts_[kMaxContexts]; ///< Context stack.
   Numpad numpad_; ///< Numpad logic.
   Keyboard keyboard_; ///< Keyboard logic.

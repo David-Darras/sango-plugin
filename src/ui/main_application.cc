@@ -114,7 +114,7 @@ void MainApplication::Update(Controller& controller) {
   }
 
   MenuContext& ctx = GetContext();
-  MenuEntry& entry = GetSelectedEntry();
+  PageItem& entry = GetSelectedEntry();
 
   if (entry.GetType() == kTypeUnicode) {
     keyboard_.Update();

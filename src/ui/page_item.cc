@@ -15,7 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "ui/menu_entry.h"
+#include "ui/page_item.h"
 
 #include "feature/cheat_code.h"
 #include "ui/main_application.h"
@@ -33,7 +33,7 @@ static void SetBits(u32* num, u32 offset, u32 size, u32 value) {
   SET_BITS(*num, offset, size, value);
 }
 
-MenuEntry::MenuEntry()
+PageItem::PageItem()
   : name_(nullptr),
     address_(nullptr),
     array_(nullptr),
@@ -49,7 +49,7 @@ MenuEntry::MenuEntry()
     is_max_used_(0) {
 }
 
-void MenuEntry::Initialize(const c8* name, void* addr, u8 type, u32 bit_offset,
+void PageItem::Initialize(const c8* name, void* addr, u8 type, u32 bit_offset,
                            u32 bit_size) {
   name_ = name;
   address_ = addr;
@@ -67,7 +67,7 @@ void MenuEntry::Initialize(const c8* name, void* addr, u8 type, u32 bit_offset,
   is_max_used_ = 0;
 }
 
-MenuEntry& MenuEntry::WithArray(const c8* array[], u32 array_size) {
+PageItem& PageItem::WithArray(const c8* array[], u32 array_size) {
   array_ = array;
   array_size_ = array_size;
   WithMin(0);
@@ -75,41 +75,41 @@ MenuEntry& MenuEntry::WithArray(const c8* array[], u32 array_size) {
   return *this;
 }
 
-MenuEntry& MenuEntry::WithCallback(callback_t callback) {
+PageItem& PageItem::WithCallback(callback_t callback) {
   callback_ = callback;
   return *this;
 }
 
-MenuEntry& MenuEntry::WithRefresh() {
+PageItem& PageItem::WithRefresh() {
   refresh_ = 1;
   return *this;
 }
 
-MenuEntry& MenuEntry::WithMin(s32 min) {
+PageItem& PageItem::WithMin(s32 min) {
   min_ = min;
   is_min_used_ = 1;
   return *this;
 }
 
-MenuEntry& MenuEntry::WithMax(s32 max) {
+PageItem& PageItem::WithMax(s32 max) {
   max_ = max;
   is_max_used_ = 1;
   return *this;
 }
 
-MenuEntry& MenuEntry::WithArgs(void* args) {
+PageItem& PageItem::WithArgs(void* args) {
   args_ = args;
   return *this;
 }
 
-MenuEntry& MenuEntry::WithFactor(f32 factor) {
+PageItem& PageItem::WithFactor(f32 factor) {
   factor_ = factor;
   return *this;
 }
 
-u8 MenuEntry::GetType() const { return type_; }
+u8 PageItem::GetType() const { return type_; }
 
-void MenuEntry::GetDefaultDisplayValue(c16* buffer) const {
+void PageItem::GetDefaultDisplayValue(c16* buffer) const {
   switch (type_) {
     case kTypeU8:
       Utils::Format(buffer, u"%s : %u", name_, *(u8*)address_);
@@ -218,7 +218,7 @@ void MenuEntry::GetDefaultDisplayValue(c16* buffer) const {
   }
 }
 
-void MenuEntry::GetArrayDisplayValue(c16* buffer) const {
+void PageItem::GetArrayDisplayValue(c16* buffer) const {
   u32 index = 0;
 
   switch (type_) {
@@ -269,7 +269,7 @@ void MenuEntry::GetArrayDisplayValue(c16* buffer) const {
                 array_size_);
 }
 
-void MenuEntry::GetDisplayValue(c16* buffer) const {
+void PageItem::GetDisplayValue(c16* buffer) const {
   if (type_ == kTypeMenu) {
     Utils::Format(buffer, u"[%s]", name_);
     return;
@@ -281,7 +281,7 @@ void MenuEntry::GetDisplayValue(c16* buffer) const {
   GetDefaultDisplayValue(buffer);
 }
 
-void MenuEntry::Increment(u32 count) {
+void PageItem::Increment(u32 count) {
 #define INCREMENT_WRAP(type)                              \
   {                                                       \
     type val = *(type *)address_;                         \
@@ -363,7 +363,7 @@ void MenuEntry::Increment(u32 count) {
   if (refresh_) MainApplication::GetInstance().Refresh();
 }
 
-void MenuEntry::Decrement(u32 count) {
+void PageItem::Decrement(u32 count) {
 #define DECREMENT_WRAP(type)                                 \
   {                                                          \
     type val = *(type *)address_;                            \
@@ -439,7 +439,7 @@ void MenuEntry::Decrement(u32 count) {
   if (refresh_) MainApplication::GetInstance().Refresh();
 }
 
-void MenuEntry::Edit(const void* value) {
+void PageItem::Edit(const void* value) {
 #define EDIT_CLAMP(type)                                   \
   {                                                        \
     type val = *(type *)value;                             \
@@ -517,7 +517,7 @@ void MenuEntry::Edit(const void* value) {
   if (refresh_) MainApplication::GetInstance().Refresh();
 }
 
-void MenuEntry::Execute() {
+void PageItem::Execute() {
   if (kTypeMenu == type_) {
     MainApplication::GetInstance().Open((menu_callback_t)address_, args_);
   } else if (callback_ != nullptr) {
