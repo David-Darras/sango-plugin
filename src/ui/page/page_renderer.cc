@@ -20,7 +20,7 @@
 #include "feature/feature_pokemon_texture.h"
 #include "feature/feature_text_box.h"
 #include "ui/main_application.h"
-#include "ui/common_menu.h"
+#include "ui/page/page_common.h"
 
 namespace ui {
 void LoadPokemonTexturePage(MainApplication& app, void* args) {

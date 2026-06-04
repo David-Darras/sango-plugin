@@ -18,7 +18,7 @@
 #include "feature/feature_engine.h"
 #include "ui/main_application.h"
 #include "game/overworld/weather_manager.h"
-#include "ui/page_top.h"
+#include "ui/page/page_top.h"
 
 namespace ui {
 void LoadTopPage(MainApplication& app, void* args) {

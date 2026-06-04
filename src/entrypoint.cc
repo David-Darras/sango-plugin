@@ -18,7 +18,7 @@
 #include "feature/feature_battle_config.h"
 #include "feature/feature_camera.h"
 #include "feature/feature_day_care.h"
-#include "ui/page_top.h"
+#include "ui/page/page_top.h"
 #include "feature/feature_engine.h"
 #include "feature/feature_light.h"
 #include "feature/feature_picture.h"

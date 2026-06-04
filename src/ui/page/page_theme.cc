@@ -16,7 +16,7 @@
  */
 
 #include "ui/main_application.h"
-#include "ui/common_menu.h"
+#include "ui/page/page_common.h"
 
 namespace ui {
 void LoadThemePage(MainApplication& app, void* args) {
