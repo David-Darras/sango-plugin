@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include "core.h"
+#include "common.h"
 
 namespace renderer {
 struct Pane {

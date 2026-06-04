@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include "core.h"
+#include "common.h"
 
 class PssManager;
 

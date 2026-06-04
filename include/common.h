@@ -21,6 +21,8 @@
 
 #include <functional>
 
+#include "address.h"
+
 namespace ui {
 class PluginMenu;
 }

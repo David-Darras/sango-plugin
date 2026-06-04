@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include "core.h"
+#include "common.h"
 #include "game/data_manager.h"
 
 namespace overworld {

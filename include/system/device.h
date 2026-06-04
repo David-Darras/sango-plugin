@@ -17,6 +17,7 @@
 
 #pragma once
 
+#include "common.h"
 #include "core.h"
 
 class HookManager;

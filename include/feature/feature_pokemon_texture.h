@@ -18,7 +18,7 @@
 #pragma once
 
 #include "common.h"
-#include "core.h"
+#include "common.h"
 #include "feature/hook_manager.h"
 #include "game/renderer/pokemon_model.h"
 

@@ -40,6 +40,8 @@
 #include "game/savedata/settings.h"
 #include "game/savedata/trainer_status.h"
 
+#include "system/core.h"
+
 namespace ui {
 static struct {
   u8 level;

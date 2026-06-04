@@ -17,8 +17,6 @@
 
 #pragma once
 
-#include "common.h"
-
 /** * @name Entrypoint & Main Addresses
  * @{ */
 #define ADDRESS_ENTRYPOINT (0x00122938) // Render Home Button Blocked
@@ -166,45 +164,3 @@
 
 #define ADDRESS_RECORD_MAX_VALUE_TABLE (0x0058DE14) // 999999999, 9999999, etc.
 #define ADDRESS_RECORD_MAX_VALUE_INDEX_TABLE (0x0058DD4A) // 0, 0, 0, 1, 1, etc.
-
-class Device;
-class Graphics;
-
-/**
- * @brief The Core class acts as the central bridge to the engine's main
- * internal systems. It provides access to low-level hardware devices and
- * high-level graphics managers.
- */
-class Core {
-public:
-  /**
- * @brief Retrieves the singleton instance of the Core bridge.
- * @return A reference to the static Core instance.
- */
-  STATIC_INLINE Core& GetInstance() { return *(Core*)ADDRESS_CORE; }
-
-  /**
- * @brief Accesses the hardware device manager (Input/HID).
- * @return A reference to the Device manager.
- */
-  INLINE Device& GetDevice() const { return *device_; }
-
-  /**
- * @brief Accesses the global graphics manager.
- * @return A reference to the Graphics manager.
- */
-  INLINE Graphics& GetGraphics() const { return *graphics_; }
-
-  INLINE u8& GetLanguageId() { return *language_id; }
-
-private:
-  /** @brief Private constructor to prevent manual instantiation. */
-  Core() = default;
-
-  Device* device_; ///< Pointer to the internal Device manager instance.
-  Graphics* graphics_; ///< Pointer to the internal Graphics manager instance.
-
-  void* _0[21];
-
-  u8* language_id;
-};

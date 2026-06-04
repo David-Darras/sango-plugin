@@ -18,7 +18,7 @@
 #pragma once
 #include "feature/hook_manager.h"
 #include "game/battle/config.h"
-#include "core.h"
+#include "common.h"
 
 namespace feature {
 struct BattleConfigHookContext {

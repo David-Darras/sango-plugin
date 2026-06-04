@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include "core.h"
+#include "common.h"
 #include "game/savedata/savedata.h"
 
 namespace savedata {

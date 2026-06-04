@@ -18,7 +18,7 @@
 #include <CTRPluginFramework/Menu/PluginMenu.hpp>
 #include <CTRPluginFramework/System/Hook.hpp>
 
-#include "../include/core.h"
+#include "common.h"
 
 extern void Initialize();
 extern void Entrypoint();

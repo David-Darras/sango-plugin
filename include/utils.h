@@ -19,7 +19,7 @@
 
 #include <cstdarg>
 
-#include "core.h"
+#include "common.h"
 
 class Utils {
 public:

@@ -17,8 +17,10 @@
 
 #pragma once
 
-#include "core.h"
+#include "common.h"
 #include "process.h"
+
+class Device;
 
 namespace game {
 class Manager;
