@@ -20,15 +20,31 @@
 
 #include "feature/cheat_code.h"
 
+enum class CheatCodeId {
+  kInstantEggHatch,
+  kInstantEggGeneration,
+  kInstantMaxExpForDayCare,
+  kMax
+};
+
 class CheatCodeManager {
- public:
-  STATIC_INLINE CheatCodeManager &GetInstance() { return instance_; }
-  void Add(CheatCodeId id, callback_t callback, void *args = nullptr);
-  CheatCode *Get(CheatCodeId id);
+public:
+  STATIC_INLINE CheatCodeManager& GetInstance() { return instance_; }
+  void Add(CheatCodeId id, cheat_code_callback_t on_enable,
+           cheat_code_callback_t on_disable,
+           bool do_each_frame);
+  CheatCode* Get(CheatCodeId id);
   void Update();
 
- private:
-  CheatCodeManager() : count_(0) {}
+  STATIC_INLINE void Initialize(CheatCodeId id, cheat_code_callback_t on_enable,
+                                cheat_code_callback_t on_disable,
+                                bool do_each_frame) {
+    GetInstance().Add(id, on_enable, on_disable, do_each_frame);
+  }
+
+private:
+  CheatCodeManager() : count_(0) {
+  }
 
   static constexpr u32 kMaxCheatCodes = (u32)CheatCodeId::kMax;
   static CheatCodeManager instance_;

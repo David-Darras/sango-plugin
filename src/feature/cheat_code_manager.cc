@@ -19,10 +19,11 @@
 
 CheatCodeManager CheatCodeManager::instance_ = CheatCodeManager();
 
-void CheatCodeManager::Add(CheatCodeId id, callback_t callback,
-                           void* args) {
+void CheatCodeManager::Add(CheatCodeId id, cheat_code_callback_t on_enable,
+                           cheat_code_callback_t on_disable,
+                           bool do_each_frame) {
   if (id >= CheatCodeId::kMax) return;
-  cheat_codes_[(u32)id].Initialize(callback, args);
+  cheat_codes_[(u32)id].Initialize(on_enable, on_disable, do_each_frame);
   count_++;
 }
 
@@ -33,8 +34,8 @@ CheatCode* CheatCodeManager::Get(CheatCodeId id) {
 
 void CheatCodeManager::Update() {
   for (u32 i = 0; i < kMaxCheatCodes; ++i) {
-    if (cheat_codes_[i].IsEnabled()) {
-      cheat_codes_[i].Run();
+    if (cheat_codes_[i].DoEachFrame()) {
+      cheat_codes_[i].Execute();
     }
   }
 }

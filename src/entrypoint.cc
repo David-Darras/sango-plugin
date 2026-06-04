@@ -16,6 +16,7 @@
  */
 
 #include "feature/feature_battle_config.h"
+#include "feature/feature_day_care.h"
 #include "ui/top_menu.h"
 #include "feature/feature_engine.h"
 #include "feature/feature_light.h"
@@ -42,6 +43,7 @@ void Initialize() {
   feature::PictureHookContext::Initialize();
   feature::PokemonTextureHookContext::Initialize();
   feature::BattleConfigHookContext::Initialize();
+  feature::DayCareCheatCode::Initialize();
 
   auto& application_manager = ui::ApplicationManager::GetInstance();
   auto& plugin_menu = menu::PluginMenu::GetInstance();
@@ -54,9 +56,11 @@ void Entrypoint() {
   auto& graphics = Graphics::GetInstance();
   auto& controller = Controller::GetInstance();
   auto& application_manager = ui::ApplicationManager::GetInstance();
+  auto& cheat_code_manager = CheatCodeManager::GetInstance();
   auto* application = application_manager.GetCurrentApplication();
 
   application->Update(controller);
+  cheat_code_manager.Update();
 
   void* top_buffer = graphics.GetFramebuffer(Screen::kTop);
   if (graphics.BindFramebuffer(top_buffer)) {

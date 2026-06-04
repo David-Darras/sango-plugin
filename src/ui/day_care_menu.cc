@@ -17,25 +17,10 @@
 
 #include "menu/plugin_menu.h"
 
-namespace overworld {
-void EnableInstantEggHatch(void*) {
-  // Skip check for remaining hatch steps
-  // (cf. savedata/pokemon_core_data.h)
-  WRITE(u32, 0x00715EF0, 0xEA000007);
+namespace ui {
+void LoadDayCareMenu(menu::PluginMenu& menu, void* args) {
+  menu.Add("Instant Egg Hatch", CheatCodeId::kInstantEggHatch)
+      .Add("Instant Egg Generation", CheatCodeId::kInstantEggGeneration)
+      .Add("Instant Max Exp", CheatCodeId::kInstantMaxExpForDayCare);
 }
-
-void EnableInstantEggGeneration(void*) {
-  WRITE(u32, 0x00711364, 0xE1A00000);
-}
-
-void EnableInstantMaxExp(void*) {
-  WRITE(u32, 0x00465A34, 0x15824004);
-  WRITE(u32, 0x00465A54, 0x158240F4);
-}
-
-void DayCareMenu(menu::PluginMenu& menu, void* args) {
-  menu.Add("Instant Egg Hatch", EnableInstantEggHatch)
-      .Add("Instant Egg Generation", EnableInstantEggGeneration)
-      .Add("Instant Max Exp", EnableInstantMaxExp);
-}
-} // namespace overworld
+} // namespace ui

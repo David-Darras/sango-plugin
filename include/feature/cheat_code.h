@@ -20,31 +20,40 @@
 
 #include "common.h"
 
-enum class CheatCodeId { kNoclip, kSwarmMod, kMax };
-
 class CheatCode {
 public:
-  CheatCode() : is_enabled_(false), callback_(nullptr), args_(nullptr) {
-  }
-
-  void Initialize(callback_t callback, void* args) {
+  void Initialize(cheat_code_callback_t on_enable,
+                  cheat_code_callback_t on_disable,
+                  bool do_each_frame) {
     is_enabled_ = false;
-    callback_ = callback;
-    args_ = args;
+    do_each_frame_ = do_each_frame;
+    on_enable_ = on_enable;
+    on_disable_ = on_disable;
   }
 
   INLINE void Toggle() { is_enabled_ = !is_enabled_; }
 
-  INLINE bool IsEnabled() { return is_enabled_; }
+  INLINE bool IsEnabled() const { return is_enabled_; }
 
-  INLINE void Run() {
-    if (callback_) callback_(args_);
+  INLINE bool DoEachFrame() const { return do_each_frame_; }
+
+  INLINE void Execute() const {
+    if (is_enabled_) {
+      if (on_enable_) {
+        on_enable_();
+      }
+    } else {
+      if (on_disable_) {
+        on_disable_();
+      }
+    }
   }
 
 private:
-  bool is_enabled_;
-  callback_t callback_;
-  void* args_;
+  bool is_enabled_ = false;
+  bool do_each_frame_ = false;
+  cheat_code_callback_t on_enable_ = nullptr;
+  cheat_code_callback_t on_disable_ = nullptr;
 };
 
 #endif  // SANGO_PLUGIN_CHEAT_CODE_H

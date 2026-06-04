@@ -32,8 +32,7 @@ void OverworldMenu(menu::PluginMenu& menu, void* args) {
       .Add("Map Tile", Tile::LoadMenu)
       .Add("Camera", StereoCamera::LoadMenu)
       .Add("Model", ModelManager::LoadMenu)
-      .Add("Encounter", Encounter::LoadMenu)
-      .Add("Day Care", DayCareMenu);
+      .Add("Encounter", Encounter::LoadMenu);
   menu.AddSeparator();
   FieldMove_LoadMenu(menu, args);
 }

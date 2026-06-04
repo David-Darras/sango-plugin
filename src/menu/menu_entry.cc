@@ -161,8 +161,7 @@ void MenuEntry::GetDefaultDisplayValue(c16* buffer) const {
       break;
 
     case kTypeBoolean:
-      Utils::Format(buffer, u"%s : %ls", name_,
-                    *(bool*)address_ ? u"True" : u"False");
+      Utils::Format(buffer, u"%s : %s", name_, *(bool*)address_ ? "On" : "Off");
       break;
 
     case kTypeCheatCode:
@@ -347,6 +346,7 @@ void MenuEntry::Increment(u32 count) {
 
     case kTypeCheatCode:
       ((CheatCode*)address_)->Toggle();
+      ((CheatCode*)address_)->Execute();
       break;
 
     default:
@@ -422,6 +422,7 @@ void MenuEntry::Decrement(u32 count) {
 
     case kTypeCheatCode:
       ((CheatCode*)address_)->Toggle();
+      ((CheatCode*)address_)->Execute();
       break;
 
     default:
@@ -475,7 +476,7 @@ void MenuEntry::Edit(const void* value) {
     }
 
     case kTypeBoolean:
-      *(bool*)address_ = *(bool*)value;
+      *(bool*)address_ ^= true;
       break;
 
     case kTypeMenu:
@@ -491,6 +492,7 @@ void MenuEntry::Edit(const void* value) {
 
     case kTypeCheatCode:
       ((CheatCode*)address_)->Toggle();
+      ((CheatCode*)address_)->Execute();
       break;
 
     default:

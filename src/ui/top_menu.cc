@@ -25,6 +25,7 @@
 #include "savedata/savedata.h"
 #include "system/sound.h"
 #include "ui/battle_menu.h"
+#include "ui/day_care_menu.h"
 #include "ui/game_time_menu.h"
 #include "ui/global_data_menu.h"
 #include "ui/renderer_menu.h"
@@ -51,6 +52,7 @@ void LoadTopMenu(menu::PluginMenu& menu, void* args) {
       .Add("Game Time", LoadGameTimeMenu)
       .Add("Save Data", LoadSaveDataMenu)
       .Add("Overworld", overworld::OverworldMenu)
+      .Add("Day Care", LoadDayCareMenu)
       .Add("Battle", LoadBattleMenu)
       .Add("Sound", LoadSoundMenu)
       .Add("Plugin Theme", menu::Theme::LoadMenu);
