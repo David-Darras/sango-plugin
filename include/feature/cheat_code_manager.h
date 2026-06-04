@@ -24,6 +24,8 @@ enum class CheatCodeId {
   kInstantEggHatch,
   kInstantEggGeneration,
   kInstantMaxExpForDayCare,
+  kNoclip,
+  kSwarmMod,
   kMax
 };
 

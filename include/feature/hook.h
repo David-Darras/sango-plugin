@@ -44,7 +44,7 @@ enum class HookID : u32 {
   kChangeDiffuseLightColor,
   kDrawPicture,
   kDrawTextBox,
-  kOnGetTile,
+  kGetMapTile,
   kOnLoadCroFile,
   kOnSaveGameData,
   kUpdateFrame,

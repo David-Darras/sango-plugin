@@ -15,24 +15,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_OVERWORLD_ENCOUNTER_H
-#define SANGO_PLUGIN_OVERWORLD_ENCOUNTER_H
+#ifndef SANGO_PLUGIN_OVERWORLD_MENU_H
+#define SANGO_PLUGIN_OVERWORLD_MENU_H
 
-#include "core/core.h"
-#include "core/game_data_manager.h"
+namespace menu {
+class PluginMenu;
+}
 
-namespace overworld {
-struct Encounter {
-  STATIC_INLINE Encounter& GetInstance() {
-    return GameDataManager::GetInstance().GetEncounter();
-  }
+namespace ui {
+void LoadOverworldMenu(menu::PluginMenu& menu, void* args);
+} // namespace ui
 
-  u32 walk_count;
-  u16 _0;
-  u16 encounter_rate;
-  u32 last_tile_type;
-  u16 fishing_chain_count;
-};
-} // namespace overworld
-
-#endif  // SANGO_PLUGIN_OVERWORLD_ENCOUNTER_H
+#endif // SANGO_PLUGIN_OVERWORLD_MENU_H

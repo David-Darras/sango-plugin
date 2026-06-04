@@ -16,6 +16,7 @@
  */
 
 #include "feature/feature_battle_config.h"
+#include "feature/feature_camera.h"
 #include "feature/feature_day_care.h"
 #include "ui/top_menu.h"
 #include "feature/feature_engine.h"
@@ -24,6 +25,8 @@
 #include "feature/feature_pokemon_texture.h"
 #include "feature/feature_text_box.h"
 #include "feature/feature_device.h"
+#include "feature/feature_map_tile.h"
+#include "feature/feature_overworld_model.h"
 #include "menu/plugin_menu.h"
 #include "system/device.h"
 #include "system/file.h"
@@ -44,6 +47,9 @@ void Initialize() {
   feature::PokemonTextureHookContext::Initialize();
   feature::BattleConfigHookContext::Initialize();
   feature::DayCareCheatCode::Initialize();
+  feature::MapTileHookContext::Initialize();
+  feature::CameraHookContext::Initialize();
+  feature::OverworldModelCheatCode::Initialize();
 
   auto& application_manager = ui::ApplicationManager::GetInstance();
   auto& plugin_menu = menu::PluginMenu::GetInstance();

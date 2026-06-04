@@ -15,19 +15,24 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "overworld/encounter.h"
+#ifndef SANGO_PLUGIN_FEATURE_FIELD_MOVE_H
+#define SANGO_PLUGIN_FEATURE_FIELD_MOVE_H
+#include "overworld/map_manager.h"
 
-#include "battle/config.h"
-#include "menu/plugin_menu.h"
+namespace feature {
+struct FieldMove {
+  static void Execute(u32 choice) {
+    auto& map_manager = overworld::MapManager::GetInstance();
 
-namespace overworld {
-void Encounter::LoadMenu(menu::PluginMenu& menu, void* args) {
-  if (menu.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
+    struct {
+      u16 zone_id;
+      u16 team_index;
+      overworld::MapManager* map_manager;
+    } context = {(u16)map_manager.GetMapId(), 0, &map_manager};
 
-  Encounter& data = GetInstance();
-
-  menu.Add("Walk Count", data.walk_count)
-      .Add("Encounter Rate", data.encounter_rate)
-      .Add("Fishing Chain", data.fishing_chain_count);
+    ((void (*)(void*, u32))ADDRESS_DO_FIELD_MOVE)(&context, choice);
+  }
+};
 }
-} // namespace overworld
+
+#endif //SANGO_PLUGIN_FEATURE_FIELD_MOVE_H

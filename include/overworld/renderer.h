@@ -24,13 +24,7 @@ class GameManager;
 class Graphics;
 
 namespace overworld {
-
-class StereoCamera {
- public:
-  static void LoadMenu(menu::PluginMenu& menu, void* args);
-  static void SetupHooks();
-
- private:
+struct StereoCamera {
   void* vtable_;
   u32 _0[7];
   u32 _1[5];
@@ -43,16 +37,14 @@ class StereoCamera {
 };
 
 class Renderer {
- public:
-  static void LoadMenu(menu::PluginMenu& menu, void* args);
-
+public:
   STATIC_INLINE Renderer& GetInstance() {
     return MapManager::GetInstance().GetRenderer();
   }
 
   INLINE StereoCamera& GetStereoCamera() { return *stereo_camera2_; }
 
- private:
+private:
   u32 _0[5];
   GameManager* game_manager_;
   Graphics* graphics_;
@@ -68,7 +60,6 @@ class Renderer {
   StereoCamera* stereo_camera_;
   StereoCamera* stereo_camera2_;
 };
-
-}  // namespace overworld
+} // namespace overworld
 
 #endif  // SANGO_PLUGIN_OVERWORLD_RENDERER_H
