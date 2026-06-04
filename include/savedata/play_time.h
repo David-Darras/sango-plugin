@@ -16,13 +16,13 @@
  */
 
 #pragma once
-#include "../ui/plugin_menu.h"
-#include "core/game_data_manager.h"
+#include "ui/plugin_menu.h"
+#include "game/game_data_manager.h"
 
 namespace savedata {
 struct PlayTime {
   STATIC_INLINE PlayTime& GetInstance() {
-    return GameDataManager::GetInstance().GetPlayTime();
+    return game::DataManager::GetInstance().GetPlayTime();
   }
 
   void* vtable;

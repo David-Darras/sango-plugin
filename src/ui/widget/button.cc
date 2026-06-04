@@ -17,7 +17,7 @@
 
 #include "ui/widget/button.h"
 
-#include "../../../include/ui/theme.h"
+#include "ui/theme.h"
 #include "system/device.h"
 #include "system/graphics.h"
 

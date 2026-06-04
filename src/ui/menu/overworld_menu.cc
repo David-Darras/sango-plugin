@@ -19,7 +19,7 @@
 #include "feature/feature_field_move.h"
 #include "feature/feature_map_tile.h"
 #include "feature/feature_overworld_model.h"
-#include "../../../include/ui/plugin_menu.h"
+#include "ui/plugin_menu.h"
 #include "overworld/encounter.h"
 
 namespace ui {

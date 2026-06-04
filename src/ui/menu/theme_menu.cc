@@ -15,7 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "../../../include/ui/plugin_menu.h"
+#include "ui/plugin_menu.h"
 #include "ui/common_menu.h"
 
 namespace ui {

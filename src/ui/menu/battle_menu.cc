@@ -21,7 +21,7 @@
 
 #include "battle/manager.h"
 #include "feature/feature_battle_config.h"
-#include "../../../include/ui/plugin_menu.h"
+#include "ui/plugin_menu.h"
 
 namespace ui {
 #include "battle/config.inc"

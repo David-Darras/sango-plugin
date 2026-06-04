@@ -17,7 +17,7 @@
 
 #include <cstring>
 
-#include "../../../include/ui/plugin_menu.h"
+#include "ui/plugin_menu.h"
 #include "savedata/bag_manager.h"
 #include "savedata/battle_box.h"
 #include "savedata/box_manager.h"

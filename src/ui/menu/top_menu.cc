@@ -16,7 +16,7 @@
  */
 
 #include "feature/feature_engine.h"
-#include "../../../include/ui/plugin_menu.h"
+#include "ui/plugin_menu.h"
 #include "overworld/weather_manager.h"
 #include "ui/top_menu.h"
 

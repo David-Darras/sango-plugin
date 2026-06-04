@@ -30,9 +30,10 @@ class ModelManager;
 struct Encounter;
 } // namespace overworld
 
-class GameDataManager {
+namespace game {
+class DataManager {
 public:
-  STATIC_INLINE GameDataManager& GetInstance() {
+  STATIC_INLINE DataManager& GetInstance() {
     return GameManager::GetInstance().GetGameData();
   }
 
@@ -60,3 +61,4 @@ public:
 
   overworld::Encounter* encounter_;
 };
+} // namespace game

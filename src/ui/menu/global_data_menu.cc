@@ -15,11 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "core/game_time_manager.h"
+#include "game/game_time_manager.h"
 #include "global_data/move.h"
 #include "global_data/pokemon.h"
 #include "global_data/move.inc"
-#include "../../../include/ui/plugin_menu.h"
+#include "ui/plugin_menu.h"
 
 namespace ui {
 void LoadMoveMenu(PluginMenu& menu, void* args) {

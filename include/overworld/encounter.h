@@ -18,12 +18,12 @@
 #pragma once
 
 #include "core/core.h"
-#include "core/game_data_manager.h"
+#include "game/game_data_manager.h"
 
 namespace overworld {
 struct Encounter {
   STATIC_INLINE Encounter& GetInstance() {
-    return GameDataManager::GetInstance().GetEncounter();
+    return game::DataManager::GetInstance().GetEncounter();
   }
 
   u32 walk_count;

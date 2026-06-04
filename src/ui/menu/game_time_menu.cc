@@ -15,8 +15,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "core/game_time_manager.h"
-#include "../../../include/ui/plugin_menu.h"
+#include "game/game_time_manager.h"
+#include "ui/plugin_menu.h"
 
 namespace ui {
 void LoadGameTimeMenu(PluginMenu& menu, void* args) {

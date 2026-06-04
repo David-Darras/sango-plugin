@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include "core/game_data_manager.h"
+#include "game/game_data_manager.h"
 
 namespace savedata {
 class Footer;
@@ -52,7 +52,7 @@ public:
 * @return A reference to the active SaveData instance.
 */
   STATIC_INLINE SaveData& GetInstance() {
-    return GameDataManager::GetInstance().GetSavedata();
+    return game::DataManager::GetInstance().GetSavedata();
   }
 
   /**

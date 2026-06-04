@@ -18,7 +18,7 @@
 #pragma once
 
 #include "common.h"
-#include "core/game_data_manager.h"
+#include "game/game_data_manager.h"
 
 namespace overworld {
 struct Position {
@@ -80,7 +80,7 @@ public:
   static constexpr u32 kPlayerId = 0xFF;
 
   STATIC_INLINE ModelManager& GetInstance() {
-    return GameDataManager::GetInstance().GetOverworldModelManager();
+    return game::DataManager::GetInstance().GetOverworldModelManager();
   }
 
   INLINE ModelResource& GetResource(u32 idx) { return resources_[idx]; }
@@ -103,7 +103,7 @@ public:
 
 private:
   void* heap_;
-  GameDataManager* game_data_manager_;
+  game::DataManager* game_data_manager_;
   void* _0[5];
   u8 _1[0x3680];
   Model* overworld_models_;

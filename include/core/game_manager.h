@@ -21,11 +21,11 @@
 
 class GameEventManager;
 class GameProcessManager;
-class GameDataManager;
 class PssManager;
 
 namespace game {
 class TimeManager;
+class DataManager;
 } // namespace game
 
 namespace overworld {
@@ -52,7 +52,7 @@ public:
     return *game_event_manager_;
   }
 
-  INLINE GameDataManager& GetGameData() const { return *game_data_; }
+  INLINE game::DataManager& GetGameData() const { return *game_data_; }
 
   INLINE game::TimeManager& GetGameTimeManager() const {
     return *game_time_manager_;
@@ -91,7 +91,7 @@ private:
   // Sub-Managers
   GameProcessManager* game_process_manager_;
   GameEventManager* game_event_manager_;
-  GameDataManager* game_data_;
+  game::DataManager* game_data_;
   game::TimeManager* game_time_manager_;
   void* _0;
   void* _1;

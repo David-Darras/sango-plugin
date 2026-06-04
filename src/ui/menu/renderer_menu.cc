@@ -19,7 +19,7 @@
 #include "feature/feature_picture.h"
 #include "feature/feature_pokemon_texture.h"
 #include "feature/feature_text_box.h"
-#include "../../../include/ui/plugin_menu.h"
+#include "ui/plugin_menu.h"
 #include "ui/common_menu.h"
 
 namespace ui {

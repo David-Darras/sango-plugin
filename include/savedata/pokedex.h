@@ -17,7 +17,7 @@
 
 #pragma once
 #include "savedata.h"
-#include "core/game_data_manager.h"
+#include "../game/game_data_manager.h"
 
 namespace savedata {
 struct Pokedex {
