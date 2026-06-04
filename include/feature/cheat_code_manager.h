@@ -30,13 +30,28 @@ enum class CheatCodeId {
 };
 
 class CheatCodeManager {
+  MAKE_SINGLETON(CheatCodeManager)
 public:
-  STATIC_INLINE CheatCodeManager& GetInstance() { return instance_; }
   void Add(CheatCodeId id, cheat_code_callback_t on_enable,
            cheat_code_callback_t on_disable,
-           bool do_each_frame);
-  CheatCode* Get(CheatCodeId id);
-  void Update();
+           bool do_each_frame) {
+    if (id >= CheatCodeId::kMax) return;
+    cheat_codes_[(u32)id].Initialize(on_enable, on_disable, do_each_frame);
+    count_++;
+  }
+
+  CheatCode* Get(CheatCodeId id) {
+    if (id >= CheatCodeId::kMax) return nullptr;
+    return &cheat_codes_[(u32)id];
+  }
+
+  void Update() const {
+    for (u32 i = 0; i < kMaxCheatCodes; ++i) {
+      if (cheat_codes_[i].DoEachFrame()) {
+        cheat_codes_[i].Execute();
+      }
+    }
+  }
 
   STATIC_INLINE void Initialize(CheatCodeId id, cheat_code_callback_t on_enable,
                                 cheat_code_callback_t on_disable,
@@ -45,14 +60,10 @@ public:
   }
 
 private:
-  CheatCodeManager() : count_(0) {
-  }
-
   static constexpr u32 kMaxCheatCodes = (u32)CheatCodeId::kMax;
-  static CheatCodeManager instance_;
 
   CheatCode cheat_codes_[kMaxCheatCodes];
-  u32 count_;
+  u32 count_ = 0;
 };
 
 #endif  // SANGO_PLUGIN_CHEAT_CODE_MANAGER_H

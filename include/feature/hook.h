@@ -21,38 +21,6 @@
 #include "common.h"
 
 /**
- * @brief Identifiers for specific input-related function hooks.
- * Used by the HookManager to track and manage multiple hooks.
- */
-enum class HookID : u32 {
-  kIsKeyPressed, ///< Hook for Controller::IsKeyPressed
-  kIsKeyReleased, ///< Hook for Controller::IsKeyReleased
-  kIsKeyDown, ///< Hook for Controller::IsKeyDown
-  kIsKeyRepeated, ///< Hook for Controller::IsKeyRepeated
-  kIsDPadDown, ///< Hook for DPad::IsDown
-  kIsDPadRepeated, ///< Hook for DPad::IsRepeated
-  kIsTouchDown, ///< Hook for TouchScreen::IsDown
-  kIsTouchReleased, ///< Hook for TouchScreen::IsReleased
-  kUpdateMatrices,
-  kUpdateLookAt,
-  kSetupBattleConfig,
-  kOnStartTurn,
-  kPlayBattleAnimation,
-  kOnLoadTrainerModel,
-  kChangeOutlineScale,
-  kChangeAmbientLightColor,
-  kChangeDiffuseLightColor,
-  kDrawPicture,
-  kDrawTextBox,
-  kGetMapTile,
-  kOnLoadCroFile,
-  kOnSaveGameData,
-  kUpdateFrame,
-  kCreatePokemonModel,
-  kMax
-};
-
-/**
  * @brief Handles function redirection (Hooking) via instruction overwriting.
  * * This class implements an INLINE hook by replacing function headers with
  * an absolute jump. It uses a gateway (trampoline) to execute the original
@@ -65,7 +33,7 @@ public:
    * Used exclusively to initialize an empty array of hooks within the
    * HookManager.
    */
-  Hook();
+  Hook() = default;
 
   /**
    * @brief Initializes and enables a new hook.
@@ -77,7 +45,10 @@ public:
    * @param dst  The address of the destination function to execute instead of
    * src.
    */
-  void Initialize(u32 src, u32 dst);
+  void Initialize(u32 src, u32 dst) {
+    src_addr_ = src;
+    dst_addr_ = dst;
+  }
 
   /**
    * @brief Enables the hook.
@@ -86,16 +57,54 @@ public:
    * and instruction caches to ensure safe execution.
    * This method is reentrant; if the hook is already enabled, it does nothing.
    */
-  void Enable();
+  void Enable(bool force = false) {
+    if (!force && is_enabled_) return;
+
+    // Save the original first two instructions (8 bytes) of the source function
+    original_code_[0] = READ(vu32, src_addr_);
+    original_code_[1] = READ(vu32, src_addr_ + 4);
+    svcFlushProcessDataCache(0xFFFF8001, (uptr)original_code_, 8);
+
+    // Setup the gateway to allow calling the original function
+    gateway_[0] = READ(vu32, src_addr_);
+    gateway_[1] = READ(vu32, src_addr_ + 4);
+    gateway_[2] = 0xE51FF004; // ARM opcode for: ldr pc, [pc, #-4]
+    gateway_[3] = src_addr_ + 8;
+    // Address to jump back to, skipping the hooked bytes
+    svcFlushProcessDataCache(0xFFFF8001, (uptr)gateway_, 0x10);
+
+    // Flush caches to prevent CPU from executing stale, cached instructions
+    svcInvalidateEntireInstructionCache();
+
+    // Overwrite the start of the function with an absolute jump to our
+    // destination
+    WRITE(vu32, src_addr_, 0xE51FF004); // ldr pc, [pc, #-4]
+    WRITE(vu32, src_addr_ + 4, dst_addr_); // .word dst
+    svcFlushProcessDataCache(0xFFFF8001, src_addr_, 8);
+
+    is_enabled_ = true;
+  }
 
   /**
    * @brief Disables the hook.
    * Restores the two original instructions that were overwritten by the jump.
    * This method is reentrant; if the hook is not enabled, it does nothing.
    */
-  void Disable();
+  void Disable() {
+    if (!is_enabled_) return;
 
-  bool IsEnabled() const { return is_enabled_; }
+    // Flush caches to prevent CPU from executing stale, cached instructions
+    svcInvalidateEntireInstructionCache();
+
+    // Restore the original instructions
+    WRITE(vu32, src_addr_, original_code_[0]);
+    WRITE(vu32, src_addr_ + 4, original_code_[1]);
+    svcFlushProcessDataCache(0xFFFF8001, src_addr_, 8);
+
+    is_enabled_ = false;
+  }
+
+  INLINE bool IsEnabled() const { return is_enabled_; }
 
   /**
    * @brief Calls the original, unhooked function through the gateway.
@@ -113,9 +122,9 @@ public:
   }
 
 private:
-  bool is_enabled_; ///< Tracking state to prevent double-enabling.
-  u32 src_addr_; ///< Original function entry point address.
-  u32 dst_addr_; ///< Redirected function entry point address.
+  bool is_enabled_ = false; ///< Tracking state to prevent double-enabling.
+  u32 src_addr_ = 0; ///< Original function entry point address.
+  u32 dst_addr_ = 0; ///< Redirected function entry point address.
   /**
    * @brief Backup of the first two instructions (8 bytes) of the source.
    */
