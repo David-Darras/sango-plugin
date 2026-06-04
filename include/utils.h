@@ -15,12 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_UTILS_H
-#define SANGO_PLUGIN_UTILS_H
+#pragma once
 
 #include <cstdarg>
 
-#include "core/core.h"
+#include "common.h"
 
 class Utils {
 public:
@@ -53,5 +52,3 @@ public:
 
   static u32 GetArrayCapacity(uptr addr) { return READ(u32, addr - 4); }
 };
-
-#endif  // SANGO_PLUGIN_UTILS_H

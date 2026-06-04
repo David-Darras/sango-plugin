@@ -15,11 +15,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_DEVICE_H
-#define SANGO_PLUGIN_DEVICE_H
+#pragma once
 
-#include "core/core.h"
+#include "common.h"
+#include "core.h"
 
+class HookManager;
 class Controller;
 class TouchScreen;
 class DPad;
@@ -51,83 +52,79 @@ enum class Key {
  * and D-Pad.
  */
 class Device {
-  /** @brief Private constructor for singleton pattern. */
-  Device() = default;
+  SINGLETON(Device)
 
 public:
   /** @brief Custom input channel identifier used for filtered input polling. */
   static constexpr u8 kCustomChannel = 0x13;
 
   /**
-   * @brief Retrieves the singleton instance of the Device manager.
-   * @return Reference to the Device instance.
-   */
-  static FORCE_INLINE Device& GetInstance() { return Core::GetInstance().GetDevice(); }
+ * @brief Retrieves the singleton instance of the Device manager.
+ * @return Reference to the Device instance.
+ */
+  STATIC_INLINE Device& GetInstance() {
+    return Core::GetInstance().GetDevice();
+  }
 
   /**
-   * @brief Accesses the primary controller subsystem.
-   * @return Reference to the Controller instance.
-   */
-  FORCE_INLINE Controller& GetController() {
+ * @brief Accesses the primary controller subsystem.
+ * @return Reference to the Controller instance.
+ */
+  INLINE Controller& GetController() {
     return ((Controller & (*)(Device*, u32))ADDRESS_DEVICE_GET_CONTROLLER)(
         this, 0);
   }
 
   /**
-   * @brief Accesses the D-Pad subsystem.
-   * @return Reference to the DPad instance.
-   */
-  FORCE_INLINE DPad& GetDPad() {
+ * @brief Accesses the D-Pad subsystem.
+ * @return Reference to the DPad instance.
+ */
+  INLINE DPad& GetDPad() {
     return ((DPad & (*)(Device*, u32))ADDRESS_DEVICE_GET_DPAD)(this, 0);
   }
 
   /**
-   * @brief Accesses the TouchScreen subsystem.
-   * @return Reference to the TouchScreen instance.
-   */
-  FORCE_INLINE TouchScreen& GetTouchScreen() {
+ * @brief Accesses the TouchScreen subsystem.
+ * @return Reference to the TouchScreen instance.
+ */
+  INLINE TouchScreen& GetTouchScreen() {
     return ((TouchScreen & (*)(Device*, u32))ADDRESS_DEVICE_GET_TOUCHSCREEN)(
         this, 0);
   }
-
-  /**
-   * @brief Initializes system hooks required for input interception.
-   */
-  static void SetupHooks();
 };
 
 /**
  * @brief Handles digital button inputs and state detection.
  */
 class Controller {
-  Controller() = default;
+  SINGLETON(Controller)
 
 public:
   /** @return Singleton reference to the controller. */
-  static FORCE_INLINE Controller& GetInstance() {
+  STATIC_INLINE Controller& GetInstance() {
     return Device::GetInstance().GetController();
   }
 
   /** @brief Checks if a key was just pressed this frame. */
-  FORCE_INLINE bool IsKeyPressed(Key key) {
+  INLINE bool IsKeyPressed(Key key) {
     return ((bool (*)(Controller*, Key, u8))ADDRESS_CONTROLLER_IS_KEY_PRESSED)(
         this, key, Device::kCustomChannel);
   }
 
   /** @brief Checks if a key was just released this frame. */
-  FORCE_INLINE bool IsKeyReleased(Key key) {
+  INLINE bool IsKeyReleased(Key key) {
     return ((bool (*)(Controller*, Key, u8))ADDRESS_CONTROLLER_IS_KEY_RELEASED)(
         this, key, Device::kCustomChannel);
   }
 
   /** @brief Checks if a key is being held down with repeat logic. */
-  FORCE_INLINE bool IsKeyRepeated(Key key) {
+  INLINE bool IsKeyRepeated(Key key) {
     return ((bool (*)(Controller*, Key, u8))ADDRESS_CONTROLLER_IS_KEY_REPEATED)(
         this, key, Device::kCustomChannel);
   }
 
   /** @brief Checks if a key is currently held down. */
-  FORCE_INLINE bool IsKeyDown(Key key) {
+  INLINE bool IsKeyDown(Key key) {
     return ((bool (*)(Controller*, Key, u8))ADDRESS_CONTROLLER_IS_KEY_DOWN)(
         this, key, Device::kCustomChannel);
   }
@@ -137,34 +134,34 @@ public:
  * @brief Handles touch input coordinates and states.
  */
 class TouchScreen {
-  TouchScreen() = default;
+  SINGLETON(TouchScreen)
 
 public:
   /** @return Singleton reference to the touchscreen. */
-  static FORCE_INLINE TouchScreen& GetInstance() {
+  STATIC_INLINE TouchScreen& GetInstance() {
     return Device::GetInstance().GetTouchScreen();
   }
 
   /** @return The current X coordinate of the touch point. */
-  FORCE_INLINE s32 GetX() {
+  INLINE s32 GetX() {
     return ((s32 (*)(TouchScreen*, u8))ADDRESS_TOUCHSCREEN_GET_X)(
         this, Device::kCustomChannel);
   }
 
   /** @return The current Y coordinate of the touch point. */
-  FORCE_INLINE s32 GetY() {
+  INLINE s32 GetY() {
     return ((s32 (*)(TouchScreen*, u8))ADDRESS_TOUCHSCREEN_GET_Y)(
         this, Device::kCustomChannel);
   }
 
   /** @brief Checks if the screen was just released. */
-  FORCE_INLINE bool IsReleased() {
+  INLINE bool IsReleased() {
     return ((bool (*)(TouchScreen*, u8))ADDRESS_TOUCHSCREEN_IS_RELEASED)(
         this, Device::kCustomChannel);
   }
 
   /** @brief Checks if the screen is currently being touched. */
-  FORCE_INLINE bool IsDown() {
+  INLINE bool IsDown() {
     return ((bool (*)(TouchScreen*, u8))ADDRESS_TOUCHSCREEN_IS_DOWN)(
         this, Device::kCustomChannel);
   }
@@ -174,11 +171,9 @@ public:
  * @brief Specialized handler for D-Pad specific interactions.
  */
 class DPad {
-  DPad() = default;
+  SINGLETON(DPad)
 
 public:
   /** @return Singleton reference to the D-Pad handler. */
-  static FORCE_INLINE DPad& GetInstance() { return Device::GetInstance().GetDPad(); }
+  STATIC_INLINE DPad& GetInstance() { return Device::GetInstance().GetDPad(); }
 };
-
-#endif  // SANGO_PLUGIN_DEVICE_H

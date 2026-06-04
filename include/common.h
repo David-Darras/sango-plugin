@@ -15,17 +15,22 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_COMMON_H
-#define SANGO_PLUGIN_COMMON_H
+#pragma once
 
 #include <types.h>
 
-namespace menu {
-class PluginMenu;
+#include <functional>
+
+#include "address.h"
+
+namespace ui {
+class MainApplication;
 }
 
-typedef void (*menu_callback_t)(menu::PluginMenu& menu, void* args);
-typedef void (*callback_t)(void* args);
+typedef void (*menu_callback_t)(ui::MainApplication& app, void* args);
+// typedef void (*callback_t)(void* args);
+typedef std::function<void(void*)> callback_t;
+typedef std::function<void()> cheat_code_callback_t;
 
 #define TYPEDEF_FLOAT(n, t) \
   typedef t f##n;           \
@@ -39,7 +44,35 @@ typedef char c8;
 
 typedef uintptr_t uptr;
 
-#define FORCE_INLINE inline __attribute__((always_inline))
+#define INLINE inline __attribute__((always_inline))
+#define STATIC_INLINE static inline __attribute__((always_inline))
+
+// #define INLINE inline __attribute__((always_inline))
+// #define STATIC_INLINE STATIC_INLINE __attribute__((always_inline))
+
+#define SINGLETON(ClassName)\
+public:\
+ClassName(const ClassName&)            = delete;\
+ClassName& operator=(const ClassName&) = delete;\
+ClassName(ClassName&&)                 = delete;\
+ClassName& operator=(ClassName&&)      = delete;\
+private:\
+ClassName() = default; \
+public:
+
+#define MAKE_SINGLETON(ClassName)\
+public:\
+ClassName(const ClassName&)            = delete;\
+ClassName& operator=(const ClassName&) = delete;\
+ClassName(ClassName&&)                 = delete;\
+ClassName& operator=(ClassName&&)      = delete;\
+static inline __attribute__((always_inline)) ClassName& GetInstance() {\
+  static ClassName instance;\
+  return instance;\
+}\
+private:\
+ClassName() = default;\
+public:
 
 #define WRITE(type, address, value) *(type*)(address) = (value)
 #define READ(type, address) *(type*)(address)
@@ -153,5 +186,3 @@ struct String {
   u16 size;
   bool is_initialized;
 };
-
-#endif  // SANGO_PLUGIN_COMMON_H

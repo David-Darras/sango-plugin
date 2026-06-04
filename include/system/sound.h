@@ -15,10 +15,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_SOUND_H_
-#define SANGO_PLUGIN_SOUND_H_
+#pragma once
 
-#include "core/core.h"
+#include "common.h"
 
 /**
  * @class Sound
@@ -27,82 +26,44 @@
  * Pokemon cries, sound effects, and background music.
  */
 class Sound {
- public:
-  /**
-   * @brief Retrieves the singleton instance of the Sound manager.
-   * @return Reference to the Sound instance.
-   */
-  static Sound& GetInstance() { return instance_; }
+  SINGLETON(Sound)
 
+public:
   /**
-   * @brief Registers sound-related entries into the provided plugin menu.
-   * @param menu Reference to the PluginMenu to populate.
-   */
-  static void LoadMenu(menu::PluginMenu& menu, void* args);
-
-  /**
-   * @brief Directly plays a Pokémon's cry.
-   * @param pokemon The ID of the Pokémon to play.
-   */
-  static FORCE_INLINE void PlayPokemonCry(u16 pokemon) {
+ * @brief Directly plays a Pokémon's cry.
+ * @param pokemon The ID of the Pokémon to play.
+ */
+  STATIC_INLINE void PlayPokemonCry(u16 pokemon) {
     ((void (*)(u8, u16, u16, u8, u8))ADDRESS_SOUND_PLAY_POKEMON_CRY)(0, pokemon,
-                                                                     0, 0, 0);
+      0, 0, 0);
   }
 
   /**
-   * @brief Sets the volume for Pokémon cries.
-   * @param volume Floating point multiplier for volume.
-   */
-  static FORCE_INLINE void ChangePokemonCryVolume(f32 volume) {
+ * @brief Sets the volume for Pokémon cries.
+ * @param volume Floating point multiplier for volume.
+ */
+  STATIC_INLINE void ChangePokemonCryVolume(f32 volume) {
     ((void (*)(u8, f32, u32))ADDRESS_SOUND_CHANGE_POKEMON_CRY_VOLUME)(0, volume,
-                                                                      0);
+      0);
   }
 
   /**
-   * @brief Plays a specific sound effect from the game's bank.
-   * @param index The sound effect index.
-   */
-  static FORCE_INLINE void PlaySoundEffect(u32 index) {
+ * @brief Plays a specific sound effect from the game's bank.
+ * @param index The sound effect index.
+ */
+  STATIC_INLINE void PlaySoundEffect(u32 index) {
     // Note: (6 << 16) is the bitmask for the SE bank
     ((void (*)(u32, u32, s32, u32))ADDRESS_SOUND_PLAY_SOUND_EFFECT)(
         (6 << 16) + index, 0, 0, 0);
   }
 
   /**
-   * @brief Starts playing a specific background music track.
-   * @param index The BGM track index.
-   */
-  static FORCE_INLINE void PlayBackgroundMusic(u32 index) {
+ * @brief Starts playing a specific background music track.
+ * @param index The BGM track index.
+ */
+  STATIC_INLINE void PlayBackgroundMusic(u32 index) {
     // Note: (1 << 16) is the bitmask for the BGM bank
     ((void (*)(u32, u32, u32, u32))ADDRESS_SOUND_PLAY_BACKGROUND_MUSIC)(
         (1 << 16) + index, 10, 10, 1);
   }
-
- private:
-  /** @name Internal Callbacks
-   * Used for menu entry execution.
-   * @{ */
-  static void OnPlayPokemonCry(void* arg);
-  static void OnChangeVolume(void* arg);
-  static void OnPlaySoundEffect(void* arg);
-  static void OnPlayBackgroundMusic(void* arg);
-  /** @} */
-
-  f32 volume_;            ///< Current volume multiplier for cries.
-  u16 pokemon_cry_;       ///< Selected Pokémon ID for the menu.
-  u16 sound_effect_;      ///< Selected SE index for the menu.
-  u16 background_music_;  ///< Selected BGM index for the menu.
-
-  static Sound instance_;  ///< Static singleton instance.
-
-  /**
-   * @brief Private constructor initializing default audio state.
-   */
-  Sound()
-      : volume_(1.0f),
-        pokemon_cry_(0),
-        sound_effect_(0),
-        background_music_(0) {}
 };
-
-#endif  // SANGO_PLUGIN_SOUND_H_

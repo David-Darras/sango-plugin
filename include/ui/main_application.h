@@ -1,0 +1,441 @@
+/*
+ * Copyright (C) 2026  David Darras
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include "feature/cheat_code.h"
+#include "feature/cheat_code_manager.h"
+#include "ui/page_item.h"
+#include "ui/painter.h"
+#include "ui/theme.h"
+#include "ui/application.h"
+#include "ui/widget/keyboard.h"
+#include "ui/widget/numpad.h"
+
+class Controller;
+
+namespace ui {
+struct Theme;
+/**
+* @brief Singleton class representing the plugin menu system.
+*
+* Handles the display, input, and management of menu entries,
+* submenus, and context tracking using a stack-based approach.
+*/
+class MainApplication : public Application {
+public:
+  friend class MainAppPainter;
+  friend class RetroAppPainter;
+
+  /**
+* @brief Returns the singleton instance of the MainApplication.
+* @return Reference to the unique MainApplication instance.
+*/
+  STATIC_INLINE MainApplication& GetInstance() { return instance_; }
+
+  /**
+* @brief Draws the top section of the menu with menu entries.
+*/
+  void DrawTop(Graphics& graphics) override;
+
+  /**
+* @brief Draws the bottom section of the menu (numpad or keyboard).
+*/
+  void DrawBottom(Graphics& graphics) override;
+
+  /**
+* @brief Updates the menu state and input handling.
+* Must be called once per frame.
+*/
+  void Update(Controller& controller) override;
+
+  /**
+* @brief Checks if the menu is currently opened.
+* @return True if the menu is visible, false otherwise.
+*/
+  bool IsOpened() const { return is_opened_; };
+
+  void ForceClose() { is_opened_ = false; };
+
+  /**
+* @brief Enters a submenu with an optional initialization callback.
+* @param load_menu Function to call when entering the submenu.
+*/
+  void Open(menu_callback_t load_menu, void* args = nullptr);
+
+  /**
+* @brief Leaves the current submenu and returns to the previous context.
+*/
+  void Close();
+
+  void SetPainter(Painter& painter) {
+    painter_ = &painter;
+  }
+
+  /**
+* @brief Attaches an array of string labels to the last added entry.
+* * Allows mapping numerical values to human-readable strings
+* (e.g., 0 = "Off", 1 = "On") for display purposes.
+* @param array An array of C-strings containing the labels.
+* @param array_size The total number of elements in the array.
+* @return Reference to the MainApplication instance for method chaining.
+*/
+  MainApplication& WithArray(const c8* array[], u32 array_size) {
+    entries_[entries_count_ - 1].WithArray(array, array_size);
+    return *this;
+  }
+
+  /**
+* @brief Attaches a custom callback function to the last added entry.
+* * The provided function will be triggered whenever the entry is
+* executed (e.g., by pressing the 'A' button).
+* @param callback Function pointer of type `callback_t`.
+* @return Reference to the MainApplication instance for method chaining.
+*/
+  MainApplication& WithCallback(callback_t callback) {
+    entries_[entries_count_ - 1].WithCallback(callback);
+    return *this;
+  }
+
+  /**
+* @brief Enables the refresh flag for the last added entry.
+* * Useful for entries whose modification dynamically changes the
+* structure or the content of the current menu view.
+* @return Reference to the MainApplication instance for method chaining.
+*/
+  MainApplication& WithRefresh() {
+    entries_[entries_count_ - 1].WithRefresh();
+    return *this;
+  }
+
+  /**
+* @brief Sets the minimum allowed value for the last added entry.
+* @param min The lower bound value.
+* @return Reference to the MainApplication instance for method chaining.
+*/
+  MainApplication& WithMin(s32 min) {
+    entries_[entries_count_ - 1].WithMin(min);
+    return *this;
+  }
+
+  /**
+* @brief Sets the maximum allowed value for the last added entry.
+* @param max The upper bound value.
+* @return Reference to the MainApplication instance for method chaining.
+*/
+  MainApplication& WithMax(s32 max) {
+    entries_[entries_count_ - 1].WithMax(max);
+    return *this;
+  }
+
+  /**
+* @brief Sets both minimum and maximum allowed values for the last added
+* entry.
+* @param min The lower bound value.
+* @param max The upper bound value.
+* @return Reference to the MainApplication instance for method chaining.
+*/
+  MainApplication& WithBounds(u32 min, u32 max) {
+    entries_[entries_count_ - 1].WithMin(min);
+    entries_[entries_count_ - 1].WithMax(max);
+    return *this;
+  }
+
+  MainApplication& WithFactor(f32 factor) {
+    entries_[entries_count_ - 1].WithFactor(factor);
+    return *this;
+  }
+
+  MainApplication& WithNoBackground() {
+    no_background_ = 1;
+    return *this;
+  }
+
+  bool CheckProcess(const char* name);
+
+  /**
+* @brief Rebuilds the current menu by re-executing its load callback.
+* * This method updates the list of active entries without altering
+* the context stack, reflecting real-time changes in game state.
+*/
+  void Refresh();
+
+  MainApplication& Add(const c8* name, CheatCodeId id) {
+    if (entries_count_ < kMaxEntries) {
+      entries_[entries_count_].Initialize(
+          name, CheatCodeManager::GetInstance().Get(id), kTypeCheatCode);
+      entries_count_++;
+    }
+    return *this;
+  }
+
+  MainApplication& Add(const c8* name, callback_t callback = nullptr) {
+    if (entries_count_ < kMaxEntries) {
+      entries_[entries_count_].Initialize(name, nullptr, kTypeIdle);
+      entries_[entries_count_].WithCallback(callback);
+      entries_count_++;
+    }
+    return *this;
+  }
+
+  /**
+* @brief Adds a simple menu entry by name, address, and type.
+* @param name Display name.
+* @param addr Memory address.
+* @param type Entry type (PageItemType).
+* @return Reference to the MainApplication instance.
+*/
+  MainApplication& Add(const c8* name, void* addr, u8 type) {
+    if (entries_count_ < kMaxEntries)
+      entries_[entries_count_++].Initialize(name, addr, type);
+    return *this;
+  }
+
+  /**
+* @brief Adds a submenu entry.
+* @param name Display name of the submenu.
+* @param menu Callback function to build the submenu.
+* @return Reference to the MainApplication instance.
+*/
+  MainApplication& Add(const c8* name, menu_callback_t menu,
+                       void* args = nullptr) {
+    if (entries_count_ < kMaxEntries) {
+      entries_[entries_count_].Initialize(name, (void*)menu, kTypeMenu);
+      entries_[entries_count_].WithArgs(args);
+      entries_count_++;
+    }
+    return *this;
+  }
+
+  /**
+* @brief Adds a pointer entry.
+* @param name Display name.
+* @param addr Reference to the pointer.
+* @return Reference to the MainApplication instance.
+*/
+  MainApplication& Add(const c8* name, void*& addr) {
+    if (entries_count_ < kMaxEntries)
+      entries_[entries_count_++].Initialize(name, &addr, kTypePointer);
+    return *this;
+  }
+
+  /**
+* @brief Adds a boolean entry.
+* @param name Display name.
+* @param addr Reference to the boolean variable.
+* @return Reference to the MainApplication instance.
+*/
+  MainApplication& Add(const c8* name, bool& addr) {
+    if (entries_count_ < kMaxEntries)
+      entries_[entries_count_++].Initialize(name, &addr, kTypeBoolean);
+    return *this;
+  }
+
+  /**
+* @brief Adds a bitfield entry.
+* @param name Display name.
+* @param addr Address of the integer containing the bits.
+* @param offset Bit offset.
+* @param size Bit size.
+* @return Reference to the MainApplication instance.
+*/
+  MainApplication& Add(const c8* name, void* addr, u32 offset, u32 size) {
+    if (entries_count_ < kMaxEntries)
+      entries_[entries_count_++].Initialize(name, addr, kTypeBits, offset,
+                                            size);
+    return *this;
+  }
+
+  /**
+* @brief Adds a Unicode string entry.
+* @param name Display name.
+* @param addr Pointer to the UTF-16 string.
+* @param size Maximum length/size of the string.
+* @return Reference to the MainApplication instance.
+*/
+  MainApplication& Add(const c8* name, c16* addr, u32 size) {
+    if (entries_count_ < kMaxEntries)
+      entries_[entries_count_++].Initialize(name, addr, kTypeUnicode, size);
+    return *this;
+  }
+
+  MainApplication& AddSpecies(const c8* name, u16& var) {
+    if (entries_count_ < kMaxEntries) {
+      entries_[entries_count_++].Initialize(name, (void*)&var, kTypeSpecies);
+      WithBounds(0, 0x2D4);
+    }
+    return *this;
+  }
+
+  MainApplication& AddType(const c8* name, u8& var) {
+    static const c8* TYPES[] = {
+        "Normal", "Fighting", "Flying", "Poison", "Ground", "Rock",
+        "Bug", "Ghost", "Steel", "Fire", "Water", "Grass",
+        "Electric", "Psychic", "Ice", "Dragon", "Dark", "Fairy"
+    };
+    if (entries_count_ < kMaxEntries) {
+      entries_[entries_count_++].Initialize(name, (void*)&var, kTypeU8);
+      WithArray(TYPES, SIZE(TYPES));
+    }
+    return *this;
+  }
+
+  MainApplication& AddAbility(const c8* name, u8& var) {
+    if (entries_count_ < kMaxEntries) {
+      entries_[entries_count_++].Initialize(name, (void*)&var, kTypeAbility);
+      WithBounds(0, 0xBF);
+    }
+    return *this;
+  }
+
+  MainApplication& AddMove(const c8* name, u16& var) {
+    if (entries_count_ < kMaxEntries) {
+      entries_[entries_count_++].Initialize(name, (void*)&var, kTypeMove);
+      WithBounds(0, 0x26E);
+    }
+    return *this;
+  }
+
+  MainApplication& AddItem(const c8* name, u16& var) {
+    if (entries_count_ < kMaxEntries) {
+      entries_[entries_count_++].Initialize(name, (void*)&var, kTypeItem);
+      WithBounds(0, 775);
+    }
+    return *this;
+  }
+
+  MainApplication& AddSeparator() {
+    if (entries_count_ < kMaxEntries) {
+      entries_[entries_count_++].Initialize("", nullptr, kTypeSeparator);
+    }
+    return *this;
+  }
+
+  /**
+* @brief Macro helper for adding numeric typed entries.
+*/
+#define ADD(type, type_id)                                      \
+  MainApplication &Add(const c8 *name, type &var) {                  \
+    if (entries_count_ < kMaxEntries)                           \
+      entries_[entries_count_++].Initialize(name, (void *)&var, \
+                                            kType##type_id);    \
+    return *this;                                               \
+  }
+
+  ADD(u8, U8)
+  ADD(u16, U16)
+  ADD(u32, U32)
+  ADD(u64, U64)
+  ADD(s8, S8)
+  ADD(s16, S16)
+  ADD(s32, S32)
+  ADD(s64, S64)
+  ADD(f32, F32)
+  ADD(f64, F64)
+
+#undef ADD
+
+private:
+  /**
+* @brief Internal structure representing a menu context (for submenus).
+*/
+  struct MenuContext {
+    u8 cursor; ///< Current cursor position.
+    u8 offset; ///< Current scroll offset.
+    u8 display_count; ///< Number of entries to display.
+    menu_callback_t load_menu; ///< Initialization callback.
+    void* args;
+
+    /**
+* @brief Default constructor.
+*/
+    MenuContext()
+      : cursor(0),
+        offset(0),
+        display_count(0),
+        load_menu(nullptr),
+        args(nullptr) {
+    }
+
+    /**
+* @brief Resets the context with a specific callback.
+* @param menu Function to call for this context.
+*/
+    void Initialize(menu_callback_t menu, void* args) {
+      cursor = 0;
+      offset = 0;
+      display_count = 0;
+      this->load_menu = menu;
+      this->args = args;
+    }
+  };
+
+  /**
+* @brief Private constructor for singleton pattern.
+*/
+  MainApplication()
+    : is_opened_(0),
+      entries_count_(0),
+      contexts_count_(0),
+      no_background_(0),
+      process_name_(nullptr),
+      theme_(Theme::GetInstance()) {
+  }
+
+  /**
+* @brief Returns the currently active context.
+* @return Reference to the top context on the stack.
+*/
+  MenuContext& GetContext() {
+    return contexts_[contexts_count_ > 0 ? contexts_count_ - 1 : 0];
+  }
+
+  /**
+* @brief Returns the currently selected menu entry in the current context.
+* @return Reference to the selected PageItem.
+*/
+  PageItem& GetSelectedEntry() {
+    MenuContext& ctx = GetContext();
+    return entries_[ctx.cursor + ctx.offset];
+  }
+
+  bool AreKeysReleased(Controller& ctrl);
+
+  static constexpr u32 kMaxEntries = 64;
+  static constexpr u32 kMaxContexts = 8;
+  static constexpr u32 kMaxDisplayCount = 15;
+  static constexpr u32 kLineHeight = 16;
+
+  static MainApplication instance_; ///< Unique instance.
+
+  u32 is_opened_ : 1; ///< True if menu is open.
+  u32 entries_count_ : 6; ///< Active entries in current app.
+  u32 contexts_count_ : 3; ///< Number of submenus in the stack.
+  u32 no_background_ : 1;
+  u32  : 21; ///< Reserved.
+
+  const char* process_name_;
+
+  PageItem entries_[kMaxEntries]; ///< Entry pool.
+  MenuContext contexts_[kMaxContexts]; ///< Context stack.
+  Numpad numpad_; ///< Numpad logic.
+  Keyboard keyboard_; ///< Keyboard logic.
+
+  Theme& theme_;
+  Painter* painter_ = nullptr;
+};
+} // namespace ui
