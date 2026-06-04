@@ -30,21 +30,18 @@ void LoadTopPage(MainApplication& app, void* args) {
 
   auto& weather_manager = overworld::WeatherManager::GetInstance();
 
-  app.Add("Battle Config", LoadBattleConfigPage);
-
   app.Add("Game Speed", feature::EngineHookContext::GetInstance().game_speed)
-      .Add("Weather", weather_manager.GetRequestedWeather())
-      .WithArray(WEATHERS, SIZE(WEATHERS))
-      .AddSeparator();
-
-  app.Add("Renderer", LoadRendererPage)
-      .Add("Global Data", LoadGlobalDataPage)
-      .Add("Game Time", LoadGameTimePage)
-      .Add("Save Data", LoadSaveDataPage)
-      .Add("Overworld", LoadOverworldPage)
-      .Add("Day Care", LoadDayCarePage)
-      .Add("Battle", LoadBattlePage)
-      .Add("Sound", LoadSoundPage)
-      .Add("Plugin Theme", LoadThemePage);
+     .Add("Save Data", LoadSaveDataPage)
+     .Add("Global Data", LoadGlobalDataPage)
+     .Add("Renderer", LoadRendererPage)
+     .Add("Battle Config", LoadBattleConfigPage)
+     .Add("Battle", LoadBattlePage)
+     .Add("Game Time", LoadGameTimePage)
+     .Add("Overworld", LoadOverworldPage)
+     .Add("Weather", weather_manager.GetRequestedWeather())
+     .WithArray(WEATHERS, SIZE(WEATHERS))
+     .Add("Day Care", LoadDayCarePage)
+     .Add("Sound", LoadSoundPage)
+     .Add("Plugin Theme", LoadThemePage);
 }
 } // namespace ui

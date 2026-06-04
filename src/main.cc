@@ -25,14 +25,14 @@ extern void Entrypoint();
 
 namespace CTRPluginFramework {
 int main() {
-#ifdef ENABLE_SANGO_PLUGIN
+#if ENABLE_SANGO_PLUGIN == 1
   Initialize();
   CTRPluginFramework::Hook hook;
   hook.InitializeForMitm(ADDRESS_ENTRYPOINT, (uptr)Entrypoint);
   hook.Enable();
 #endif
 
-#ifdef ENABLE_DEFAULT_CTRPF
+#if ENABLE_DEFAULT_CTRPF == 1
   PluginMenu menu;
   menu.SynchronizeWithFrame(true);
   menu.Run();

@@ -17,11 +17,16 @@
 
 #pragma once
 #include "game/overworld/map_manager.h"
+#include "ui/log_application.h"
+#include "ui/main_application.h"
 
 namespace feature {
 struct FieldMove {
   MAKE_SINGLETON(FieldMove)
   static void Execute(u32 choice) {
+    auto& main_app = ui::MainApplication::GetInstance();
+    if (main_app.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
+
     auto& map_manager = overworld::MapManager::GetInstance();
 
     struct {

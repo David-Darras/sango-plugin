@@ -55,10 +55,15 @@ void Initialize() {
   auto& application_manager = ui::ApplicationManager::GetInstance();
   auto& root_app = ui::RootApplication::GetInstance();
   auto& main_app = ui::MainApplication::GetInstance();
-  auto& painter = ui::RetroAppPainter::GetInstance();
-  main_app.SetPainter(painter);
 
+#if ENABLE_NUZLOCKE_MENU == 1
+  main_app.SetPainter(ui::RetroAppPainter::GetInstance());
+  main_app.Open(ui::LoadNuzlockePage);
+#else
+  main_app.SetPainter(ui::MainAppPainter::GetInstance());
   main_app.Open(ui::LoadTopPage);
+#endif
+
   application_manager.Push(root_app);
 }
 

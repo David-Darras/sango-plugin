@@ -33,7 +33,6 @@ void MainApplication::DrawTop(Graphics& graphics) {
   if (!IsOpened()) return;
 
   painter_->DrawPageBackground(*this);
-  painter_->DrawPageCursor(*this);
   painter_->DrawPageItems(*this);
 }
 
@@ -225,15 +224,12 @@ void MainAppPainter::DrawPageBackground(MainApplication& app) {
   Graphics::FillScreen(app.theme_.background_color);
 }
 
-void MainAppPainter::DrawPageCursor(MainApplication& app) {
+void MainAppPainter::DrawPageItems(MainApplication& app) {
   MainApplication::MenuContext& ctx = app.GetContext();
 
   Graphics::DrawText(5, 6 + ctx.cursor * MainApplication::kLineHeight,
                      u"\uE077", app.theme_.selected_text_color);
-}
 
-void MainAppPainter::DrawPageItems(MainApplication& app) {
-  MainApplication::MenuContext& ctx = app.GetContext();
   c16 buffer[BUFFER_SIZE];
   for (u32 i = 0; i < ctx.display_count; i++) {
     app.entries_[i + ctx.offset].GetDisplayValue(buffer);
@@ -245,13 +241,35 @@ void MainAppPainter::DrawPageItems(MainApplication& app) {
 }
 
 void RetroAppPainter::DrawPageBackground(MainApplication& app) {
-  Graphics::FillScreen(0.9f, 0.9f, 0.9f, 1.0f);
-}
-
-void RetroAppPainter::DrawPageCursor(MainApplication& app) {
+  Graphics::EnableScissor(301, 10, 90, 130);
+  Graphics::FillScreen(0, 0, 0.8, 1);
+  Graphics::DisableScissor();
 }
 
 void RetroAppPainter::DrawPageItems(MainApplication& app) {
-  Graphics::DrawText(10, 10, u"Hello", Color(0, 0, 0, 1));
+  MainApplication::MenuContext& ctx = app.GetContext();
+
+  Graphics::EnableScissor(303, 12, 86, 126);
+
+  Graphics::FillScreen(0.95, 0.95, 0.95, 1);
+
+  Color blue(0.066667, 0.203922, 0.592157, 1);
+  Color black(0.007843, 0.062745, 0.200000, 1);
+
+  Graphics::DrawText(391, 15 + 16 * (ctx.cursor + 1), u">",
+                     blue);
+
+  Graphics::DrawText(394, 15, u"[HM]", black);
+
+  c16 buffer[BUFFER_SIZE];
+  for (u32 i = 0; i < ctx.display_count; i++) {
+    app.entries_[i + ctx.offset].GetDisplayValue(buffer);
+    Graphics::DrawText(405, 15 + (i + 1) * MainApplication::kLineHeight, buffer,
+                       ctx.cursor == i
+                         ? blue
+                         : black);
+  }
+
+  Graphics::DisableScissor();
 }
 } // namespace ui

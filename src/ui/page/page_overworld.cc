@@ -29,27 +29,27 @@ void LoadOverworldMapTilePage(MainApplication& app, void* args) {
   auto& ctx = feature::MapTileHookContext::GetInstance();
 
   app.Add("Is Enabled", ctx.is_enabled)
-      .AddSeparator()
-      .Add("Is Impassable", ctx.is_impassable)
-      .Add("Is Water", ctx.is_water)
-      .Add("Permits Encounters", ctx.permits_encounters)
-      .Add("Allows Diagonal Movement", ctx.allows_diagonal_movement)
-      .Add("Has Shadow", ctx.has_shadow)
-      .Add("Blocks Trainer Movement", ctx.blocks_trainer_movement)
-      .Add("Can Place Decorations", ctx.can_place_decorations)
-      .Add("Can Move Decoration Cursor", ctx.can_move_decoration_cursor)
-      .AddSeparator()
-      .Add("Reflection 0", ctx.has_reflection_0)
-      .Add("Reflection 1", ctx.has_reflection_1)
-      .Add("Reflection 2", ctx.has_reflection_2)
-      .Add("Reflection 3", ctx.has_reflection_3)
-      .AddSeparator()
-      .Add("Footstep Sound Type", ctx.foot_step_id)
-      .WithArray(FOOT_STEPS, SIZE(FOOT_STEPS))
-      .Add("Battle Background Type", ctx.battle_background_id)
-      //.WithArray(battle::BACKGROUNDS, battle::BACKGROUNDS_COUNT)
-      .Add("Ground Type", ctx.ground_id)
-      .WithArray(GROUNDS, SIZE(GROUNDS));
+     .AddSeparator()
+     .Add("Is Impassable", ctx.is_impassable)
+     .Add("Is Water", ctx.is_water)
+     .Add("Permits Encounters", ctx.permits_encounters)
+     .Add("Allows Diagonal Movement", ctx.allows_diagonal_movement)
+     .Add("Has Shadow", ctx.has_shadow)
+     .Add("Blocks Trainer Movement", ctx.blocks_trainer_movement)
+     .Add("Can Place Decorations", ctx.can_place_decorations)
+     .Add("Can Move Decoration Cursor", ctx.can_move_decoration_cursor)
+     .AddSeparator()
+     .Add("Reflection 0", ctx.has_reflection_0)
+     .Add("Reflection 1", ctx.has_reflection_1)
+     .Add("Reflection 2", ctx.has_reflection_2)
+     .Add("Reflection 3", ctx.has_reflection_3)
+     .AddSeparator()
+     .Add("Footstep Sound Type", ctx.foot_step_id)
+     .WithArray(FOOT_STEPS, SIZE(FOOT_STEPS))
+     .Add("Battle Background Type", ctx.battle_background_id)
+     //.WithArray(battle::BACKGROUNDS, battle::BACKGROUNDS_COUNT)
+     .Add("Ground Type", ctx.ground_id)
+     .WithArray(GROUNDS, SIZE(GROUNDS));
 }
 
 void LoadOverworldEncounterPage(MainApplication& app, void* args) {
@@ -58,8 +58,8 @@ void LoadOverworldEncounterPage(MainApplication& app, void* args) {
   auto& data = overworld::Encounter::GetInstance();
 
   app.Add("Walk Count", data.walk_count)
-      .Add("Encounter Rate", data.encounter_rate)
-      .Add("Fishing Chain", data.fishing_chain_count);
+     .Add("Encounter Rate", data.encounter_rate)
+     .Add("Fishing Chain", data.fishing_chain_count);
 }
 
 void LoadOverworldFieldMovePage(MainApplication& app, void* args) {
@@ -87,32 +87,32 @@ void LoadOverworldCameraPage(MainApplication& app, void* args) {
   auto& ctx = feature::CameraHookContext::GetInstance();
 
   app.WithNoBackground()
-      .Add("Skybox", skybox)
-      .AddSeparator()
-      .Add("State", ctx.state)
-      .WithArray(STATES, SIZE(STATES))
-      .AddSeparator()
-      .Add("Free Pos X (Left/Right)", ctx.pos.x)
-      .WithFactor(5.0f)
-      .Add("Free Pos Y (Up/Down)", ctx.pos.y)
-      .WithFactor(5.0f)
-      .Add("Free Pos Z (Forward/Back)", ctx.pos.z)
-      .WithFactor(5.0f)
-      .Add("Free Yaw (Turn)", ctx.rot.y)
-      .WithFactor(0.05f)
-      .Add("Free Pitch (Look)", ctx.rot.x)
-      .WithFactor(0.05f)
-      .AddSeparator()
-      .Add("TPS Distance", ctx.tps_dist)
-      .Add("TPS Height", ctx.tps_height)
-      .Add("TPS Shoulder Offset", ctx.tps_offset)
-      .AddSeparator()
-      .Add("Radius", ctx.radius)
-      .WithFactor(3.0f)
-      .Add("Height", ctx.height)
-      .WithFactor(3.0f)
-      .Add("Orbit Rot Speed", ctx.theta_speed)
-      .WithFactor(0.01f);
+     .Add("Skybox", skybox)
+     .AddSeparator()
+     .Add("State", ctx.state)
+     .WithArray(STATES, SIZE(STATES))
+     .AddSeparator()
+     .Add("Free Pos X (Left/Right)", ctx.pos.x)
+     .WithFactor(5.0f)
+     .Add("Free Pos Y (Up/Down)", ctx.pos.y)
+     .WithFactor(5.0f)
+     .Add("Free Pos Z (Forward/Back)", ctx.pos.z)
+     .WithFactor(5.0f)
+     .Add("Free Yaw (Turn)", ctx.rot.y)
+     .WithFactor(0.05f)
+     .Add("Free Pitch (Look)", ctx.rot.x)
+     .WithFactor(0.05f)
+     .AddSeparator()
+     .Add("TPS Distance", ctx.tps_dist)
+     .Add("TPS Height", ctx.tps_height)
+     .Add("TPS Shoulder Offset", ctx.tps_offset)
+     .AddSeparator()
+     .Add("Radius", ctx.radius)
+     .WithFactor(3.0f)
+     .Add("Height", ctx.height)
+     .WithFactor(3.0f)
+     .Add("Orbit Rot Speed", ctx.theta_speed)
+     .WithFactor(0.01f);
 }
 
 void LoadOverworldModelPage(MainApplication& app, void* args) {
@@ -124,37 +124,37 @@ void LoadOverworldModelPage(MainApplication& app, void* args) {
   auto& draw_model = man.GetPlayer().GetDrawModel();
 
   app.Add("Scale X", draw_model.scale.x)
-      .WithFactor(0.2f)
-      .Add("Scale Y", draw_model.scale.y)
-      .WithFactor(0.2f)
-      .Add("Scale Z", draw_model.scale.z)
-      .WithFactor(0.2f)
-      .AddSeparator()
-      .Add("Noclip", CheatCodeId::kNoclip)
-      .Add("Speed-X", ctx.speed.x)
-      .Add("Speed-Y", ctx.speed.y)
-      .Add("Speed-Z", ctx.speed.z)
-      .AddSeparator()
-      .Add("Swarm Mod", CheatCodeId::kSwarmMod)
-      .Add("Circle Radius", ctx.radius)
-      .Add("Rotation Speed", ctx.theta_speed)
-      .AddSeparator()
-      .Add("Model Index", ctx.model_idx)
-      .WithBounds(0, overworld::ModelManager::kMaxModels - 1)
-      .WithRefresh()
-      .Add("Model", rsrc.model_id)
-      .Add("Animation", ctx.model_animation)
-      .WithCallback(feature::OverworldModelCheatCode::PlayAnimation);
+     .WithFactor(0.2f)
+     .Add("Scale Y", draw_model.scale.y)
+     .WithFactor(0.2f)
+     .Add("Scale Z", draw_model.scale.z)
+     .WithFactor(0.2f)
+     .AddSeparator()
+     .Add("Noclip", CheatCodeId::kNoclip)
+     .Add("Speed-X", ctx.speed.x)
+     .Add("Speed-Y", ctx.speed.y)
+     .Add("Speed-Z", ctx.speed.z)
+     .AddSeparator()
+     .Add("Swarm Mod", CheatCodeId::kSwarmMod)
+     .Add("Circle Radius", ctx.radius)
+     .Add("Rotation Speed", ctx.theta_speed)
+     .AddSeparator()
+     .Add("Model Index", ctx.model_idx)
+     .WithBounds(0, overworld::ModelManager::kMaxModels - 1)
+     .WithRefresh()
+     .Add("Model", rsrc.model_id)
+     .Add("Animation", ctx.model_animation)
+     .WithCallback(feature::OverworldModelCheatCode::PlayAnimation);
 }
 
 void LoadOverworldPage(MainApplication& app, void* args) {
   if (app.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
 
   auto& man = overworld::MapManager::GetInstance();
-  app.Add("Reload Map", man.GetMapId())
-      .Add("Encounter", LoadOverworldEncounterPage)
-      .Add("Map Tile", LoadOverworldMapTilePage)
-      .Add("Field Move", LoadOverworldFieldMovePage)
-      .Add("Camera", LoadOverworldCameraPage);
+  app.Add("Map Id", man.GetMapId())
+     .Add("Encounter", LoadOverworldEncounterPage)
+     .Add("Map Tile", LoadOverworldMapTilePage)
+     .Add("Field Move", LoadOverworldFieldMovePage)
+     .Add("Camera", LoadOverworldCameraPage);
 }
 } // namespace ui

@@ -15,33 +15,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#pragma once
-#include "common.h"
+#include "feature/feature_field_move.h"
+#include "ui/main_application.h"
 
 namespace ui {
-class MainApplication;
-
-class Painter {
-public:
-  virtual ~Painter() = default;
-
-  virtual void DrawPageBackground(MainApplication& app) = 0;
-  virtual void DrawPageItems(MainApplication& app) = 0;
-  virtual bool ShowBottom() { return false; }
-};
-
-class MainAppPainter : public Painter {
-  MAKE_SINGLETON(MainAppPainter)
-public:
-  void DrawPageBackground(MainApplication& app) override;
-  void DrawPageItems(MainApplication& app) override;
-  bool ShowBottom() override { return true; }
-};
-
-class RetroAppPainter : public Painter {
-  MAKE_SINGLETON(RetroAppPainter)
-public:
-  void DrawPageBackground(MainApplication& app) override;
-  void DrawPageItems(MainApplication& app) override;
-};
+void LoadNuzlockePage(MainApplication& app, void* args) {
+  app.Add("Cut", [&](void*) { feature::FieldMove::Execute(0); })
+     .Add("Rock Smash", [&](void*) { feature::FieldMove::Execute(4); })
+     .Add("Strength", [&](void*) { feature::FieldMove::Execute(3); })
+     .Add("Fly", [&](void*) { feature::FieldMove::Execute(5); })
+     .Add("Surf", [&](void*) { feature::FieldMove::Execute(1); })
+     .Add("Dive", [&](void*) { feature::FieldMove::Execute(10); })
+     .Add("Waterfall", [&](void*) { feature::FieldMove::Execute(2); });
+}
 } // namespace ui
