@@ -17,32 +17,86 @@
 
 #ifndef SANGO_PLUGIN_POKEMON_DATA_ACCESSOR_H
 #define SANGO_PLUGIN_POKEMON_DATA_ACCESSOR_H
+#include <cstring>
+
 #include "common.h"
+#include "core/core.h"
 
 struct PokemonCoreData;
 struct PokemonRuntimeData;
 
 class PokemonDataAccessor {
- public:
+public:
   PokemonDataAccessor()
-      : vtable(nullptr),
-        pkm_runtime_data_(nullptr),
-        pkm_core_data_(nullptr),
-        is_encrypted_(true) {}
+    : vtable(nullptr),
+      pkm_runtime_data_(nullptr),
+      pkm_core_data_(nullptr),
+      is_encrypted_(true) {
+  }
 
   void Initialize(PokemonCoreData* pkm_core_data,
-                  PokemonRuntimeData* pkm_runtime_data);
-  void Encrypt();
-  void Decrypt();
+                  PokemonRuntimeData* pkm_runtime_data) {
+    ((void (*)(PokemonDataAccessor*, PokemonCoreData*,
+               PokemonRuntimeData*))ADDRESS_POKEMON_DATA_ACCESSOR_INITIALIZE)(
+        this, pkm_core_data, pkm_runtime_data);
+  }
+
+  void Encrypt() {
+    ShuffleBlocks();
+    ((void (*)(PokemonDataAccessor*))
+      ADDRESS_POKEMON_DATA_ACCESSOR_ENCRYPT)(this);
+  }
+
+  void Decrypt() {
+    ((void (*)(PokemonDataAccessor*))
+      ADDRESS_POKEMON_DATA_ACCESSOR_DECRYPT)(this);
+    UnshuffleBlocks();
+  }
 
   PokemonCoreData* GetCoreData() const { return pkm_core_data_; }
 
   PokemonRuntimeData* GetRuntimeData() const { return pkm_runtime_data_; }
 
- private:
-  void ShuffleBlocks();
-  void UnshuffleBlocks();
-  u8 GetBlockPosition(u32 encryption_key, u32 index);
+private:
+  void ShuffleBlocks() {
+    PokemonCoreData data;
+    std::memcpy(&data, pkm_core_data_, sizeof(data));
+
+    for (u32 i = 0; i < PokemonCoreData::kBlockCount; i++) {
+      for (u32 j = 0; j < PokemonCoreData::kBlockCount; j++) {
+        if (GetBlockPosition(pkm_core_data_->encryption_key, j) == i) {
+          std::memcpy(pkm_core_data_->GetBlock(i), data.GetBlock(j),
+                      PokemonCoreData::kBlockSize);
+          break;
+        }
+      }
+    }
+  }
+
+  void UnshuffleBlocks() {
+    PokemonCoreData data;
+    std::memcpy(&data, pkm_core_data_, sizeof(data));
+
+    for (u32 i = 0; i < PokemonCoreData::kBlockCount; i++) {
+      std::memcpy(
+          pkm_core_data_->GetBlock(i),
+          data.GetBlock(GetBlockPosition(pkm_core_data_->encryption_key, i)),
+          PokemonCoreData::kBlockSize);
+    }
+  }
+
+  static u8 GetBlockPosition(u32 encryption_key, u32 index) {
+    static const u8 block_positions[32][4] = {
+        {0, 1, 2, 3}, {0, 1, 3, 2}, {0, 2, 1, 3}, {0, 3, 1, 2}, {0, 2, 3, 1},
+        {0, 3, 2, 1}, {1, 0, 2, 3}, {1, 0, 3, 2}, {2, 0, 1, 3}, {3, 0, 1, 2},
+        {2, 0, 3, 1}, {3, 0, 2, 1}, {1, 2, 0, 3}, {1, 3, 0, 2}, {2, 1, 0, 3},
+        {3, 1, 0, 2}, {2, 3, 0, 1}, {3, 2, 0, 1}, {1, 2, 3, 0}, {1, 3, 2, 0},
+        {2, 1, 3, 0}, {3, 1, 2, 0}, {2, 3, 1, 0}, {3, 2, 1, 0}, {0, 1, 2, 3},
+        {0, 1, 3, 2}, {0, 2, 1, 3}, {0, 3, 1, 2}, {0, 2, 3, 1}, {0, 3, 2, 1},
+        {1, 0, 2, 3}, {1, 0, 3, 2},
+    };
+    return block_positions[(encryption_key & (0b11111 << 13)) >> 13][index];
+  }
 
   void* vtable;
   PokemonRuntimeData* pkm_runtime_data_;
