@@ -17,7 +17,7 @@
 
 #include "feature/feature_engine.h"
 #include "ui/plugin_menu.h"
-#include "overworld/weather_manager.h"
+#include "game/overworld/weather_manager.h"
 #include "ui/top_menu.h"
 
 namespace ui {

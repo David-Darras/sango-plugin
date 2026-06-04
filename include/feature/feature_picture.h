@@ -20,8 +20,8 @@
 #include "common.h"
 #include "core.h"
 #include "feature/hook_manager.h"
-#include "renderer/picture.h"
-#include "renderer/text_box.h"
+#include "game/renderer/picture.h"
+#include "game/renderer/text_box.h"
 
 namespace feature {
 struct PictureHookContext {

@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2026  David Darras
+ * Copyright (C) 2026  David Darras
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,34 +16,29 @@
  */
 
 #pragma once
-#include "savedata.h"
+#include "game/savedata/savedata.h"
+#include "game/data_manager.h"
 
 namespace savedata {
-struct OverworldMenu {
-  STATIC_INLINE OverworldMenu& GetInstance() {
-    return SaveData::GetInstance().GetOverworldMenu();
+struct Minigame {
+  STATIC_INLINE Minigame& GetInstance() {
+    return SaveData::GetInstance().GetMinigame();
   }
 
   void* vtable;
+  u16 berry_picker_high_scores[4];
+  u16 head_it_high_scores[4];
 
-  union {
-    u32 flags;
+  struct {
+    u16 time[5];
+    u16 moves[5];
+    u16 swaps[5];
+    u16 total_score[5];
+  } tile_puzzle_scores[4];
 
-    u32 is_pokemon_list_visible : 1;
-    u32 is_pokedex_visible : 1;
-    u32 is_bag_visible : 1;
-    u32 is_trainer_card_visible : 1;
-    u32 is_save_visible : 1;
-    u32 is_options_visible : 1;
-
-    u32 pokemon_list_position : 3;
-    u32 pokedex_position : 3;
-    u32 bag_position : 3;
-    u32 trainer_card_position : 3;
-    u32 save_position : 3;
-    u32 options_position : 3;
-
-    u32  : 8;
-  };
+  u8 berry_picker_best_ratings[4];
+  u8 head_it_best_ratings[4];
+  u8 tile_puzzle_best_ratings[4];
 };
 } // namespace savedata
+// 08C6FBC0

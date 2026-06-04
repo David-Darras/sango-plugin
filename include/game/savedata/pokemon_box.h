@@ -16,20 +16,22 @@
  */
 
 #pragma once
-#include "game/overworld/map_manager.h"
+#include "game/savedata/savedata.h"
+#include "game/savedata/pokemon_core_data.h"
 
-namespace feature {
-struct FieldMove {
-  static void Execute(u32 choice) {
-    auto& map_manager = overworld::MapManager::GetInstance();
-
-    struct {
-      u16 zone_id;
-      u16 team_index;
-      overworld::MapManager* map_manager;
-    } context = {(u16)map_manager.GetMapId(), 0, &map_manager};
-
-    ((void (*)(void*, u32))ADDRESS_DO_FIELD_MOVE)(&context, choice);
+namespace savedata {
+struct PokemonBox {
+  STATIC_INLINE PokemonBox& GetInstance() {
+    return SaveData::GetInstance().GetPokemonBox();
   }
+
+  static constexpr u32 kMaxBoxes = 31;
+  static constexpr u32 kMaxSlotsPerBox = 30;
+
+  void* vtable;
+
+  struct {
+    PokemonCoreData pokemons[kMaxSlotsPerBox];
+  } boxes[kMaxBoxes];
 };
-}
+} // namespace savedata

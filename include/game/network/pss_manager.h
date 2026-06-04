@@ -16,29 +16,40 @@
  */
 
 #pragma once
-#include "savedata.h"
-#include "game/data_manager.h"
 
-namespace savedata {
-struct Minigame {
-  STATIC_INLINE Minigame& GetInstance() {
-    return SaveData::GetInstance().GetMinigame();
-  }
+#include "game/savedata/pss.h"
 
-  void* vtable;
-  u16 berry_picker_high_scores[4];
-  u16 head_it_high_scores[4];
+struct PssData {
+  savedata::PssUserData user_data;
+
+  u32 nice_received : 1;
+  u32 nice_count_blocked : 1;
+  u32 nice_display_blocked : 1;
+  u32 birthday_count_blocked : 1;
+  u32 birthday_display_blocked : 1;
+  u32 is_locked : 1;
+  u32 is_online : 1;
+  u32 message_displayed : 1;
+  u32 affection_anim_done : 1;
+  u32 active_opower : 8;
+  u32  : 15;
 
   struct {
-    u16 time[5];
-    u16 moves[5];
-    u16 swaps[5];
-    u16 total_score[5];
-  } tile_puzzle_scores[4];
-
-  u8 berry_picker_best_ratings[4];
-  u8 head_it_best_ratings[4];
-  u8 tile_puzzle_best_ratings[4];
+    void* next;
+    void* previous;
+  } hash_node, node;
 };
-} // namespace savedata
-// 08C6FBC0
+
+class PssManager {
+public:
+  STATIC_INLINE PssManager& GetInstance() {
+    return game::Manager::GetInstance().GetPssManager();
+  }
+
+  INLINE savedata::PssProfilePayload& GetMyProfile() {
+    return self_data_.user_data.datagram.profile;
+  }
+
+private:
+  PssData self_data_;
+};

@@ -18,27 +18,27 @@
 #include <cstring>
 
 #include "ui/plugin_menu.h"
-#include "savedata/bag_manager.h"
-#include "savedata/battle_box.h"
-#include "savedata/box_manager.h"
-#include "savedata/item_manager.h"
-#include "savedata/minigame.h"
-#include "savedata/misc.h"
-#include "savedata/opower_manager.h"
-#include "savedata/overworld_menu.h"
-#include "savedata/play_time.h"
-#include "savedata/pokedex.h"
-#include "savedata/pokemon_amie.h"
-#include "savedata/pokemon_box.h"
-#include "savedata/pokemon_core_data.h"
-#include "savedata/pokemon_data_accessor.h"
-#include "savedata/pokemon_team.h"
-#include "savedata/pokemon_utils.h"
-#include "savedata/pss.h"
-#include "savedata/record_manager.h"
-#include "savedata/savedata_encounter.h"
-#include "savedata/settings.h"
-#include "savedata/trainer_status.h"
+#include "game/savedata/bag_manager.h"
+#include "game/savedata/battle_box.h"
+#include "game/savedata/box_manager.h"
+#include "game/savedata/item_manager.h"
+#include "game/savedata/minigame.h"
+#include "game/savedata/misc.h"
+#include "game/savedata/opower_manager.h"
+#include "game/savedata/overworld_menu.h"
+#include "game/savedata/play_time.h"
+#include "game/savedata/pokedex.h"
+#include "game/savedata/pokemon_amie.h"
+#include "game/savedata/pokemon_box.h"
+#include "game/savedata/pokemon_core_data.h"
+#include "game/savedata/pokemon_data_accessor.h"
+#include "game/savedata/pokemon_team.h"
+#include "game/savedata/pokemon_utils.h"
+#include "game/savedata/pss.h"
+#include "game/savedata/record_manager.h"
+#include "game/savedata/savedata_encounter.h"
+#include "game/savedata/settings.h"
+#include "game/savedata/trainer_status.h"
 
 namespace ui {
 static struct {
@@ -251,7 +251,7 @@ void LoadSaveDataBagItemsMenu(PluginMenu& menu, void* args) {
       .WithBounds(0, savedata::ItemManager::kMaxItemCount);
 }
 
-#include "savedata/records.inc"
+#include "game/savedata/records.inc"
 
 void LoadSaveDataRecordsMenu(PluginMenu& menu, void* args) {
   static u32 record_0_idx = 0;
@@ -461,7 +461,7 @@ void LoadSaveDataBagMetadataMenu(PluginMenu& menu, void* args) {
       .AddItem("Last Item Used", data.last_items_used[history_idx]);
 }
 
-#include "savedata/pokedex_form.inc"
+#include "game/savedata/pokedex_form.inc"
 
 void LoadSaveDataPokedexMenu(PluginMenu& menu, void* args) {
   static u16 species = 1;
@@ -538,7 +538,7 @@ void LoadSaveDataPokedexMenu(PluginMenu& menu, void* args) {
            &data.displayed_gender_flags[3][array_idx], bit_pos, 1);
 }
 
-#include "savedata/opower.inc"
+#include "game/savedata/opower.inc"
 
 void LoadSaveDataOPowerMenu(PluginMenu& menu, void* args) {
   static u32 learned_opower_idx = 0;
@@ -636,7 +636,7 @@ void LoadSaveDataEncounterMenu(PluginMenu& menu, void* args) {
       .Add("Spray Count", data.spray_count);
 }
 
-#include "savedata/pss.inc"
+#include "game/savedata/pss.inc"
 
 void LoadSaveDataPssProfileMenu(PluginMenu& menu, void* args) {
   auto& profile = *(savedata::PssProfilePayload*)args;

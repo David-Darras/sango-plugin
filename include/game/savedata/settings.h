@@ -16,22 +16,33 @@
  */
 
 #pragma once
-#include "savedata.h"
-#include "savedata/pokemon_core_data.h"
+
+#include "core.h"
+#include "game/savedata/savedata.h"
 
 namespace savedata {
-struct PokemonBox {
-  STATIC_INLINE PokemonBox& GetInstance() {
-    return SaveData::GetInstance().GetPokemonBox();
+struct Settings {
+  STATIC_INLINE Settings& GetInstance() {
+    return SaveData::GetInstance().GetSettings();
   }
-
-  static constexpr u32 kMaxBoxes = 31;
-  static constexpr u32 kMaxSlotsPerBox = 30;
 
   void* vtable;
 
-  struct {
-    PokemonCoreData pokemons[kMaxSlotsPerBox];
-  } boxes[kMaxBoxes];
+  union {
+    u32 core;
+
+    struct {
+      u32 text_speed : 2;
+      u32 show_battle_animations : 1;
+      u32 battle_style : 1;
+      u32 language_id : 4;
+      u32 battle_background_id : 5;
+      u32 button_config_mode : 2;
+      u32 prompt_save_before_net : 1;
+      u32 enable_spotpass : 1;
+      u32 enable_pss : 1;
+      u32  : 14;
+    };
+  };
 };
 } // namespace savedata

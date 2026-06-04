@@ -20,7 +20,7 @@
 
 #include "cheat_code_manager.h"
 #include "common.h"
-#include "overworld/model_manager.h"
+#include "game/overworld/model_manager.h"
 #include "system/device.h"
 
 class Controller;

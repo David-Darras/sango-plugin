@@ -18,7 +18,7 @@
 #pragma once
 #include "common.h"
 #include "hook_manager.h"
-#include "overworld/tile.h"
+#include "game/overworld/tile.h"
 
 namespace feature {
 struct MapTileHookContext {

@@ -16,9 +16,8 @@
  */
 
 #pragma once
-#include "common.h"
-#include "hook_manager.h"
-#include "battle/config.h"
+#include "feature/hook_manager.h"
+#include "game/battle/config.h"
 #include "core.h"
 
 namespace feature {

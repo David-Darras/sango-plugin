@@ -16,9 +16,9 @@
  */
 
 #include "game/time_manager.h"
-#include "global_data/move.h"
-#include "global_data/pokemon.h"
-#include "global_data/move.inc"
+#include "game/global_data/move.h"
+#include "game/global_data/pokemon.h"
+#include "game/global_data/move.inc"
 #include "ui/plugin_menu.h"
 
 namespace ui {

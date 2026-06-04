@@ -16,18 +16,20 @@
  */
 
 #pragma once
-#include "savedata.h"
+#include "game/savedata/savedata.h"
 
 namespace savedata {
-struct RecordManager {
-  STATIC_INLINE RecordManager& GetInstance() {
-    return SaveData::GetInstance().GetRecordManager();
+struct OPowerManager {
+  STATIC_INLINE OPowerManager& GetInstance() {
+    return SaveData::GetInstance().GetOPowerManager();
   }
 
   void* vtable;
-  u32 records_0[100];
-  u16 records_1[100];
-  u32 _0;
-  bool is_disabled;
+  bool learned_powers[65];
+  u8 power_points;
+  u8 field_power_level_1_uses[10];
+  u8 field_power_level_2_uses[10];
+  u8 battle_power_level_1_uses[7];
+  u8 battle_power_level_2_uses[7];
 };
 } // namespace savedata

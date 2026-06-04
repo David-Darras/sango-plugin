@@ -17,9 +17,9 @@
 
 #pragma once
 #include "common.h"
-#include "savedata.h"
-#include "savedata/pokemon_core_data.h"
-#include "savedata/pokemon_runtime_data.h"
+#include "game/savedata/savedata.h"
+#include "game/savedata/pokemon_core_data.h"
+#include "game/savedata/pokemon_runtime_data.h"
 
 class PokemonDataAccessor;
 

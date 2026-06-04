@@ -17,39 +17,48 @@
 
 #pragma once
 
-#include "savedata/pss.h"
+#include "game/overworld/map_manager.h"
 
-struct PssData {
-  savedata::PssUserData user_data;
+namespace game {
+class Manager;
+} // namespace game
+class Graphics;
 
-  u32 nice_received : 1;
-  u32 nice_count_blocked : 1;
-  u32 nice_display_blocked : 1;
-  u32 birthday_count_blocked : 1;
-  u32 birthday_display_blocked : 1;
-  u32 is_locked : 1;
-  u32 is_online : 1;
-  u32 message_displayed : 1;
-  u32 affection_anim_done : 1;
-  u32 active_opower : 8;
-  u32  : 15;
+namespace overworld {
+struct StereoCamera {
+  void* vtable_;
+  u32 _0[7];
+  u32 _1[5];
+  Mtx34 _2;
+  Vec3 _3;
+  u32 _4[10];
 
-  struct {
-    void* next;
-    void* previous;
-  } hash_node, node;
+  void* left_camera_;
+  void* right_camera_;
 };
 
-class PssManager {
+class Renderer {
 public:
-  STATIC_INLINE PssManager& GetInstance() {
-    return game::Manager::GetInstance().GetPssManager();
+  STATIC_INLINE Renderer& GetInstance() {
+    return MapManager::GetInstance().GetRenderer();
   }
 
-  INLINE savedata::PssProfilePayload& GetMyProfile() {
-    return self_data_.user_data.datagram.profile;
-  }
+  INLINE StereoCamera& GetStereoCamera() { return *stereo_camera2_; }
 
 private:
-  PssData self_data_;
+  u32 _0[5];
+  game::Manager* game_manager_;
+  Graphics* graphics_;
+  void* _1;
+  u32 _2[2];
+  void* _3[23];
+
+  u32 _4[3];
+
+  f32 _5[640];
+  u32 _6[4];
+
+  StereoCamera* stereo_camera_;
+  StereoCamera* stereo_camera2_;
 };
+} // namespace overworld

@@ -20,10 +20,10 @@
 #include "feature/feature_map_tile.h"
 #include "feature/feature_overworld_model.h"
 #include "ui/plugin_menu.h"
-#include "overworld/encounter.h"
+#include "game/overworld/encounter.h"
 
 namespace ui {
-#include "overworld/tile.inc"
+#include "game/overworld/tile.inc"
 
 void LoadOverworldMapTileMenu(PluginMenu& menu, void* args) {
   auto& ctx = feature::MapTileHookContext::GetInstance();

@@ -17,15 +17,18 @@
 
 #pragma once
 
-#include "renderer/pane.h"
-
-class HookManager;
+#include "game/renderer/pane.h"
 
 namespace renderer {
-struct TextBox {
+struct Picture {
   Pane pane;
-  c16* text;
-  Color8 top_color;
-  Color8 bottom_color;
+  bool is_initialized;
+  u8 _0[3 + 4];
+  Vec4 _1[6];
+  void* material;
+  Color8 top_left_color;
+  Color8 top_right_color;
+  Color8 bottom_left_color;
+  Color8 bottom_right_color;
 };
 } // namespace renderer

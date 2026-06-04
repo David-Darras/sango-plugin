@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026  David Darras
+* Copyright (C) 2026  David Darras
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,20 +16,34 @@
  */
 
 #pragma once
-#include "savedata.h"
+#include "game/savedata/savedata.h"
 
 namespace savedata {
-struct OPowerManager {
-  STATIC_INLINE OPowerManager& GetInstance() {
-    return SaveData::GetInstance().GetOPowerManager();
+struct OverworldMenu {
+  STATIC_INLINE OverworldMenu& GetInstance() {
+    return SaveData::GetInstance().GetOverworldMenu();
   }
 
   void* vtable;
-  bool learned_powers[65];
-  u8 power_points;
-  u8 field_power_level_1_uses[10];
-  u8 field_power_level_2_uses[10];
-  u8 battle_power_level_1_uses[7];
-  u8 battle_power_level_2_uses[7];
+
+  union {
+    u32 flags;
+
+    u32 is_pokemon_list_visible : 1;
+    u32 is_pokedex_visible : 1;
+    u32 is_bag_visible : 1;
+    u32 is_trainer_card_visible : 1;
+    u32 is_save_visible : 1;
+    u32 is_options_visible : 1;
+
+    u32 pokemon_list_position : 3;
+    u32 pokedex_position : 3;
+    u32 bag_position : 3;
+    u32 trainer_card_position : 3;
+    u32 save_position : 3;
+    u32 options_position : 3;
+
+    u32  : 8;
+  };
 };
 } // namespace savedata

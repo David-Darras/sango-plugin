@@ -19,12 +19,12 @@
 
 #include <cstring>
 
-#include "battle/manager.h"
+#include "game/battle/manager.h"
 #include "feature/feature_battle_config.h"
 #include "ui/plugin_menu.h"
 
 namespace ui {
-#include "battle/config.inc"
+#include "game/battle/config.inc"
 
 void LoadBattleConfigMenu(PluginMenu& menu, void* args) {
   auto& ctx = feature::BattleConfigHookContext::GetInstance();

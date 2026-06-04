@@ -16,19 +16,18 @@
  */
 
 #pragma once
-
-#include "pokemon_core_data.h"
-#include "savedata.h"
+#include "game/savedata/savedata.h"
 
 namespace savedata {
-struct BattleBox {
-  STATIC_INLINE BattleBox& GetInstance() {
-    return SaveData::GetInstance().GetBattleBox();
+struct RecordManager {
+  STATIC_INLINE RecordManager& GetInstance() {
+    return SaveData::GetInstance().GetRecordManager();
   }
 
-  static constexpr u32 kMaxSlots = 6;
-
   void* vtable;
-  PokemonCoreData pokemons[kMaxSlots];
+  u32 records_0[100];
+  u16 records_1[100];
+  u32 _0;
+  bool is_disabled;
 };
 } // namespace savedata

@@ -20,7 +20,7 @@
 #include "feature/cheat_code.h"
 #include "ui/plugin_menu.h"
 #include "utils.h"
-#include "global_data/item.h"
+#include "game/global_data/item.h"
 
 namespace ui {
 /**
