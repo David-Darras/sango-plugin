@@ -31,15 +31,19 @@ public:
                             (uptr)CallAppHook);
   }
 
-  struct Input {
+  struct MoveDeleterInput {
     savedata::PokemonParam* pokemon;
     u16 move_id;
     bool delete_move;
     u8 move_index;
   };
 
-  static void Callback(uptr* data, game::Manager* manager) {
-    Input* input = (Input*)data[1];
+  struct MoveReminderInput {
+    savedata::PokemonParam* pokemon;
+  };
+
+  static void MoveDeleterCallback(uptr* data, game::Manager* manager) {
+    auto* input = (MoveDeleterInput*)data[1];
     if (input->delete_move) {
       input->pokemon->accessor->Decrypt();
       input->pokemon->core->moves[input->move_index] = 0;
@@ -49,15 +53,26 @@ public:
 
   static void CallAppHook(uptr self, game::Manager* manager) {
     auto& controller = Controller::GetInstance();
-    if (controller.IsKeyDown(Key::kA) && controller.IsKeyDown(Key::kUp)) {
-      u8& choice = READ(u8, self + 28);
 
-      if (choice == 0) {
-        choice = 8;
-        Input* input = (Input*)READ(u32, self+0x20);
-        input->pokemon = savedata::PokemonTeam::GetInstance().pokemons[0];
-        WRITE(u32, self + 0x2C, (uptr)Callback);
-      }
+    u8& choice = READ(u8, self + 28);
+    if (choice != 0) {
+      HookManager::Call<void>(HookID::kCallApp, self, manager);
+      return;
+    }
+
+    // Call Move Deleter
+    if (controller.IsKeyDown(Key::kA) && controller.IsKeyDown(Key::kUp)) {
+      choice = 8;
+      auto* input = (MoveDeleterInput*)READ(u32, self+0x20);
+      input->pokemon = savedata::PokemonTeam::GetInstance().pokemons[0];
+      WRITE(u32, self + 0x2C, (uptr)MoveDeleterCallback);
+    }
+
+    // Call Move Reminder
+    if (controller.IsKeyDown(Key::kA) && controller.IsKeyDown(Key::kDown)) {
+      choice = 9;
+      auto* input = (MoveReminderInput*)READ(u32, self+0x20);
+      input->pokemon = savedata::PokemonTeam::GetInstance().pokemons[0];
     }
 
     HookManager::Call<void>(HookID::kCallApp, self, manager);
