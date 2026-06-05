@@ -27,6 +27,7 @@
 #include "feature/feature_device.h"
 #include "feature/feature_map_tile.h"
 #include "feature/feature_overworld_model.h"
+#include "feature/feature_app.h"
 #include "feature/feature_process.h"
 #include "ui/main_application.h"
 #include "system/device.h"
@@ -52,7 +53,7 @@ void Initialize() {
   feature::MapTileHookContext::Initialize();
   feature::CameraHookContext::Initialize();
   feature::OverworldModelCheatCode::Initialize();
-  feature::ProcessHookContext::Initialize();
+  feature::AppHookContext::Initialize();
 
   auto& application_manager = ui::ApplicationManager::GetInstance();
   auto& root_app = ui::RootApplication::GetInstance();
@@ -78,6 +79,7 @@ void Entrypoint() {
 
   application->Update(controller);
   cheat_code_manager.Update();
+  feature::ProcessHookContext::DoEachFrame();
 
   void* top_buffer = graphics.GetFramebuffer(Screen::kTop);
   if (graphics.BindFramebuffer(top_buffer)) {

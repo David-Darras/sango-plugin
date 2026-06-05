@@ -15,23 +15,24 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "feature/feature_field_move.h"
+#include "feature/feature_app.h"
 #include "ui/main_application.h"
-#include "ui/page/page_top.h"
 
 namespace ui {
-void LoadHmPage(MainApplication& app, void* args) {
-  app.Add("Cut", [&](void*) { feature::FieldMove::Execute(0); })
-     .Add("Rock Smash", [&](void*) { feature::FieldMove::Execute(4); })
-     .Add("Strength", [&](void*) { feature::FieldMove::Execute(3); })
-     .Add("Fly", [&](void*) { feature::FieldMove::Execute(5); })
-     .Add("Surf", [&](void*) { feature::FieldMove::Execute(1); })
-     .Add("Dive", [&](void*) { feature::FieldMove::Execute(10); })
-     .Add("Waterfall", [&](void*) { feature::FieldMove::Execute(2); });
-}
+void LoadAppPage(MainApplication& app, void* args) {
+  auto& ctx = feature::AppHookContext::GetInstance();
 
-void LoadNuzlockePage(MainApplication& app, void* args) {
-  app.Add("HM", LoadHmPage)
-     .Add("App", LoadAppPage);
+  const std::pair<const char*, u32> apps[] = {
+      {"Tutor", 7},
+      {"Delete", 8},
+      {"Remind", 9},
+      {"PC", 17}
+  };
+
+  for (const auto& app_pair : apps) {
+    app.Add(app_pair.first, [&ctx, app_pair](void*) {
+      ctx.TriggerApp(app_pair.second);
+    });
+  }
 }
 } // namespace ui

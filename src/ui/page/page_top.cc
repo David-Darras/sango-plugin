@@ -20,6 +20,7 @@
 #include "game/overworld/weather_manager.h"
 #include "ui/page/page_top.h"
 
+#include "feature/feature_app.h"
 #include "game/process_manager.h"
 #include "game/savedata/pokemon_team.h"
 
@@ -33,7 +34,8 @@ void LoadTopPage(MainApplication& app, void* args) {
 
   auto& weather_manager = overworld::WeatherManager::GetInstance();
 
-  app.Add("Game Speed", feature::EngineHookContext::GetInstance().game_speed)
+  app.Add("App", LoadAppPage)
+     .Add("Game Speed", feature::EngineHookContext::GetInstance().game_speed)
      .Add("Save Data", LoadSaveDataPage)
      .Add("Global Data", LoadGlobalDataPage)
      .Add("Renderer", LoadRendererPage)

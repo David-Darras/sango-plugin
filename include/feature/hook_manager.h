@@ -49,6 +49,7 @@ enum class HookID : u32 {
   kUpdateFrame,
   kCreatePokemonModel,
   kCallApp,
+  kCheckAppRequest,
   kMax
 };
 
@@ -93,6 +94,11 @@ public:
   STATIC_INLINE void
   Initialize(HookID id, u32 src, u32 dst, bool enable = true) {
     GetInstance().Add(id, src, dst, enable);
+  }
+
+  STATIC_INLINE void
+  ForceEnable(HookID id) {
+    GetInstance().Get(id)->Enable(true);
   }
 
 private:

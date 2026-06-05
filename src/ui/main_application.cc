@@ -256,15 +256,13 @@ void RetroAppPainter::DrawPageItems(MainApplication& app) {
   Color blue(0.066667, 0.203922, 0.592157, 1);
   Color black(0.007843, 0.062745, 0.200000, 1);
 
-  Graphics::DrawText(391, 15 + 16 * (ctx.cursor + 1), u">",
+  Graphics::DrawText(391, 15 + 16 * ctx.cursor, u">",
                      blue);
-
-  Graphics::DrawText(394, 15, u"[HM]", black);
 
   c16 buffer[BUFFER_SIZE];
   for (u32 i = 0; i < ctx.display_count; i++) {
     app.entries_[i + ctx.offset].GetDisplayValue(buffer);
-    Graphics::DrawText(405, 15 + (i + 1) * MainApplication::kLineHeight, buffer,
+    Graphics::DrawText(405, 15 + i * MainApplication::kLineHeight, buffer,
                        ctx.cursor == i
                          ? blue
                          : black);
