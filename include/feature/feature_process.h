@@ -18,6 +18,7 @@
 #ifndef SANGO_PLUGIN_FEATURE_PROCESS_H
 #define SANGO_PLUGIN_FEATURE_PROCESS_H
 #include "feature_app.h"
+#include "feature_engine.h"
 #include "game/process_manager.h"
 #include "ui/log_application.h"
 
@@ -38,28 +39,30 @@ public:
 
   static void OnEnterOverworld() {
     AppHookContext::OnEnterOverworld();
+#if ENABLE_NUZLOCKE_MENU == 1
     auto& heal_team = GetInstance().heal_team;
     if (heal_team) {
-#if ENABLE_NUZLOCKE_MENU == 1
       auto& team = savedata::PokemonTeam::GetInstance();
-      for (u32 i = 0; i < team.count; i++) {
-        team.pokemons[i]->accessor->Decrypt();
-        team.pokemons[i]->runtime->hp = team.pokemons[i]->runtime->max_hp;
-        team.pokemons[i]->accessor->Encrypt();
-      }
-#endif
+      team.HealAllPokemons();
       heal_team = false;
     }
+#endif
   }
 
   static void OnUpdateOverworld() {
   }
 
   static void OnExitBattle() {
+#if ENABLE_NUZLOCKE_MENU == 1
     GetInstance().heal_team = true;
+    feature::EngineHookContext::GetInstance().game_speed = 1;
+#endif
   }
 
   static void OnEnterBattle() {
+#if ENABLE_NUZLOCKE_MENU == 1
+    feature::EngineHookContext::GetInstance().game_speed = 2;
+#endif
   }
 
   static void OnUpdateBattle() {

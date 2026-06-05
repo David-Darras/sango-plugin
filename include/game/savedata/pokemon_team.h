@@ -31,11 +31,17 @@ struct PokemonParam {
   PokemonDataAccessor* accessor;
 };
 
+#define ADDRESS_HEAL_TEAM (0x03B5FC0)
+
 struct PokemonTeam {
   SINGLETON(PokemonTeam)
-
   STATIC_INLINE PokemonTeam& GetInstance() {
     return game::DataManager::GetInstance().GetPokemonTeam();
+  }
+
+
+  INLINE void HealAllPokemons() {
+    ((void(*)(PokemonTeam*))ADDRESS_HEAL_TEAM)(this);
   }
 
   static constexpr u32 kMaxSlots = 6;
