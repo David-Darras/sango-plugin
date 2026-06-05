@@ -63,19 +63,22 @@ struct BattleHookContext {
   static bool UpdateExpHook(void* self, battle::Team* team,
                             LevelUpData* data) {
     static const u8 LEVEL_CAPS[] = {
-        15,
-        20,
-        25,
-        30,
-        32,
-        35,
-        45,
-        50,
-        100
+        15, // 0 badge
+        19, // 1 badge
+        28, // 2 badges
+        38, // 3 badges
+        42, // 4 badges
+        50, // 5 badges
+        62, // 6 badges
+        67, // 7 badges
+        80, // 8 badges
+        100 // league
     };
 
     u32 count = savedata::Misc::GetInstance().GetBadgesCount();
     u32 max_level = LEVEL_CAPS[count];
+
+
 
     for (u32 i = 0; i < team->count; i++) {
       data[i].ev_hp = 0;

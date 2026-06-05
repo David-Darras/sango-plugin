@@ -19,9 +19,11 @@
 #define SANGO_PLUGIN_FEATURE_PROCESS_H
 #include "feature_app.h"
 #include "feature_engine.h"
+#include "feature_light.h"
 #include "game/process_manager.h"
 #include "game/battle/manager.h"
 #include "game/global_data/pokemon.h"
+#include "game/renderer/picture.h"
 #include "ui/log_application.h"
 
 namespace feature {
@@ -63,6 +65,10 @@ public:
 
   static void OnEnterBattle() {
 #if ENABLE_NUZLOCKE_MENU == 1
+
+    ARM_RET(0x003989B0);
+    ARM_RET(0x003881EC);
+
     HookManager::ForceEnable(HookID::kUpdateExp);
 
     feature::EngineHookContext::GetInstance().game_speed = 2;

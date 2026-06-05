@@ -66,6 +66,10 @@ void Initialize() {
 #if ENABLE_NUZLOCKE_MENU == 1
   main_app.SetPainter(ui::RetroAppPainter::GetInstance());
   main_app.Open(ui::LoadNuzlockePage);
+
+  auto& light = feature::LightHookContext::GetInstance();
+  light.use_outline = true;
+  light.outline_scale = 0.0f;
 #else
   main_app.SetPainter(ui::MainAppPainter::GetInstance());
   main_app.Open(ui::LoadTopPage);
