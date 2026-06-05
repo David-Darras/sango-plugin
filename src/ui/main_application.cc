@@ -66,6 +66,12 @@ void MainApplication::DrawBottom(Graphics& graphics) {
   Graphics::DrawText(5, 216, buffer, theme_.edited_text_color);
 }
 
+void MainApplication::ForceClose() {
+  Sound::PlaySoundEffect(IsOpened() ? theme_.close_sound : theme_.open_sound);
+  is_opened_ = false;
+  feature::DeviceHookContext::GetInstance().use_redirection = is_opened_;
+}
+
 void MainApplication::Update(Controller& controller) {
   if (AreKeysReleased(controller)) {
     Sound::PlaySoundEffect(IsOpened() ? theme_.close_sound : theme_.open_sound);

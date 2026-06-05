@@ -69,7 +69,7 @@ public:
 */
   bool IsOpened() const { return is_opened_; };
 
-  void ForceClose() { is_opened_ = false; };
+  void ForceClose();
 
   /**
 * @brief Enters a submenu with an optional initialization callback.

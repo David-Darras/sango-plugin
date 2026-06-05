@@ -23,10 +23,10 @@ void LoadAppPage(MainApplication& app, void* args) {
   auto& ctx = feature::AppHookContext::GetInstance();
 
   const std::pair<const char*, u32> apps[] = {
-      {"Tutor", 7},
-      {"Delete", 8},
+      // {"Tutor", 7},
+      {"PC", 17},
       {"Remind", 9},
-      {"PC", 17}
+      {"Delete", 8}
   };
 
   for (const auto& app_pair : apps) {

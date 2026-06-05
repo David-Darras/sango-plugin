@@ -29,7 +29,7 @@
 #include "game/savedata/pokemon_team.h"
 #include "game/savedata/trainer_status.h"
 #include "system/device.h"
-#include "ui/log_application.h"
+#include "ui/main_application.h"
 
 #define ADDRESS_CHECK_APP_REQUEST (0x007BDE50)
 
@@ -60,6 +60,7 @@ public:
   void TriggerApp(u32 id) {
     app_id = id;
     open_app = true;
+    ui::MainApplication::GetInstance().ForceClose();
   }
 
   struct MoveInput {

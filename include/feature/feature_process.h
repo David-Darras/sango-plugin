@@ -19,22 +19,53 @@
 #define SANGO_PLUGIN_FEATURE_PROCESS_H
 #include "feature_app.h"
 #include "game/process_manager.h"
+#include "ui/log_application.h"
 
 namespace feature {
 class ProcessHookContext {
   MAKE_SINGLETON(ProcessHookContext)
 public:
   enum State {
-    kIdle,
-    kEnterOverworld,
+    kUnknow,
     kOverworld,
+    kBattle,
   };
 
   const char* current_process = nullptr;
-  State state = kIdle;
+  State old_state = kUnknow;
+  State current_state = kUnknow;
+  bool heal_team = false;
 
   static void OnEnterOverworld() {
     AppHookContext::OnEnterOverworld();
+    auto& heal_team = GetInstance().heal_team;
+    if (heal_team) {
+#if ENABLE_NUZLOCKE_MENU == 1
+      auto& team = savedata::PokemonTeam::GetInstance();
+      for (u32 i = 0; i < team.count; i++) {
+        team.pokemons[i]->accessor->Decrypt();
+        team.pokemons[i]->runtime->hp = team.pokemons[i]->runtime->max_hp;
+        team.pokemons[i]->accessor->Encrypt();
+      }
+#endif
+      heal_team = false;
+    }
+  }
+
+  static void OnUpdateOverworld() {
+  }
+
+  static void OnExitBattle() {
+    GetInstance().heal_team = true;
+  }
+
+  static void OnEnterBattle() {
+  }
+
+  static void OnUpdateBattle() {
+  }
+
+  static void OnExitOverworld() {
   }
 
   static void DoEachFrame() {
@@ -43,17 +74,52 @@ public:
     ctx.current_process = game::ProcessManager::GetInstance().
         GetCurrentProcessName();
 
-    if (strcmp(ctx.current_process, PROCESS_NAME_FIELD_MAP) == 0) {
-      if (ctx.state == kIdle) {
-        ctx.state = kEnterOverworld;
-      } else if (ctx.state == kEnterOverworld) {
-        OnEnterOverworld();
-        ctx.state = kOverworld;
-      } else if (ctx.state == kOverworld) {
-        ctx.state = kOverworld;
+    bool is_fieldmap = strcmp(ctx.current_process, PROCESS_NAME_FIELD_MAP) == 0;
+    bool is_battle = strcmp(ctx.current_process, PROCESS_NAME_BATTLE) == 0;
+
+    ctx.old_state = ctx.current_state;
+
+    if (is_fieldmap) {
+      ctx.current_state = kOverworld;
+    } else if (is_battle) {
+      ctx.current_state = kBattle;
+    } else {
+      ctx.current_state = kUnknow;
+    }
+
+    if (ctx.current_state != ctx.old_state) {
+      switch (ctx.old_state) {
+        case kOverworld:
+          OnExitOverworld();
+          break;
+        case kBattle:
+          OnExitBattle();
+          break;
+        default:
+          break;
+      }
+
+      switch (ctx.current_state) {
+        case kOverworld:
+          OnEnterOverworld();
+          break;
+        case kBattle:
+          OnEnterBattle();
+          break;
+        default:
+          break;
       }
     } else {
-      ctx.state = kIdle;
+      switch (ctx.current_state) {
+        case kOverworld:
+          OnUpdateOverworld();
+          break;
+        case kBattle:
+          OnUpdateBattle();
+          break;
+        default:
+          break;
+      }
     }
   }
 };
