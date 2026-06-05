@@ -38,6 +38,7 @@ struct OPowerManager;
 struct PssGroup;
 struct Encounter;
 struct OverworldMenu;
+struct EventTable;
 
 /**
 * @class SaveData
@@ -126,6 +127,8 @@ public:
   INLINE Settings& GetSettings() { return *(Settings*)segments_[23]; }
 
   INLINE Pokedex& GetPokedex() { return *(Pokedex*)segments_[20]; }
+
+  INLINE EventTable& GetEventTable() { return *(EventTable*)segments_[19]; }
 
 
   /// @brief Total number of data segments monitored for integrity.

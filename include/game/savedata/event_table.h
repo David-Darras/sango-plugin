@@ -16,28 +16,32 @@
  */
 
 #pragma once
-#include "game/overworld/map_manager.h"
-#include "ui/log_application.h"
-#include "ui/main_application.h"
+#include "common.h"
+#include "game/savedata/savedata.h"
 
-namespace feature {
-struct FieldMove {
-  MAKE_SINGLETON(FieldMove)
-  static void Execute(u32 choice) {
-    auto& main_app = ui::MainApplication::GetInstance();
-    if (main_app.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
+namespace savedata {
+struct EventTable {
+  SINGLETON(EventTable)
+  void* vtable;
+  u16 data[376];
+  u8 flag[416];
+  u16 _0;
 
-    auto& map_manager = overworld::MapManager::GetInstance();
+  STATIC_INLINE EventTable& GetInstance() {
+    return SaveData::GetInstance().GetEventTable();
+  }
 
-    struct {
-      u16 zone_id;
-      u16 team_index;
-      overworld::MapManager* map_manager;
-    } context = {(u16)map_manager.GetMapId(), 0, &map_manager};
+  INLINE bool Check(u16 flag_id) {
+    return ((bool(*)(EventTable*, u16))ADDRESS_EVENT_TABLE_CHECK_FLAG)(
+        this, flag_id);
+  }
 
-    ((void (*)(void*, u32))ADDRESS_DO_FIELD_MOVE)(&context, choice);
+  INLINE void Reset(u16 flag_id) {
+    ((void(*)(EventTable*, u16))ADDRESS_EVENT_TABLE_RESET_FLAG)(this, flag_id);
+  }
 
-    ui::MainApplication::GetInstance().ForceClose();
+  INLINE void Set(u16 flag_id) {
+    ((void(*)(EventTable*, u16))ADDRESS_EVENT_TABLE_SET_FLAG)(this, flag_id);
   }
 };
-}
+} // namespace savedata

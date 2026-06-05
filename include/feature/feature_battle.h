@@ -20,6 +20,7 @@
 #include "common.h"
 #include "hook_manager.h"
 #include "game/battle/manager.h"
+#include "game/savedata/event_table.h"
 #include "game/savedata/misc.h"
 #include "game/savedata/pokemon_utils.h"
 
@@ -71,14 +72,11 @@ struct BattleHookContext {
         50, // 5 badges
         62, // 6 badges
         67, // 7 badges
-        80, // 8 badges
-        100 // league
+        80 // 8 badges
     };
 
     u32 count = savedata::Misc::GetInstance().GetBadgesCount();
     u32 max_level = LEVEL_CAPS[count];
-
-
 
     for (u32 i = 0; i < team->count; i++) {
       data[i].ev_hp = 0;
@@ -88,12 +86,15 @@ struct BattleHookContext {
       data[i].ev_special_attack = 0;
       data[i].ev_special_defense = 0;
 
-      u8 new_level = PokemonUtils::GetLevelFromExperience(
-          team->pokemon[i]->species,
-          team->pokemon[i]->form,
-          team->pokemon[i]->experience + data[i].exp);
-      if (new_level >= max_level) {
-        data[i].exp = 0;
+      // Game finished => Max Level = 100
+      if (!savedata::EventTable::GetInstance().Check(2720)) {
+        u8 new_level = PokemonUtils::GetLevelFromExperience(
+            team->pokemon[i]->species,
+            team->pokemon[i]->form,
+            team->pokemon[i]->experience + data[i].exp);
+        if (new_level >= max_level) {
+          data[i].exp = 0;
+        }
       }
     }
 
