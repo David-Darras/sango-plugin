@@ -24,6 +24,8 @@
 #define ADDRESS_GAME_MANAGER (0x08C69094)
 /** @} */
 
+#define ADDRESS_CALL_APP (0x003CFBA8)
+
 /** * @name HID (Human Interface Device) Addresses
  * @{ */
 #define ADDRESS_DEVICE_GET_CONTROLLER (0x00117550)

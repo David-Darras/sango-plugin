@@ -19,8 +19,8 @@
 #include <cstring>
 
 #include "common.h"
+#include "pokemon_core_data.h"
 
-struct PokemonCoreData;
 struct PokemonRuntimeData;
 
 class PokemonDataAccessor {

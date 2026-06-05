@@ -27,6 +27,7 @@
 #include "feature/feature_device.h"
 #include "feature/feature_map_tile.h"
 #include "feature/feature_overworld_model.h"
+#include "feature/feature_process.h"
 #include "ui/main_application.h"
 #include "system/device.h"
 #include "system/file.h"
@@ -51,6 +52,7 @@ void Initialize() {
   feature::MapTileHookContext::Initialize();
   feature::CameraHookContext::Initialize();
   feature::OverworldModelCheatCode::Initialize();
+  feature::ProcessHookContext::Initialize();
 
   auto& application_manager = ui::ApplicationManager::GetInstance();
   auto& root_app = ui::RootApplication::GetInstance();

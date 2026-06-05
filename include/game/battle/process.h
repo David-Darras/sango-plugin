@@ -19,7 +19,9 @@
 
 #include "common.h"
 
+namespace game {
 class ProcessManager;
+}
 
 namespace battle {
 class Manager;
@@ -42,7 +44,7 @@ private:
   void* vtable_;
   u32 _0[6];
 
-  ProcessManager* game_process_manager_;
+  game::ProcessManager* game_process_manager_;
   void* heaps_[6];
 
   Config* config_;

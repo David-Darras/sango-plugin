@@ -20,6 +20,9 @@
 #include "game/overworld/weather_manager.h"
 #include "ui/page/page_top.h"
 
+#include "game/process_manager.h"
+#include "game/savedata/pokemon_team.h"
+
 namespace ui {
 void LoadTopPage(MainApplication& app, void* args) {
   static const c8* WEATHERS[] = {

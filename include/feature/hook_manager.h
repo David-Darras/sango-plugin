@@ -48,6 +48,7 @@ enum class HookID : u32 {
   kOnSaveGameData,
   kUpdateFrame,
   kCreatePokemonModel,
+  kCallApp,
   kMax
 };
 

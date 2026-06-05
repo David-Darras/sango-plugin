@@ -26,10 +26,11 @@ namespace game {
 class Manager;
 } // namespace game
 
+struct PokemonCoreData;
+
 namespace savedata {
 class PokemonTeam;
 struct PokemonParam;
-struct PokemonCoreData;
 } // namespace savedata
 
 namespace overworld {
@@ -42,7 +43,7 @@ class Manager;
 class Graphics;
 
 struct Pokemon {
-  savedata::PokemonCoreData* core_data;
+  PokemonCoreData* core_data;
   u32 _0;
   u32 experience;
   u16 species;
