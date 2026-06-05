@@ -28,9 +28,16 @@ namespace savedata {
 */
 struct Misc {
   SINGLETON(Misc)
-
   STATIC_INLINE Misc& GetInstance() {
     return SaveData::GetInstance().GetMisc();
+  }
+
+  INLINE u32 GetBadgesCount() {
+    u32 count = 0;
+    for (u32 i = 0; i < 8; i++) {
+      if (badges & (1 << i)) count++;
+    }
+    return count;
   }
 
   /// @brief Maximum character length for nicknames.

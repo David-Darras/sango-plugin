@@ -61,7 +61,15 @@ public:
 
   static void OnEnterBattle() {
 #if ENABLE_NUZLOCKE_MENU == 1
+    HookManager::ForceEnable(HookID::kUpdateExp);
+
     feature::EngineHookContext::GetInstance().game_speed = 2;
+
+    // Only access to pokeball
+    WRITE(vu8, 0x007CB09C, 2); // HP/PP -> Ball
+    // WRITE(vu8, 0x007CB0B4, 2) // Ball
+    WRITE(vu8, 0x007CB0CC, 2); // Status -> Ball
+    WRITE(vu8, 0x007CB0E4, 2); // Battle -> Item
 #endif
   }
 

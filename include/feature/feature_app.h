@@ -48,7 +48,7 @@ public:
     HookManager::Initialize(HookID::kCallApp, ADDRESS_CALL_APP,
                             (uptr)CallAppHook);
     HookManager::Initialize(HookID::kCheckAppRequest, ADDRESS_CHECK_APP_REQUEST,
-                            (uptr)CheckAppRequestHook);
+                            (uptr)CheckAppRequestHook, false);
   }
 
   static void OnEnterOverworld() {
