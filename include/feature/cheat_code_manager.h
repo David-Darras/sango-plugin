@@ -25,6 +25,7 @@ enum class CheatCodeId {
   kInstantMaxExpForDayCare,
   kNoclip,
   kSwarmMod,
+  kNoEncounter,
   kMax
 };
 

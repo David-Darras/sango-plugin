@@ -29,6 +29,7 @@
 #include "feature/feature_overworld_model.h"
 #include "feature/feature_app.h"
 #include "feature/feature_battle.h"
+#include "feature/feature_encounter.h"
 #include "feature/feature_process.h"
 #include "ui/main_application.h"
 #include "system/device.h"
@@ -56,6 +57,7 @@ void Initialize() {
   feature::OverworldModelCheatCode::Initialize();
   feature::AppHookContext::Initialize();
   feature::BattleHookContext::Initialize();
+  feature::EncounterCheatCode::Initialize();
 
   auto& application_manager = ui::ApplicationManager::GetInstance();
   auto& root_app = ui::RootApplication::GetInstance();

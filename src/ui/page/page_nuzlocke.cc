@@ -16,6 +16,8 @@
  */
 
 #include "feature/feature_field_move.h"
+#include "game/overworld/encounter.h"
+#include "game/savedata/savedata.h"
 #include "ui/main_application.h"
 #include "ui/page/page_top.h"
 
@@ -32,6 +34,7 @@ void LoadHmPage(MainApplication& app, void* args) {
 
 void LoadNuzlockePage(MainApplication& app, void* args) {
   app.Add("HM", LoadHmPage)
-     .Add("App", LoadAppPage);
+     .Add("App", LoadAppPage)
+     .Add("Repel", CheatCodeId::kNoEncounter);
 }
 } // namespace ui
