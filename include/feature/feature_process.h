@@ -20,6 +20,8 @@
 #include "feature_app.h"
 #include "feature_engine.h"
 #include "game/process_manager.h"
+#include "game/battle/manager.h"
+#include "game/global_data/pokemon.h"
 #include "ui/log_application.h"
 
 namespace feature {
@@ -70,10 +72,38 @@ public:
     // WRITE(vu8, 0x007CB0B4, 2) // Ball
     WRITE(vu8, 0x007CB0CC, 2); // Status -> Ball
     WRITE(vu8, 0x007CB0E4, 2); // Battle -> Item
+
 #endif
   }
 
   static void OnUpdateBattle() {
+#if ENABLE_NUZLOCKE_MENU == 1
+    for (u32 i = 0; i < 6; i++) {
+      u32 pkmMdl = *(u32*)(0x83F84C0 + 4 * i); // Base address of the 3D model
+      if (pkmMdl == 0)
+        continue;
+
+      u16 pkmNum = *(u16*)(pkmMdl + 0x170); // Pokédex number
+      if (pkmNum >= 722)
+        continue;
+
+      u32 pkmData = *(u32*)0x617A00 + 0x50 * pkmNum;
+      // Personal data of the Pokémon
+      float realSize = (float)*(u16*)(pkmData + 0x24);
+      // Actual height according to the Pokédex
+      float defaultSize = (float)*(u16*)(pkmData + 0x3C);
+      // Default displayed size in battle
+      float ratio = realSize / defaultSize;
+
+      // Update Pokémon scale
+      *(float*)(pkmMdl + 0x34) = ratio;
+      *(float*)(pkmMdl + 0x38) = ratio;
+      *(float*)(pkmMdl + 0x3C) = ratio;
+
+      // Mark the model to be updated
+      *(bool*)(pkmMdl + 0x4C) = true;
+    }
+#endif
   }
 
   static void OnExitOverworld() {
