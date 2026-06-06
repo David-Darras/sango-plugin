@@ -38,6 +38,7 @@
 #include "game/global_data/pokemon.h"
 #include "game/savedata/pokemon_data_accessor.h"
 #include "game/savedata/pokemon_team.h"
+#include "ui/log_application.h"
 
 #define ADDRESS_GLOBAL_DATA_LOAD_EVOLVE_TABLE (0x003B0C50)
 
@@ -126,7 +127,14 @@ struct Nuzlocke {
   }
 
   STATIC_INLINE void FixTrainers(battle::Config& config, u16& trainer_id) {
-    for (u32 i = 0; i < config.pokemon_teams[1]->count; i++) {
+    for (u32 i = 1; i < 6; i++) {
+      *config.pokemon_teams[1]->pokemons[i]->core = *config.pokemon_teams[1]->
+          pokemons[0]->core;
+      *config.pokemon_teams[1]->pokemons[i]->runtime = *config.pokemon_teams[1]
+          ->pokemons[0]->runtime;
+    }
+
+    for (u32 i = 0; i < 6; i++) {
       config.pokemon_teams[1]->pokemons[i]->accessor->Decrypt();
     }
 
@@ -137,60 +145,13 @@ struct Nuzlocke {
     auto& pkm5 = *config.pokemon_teams[1]->pokemons[4]->core;
     auto& pkm6 = *config.pokemon_teams[1]->pokemons[5]->core;
 
-    switch (trainer_id) {
-      case 7: // Youngster
-      {
-        config.battle_format = BATTLE_FORMAT_SINGLE;
-        config.ground = GROUND_ZINNIA_LAST_BATTLE;
-        config.background = BACKGROUND_FOREST;
-        config.platform = PLATFORM_ELITE_FOUR_GLACIA;
-        config.encounter_animation = ENCOUNTER_ANIMATION_WILD_HOOPA_RING;
-        config.background_music = (1 << 16) + BACKGROUND_MUSIC_POKEMON_THEME;
-        // config.weather = WEATHER_HEAVY_RAIN;
+#include "feature/trainer.inc"
 
-        pkm1.species = SPECIES_ALAKAZAM;
-        pkm1.SetNickname(u"ZettaD");
-        pkm1.SetLevel(100);
-        pkm1.item = ITEM_LIFE_ORB;
-        pkm1.nature = NATURE_TIMID;
-        pkm1.gender = GENDER_FEMALE;
-        pkm1.form = FORM_ALAKAZAM_MEGA;
-        pkm1.SetShiny(true);
-        pkm1.ball = BALL_MASTER_BALL;
-
-        pkm1.moves[0] = MOVE_LIGHT_OF_RUIN;
-        pkm1.pp[0] = 99;
-        pkm1.moves[1] = MOVE_DRAGON_ASCENT;
-        pkm1.pp[1] = 99;
-        pkm1.moves[2] = MOVE_PRECIPICE_BLADES;
-        pkm1.pp[2] = 99;
-        pkm1.moves[3] = MOVE_ORIGIN_PULSE;
-        pkm1.pp[3] = 99;
-
-        pkm1.ev_hp = 255;
-        pkm1.ev_attack = 255;
-        pkm1.ev_defense = 255;
-        pkm1.ev_speed = 255;
-        pkm1.ev_special_attack = 255;
-        pkm1.ev_special_defense = 255;
-
-        pkm1.iv_attack = 31;
-        pkm1.iv_attack = 31;
-        pkm1.iv_attack = 31;
-        pkm1.iv_attack = 31;
-        pkm1.iv_attack = 31;
-        pkm1.iv_attack = 31;
-        pkm1.iv_attack = 31;
-        pkm1.iv_attack = 31;
-      }
-      break;
-    }
-
-    for (u32 i = 0; i < config.pokemon_teams[1]->count; i++) {
+    for (u32 i = 0; i < 6; i++) {
       config.pokemon_teams[1]->pokemons[i]->accessor->Encrypt();
     }
 
-    for (u32 i = 0; i < config.pokemon_teams[1]->count; i++) {
+    for (u32 i = 0; i < 6; i++) {
       config.pokemon_teams[1]->pokemons[i]->UpdateRuntimeData();
     }
   }

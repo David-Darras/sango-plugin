@@ -1,0 +1,183 @@
+[
+  {
+    "trainer_id": 7,
+    "party": [
+      {
+        "species": "SPECIES_ALAKAZAM",
+        "nickname": "ZettaD",
+        "level": 100,
+        "item": "ITEM_LIFE_ORB",
+        "nature": "NATURE_TIMID",
+        "gender": "GENDER_FEMALE",
+        "form": "FORM_ALAKAZAM_MEGA",
+        "is_shiny": true,
+        "ball": "BALL_MASTER_BALL",
+        "moves": [
+          {
+            "move": "MOVE_LIGHT_OF_RUIN",
+            "pp": 99
+          },
+          {
+            "move": "MOVE_DRAGON_ASCENT",
+            "pp": 99
+          },
+          {
+            "move": "MOVE_PRECIPICE_BLADES",
+            "pp": 99
+          },
+          {
+            "move": "MOVE_ORIGIN_PULSE",
+            "pp": 99
+          }
+        ],
+        "evs": {
+          "hp": 255,
+          "attack": 255,
+          "defense": 255,
+          "speed": 255,
+          "special_attack": 255,
+          "special_defense": 255
+        },
+        "ivs": {
+          "hp": 31,
+          "attack": 31,
+          "defense": 31,
+          "speed": 31,
+          "special_attack": 31,
+          "special_defense": 31
+        }
+      },
+      {
+        "species": "SPECIES_RATTATA",
+        "nickname": "TopPercent",
+        "level": 1,
+        "item": "ITEM_FOCUS_SASH",
+        "nature": "NATURE_JOLLY",
+        "gender": "GENDER_MALE",
+        "is_shiny": false,
+        "ball": "BALL_POKE_BALL",
+        "moves": [
+          {
+            "move": "MOVE_ENDEAVOR",
+            "pp": 5
+          },
+          {
+            "move": "MOVE_QUICK_ATTACK",
+            "pp": 30
+          }
+        ],
+        "evs": {
+          "hp": 0,
+          "attack": 255,
+          "defense": 0,
+          "speed": 255,
+          "special_attack": 0,
+          "special_defense": 0
+        },
+        "ivs": {
+          "hp": 31,
+          "attack": 31,
+          "defense": 31,
+          "speed": 31,
+          "special_attack": 31,
+          "special_defense": 31
+        }
+      }
+    ]
+  },
+  {
+    "trainer_id": 8,
+    "config": {
+      "battle_format": "BATTLE_FORMAT_DOUBLE"
+    },
+    "party": [
+      {
+        "species": "SPECIES_CHARIZARD",
+        "nickname": "Infernus",
+        "level": 85,
+        "nature": "NATURE_MODEST",
+        "gender": "GENDER_MALE",
+        "is_shiny": false,
+        "ball": "BALL_CHERISH_BALL",
+        "moves": [
+          {
+            "move": "MOVE_HEAT_WAVE",
+            "pp": 10
+          },
+          {
+            "move": "MOVE_SOLAR_BEAM",
+            "pp": 10
+          },
+          {
+            "move": "MOVE_AIR_SLASH",
+            "pp": 15
+          },
+          {
+            "move": "MOVE_ROOST",
+            "pp": 10
+          }
+        ],
+        "evs": {
+          "hp": 4,
+          "attack": 0,
+          "defense": 0,
+          "speed": 252,
+          "special_attack": 252,
+          "special_defense": 0
+        },
+        "ivs": {
+          "hp": 31,
+          "attack": 0,
+          "defense": 31,
+          "speed": 31,
+          "special_attack": 31,
+          "special_defense": 31
+        }
+      },
+      {
+        "species": "SPECIES_VENUSAUR",
+        "nickname": "Brindille",
+        "level": 85,
+        "item": "ITEM_LIFE_ORB",
+        "nature": "NATURE_MODEST",
+        "gender": "GENDER_FEMALE",
+        "is_shiny": true,
+        "ball": "BALL_NEST_BALL",
+        "moves": [
+          {
+            "move": "MOVE_GIGA_DRAIN",
+            "pp": 10
+          },
+          {
+            "move": "MOVE_SLUDGE_BOMB",
+            "pp": 10
+          },
+          {
+            "move": "MOVE_WEATHER_BALL",
+            "pp": 10
+          },
+          {
+            "move": "MOVE_GROWTH",
+            "pp": 20
+          }
+        ],
+        "evs": {
+          "hp": 0,
+          "attack": 0,
+          "defense": 4,
+          "speed": 252,
+          "special_attack": 252,
+          "special_defense": 0
+        },
+        "ivs": {
+          "hp": 31,
+          "attack": 31,
+          "defense": 31,
+          "speed": 31,
+          "special_attack": 31,
+          "special_defense": 31
+        }
+      }
+    ]
+  }
+]
