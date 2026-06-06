@@ -64,7 +64,7 @@ struct BattleHookContext {
   static bool UpdateExpHook(void* self, battle::Team* team,
                             LevelUpData* data) {
     static const u8 LEVEL_CAPS[] = {
-        15, // 0 badge
+        17, // 0 badge
         19, // 1 badge
         28, // 2 badges
         38, // 3 badges

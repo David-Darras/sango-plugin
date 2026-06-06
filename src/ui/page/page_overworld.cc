@@ -152,6 +152,7 @@ void LoadOverworldPage(MainApplication& app, void* args) {
 
   auto& man = overworld::MapManager::GetInstance();
   app.Add("Map Id", man.GetMapId())
+      .Add("Model", LoadOverworldModelPage)
      .Add("Encounter", LoadOverworldEncounterPage)
      .Add("Map Tile", LoadOverworldMapTilePage)
      .Add("Field Move", LoadOverworldFieldMovePage)

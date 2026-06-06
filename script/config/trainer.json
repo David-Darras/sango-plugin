@@ -1,6 +1,15 @@
 [
   {
     "trainer_id": 7,
+    "config": {
+      "battle_format": "BATTLE_FORMAT_SINGLE",
+      "ground": "GROUND_FACTORY",
+      "background": "GROUND_OCEAN_SURFACE",
+      "platform": "GROUND_FACTORY",
+      "encounter_animation": "ENCOUNTER_ANIMATION_WILD_REGICE",
+      "background_music": "BACKGROUND_MUSIC_POKEMON_CENTER",
+      "weather": "WEATHER_HEAVY_RAIN"
+    },
     "party": [
       {
         "species": "SPECIES_ALAKAZAM",

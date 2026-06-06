@@ -50,7 +50,7 @@ PageItem::PageItem()
 }
 
 void PageItem::Initialize(const c8* name, void* addr, u8 type, u32 bit_offset,
-                           u32 bit_size) {
+                          u32 bit_size) {
   name_ = name;
   address_ = addr;
   type_ = type;
@@ -232,6 +232,7 @@ void PageItem::GetArrayDisplayValue(c16* buffer) const {
     case kTypeU16:
     case kTypeSpecies:
     case kTypeMove:
+    case kTypeItem:
       index = *(u16*)address_;
       break;
     case kTypeS16:
@@ -304,6 +305,7 @@ void PageItem::Increment(u32 count) {
     case kTypeSpecies:
     case kTypeS16:
     case kTypeMove:
+    case kTypeItem:
       INCREMENT_WRAP(u16);
       break;
     case kTypeU32:
@@ -386,6 +388,7 @@ void PageItem::Decrement(u32 count) {
     case kTypeSpecies:
     case kTypeS16:
     case kTypeMove:
+    case kTypeItem:
       DECREMENT_WRAP(u16);
       break;
     case kTypeU32:
@@ -458,6 +461,7 @@ void PageItem::Edit(const void* value) {
     case kTypeSpecies:
     case kTypeS16:
     case kTypeMove:
+    case kTypeItem:
       EDIT_CLAMP(u16);
       break;
     case kTypeU32:
