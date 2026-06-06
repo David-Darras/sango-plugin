@@ -29,6 +29,10 @@ struct PokemonParam {
   PokemonCoreData* core;
   PokemonRuntimeData* runtime;
   PokemonDataAccessor* accessor;
+
+  INLINE void UpdateRuntimeData() {
+    ((void(*)(PokemonParam*))0x003B360C)(this);
+  }
 };
 
 #define ADDRESS_HEAL_TEAM (0x03B5FC0)

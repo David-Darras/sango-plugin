@@ -116,12 +116,12 @@ void LoadSaveDataPokemonPage(MainApplication& app, void* args) {
      .Add("PP 4", pkm->pp[3])
      .AddSeparator();
 
-  app.Add("EV - HP", pkm->ev.hp)
-     .Add("EV - Attack", pkm->ev.attack)
-     .Add("EV - Defense", pkm->ev.defense)
-     .Add("EV - Speed", pkm->ev.speed)
-     .Add("EV - Special Attack", pkm->ev.special_attack)
-     .Add("EV - Special Defense", pkm->ev.special_defense)
+  app.Add("EV - HP", pkm->ev_hp)
+     .Add("EV - Attack", pkm->ev_attack)
+     .Add("EV - Defense", pkm->ev_defense)
+     .Add("EV - Speed", pkm->ev_speed)
+     .Add("EV - Special Attack", pkm->ev_special_attack)
+     .Add("EV - Special Defense", pkm->ev_special_defense)
      .AddSeparator();
 
   app.Add("IV - HP", &pkm->iv_flags, 0, 5)

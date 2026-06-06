@@ -65,7 +65,9 @@ struct Config {
   u8 _0;
   u8 battle_format;
   u16 _1;
-  u32 _2;
+  u16 _2;
+  u8 weather;
+  u8 __2;
   u8 background;
   bool use_skybox;
   u8 platform;

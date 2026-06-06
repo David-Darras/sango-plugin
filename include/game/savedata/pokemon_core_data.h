@@ -17,6 +17,7 @@
 
 #pragma once
 #include "common.h"
+#include "pokemon_utils.h"
 
 struct PokemonCoreData {
   // HEADER [0x08 bytes]
@@ -49,15 +50,13 @@ struct PokemonCoreData {
     };
   };
 
-  struct {
-    u8 hp; // 17
-    u8 attack; // 18
+  u8 ev_hp; // 17
+  u8 ev_attack; // 18
 
-    u8 defense; // 19
-    u8 speed; // 1A
-    u8 special_attack; // 1B
-    u8 special_defense; // 1C
-  } ev;
+  u8 ev_defense; // 19
+  u8 ev_speed; // 1A
+  u8 ev_special_attack; // 1B
+  u8 ev_special_defense; // 1C
 
   struct {
     u8 cool; // 1D
@@ -89,7 +88,20 @@ struct PokemonCoreData {
   u16 egg_moves[4]; // 32
   u8 secret_super_training_flags; // 33
   u8 _1; // 34
-  u32 iv_flags; // 38
+
+  union {
+    u32 iv_flags; // 38
+    struct {
+      u32 iv_hp : 5;
+      u32 iv_attack : 5;
+      u32 iv_defense : 5;
+      u32 iv_speed : 5;
+      u32 iv_special_attack : 5;
+      u32 iv_special_defense : 5;
+      u32 is_egg : 1;
+      u32 use_nickname : 1;
+    };
+  };
 
   // BLOCK 3 [0x38 bytes]
   c16 first_trainer_name[13]; // 1A
@@ -135,5 +147,27 @@ struct PokemonCoreData {
   INLINE void* GetBlock(u32 index) {
     uptr addr = (uptr)this;
     return (void*)(addr + 8 + index * kBlockSize);
+  }
+
+  void SetNickname(const c16* nickname) {
+    u32 src_len = 0;
+    while (src_len < 12 && nickname[src_len] != u'\0') {
+      this->nickname[src_len] = nickname[src_len];
+      src_len++;
+    }
+    this->nickname[src_len] = u'\0';
+    this->use_nickname = true;
+  }
+
+  void SetShiny(bool is_shiny) {
+    if (is_shiny) {
+      PokemonUtils::ConvertToShiny(id, &shiny_id);
+    } else {
+      PokemonUtils::ConvertToNormal(id, &shiny_id);
+    }
+  }
+
+  void SetLevel(u8 level) {
+    experience = PokemonUtils::GetExperienceFromLevel(species, form, level);
   }
 };
