@@ -15,29 +15,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <CTRPluginFramework/Menu/PluginMenu.hpp>
-#include <CTRPluginFramework/System/Hook.hpp>
+#pragma once
 
 #include "common.h"
 
-extern void Initialize();
-extern void Entrypoint();
-
-namespace CTRPluginFramework {
-int main() {
-#if USE_SANGO_PLUGIN == 1
-  Initialize();
-  CTRPluginFramework::Hook hook;
-  hook.InitializeForMitm(ADDRESS_ENTRYPOINT, (uptr)Entrypoint);
-  hook.Enable();
-#endif
-
-#if USE_DEFAULT_CTRPF == 1
-  PluginMenu menu;
-  menu.SynchronizeWithFrame(true);
-  menu.Run();
-#endif
-
-  return 0;
-}
-} // namespace CTRPluginFramework
+namespace global_data {
+struct Evolve {
+  struct {
+    u16 condition;
+    u16 arg;
+    u16 species;
+  } data[8];
+};
+} // namespace global_data

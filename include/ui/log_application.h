@@ -74,6 +74,33 @@ public:
                 sizeof(c16) * kMaxEntryLength);
   }
 
+  static void Print(const c16* message, ...) {
+    if (!message)
+      return;
+
+    LogApplication& log = GetInstance();
+
+    c16 buffer[kMaxEntryLength];
+
+    va_list args;
+    va_start(args, message);
+
+    ((void (*)(c16*, u32, const c16*, va_list))ADDRESS_STD_VSWPRINTF)(
+        buffer, kMaxEntryLength, message, args);
+
+    va_end(args);
+
+    for (u32 i = 0; i < kMaxEntries - 1; i++) {
+      std::memcpy(log.log_entries_[i],
+                  log.log_entries_[i + 1],
+                  sizeof(c16) * kMaxEntryLength);
+    }
+
+    std::memcpy(log.log_entries_[kMaxEntries - 1],
+                buffer,
+                sizeof(c16) * kMaxEntryLength);
+  }
+
 private:
   static constexpr u32 kMaxEntries = 13;
   static constexpr u32 kMaxEntryLength = 64;

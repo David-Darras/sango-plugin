@@ -25,6 +25,42 @@ struct TrainerStatus;
 } // namespace savedata
 
 namespace battle {
+struct TrainerAppearance {
+  u32 type;
+  u8 battle_model_sequence : 4;
+  u8 sex : 2;
+  u8 plural : 2;
+  u8 group;
+  u8 battle_effect_id;
+  u8 model_3d;
+  u32 cut_in_2d;
+  u32 overworld_model;
+  u32 encounter_bgm;
+};
+
+struct TrainerData {
+  u64 local_friend_code;
+  u32 id;
+  u32 ai_flags;
+  u8 battle_effect_id;
+  u16 type;
+  u8 group;
+  u8 gender : 4;
+  u8 is_plural_trainers : 4;
+  u8 trainer_type_grammar;
+
+  u8 money_calculation_coefficient;
+  u16 items_in_use[4];
+
+  u32 message_archive_id;
+  u16 win_string_id;
+  u16 lose_string_id;
+
+  String* name;
+  String* title_name;
+  TrainerAppearance* appearance;
+};
+
 struct Config {
   u8 _0;
   u8 battle_format;
@@ -42,7 +78,7 @@ struct Config {
 
   savedata::PokemonTeam* pokemon_teams[4];
   savedata::TrainerStatus* trainer_status[4];
-  void* trainer_data[4];
+  TrainerData* trainer_data[4];
 
   void* game_data_manager;
   void* item_manager;

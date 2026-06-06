@@ -180,6 +180,10 @@ struct String {
     is_initialized = true;
   }
 
+  INLINE c16* GetBuffer() const {
+    return buffer;
+  }
+
   void* vtable;
   c16* buffer;
   u16 capacity;

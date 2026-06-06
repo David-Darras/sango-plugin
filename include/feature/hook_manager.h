@@ -35,6 +35,7 @@ enum class HookID : u32 {
   kUpdateMatrices,
   kUpdateLookAt,
   kSetupBattleConfig,
+  kSetupTrainerBattleConfig,
   kOnStartTurn,
   kPlayBattleAnimation,
   kOnLoadTrainerModel,
@@ -51,6 +52,7 @@ enum class HookID : u32 {
   kCallApp,
   kUpdateExp,
   kCheckAppRequest,
+  kLoadEvolveTable,
   kMax
 };
 

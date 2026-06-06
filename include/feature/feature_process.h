@@ -43,7 +43,7 @@ public:
 
   static void OnEnterOverworld() {
     AppHookContext::OnEnterOverworld();
-#if ENABLE_NUZLOCKE_MENU == 1
+#if ENABLE_NUZLOCKE_FEATURES == 1
     auto& heal_team = GetInstance().heal_team;
     if (heal_team) {
       auto& team = savedata::PokemonTeam::GetInstance();
@@ -57,14 +57,14 @@ public:
   }
 
   static void OnExitBattle() {
-#if ENABLE_NUZLOCKE_MENU == 1
+#if ENABLE_NUZLOCKE_FEATURES == 1
     GetInstance().heal_team = true;
     feature::EngineHookContext::GetInstance().game_speed = 1;
 #endif
   }
 
   static void OnEnterBattle() {
-#if ENABLE_NUZLOCKE_MENU == 1
+#if ENABLE_NUZLOCKE_FEATURES == 1
 
     // Disable shaders
     // ARM_RET(0x003989B0);

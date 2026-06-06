@@ -20,6 +20,7 @@
 #include "common.h"
 #include "feature_encounter.h"
 #include "game/savedata/savedata_encounter.h"
+#include "game/savedata/event_table.h"
 
 namespace feature {
 struct EncounterCheatCode {

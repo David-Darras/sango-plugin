@@ -81,9 +81,11 @@ void LoadMovePage(MainApplication& app, void* args) {
 
 void LoadPokemonPage(MainApplication& app, void* args) {
   static u16 species = 0;
-  auto& data = global_data::Pokemon::GetInstance(species);
+  static u8 form = 0;
+  auto& data = global_data::Pokemon::GetInstance(species, form);
 
-  app.AddSpecies("Species", species).WithRefresh().AddSeparator();
+  app.AddSpecies("Species", species).WithRefresh()
+     .Add("Form", form).WithRefresh().AddSeparator();
 
   app.Add("Base HP", data.base_hp)
      .Add("Base Attack", data.base_attack)

@@ -19,6 +19,7 @@
 #include "feature/hook_manager.h"
 #include "game/battle/config.h"
 #include "common.h"
+#include "ui/log_application.h"
 
 namespace feature {
 struct BattleConfigHookContext {
@@ -43,6 +44,23 @@ struct BattleConfigHookContext {
     HookManager::Initialize(HookID::kSetupBattleConfig,
                             ADDRESS_BATTLE_SETUP_CONFIG,
                             (uptr)SetupBattleConfigHook);
+
+    HookManager::Initialize(HookID::kSetupTrainerBattleConfig,
+                            ADDRESS_SETUP_TRAINER_BATTLE_CONFIG,
+                            (uptr)SetupTrainerBattleConfigHook);
+  }
+
+  static void SetupTrainerBattleConfigHook(battle::Config* config,
+                                           void* game_manager, u16 trainer_id,
+                                           void* p1, u8 battle_format,
+                                           void* p2) {
+    HookManager::Call<void>(HookID::kSetupTrainerBattleConfig,
+                            config, game_manager, trainer_id, p1,
+                            battle_format,
+                            p2);
+    ui::LogApplication::Print(u"[%u] %ls %ls wants to battle!", trainer_id,
+                              config->trainer_data[1]->name->GetBuffer(),
+                              config->trainer_data[1]->title_name->GetBuffer());
   }
 
   static void SetupBattleConfigHook(battle::Config* config, void* game_manager,

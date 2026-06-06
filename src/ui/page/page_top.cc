@@ -34,19 +34,20 @@ void LoadTopPage(MainApplication& app, void* args) {
 
   auto& weather_manager = overworld::WeatherManager::GetInstance();
 
-  app.Add("App", LoadAppPage)
-     .Add("Game Speed", feature::EngineHookContext::GetInstance().game_speed)
-     .Add("Save Data", LoadSaveDataPage)
-     .Add("Global Data", LoadGlobalDataPage)
-     .Add("Renderer", LoadRendererPage)
-     .Add("Battle Config", LoadBattleConfigPage)
-     .Add("Battle", LoadBattlePage)
-     .Add("Game Time", LoadGameTimePage)
-     .Add("Overworld", LoadOverworldPage)
-     .Add("Weather", weather_manager.GetRequestedWeather())
-     .WithArray(WEATHERS, SIZE(WEATHERS))
-     .Add("Day Care", LoadDayCarePage)
-     .Add("Sound", LoadSoundPage)
-     .Add("Plugin Theme", LoadThemePage);
+  app.Add("Nuzlocke", LoadNuzlockePage)
+      .Add("Game Speed", feature::EngineHookContext::GetInstance().game_speed)
+      .Add("Save Data", LoadSaveDataPage)
+      .Add("Global Data", LoadGlobalDataPage)
+      .Add("Renderer", LoadRendererPage)
+      .Add("App", LoadAppPage)
+      .Add("Battle Config", LoadBattleConfigPage)
+      .Add("Battle", LoadBattlePage)
+      .Add("Game Time", LoadGameTimePage)
+      .Add("Overworld", LoadOverworldPage)
+      .Add("Weather", weather_manager.GetRequestedWeather())
+      .WithArray(WEATHERS, SIZE(WEATHERS))
+      .Add("Day Care", LoadDayCarePage)
+      .Add("Sound", LoadSoundPage)
+      .Add("Plugin Theme", LoadThemePage);
 }
 } // namespace ui

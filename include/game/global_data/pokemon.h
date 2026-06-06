@@ -21,9 +21,17 @@
 
 namespace global_data {
 struct Pokemon {
-  STATIC_INLINE Pokemon& GetInstance(const u16 species) {
+  STATIC_INLINE Pokemon& GetInstance(const u16 species, const u8 form) {
     Pokemon* table = (Pokemon*)READ(u32, ADDRESS_GLOBAL_DATA_POKEMON_TABLE);
-    return table[species];
+
+    // cf. 0x0014EAA0
+    u32 index = species;
+    if (form != 0 && table[species].form_index != 0 && form < table[species].
+        form_count) {
+      index = table[species].form_index + form - 1;
+    }
+
+    return table[index];
   }
 
   u8 base_hp;
@@ -44,7 +52,8 @@ struct Pokemon {
   u8 egg_group[2];
   u8 ability[3];
   u8 escape_rate;
-  u16 form[2];
+  u16 form_index;
+  u16 form_index_2;
   u8 form_count;
   u8 _2;
   u16 give_experience;

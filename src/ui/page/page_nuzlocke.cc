@@ -17,6 +17,7 @@
 
 #include "feature/feature_field_move.h"
 #include "game/overworld/encounter.h"
+#include "game/savedata/event_table.h"
 #include "game/savedata/savedata.h"
 #include "ui/main_application.h"
 #include "ui/page/page_top.h"
@@ -33,7 +34,13 @@ void LoadHmPage(MainApplication& app, void* args) {
 }
 
 void LoadNuzlockePage(MainApplication& app, void* args) {
-  app.Add("HM", LoadHmPage)
+  app.Add("Reset Tr", [](void*) {
+       auto& event_table = savedata::EventTable::GetInstance();
+       for (u32 i = 1740; i < 2719; i++) {
+         event_table.Reset(i);
+       }
+     })
+     .Add("HM", LoadHmPage)
      .Add("App", LoadAppPage)
      .Add("Repel", CheatCodeId::kNoEncounter);
 }
