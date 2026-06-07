@@ -106,7 +106,11 @@ struct PokemonCoreData {
   // BLOCK 3 [0x38 bytes]
   c16 first_trainer_name[13]; // 1A
   u8 first_trainer_gender; // 1B
-  u8 _2[0x1D]; // 38
+  u8 __0;
+  u16 __1[7];
+  u8 __2;
+  u8 happiness;
+  u16 __4[6];
 
   // BLOCK 4 [0x38 bytes]
   c16 original_trainer_name[13]; // 1A
@@ -159,6 +163,13 @@ struct PokemonCoreData {
     this->use_nickname = true;
   }
 
+  void ResetNickname() {
+    c16 buffer[13];
+    ((void(*)(c16*, u16))0x00139E40)(buffer, species);
+    SetNickname(buffer);
+    use_nickname = false;
+  }
+
   void SetShiny(bool is_shiny) {
     if (is_shiny) {
       PokemonUtils::ConvertToShiny(id, &shiny_id);
@@ -169,5 +180,14 @@ struct PokemonCoreData {
 
   void SetLevel(u8 level) {
     experience = PokemonUtils::GetExperienceFromLevel(species, form, level);
+  }
+
+  void SetMaxIVs() {
+    iv_hp = 31;
+    iv_attack = 31;
+    iv_defense = 31;
+    iv_speed = 31;
+    iv_special_attack = 31;
+    iv_special_defense = 31;
   }
 };

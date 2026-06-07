@@ -25,7 +25,8 @@ INCLUDES	:= 	include \
 SOURCES 	:= 	src \
 				src/ui \
 				src/ui/widget \
-				src/ui/page
+				src/ui/page \
+				src/parser
 
 PSF 		:= 	$(notdir $(TOPDIR)).plgInfo
 

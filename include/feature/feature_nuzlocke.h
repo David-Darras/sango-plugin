@@ -18,6 +18,7 @@
 #pragma once
 #include "common.h"
 #include "hook_manager.h"
+#include "utils.h"
 #include "game/battle/config.h"
 #include "game/constant/background.h"
 #include "game/constant/background_music.h"
@@ -38,6 +39,8 @@
 #include "game/global_data/pokemon.h"
 #include "game/savedata/pokemon_data_accessor.h"
 #include "game/savedata/pokemon_team.h"
+#include "parser/parser.h"
+#include "parser/pokemon_node.h"
 #include "ui/log_application.h"
 
 #define ADDRESS_GLOBAL_DATA_LOAD_EVOLVE_TABLE (0x003B0C50)
@@ -127,6 +130,20 @@ struct Nuzlocke {
   }
 
   STATIC_INLINE void FixTrainers(battle::Config& config, u16& trainer_id) {
+    parser::AST ast;
+    c16 buffer[BUFFER_SIZE];
+
+    Utils::Format(
+        buffer, u"sdmc:/luma/plugins/000400000011C500/trainers/%u.txt",
+        trainer_id);
+    bool res = parser::ParsePokemonShowdownFile(buffer, ast);
+    if (!res) {
+      ui::LogApplication::Print(u"Error");
+      return;
+    }
+
+    config.pokemon_teams[1]->count = ast.size();
+
     for (u32 i = 1; i < 6; i++) {
       *config.pokemon_teams[1]->pokemons[i]->core = *config.pokemon_teams[1]->
           pokemons[0]->core;
@@ -138,14 +155,44 @@ struct Nuzlocke {
       config.pokemon_teams[1]->pokemons[i]->accessor->Decrypt();
     }
 
-    auto& pkm1 = *config.pokemon_teams[1]->pokemons[0]->core;
-    auto& pkm2 = *config.pokemon_teams[1]->pokemons[1]->core;
-    auto& pkm3 = *config.pokemon_teams[1]->pokemons[2]->core;
-    auto& pkm4 = *config.pokemon_teams[1]->pokemons[3]->core;
-    auto& pkm5 = *config.pokemon_teams[1]->pokemons[4]->core;
-    auto& pkm6 = *config.pokemon_teams[1]->pokemons[5]->core;
+    u32 index = 0;
+    for (const auto& node : ast) {
+      auto& pkm = *config.pokemon_teams[1]->pokemons[index++]->core;
 
-#include "feature/trainer.inc"
+      pkm.species = node.species;
+      if (node.has_nickname) {
+        pkm.SetNickname(node.nickname);
+      } else {
+        pkm.ResetNickname();
+      }
+      pkm.gender = node.gender;
+      pkm.item = node.item;
+      pkm.ability = node.ability;
+      pkm.SetShiny(node.is_shiny);
+      pkm.ball = node.ball;
+      pkm.nature = node.nature;
+      pkm.SetLevel(node.level);
+      pkm.contest_friendship = pkm.happiness = node.happiness;
+
+      pkm.moves[0] = node.moves[0];
+      pkm.moves[1] = node.moves[1];
+      pkm.moves[2] = node.moves[2];
+      pkm.moves[3] = node.moves[3];
+
+      pkm.ev_hp = node.evs.hp;
+      pkm.ev_attack = node.evs.atk;
+      pkm.ev_defense = node.evs.def;
+      pkm.ev_speed = node.evs.spe;
+      pkm.ev_special_attack = node.evs.spa;
+      pkm.ev_special_defense = node.evs.spd;
+
+      pkm.iv_hp = node.ivs.hp;
+      pkm.iv_attack = node.ivs.atk;
+      pkm.iv_defense = node.ivs.def;
+      pkm.iv_speed = node.ivs.spe;
+      pkm.iv_special_attack = node.ivs.spa;
+      pkm.iv_special_defense = node.ivs.spd;
+    }
 
     for (u32 i = 0; i < 6; i++) {
       config.pokemon_teams[1]->pokemons[i]->accessor->Encrypt();
@@ -154,6 +201,8 @@ struct Nuzlocke {
     for (u32 i = 0; i < 6; i++) {
       config.pokemon_teams[1]->pokemons[i]->UpdateRuntimeData();
     }
+
+    config.pokemon_teams[1]->HealAllPokemons();
   }
 };
 } // namespace feature

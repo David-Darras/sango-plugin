@@ -33,6 +33,10 @@ struct PokemonParam {
   INLINE void UpdateRuntimeData() {
     ((void(*)(PokemonParam*))0x003B360C)(this);
   }
+
+  INLINE void ResetNickname() {
+    ((void(*)(PokemonParam*))0x003B51C0)(this);
+  }
 };
 
 #define ADDRESS_HEAL_TEAM (0x03B5FC0)
