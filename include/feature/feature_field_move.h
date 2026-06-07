@@ -16,24 +16,33 @@
  */
 
 #pragma once
+#include "hook_manager.h"
 #include "game/overworld/map_manager.h"
+#include "game/overworld/model_manager.h"
 #include "ui/log_application.h"
 #include "ui/main_application.h"
 
 namespace feature {
 struct FieldMove {
   MAKE_SINGLETON(FieldMove)
+  STATIC_INLINE void Initialize() {
+    ARM_NOP(0x003EF8C4); // Force fly
+  }
+
   static void Execute(u32 choice) {
     auto& main_app = ui::MainApplication::GetInstance();
     if (main_app.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
 
     auto& map_manager = overworld::MapManager::GetInstance();
 
+    // EventAmaikaori : 007FA3D0
+    // EventSorawotobu : 005DF038
+
     struct {
       u16 zone_id;
       u16 team_index;
       overworld::MapManager* map_manager;
-    } context = {(u16)map_manager.GetMapId(), 0, &map_manager};
+    } context = {8, 0, &map_manager};
 
     ((void (*)(void*, u32))ADDRESS_DO_FIELD_MOVE)(&context, choice);
 

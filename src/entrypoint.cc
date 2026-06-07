@@ -30,6 +30,7 @@
 #include "feature/feature_app.h"
 #include "feature/feature_battle.h"
 #include "feature/feature_encounter.h"
+#include "feature/feature_field_move.h"
 #include "feature/feature_process.h"
 #include "ui/main_application.h"
 #include "system/device.h"
@@ -58,6 +59,7 @@ void Initialize() {
   feature::AppHookContext::Initialize();
   feature::BattleHookContext::Initialize();
   feature::EncounterCheatCode::Initialize();
+  feature::FieldMove::Initialize();
 
   auto& application_manager = ui::ApplicationManager::GetInstance();
   auto& root_app = ui::RootApplication::GetInstance();

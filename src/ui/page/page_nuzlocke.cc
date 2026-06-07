@@ -15,6 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "feature/feature_app.h"
 #include "feature/feature_field_move.h"
 #include "game/overworld/encounter.h"
 #include "game/savedata/event_table.h"
@@ -27,7 +28,7 @@ void LoadHmPage(MainApplication& app, void* args) {
   app.Add("Cut", [&](void*) { feature::FieldMove::Execute(0); })
      .Add("Rock Smash", [&](void*) { feature::FieldMove::Execute(4); })
      .Add("Strength", [&](void*) { feature::FieldMove::Execute(3); })
-     .Add("Fly", [&](void*) { feature::FieldMove::Execute(5); })
+     .Add("Fly", [&](void*) { feature::AppHookContext::DoFly(); })
      .Add("Surf", [&](void*) { feature::FieldMove::Execute(1); })
      .Add("Dive", [&](void*) { feature::FieldMove::Execute(10); })
      .Add("Waterfall", [&](void*) { feature::FieldMove::Execute(2); });

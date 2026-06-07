@@ -63,6 +63,10 @@ public:
     ui::MainApplication::GetInstance().ForceClose();
   }
 
+  static void DoFly() {
+    GetInstance().TriggerApp(15);
+  }
+
   struct MoveInput {
     savedata::PokemonParam* pokemon;
     u16 move_id;
@@ -93,6 +97,15 @@ public:
     u8 slot_index;
   };
 
+  struct TownMapInput {
+    bool is_fly_mode;
+    u8 _0[0x20 - 1];
+    u8 result;
+    u8 _1;
+    u16 map_id;
+    u16 pokemon_index;
+  };
+
   static bool CheckAppRequestHook(uptr menu, u32 id) {
     auto& ctx = GetInstance();
     if (ctx.open_app) {
@@ -116,6 +129,13 @@ public:
     input->pokemon->accessor->Decrypt();
     input->pokemon->core->moves[input->move_index] = input->move_id;
     input->pokemon->accessor->Encrypt();
+  }
+
+  static void TownMapCallback(uptr* data, game::Manager* manager) {
+    auto* input = (TownMapInput*)data[1];
+    input->result = 2;
+    input->pokemon_index = 0;
+    ((void(*)(uptr*, void*))0x003EF898)(data, manager);
   }
 
   static void CallAppHook(uptr self, game::Manager* manager) {
@@ -168,6 +188,15 @@ public:
       input->misc = &savedata::Misc::GetInstance();
       input->mode = 0;
     }
+
+    // Call Townmap
+    if (ctx.app_id == 15) {
+      choice = 15;
+      TownMapInput* data = (TownMapInput*)READ(u32, self+0x20);
+      data->is_fly_mode = true;
+      WRITE(u32, self + 0x30, (uptr)TownMapCallback);
+    }
+
     ctx.open_app = false;
 
     HookManager::Call<void>(HookID::kCallApp, self, manager);
