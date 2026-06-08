@@ -56,6 +56,7 @@ enum class HookID : u32 {
   kLoadEvolveTable,
   kLoadPokemonIconTexture,
   kUpdateAppStatus,
+  kLoadItemData,
   kMax
 };
 
