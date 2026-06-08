@@ -39,6 +39,15 @@ enum class ProcessState : u32 {
   kMax ///< State count sentinel.
 };
 
+struct ProcessVirtualTable {
+  uptr destructor;
+  uptr destructor2;
+  uptr initialize;
+  uptr update;
+  uptr draw;
+  uptr finalize;
+};
+
 /**
  * @brief Base class for all game process logic.
  * This structure reflects the memory layout of the engine's base process.
@@ -96,10 +105,16 @@ public:
  */
   INLINE ProcessHandle& GetMainHandle() const { return *handle_; }
 
-  const char* GetCurrentProcessName() const {
-    if (handle_ == nullptr) return "";
+  BaseProcess* GetCurrentProcess() const {
+    if (handle_ == nullptr) return nullptr;
     BaseProcess* process = handle_->GetProcess();
-    if (process == nullptr && process->vtable != nullptr) return "";
+    if (process == nullptr || process->vtable == nullptr) return nullptr;
+    return process;
+  }
+
+  const char* GetCurrentProcessName() const {
+    BaseProcess* process = GetCurrentProcess();
+    if (process == nullptr) return "";
     return Utils::GetClassNameFromVTable(process->vtable);
   }
 

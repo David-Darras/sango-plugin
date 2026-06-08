@@ -19,6 +19,7 @@
 #include "common.h"
 #include "hook_manager.h"
 #include "game/manager.h"
+#include "game/process_manager.h"
 #include "game/savedata/bag_manager.h"
 #include "game/savedata/battle_box.h"
 #include "game/savedata/box_manager.h"
@@ -29,6 +30,7 @@
 #include "game/savedata/pokemon_team.h"
 #include "game/savedata/trainer_status.h"
 #include "system/device.h"
+#include "ui/log_application.h"
 #include "ui/main_application.h"
 
 #define ADDRESS_CHECK_APP_REQUEST (0x007BDE50)
@@ -49,6 +51,41 @@ public:
                             (uptr)CallAppHook);
     HookManager::Initialize(HookID::kCheckAppRequest, ADDRESS_CHECK_APP_REQUEST,
                             (uptr)CheckAppRequestHook, false);
+  }
+
+  static void OnEnterAppStatus() {
+  }
+
+  static void OnUpdateAppStatus() {
+    auto& controller = Controller::GetInstance();
+    static u32 index = 0;
+    static u32 get_stats[] = {
+        ADDRESS_POKEMON_GET_STATS, ADDRESS_POKEMON_GET_EVS,
+        ADDRESS_POKEMON_GET_IVS};
+    static u32 pokemon_index = 0;
+    u32 max = savedata::PokemonTeam::GetInstance().count;
+    if (controller.IsKeyPressed(Key::kDown)) {
+      pokemon_index = (pokemon_index + 1) % max;
+    }
+    if (controller.IsKeyPressed(Key::kUp)) {
+      pokemon_index = (pokemon_index - 1 + max) % max;
+    }
+    if (controller.IsKeyPressed(Key::kR)) {
+      index = (index + 1) % 3;
+      WRITE(vu32, ADDRESS_APP_STATUS_GET_STAT_TRAMPOLINE, get_stats[index]);
+      game::BaseProcess* process = game::ProcessManager::GetInstance().
+          GetCurrentProcess();
+      ((void(*)(void*, u32, bool))ADDRESS_APP_STATUS_UPDATE_POKEMON)(process,
+        pokemon_index, false);
+    }
+    if (controller.IsKeyPressed(Key::kL)) {
+      index = (index - 1 + 3) % 3;
+      WRITE(vu32, ADDRESS_APP_STATUS_GET_STAT_TRAMPOLINE, get_stats[index]);
+      game::BaseProcess* process = game::ProcessManager::GetInstance().
+          GetCurrentProcess();
+      ((void(*)(void*, u32, bool))ADDRESS_APP_STATUS_UPDATE_POKEMON)(process,
+        pokemon_index, false);
+    }
   }
 
   static void OnEnterOverworld() {

@@ -34,6 +34,7 @@ public:
     kUnknow,
     kOverworld,
     kBattle,
+    kAppStatus,
   };
 
   const char* current_process = nullptr;
@@ -89,6 +90,17 @@ public:
   static void OnExitOverworld() {
   }
 
+  static void OnEnterAppStatus() {
+    AppHookContext::OnEnterAppStatus();
+  }
+
+  static void OnExitAppstatus() {
+  }
+
+  static void OnUpdateAppStatus() {
+    AppHookContext::OnUpdateAppStatus();
+  }
+
   static void DoEachFrame() {
     auto& ctx = GetInstance();
 
@@ -97,6 +109,8 @@ public:
 
     bool is_fieldmap = strcmp(ctx.current_process, PROCESS_NAME_FIELD_MAP) == 0;
     bool is_battle = strcmp(ctx.current_process, PROCESS_NAME_BATTLE) == 0;
+    bool is_app_status = strcmp(ctx.current_process, PROCESS_NAME_APP_STATUS) ==
+                         0;
 
     ctx.old_state = ctx.current_state;
 
@@ -104,6 +118,8 @@ public:
       ctx.current_state = kOverworld;
     } else if (is_battle) {
       ctx.current_state = kBattle;
+    } else if (is_app_status) {
+      ctx.current_state = kAppStatus;
     } else {
       ctx.current_state = kUnknow;
     }
@@ -116,6 +132,9 @@ public:
         case kBattle:
           OnExitBattle();
           break;
+        case kAppStatus:
+          OnExitAppstatus();
+          break;
         default:
           break;
       }
@@ -127,6 +146,9 @@ public:
         case kBattle:
           OnEnterBattle();
           break;
+        case kAppStatus:
+          OnEnterAppStatus();
+          break;
         default:
           break;
       }
@@ -137,6 +159,9 @@ public:
           break;
         case kBattle:
           OnUpdateBattle();
+          break;
+        case kAppStatus:
+          OnUpdateAppStatus();
           break;
         default:
           break;

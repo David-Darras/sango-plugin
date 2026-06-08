@@ -26,6 +26,7 @@
 #include "feature/feature_text_box.h"
 #include "feature/feature_device.h"
 #include "feature/feature_map_tile.h"
+#include "feature/feature_texture.h"
 #include "feature/feature_overworld_model.h"
 #include "feature/feature_app.h"
 #include "feature/feature_battle.h"
@@ -60,6 +61,7 @@ void Initialize() {
   feature::BattleHookContext::Initialize();
   feature::EncounterCheatCode::Initialize();
   feature::FieldMove::Initialize();
+  feature::TextureHookContext::Initialize();
 
   auto& application_manager = ui::ApplicationManager::GetInstance();
   auto& root_app = ui::RootApplication::GetInstance();

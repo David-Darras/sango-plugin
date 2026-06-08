@@ -21,6 +21,7 @@
 #include "ui/page/page_top.h"
 
 #include "feature/feature_app.h"
+#include "feature/feature_texture.h"
 #include "game/process_manager.h"
 #include "game/savedata/pokemon_team.h"
 
@@ -35,19 +36,19 @@ void LoadTopPage(MainApplication& app, void* args) {
   auto& weather_manager = overworld::WeatherManager::GetInstance();
 
   app.Add("Nuzlocke", LoadNuzlockePage)
-      .Add("Game Speed", feature::EngineHookContext::GetInstance().game_speed)
-      .Add("Save Data", LoadSaveDataPage)
-      .Add("Global Data", LoadGlobalDataPage)
-      .Add("Renderer", LoadRendererPage)
-      .Add("App", LoadAppPage)
-      .Add("Battle Config", LoadBattleConfigPage)
-      .Add("Battle", LoadBattlePage)
-      .Add("Game Time", LoadGameTimePage)
-      .Add("Overworld", LoadOverworldPage)
-      .Add("Weather", weather_manager.GetRequestedWeather())
-      .WithArray(WEATHERS, SIZE(WEATHERS))
-      .Add("Day Care", LoadDayCarePage)
-      .Add("Sound", LoadSoundPage)
-      .Add("Plugin Theme", LoadThemePage);
+     .Add("Game Speed", feature::EngineHookContext::GetInstance().game_speed)
+     .Add("Save Data", LoadSaveDataPage)
+     .Add("Global Data", LoadGlobalDataPage)
+     .Add("Renderer", LoadRendererPage)
+     .Add("App", LoadAppPage)
+     .Add("Battle Config", LoadBattleConfigPage)
+     .Add("Battle", LoadBattlePage)
+     .Add("Game Time", LoadGameTimePage)
+     .Add("Overworld", LoadOverworldPage)
+     .Add("Weather", weather_manager.GetRequestedWeather())
+     .WithArray(WEATHERS, SIZE(WEATHERS))
+     .Add("Day Care", LoadDayCarePage)
+     .Add("Sound", LoadSoundPage)
+     .Add("Plugin Theme", LoadThemePage);
 }
 } // namespace ui
