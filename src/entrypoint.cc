@@ -30,9 +30,11 @@
 #include "feature/feature_overworld_model.h"
 #include "feature/feature_app.h"
 #include "feature/feature_battle.h"
+#include "feature/feature_config.h"
 #include "feature/feature_encounter.h"
 #include "feature/feature_field_move.h"
 #include "feature/feature_process.h"
+#include "feature/feature_shop.h"
 #include "ui/main_application.h"
 #include "system/device.h"
 #include "system/file.h"
@@ -62,6 +64,8 @@ void Initialize() {
   feature::EncounterCheatCode::Initialize();
   feature::FieldMove::Initialize();
   feature::TextureHookContext::Initialize();
+  feature::Config::Initialize();
+  feature::Shop::Initialize();
 
   auto& application_manager = ui::ApplicationManager::GetInstance();
   auto& root_app = ui::RootApplication::GetInstance();

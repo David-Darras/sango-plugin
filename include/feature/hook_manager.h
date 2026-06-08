@@ -50,6 +50,7 @@ enum class HookID : u32 {
   kUpdateFrame,
   kCreatePokemonModel,
   kCallApp,
+  kLoadShopItems,
   kUpdateExp,
   kCheckAppRequest,
   kLoadEvolveTable,
