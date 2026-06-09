@@ -68,6 +68,7 @@ void Initialize() {
   feature::Config::Initialize();
   feature::Shop::Initialize();
   feature::Item::Initialize();
+  feature::Nuzlocke::Initialize();
 
   auto& application_manager = ui::ApplicationManager::GetInstance();
   auto& root_app = ui::RootApplication::GetInstance();

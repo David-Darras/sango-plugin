@@ -49,7 +49,7 @@ struct Item {
   u8 field_function;
   u8 battle_function;
 
-  u8 work_type;
+  bool use_on_pokemon;
   u8 item_type;
   u8 battle_hold_consume : 4;
   u8 use_no_consume : 4;

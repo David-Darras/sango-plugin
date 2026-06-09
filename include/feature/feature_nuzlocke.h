@@ -25,6 +25,7 @@
 #include "game/constant/ball.h"
 #include "game/constant/battle_format.h"
 #include "game/constant/encounter_animation.h"
+#include "game/constant/evolution_method.h"
 #include "game/constant/form.h"
 #include "game/constant/gender.h"
 #include "game/constant/ground.h"
@@ -43,7 +44,7 @@
 #include "parser/pokemon_node.h"
 #include "ui/log_application.h"
 
-#define ADDRESS_GLOBAL_DATA_LOAD_EVOLVE_TABLE (0x003B0C50)
+#define ADDRESS_GLOBAL_DATA_LOAD_EVOLVE_TABLE (0x003B1108)
 
 namespace feature {
 struct Nuzlocke {
@@ -58,11 +59,93 @@ struct Nuzlocke {
         );
   }
 
-  static void LoadEvolveTableHook(uptr table, u16 species) {
-    u16 current_species = READ(vu16, table + 4);
-    HookManager::Call<void>(HookID::kLoadEvolveTable, table, species);
-    if (current_species != species) {
-      auto& evolve = *(global_data::Evolve*)READ(vu32, table + 8);
+  static void LoadEvolveTableHook(u32 species, u32 b, u32 c, u32 d) {
+    HookManager::Call<void>(HookID::kLoadEvolveTable, species, b, c, d);
+    struct Table {
+      void* vtable;
+      u16 species;
+      global_data::Evolve* evolve;
+    }* table = (Table*)READ(u32, 0x617A04 + 0x34);
+    auto& evolve = *table->evolve;
+    switch (species) {
+      case SPECIES_KADABRA:
+        evolve.data[0].arg = ITEM_SHINY_STONE;
+        evolve.data[0].method = EVOLUTION_METHOD_ITEM;
+        break;
+      case SPECIES_MACHOKE:
+      case SPECIES_GRAVELER:
+      case SPECIES_BOLDORE:
+      case SPECIES_GURDURR:
+      case SPECIES_KARRABLAST:
+      case SPECIES_SHELMET:
+        evolve.data[0].arg = ITEM_MOON_STONE;
+        evolve.data[0].method = EVOLUTION_METHOD_ITEM;
+        break;
+      case SPECIES_HAUNTER:
+        evolve.data[0].arg = ITEM_DUSK_STONE;
+        evolve.data[0].method = EVOLUTION_METHOD_ITEM;
+        break;
+      case SPECIES_SLOWPOKE:
+      case SPECIES_POLIWHIRL:
+        evolve.data[0].arg = ITEM_WATER_STONE;
+        evolve.data[0].method = EVOLUTION_METHOD_ITEM;
+        break;
+      case SPECIES_SCYTHER:
+      case SPECIES_ONIX:
+        evolve.data[0].arg = ITEM_METAL_COAT;
+        evolve.data[0].method = EVOLUTION_METHOD_ITEM;
+        break;
+      case SPECIES_SEADRA:
+        evolve.data[0].arg = ITEM_DRAGON_SCALE;
+        evolve.data[0].method = EVOLUTION_METHOD_ITEM;
+        break;
+      case SPECIES_PORYGON:
+        evolve.data[0].arg = ITEM_UP_GRADE;
+        evolve.data[0].method = EVOLUTION_METHOD_ITEM;
+        break;
+      case SPECIES_PORYGON2:
+        evolve.data[0].arg = ITEM_DUBIOUS_DISC;
+        evolve.data[0].method = EVOLUTION_METHOD_ITEM;
+        break;
+      case SPECIES_CLAMPERL:
+        evolve.data[0].arg = ITEM_DEEP_SEA_TOOTH;
+        evolve.data[0].method = EVOLUTION_METHOD_ITEM;
+        evolve.data[1].arg = ITEM_DEEP_SEA_SCALE;
+        evolve.data[1].method = EVOLUTION_METHOD_ITEM;
+        break;
+      case SPECIES_RHYDON:
+        evolve.data[0].arg = ITEM_PROTECTOR;
+        evolve.data[0].method = EVOLUTION_METHOD_ITEM;
+        break;
+      case SPECIES_ELECTABUZZ:
+        evolve.data[0].arg = ITEM_ELECTIRIZER;
+        evolve.data[0].method = EVOLUTION_METHOD_ITEM;
+        break;
+      case SPECIES_MAGMAR:
+        evolve.data[0].arg = ITEM_MAGMARIZER;
+        evolve.data[0].method = EVOLUTION_METHOD_ITEM;
+        break;
+      case SPECIES_DUSCLOPS:
+        evolve.data[0].arg = ITEM_REAPER_CLOTH;
+        evolve.data[0].method = EVOLUTION_METHOD_ITEM;
+        break;
+      case SPECIES_FEEBAS:
+        evolve.data[0].arg = ITEM_PRISM_SCALE;
+        evolve.data[0].method = EVOLUTION_METHOD_ITEM;
+        break;
+      case SPECIES_SPRITZEE:
+        evolve.data[0].arg = ITEM_SACHET;
+        evolve.data[0].method = EVOLUTION_METHOD_ITEM;
+        break;
+      case SPECIES_SWIRLIX:
+        evolve.data[0].arg = ITEM_WHIPPED_DREAM;
+        evolve.data[0].method = EVOLUTION_METHOD_ITEM;
+        break;
+      case SPECIES_PHANTUMP:
+      case SPECIES_PUMPKABOO:
+        evolve.data[0].arg = ITEM_LEAF_STONE;
+        evolve.data[0].method = EVOLUTION_METHOD_ITEM;
+        break;
     }
   }
 

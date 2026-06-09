@@ -22,7 +22,7 @@
 namespace global_data {
 struct Evolve {
   struct {
-    u16 condition;
+    u16 method;
     u16 arg;
     u16 species;
   } data[8];

@@ -20,8 +20,11 @@
 #include "hook_manager.h"
 #include "game/constant/item.h"
 #include "game/global_data/item.h"
+#include "ui/log_application.h"
+#include <CTRPluginFramework/System/Hook.hpp>
 
-#define ADDRESS_LOAD_ITEM_DATA (0x003B7B9C)
+#define ADDRESS_ITEM_DATA_INITIALIZE (0x003B7B9C)
+#define ADDRESS_GLOBAL_DATA_ITEM_GET_PARAM (0x004D3C84)
 
 namespace feature {
 class Item {
@@ -38,27 +41,205 @@ class Item {
     WRITE(vu32, 0x0046E37C, 0xE35A00FF);
     WRITE(vu32, 0x0046E41C, 0xE35A00FF);
 
-    // No level limit with rare candy : WRITE(vu32, 0x0046DED8, 0xE35000FF);
-    HookManager::Initialize(HookID::kLoadItemData, ADDRESS_LOAD_ITEM_DATA,
-                            (uptr)LoadItemDataHook);
+    // No level limit with rare candy
+    // WRITE(vu32, 0x0046DED8, 0xE35000FF);
+
+    HookManager::Initialize(HookID::kGlobalDataItemGetParam,
+                            ADDRESS_GLOBAL_DATA_ITEM_GET_PARAM,
+                            (uptr)GetParamHook);
   }
 
-  static uptr LoadItemDataHook(global_data::Item* item, u32 id, void* heap) {
-    uptr res = HookManager::Call<uptr>(HookID::kLoadItemData, item, id, heap);
-    if (id == ITEM_PP_UP) {
-      item->hp_ev_value = 4;
-    } else if (id == ITEM_PROTEIN) {
-      item->attack_ev_value = 4;
-    } else if (id == ITEM_IRON) {
-      item->defense_ev_value = 4;
-    } else if (id == ITEM_CARBOS) {
-      item->speed_ev_value = 4;
-    } else if (id == ITEM_CALCIUM) {
-      item->sp_atk_ev_value = 4;
-    } else if (id == ITEM_ZINC) {
-      item->sp_def_ev_value = 4;
+  /* The first instructions use the pc register so we have to rewrite all the code */
+  static u32 GetParamHook(global_data::Item* item, u32 param_id) {
+    if (!item) return 0;
+
+    switch (item->id) {
+      case ITEM_HP_UP:
+        item->hp_ev_value = 4;
+        break;
+      case ITEM_PROTEIN:
+        item->attack_ev_value = 4;
+        break;
+      case ITEM_IRON:
+        item->defense_ev_value = 4;
+        break;
+      case ITEM_CARBOS:
+        item->speed_ev_value = 4;
+        break;
+      case ITEM_CALCIUM:
+        item->sp_atk_ev_value = 4;
+        break;
+      case ITEM_ZINC:
+        item->sp_def_ev_value = 4;
+        break;
+      case ITEM_METAL_COAT:
+      case ITEM_DRAGON_SCALE:
+      case ITEM_UP_GRADE:
+      case ITEM_DUBIOUS_DISC:
+      case ITEM_DEEP_SEA_TOOTH:
+      case ITEM_DEEP_SEA_SCALE:
+      case ITEM_PROTECTOR:
+      case ITEM_ELECTIRIZER:
+      case ITEM_MAGMARIZER:
+      case ITEM_REAPER_CLOTH:
+      case ITEM_PRISM_SCALE:
+      case ITEM_SACHET:
+      case ITEM_WHIPPED_DREAM:
+        item->evolve = 1;
+        item->use_on_pokemon = true;
+        item->field_function = 1;
+        break;
     }
-    return res;
+
+    return GetParam(item, param_id);
+  }
+
+  static s32 GetParam(const global_data::Item* item, s32 param_id) {
+    if (!item) return 0;
+
+    switch (param_id) {
+      case 0:
+        return item->id;
+      case 1:
+        return item->price;
+      case 2:
+        return item->hold_effect;
+      case 3:
+        return item->power;
+      case 4:
+        return item->pluck_effect;
+      case 5:
+        return item->fling_effect;
+      case 6:
+        return item->fling_power;
+      case 7:
+        return item->natural_gift_power;
+      case 8:
+        return item->natural_gift_type;
+      case 9:
+        return item->is_key_item;
+      case 10:
+        return item->registered_button;
+      case 11:
+        return item->field_pocket;
+      case 12:
+        return item->battle_pocket;
+      case 13:
+        return item->field_function;
+      case 14:
+        return item->battle_function;
+      case 15:
+        return item->use_on_pokemon;
+      case 16:
+        return item->item_type;
+      case 17:
+        return item->battle_hold_consume;
+      case 18:
+        return item->use_no_consume;
+      case 19:
+        return item->sort_number;
+      default:
+        break;
+    }
+
+    if (item->use_on_pokemon) {
+      switch (param_id) {
+        case 20:
+          return item->cure_sleep;
+        case 21:
+          return item->cure_poison;
+        case 22:
+          return item->cure_burn;
+        case 23:
+          return item->cure_freeze;
+        case 24:
+          return item->cure_paralysis;
+        case 25:
+          return item->cure_confusion;
+        case 26:
+          return item->cure_infatuation;
+        case 27:
+          return item->guard_stat_stages;
+        case 28:
+          return item->revive;
+        case 29:
+          return item->revive_all;
+        case 30:
+          return item->level_up;
+        case 31:
+          return item->evolve;
+        case 32:
+          return item->raise_attack;
+        case 33:
+          return item->raise_defense;
+        case 34:
+          return item->raise_sp_atk;
+        case 35:
+          return item->raise_sp_def;
+        case 36:
+          return item->raise_speed;
+        case 37:
+          return item->raise_accuracy;
+        case 38:
+          return item->raise_critical_hit;
+        case 39:
+          return item->use_pp_up;
+        case 40:
+          return item->use_pp_max;
+        case 41:
+          return item->restore_pp;
+        case 42:
+          return item->restore_all_pp;
+        case 43:
+          return item->restore_hp;
+        case 44:
+          return item->raise_hp_ev;
+        case 45:
+          return item->raise_attack_ev;
+        case 46:
+          return item->raise_defense_ev;
+        case 47:
+          return item->raise_speed_ev;
+        case 48:
+          return item->raise_sp_atk_ev;
+        case 49:
+          return item->raise_sp_def_ev;
+        case 50:
+          return item->ev_limit_control;
+        case 51:
+          return item->friendship_mod_1;
+        case 52:
+          return item->friendship_mod_2;
+        case 53:
+          return item->friendship_mod_3;
+        case 54:
+          return item->hp_ev_value;
+        case 55:
+          return item->attack_ev_value;
+        case 56:
+          return item->defense_ev_value;
+        case 57:
+          return item->speed_ev_value;
+        case 58:
+          return item->sp_atk_ev_value;
+        case 59:
+          return item->sp_def_ev_value;
+        case 60:
+          return item->hp_restore_value;
+        case 61:
+          return item->pp_restore_value;
+        case 62:
+          return item->friendship_value_1;
+        case 63:
+          return item->friendship_value_2;
+        case 64:
+          return item->friendship_value_3;
+        default:
+          break;
+      }
+    }
+
+    return 0;
   }
 };
 }

@@ -41,9 +41,9 @@ public:
     void* buffer = (void*)*(u32*)(
       *(u32*)(*(u32*)(sys + 4) + 4 * texture_id) + 0x20);
     u32 size = *(u32*)(*(u32*)(*(u32*)(sys + 4) + 4 * texture_id) + 0x30);
-    ui::LogApplication::Print(u"%u,%u,%u,%u,%p,%u", texture_id, archive_id,
-                              data_id,
-                              compressed, buffer, size);
+    // ui::LogApplication::Print(u"%u,%u,%u,%u,%p,%u", texture_id, archive_id,
+    //                           data_id,
+    //                           compressed, buffer, size);
     GetInstance().addr = buffer;
     GetInstance().size = size;
   }
