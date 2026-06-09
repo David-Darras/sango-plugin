@@ -69,6 +69,9 @@ struct Nuzlocke {
     //                         (uptr)CreatePokemonHook);
     HookManager::Initialize(HookID::kCreateOverworldModels, 0x003F8358, (uptr)
                             CreateOverworldModelsHook);
+
+    HookManager::Initialize(HookID::kLoadOverworldData, 0x003DBB4C,
+                            (uptr)LoadOverworldDataHook);
   }
 
   struct Table {
@@ -77,12 +80,18 @@ struct Nuzlocke {
     u8 _0[44];
   };
 
+  static void LoadOverworldDataHook(uptr self, u32 id) {
+    ui::LogApplication::Print(u"Loading...");
+    return HookManager::Call<void>(HookID::kLoadOverworldData, self, id);
+  }
+
   static bool CreateOverworldModelsHook(uptr man, Table* table, u32 max,
                                         u16 map_id,
                                         void** fashion) {
     for (u32 i = 0; i < max; i++) {
       table[i].model_id = 0xAC;
     }
+    ui::LogApplication::Print(u"Map Id %u", map_id);
     return HookManager::Call<bool>(HookID::kCreateOverworldModels, man, table,
                                    max, map_id, fashion);
   }

@@ -61,6 +61,7 @@ enum class HookID : u32 {
   kAddPokemonToTeam,
   kScriptCreatePokemon,
   kCreateOverworldModels,
+  kLoadOverworldData,
   kMax
 };
 
