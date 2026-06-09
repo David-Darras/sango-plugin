@@ -17,6 +17,7 @@
 
 #pragma once
 #include "common.h"
+#include "feature_nuzlocke.h"
 #include "hook_manager.h"
 #include "game/manager.h"
 #include "game/process_manager.h"
@@ -92,6 +93,8 @@ public:
     // Simulate a button press
     WRITE(vu32, 0x00715C48, 0xE1A00000);
     HookManager::ForceEnable(HookID::kCheckAppRequest);
+
+    HookManager::ForceEnable(HookID::kScriptCreatePokemon);
   }
 
   void TriggerApp(u32 id) {

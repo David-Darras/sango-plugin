@@ -59,6 +59,8 @@ enum class HookID : u32 {
   kUpdateAppStatus,
   kGlobalDataItemGetParam,
   kAddPokemonToTeam,
+  kScriptCreatePokemon,
+  kCreateOverworldModels,
   kMax
 };
 

@@ -36,6 +36,7 @@
 #include "game/constant/species.h"
 #include "game/constant/weather.h"
 #include "game/global_data/evolve.h"
+#include "game/global_data/gift_pokemon.h"
 #include "game/global_data/move.h"
 #include "game/global_data/pokemon.h"
 #include "game/savedata/pokemon_data_accessor.h"
@@ -45,6 +46,7 @@
 #include "ui/log_application.h"
 
 #define ADDRESS_GLOBAL_DATA_LOAD_EVOLVE_TABLE (0x003B1108)
+#define ADDRESS_SCRIPT_CREATE_POKEMON (0x0077279C)
 
 namespace feature {
 struct Nuzlocke {
@@ -61,7 +63,38 @@ struct Nuzlocke {
     HookManager::Initialize(HookID::kAddPokemonToTeam,
                             ADDRESS_ADD_POKEMON_TO_TEAM,
                             (uptr)AddPokemonToTeamHook);
+
+    // HookManager::Initialize(HookID::kScriptCreatePokemon,
+    //                         ADDRESS_SCRIPT_CREATE_POKEMON,
+    //                         (uptr)CreatePokemonHook);
+    HookManager::Initialize(HookID::kCreateOverworldModels, 0x003F8358, (uptr)
+                            CreateOverworldModelsHook);
   }
+
+  struct Table {
+    u16 uid;
+    u16 model_id;
+    u8 _0[44];
+  };
+
+  static bool CreateOverworldModelsHook(uptr man, Table* table, u32 max,
+                                        u16 map_id,
+                                        void** fashion) {
+    for (u32 i = 0; i < max; i++) {
+      table[i].model_id = 0xAC;
+    }
+    return HookManager::Call<bool>(HookID::kCreateOverworldModels, man, table,
+                                   max, map_id, fashion);
+  }
+
+  // static savedata::PokemonParam* CreatePokemonHook(
+  //     global_data::GiftPokemon* pokemon, game::DataManager* manager,
+  //     void* heap) {
+  //   pokemon->species = SPECIES_MEW;
+  //   ui::LogApplication::Print(u"Hello");
+  //   return HookManager::Call<savedata::PokemonParam*>(
+  //       HookID::kScriptCreatePokemon, pokemon, manager, heap);
+  // }
 
   static bool AddPokemonToTeamHook(savedata::PokemonTeam* team,
                                    savedata::PokemonParam* pokemon) {
