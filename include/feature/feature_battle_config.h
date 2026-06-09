@@ -107,10 +107,10 @@ struct BattleConfigHookContext {
       // config->pokemon_teams[0]->pokemons[0]->core->species = 94;
       // config->pokemon_teams[0]->pokemons[0]->accessor->Encrypt();
       //
-      // config->pokemon_teams[1]->pokemons[0]->accessor->Decrypt();
-      // config->pokemon_teams[1]->pokemons[0]->core->species = 487;
-      // config->pokemon_teams[1]->pokemons[0]->core->form = 1;
-      // config->pokemon_teams[1]->pokemons[0]->accessor->Encrypt();
+      config->pokemon_teams[1]->pokemons[0]->accessor->Decrypt();
+      config->pokemon_teams[1]->pokemons[0]->core->species = SPECIES_LATIOS;
+      config->pokemon_teams[1]->pokemons[0]->core->form = FORM_LATIAS_NORMAL;
+      config->pokemon_teams[1]->pokemons[0]->accessor->Encrypt();
     }
   }
 };

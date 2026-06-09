@@ -57,6 +57,96 @@ struct Nuzlocke {
                             ADDRESS_GLOBAL_DATA_LOAD_EVOLVE_TABLE,
                             (uptr)LoadEvolveTableHook
         );
+
+    HookManager::Initialize(HookID::kAddPokemonToTeam,
+                            ADDRESS_ADD_POKEMON_TO_TEAM,
+                            (uptr)AddPokemonToTeamHook);
+  }
+
+  static bool AddPokemonToTeamHook(savedata::PokemonTeam* team,
+                                   savedata::PokemonParam* pokemon) {
+    if (team != &savedata::PokemonTeam::GetInstance()) {
+      return HookManager::Call<bool>(HookID::kAddPokemonToTeam, team, pokemon);
+    }
+
+    pokemon->accessor->Decrypt();
+    u16 species = pokemon->core->species;
+    pokemon->accessor->Encrypt();
+
+    static const u16 all_special_pokemon[] = {
+        // --- GENERATION 1 ---
+        SPECIES_ARTICUNO, // Sub-Legendary (Allowed)
+        SPECIES_ZAPDOS, // Sub-Legendary (Allowed)
+        SPECIES_MOLTRES, // Sub-Legendary (Allowed)
+        SPECIES_MEWTWO, // Restricted Legendary (Banned)
+        SPECIES_MEW, // Mythical (Banned)
+
+        // --- GENERATION 2 ---
+        SPECIES_RAIKOU, // Sub-Legendary (Allowed)
+        SPECIES_ENTEI, // Sub-Legendary (Allowed)
+        SPECIES_SUICUNE, // Sub-Legendary (Allowed)
+        SPECIES_LUGIA, // Restricted Legendary (Banned)
+        SPECIES_HO_OH, // Restricted Legendary (Banned)
+        SPECIES_CELEBI, // Mythical (Banned)
+
+        // --- GENERATION 3 ---
+        SPECIES_REGIROCK, // Sub-Legendary (Allowed)
+        SPECIES_REGICE, // Sub-Legendary (Allowed)
+        SPECIES_REGISTEEL, // Sub-Legendary (Allowed)
+        SPECIES_LATIAS, // Sub-Legendary (Allowed)
+        SPECIES_LATIOS, // Sub-Legendary (Allowed)
+        SPECIES_KYOGRE, // Restricted Legendary (Banned)
+        SPECIES_GROUDON, // Restricted Legendary (Banned)
+        SPECIES_RAYQUAZA, // Restricted Legendary (Banned)
+        SPECIES_JIRACHI, // Mythical (Banned)
+        SPECIES_DEOXYS, // Mythical (Banned)
+
+        // --- GENERATION 4 ---
+        SPECIES_UXIE, // Sub-Legendary (Allowed)
+        SPECIES_MESPRIT, // Sub-Legendary (Allowed)
+        SPECIES_AZELF, // Sub-Legendary (Allowed)
+        SPECIES_DIALGA, // Restricted Legendary (Banned)
+        SPECIES_PALKIA, // Restricted Legendary (Banned)
+        SPECIES_HEATRAN, // Sub-Legendary (Allowed)
+        SPECIES_REGIGIGAS, // Sub-Legendary (Allowed)
+        SPECIES_GIRATINA, // Restricted Legendary (Banned)
+        SPECIES_CRESSELIA, // Sub-Legendary (Allowed)
+        SPECIES_PHIONE, // Mythical (Banned)
+        SPECIES_MANAPHY, // Mythical (Banned)
+        SPECIES_DARKRAI, // Mythical (Banned)
+        SPECIES_SHAYMIN, // Mythical (Banned)
+        SPECIES_ARCEUS, // Mythical (Banned)
+
+        // --- GENERATION 5 ---
+        SPECIES_COBALION, // Sub-Legendary (Allowed)
+        SPECIES_TERRAKION, // Sub-Legendary (Allowed)
+        SPECIES_VIRIZION, // Sub-Legendary (Allowed)
+        SPECIES_TORNADUS, // Sub-Legendary (Allowed)
+        SPECIES_THUNDURUS, // Sub-Legendary (Allowed)
+        SPECIES_RESHIRAM, // Restricted Legendary (Banned)
+        SPECIES_ZEKROM, // Restricted Legendary (Banned)
+        SPECIES_LANDORUS, // Sub-Legendary (Allowed)
+        SPECIES_KYUREM, // Restricted Legendary (Banned)
+        SPECIES_VICTINI, // Mythical (Banned)
+        SPECIES_KELDEO, // Mythical (Banned)
+        SPECIES_MELOETTA, // Mythical (Banned)
+        SPECIES_GENESECT, // Mythical (Banned)
+
+        // --- GENERATION 6 ---
+        SPECIES_XERNEAS, // Restricted Legendary (Banned)
+        SPECIES_YVELTAL, // Restricted Legendary (Banned)
+        SPECIES_ZYGARDE, // Restricted Legendary (Banned)
+        SPECIES_DIANCIE, // Mythical (Banned)
+        SPECIES_HOOPA, // Mythical (Banned)
+        SPECIES_VOLCANION, // Mythical (Banned)
+    };
+    for (u32 i = 0; i < SIZE(all_special_pokemon); i++) {
+      if (species == all_special_pokemon[i]) {
+        return false;
+      }
+    }
+
+    return HookManager::Call<bool>(HookID::kAddPokemonToTeam, team, pokemon);
   }
 
   static void LoadEvolveTableHook(u32 species, u32 b, u32 c, u32 d) {
@@ -68,26 +158,20 @@ struct Nuzlocke {
     }* table = (Table*)READ(u32, 0x617A04 + 0x34);
     auto& evolve = *table->evolve;
     switch (species) {
-      case SPECIES_KADABRA:
-        evolve.data[0].arg = ITEM_SHINY_STONE;
-        evolve.data[0].method = EVOLUTION_METHOD_ITEM;
-        break;
       case SPECIES_MACHOKE:
       case SPECIES_GRAVELER:
+      case SPECIES_KADABRA:
       case SPECIES_BOLDORE:
       case SPECIES_GURDURR:
+      case SPECIES_HAUNTER:
       case SPECIES_KARRABLAST:
       case SPECIES_SHELMET:
-        evolve.data[0].arg = ITEM_MOON_STONE;
-        evolve.data[0].method = EVOLUTION_METHOD_ITEM;
-        break;
-      case SPECIES_HAUNTER:
-        evolve.data[0].arg = ITEM_DUSK_STONE;
-        evolve.data[0].method = EVOLUTION_METHOD_ITEM;
+        evolve.data[0].arg = 30; // level
+        evolve.data[0].method = EVOLUTION_METHOD_LEVEL_UP;
         break;
       case SPECIES_SLOWPOKE:
       case SPECIES_POLIWHIRL:
-        evolve.data[0].arg = ITEM_WATER_STONE;
+        evolve.data[0].arg = ITEM_KINGS_ROCK;
         evolve.data[0].method = EVOLUTION_METHOD_ITEM;
         break;
       case SPECIES_SCYTHER:

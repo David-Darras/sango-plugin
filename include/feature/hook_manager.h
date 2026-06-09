@@ -58,6 +58,7 @@ enum class HookID : u32 {
   kLoadPokemonIconTexture,
   kUpdateAppStatus,
   kGlobalDataItemGetParam,
+  kAddPokemonToTeam,
   kMax
 };
 
