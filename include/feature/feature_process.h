@@ -17,12 +17,16 @@
 
 #ifndef SANGO_PLUGIN_FEATURE_PROCESS_H
 #define SANGO_PLUGIN_FEATURE_PROCESS_H
+#include "game/overworld/weather_manager.h"
 #include "feature_app.h"
+#include "feature_encounter.h"
 #include "feature_engine.h"
 #include "feature_light.h"
 #include "game/process_manager.h"
 #include "game/battle/manager.h"
+#include "game/constant/weather.h"
 #include "game/global_data/pokemon.h"
+#include "game/overworld/map_manager.h"
 #include "game/renderer/picture.h"
 #include "ui/log_application.h"
 
@@ -54,7 +58,29 @@ public:
 #endif
   }
 
+  static void OnUpdateMap(u16 id) {
+    auto& weather_manager = overworld::WeatherManager::GetInstance();
+    u8& request = weather_manager.GetRequestedWeather();
+    switch (id) {
+      case MAP_ROUTE_101:
+        request = WEATHER_RAIN;
+        break;
+      case MAP_ROUTE_102:
+        request = WEATHER_SANDSTORM;
+        break;
+      case MAP_ROUTE_103:
+        request = WEATHER_HAIL;
+        break;
+    }
+  }
+
   static void OnUpdateOverworld() {
+    static u32 last_map_id = 0;
+    u32& map_id = overworld::MapManager::GetInstance().GetMapId();
+    if (map_id != last_map_id) {
+      last_map_id = map_id;
+      OnUpdateMap(last_map_id);
+    }
   }
 
   static void OnExitBattle() {

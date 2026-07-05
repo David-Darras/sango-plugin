@@ -35,6 +35,7 @@
 #include "feature/feature_field_move.h"
 #include "feature/feature_item.h"
 #include "feature/feature_process.h"
+#include "feature/feature_script.h"
 #include "feature/feature_shop.h"
 #include "ui/main_application.h"
 #include "system/device.h"
@@ -69,6 +70,7 @@ void Initialize() {
   feature::Shop::Initialize();
   feature::Item::Initialize();
   feature::Nuzlocke::Initialize();
+  feature::Script::Initialize();
 
   auto& application_manager = ui::ApplicationManager::GetInstance();
   auto& root_app = ui::RootApplication::GetInstance();

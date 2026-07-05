@@ -51,4 +51,8 @@ public:
   static u32 GetArrayElementSize(uptr addr) { return READ(u32, addr - 8); }
 
   static u32 GetArrayCapacity(uptr addr) { return READ(u32, addr - 4); }
+
+  static u32 GetRandomValue(u32 max = 0xFFFFFFFF) {
+    return ((u32(*)(u32))ADDRESS_GET_RANDOM_VALUE)(max);
+  }
 };
