@@ -21,8 +21,8 @@
 #include "feature/hook_manager.h"
 
 namespace feature {
-struct EngineHookContext {
-  MAKE_SINGLETON(EngineHookContext)
+struct Engine {
+  MAKE_SINGLETON(Engine)
   s32 game_speed = 1;
   s32 frame_count = 0;
 

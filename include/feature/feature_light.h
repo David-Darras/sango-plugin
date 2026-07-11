@@ -20,8 +20,8 @@
 #include "feature/hook_manager.h"
 
 namespace feature {
-struct LightHookContext {
-  MAKE_SINGLETON(LightHookContext)
+struct Light {
+  MAKE_SINGLETON(Light)
   f32 outline_scale = 1.0f;
   bool use_outline = false;
   Color outline_color = Color(0, 0, 0, 1);

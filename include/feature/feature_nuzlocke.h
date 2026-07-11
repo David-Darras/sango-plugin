@@ -29,6 +29,7 @@
 #include "game/global_data/pokemon.h"
 #include "game/savedata/pokemon_data_accessor.h"
 #include "game/savedata/pokemon_team.h"
+#include "game/savedata/settings.h"
 #include "parser/pokemon_showdown_parser.h"
 #include "parser/pokemon_node.h"
 #include "ui/log_application.h"
@@ -42,6 +43,7 @@ struct Nuzlocke {
   STATIC_INLINE void Initialize() {
     FixMoves();
     FixPokemon();
+    FixConfig();
 
     HookManager::Initialize(HookID::kLoadEvolveTable,
                             ADDRESS_GLOBAL_DATA_LOAD_EVOLVE_TABLE,
@@ -67,6 +69,13 @@ struct Nuzlocke {
     u16 model_id;
     u8 _0[44];
   };
+
+  STATIC_INLINE void FixConfig() {
+    auto& data = savedata::Settings::GetInstance();
+    data.text_speed = 3; // Instant message
+    data.battle_style = 1;
+    data.show_battle_animations = 0;
+  }
 
   static void LoadOverworldDataHook(uptr self, u32 id) {
     ui::LogApplication::Print(u"Loading...");

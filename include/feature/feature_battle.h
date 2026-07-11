@@ -27,8 +27,8 @@
 #define ADDRESS_BATTLE_UPDATE_EXP (0x0075D73C)
 
 namespace feature {
-struct BattleHookContext {
-  MAKE_SINGLETON(BattleHookContext)
+struct Battle {
+  MAKE_SINGLETON(Battle)
   STATIC_INLINE void Initialize() {
     // HookManager::GetInstance().Add(HookID::kOnStartTurn, 0x00759B74,
     //                                (uptr)OnStartTurn);

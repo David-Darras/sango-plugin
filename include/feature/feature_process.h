@@ -42,7 +42,7 @@ public:
   bool heal_team = false;
 
   static void OnEnterOverworld() {
-    AppHookContext::OnEnterOverworld();
+    GameApp::OnEnterOverworld();
 #if ENABLE_NUZLOCKE_FEATURES == 1
     auto& heal_team = GetInstance().heal_team;
     if (heal_team) {
@@ -80,8 +80,8 @@ public:
 
   static void OnExitBattle() {
 #if ENABLE_NUZLOCKE_FEATURES == 1
-    // GetInstance().heal_team = true;
-    feature::EngineHookContext::GetInstance().game_speed = 1;
+    GetInstance().heal_team = true;
+    feature::Engine::GetInstance().game_speed = 1;
 #endif
   }
 
@@ -94,7 +94,7 @@ public:
 
     HookManager::ForceEnable(HookID::kUpdateExp);
 
-    feature::EngineHookContext::GetInstance().game_speed = 2;
+    feature::Engine::GetInstance().game_speed = 2;
 
     // Only access to pokeball
     WRITE(vu8, 0x007CB09C, 2); // HP/PP -> Ball
@@ -112,14 +112,14 @@ public:
   }
 
   static void OnEnterAppStatus() {
-    AppHookContext::OnEnterAppStatus();
+    GameApp::OnEnterAppStatus();
   }
 
   static void OnExitAppstatus() {
   }
 
   static void OnUpdateAppStatus() {
-    AppHookContext::OnUpdateAppStatus();
+    GameApp::OnUpdateAppStatus();
   }
 
   static void DoEachFrame() {

@@ -23,8 +23,8 @@
 #include "game/renderer/text_box.h"
 
 namespace feature {
-struct PictureHookContext {
-  MAKE_SINGLETON(PictureHookContext)
+struct Picture {
+  MAKE_SINGLETON(Picture)
   bool is_enabled = false;
   Vec2 scale = Vec2(1, 1);
   u8 alpha = 255;
@@ -39,7 +39,7 @@ struct PictureHookContext {
   }
 
   static u32 DrawHook(renderer::Picture* picture, u32 p0, u32 p1, u32 p2) {
-    PictureHookContext& ctx = GetInstance();
+    Picture& ctx = GetInstance();
 
     if (ctx.is_enabled) {
       picture->pane.scale = ctx.scale;

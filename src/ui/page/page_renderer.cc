@@ -41,7 +41,7 @@ void LoadPokemonTexturePage(MainApplication& app, void* args) {
       "Fill"
   };
 
-  auto& ctx = feature::PokemonTextureHookContext::GetInstance();
+  auto& ctx = feature::PokemonTexture::GetInstance();
 
   app.Add("Filter", ctx.filter)
       .WithArray(FILTERS, SIZE(FILTERS))
@@ -51,7 +51,7 @@ void LoadPokemonTexturePage(MainApplication& app, void* args) {
 }
 
 void LoadLightPage(MainApplication& app, void* args) {
-  auto& ctx = feature::LightHookContext::GetInstance();
+  auto& ctx = feature::Light::GetInstance();
 
   app.Add("Use Outline", ctx.use_outline)
       .Add("Outline Scale", ctx.outline_scale)
@@ -65,7 +65,7 @@ void LoadLightPage(MainApplication& app, void* args) {
 }
 
 void LoadLayoutTextBoxPage(MainApplication& app, void* args) {
-  auto& ctx = feature::TextBoxHookContext::GetInstance();
+  auto& ctx = feature::TextBox::GetInstance();
 
   app.Add("Is Enabled", ctx.is_enabled)
       .AddSeparator()
@@ -79,7 +79,7 @@ void LoadLayoutTextBoxPage(MainApplication& app, void* args) {
 }
 
 void LoadLayoutPicturePage(MainApplication& app, void* args) {
-  auto& ctx = feature::PictureHookContext::GetInstance();
+  auto& ctx = feature::Picture::GetInstance();
 
   app.Add("Is Enabled", ctx.is_enabled)
       .AddSeparator()

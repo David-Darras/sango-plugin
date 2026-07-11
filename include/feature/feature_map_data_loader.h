@@ -50,8 +50,8 @@ class MapDataLoader {
     auto& data = map_data->GetEncounterData();
     for (u32 i = 0; i < overworld::EncounterData::POKEMON_COUNT; i++) {
       ui::LogApplication::Print(u"pkm=%u", data.pokemon[i].species);
-      data.pokemon[i].species = SPECIES_VENUSAUR;
-      data.pokemon[i].form = FORM_VENUSAUR_MEGA;
+      data.pokemon[i].species = SPECIES_MEWTWO;
+      data.pokemon[i].form = FORM_MEWTWO_MEGAY;
       data.pokemon[i].min_level = 1;
       data.pokemon[i].max_level = 3;
     }
@@ -61,8 +61,8 @@ class MapDataLoader {
         GetNaviDexData(
             map_id, count);
     for (u32 i = 0; i < count; i++) {
-      navi_dex[i].species = SPECIES_VENUSAUR;
-      navi_dex[i].form = FORM_VENUSAUR_MEGA;
+      navi_dex[i].species = SPECIES_MEWTWO;
+      navi_dex[i].form = FORM_MEWTWO_MEGAY;
     }
   }
 };

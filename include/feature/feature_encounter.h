@@ -29,8 +29,8 @@
 #define ADDRESS_ENCOUNTER_SET_POKEMON (0x0078DB30)
 
 namespace feature {
-struct EncounterCheatCode {
-  MAKE_SINGLETON(EncounterCheatCode)
+struct Encounter {
+  MAKE_SINGLETON(Encounter)
   STATIC_INLINE void Initialize() {
     CheatCodeManager::Initialize(CheatCodeId::kNoEncounter, AddMaxRepel,
                                  RemoveMaxRepel,

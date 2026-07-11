@@ -21,8 +21,8 @@
 #include "game/overworld/tile.h"
 
 namespace feature {
-struct MapTileHookContext {
-  MAKE_SINGLETON(MapTileHookContext)
+struct MapTile {
+  MAKE_SINGLETON(MapTile)
   bool is_enabled;
   bool is_impassable;
   bool is_water;

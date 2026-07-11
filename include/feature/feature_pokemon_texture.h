@@ -22,8 +22,8 @@
 #include "game/renderer/pokemon_model.h"
 
 namespace feature {
-struct PokemonTextureHookContext {
-  MAKE_SINGLETON(PokemonTextureHookContext)
+struct PokemonTexture {
+  MAKE_SINGLETON(PokemonTexture)
   u8 filter = 0;
   u8 red = 0;
   u8 green = 0;

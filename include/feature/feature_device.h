@@ -21,8 +21,8 @@
 #include "system/device.h"
 
 namespace feature {
-struct DeviceHookContext {
-  MAKE_SINGLETON(DeviceHookContext)
+struct DeviceState {
+  MAKE_SINGLETON(DeviceState)
   bool use_redirection = false;
 
   STATIC_INLINE void Initialize() {
@@ -41,7 +41,7 @@ struct DeviceHookContext {
 
 #define DEFINE_INPUT_HOOK(FuncName)                         \
 static bool Hook##FuncName(void *pDevice, u32 key, u8 channel) { \
-if (DeviceHookContext::GetInstance().use_redirection &&       \
+if (DeviceState::GetInstance().use_redirection &&       \
 channel != Device::kCustomChannel)                  \
 return false;                                         \
 \
@@ -59,7 +59,7 @@ return HookManager::Call<bool>(HookID::FuncName, pDevice, key, channel);\
 
 #define DEFINE_TOUCH_HOOK(FuncName)                   \
     static bool Hook##FuncName(void *pTouch, u8 channel) {     \
-    if (DeviceHookContext::GetInstance().use_redirection && \
+    if (DeviceState::GetInstance().use_redirection && \
     channel != Device::kCustomChannel)            \
     return false;                                   \
     \

@@ -22,8 +22,8 @@
 #include "game/renderer/text_box.h"
 
 namespace feature {
-struct TextBoxHookContext {
-  MAKE_SINGLETON(TextBoxHookContext)
+struct TextBox {
+  MAKE_SINGLETON(TextBox)
   bool is_enabled = false;
   Vec2 scale = Vec2(1, 1);
   Color8 top_color = Color8(0, 0, 0, 1);
@@ -37,7 +37,7 @@ struct TextBoxHookContext {
   static u32 DrawHook(renderer::TextBox* text_box, u32 writer) {
     u32 res = HookManager::Call<u32>(HookID::kDrawTextBox, text_box, writer);
 
-    TextBoxHookContext& ctx = GetInstance();
+    TextBox& ctx = GetInstance();
     if (ctx.is_enabled) {
       text_box->pane.scale = ctx.scale;
       text_box->top_color = ctx.top_color;

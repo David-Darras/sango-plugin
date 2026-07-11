@@ -37,8 +37,8 @@
 #define ADDRESS_CHECK_APP_REQUEST (0x007BDE50)
 
 namespace feature {
-class AppHookContext {
-  MAKE_SINGLETON(AppHookContext)
+class GameApp {
+  MAKE_SINGLETON(GameApp)
   bool open_app = false;
   u32 app_id = 0;
 

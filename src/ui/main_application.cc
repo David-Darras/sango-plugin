@@ -69,14 +69,14 @@ void MainApplication::DrawBottom(Graphics& graphics) {
 void MainApplication::ForceClose() {
   Sound::PlaySoundEffect(IsOpened() ? theme_.close_sound : theme_.open_sound);
   is_opened_ = false;
-  feature::DeviceHookContext::GetInstance().use_redirection = is_opened_;
+  feature::DeviceState::GetInstance().use_redirection = is_opened_;
 }
 
 void MainApplication::Update(Controller& controller) {
   if (AreKeysReleased(controller)) {
     Sound::PlaySoundEffect(IsOpened() ? theme_.close_sound : theme_.open_sound);
     is_opened_ ^= 1;
-    feature::DeviceHookContext::GetInstance().use_redirection = is_opened_;
+    feature::DeviceState::GetInstance().use_redirection = is_opened_;
     return;
   }
 

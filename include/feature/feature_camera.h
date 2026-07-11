@@ -30,11 +30,11 @@ class StereoCamera;
 }
 
 namespace feature {
-struct CameraHookContext {
+struct Camera {
   enum CameraState { kIdle, kFree, kRotate, kFpv, kTps };
 
-  MAKE_SINGLETON(CameraHookContext)
-  u32 state = CameraState::kIdle;
+  MAKE_SINGLETON(Camera)
+  u32 state = kIdle;
   u8 old_state = 0;
   Vec3 rot;
   Vec3 pos;

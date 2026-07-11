@@ -55,13 +55,17 @@ public:
 
   INLINE overworld::MapData& GetMapData() const { return *map_data_; }
 
-  INLINE overworld::CommonResource& GetCommonResource() const { return *common_resource_; }
+  INLINE overworld::CommonResource& GetCommonResource() const {
+    return *common_resource_;
+  }
 
   savedata::SaveData* savedata_;
   void* savedata_manager_;
 
   overworld::CommonResource* common_resource_;
   void* country_name_buffer;
+
+  void* map_block;
 
   savedata::PokemonTeam* pokemon_team_;
   savedata::PlayTime* play_time_;
@@ -80,6 +84,5 @@ public:
   bool is_not_long_encounter_animation_during_battle;
   bool is_savedata_locked;
   bool is_savedata_loaded_;
-
 };
 } // namespace game

@@ -27,7 +27,7 @@ namespace ui {
 #include "game/battle/config.inc"
 
 void LoadBattleConfigPage(MainApplication& app, void* args) {
-  auto& ctx = feature::BattleConfigHookContext::GetInstance();
+  auto& ctx = feature::BattleConfig::GetInstance();
 
   app.Add("Inverse Teams", ctx.inverse_teams)
      .AddSeparator()

@@ -23,8 +23,8 @@
 #include "ui/log_application.h"
 
 namespace feature {
-struct BattleConfigHookContext {
-  MAKE_SINGLETON(BattleConfigHookContext)
+struct BattleConfig {
+  MAKE_SINGLETON(BattleConfig)
   bool is_enabled = false;
   u8 battle_format = 0; // single
   u8 background = 87;

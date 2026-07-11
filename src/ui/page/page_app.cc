@@ -20,7 +20,7 @@
 
 namespace ui {
 void LoadAppPage(MainApplication& app, void* args) {
-  auto& ctx = feature::AppHookContext::GetInstance();
+  auto& ctx = feature::GameApp::GetInstance();
 
   const std::pair<const char*, u32> apps[] = {
       // {"Tutor", 7},

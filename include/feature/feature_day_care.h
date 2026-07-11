@@ -20,8 +20,8 @@
 #include "common.h"
 
 namespace feature {
-class DayCareCheatCode {
-  MAKE_SINGLETON(DayCareCheatCode)
+class DayCare {
+  MAKE_SINGLETON(DayCare)
   STATIC_INLINE void Initialize() {
     CheatCodeManager::Initialize(CheatCodeId::kInstantEggHatch,
                                  [] {

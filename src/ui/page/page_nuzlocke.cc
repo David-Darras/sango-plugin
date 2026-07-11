@@ -28,7 +28,7 @@ void LoadHmPage(MainApplication& app, void* args) {
   app.Add("Cut", [&](void*) { feature::FieldMove::Execute(0); })
      .Add("Rock Smash", [&](void*) { feature::FieldMove::Execute(4); })
      .Add("Strength", [&](void*) { feature::FieldMove::Execute(3); })
-     .Add("Fly", [&](void*) { feature::AppHookContext::DoFly(); })
+     .Add("Fly", [&](void*) { feature::GameApp::DoFly(); })
      .Add("Surf", [&](void*) { feature::FieldMove::Execute(1); })
      .Add("Dive", [&](void*) { feature::FieldMove::Execute(10); })
      .Add("Waterfall", [&](void*) { feature::FieldMove::Execute(2); });

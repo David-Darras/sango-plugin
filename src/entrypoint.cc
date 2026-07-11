@@ -17,7 +17,6 @@
 
 #include "feature/feature_battle_config.h"
 #include "feature/feature_camera.h"
-#include "feature/feature_day_care.h"
 #include "ui/page/page_top.h"
 #include "feature/feature_engine.h"
 #include "feature/feature_light.h"
@@ -25,16 +24,15 @@
 #include "feature/feature_pokemon_texture.h"
 #include "feature/feature_text_box.h"
 #include "feature/feature_device.h"
-#include "feature/feature_map_tile.h"
 #include "feature/feature_texture.h"
 #include "feature/feature_overworld_model.h"
 #include "feature/feature_app.h"
 #include "feature/feature_battle.h"
-#include "feature/feature_config.h"
-#include "feature/feature_encounter.h"
+#include "feature/feature_day_care.h"
 #include "feature/feature_field_move.h"
 #include "feature/feature_item.h"
 #include "feature/feature_map_data_loader.h"
+#include "feature/feature_map_tile.h"
 #include "feature/feature_process.h"
 #include "feature/feature_script.h"
 #include "feature/feature_shop.h"
@@ -51,23 +49,22 @@ c16 String::s_buffer[128];
 void Initialize() {
   File::MountSdmc();
 
-  feature::DeviceHookContext::Initialize();
-  feature::EngineHookContext::Initialize();
-  feature::LightHookContext::Initialize();
-  feature::TextBoxHookContext::Initialize();
-  feature::PictureHookContext::Initialize();
-  feature::PokemonTextureHookContext::Initialize();
-  feature::BattleConfigHookContext::Initialize();
-  feature::DayCareCheatCode::Initialize();
-  feature::MapTileHookContext::Initialize();
-  feature::CameraHookContext::Initialize();
-  feature::OverworldModelCheatCode::Initialize();
-  feature::AppHookContext::Initialize();
-  feature::BattleHookContext::Initialize();
-  // feature::EncounterCheatCode::Initialize();
+  feature::DeviceState::Initialize();
+  feature::Engine::Initialize();
+  feature::Light::Initialize();
+  feature::TextBox::Initialize();
+  feature::Picture::Initialize();
+  feature::PokemonTexture::Initialize();
+  feature::BattleConfig::Initialize();
+  feature::DayCare::Initialize();
+  feature::MapTile::Initialize();
+  feature::Camera::Initialize();
+  feature::OverworldModel::Initialize();
+  feature::GameApp::Initialize();
+  feature::Battle::Initialize();
+  // feature::Encounter::Initialize();
   feature::FieldMove::Initialize();
-  feature::TextureHookContext::Initialize();
-  feature::Config::Initialize();
+  feature::PokemonIconTexture::Initialize();
   feature::Shop::Initialize();
   feature::Item::Initialize();
   feature::Nuzlocke::Initialize();
@@ -82,7 +79,7 @@ void Initialize() {
   main_app.SetPainter(ui::RetroAppPainter::GetInstance());
   main_app.Open(ui::LoadNuzlockePage);
 
-  auto& light = feature::LightHookContext::GetInstance();
+  auto& light = feature::Light::GetInstance();
   light.use_outline = true;
   light.outline_scale = 0.0f;
 #else

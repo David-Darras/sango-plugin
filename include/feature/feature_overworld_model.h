@@ -31,8 +31,8 @@ struct Model;
 }
 
 namespace feature {
-struct OverworldModelCheatCode {
-  MAKE_SINGLETON(OverworldModelCheatCode)
+struct OverworldModel {
+  MAKE_SINGLETON(OverworldModel)
   Vec3 speed = Vec3{1, 1, 1};
   f32 theta = 0.0f;
   f32 radius = 5.0f;

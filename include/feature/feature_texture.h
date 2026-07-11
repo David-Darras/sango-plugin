@@ -22,8 +22,8 @@
 #include "ui/log_application.h"
 
 namespace feature {
-class TextureHookContext {
-  MAKE_SINGLETON(TextureHookContext)
+class PokemonIconTexture {
+  MAKE_SINGLETON(PokemonIconTexture)
   void* addr = nullptr;
   u32 size = 0;
 

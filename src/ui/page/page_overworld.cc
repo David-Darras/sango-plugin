@@ -26,7 +26,7 @@ namespace ui {
 #include "game/overworld/tile.inc"
 
 void LoadOverworldMapTilePage(MainApplication& app, void* args) {
-  auto& ctx = feature::MapTileHookContext::GetInstance();
+  auto& ctx = feature::MapTile::GetInstance();
 
   app.Add("Is Enabled", ctx.is_enabled)
      .AddSeparator()
@@ -84,7 +84,7 @@ void LoadOverworldCameraPage(MainApplication& app, void* args) {
 
   static const c8* STATES[] = {"Idle", "Free", "Rotate", "Fpv", "Tps"};
   bool& skybox = *(bool*)((uptr)&overworld::Renderer::GetInstance() + 0xB74);
-  auto& ctx = feature::CameraHookContext::GetInstance();
+  auto& ctx = feature::Camera::GetInstance();
 
   app.WithNoBackground()
      .Add("Skybox", skybox)
@@ -118,7 +118,7 @@ void LoadOverworldCameraPage(MainApplication& app, void* args) {
 void LoadOverworldModelPage(MainApplication& app, void* args) {
   if (app.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
 
-  auto& ctx = feature::OverworldModelCheatCode::GetInstance();
+  auto& ctx = feature::OverworldModel::GetInstance();
   auto& man = overworld::ModelManager::GetInstance();
   auto& rsrc = man.GetResource(ctx.model_idx);
   auto& draw_model = man.GetPlayer().GetDrawModel();
@@ -144,7 +144,7 @@ void LoadOverworldModelPage(MainApplication& app, void* args) {
      .WithRefresh()
      .Add("Model", rsrc.model_id)
      .Add("Animation", ctx.model_animation)
-     .WithCallback(feature::OverworldModelCheatCode::PlayAnimation);
+     .WithCallback(feature::OverworldModel::PlayAnimation);
 }
 
 void LoadOverworldPage(MainApplication& app, void* args) {
