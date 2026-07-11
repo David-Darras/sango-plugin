@@ -17,10 +17,32 @@
 
 #pragma once
 
+#include "common.h"
+#include "game/data_manager.h"
 
-#define MAP_ROUTE_101 (23)
-#define MAP_ROUTE_102 (24)
-#define MAP_ROUTE_103 (25)
-#define MAP_ROUTE_104_SOUTH (27)
-#define MAP_PETALBURG_WOODS (82)
-#define MAP_ROUTE_104_NORTH (26)
+namespace overworld {
+struct NaviDexData {
+  u16 species : 11;
+  u16 form : 5;
+};
+
+struct CommonResource {
+  SINGLETON(CommonResource)
+  STATIC_INLINE CommonResource& GetInstance() {
+    return game::DataManager::GetInstance().GetCommonResource();
+  }
+
+  INLINE NaviDexData* GetNaviDexData(u16 map_id, u16& count) {
+    count = navi_dex_pack->GetSize(map_id) / sizeof(NaviDexData);
+    return (NaviDexData*)navi_dex_pack->GetResource(map_id);
+  }
+
+  void* graphics_buffer;
+  ResourcePack* graphics_pack;
+
+  void* navi_dex_buffer;
+  ResourcePack* navi_dex_pack;
+
+  // other data
+};
+} // namespace overworld

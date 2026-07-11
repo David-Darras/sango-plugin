@@ -34,6 +34,7 @@
 #include "feature/feature_encounter.h"
 #include "feature/feature_field_move.h"
 #include "feature/feature_item.h"
+#include "feature/feature_map_data_loader.h"
 #include "feature/feature_process.h"
 #include "feature/feature_script.h"
 #include "feature/feature_shop.h"
@@ -63,7 +64,7 @@ void Initialize() {
   feature::OverworldModelCheatCode::Initialize();
   feature::AppHookContext::Initialize();
   feature::BattleHookContext::Initialize();
-  feature::EncounterCheatCode::Initialize();
+  // feature::EncounterCheatCode::Initialize();
   feature::FieldMove::Initialize();
   feature::TextureHookContext::Initialize();
   feature::Config::Initialize();
@@ -71,6 +72,7 @@ void Initialize() {
   feature::Item::Initialize();
   feature::Nuzlocke::Initialize();
   feature::Script::Initialize();
+  feature::MapDataLoader::Initialize();
 
   auto& application_manager = ui::ApplicationManager::GetInstance();
   auto& root_app = ui::RootApplication::GetInstance();

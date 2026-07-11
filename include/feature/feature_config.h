@@ -27,6 +27,7 @@ public:
     auto& data = savedata::Settings::GetInstance();
     data.text_speed = 3; // Instant message
     data.battle_style = 1;
+    data.show_battle_animations = 0;
   }
 };
 } // namespace feature

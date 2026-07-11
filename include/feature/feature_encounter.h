@@ -25,7 +25,6 @@
 #include "game/constant/species.h"
 #include "game/overworld/map_manager.h"
 #include "game/savedata/savedata_encounter.h"
-#include "game/savedata/event_table.h"
 
 #define ADDRESS_ENCOUNTER_SET_POKEMON (0x0078DB30)
 
@@ -75,23 +74,82 @@ struct EncounterCheatCode {
 
   static u16 GetSpecies(u16 default_species) {
     static const u16 ROUTE_101[] = {
-        SPECIES_CATERPIE, SPECIES_WEEDLE, SPECIES_PIDGEY, SPECIES_RATTATA,
-        SPECIES_SPEAROW, SPECIES_ABRA, SPECIES_MACHOP, SPECIES_BELLSPROUT,
-        SPECIES_TENTACOOL, SPECIES_GEODUDE, SPECIES_PONYTA
+        SPECIES_CATERPIE,
+        SPECIES_WEEDLE,
+        SPECIES_MAGIKARP,
+        SPECIES_ZUBAT,
+        SPECIES_PIDGEY,
+        SPECIES_RATTATA,
+        SPECIES_SPEAROW,
+        SPECIES_DIGLETT,
+        SPECIES_JIGGLYPUFF,
+        SPECIES_NIDORAN_M,
+        SPECIES_NIDORAN_F,
     };
 
     static const u16 ROUTE_102[] = {
-        SPECIES_EKANS, SPECIES_PIKACHU, SPECIES_SANDSHREW, SPECIES_NIDORAN_F,
-        SPECIES_NIDORAN_M, SPECIES_CLEFAIRY, SPECIES_VULPIX, SPECIES_JIGGLYPUFF,
-        SPECIES_SLOWPOKE, SPECIES_MAGNEMITE, SPECIES_FARFETCHD, SPECIES_DODUO,
-        SPECIES_SEEL, SPECIES_GRIMER, SPECIES_SHELLDER, SPECIES_GASTLY
+        SPECIES_HORSEA,
+        SPECIES_VULPIX,
+        SPECIES_MEOWTH,
+        SPECIES_PARAS,
+        SPECIES_DITTO,
+        SPECIES_EKANS,
+        SPECIES_SANDSHREW,
+        SPECIES_POLIWAG,
+        SPECIES_BELLSPROUT,
+        SPECIES_GEODUDE,
+        SPECIES_DRATINI,
+    };
+    static const u16 ROUTE_103[] = {
+        SPECIES_VENONAT,
+        SPECIES_MANKEY,
+        SPECIES_MACHOP,
+        SPECIES_SHELLDER,
+        SPECIES_EEVEE,
+        SPECIES_MAGNEMITE,
+        SPECIES_SEEL,
+        SPECIES_GRIMER,
+        SPECIES_EXEGGCUTE,
+        SPECIES_KRABBY,
     };
 
-    static const u16 ROUTE_103[] = {
-        SPECIES_ZUBAT, SPECIES_ODDISH, SPECIES_PARAS, SPECIES_VENONAT,
-        SPECIES_DIGLETT,
-        SPECIES_MEOWTH, SPECIES_PSYDUCK, SPECIES_MANKEY, SPECIES_GROWLITHE,
-        SPECIES_POLIWAG
+    static const u16 ROUTE_104_SOUTH[] = {
+        SPECIES_DROWZEE,
+        SPECIES_GOLDEEN,
+        SPECIES_ODDISH,
+        SPECIES_PIKACHU,
+        SPECIES_PSYDUCK,
+        SPECIES_CUBONE,
+        SPECIES_SLOWPOKE,
+        SPECIES_ABRA,
+        SPECIES_DODUO,
+        SPECIES_GASTLY,
+    };
+
+    static const u16 PETALBURG_WOODS[] = {
+        SPECIES_KOFFING,
+        SPECIES_STARYU,
+        SPECIES_RHYHORN,
+        SPECIES_GROWLITHE,
+        SPECIES_FARFETCHD,
+        SPECIES_OMANYTE,
+        SPECIES_KABUTO,
+        SPECIES_KANGASKHAN,
+        SPECIES_TANGELA,
+        SPECIES_WIGGLYTUFF,
+    };
+
+    static const u16 ROUTE_104_NORTH[] = {
+        SPECIES_PONYTA,
+        SPECIES_CHANSEY,
+        SPECIES_GOLBAT,
+        SPECIES_HITMONLEE,
+        SPECIES_HITMONCHAN,
+        SPECIES_JYNX,
+        SPECIES_MR_MIME,
+        SPECIES_SCYTHER,
+        SPECIES_ELECTABUZZ,
+        SPECIES_TAUROS,
     };
 
     u16 species = 0;
@@ -101,16 +159,30 @@ struct EncounterCheatCode {
       case MAP_ROUTE_101:
         species = ROUTE_101[Utils::GetRandomValue(SIZE(ROUTE_101))];
         break;
+
       case MAP_ROUTE_102:
         species = ROUTE_102[Utils::GetRandomValue(SIZE(ROUTE_102))];
         break;
+
       case MAP_ROUTE_103:
         species = ROUTE_103[Utils::GetRandomValue(SIZE(ROUTE_103))];
         break;
-    }
 
-    if (species == 0) {
-      species = default_species;
+      case MAP_ROUTE_104_SOUTH:
+        species = ROUTE_104_SOUTH[Utils::GetRandomValue(SIZE(ROUTE_104_SOUTH))];
+        break;
+
+      case MAP_PETALBURG_WOODS:
+        species = PETALBURG_WOODS[Utils::GetRandomValue(SIZE(PETALBURG_WOODS))];
+        break;
+
+      case MAP_ROUTE_104_NORTH:
+        species = ROUTE_104_NORTH[Utils::GetRandomValue(SIZE(ROUTE_104_NORTH))];
+        break;
+
+      default:
+        species = default_species;
+        break;
     }
 
     return species;

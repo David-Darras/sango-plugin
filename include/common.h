@@ -190,3 +190,19 @@ struct String {
   u16 size;
   bool is_initialized;
 };
+
+struct ResourcePack {
+  u16 signature; // "PC"
+  u16 file_count;
+  u32 file_offset[];
+
+  u32 GetSize(u32 idx) const {
+    u32 safe_idx = (idx >= file_count) ? 0 : idx;
+    return file_offset[safe_idx + 1] - file_offset[safe_idx];
+  }
+
+  uptr GetResource(u32 idx) {
+    u32 safe_idx = (idx >= file_count) ? 0 : idx;
+    return ((uptr)this + file_offset[safe_idx]);
+  }
+};

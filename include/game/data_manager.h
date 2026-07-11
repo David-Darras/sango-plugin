@@ -28,6 +28,8 @@ struct PlayTime;
 namespace overworld {
 class ModelManager;
 struct Encounter;
+struct MapData;
+struct CommonResource;
 } // namespace overworld
 
 namespace game {
@@ -51,15 +53,33 @@ public:
 
   INLINE overworld::Encounter& GetEncounter() const { return *encounter_; }
 
+  INLINE overworld::MapData& GetMapData() const { return *map_data_; }
+
+  INLINE overworld::CommonResource& GetCommonResource() const { return *common_resource_; }
+
   savedata::SaveData* savedata_;
-  void* _0[4];
+  void* savedata_manager_;
+
+  overworld::CommonResource* common_resource_;
+  void* country_name_buffer;
+
   savedata::PokemonTeam* pokemon_team_;
   savedata::PlayTime* play_time_;
   void* _1;
   overworld::ModelManager* overworld_model_manager_;
+  void* _4;
+  overworld::MapData* map_data_;
 
-  u8 _2[388 - 36];
+  u8 _2[388 - 36 - 8];
 
   overworld::Encounter* encounter_;
+
+  u32 _3[10 + 4];
+
+  bool is_not_long_mega_evolution_animation_during_battle;
+  bool is_not_long_encounter_animation_during_battle;
+  bool is_savedata_locked;
+  bool is_savedata_loaded_;
+
 };
 } // namespace game

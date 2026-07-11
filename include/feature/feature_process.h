@@ -21,14 +21,9 @@
 #include "feature_app.h"
 #include "feature_encounter.h"
 #include "feature_engine.h"
-#include "feature_light.h"
 #include "game/process_manager.h"
-#include "game/battle/manager.h"
 #include "game/constant/weather.h"
-#include "game/global_data/pokemon.h"
 #include "game/overworld/map_manager.h"
-#include "game/renderer/picture.h"
-#include "ui/log_application.h"
 
 namespace feature {
 class ProcessHookContext {
@@ -85,7 +80,7 @@ public:
 
   static void OnExitBattle() {
 #if ENABLE_NUZLOCKE_FEATURES == 1
-    GetInstance().heal_team = true;
+    // GetInstance().heal_team = true;
     feature::EngineHookContext::GetInstance().game_speed = 1;
 #endif
   }
