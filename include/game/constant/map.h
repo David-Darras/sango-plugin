@@ -17,8 +17,17 @@
 
 #pragma once
 
+#define MAP_LITTLEROOT_TOWN (6)
+#define MAP_BRENDAN_HOUSE (223)
+#define MAP_BRENDAN_BEDROOM (224)
+#define MAP_MAY_HOUSE (225)
+#define MAP_MAY_BEDROOM (226)
+#define MAP_BIRCH_LABORATORY (227)
 
 #define MAP_ROUTE_101 (23)
+
+#define MAP_OLDALE_TOWN (7)
+
 #define MAP_ROUTE_102 (24)
 #define MAP_ROUTE_103 (25)
 #define MAP_ROUTE_104_SOUTH (27)

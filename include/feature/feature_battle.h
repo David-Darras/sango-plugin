@@ -25,10 +25,21 @@
 #include "game/savedata/pokemon_utils.h"
 
 #define ADDRESS_BATTLE_UPDATE_EXP (0x0075D73C)
+#define ADDRESS_BATTLE_START_MEGA_EVOLVE_ANIMATION (0x0072EF18)
+#define ADDRESS_BATTLE_START_BATTLE_ANIMATION (0x00775354)
 
 namespace feature {
 struct Battle {
   MAKE_SINGLETON(Battle)
+public:
+  bool is_long_mega_evolve_animation = true;
+  bool is_long_encounter_animation = false;
+  bool show_enemy_pov = false;
+  bool show_trainer_animation = true;
+  bool show_pokeball_animation = true;
+  bool show_fade_in = false;
+  bool show_shiny_animation = false;
+
   STATIC_INLINE void Initialize() {
     // HookManager::GetInstance().Add(HookID::kOnStartTurn, 0x00759B74,
     //                                (uptr)OnStartTurn);
@@ -41,6 +52,45 @@ struct Battle {
     //                                (uptr)OnLoadTrainerModel);
     HookManager::Initialize(HookID::kUpdateExp, ADDRESS_BATTLE_UPDATE_EXP,
                             (uptr)UpdateExpHook, false);
+    HookManager::Initialize(HookID::kStartMegaEvolveAnimation,
+                            ADDRESS_BATTLE_START_MEGA_EVOLVE_ANIMATION,
+                            (uptr)StartMegaEvolveAnimation, false);
+    HookManager::Initialize(HookID::kStartBattleAnimation,
+                            ADDRESS_BATTLE_START_BATTLE_ANIMATION,
+                            (uptr)StartBattleAnimation, false);
+  }
+
+  static void StartBattleAnimation(void* p0, void* p1) {
+    struct BattleAnimationData {
+      u32 view;
+      u32 _0;
+      u32 state;
+      u8 position[5];
+      u32 trainer_model[2];
+
+      bool skip_pokeball_animation;
+      bool is_long_encounter_animation;
+      bool use_trainer_pov;
+      bool show_fade_in;
+      bool show_shiny_animation;
+      bool dont_show_trainer;
+    }* data = (BattleAnimationData*)p1;
+    auto& config = GetInstance();
+    data->skip_pokeball_animation = !config.show_pokeball_animation;
+    data->is_long_encounter_animation = config.is_long_encounter_animation;
+    data->use_trainer_pov = !config.show_enemy_pov;
+    data->show_fade_in = config.show_fade_in;
+    data->skip_pokeball_animation = !config.show_pokeball_animation;
+    data->show_shiny_animation = config.show_shiny_animation;
+    data->dont_show_trainer = !config.show_trainer_animation;
+
+    HookManager::Call<void>(HookID::kStartBattleAnimation, p0, p1);
+  }
+
+  static void StartMegaEvolveAnimation(void* view, u8 target,
+                                       bool is_long_animation) {
+    HookManager::Call<void>(HookID::kStartMegaEvolveAnimation, view, target,
+                            GetInstance().is_long_mega_evolve_animation);
   }
 
   struct LevelUpData {

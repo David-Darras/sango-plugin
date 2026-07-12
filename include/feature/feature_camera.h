@@ -31,7 +31,23 @@ class StereoCamera;
 
 namespace feature {
 struct Camera {
-  enum CameraState { kIdle, kFree, kRotate, kFpv, kTps };
+  enum State { kIdle, kFree, kRotate, kFpv, kTps };
+
+  void SetCameraFree(f32 x, f32 y, f32 z, f32 yaw, f32 pitch) {
+    state = State::kFree;
+    pos.x = x;
+    pos.y = y;
+    pos.z = z;
+    rot.y = yaw;
+    rot.x = pitch;
+  }
+
+  void SetCameraRotate(f32 r, f32 h, f32 w = 0.0f) {
+    state = State::kRotate;
+    radius = r;
+    height = h;
+    theta = w;
+  }
 
   MAKE_SINGLETON(Camera)
   u32 state = kIdle;
@@ -89,8 +105,8 @@ struct Camera {
     }
     ctx.is_updating_camera = false;
 
-    if (ctx.state != ctx.old_state) {
-      if (static_cast<CameraState>(ctx.state) == CameraState::kFree) {
+    // if (ctx.state != ctx.old_state) {
+      if (static_cast<State>(ctx.state) == State::kFree) {
         ctx.pos = *pos;
         f32 dx = target->x - pos->x;
         f32 dy = target->y - pos->y;
@@ -100,13 +116,13 @@ struct Camera {
         ctx.rot.y = std::atan2(dz, dx);
         ctx.rot.x = (dist > 0.0001f) ? std::asin(dy / dist) : 0.0f;
       }
-      ctx.old_state = ctx.state;
-    }
+    //   ctx.old_state = ctx.state;
+    // }
 
     auto& player = overworld::ModelManager::GetInstance().GetPlayer();
 
-    switch (static_cast<CameraState>(ctx.state)) {
-      case CameraState::kRotate:
+    switch (static_cast<State>(ctx.state)) {
+      case State::kRotate:
         if (battle::Process::IsInBattle()) {
           *target = Vec3{0, 0, 0};
         } else {
@@ -119,7 +135,7 @@ struct Camera {
         ctx.theta += ctx.theta_speed;
         break;
 
-      case CameraState::kFree: {
+      case State::kFree: {
         Vec3 forward = {
             std::cos(ctx.rot.y) * std::cos(ctx.rot.x),
             std::sin(ctx.rot.x),
@@ -135,7 +151,7 @@ struct Camera {
         break;
       }
 
-      case CameraState::kFpv:
+      case State::kFpv:
         pos->x = player.draw_pos.x;
         pos->y = player.draw_pos.y + 30.0f;
         pos->z = player.draw_pos.z;
@@ -148,7 +164,7 @@ struct Camera {
         *up = {0.0f, 1.0f, 0.0f};
         break;
 
-      case CameraState::kTps: {
+      case State::kTps: {
         Vec3 dir = player.facing_direction;
         f32 len = std::sqrt(dir.x * dir.x + dir.y * dir.y + dir.z * dir.z);
         if (len > 0.0f) {
@@ -171,7 +187,7 @@ struct Camera {
         break;
       }
 
-      case CameraState::kIdle:
+      case State::kIdle:
       default:
         break;
     }

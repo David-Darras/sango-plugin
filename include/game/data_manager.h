@@ -59,6 +59,7 @@ public:
     return *common_resource_;
   }
 
+private:
   savedata::SaveData* savedata_;
   void* savedata_manager_;
 
@@ -79,10 +80,5 @@ public:
   overworld::Encounter* encounter_;
 
   u32 _3[10 + 4];
-
-  bool is_not_long_mega_evolution_animation_during_battle;
-  bool is_not_long_encounter_animation_during_battle;
-  bool is_savedata_locked;
-  bool is_savedata_loaded_;
 };
 } // namespace game

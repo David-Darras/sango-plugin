@@ -21,10 +21,7 @@
 #include "game/data_manager.h"
 
 namespace overworld {
-struct NaviDexData {
-  u16 species : 11;
-  u16 form : 5;
-};
+struct EncounterData;
 
 struct CommonResource {
   SINGLETON(CommonResource)
@@ -32,9 +29,8 @@ struct CommonResource {
     return game::DataManager::GetInstance().GetCommonResource();
   }
 
-  INLINE NaviDexData* GetNaviDexData(u16 map_id, u16& count) {
-    count = navi_dex_pack->GetSize(map_id) / sizeof(NaviDexData);
-    return (NaviDexData*)navi_dex_pack->GetResource(map_id);
+  INLINE EncounterData& GetNaviDexData(u16 map_id) {
+    return *(EncounterData*)navi_dex_pack->GetResource(map_id);
   }
 
   void* graphics_buffer;

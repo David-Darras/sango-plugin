@@ -28,6 +28,7 @@ namespace ui {
 
 void LoadBattleConfigPage(MainApplication& app, void* args) {
   auto& ctx = feature::BattleConfig::GetInstance();
+  auto& game_data = game::DataManager::GetInstance();
 
   app.Add("Inverse Teams", ctx.inverse_teams)
      .AddSeparator()

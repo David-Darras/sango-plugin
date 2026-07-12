@@ -19,11 +19,14 @@
 #define SANGO_PLUGIN_FEATURE_PROCESS_H
 #include "game/overworld/weather_manager.h"
 #include "feature_app.h"
+#include "feature_camera.h"
 #include "feature_encounter.h"
 #include "feature_engine.h"
+#include "feature_light.h"
 #include "game/process_manager.h"
 #include "game/constant/weather.h"
 #include "game/overworld/map_manager.h"
+#include "system/sound.h"
 
 namespace feature {
 class ProcessHookContext {
@@ -54,19 +57,7 @@ public:
   }
 
   static void OnUpdateMap(u16 id) {
-    auto& weather_manager = overworld::WeatherManager::GetInstance();
-    u8& request = weather_manager.GetRequestedWeather();
-    switch (id) {
-      case MAP_ROUTE_101:
-        request = WEATHER_RAIN;
-        break;
-      case MAP_ROUTE_102:
-        request = WEATHER_SANDSTORM;
-        break;
-      case MAP_ROUTE_103:
-        request = WEATHER_HAIL;
-        break;
-    }
+
   }
 
   static void OnUpdateOverworld() {
@@ -93,8 +84,10 @@ public:
     // ARM_RET(0x003881EC);
 
     HookManager::ForceEnable(HookID::kUpdateExp);
+    HookManager::ForceEnable(HookID::kStartMegaEvolveAnimation);
+    HookManager::ForceEnable(HookID::kStartBattleAnimation);
 
-    feature::Engine::GetInstance().game_speed = 2;
+    feature::Engine::GetInstance().game_speed = 1;
 
     // Only access to pokeball
     WRITE(vu8, 0x007CB09C, 2); // HP/PP -> Ball

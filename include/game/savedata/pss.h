@@ -77,7 +77,7 @@ struct PssBattleSendPayload {
   u32 is_wifi_connection : 1;
   u32 confirmed_users_bitmask : 3;
   u32 has_handicap : 1;
-  u32 battle_format : 8; // Single, Double, Triple, Rotation, etc.
+  u32 battle_format : 8; // Single, Double, Encounter, Rotation, etc.
   u32 battle_ruleset : 8; // Normal, Flat, Strict, etc.
   u32 is_voice_chat_enabled : 1;
   u32 padding : 8;

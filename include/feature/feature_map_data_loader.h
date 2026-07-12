@@ -41,29 +41,29 @@ class MapDataLoader {
   static bool LoadMapData(overworld::MapData* map_data) {
     bool result = HookManager::Call<bool>(HookID::kLoadMapData, map_data);
     if (result) {
-      FixMapData(map_data);
+      auto& data = map_data->GetEncounterData();
+      const u16 map_id = overworld::MapManager::GetInstance().GetMapId();
+      auto& navi_dex_data =
+          overworld::CommonResource::GetInstance().GetNaviDexData(map_id);
+      FixMapData(data);
+      FixMapData(navi_dex_data);
     }
     return result;
   }
 
-  static void FixMapData(overworld::MapData* map_data) {
-    auto& data = map_data->GetEncounterData();
-    for (u32 i = 0; i < overworld::EncounterData::POKEMON_COUNT; i++) {
-      ui::LogApplication::Print(u"pkm=%u", data.pokemon[i].species);
-      data.pokemon[i].species = SPECIES_MEWTWO;
-      data.pokemon[i].form = FORM_MEWTWO_MEGAY;
-      data.pokemon[i].min_level = 1;
-      data.pokemon[i].max_level = 3;
-    }
-    u16 map_id = overworld::MapManager::GetInstance().GetMapId();
-    u16 count = 0;
-    overworld::NaviDexData* navi_dex = overworld::CommonResource::GetInstance().
-        GetNaviDexData(
-            map_id, count);
-    for (u32 i = 0; i < count; i++) {
-      navi_dex[i].species = SPECIES_MEWTWO;
-      navi_dex[i].form = FORM_MEWTWO_MEGAY;
-    }
+  static void FixMapData(overworld::EncounterData& data) {
+    using namespace overworld;
+    u32 count = 0;
+    PokeInfoOnAction* poke_info = nullptr;
+
+    poke_info = data.GetPokeInfoTable(EncounterAction::kWalk, count);
+    ui::LogApplication::Print(u"%p walk count=%d", &data, count);
+    // for (u32 i = 0; i < count; i++) {
+    //   poke_info[i].species = SPECIES_MEWTWO + i;
+    //   poke_info[i].form = 0;
+    //   poke_info[i].min_level = 1;
+    //   poke_info[i].max_level = 100;
+    // }
   }
 };
 } // namespace feature

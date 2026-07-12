@@ -21,17 +21,45 @@
 #include "game/data_manager.h"
 
 namespace overworld {
+struct PokeInfoOnAction {
+  u16 species : 11;
+  u16 form : 5;
+  u8 min_level;
+  u8 max_level;
+};
+
+enum EncounterAction {
+  kWalk, kXXX, kYYY, kSurf, kRockSmash,
+  kOldRod, kGoodRod, kSuperRod, kHorde,
+  kMax
+};
+
 struct EncounterData {
   u8 rate[14];
+  PokeInfoOnAction on_walk[12];
+  PokeInfoOnAction on_xxx[12];
+  PokeInfoOnAction on_yyy[3];
+  PokeInfoOnAction on_surf[5];
+  PokeInfoOnAction on_rock_smash[5];
+  PokeInfoOnAction on_old_rod[3];
+  PokeInfoOnAction on_good_rod[3];
+  PokeInfoOnAction on_super_rod[3];
+  PokeInfoOnAction on_horde[3 * 5];
 
-  struct {
-    u16 species : 11;
-    u16 form : 5;
-    u8 min_level;
-    u8 max_level;
-  } pokemon[12 + 12 + 3 + 5 + 5 + 3 + 3 + 3 + 15];
-
-  static constexpr u32 POKEMON_COUNT = sizeof(pokemon) / sizeof(pokemon[0]);
+  INLINE PokeInfoOnAction*
+  GetPokeInfoTable(EncounterAction action, u32& count) {
+    PokeInfoOnAction* output = nullptr;
+    count = 0;
+    switch (action) {
+      case EncounterAction::kWalk:
+        if (rate[EncounterAction::kWalk] > 0) {
+          output = on_walk;
+          count = 12;
+        }
+        break;
+    }
+    return output;
+  }
 };
 
 struct MapData {

@@ -33,6 +33,7 @@
 #include "feature/feature_item.h"
 #include "feature/feature_map_data_loader.h"
 #include "feature/feature_map_tile.h"
+#include "feature/feature_overworld.h"
 #include "feature/feature_process.h"
 #include "feature/feature_script.h"
 #include "feature/feature_shop.h"
@@ -62,14 +63,15 @@ void Initialize() {
   feature::OverworldModel::Initialize();
   feature::GameApp::Initialize();
   feature::Battle::Initialize();
-  // feature::Encounter::Initialize();
+  feature::Encounter::Initialize();
   feature::FieldMove::Initialize();
   feature::PokemonIconTexture::Initialize();
   feature::Shop::Initialize();
   feature::Item::Initialize();
   feature::Nuzlocke::Initialize();
   feature::Script::Initialize();
-  feature::MapDataLoader::Initialize();
+  feature::Overworld::Initialize();
+  // feature::MapDataLoader::Initialize();
 
   auto& application_manager = ui::ApplicationManager::GetInstance();
   auto& root_app = ui::RootApplication::GetInstance();

@@ -30,6 +30,24 @@ struct Light {
   bool use_diffuse_light = false;
   Color diffuse_color = Color(1, 1, 1, 1);
 
+  void SetAmbient(f32 r, f32 g, f32 b, f32 a = 1) {
+    use_ambient_light = true;
+    ambient_color = Color(r, g, b, a);
+  }
+
+  void ResetAmbient() {
+    use_ambient_light = false;
+  }
+
+  void SetDiffuse(f32 r, f32 g, f32 b, f32 a = 1) {
+    use_diffuse_light = true;
+    diffuse_color = Color(r, g, b, a);
+  }
+
+  void ResetDiffuse() {
+    use_diffuse_light = false;
+  }
+
   STATIC_INLINE void Initialize() {
     HookManager::Initialize(HookID::kChangeOutlineScale,
                             ADDRESS_RENDERER_CHANGE_OUTLINE_SCALE,

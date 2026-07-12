@@ -27,6 +27,8 @@
 #include "game/savedata/savedata_encounter.h"
 
 #define ADDRESS_ENCOUNTER_SET_POKEMON (0x0078DB30)
+#define ADDRESS_GET_NAVI_DEX_TABLE (0x004013A4)
+#define ADDRESS_GET_ENCOUNTER_CONTACT_ACTION (0x0076E10C)
 
 namespace feature {
 struct Encounter {
@@ -38,7 +40,22 @@ struct Encounter {
     HookManager::Initialize(HookID::kEncounterSetPokemon,
                             ADDRESS_ENCOUNTER_SET_POKEMON,
                             (uptr)SetPokemon, false);
+    // HookManager::Initialize(HookID::kGetNaviDexTable,
+    //                         ADDRESS_GET_NAVI_DEX_TABLE,
+    //                         (uptr)GetNaviDexTable, true);
   }
+
+  // static u16* GetNaviDexTable(void* data, u32 data_size, u32* count, void* heap,
+  //                             u8 p4, bool p5) {
+  //   u16* species_table = HookManager::Call<u16*>(HookID::kGetNaviDexTable, data,
+  //                                                data_size, count,
+  //                                                heap, p4, p5);
+  //   for (u32 i = 0; i < *count; i++) {
+  //     species_table[i] = SPECIES_BULBASAUR + i;
+  //   }
+  //
+  //   return species_table;
+  // }
 
   static void AddMaxRepel() {
     savedata::Encounter::GetInstance().spray_count = 100;
@@ -47,6 +64,7 @@ struct Encounter {
   static void RemoveMaxRepel() {
     savedata::Encounter::GetInstance().spray_count = 0;
   }
+
 
   struct PokemonData {
     u16 species;

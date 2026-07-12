@@ -65,7 +65,11 @@ enum class HookID : u32 {
   kLoadScript,
   kInitializeVirtualMachine,
   kEncounterSetPokemon,
+  kGetNaviDexTable,
   kLoadMapData,
+  kStartMegaEvolveAnimation,
+  kStartBattleAnimation,
+  kGetOverworldBackgroundMusic,
   kMax
 };
 
