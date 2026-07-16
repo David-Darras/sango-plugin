@@ -17,6 +17,8 @@
 
 #pragma once
 
+#define MAP_INSIDE_OF_TRUCK (399)
+
 #define MAP_LITTLEROOT_TOWN (6)
 #define MAP_BRENDAN_HOUSE (223)
 #define MAP_BRENDAN_BEDROOM (224)

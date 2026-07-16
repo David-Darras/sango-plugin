@@ -14,7 +14,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-
 #include <CTRPluginFramework/Menu/PluginMenu.hpp>
 #include <CTRPluginFramework/System/Hook.hpp>
 
@@ -27,7 +26,7 @@ namespace CTRPluginFramework {
 int main() {
 #if USE_SANGO_PLUGIN == 1
   Initialize();
-  CTRPluginFramework::Hook hook;
+  Hook hook;
   hook.InitializeForMitm(ADDRESS_ENTRYPOINT, (uptr)Entrypoint);
   hook.Enable();
 #endif

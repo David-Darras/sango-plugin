@@ -70,7 +70,10 @@ struct Model {
 };
 
 struct ModelResource {
-  u32 _0[5];
+  u16 code;
+  u8 draw_type;
+  u8 draw_code;
+  u32 _0[4];
   u16 model_id;
   u16 padding;
 };
@@ -113,6 +116,7 @@ private:
 
   u32 _2[8];
 
+public:
   u32 resource_count_;
   u32 resource_count_2_;
   ModelResource resources_[kMaxModels];

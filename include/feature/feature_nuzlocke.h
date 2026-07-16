@@ -17,16 +17,22 @@
 
 #pragma once
 #include "common.h"
+#include "feature_camera.h"
+#include "feature_light.h"
 #include "hook_manager.h"
 #include "utils.h"
 #include "game/battle/config.h"
 #include "game/constant/evolution_method.h"
 #include "game/constant/item.h"
 #include "game/constant/form.h"
+#include "game/constant/map.h"
+#include "game/constant/model.h"
 #include "game/constant/species.h"
+#include "game/constant/weather.h"
 #include "game/global_data/evolve.h"
 #include "game/global_data/move.h"
 #include "game/global_data/pokemon.h"
+#include "game/overworld/weather_manager.h"
 #include "game/savedata/pokemon_data_accessor.h"
 #include "game/savedata/pokemon_team.h"
 #include "game/savedata/settings.h"
@@ -44,31 +50,50 @@ struct Nuzlocke {
     FixMoves();
     FixPokemon();
     FixConfig();
+    FixOutline();
 
     HookManager::Initialize(HookID::kLoadEvolveTable,
                             ADDRESS_GLOBAL_DATA_LOAD_EVOLVE_TABLE,
                             (uptr)LoadEvolveTableHook
         );
-
     HookManager::Initialize(HookID::kAddPokemonToTeam,
                             ADDRESS_ADD_POKEMON_TO_TEAM,
                             (uptr)AddPokemonToTeamHook);
-
     // HookManager::Initialize(HookID::kScriptCreatePokemon,
     //                         ADDRESS_SCRIPT_CREATE_POKEMON,
     //                         (uptr)CreatePokemonHook);
     HookManager::Initialize(HookID::kCreateOverworldModels, 0x003F8358, (uptr)
                             CreateOverworldModelsHook);
-
+    HookManager::Initialize(HookID::kLoad3DModels, 0x003F7728, (uptr)
+                            Load3DModels);
     HookManager::Initialize(HookID::kLoadOverworldData, 0x003DBB4C,
                             (uptr)LoadOverworldDataHook);
+    // HookManager::Initialize(HookID::kLoadPlayerModel, 0x003F7640,
+    //                         (uptr)LoadPlayerModelHook);
+    //
+    // // Player Model
+    // WRITE(vu32, 0x003F76AC, 0xE3A00000 | MODEL_HEX_MANIAC_ORAS);
+    // WRITE(vu32, 0x003F76C4, 0xE3A00000 | MODEL_HEX_MANIAC_ORAS);
   }
 
-  struct Table {
+  struct ModelData {
     u16 uid;
     u16 model_id;
     u8 _0[44];
   };
+
+  // static void LoadPlayerModelHook(overworld::ModelManager* manager, u8 gender,
+  //                                 u32 p2, u32 p3) {
+  //   HookManager::Call<void>(HookID::kLoadPlayerModel, manager, gender, p2, p3);
+  //   auto& rsrc = manager->resources_[0];
+  //   rsrc.model_id = MODEL_HEX_MANIAC_ORAS;
+  // }
+
+  STATIC_INLINE void FixOutline() {
+    auto& light = feature::Light::GetInstance();
+    light.use_outline = false;
+    light.outline_scale = 0.0f;
+  }
 
   STATIC_INLINE void FixConfig() {
     auto& data = savedata::Settings::GetInstance();
@@ -82,15 +107,23 @@ struct Nuzlocke {
     return HookManager::Call<void>(HookID::kLoadOverworldData, self, id);
   }
 
-  static bool CreateOverworldModelsHook(uptr man, Table* table, u32 max,
+  static bool CreateOverworldModelsHook(uptr man, ModelData* table, u32 max,
                                         u16 map_id,
                                         void** fashion) {
     for (u32 i = 0; i < max; i++) {
-      table[i].model_id = 0xAC;
+      table[i] = table[0];
     }
-    ui::LogApplication::Print(u"Map Id %u", map_id);
+
     return HookManager::Call<bool>(HookID::kCreateOverworldModels, man, table,
                                    max, map_id, fashion);
+  }
+
+  static bool Load3DModels(overworld::ModelManager* manager,
+                           u32 id) {
+    bool result = HookManager::Call<bool>(HookID::kLoad3DModels,
+                                          manager, id);
+    manager->resources_[0].model_id = MODEL_HEX_MANIAC_ORAS;
+    return result;
   }
 
   // static savedata::PokemonParam* CreatePokemonHook(
@@ -409,6 +442,85 @@ struct Nuzlocke {
     }
 
     config.pokemon_teams[1]->HealAllPokemons();
+  }
+
+
+  static u32 SetBackgroundMusic(u16 map_id, u32 default_bgm) {
+    switch (map_id) {
+      case MAP_INSIDE_OF_TRUCK:
+      case MAP_BRENDAN_HOUSE:
+      case MAP_BRENDAN_BEDROOM:
+      case MAP_MAY_BEDROOM:
+      case MAP_MAY_HOUSE:
+      case MAP_BIRCH_LABORATORY:
+      case MAP_LITTLEROOT_TOWN:
+        return (1 << 16) + 40;
+      default:
+        return default_bgm;
+    }
+  }
+
+  static void SetLight(u16 map_id) {
+    auto& light = Light::GetInstance();
+
+    switch (map_id) {
+      case MAP_BRENDAN_HOUSE:
+      case MAP_BRENDAN_BEDROOM:
+      case MAP_MAY_BEDROOM:
+      case MAP_MAY_HOUSE:
+      case MAP_BIRCH_LABORATORY:
+        light.SetAmbient(0.4, 0.4, 0.4);
+        light.SetDiffuse(0, 0, 0);
+        break;
+      case MAP_LITTLEROOT_TOWN:
+        light.ResetAmbient();
+        light.SetDiffuse(0.1, 0.1, 1);
+        break;
+      case MAP_INSIDE_OF_TRUCK:
+      default:
+        light.ResetAmbient();
+        light.ResetDiffuse();
+        break;
+    }
+  }
+
+  static void SetCamera(u16 map_id) {
+    auto& camera = Camera::GetInstance();
+
+    switch (map_id) {
+      case MAP_INSIDE_OF_TRUCK:
+        camera.SetCameraFree(209, 13.72, 88.19, -3.07, 0.09);
+        break;
+      case MAP_BRENDAN_HOUSE:
+      case MAP_BRENDAN_BEDROOM:
+        camera.SetCameraFree(103, 200, 514, -1.22, -0.54);
+        break;
+      case MAP_MAY_BEDROOM:
+      case MAP_MAY_HOUSE:
+        camera.SetCameraFree(348, 200, 514, -2.02, -0.54);
+        break;
+      case MAP_BIRCH_LABORATORY:
+        camera.SetCameraFree(263, 285, -76, 1.58, -0.69);
+        break;
+      case MAP_LITTLEROOT_TOWN:
+        camera.SetCameraTPS(100, 24, 0);
+        // camera.SetCameraRotate(400, 300, 0.001f);
+        break;
+      default:
+        camera.SetCameraIdle();
+        break;
+    }
+  }
+
+  static void SetWeather(u16 map_id) {
+    auto& weather = overworld::WeatherManager::GetInstance().
+        GetRequestedWeather();
+
+    switch (map_id) {
+      case MAP_LITTLEROOT_TOWN:
+        weather = WEATHER_OVERWORLD_STORMY;
+        break;
+    }
   }
 };
 } // namespace feature

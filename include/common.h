@@ -17,6 +17,12 @@
 
 #pragma once
 
+#ifdef __CLION_IDE__
+#define USE_NUZLOCKE_MENU 0
+#define USE_SANGO_PLUGIN 1
+#define USE_DEFAULT_CTRPF 1
+#endif
+
 #include <types.h>
 
 #include <functional>
@@ -162,8 +168,6 @@ struct Aabb {
   Vec4 min;
   Vec4 max;
 };
-
-#define ADDRESS_STRING_VTABLE (0x5DE3BC)
 
 struct String {
   static String s_tmp;

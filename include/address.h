@@ -17,6 +17,8 @@
 
 #pragma once
 
+#define ADDRESS_STRING_VTABLE (0x5DE3BC)
+
 /** * @name Entrypoint & Main Addresses
  * @{ */
 #define ADDRESS_ENTRYPOINT (0x00122938) // Render Home Button Blocked

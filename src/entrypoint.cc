@@ -31,7 +31,6 @@
 #include "feature/feature_day_care.h"
 #include "feature/feature_field_move.h"
 #include "feature/feature_item.h"
-#include "feature/feature_map_data_loader.h"
 #include "feature/feature_map_tile.h"
 #include "feature/feature_overworld.h"
 #include "feature/feature_process.h"
@@ -80,10 +79,6 @@ void Initialize() {
 #if USE_NUZLOCKE_MENU == 1
   main_app.SetPainter(ui::RetroAppPainter::GetInstance());
   main_app.Open(ui::LoadNuzlockePage);
-
-  auto& light = feature::Light::GetInstance();
-  light.use_outline = true;
-  light.outline_scale = 0.0f;
 #else
   main_app.SetPainter(ui::MainAppPainter::GetInstance());
   main_app.Open(ui::LoadTopPage);

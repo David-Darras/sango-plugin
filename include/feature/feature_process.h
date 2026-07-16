@@ -87,7 +87,7 @@ public:
     HookManager::ForceEnable(HookID::kStartMegaEvolveAnimation);
     HookManager::ForceEnable(HookID::kStartBattleAnimation);
 
-    feature::Engine::GetInstance().game_speed = 1;
+    feature::Engine::GetInstance().game_speed = 2;
 
     // Only access to pokeball
     WRITE(vu8, 0x007CB09C, 2); // HP/PP -> Ball

@@ -33,6 +33,10 @@ namespace feature {
 struct Camera {
   enum State { kIdle, kFree, kRotate, kFpv, kTps };
 
+  void SetCameraIdle() {
+    state = State::kIdle;
+  }
+
   void SetCameraFree(f32 x, f32 y, f32 z, f32 yaw, f32 pitch) {
     state = State::kFree;
     pos.x = x;
@@ -40,6 +44,7 @@ struct Camera {
     pos.z = z;
     rot.y = yaw;
     rot.x = pitch;
+    old_state = state;
   }
 
   void SetCameraRotate(f32 r, f32 h, f32 w = 0.0f) {
@@ -47,6 +52,13 @@ struct Camera {
     radius = r;
     height = h;
     theta = w;
+  }
+
+  void SetCameraTPS(f32 dist, f32 height, f32 offset) {
+    state = State::kTps;
+    tps_dist = dist;
+    tps_height = height;
+    tps_offset = offset;
   }
 
   MAKE_SINGLETON(Camera)
@@ -105,7 +117,7 @@ struct Camera {
     }
     ctx.is_updating_camera = false;
 
-    // if (ctx.state != ctx.old_state) {
+    if (ctx.state != ctx.old_state) {
       if (static_cast<State>(ctx.state) == State::kFree) {
         ctx.pos = *pos;
         f32 dx = target->x - pos->x;
@@ -116,8 +128,8 @@ struct Camera {
         ctx.rot.y = std::atan2(dz, dx);
         ctx.rot.x = (dist > 0.0001f) ? std::asin(dy / dist) : 0.0f;
       }
-    //   ctx.old_state = ctx.state;
-    // }
+      ctx.old_state = ctx.state;
+    }
 
     auto& player = overworld::ModelManager::GetInstance().GetPlayer();
 
