@@ -26,10 +26,6 @@
 #include "game/overworld/map_manager.h"
 #include "game/savedata/savedata_encounter.h"
 
-#define ADDRESS_ENCOUNTER_SET_POKEMON (0x0078DB30)
-#define ADDRESS_GET_NAVI_DEX_TABLE (0x004013A4)
-#define ADDRESS_GET_ENCOUNTER_CONTACT_ACTION (0x0076E10C)
-
 namespace feature {
 struct Encounter {
   MAKE_SINGLETON(Encounter)

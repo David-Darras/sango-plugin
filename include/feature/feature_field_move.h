@@ -16,7 +16,6 @@
  */
 
 #pragma once
-#include "hook_manager.h"
 #include "game/overworld/map_manager.h"
 #include "game/overworld/model_manager.h"
 #include "ui/log_application.h"

@@ -34,8 +34,6 @@
 #include "ui/log_application.h"
 #include "ui/main_application.h"
 
-#define ADDRESS_CHECK_APP_REQUEST (0x007BDE50)
-
 namespace feature {
 class GameApp {
   MAKE_SINGLETON(GameApp)

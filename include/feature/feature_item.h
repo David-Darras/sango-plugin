@@ -23,9 +23,6 @@
 #include "ui/log_application.h"
 #include <CTRPluginFramework/System/Hook.hpp>
 
-#define ADDRESS_ITEM_DATA_INITIALIZE (0x003B7B9C)
-#define ADDRESS_GLOBAL_DATA_ITEM_GET_PARAM (0x004D3C84)
-
 namespace feature {
 class Item {
   MAKE_SINGLETON(Item)

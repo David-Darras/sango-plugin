@@ -24,9 +24,6 @@
 #include "game/savedata/misc.h"
 #include "game/savedata/pokemon_utils.h"
 
-#define ADDRESS_BATTLE_UPDATE_EXP (0x0075D73C)
-#define ADDRESS_BATTLE_START_MEGA_EVOLVE_ANIMATION (0x0072EF18)
-#define ADDRESS_BATTLE_START_BATTLE_ANIMATION (0x00775354)
 
 namespace feature {
 struct Battle {

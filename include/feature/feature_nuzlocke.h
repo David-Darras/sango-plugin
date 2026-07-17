@@ -40,8 +40,6 @@
 #include "parser/pokemon_node.h"
 #include "ui/log_application.h"
 
-#define ADDRESS_GLOBAL_DATA_LOAD_EVOLVE_TABLE (0x003B1108)
-#define ADDRESS_SCRIPT_CREATE_POKEMON (0x0077279C)
 
 namespace feature {
 struct Nuzlocke {
@@ -91,7 +89,7 @@ struct Nuzlocke {
 
   STATIC_INLINE void FixOutline() {
     auto& light = feature::Light::GetInstance();
-    light.use_outline = false;
+    light.use_outline = true;
     light.outline_scale = 0.0f;
   }
 
@@ -110,9 +108,9 @@ struct Nuzlocke {
   static bool CreateOverworldModelsHook(uptr man, ModelData* table, u32 max,
                                         u16 map_id,
                                         void** fashion) {
-    for (u32 i = 0; i < max; i++) {
-      table[i] = table[0];
-    }
+    // for (u32 i = 0; i < max; i++) {
+    //   table[i] = table[0];
+    // }
 
     return HookManager::Call<bool>(HookID::kCreateOverworldModels, man, table,
                                    max, map_id, fashion);
@@ -122,7 +120,7 @@ struct Nuzlocke {
                            u32 id) {
     bool result = HookManager::Call<bool>(HookID::kLoad3DModels,
                                           manager, id);
-    manager->resources_[0].model_id = MODEL_HEX_MANIAC_ORAS;
+    // manager->resources_[0].model_id = MODEL_HEX_MANIAC_ORAS;
     return result;
   }
 
@@ -445,7 +443,7 @@ struct Nuzlocke {
   }
 
 
-  static u32 SetBackgroundMusic(u16 map_id, u32 default_bgm) {
+  STATIC_INLINE u32 SetBackgroundMusic(u16 map_id, u32 default_bgm) {
     switch (map_id) {
       case MAP_INSIDE_OF_TRUCK:
       case MAP_BRENDAN_HOUSE:
@@ -460,7 +458,7 @@ struct Nuzlocke {
     }
   }
 
-  static void SetLight(u16 map_id) {
+  STATIC_INLINE void SetLight(u16 map_id) {
     auto& light = Light::GetInstance();
 
     switch (map_id) {
@@ -484,12 +482,12 @@ struct Nuzlocke {
     }
   }
 
-  static void SetCamera(u16 map_id) {
+  STATIC_INLINE void SetCamera(u16 map_id) {
     auto& camera = Camera::GetInstance();
 
     switch (map_id) {
       case MAP_INSIDE_OF_TRUCK:
-        camera.SetCameraFree(209, 13.72, 88.19, -3.07, 0.09);
+        camera.SetCameraFree(82, 78.72, 193.19, -1.27, -0.51);
         break;
       case MAP_BRENDAN_HOUSE:
       case MAP_BRENDAN_BEDROOM:
@@ -512,7 +510,7 @@ struct Nuzlocke {
     }
   }
 
-  static void SetWeather(u16 map_id) {
+  STATIC_INLINE void SetWeather(u16 map_id) {
     auto& weather = overworld::WeatherManager::GetInstance().
         GetRequestedWeather();
 

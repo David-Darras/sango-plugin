@@ -56,8 +56,7 @@ public:
 #endif
   }
 
-  static void OnUpdateMap(u16 id) {
-
+  static void OnUpdateMap(u16 map_id) {
   }
 
   static void OnUpdateOverworld() {
@@ -95,6 +94,14 @@ public:
     WRITE(vu8, 0x007CB0CC, 2); // Status -> Ball
     WRITE(vu8, 0x007CB0E4, 2); // Battle -> Item
 
+    // Disable master ball feature
+    ARM_NOP(0x007227A4);
+    ARM_NO_COND(0x007227B8);
+
+    // same ratio for all balls
+    WRITE(vu32, 0x007232E4, 0xE3A00A01); // mov r0, #0x1000
+    ARM_RET(0x007232E8);
+
 #endif
   }
 
@@ -108,7 +115,7 @@ public:
     GameApp::OnEnterAppStatus();
   }
 
-  static void OnExitAppstatus() {
+  static void OnExitAppStatus() {
   }
 
   static void OnUpdateAppStatus() {
@@ -147,7 +154,7 @@ public:
           OnExitBattle();
           break;
         case kAppStatus:
-          OnExitAppstatus();
+          OnExitAppStatus();
           break;
         default:
           break;

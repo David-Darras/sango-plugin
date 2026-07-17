@@ -36,6 +36,8 @@
 #include "feature/feature_process.h"
 #include "feature/feature_script.h"
 #include "feature/feature_shop.h"
+#include "feature/feature_title_screen.h"
+#include "game/constant/video.h"
 #include "ui/main_application.h"
 #include "system/device.h"
 #include "system/file.h"
@@ -71,6 +73,7 @@ void Initialize() {
   feature::Script::Initialize();
   feature::Overworld::Initialize();
   // feature::MapDataLoader::Initialize();
+  feature::TitleScreen::Initialize();
 
   auto& application_manager = ui::ApplicationManager::GetInstance();
   auto& root_app = ui::RootApplication::GetInstance();

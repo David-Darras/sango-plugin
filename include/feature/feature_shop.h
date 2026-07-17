@@ -38,7 +38,6 @@ struct ShopData {
 
 class Shop {
   MAKE_SINGLETON(Shop)
-#define ADDRESS_LOAD_SHOP_ITEMS (0x00346554)
 
   STATIC_INLINE void Initialize() {
     HookManager::Initialize(HookID::kLoadShopItems, ADDRESS_LOAD_SHOP_ITEMS,

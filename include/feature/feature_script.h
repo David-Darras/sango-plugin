@@ -20,7 +20,6 @@
 #include "hook_manager.h"
 #include "system/file.h"
 #include "ui/log_application.h"
-#include "script.h"
 #include "game/script/amx.h"
 
 namespace feature {

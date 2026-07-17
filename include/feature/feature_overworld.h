@@ -27,8 +27,6 @@
 #include "game/overworld/weather_manager.h"
 #include "ui/log_application.h"
 
-#define ADDRESS_GET_OVERWORLD_BACKGROUND_MUSIC (0x003C79F8)
-
 namespace feature {
 struct Overworld {
   MAKE_SINGLETON(Overworld)
@@ -42,7 +40,7 @@ struct Overworld {
   GetBackgroundMusic(u32 sound_manager, u32 map_id, u32 player_form) {
     u32 result = HookManager::Call<u32>(HookID::kGetOverworldBackgroundMusic,
                                         sound_manager, map_id, player_form);
-    ui::LogApplication::Print(u"map=%X", map_id);
+    ui::LogApplication::Print(u"map=%u", map_id);
 
     result = Nuzlocke::SetBackgroundMusic(map_id, result);
     Nuzlocke::SetCamera(map_id);

@@ -31,15 +31,13 @@ struct PokemonParam {
   PokemonDataAccessor* accessor;
 
   INLINE void UpdateRuntimeData() {
-    ((void(*)(PokemonParam*))0x003B360C)(this);
+    ((void(*)(PokemonParam*))ADDRESS_POKEMON_UPDATE_RUNTIME_DATA)(this);
   }
 
   INLINE void ResetNickname() {
-    ((void(*)(PokemonParam*))0x003B51C0)(this);
+    ((void(*)(PokemonParam*))ADDRESS_POKEMON_RESET_NICKNAME)(this);
   }
 };
-
-#define ADDRESS_HEAL_TEAM (0x03B5FC0)
 
 struct PokemonTeam {
   SINGLETON(PokemonTeam)

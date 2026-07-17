@@ -19,8 +19,6 @@
 
 #include "common.h"
 
-#define ADDRESS_GIFT_POKEMON_TABLE (0x007EC06C)
-
 namespace global_data {
 struct GiftPokemon {
   STATIC_INLINE GiftPokemon& GetInstance(u32 idx) {

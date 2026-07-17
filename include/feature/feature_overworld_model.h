@@ -51,7 +51,7 @@ struct OverworldModel {
 
     ((void (*)(overworld::Model*, u16, u8))ADDRESS_MODEL_PLAY_ANIMATION)(
         &overworld::ModelManager::GetInstance().GetPlayer(),
-        ctx.model_animation, 0);
+        ctx.model_animation, 3);
   }
 
   static void SwarmMod() {
