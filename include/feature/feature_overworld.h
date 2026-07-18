@@ -34,6 +34,9 @@ struct Overworld {
     HookManager::Initialize(HookID::kGetOverworldBackgroundMusic,
                             ADDRESS_GET_OVERWORLD_BACKGROUND_MUSIC,
                             (uptr)GetBackgroundMusic);
+    HookManager::Initialize(HookID::kSetCulling,
+                            0x00779E64,
+                            (uptr)SetCullingHook, false);
   }
 
   static u32
@@ -44,10 +47,16 @@ struct Overworld {
 
     result = Nuzlocke::SetBackgroundMusic(map_id, result);
     Nuzlocke::SetCamera(map_id);
+    Nuzlocke::SetNickname(map_id);
     Nuzlocke::SetLight(map_id);
     Nuzlocke::SetWeather(map_id);
 
     return result;
+  }
+
+  static void SetCullingHook(void* model, bool use_culling) {
+    use_culling = false;
+    HookManager::Call<void>(HookID::kSetCulling, model, use_culling);
   }
 };
 } // namespace feature

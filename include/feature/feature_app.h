@@ -93,6 +93,7 @@ public:
     HookManager::ForceEnable(HookID::kCheckAppRequest);
     HookManager::ForceEnable(HookID::kScriptCreatePokemon);
     HookManager::ForceEnable(HookID::kEncounterSetPokemon);
+    HookManager::ForceEnable(HookID::kSetCulling);
   }
 
   void TriggerApp(u32 id) {

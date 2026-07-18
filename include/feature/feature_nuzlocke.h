@@ -16,6 +16,7 @@
  */
 
 #pragma once
+#include "archive.h"
 #include "common.h"
 #include "feature_camera.h"
 #include "feature_light.h"
@@ -36,6 +37,7 @@
 #include "game/savedata/pokemon_data_accessor.h"
 #include "game/savedata/pokemon_team.h"
 #include "game/savedata/settings.h"
+#include "game/savedata/trainer_status.h"
 #include "parser/pokemon_showdown_parser.h"
 #include "parser/pokemon_node.h"
 #include "ui/log_application.h"
@@ -57,21 +59,48 @@ struct Nuzlocke {
     HookManager::Initialize(HookID::kAddPokemonToTeam,
                             ADDRESS_ADD_POKEMON_TO_TEAM,
                             (uptr)AddPokemonToTeamHook);
-    // HookManager::Initialize(HookID::kScriptCreatePokemon,
-    //                         ADDRESS_SCRIPT_CREATE_POKEMON,
-    //                         (uptr)CreatePokemonHook);
     HookManager::Initialize(HookID::kCreateOverworldModels, 0x003F8358, (uptr)
                             CreateOverworldModelsHook);
-    HookManager::Initialize(HookID::kLoad3DModels, 0x003F7728, (uptr)
-                            Load3DModels);
-    HookManager::Initialize(HookID::kLoadOverworldData, 0x003DBB4C,
-                            (uptr)LoadOverworldDataHook);
-    // HookManager::Initialize(HookID::kLoadPlayerModel, 0x003F7640,
-    //                         (uptr)LoadPlayerModelHook);
+    HookManager::Initialize(HookID::kReadFileAsync, 0x0036DC68,
+                            (uptr)ReadFileAsync);
+    HookManager::Initialize(HookID::kReadFileAsync2, 0x0036ED10,
+                            (uptr)ReadFileAsync2);
     //
     // // Player Model
     // WRITE(vu32, 0x003F76AC, 0xE3A00000 | MODEL_HEX_MANIAC_ORAS);
     // WRITE(vu32, 0x003F76C4, 0xE3A00000 | MODEL_HEX_MANIAC_ORAS);
+  }
+
+  struct FileInput {
+    u8 priority;
+    u32 archive_id;
+    u32 file_id;
+    bool is_compressed;
+    u32 heap[4];
+    void** buffer;
+    u32* size;
+  };
+
+  static bool ReadFileAsync2(u32* archive, void* heap, u32 file_id,
+                             void* buffer,
+                             u32 p4, u32 p5, u32 p6) {
+    u32* archive_table = (u32*)ADDRESS_ARCHIVE_FILENAME_TABLE;
+    // compare filename address
+    if (archive[12] == archive_table[ARCHIVE_OVERWORLD_MODELS]) {
+      ui::LogApplication::Print(u"m(%x)", file_id);
+      file_id = FixOverworldModels(file_id);
+    }
+    return HookManager::Call<bool>(HookID::kReadFileAsync2, archive, heap,
+                                   file_id,
+                                   buffer, p4, p5, p6);
+  }
+
+  static bool ReadFileAsync(void* file_manager, FileInput* input) {
+    if (input->archive_id == ARCHIVE_OVERWORLD_MODELS) {
+      ui::LogApplication::Print(u"n(%x)", input->file_id);
+      input->file_id = FixOverworldModels(input->file_id);
+    }
+    return HookManager::Call<bool>(HookID::kReadFileAsync, file_manager, input);
   }
 
   struct ModelData {
@@ -80,15 +109,39 @@ struct Nuzlocke {
     u8 _0[44];
   };
 
-  // static void LoadPlayerModelHook(overworld::ModelManager* manager, u8 gender,
-  //                                 u32 p2, u32 p3) {
-  //   HookManager::Call<void>(HookID::kLoadPlayerModel, manager, gender, p2, p3);
-  //   auto& rsrc = manager->resources_[0];
-  //   rsrc.model_id = MODEL_HEX_MANIAC_ORAS;
-  // }
+  STATIC_INLINE u32 FixOverworldModels(u32 model) {
+    switch (model) {
+      case MODEL_BRENDAN:
+        return MODEL_STEVEN_STONE;
+      case MODEL_MAY:
+      case MODEL_MAY_CONTEST:
+      case MODEL_MAY_MAGMA_SUIT:
+      case MODEL_MAY_AQUA_SUIT:
+      case MODEL_RIVAL_ORAS:
+      case MODEL_RIVAL_ORAS_WITH_BAG:
+      case MODEL_SUPPORT_MAY:
+      case MODEL_SUPPORT_MAY_BIKE:
+        return MODEL_ZINNIA;
+      case MODEL_ZIGZAGOON:
+        return MODEL_GROUDON;
+      case MODEL_SKITTY:
+        return MODEL_KYOGRE;
+      // case MODEL_MACHOKE:
+      // case MODEL_MACHOKE_ALT:
+      //   return MODEL_REGISTEEL;
+      case MODEL_MOM_ORAS:
+        return MODEL_MR_STONE;
+      case MODEL_SNORLAX_DOLL:
+        return MODEL_HOOPAS_RING;
+      case MODEL_POOCHYENA:
+      case MODEL_BARKING_POOCHYENA:
+        return MODEL_ALTARIA;
+    }
+    return model;
+  }
 
   STATIC_INLINE void FixOutline() {
-    auto& light = feature::Light::GetInstance();
+    auto& light = Light::GetInstance();
     light.use_outline = true;
     light.outline_scale = 0.0f;
   }
@@ -100,38 +153,12 @@ struct Nuzlocke {
     data.show_battle_animations = 0;
   }
 
-  static void LoadOverworldDataHook(uptr self, u32 id) {
-    ui::LogApplication::Print(u"Loading...");
-    return HookManager::Call<void>(HookID::kLoadOverworldData, self, id);
-  }
-
   static bool CreateOverworldModelsHook(uptr man, ModelData* table, u32 max,
                                         u16 map_id,
                                         void** fashion) {
-    // for (u32 i = 0; i < max; i++) {
-    //   table[i] = table[0];
-    // }
-
     return HookManager::Call<bool>(HookID::kCreateOverworldModels, man, table,
                                    max, map_id, fashion);
   }
-
-  static bool Load3DModels(overworld::ModelManager* manager,
-                           u32 id) {
-    bool result = HookManager::Call<bool>(HookID::kLoad3DModels,
-                                          manager, id);
-    // manager->resources_[0].model_id = MODEL_HEX_MANIAC_ORAS;
-    return result;
-  }
-
-  // static savedata::PokemonParam* CreatePokemonHook(
-  //     global_data::GiftPokemon* pokemon, game::DataManager* manager,
-  //     void* heap) {
-  //   pokemon->species = SPECIES_MEW;
-  //   ui::LogApplication::Print(u"Hello");
-  //   return HookManager::Call<savedata::PokemonParam*>(
-  //       HookID::kScriptCreatePokemon, pokemon, manager, heap);
-  // }
 
   static bool AddPokemonToTeamHook(savedata::PokemonTeam* team,
                                    savedata::PokemonParam* pokemon) {
@@ -479,6 +506,19 @@ struct Nuzlocke {
         light.ResetAmbient();
         light.ResetDiffuse();
         break;
+    }
+  }
+
+  STATIC_INLINE void SetNickname(u16 map_id) {
+    static bool has_name = false;
+    static const c16* NICKNAME = u"STEVEN\0";
+    auto& status = savedata::TrainerStatus::GetInstance();
+    if (map_id == MAP_INSIDE_OF_TRUCK && !has_name) {
+      for (u32 i = 0; i < savedata::TrainerStatus::kPlayerNameLen; i++) {
+        status.name[i] = status.nickname[i] = NICKNAME[i];
+        if (NICKNAME[i] == '\0') break;
+      }
+      has_name = true;
     }
   }
 

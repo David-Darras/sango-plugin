@@ -61,8 +61,6 @@ enum class HookID : u32 {
   kAddPokemonToTeam,
   kScriptCreatePokemon,
   kCreateOverworldModels,
-  kLoad3DModels,
-  kLoadOverworldData,
   kLoadScript,
   kInitializeVirtualMachine,
   kEncounterSetPokemon,
@@ -72,6 +70,11 @@ enum class HookID : u32 {
   kStartBattleAnimation,
   kGetOverworldBackgroundMusic,
   kLoadPlayerModel,
+  kIntroduction,
+  kSelectPokemonModel,
+  kReadFileAsync,
+  kReadFileAsync2,
+  kSetCulling,
   kMax
 };
 

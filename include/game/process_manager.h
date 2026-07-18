@@ -22,6 +22,7 @@
 #include "manager.h"
 #include "common.h"
 #include "utils.h"
+#include "ui/log_application.h"
 
 namespace game {
 class ProcessHandle;
@@ -115,7 +116,10 @@ public:
   const char* GetCurrentProcessName() const {
     BaseProcess* process = GetCurrentProcess();
     if (process == nullptr) return "";
-    return Utils::GetClassNameFromVTable(process->vtable);
+    const char* result = Utils::GetClassNameFromVTable(process->vtable);
+    ui::LogApplication::Print(u"VTABLE=%08X", process->vtable);
+    ui::LogApplication::Print(u"%s", result);
+    return result;
   }
 
   INLINE bool IsCurrentProcess(const char* name) const {
