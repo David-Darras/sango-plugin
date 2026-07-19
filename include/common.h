@@ -21,6 +21,7 @@
 #define USE_NUZLOCKE_MENU 0
 #define USE_SANGO_PLUGIN 1
 #define USE_DEFAULT_CTRPF 1
+#define ENABLE_NUZLOCKE_FEATURES 1
 #endif
 
 #include <types.h>

@@ -31,11 +31,11 @@ public:
     va_end(args);
   }
 
-  static u32 GetLength(const c16* pIn) {
+  STATIC_INLINE u32 GetLength(const c16* pIn) {
     return ((u32 (*)(const c16*))ADDRESS_STD_WCSLEN)(pIn);
   }
 
-  static u32 GetSize(const c16* pIn) { return (GetLength(pIn)) * sizeof(*pIn); }
+  STATIC_INLINE u32 GetSize(const c16* pIn) { return (GetLength(pIn)) * sizeof(*pIn); }
 
   static const c8* GetClassNameFromVTable(void* vtable) {
     u32 addr = (uptr)vtable;
@@ -48,11 +48,19 @@ public:
   }
 
   // Example : overworld_models_
-  static u32 GetArrayElementSize(uptr addr) { return READ(u32, addr - 8); }
+  STATIC_INLINE u32 GetArrayElementSize(uptr addr) { return READ(u32, addr - 8); }
 
-  static u32 GetArrayCapacity(uptr addr) { return READ(u32, addr - 4); }
+  STATIC_INLINE u32 GetArrayCapacity(uptr addr) { return READ(u32, addr - 4); }
 
-  static u32 GetRandomValue(u32 max = 0xFFFFFFFF) {
+  STATIC_INLINE u32 GetRandomValue(u32 max = 0xFFFFFFFF) {
     return ((u32(*)(u32))ADDRESS_GET_RANDOM_VALUE)(max);
+  }
+
+  STATIC_INLINE void GetElapsedTime(s64* time) {
+    return ((void(*)(s64*))ADDRESS_GET_ELAPSED_TIME)(time);
+  }
+
+  STATIC_INLINE s32 ConvertTimeToSeconds(s64* time) {
+    return ((s32(*)(s64*))ADDRESS_CONVERT_TIME_TO_SECONDS)(time);
   }
 };

@@ -113,9 +113,10 @@ public:
     return process;
   }
 
-  const char* GetCurrentProcessName() const {
+  const char* GetCurrentProcessName(uptr& vtable) const {
     BaseProcess* process = GetCurrentProcess();
     if (process == nullptr) return "";
+    vtable = (uptr)process->vtable;
     const char* result = Utils::GetClassNameFromVTable(process->vtable);
     // ui::LogApplication::Print(u"VTABLE=%08X", process->vtable);
     // ui::LogApplication::Print(u"%s", result);
@@ -123,7 +124,8 @@ public:
   }
 
   INLINE bool IsCurrentProcess(const char* name) const {
-    return std::strcmp(GetCurrentProcessName(), name) == 0;
+    uptr vtable = 0;
+    return std::strcmp(GetCurrentProcessName(vtable), name) == 0;
   }
 
 private:
@@ -133,6 +135,7 @@ private:
 
   u32 flags_;
   void* data_;
+
 public:
   ProcessHandle* handle_; ///< Pointer to the root process handle.
   Manager* game_manager_;

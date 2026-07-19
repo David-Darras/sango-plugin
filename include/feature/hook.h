@@ -59,18 +59,22 @@ public:
   void Enable(bool force = false) {
     if (!force && is_enabled_) return;
 
-    // Save the original first two instructions (8 bytes) of the source function
-    original_code_[0] = READ(vu32, src_addr_);
-    original_code_[1] = READ(vu32, src_addr_ + 4);
-    svcFlushProcessDataCache(0xFFFF8001, (uptr)original_code_, 8);
+    if (! is_initialized_) {
+      // Save the original first two instructions (8 bytes) of the source function
+      original_code_[0] = READ(vu32, src_addr_);
+      original_code_[1] = READ(vu32, src_addr_ + 4);
+      svcFlushProcessDataCache(0xFFFF8001, (uptr)original_code_, 8);
 
-    // Setup the gateway to allow calling the original function
-    gateway_[0] = READ(vu32, src_addr_);
-    gateway_[1] = READ(vu32, src_addr_ + 4);
-    gateway_[2] = 0xE51FF004; // ARM opcode for: ldr pc, [pc, #-4]
-    gateway_[3] = src_addr_ + 8;
-    // Address to jump back to, skipping the hooked bytes
-    svcFlushProcessDataCache(0xFFFF8001, (uptr)gateway_, 0x10);
+      // Setup the gateway to allow calling the original function
+      gateway_[0] = READ(vu32, src_addr_);
+      gateway_[1] = READ(vu32, src_addr_ + 4);
+      gateway_[2] = 0xE51FF004; // ARM opcode for: ldr pc, [pc, #-4]
+      gateway_[3] = src_addr_ + 8;
+      // Address to jump back to, skipping the hooked bytes
+      svcFlushProcessDataCache(0xFFFF8001, (uptr)gateway_, 0x10);
+
+      is_initialized_ = true;
+    }
 
     // Flush caches to prevent CPU from executing stale, cached instructions
     svcInvalidateEntireInstructionCache();
@@ -104,6 +108,8 @@ public:
   }
 
   INLINE bool IsEnabled() const { return is_enabled_; }
+  INLINE bool IsInitialized() const { return is_initialized_; }
+  INLINE void Clear() { is_enabled_ = false; is_initialized_ = false; }
 
   /**
  * @brief Calls the original, unhooked function through the gateway.
@@ -133,4 +139,6 @@ private:
  * Usually contains: [Orig Inst 1][Orig Inst 2][LDR PC, [PC, #-4]][Src + 8]
  */
   u32 gateway_[4];
+
+  bool is_initialized_ = false;
 };

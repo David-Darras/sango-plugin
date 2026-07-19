@@ -33,10 +33,12 @@
 #include "feature/feature_item.h"
 #include "feature/feature_map_tile.h"
 #include "feature/feature_overworld.h"
+#include "feature/feature_pokemon_model.h"
 #include "feature/feature_process.h"
 #include "feature/feature_script.h"
 #include "feature/feature_shop.h"
 #include "feature/feature_title_screen.h"
+#include "feature/feature_weather.h"
 #include "game/constant/video.h"
 #include "ui/main_application.h"
 #include "system/device.h"
@@ -47,6 +49,9 @@
 
 String String::s_tmp;
 c16 String::s_buffer[128];
+
+extern void UpdateOverworldWeather();
+extern void InitOverworldWeather();
 
 void Initialize() {
   File::MountSdmc();
@@ -73,8 +78,9 @@ void Initialize() {
   feature::Nuzlocke::Initialize();
   feature::Script::Initialize();
   feature::Overworld::Initialize();
-  // feature::MapDataLoader::Initialize();
-  feature::TitleScreen::Initialize();
+  feature::PokemonModel::Initialize();
+  feature::WeatherManager::Initialize();
+  InitOverworldWeather();
 
   auto& application_manager = ui::ApplicationManager::GetInstance();
   auto& root_app = ui::RootApplication::GetInstance();
@@ -101,6 +107,7 @@ void Entrypoint() {
   application->Update(controller);
   cheat_code_manager.Update();
   feature::ProcessHookContext::DoEachFrame();
+  UpdateOverworldWeather();
 
   void* top_buffer = graphics.GetFramebuffer(Screen::kTop);
   if (graphics.BindFramebuffer(top_buffer)) {

@@ -47,10 +47,11 @@ void MainApplication::DrawBottom(Graphics& graphics) {
     numpad_.Draw();
   }
 
+  uptr vtable = 0;
   c16 buffer[BUFFER_SIZE];
   auto& game_manager = game::ProcessManager::GetInstance();
-  const char* process_name = game_manager.GetCurrentProcessName();
-  Utils::Format(buffer, u"Process=%s", process_name);
+  const char* process_name = game_manager.GetCurrentProcessName(vtable);
+  Utils::Format(buffer, u"Process[%08X]=%s", vtable, process_name);
   Graphics::DrawText(5, 150, buffer, theme_.unselected_text_color);
 
   const char* event_name = game::EventManager::GetInstance().

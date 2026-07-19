@@ -43,15 +43,7 @@ struct Overworld {
   GetBackgroundMusic(u32 sound_manager, u32 map_id, u32 player_form) {
     u32 result = HookManager::Call<u32>(HookID::kGetOverworldBackgroundMusic,
                                         sound_manager, map_id, player_form);
-    ui::LogApplication::Print(u"map=%u", map_id);
-
-    result = Nuzlocke::SetBackgroundMusic(map_id, result);
-    Nuzlocke::SetCamera(map_id);
-    Nuzlocke::SetNickname(map_id);
-    Nuzlocke::SetLight(map_id);
-    Nuzlocke::SetWeather(map_id);
-
-    return result;
+    return Nuzlocke::FixBackgroundMusic(map_id, result);
   }
 
   static void SetCullingHook(void* model, bool use_culling) {

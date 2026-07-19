@@ -91,7 +91,6 @@ public:
     // Simulate a button press
     WRITE(vu32, 0x00715C48, 0xE1A00000);
     HookManager::ForceEnable(HookID::kCheckAppRequest);
-    HookManager::ForceEnable(HookID::kEncounterSetPokemon);
     HookManager::ForceEnable(HookID::kSetCulling);
   }
 

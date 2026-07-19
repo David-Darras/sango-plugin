@@ -59,13 +59,11 @@ struct BattleConfig {
                             config, game_manager, trainer_id, p1,
                             battle_format,
                             p2);
-#if ENABLE_NUZLOCKE_FEATURES == 1
     feature::Nuzlocke::FixTrainers(*config, trainer_id);
 
     ui::LogApplication::Print(u"[%u] %ls %ls wants to battle!", trainer_id,
                               config->trainer_data[1]->name->GetBuffer(),
                               config->trainer_data[1]->title_name->GetBuffer());
-#endif
   }
 
   static void SetupBattleConfigHook(battle::Config* config, void* game_manager,

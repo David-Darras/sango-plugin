@@ -71,11 +71,13 @@ enum class HookID : u32 {
   kGetOverworldBackgroundMusic,
   kLoadPlayerModel,
   kIntroduction,
-  kSelectPokemonModel,
+  kReplacePokemonModel,
   kReadFileAsync,
   kReadFileAsync2,
   kSetCulling,
   kMainProcessLoop,
+  kUpdateZoneWeather,
+  kUpdateAreaWeather,
   kMax
 };
 
@@ -123,8 +125,23 @@ public:
   }
 
   STATIC_INLINE void
+  Enable(HookID id) {
+    GetInstance().Get(id)->Enable(false);
+  }
+
+  STATIC_INLINE void
   ForceEnable(HookID id) {
     GetInstance().Get(id)->Enable(true);
+  }
+
+  STATIC_INLINE void
+  Disable(HookID id) {
+    GetInstance().Get(id)->Disable();
+  }
+
+  STATIC_INLINE void
+  Clear(HookID id) {
+    GetInstance().Get(id)->Clear();
   }
 
 private:

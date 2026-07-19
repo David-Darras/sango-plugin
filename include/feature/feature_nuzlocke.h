@@ -29,11 +29,10 @@
 #include "game/constant/map.h"
 #include "game/constant/model.h"
 #include "game/constant/species.h"
-#include "game/constant/weather.h"
 #include "game/global_data/evolve.h"
 #include "game/global_data/move.h"
 #include "game/global_data/pokemon.h"
-#include "game/overworld/weather_manager.h"
+#include "game/global_data/trainer_model_manager.h"
 #include "game/savedata/pokemon_data_accessor.h"
 #include "game/savedata/pokemon_team.h"
 #include "game/savedata/settings.h"
@@ -51,6 +50,7 @@ struct Nuzlocke {
     FixPokemon();
     FixConfig();
     FixOutline();
+    FixTrainerModels();
 
     HookManager::Initialize(HookID::kLoadEvolveTable,
                             ADDRESS_GLOBAL_DATA_LOAD_EVOLVE_TABLE,
@@ -67,10 +67,12 @@ struct Nuzlocke {
                             (uptr)ReadFileAsync2);
     HookManager::Initialize(HookID::kInitializePokemon, 0x0011F754,
                             (uptr)InitializePokemonHook);
-    //
-    // // Player Model
-    // WRITE(vu32, 0x003F76AC, 0xE3A00000 | MODEL_HEX_MANIAC_ORAS);
-    // WRITE(vu32, 0x003F76C4, 0xE3A00000 | MODEL_HEX_MANIAC_ORAS);
+  }
+
+  STATIC_INLINE void FixTrainerModels() {
+    auto& manager = TrainerModelManager::GetInstance();
+    manager.Replace(TRAINER_MODEL_BRENDAN, TRAINER_MODEL_STEVEN);
+    manager.Replace(TRAINER_MODEL_MAY, TRAINER_MODEL_ZINNIA);
   }
 
   static u32 InitializePokemonHook(savedata::PokemonParam* param, u32 heap,
@@ -82,9 +84,9 @@ struct Nuzlocke {
       u8 level;
     }& pokemon = *(Pokemon*)init;
     static const u16 GRASS_STARTERS[] = {
-      SPECIES_BULBASAUR, SPECIES_CHIKORITA,
-      SPECIES_TREECKO, SPECIES_TURTWIG,
-      SPECIES_SNIVY, SPECIES_CHESPIN
+        SPECIES_BULBASAUR, SPECIES_CHIKORITA,
+        SPECIES_TREECKO, SPECIES_TURTWIG,
+        SPECIES_SNIVY, SPECIES_CHESPIN
     };
     u16 rand = Utils::GetRandomValue(SIZE(GRASS_STARTERS));
     switch (pokemon.species) {
@@ -148,10 +150,10 @@ struct Nuzlocke {
       case MODEL_MAY_CONTEST:
       case MODEL_MAY_MAGMA_SUIT:
       case MODEL_MAY_AQUA_SUIT:
-      case MODEL_RIVAL_ORAS:
-      case MODEL_RIVAL_ORAS_WITH_BAG:
+      // case MODEL_RIVAL_ORAS:
+      // case MODEL_RIVAL_ORAS_WITH_BAG:
       case MODEL_SUPPORT_MAY:
-      case MODEL_SUPPORT_MAY_BIKE:
+        // case MODEL_SUPPORT_MAY_BIKE:
         return MODEL_ZINNIA;
       case MODEL_ZIGZAGOON:
         return MODEL_GROUDON;
@@ -164,9 +166,9 @@ struct Nuzlocke {
         return MODEL_MR_STONE;
       case MODEL_SNORLAX_DOLL:
         return MODEL_HOOPAS_RING;
-      // case MODEL_POOCHYENA:
-      // case MODEL_BARKING_POOCHYENA:
-      //   return MODEL_ALTARIA;
+        // case MODEL_POOCHYENA:
+        // case MODEL_BARKING_POOCHYENA:
+        //   return MODEL_ALTARIA;
     }
     return model;
   }
@@ -500,8 +502,7 @@ struct Nuzlocke {
     config.pokemon_teams[1]->HealAllPokemons();
   }
 
-
-  STATIC_INLINE u32 SetBackgroundMusic(u16 map_id, u32 default_bgm) {
+  STATIC_INLINE u32 FixBackgroundMusic(u16 map_id, u32 default_bgm) {
     switch (map_id) {
       case MAP_INSIDE_OF_TRUCK:
       case MAP_BRENDAN_HOUSE:
@@ -510,13 +511,16 @@ struct Nuzlocke {
       case MAP_MAY_HOUSE:
       case MAP_BIRCH_LABORATORY:
       case MAP_LITTLEROOT_TOWN:
+      case MAP_ROUTE_101:
+      case MAP_ROUTE_103:
+      case MAP_OLDALE_TOWN:
         return (1 << 16) + 40;
       default:
         return default_bgm;
     }
   }
 
-  STATIC_INLINE void SetLight(u16 map_id) {
+  STATIC_INLINE void FixLight(u16 map_id) {
     auto& light = Light::GetInstance();
 
     switch (map_id) {
@@ -529,6 +533,12 @@ struct Nuzlocke {
         light.SetDiffuse(0, 0, 0);
         break;
       case MAP_LITTLEROOT_TOWN:
+      case MAP_ROUTE_101:
+        light.ResetAmbient();
+        light.SetDiffuse(0.1, 0.1, 1);
+        break;
+      case MAP_ROUTE_103:
+      case MAP_OLDALE_TOWN:
         light.ResetAmbient();
         light.SetDiffuse(0.1, 0.1, 1);
         break;
@@ -540,7 +550,7 @@ struct Nuzlocke {
     }
   }
 
-  STATIC_INLINE void SetNickname(u16 map_id) {
+  STATIC_INLINE void FixNickname(u16 map_id) {
     static bool has_name = false;
     static const c16* NICKNAME = u"STEVEN\0";
     auto& status = savedata::TrainerStatus::GetInstance();
@@ -553,43 +563,152 @@ struct Nuzlocke {
     }
   }
 
-  STATIC_INLINE void SetCamera(u16 map_id) {
+  STATIC_INLINE void FixCamera(u16 map_id) {
     auto& camera = Camera::GetInstance();
-
-    switch (map_id) {
-      case MAP_INSIDE_OF_TRUCK:
-        camera.SetCameraFree(82, 78.72, 193.19, -1.27, -0.51);
-        break;
-      case MAP_BRENDAN_HOUSE:
-      case MAP_BRENDAN_BEDROOM:
-        camera.SetCameraFree(103, 200, 514, -1.22, -0.54);
-        break;
-      case MAP_MAY_BEDROOM:
-      case MAP_MAY_HOUSE:
-        camera.SetCameraFree(348, 200, 514, -2.02, -0.54);
-        break;
-      case MAP_BIRCH_LABORATORY:
-        camera.SetCameraFree(263, 285, -76, 1.58, -0.69);
-        break;
-      case MAP_LITTLEROOT_TOWN:
-        camera.SetCameraTPS(100, 24, 0);
-        // camera.SetCameraRotate(400, 300, 0.001f);
-        break;
-      default:
-        camera.SetCameraIdle();
-        break;
-    }
+    camera.SetCameraTPS(150, 32, 30);
+    //
+    // switch (map_id) {
+    //   case MAP_INSIDE_OF_TRUCK:
+    //     camera.SetCameraFree(82, 78.72, 193.19, -1.27, -0.51);
+    //     break;
+    //   case MAP_BRENDAN_HOUSE:
+    //   case MAP_BRENDAN_BEDROOM:
+    //     camera.SetCameraFree(103, 200, 514, -1.22, -0.54);
+    //     break;
+    //   case MAP_MAY_BEDROOM:
+    //   case MAP_MAY_HOUSE:
+    //     camera.SetCameraFree(348, 200, 514, -2.02, -0.54);
+    //     break;
+    //   case MAP_BIRCH_LABORATORY:
+    //     camera.SetCameraFree(263, 285, -76, 1.58, -0.69);
+    //     break;
+    //   case MAP_LITTLEROOT_TOWN:
+    //   case MAP_ROUTE_101:
+    //   case MAP_OLDALE_TOWN:
+    //   case MAP_ROUTE_103:
+    //     camera.SetCameraTPS(100, 24, 0);
+    //     break;
+    //   default:
+    //     camera.SetCameraIdle();
+    //     break;
+    // }
   }
 
-  STATIC_INLINE void SetWeather(u16 map_id) {
-    auto& weather = overworld::WeatherManager::GetInstance().
-        GetRequestedWeather();
+  static u8 FixAll(u16 map_id, u8 weather) {
+    ui::LogApplication::Print(u"map=%u", map_id);
+    FixCamera(map_id);
+    FixLight(map_id);
+    FixNickname(map_id);
+    return weather;
+  }
+
+  static u16 FixEncounter(u16 default_species) {
+    static const u16 ROUTE_101[] = {
+        SPECIES_GROWLITHE,
+
+        SPECIES_SNUBBULL,
+        SPECIES_HOUNDOUR,
+
+        SPECIES_POOCHYENA,
+        SPECIES_EELEKTRIK,
+
+        SPECIES_RIOLU,
+
+        SPECIES_LILLIPUP,
+
+        SPECIES_FURFROU,
+        // SPECIES_LITLEO
+    };
+
+    static const u16 ROUTE_102[] = {
+        SPECIES_MEOWTH,
+        SPECIES_EEVEE,
+        SPECIES_SNEASEL,
+        SPECIES_SKITTY,
+        // SPECIES_ZANGOOSE,
+        // SPECIES_ABSOL,
+        SPECIES_SHINX,
+        SPECIES_GLAMEOW,
+        SPECIES_PURRLOIN,
+        SPECIES_ESPURR,
+    };
+
+    static const u16 ROUTE_103[] = {
+        SPECIES_RATTATA,
+        SPECIES_PICHU,
+        SPECIES_AZURILL,
+        SPECIES_PLUSLE,
+        SPECIES_MINUN,
+        SPECIES_DEDENNE,
+    };
+
+    static const u16 ROUTE_104_SOUTH[] = {
+        SPECIES_PIDGEY,
+        SPECIES_NATU,
+        SPECIES_TAILLOW,
+        SPECIES_WINGULL,
+        SPECIES_STARLY,
+        SPECIES_PIDOVE,
+        SPECIES_VULLABY,
+        SPECIES_FLETCHLING,
+    };
+
+    static const u16 PETALBURG_WOODS[] = {
+        SPECIES_CATERPIE,
+        SPECIES_WEEDLE,
+        SPECIES_WURMPLE,
+        SPECIES_BURMY,
+        SPECIES_SEWADDLE,
+        SPECIES_VENIPEDE,
+        SPECIES_SCATTERBUG,
+    };
+
+    static const u16 ROUTE_104_NORTH[] = {
+        SPECIES_SPEAROW,
+        SPECIES_FARFETCHD,
+        SPECIES_HOOTHOOT,
+        SPECIES_MURKROW,
+        SPECIES_SKARMORY,
+        SPECIES_CHATOT,
+        SPECIES_DUCKLETT,
+        SPECIES_RUFFLET,
+        SPECIES_HAWLUCHA
+    };
+
+    u16 species = 0;
+    u32& map_id = overworld::MapManager::GetInstance().GetMapId();
 
     switch (map_id) {
-      case MAP_LITTLEROOT_TOWN:
-        weather = WEATHER_OVERWORLD_STORMY;
+      case MAP_ROUTE_101:
+        species = ROUTE_101[Utils::GetRandomValue(SIZE(ROUTE_101))];
+        break;
+
+      case MAP_ROUTE_102:
+        species = ROUTE_102[Utils::GetRandomValue(SIZE(ROUTE_102))];
+        break;
+
+      case MAP_ROUTE_103:
+        species = ROUTE_103[Utils::GetRandomValue(SIZE(ROUTE_103))];
+        break;
+
+      case MAP_ROUTE_104_SOUTH:
+        species = ROUTE_104_SOUTH[Utils::GetRandomValue(SIZE(ROUTE_104_SOUTH))];
+        break;
+
+      case MAP_PETALBURG_WOODS:
+        species = PETALBURG_WOODS[Utils::GetRandomValue(SIZE(PETALBURG_WOODS))];
+        break;
+
+      case MAP_ROUTE_104_NORTH:
+        species = ROUTE_104_NORTH[Utils::GetRandomValue(SIZE(ROUTE_104_NORTH))];
+        break;
+
+      default:
+        species = default_species;
         break;
     }
+
+    return species;
   }
 };
 } // namespace feature

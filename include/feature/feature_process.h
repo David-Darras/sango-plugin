@@ -23,6 +23,8 @@
 #include "feature_encounter.h"
 #include "feature_engine.h"
 #include "feature_light.h"
+#include "feature_pokemon_model.h"
+#include "feature_title_screen.h"
 #include "game/process_manager.h"
 #include "game/constant/weather.h"
 #include "game/overworld/map_manager.h"
@@ -51,25 +53,46 @@ public:
   }
 
   static u32 MainProcessLoopHook(game::ProcessManager* manager) {
-    if (manager->handle_ != nullptr && manager->handle_->state_ ==
-        game::ProcessState::kLoading) {
+    struct Starter {
+      PokeInfo info;
+      u8 padding[0x54 - sizeof(PokeInfo)];
+    }* starter = (Starter*)(0x0804F3F0);
+    auto& replace_pokemon_model = feature::PokemonModel::GetInstance().
+        is_enabled;
+
+    if (manager->handle_ != nullptr) {
       auto* process = manager->handle_->process_;
       if (process != nullptr) {
-        u32 init_func = READ(vu32, (uptr)process->vtable + 8);
-        switch (init_func) {
-          case 0x006F3A80: // Select Pokemon Starter
-            struct Starter {
-              PokeInfo info;
-              u8 padding[0x54 - sizeof(PokeInfo)];
-            } *starter = (Starter*)(0x0804F3F0);
-            starter[0].info.is_egg = true;
-            starter[0].info.species = 0;
-            starter[1].info.is_egg = true;
-            starter[1].info.species = 0;
-            starter[2].info.is_egg = true;
-            starter[2].info.species = 0;
-            break;
-        }
+        uptr vtable = (uptr)process->vtable;
+        auto state = manager->handle_->state_;
+        if (state == game::ProcessState::kLoading)
+          switch (vtable) {
+            case ADDRESS_INTRODUCTION_VTABLE:
+            case ADDRESS_CINEMATIC_VTABLE:
+              replace_pokemon_model = true;
+              break;
+            case ADDRESS_TITLE_SCREEN_VTABLE:
+              replace_pokemon_model = true;
+              TitleScreen::Initialize();
+              break;
+            case ADDRESS_SELECT_STARTER_VTABLE:
+              starter[0].info.is_egg = true;
+              starter[0].info.species = 0;
+              starter[1].info.is_egg = true;
+              starter[1].info.species = 0;
+              starter[2].info.is_egg = true;
+              starter[2].info.species = 0;
+              break;
+            case ADDRESS_BATTLE_VTABLE:
+              replace_pokemon_model = false;
+              break;
+            case ADDRESS_OVERWORLD_VTABLE:
+              HookManager::Enable(HookID::kEncounterSetPokemon);
+              break;
+            default:
+              HookManager::Clear(HookID::kEncounterSetPokemon);
+              break;
+          }
       }
     }
     return HookManager::Call<u32>(HookID::kMainProcessLoop, manager);
@@ -77,18 +100,15 @@ public:
 
   static void OnEnterOverworld() {
     GameApp::OnEnterOverworld();
-#if ENABLE_NUZLOCKE_FEATURES == 1
     auto& heal_team = GetInstance().heal_team;
     if (heal_team) {
       auto& team = savedata::PokemonTeam::GetInstance();
       team.HealAllPokemons();
       heal_team = false;
     }
-#endif
   }
 
   static void OnUpdateMap(u16 map_id) {
-
   }
 
   static void OnUpdateOverworld() {
@@ -103,7 +123,7 @@ public:
   static void OnExitBattle() {
 #if ENABLE_NUZLOCKE_FEATURES == 1
     GetInstance().heal_team = true;
-    feature::Engine::GetInstance().game_speed = 1;
+    // feature::Engine::GetInstance().game_speed = 1;
 #endif
   }
 
@@ -118,7 +138,8 @@ public:
     HookManager::ForceEnable(HookID::kStartMegaEvolveAnimation);
     HookManager::ForceEnable(HookID::kStartBattleAnimation);
 
-    feature::Engine::GetInstance().game_speed = 2;
+    // CAN'T SAVE
+    // feature::Engine::GetInstance().game_speed = 2;
 
     // Only access to pokeball
     WRITE(vu8, 0x007CB09C, 2); // HP/PP -> Ball
@@ -157,8 +178,9 @@ public:
   static void DoEachFrame() {
     auto& ctx = GetInstance();
 
+    uptr vtable = 0;
     ctx.current_process = game::ProcessManager::GetInstance().
-        GetCurrentProcessName();
+        GetCurrentProcessName(vtable);
 
     bool is_fieldmap = strcmp(ctx.current_process, PROCESS_NAME_FIELD_MAP) == 0;
     bool is_battle = strcmp(ctx.current_process, PROCESS_NAME_BATTLE) == 0;
