@@ -59,7 +59,7 @@ enum class HookID : u32 {
   kUpdateAppStatus,
   kGlobalDataItemGetParam,
   kAddPokemonToTeam,
-  kScriptCreatePokemon,
+  kInitializePokemon,
   kCreateOverworldModels,
   kLoadScript,
   kInitializeVirtualMachine,
@@ -75,6 +75,7 @@ enum class HookID : u32 {
   kReadFileAsync,
   kReadFileAsync2,
   kSetCulling,
+  kMainProcessLoop,
   kMax
 };
 

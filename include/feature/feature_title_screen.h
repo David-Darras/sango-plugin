@@ -31,6 +31,7 @@ class TitleScreen {
   bool no_delay = true;
   u16 pokemon_cry_species = SPECIES_METAGROSS;
   f32 pokemon_cry_volume = 10.0f;
+  bool edit_pokemon_model = false;
 
   STATIC_INLINE void Initialize() {
     // Load Trainer Model : 0x00458214
@@ -51,23 +52,19 @@ class TitleScreen {
     WRITE(vu32, 0x00586C02 + src * 2, 4 + src * 5); // introduction position
 
     HookManager::Initialize(HookID::kSelectPokemonModel, 0x004713FC,
-    (uptr)SelectPokemonModelHook);
+                            (uptr)SelectPokemonModelHook);
     HookManager::Initialize(HookID::kSelectPokemonModel, 0x004713FC,
-    (uptr)SelectPokemonModelHook);
+                            (uptr)SelectPokemonModelHook);
   }
-
-  struct PokeInfo {
-    u16 species;
-    u8 form;
-    u8 gender;
-    bool is_shiny;
-    bool is_egg;
-    u32 _0;
-  };
 
   static void SelectPokemonModelHook(void* model, PokeInfo* poke_info, void* p0,
                                      void* p1, void* p2, void* p3) {
     auto& title = GetInstance();
+    if (!title.edit_pokemon_model) {
+      return HookManager::Call<void>(HookID::kSelectPokemonModel, model,
+                                     poke_info, p0,
+                                     p1, p2, p3);
+    }
 
     switch (poke_info->species) {
       case SPECIES_LATIOS:
@@ -130,20 +127,13 @@ class TitleScreen {
       case SPECIES_TROPIUS:
         poke_info->is_shiny = true;
         break;
-      case SPECIES_TALLOW:
+      case SPECIES_TAILLOW:
         poke_info->species = SPECIES_BELDUM;
         poke_info->is_shiny = false;
-        break;
-      case SPECIES_TORCHIC:
-      case SPECIES_TREECKO:
-      case SPECIES_MUDKIP:
-        poke_info->species = SPECIES_BELDUM;
-        poke_info->is_shiny = true;
         break;
     }
     HookManager::Call<void>(HookID::kSelectPokemonModel, model, poke_info, p0,
                             p1, p2, p3);
-
   }
 };
 } // namespace feature

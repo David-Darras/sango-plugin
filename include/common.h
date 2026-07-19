@@ -210,3 +210,12 @@ struct ResourcePack {
     return ((uptr)this + file_offset[safe_idx]);
   }
 };
+
+struct PokeInfo {
+  u16 species;
+  u8 form;
+  u8 gender;
+  bool is_shiny;
+  bool is_egg;
+  u32 _0;
+};

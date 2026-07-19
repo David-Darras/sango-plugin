@@ -44,6 +44,37 @@ public:
   State current_state = kUnknow;
   bool heal_team = false;
 
+
+  STATIC_INLINE void Initialize() {
+    HookManager::Initialize(HookID::kMainProcessLoop, 0x003AB62C,
+                            (uptr)MainProcessLoopHook);
+  }
+
+  static u32 MainProcessLoopHook(game::ProcessManager* manager) {
+    if (manager->handle_ != nullptr && manager->handle_->state_ ==
+        game::ProcessState::kLoading) {
+      auto* process = manager->handle_->process_;
+      if (process != nullptr) {
+        u32 init_func = READ(vu32, (uptr)process->vtable + 8);
+        switch (init_func) {
+          case 0x006F3A80: // Select Pokemon Starter
+            struct Starter {
+              PokeInfo info;
+              u8 padding[0x54 - sizeof(PokeInfo)];
+            } *starter = (Starter*)(0x0804F3F0);
+            starter[0].info.is_egg = true;
+            starter[0].info.species = 0;
+            starter[1].info.is_egg = true;
+            starter[1].info.species = 0;
+            starter[2].info.is_egg = true;
+            starter[2].info.species = 0;
+            break;
+        }
+      }
+    }
+    return HookManager::Call<u32>(HookID::kMainProcessLoop, manager);
+  }
+
   static void OnEnterOverworld() {
     GameApp::OnEnterOverworld();
 #if ENABLE_NUZLOCKE_FEATURES == 1
@@ -57,6 +88,7 @@ public:
   }
 
   static void OnUpdateMap(u16 map_id) {
+
   }
 
   static void OnUpdateOverworld() {

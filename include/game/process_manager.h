@@ -76,7 +76,7 @@ public:
  */
   BaseProcess* GetProcess() const { return process_; }
 
-private:
+public:
   ProcessState state_; ///< Current execution state of the handle.
   ProcessHandle* parent_; ///< Pointer to the parent handle.
   ProcessHandle* child_; ///< Pointer to the first child handle.
@@ -117,8 +117,8 @@ public:
     BaseProcess* process = GetCurrentProcess();
     if (process == nullptr) return "";
     const char* result = Utils::GetClassNameFromVTable(process->vtable);
-    ui::LogApplication::Print(u"VTABLE=%08X", process->vtable);
-    ui::LogApplication::Print(u"%s", result);
+    // ui::LogApplication::Print(u"VTABLE=%08X", process->vtable);
+    // ui::LogApplication::Print(u"%s", result);
     return result;
   }
 
@@ -133,7 +133,7 @@ private:
 
   u32 flags_;
   void* data_;
-
+public:
   ProcessHandle* handle_; ///< Pointer to the root process handle.
   Manager* game_manager_;
   ///< Pointer back to the parent game::GameManager.

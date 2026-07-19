@@ -51,6 +51,7 @@ c16 String::s_buffer[128];
 void Initialize() {
   File::MountSdmc();
 
+  feature::ProcessHookContext::Initialize();
   feature::DeviceState::Initialize();
   feature::Engine::Initialize();
   feature::Light::Initialize();

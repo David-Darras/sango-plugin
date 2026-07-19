@@ -88,82 +88,75 @@ struct Encounter {
 
   static u16 GetSpecies(u16 default_species) {
     static const u16 ROUTE_101[] = {
-        SPECIES_CATERPIE,
-        SPECIES_WEEDLE,
-        SPECIES_MAGIKARP,
-        SPECIES_ZUBAT,
-        SPECIES_PIDGEY,
-        SPECIES_RATTATA,
-        SPECIES_SPEAROW,
-        SPECIES_DIGLETT,
-        SPECIES_JIGGLYPUFF,
-        SPECIES_NIDORAN_M,
-        SPECIES_NIDORAN_F,
+        SPECIES_GROWLITHE,
+
+        SPECIES_SNUBBULL,
+        SPECIES_HOUNDOUR,
+
+        SPECIES_POOCHYENA,
+        SPECIES_EELEKTRIK,
+
+        SPECIES_RIOLU,
+
+        SPECIES_LILLIPUP,
+
+        SPECIES_FURFROU,
+        // SPECIES_LITLEO
     };
 
     static const u16 ROUTE_102[] = {
-        SPECIES_HORSEA,
-        SPECIES_VULPIX,
         SPECIES_MEOWTH,
-        SPECIES_PARAS,
-        SPECIES_DITTO,
-        SPECIES_EKANS,
-        SPECIES_SANDSHREW,
-        SPECIES_POLIWAG,
-        SPECIES_BELLSPROUT,
-        SPECIES_GEODUDE,
-        SPECIES_DRATINI,
-    };
-    static const u16 ROUTE_103[] = {
-        SPECIES_VENONAT,
-        SPECIES_MANKEY,
-        SPECIES_MACHOP,
-        SPECIES_SHELLDER,
         SPECIES_EEVEE,
-        SPECIES_MAGNEMITE,
-        SPECIES_SEEL,
-        SPECIES_GRIMER,
-        SPECIES_EXEGGCUTE,
-        SPECIES_KRABBY,
+        SPECIES_SNEASEL,
+        SPECIES_SKITTY,
+        // SPECIES_ZANGOOSE,
+        // SPECIES_ABSOL,
+        SPECIES_SHINX,
+        SPECIES_GLAMEOW,
+        SPECIES_PURRLOIN,
+        SPECIES_ESPURR,
+    };
+
+    static const u16 ROUTE_103[] = {
+        SPECIES_RATTATA,
+        SPECIES_PICHU,
+        SPECIES_AZURILL,
+        SPECIES_PLUSLE,
+        SPECIES_MINUN,
+        SPECIES_DEDENNE,
     };
 
     static const u16 ROUTE_104_SOUTH[] = {
-        SPECIES_DROWZEE,
-        SPECIES_GOLDEEN,
-        SPECIES_ODDISH,
-        SPECIES_PIKACHU,
-        SPECIES_PSYDUCK,
-        SPECIES_CUBONE,
-        SPECIES_SLOWPOKE,
-        SPECIES_ABRA,
-        SPECIES_DODUO,
-        SPECIES_GASTLY,
+        SPECIES_PIDGEY,
+        SPECIES_NATU,
+        SPECIES_TAILLOW,
+        SPECIES_WINGULL,
+        SPECIES_STARLY,
+        SPECIES_PIDOVE,
+        SPECIES_VULLABY,
+        SPECIES_FLETCHLING,
     };
 
     static const u16 PETALBURG_WOODS[] = {
-        SPECIES_KOFFING,
-        SPECIES_STARYU,
-        SPECIES_RHYHORN,
-        SPECIES_GROWLITHE,
-        SPECIES_FARFETCHD,
-        SPECIES_OMANYTE,
-        SPECIES_KABUTO,
-        SPECIES_KANGASKHAN,
-        SPECIES_TANGELA,
-        SPECIES_WIGGLYTUFF,
+        SPECIES_CATERPIE,
+        SPECIES_WEEDLE,
+        SPECIES_WURMPLE,
+        SPECIES_BURMY,
+        SPECIES_SEWADDLE,
+        SPECIES_VENIPEDE,
+        SPECIES_SCATTERBUG,
     };
 
     static const u16 ROUTE_104_NORTH[] = {
-        SPECIES_PONYTA,
-        SPECIES_CHANSEY,
-        SPECIES_GOLBAT,
-        SPECIES_HITMONLEE,
-        SPECIES_HITMONCHAN,
-        SPECIES_JYNX,
-        SPECIES_MR_MIME,
-        SPECIES_SCYTHER,
-        SPECIES_ELECTABUZZ,
-        SPECIES_TAUROS,
+        SPECIES_SPEAROW,
+        SPECIES_FARFETCHD,
+        SPECIES_HOOTHOOT,
+        SPECIES_MURKROW,
+        SPECIES_SKARMORY,
+        SPECIES_CHATOT,
+        SPECIES_DUCKLETT,
+        SPECIES_RUFFLET,
+        SPECIES_HAWLUCHA
     };
 
     u16 species = 0;

@@ -65,10 +65,41 @@ struct Nuzlocke {
                             (uptr)ReadFileAsync);
     HookManager::Initialize(HookID::kReadFileAsync2, 0x0036ED10,
                             (uptr)ReadFileAsync2);
+    HookManager::Initialize(HookID::kInitializePokemon, 0x0011F754,
+                            (uptr)InitializePokemonHook);
     //
     // // Player Model
     // WRITE(vu32, 0x003F76AC, 0xE3A00000 | MODEL_HEX_MANIAC_ORAS);
     // WRITE(vu32, 0x003F76C4, 0xE3A00000 | MODEL_HEX_MANIAC_ORAS);
+  }
+
+  static u32 InitializePokemonHook(savedata::PokemonParam* param, u32 heap,
+                                   u32 init) {
+    struct Pokemon {
+      u64 id[3];
+      u16 species;
+      u8 form;
+      u8 level;
+    }& pokemon = *(Pokemon*)init;
+    static const u16 GRASS_STARTERS[] = {
+      SPECIES_BULBASAUR, SPECIES_CHIKORITA,
+      SPECIES_TREECKO, SPECIES_TURTWIG,
+      SPECIES_SNIVY, SPECIES_CHESPIN
+    };
+    u16 rand = Utils::GetRandomValue(SIZE(GRASS_STARTERS));
+    switch (pokemon.species) {
+      case SPECIES_TREECKO:
+        pokemon.species = GRASS_STARTERS[rand] + 0;
+        break;
+      case SPECIES_TORCHIC:
+        pokemon.species = GRASS_STARTERS[rand] + 3;
+        break;
+      case SPECIES_MUDKIP:
+        pokemon.species = GRASS_STARTERS[rand] + 6;
+        break;
+    }
+    return HookManager::Call<
+      u32>(HookID::kInitializePokemon, param, heap, init);
   }
 
   struct FileInput {
@@ -133,9 +164,9 @@ struct Nuzlocke {
         return MODEL_MR_STONE;
       case MODEL_SNORLAX_DOLL:
         return MODEL_HOOPAS_RING;
-      case MODEL_POOCHYENA:
-      case MODEL_BARKING_POOCHYENA:
-        return MODEL_ALTARIA;
+      // case MODEL_POOCHYENA:
+      // case MODEL_BARKING_POOCHYENA:
+      //   return MODEL_ALTARIA;
     }
     return model;
   }
