@@ -21,7 +21,9 @@
 #include "feature_encounter.h"
 #include "feature_nuzlocke.h"
 #include "hook_manager.h"
+#include "game/overworld/map_data.h"
 #include "game/savedata/savedata_encounter.h"
+#include "system/file.h"
 
 namespace feature {
 struct Encounter {
@@ -33,22 +35,30 @@ struct Encounter {
     HookManager::Initialize(HookID::kEncounterSetPokemon,
                             ADDRESS_ENCOUNTER_SET_POKEMON,
                             (uptr)SetPokemonHook, false);
-    // HookManager::Initialize(HookID::kGetNaviDexTable,
-    //                         ADDRESS_GET_NAVI_DEX_TABLE,
-    //                         (uptr)GetNaviDexTable, true);
+    HookManager::Initialize(HookID::kGetNaviDexTable,
+                            ADDRESS_GET_NAVI_DEX_TABLE,
+                            (uptr)GetNaviDexTable, true);
   }
 
-  // static u16* GetNaviDexTable(void* data, u32 data_size, u32* count, void* heap,
-  //                             u8 p4, bool p5) {
-  //   u16* species_table = HookManager::Call<u16*>(HookID::kGetNaviDexTable, data,
-  //                                                data_size, count,
-  //                                                heap, p4, p5);
-  //   for (u32 i = 0; i < *count; i++) {
-  //     species_table[i] = SPECIES_BULBASAUR + i;
-  //   }
-  //
-  //   return species_table;
-  // }
+  static u16* GetNaviDexTable(overworld::EncounterData* data, s32 data_size,
+                              u32* count, void* heap,
+                              u8 p4, bool p5) {
+    if (data_size <= 0 || data == nullptr) return nullptr;
+
+    auto& map_id = overworld::MapManager::GetInstance().GetMapId();
+
+    // c16 buffer[BUFFER_SIZE];
+    // Utils::Format(buffer, u"sdmc:/encounter_%u.bin", map_id);
+    // File file(buffer, true);
+    // file.Write(data, sizeof(*data));
+    // file.Close();
+
+    Nuzlocke::FixEncounterTable(data);
+
+    return HookManager::Call<u16*>(HookID::kGetNaviDexTable, data,
+                                   data_size, count,
+                                   heap, p4, p5);;
+  }
 
   static void AddMaxRepel() {
     savedata::Encounter::GetInstance().spray_count = 100;
@@ -73,11 +83,16 @@ struct Encounter {
 
   static bool SetPokemonHook(u32 p0, u32 p1) {
     bool result = HookManager::Call<bool>(HookID::kEncounterSetPokemon, p0, p1);
+    u32& map_id = overworld::MapManager::GetInstance().GetMapId();
+    const EncounterEntry* entry = Nuzlocke::GetEncounterEntry(map_id);
+    if (entry == nullptr) {
+      return result;
+    }
 
     u32 count = READ(u32, p0 + 108);
     for (u32 i = 0; i < count; i++) {
       PokemonData& data = READ(PokemonData, p0 + i * sizeof(PokemonData));
-      data.species = Nuzlocke::FixEncounter(data.species);
+      data.species = entry->species[Utils::GetRandomValue(entry->size)];
     }
 
     return result;

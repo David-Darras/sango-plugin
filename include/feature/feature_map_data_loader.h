@@ -18,6 +18,7 @@
 #ifndef SANGO_PLUGIN_FEATURE_MAP_DATA_LOADER_H
 #define SANGO_PLUGIN_FEATURE_MAP_DATA_LOADER_H
 #include "common.h"
+#include "feature_nuzlocke.h"
 #include "hook_manager.h"
 #include "game/constant/form.h"
 #include "game/constant/species.h"
@@ -41,29 +42,16 @@ class MapDataLoader {
   static bool LoadMapData(overworld::MapData* map_data) {
     bool result = HookManager::Call<bool>(HookID::kLoadMapData, map_data);
     if (result) {
+      // Disable contact encounter
       auto& data = map_data->GetEncounterData();
-      const u16 map_id = overworld::MapManager::GetInstance().GetMapId();
-      auto& navi_dex_data =
-          overworld::CommonResource::GetInstance().GetNaviDexData(map_id);
-      FixMapData(data);
-      FixMapData(navi_dex_data);
+      for (u32 i = 0; i < 14; i++) {
+        data.rate[i] = 0;
+      }
+      for (u32 i = 0; i < 61; i++) {
+        data.poke_info[i].species = 0;
+      }
     }
     return result;
-  }
-
-  static void FixMapData(overworld::EncounterData& data) {
-    using namespace overworld;
-    u32 count = 0;
-    PokeInfoOnAction* poke_info = nullptr;
-
-    poke_info = data.GetPokeInfoTable(EncounterAction::kWalk, count);
-    ui::LogApplication::Print(u"%p walk count=%d", &data, count);
-    // for (u32 i = 0; i < count; i++) {
-    //   poke_info[i].species = SPECIES_MEWTWO + i;
-    //   poke_info[i].form = 0;
-    //   poke_info[i].min_level = 1;
-    //   poke_info[i].max_level = 100;
-    // }
   }
 };
 } // namespace feature

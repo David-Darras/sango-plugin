@@ -30,6 +30,8 @@
 namespace feature {
 struct Overworld {
   MAKE_SINGLETON(Overworld)
+  u16 background_music = 31;
+
   STATIC_INLINE void Initialize() {
     HookManager::Initialize(HookID::kGetOverworldBackgroundMusic,
                             ADDRESS_GET_OVERWORLD_BACKGROUND_MUSIC,
@@ -41,9 +43,9 @@ struct Overworld {
 
   static u32
   GetBackgroundMusic(u32 sound_manager, u32 map_id, u32 player_form) {
-    u32 result = HookManager::Call<u32>(HookID::kGetOverworldBackgroundMusic,
-                                        sound_manager, map_id, player_form);
-    return Nuzlocke::FixBackgroundMusic(map_id, result);
+    // u32 result = HookManager::Call<u32>(HookID::kGetOverworldBackgroundMusic,
+    //                                     sound_manager, map_id, player_form);
+    return (1 << 16) + GetInstance().background_music; // NO SOUND
   }
 
   static void SetCullingHook(void* model, bool use_culling) {

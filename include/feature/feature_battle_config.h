@@ -59,7 +59,7 @@ struct BattleConfig {
                             config, game_manager, trainer_id, p1,
                             battle_format,
                             p2);
-    feature::Nuzlocke::FixTrainers(*config, trainer_id);
+    // feature::Nuzlocke::FixTrainers(*config, trainer_id);
 
     ui::LogApplication::Print(u"[%u] %ls %ls wants to battle!", trainer_id,
                               config->trainer_data[1]->name->GetBuffer(),

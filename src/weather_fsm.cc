@@ -99,15 +99,15 @@ static const WeatherTransition sTrans_Dry[] = {
 
 static const WeatherStateData sWeatherStateData[NUM_OVERWORLD_WEATHERS] =
 {
-  WEATHER_ENTRY(sTrans_Sunny,        180, 600), // 0 SUNNY
-  WEATHER_ENTRY(sTrans_Rainy,        120, 400), // 1 RAINY
-  WEATHER_ENTRY(sTrans_Thunderstorm,  90, 300), // 2 THUNDERSTORM
-  WEATHER_ENTRY(sTrans_Misty,        150, 350), // 3 MISTY
-  WEATHER_ENTRY(sTrans_Ash,          200, 500), // 4 ASH
-  WEATHER_ENTRY(sTrans_Sandstorm,    150, 450), // 5 SANDSTORM
-  WEATHER_ENTRY(sTrans_Cloudy,       100, 300), // 6 CLOUDY
-  WEATHER_ENTRY(sTrans_Stormy,        60, 240), // 7 STORMY
-  WEATHER_ENTRY(sTrans_Dry,          200, 600), // 8 DRY
+    WEATHER_ENTRY(sTrans_Sunny, 180, 600), // 0 SUNNY
+    WEATHER_ENTRY(sTrans_Rainy, 120, 400), // 1 RAINY
+    WEATHER_ENTRY(sTrans_Thunderstorm, 90, 300), // 2 THUNDERSTORM
+    WEATHER_ENTRY(sTrans_Misty, 150, 350), // 3 MISTY
+    WEATHER_ENTRY(sTrans_Ash, 200, 500), // 4 ASH
+    WEATHER_ENTRY(sTrans_Sandstorm, 150, 450), // 5 SANDSTORM
+    WEATHER_ENTRY(sTrans_Cloudy, 100, 300), // 6 CLOUDY
+    WEATHER_ENTRY(sTrans_Stormy, 60, 240), // 7 STORMY
+    WEATHER_ENTRY(sTrans_Dry, 200, 600), // 8 DRY
 };
 
 static u8 sCurrentOverworldWeather;
@@ -117,7 +117,8 @@ static u32 sCurrentWeatherDuration;
 static u32 RollWeatherDuration(u8 weather) {
   const WeatherStateData* data = &sWeatherStateData[weather];
   u32 range = data->maxDurationSec - data->minDurationSec;
-  u32 result = data->minDurationSec + (range ? Utils::GetRandomValue(range) : 0);
+  u32 result = data->minDurationSec + (
+                 range ? Utils::GetRandomValue(range) : 0);
   return result;
 }
 

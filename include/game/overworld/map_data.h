@@ -36,15 +36,22 @@ enum EncounterAction {
 
 struct EncounterData {
   u8 rate[14];
-  PokeInfoOnAction on_walk[12];
-  PokeInfoOnAction on_xxx[12];
-  PokeInfoOnAction on_yyy[3];
-  PokeInfoOnAction on_surf[5];
-  PokeInfoOnAction on_rock_smash[5];
-  PokeInfoOnAction on_old_rod[3];
-  PokeInfoOnAction on_good_rod[3];
-  PokeInfoOnAction on_super_rod[3];
-  PokeInfoOnAction on_horde[3 * 5];
+
+  union {
+    PokeInfoOnAction poke_info[61];
+
+    struct {
+      PokeInfoOnAction on_walk[12];
+      PokeInfoOnAction on_xxx[12];
+      PokeInfoOnAction on_yyy[3];
+      PokeInfoOnAction on_surf[5];
+      PokeInfoOnAction on_rock_smash[5];
+      PokeInfoOnAction on_old_rod[3];
+      PokeInfoOnAction on_good_rod[3];
+      PokeInfoOnAction on_super_rod[3];
+      PokeInfoOnAction on_horde[3 * 5];
+    };
+  };
 
   INLINE PokeInfoOnAction*
   GetPokeInfoTable(EncounterAction action, u32& count) {

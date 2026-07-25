@@ -24,6 +24,7 @@
 #include "system/sound.h"
 #include "utils.h"
 #include "feature/feature_device.h"
+#include "feature/feature_process.h"
 #include "ui/theme.h"
 
 namespace ui {
@@ -36,7 +37,32 @@ void MainApplication::DrawTop(Graphics& graphics) {
   painter_->DrawPageItems(*this);
 }
 
+void MainApplication::DrawSplashscreen(Graphics& graphics) {
+  static s64 start = 0;
+  if (start == 0) {
+    Utils::GetElapsedTime(&start);
+  }
+  s64 now;
+  Utils::GetElapsedTime(&now);
+  s64 delta = now - start;
+  u32 elapsed_sec = Utils::ConvertTimeToSeconds(&delta);
+  if (elapsed_sec <= 5) {
+    Color background(0,0,0,1);
+    Graphics::FillScreen(background);
+    Color text(1, 0, 0, 1);
+    Graphics::SetTextScale(0.6, 0.6);
+    Graphics::DrawText(5, 5 + 17 * 0, u"Pokémon Sango Kaizo", text);
+    Graphics::DrawText(5, 5 + 17 * 1, u"Version 1.0", text);
+    Graphics::DrawText(5, 5 + 17 * 2, u"Created By ZettaD", text);
+
+    Graphics::DrawText(5, 5 + 17 * 4, u"Press [SELECT] to open in-game menu.",
+                       text);
+  }
+}
+
 void MainApplication::DrawBottom(Graphics& graphics) {
+  DrawSplashscreen(graphics);
+
   if (!IsOpened() || !painter_->ShowBottom()) return;
 
   Graphics::FillScreen(theme_.background_color);
@@ -55,8 +81,8 @@ void MainApplication::DrawBottom(Graphics& graphics) {
   Graphics::DrawText(5, 150, buffer, theme_.unselected_text_color);
 
   const char* event_name = game::EventManager::GetInstance().
-      GetCurrentEventName();
-  Utils::Format(buffer, u"Event=%s", event_name);
+      GetCurrentEventName(vtable);
+  Utils::Format(buffer, u"Event[%08X]=%s", vtable, event_name);
   Graphics::DrawText(5, 170, buffer, theme_.unselected_text_color);
 
   Graphics::SetTextScale(0.5, 0.5);
@@ -249,7 +275,7 @@ void MainAppPainter::DrawPageItems(MainApplication& app) {
 
 void RetroAppPainter::DrawPageBackground(MainApplication& app) {
   Graphics::EnableScissor(301, 10, 90, 130);
-  Graphics::FillScreen(0, 0, 0.8, 1);
+  Graphics::FillScreen(1, 0.25, 0, 0.25);
   Graphics::DisableScissor();
 }
 
@@ -258,10 +284,10 @@ void RetroAppPainter::DrawPageItems(MainApplication& app) {
 
   Graphics::EnableScissor(303, 12, 86, 126);
 
-  Graphics::FillScreen(0.95, 0.95, 0.95, 1);
+  Graphics::FillScreen(0, 0, 0, 0.5);
 
-  Color blue(0.066667, 0.203922, 0.592157, 1);
-  Color black(0.007843, 0.062745, 0.200000, 1);
+  Color blue(1, 0.25, 0, 1);
+  Color black(1, 1, 1, 1);
 
   Graphics::DrawText(391, 15 + 16 * ctx.cursor, u">",
                      blue);

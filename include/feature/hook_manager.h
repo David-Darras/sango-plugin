@@ -74,10 +74,12 @@ enum class HookID : u32 {
   kReplacePokemonModel,
   kReadFileAsync,
   kReadFileAsync2,
+  kIsReadFinished,
   kSetCulling,
   kMainProcessLoop,
   kUpdateZoneWeather,
   kUpdateAreaWeather,
+  kUpdateBattleView,
   kMax
 };
 

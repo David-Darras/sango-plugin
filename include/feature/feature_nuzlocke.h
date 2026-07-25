@@ -41,16 +41,28 @@
 #include "parser/pokemon_node.h"
 #include "ui/log_application.h"
 
+namespace overworld {
+struct EncounterData;
+}
+
+struct EncounterEntry {
+  const u16 map_id;
+  const u16 size;
+  const u16* species;
+};
 
 namespace feature {
 struct Nuzlocke {
   MAKE_SINGLETON(Nuzlocke)
+  uptr archive_buffer = 0;
+  u32* size = nullptr;
+
   STATIC_INLINE void Initialize() {
     FixMoves();
     FixPokemon();
-    FixConfig();
     FixOutline();
     FixTrainerModels();
+    FixCamera();
 
     HookManager::Initialize(HookID::kLoadEvolveTable,
                             ADDRESS_GLOBAL_DATA_LOAD_EVOLVE_TABLE,
@@ -65,6 +77,8 @@ struct Nuzlocke {
                             (uptr)ReadFileAsync);
     HookManager::Initialize(HookID::kReadFileAsync2, 0x0036ED10,
                             (uptr)ReadFileAsync2);
+    HookManager::Initialize(HookID::kIsReadFinished, 0x004C7224,
+                            (uptr)IsReadFinished);
     HookManager::Initialize(HookID::kInitializePokemon, 0x0011F754,
                             (uptr)InitializePokemonHook);
   }
@@ -109,8 +123,8 @@ struct Nuzlocke {
     u32 archive_id;
     u32 file_id;
     bool is_compressed;
-    u32 heap[4];
-    void** buffer;
+    uptr heap[4];
+    uptr buffer;
     u32* size;
   };
 
@@ -118,9 +132,7 @@ struct Nuzlocke {
                              void* buffer,
                              u32 p4, u32 p5, u32 p6) {
     u32* archive_table = (u32*)ADDRESS_ARCHIVE_FILENAME_TABLE;
-    // compare filename address
-    if (archive[12] == archive_table[ARCHIVE_OVERWORLD_MODELS]) {
-      ui::LogApplication::Print(u"m(%x)", file_id);
+    if (archive[12] == archive_table[ARCHIVE_OVERWORLD_MODEL]) {
       file_id = FixOverworldModels(file_id);
     }
     return HookManager::Call<bool>(HookID::kReadFileAsync2, archive, heap,
@@ -129,11 +141,26 @@ struct Nuzlocke {
   }
 
   static bool ReadFileAsync(void* file_manager, FileInput* input) {
-    if (input->archive_id == ARCHIVE_OVERWORLD_MODELS) {
-      ui::LogApplication::Print(u"n(%x)", input->file_id);
+    if (input->archive_id == ARCHIVE_OVERWORLD_MODEL) {
       input->file_id = FixOverworldModels(input->file_id);
     }
+    if (input->archive_id == ARCHIVE_PLAYER_ICON) {
+      input->file_id = 72; // STEVEN
+    }
+    if (input->archive_id == 262) {
+      ui::LogApplication::Print(u"262");
+      GetInstance().archive_buffer = input->buffer;
+      GetInstance().size = input->size;
+    }
     return HookManager::Call<bool>(HookID::kReadFileAsync, file_manager, input);
+  }
+
+  static bool IsReadFinished(void* file_manager, void** buffer) {
+    bool result = HookManager::Call<bool>(HookID::kIsReadFinished, file_manager,
+                                          buffer);
+    if (result && (uptr)buffer == GetInstance().archive_buffer) {
+    }
+    return result;
   }
 
   struct ModelData {
@@ -502,213 +529,22 @@ struct Nuzlocke {
     config.pokemon_teams[1]->HealAllPokemons();
   }
 
-  STATIC_INLINE u32 FixBackgroundMusic(u16 map_id, u32 default_bgm) {
-    switch (map_id) {
-      case MAP_INSIDE_OF_TRUCK:
-      case MAP_BRENDAN_HOUSE:
-      case MAP_BRENDAN_BEDROOM:
-      case MAP_MAY_BEDROOM:
-      case MAP_MAY_HOUSE:
-      case MAP_BIRCH_LABORATORY:
-      case MAP_LITTLEROOT_TOWN:
-      case MAP_ROUTE_101:
-      case MAP_ROUTE_103:
-      case MAP_OLDALE_TOWN:
-        return (1 << 16) + 40;
-      default:
-        return default_bgm;
-    }
-  }
-
-  STATIC_INLINE void FixLight(u16 map_id) {
-    auto& light = Light::GetInstance();
-
-    switch (map_id) {
-      case MAP_BRENDAN_HOUSE:
-      case MAP_BRENDAN_BEDROOM:
-      case MAP_MAY_BEDROOM:
-      case MAP_MAY_HOUSE:
-      case MAP_BIRCH_LABORATORY:
-        light.SetAmbient(0.4, 0.4, 0.4);
-        light.SetDiffuse(0, 0, 0);
-        break;
-      case MAP_LITTLEROOT_TOWN:
-      case MAP_ROUTE_101:
-        light.ResetAmbient();
-        light.SetDiffuse(0.1, 0.1, 1);
-        break;
-      case MAP_ROUTE_103:
-      case MAP_OLDALE_TOWN:
-        light.ResetAmbient();
-        light.SetDiffuse(0.1, 0.1, 1);
-        break;
-      case MAP_INSIDE_OF_TRUCK:
-      default:
-        light.ResetAmbient();
-        light.ResetDiffuse();
-        break;
-    }
-  }
-
-  STATIC_INLINE void FixNickname(u16 map_id) {
-    static bool has_name = false;
+  STATIC_INLINE void FixNickname() {
     static const c16* NICKNAME = u"STEVEN\0";
     auto& status = savedata::TrainerStatus::GetInstance();
-    if (map_id == MAP_INSIDE_OF_TRUCK && !has_name) {
-      for (u32 i = 0; i < savedata::TrainerStatus::kPlayerNameLen; i++) {
-        status.name[i] = status.nickname[i] = NICKNAME[i];
-        if (NICKNAME[i] == '\0') break;
-      }
-      has_name = true;
+    for (u32 i = 0; i < savedata::TrainerStatus::kPlayerNameLen; i++) {
+      status.name[i] = status.nickname[i] = NICKNAME[i];
+      if (NICKNAME[i] == '\0') break;
     }
   }
 
-  STATIC_INLINE void FixCamera(u16 map_id) {
+  STATIC_INLINE void FixCamera() {
     auto& camera = Camera::GetInstance();
-    camera.SetCameraTPS(150, 32, 30);
-    //
-    // switch (map_id) {
-    //   case MAP_INSIDE_OF_TRUCK:
-    //     camera.SetCameraFree(82, 78.72, 193.19, -1.27, -0.51);
-    //     break;
-    //   case MAP_BRENDAN_HOUSE:
-    //   case MAP_BRENDAN_BEDROOM:
-    //     camera.SetCameraFree(103, 200, 514, -1.22, -0.54);
-    //     break;
-    //   case MAP_MAY_BEDROOM:
-    //   case MAP_MAY_HOUSE:
-    //     camera.SetCameraFree(348, 200, 514, -2.02, -0.54);
-    //     break;
-    //   case MAP_BIRCH_LABORATORY:
-    //     camera.SetCameraFree(263, 285, -76, 1.58, -0.69);
-    //     break;
-    //   case MAP_LITTLEROOT_TOWN:
-    //   case MAP_ROUTE_101:
-    //   case MAP_OLDALE_TOWN:
-    //   case MAP_ROUTE_103:
-    //     camera.SetCameraTPS(100, 24, 0);
-    //     break;
-    //   default:
-    //     camera.SetCameraIdle();
-    //     break;
-    // }
+    camera.state = Camera::State::kTps;
   }
 
-  static u8 FixAll(u16 map_id, u8 weather) {
-    ui::LogApplication::Print(u"map=%u", map_id);
-    FixCamera(map_id);
-    FixLight(map_id);
-    FixNickname(map_id);
-    return weather;
-  }
+  static const EncounterEntry* GetEncounterEntry(u16 map_id);
 
-  static u16 FixEncounter(u16 default_species) {
-    static const u16 ROUTE_101[] = {
-        SPECIES_GROWLITHE,
-
-        SPECIES_SNUBBULL,
-        SPECIES_HOUNDOUR,
-
-        SPECIES_POOCHYENA,
-        SPECIES_EELEKTRIK,
-
-        SPECIES_RIOLU,
-
-        SPECIES_LILLIPUP,
-
-        SPECIES_FURFROU,
-        // SPECIES_LITLEO
-    };
-
-    static const u16 ROUTE_102[] = {
-        SPECIES_MEOWTH,
-        SPECIES_EEVEE,
-        SPECIES_SNEASEL,
-        SPECIES_SKITTY,
-        // SPECIES_ZANGOOSE,
-        // SPECIES_ABSOL,
-        SPECIES_SHINX,
-        SPECIES_GLAMEOW,
-        SPECIES_PURRLOIN,
-        SPECIES_ESPURR,
-    };
-
-    static const u16 ROUTE_103[] = {
-        SPECIES_RATTATA,
-        SPECIES_PICHU,
-        SPECIES_AZURILL,
-        SPECIES_PLUSLE,
-        SPECIES_MINUN,
-        SPECIES_DEDENNE,
-    };
-
-    static const u16 ROUTE_104_SOUTH[] = {
-        SPECIES_PIDGEY,
-        SPECIES_NATU,
-        SPECIES_TAILLOW,
-        SPECIES_WINGULL,
-        SPECIES_STARLY,
-        SPECIES_PIDOVE,
-        SPECIES_VULLABY,
-        SPECIES_FLETCHLING,
-    };
-
-    static const u16 PETALBURG_WOODS[] = {
-        SPECIES_CATERPIE,
-        SPECIES_WEEDLE,
-        SPECIES_WURMPLE,
-        SPECIES_BURMY,
-        SPECIES_SEWADDLE,
-        SPECIES_VENIPEDE,
-        SPECIES_SCATTERBUG,
-    };
-
-    static const u16 ROUTE_104_NORTH[] = {
-        SPECIES_SPEAROW,
-        SPECIES_FARFETCHD,
-        SPECIES_HOOTHOOT,
-        SPECIES_MURKROW,
-        SPECIES_SKARMORY,
-        SPECIES_CHATOT,
-        SPECIES_DUCKLETT,
-        SPECIES_RUFFLET,
-        SPECIES_HAWLUCHA
-    };
-
-    u16 species = 0;
-    u32& map_id = overworld::MapManager::GetInstance().GetMapId();
-
-    switch (map_id) {
-      case MAP_ROUTE_101:
-        species = ROUTE_101[Utils::GetRandomValue(SIZE(ROUTE_101))];
-        break;
-
-      case MAP_ROUTE_102:
-        species = ROUTE_102[Utils::GetRandomValue(SIZE(ROUTE_102))];
-        break;
-
-      case MAP_ROUTE_103:
-        species = ROUTE_103[Utils::GetRandomValue(SIZE(ROUTE_103))];
-        break;
-
-      case MAP_ROUTE_104_SOUTH:
-        species = ROUTE_104_SOUTH[Utils::GetRandomValue(SIZE(ROUTE_104_SOUTH))];
-        break;
-
-      case MAP_PETALBURG_WOODS:
-        species = PETALBURG_WOODS[Utils::GetRandomValue(SIZE(PETALBURG_WOODS))];
-        break;
-
-      case MAP_ROUTE_104_NORTH:
-        species = ROUTE_104_NORTH[Utils::GetRandomValue(SIZE(ROUTE_104_NORTH))];
-        break;
-
-      default:
-        species = default_species;
-        break;
-    }
-
-    return species;
-  }
+  static void FixEncounterTable(overworld::EncounterData* data);
 };
 } // namespace feature

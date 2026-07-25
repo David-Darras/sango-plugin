@@ -17,32 +17,62 @@
 
 #include "feature/feature_app.h"
 #include "feature/feature_field_move.h"
+#include "feature/feature_overworld.h"
 #include "game/overworld/encounter.h"
 #include "game/savedata/event_table.h"
 #include "game/savedata/savedata.h"
+#include "system/sound.h"
 #include "ui/main_application.h"
 #include "ui/page/page_top.h"
 
 namespace ui {
 void LoadHmPage(MainApplication& app, void* args) {
-  app.Add("Cut", [&](void*) { feature::FieldMove::Execute(0); })
-     .Add("Rock Smash", [&](void*) { feature::FieldMove::Execute(4); })
-     .Add("Strength", [&](void*) { feature::FieldMove::Execute(3); })
-     .Add("Fly", [&](void*) { feature::GameApp::DoFly(); })
-     .Add("Surf", [&](void*) { feature::FieldMove::Execute(1); })
-     .Add("Dive", [&](void*) { feature::FieldMove::Execute(10); })
-     .Add("Waterfall", [&](void*) { feature::FieldMove::Execute(2); });
+  auto& misc = savedata::Misc::GetInstance();
+  auto badge_count = misc.GetBadgesCount();
+  if (badge_count == 0) {
+    app.Add("UNAVAILABLE");
+    return;
+  }
+  if (badge_count >= 1) app.Add("Cut", [&](void*) {
+    feature::FieldMove::Execute(0);
+  });
+  if (badge_count >= 2) app.Add("Rock Smash", [&](void*) {
+    feature::FieldMove::Execute(4);
+  });
+  if (badge_count >= 3) app.Add("Strength", [&](void*) {
+    feature::FieldMove::Execute(3);
+  });
+  if (badge_count >= 4) app.Add(
+      "Fly", [&](void*) { feature::GameApp::DoFly(); });
+  if (badge_count >= 5) app.Add("Surf", [&](void*) {
+    feature::FieldMove::Execute(1);
+  });
+  if (badge_count >= 6) app.Add("Dive", [&](void*) {
+    feature::FieldMove::Execute(10);
+  });
+  if (badge_count >= 7) app.Add("Waterfall", [&](void*) {
+    feature::FieldMove::Execute(2);
+  });
 }
 
 void LoadNuzlockePage(MainApplication& app, void* args) {
-  app.Add("Reset Tr", [](void*) {
-       auto& event_table = savedata::EventTable::GetInstance();
-       for (u32 i = 1740; i < 2719; i++) {
-         event_table.Reset(i);
-       }
-     })
+  auto& bgm = feature::Overworld::GetInstance().background_music;
+  auto& camera = feature::Camera::GetInstance();
+
+  app.Add("Camera", camera.state)
+     .WithBounds(0, 4)
+     .Add("Radio", bgm)
+     .WithCallback([&](void*) { Sound::PlayBackgroundMusic(bgm); })
+     .WithBounds(0, 250)
      .Add("HM", LoadHmPage)
      .Add("App", LoadAppPage)
      .Add("Repel", CheatCodeId::kNoEncounter);
+
+  // .Add("Reset Tr", [](void*) {
+  //      auto& event_table = savedata::EventTable::GetInstance();
+  //      for (u32 i = 1740; i < 2719; i++) {
+  //        event_table.Reset(i);
+  //      }
+  //    })
 }
 } // namespace ui

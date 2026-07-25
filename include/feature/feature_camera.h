@@ -31,7 +31,7 @@ class StereoCamera;
 
 namespace feature {
 struct Camera {
-  enum State { kIdle, kFree, kRotate, kFpv, kTps };
+  enum State { kIdle, kTps, kRotate, kTop, kFpv, kFree };
 
   void SetCameraIdle() {
     state = State::kIdle;
@@ -71,11 +71,14 @@ struct Camera {
   f32 radius = 200.0f;
   f32 height = 100.0f;
   f32 theta = 0.0f;
-  f32 theta_speed = 0.01f;
+  f32 theta_speed = 0.005f;
   bool is_updating_camera = false;
-  f32 tps_dist = 80.0f;
-  f32 tps_height = 33.0f;
-  f32 tps_offset = 0.0f;
+  f32 fpv_height = 30.0f;
+  f32 fpv_offset = 24.0f;
+
+  f32 tps_dist = 152;
+  f32 tps_height = 32;
+  f32 tps_offset = 30;
 
   STATIC_INLINE void Initialize() {
     HookManager::Initialize(HookID::kUpdateMatrices,
@@ -84,6 +87,12 @@ struct Camera {
     HookManager::Initialize(HookID::kUpdateLookAt,
                             ADDRESS_STEREO_CAMERA_UPDATE_LOOK_AT,
                             (uptr)UpdateLookAtHook);
+  }
+
+  static f32 RandomFloatRange(f32 min, f32 max) {
+    constexpr u32 kPrecision = 10000;
+    f32 t = static_cast<f32>(Utils::GetRandomValue(kPrecision)) / kPrecision;
+    return min + t * (max - min);
   }
 
   static u32 UpdateMatricesHook(overworld::StereoCamera* stereo_camera,
@@ -135,16 +144,20 @@ struct Camera {
 
     switch (static_cast<State>(ctx.state)) {
       case State::kRotate:
-        if (battle::Process::IsInBattle()) {
-          *target = Vec3{0, 0, 0};
-        } else {
-          *target = player.draw_pos;
-        }
+        *target = player.draw_pos;
         *up = {0.0f, 1.0f, 0.0f};
         pos->x = target->x + ctx.radius * std::cos(ctx.theta);
         pos->z = target->z + ctx.radius * std::sin(ctx.theta);
         pos->y = target->y + ctx.height;
         ctx.theta += ctx.theta_speed;
+        break;
+
+      case State::kTop:
+        *target = player.draw_pos;
+        *up = {0.0f, 0.0f, -1.0f};
+        pos->x = target->x;
+        pos->z = target->z;
+        pos->y = target->y + 300.0f;
         break;
 
       case State::kFree: {
@@ -163,18 +176,26 @@ struct Camera {
         break;
       }
 
-      case State::kFpv:
-        pos->x = player.draw_pos.x;
-        pos->y = player.draw_pos.y + 30.0f;
-        pos->z = player.draw_pos.z;
+      case State::kFpv: {
+        Vec3 dir = player.facing_direction;
+        f32 len = std::sqrt(dir.x * dir.x + dir.y * dir.y + dir.z * dir.z);
+        if (len > 0.0001f) {
+          dir.x /= len;
+          dir.z /= len;
+        }
+
+        pos->x = player.draw_pos.x - (dir.x * ctx.fpv_offset);
+        pos->y = player.draw_pos.y + ctx.fpv_height;
+        pos->z = player.draw_pos.z - (dir.z * ctx.fpv_offset);
 
         *target = {
-            pos->x + player.facing_direction.x,
-            pos->y + player.facing_direction.y,
-            pos->z + player.facing_direction.z
+            pos->x + dir.x,
+            pos->y,
+            pos->z + dir.z
         };
         *up = {0.0f, 1.0f, 0.0f};
         break;
+      }
 
       case State::kTps: {
         Vec3 dir = player.facing_direction;

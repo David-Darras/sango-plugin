@@ -38,12 +38,13 @@ public:
     return Manager::GetInstance().GetGameEventManager();
   }
 
-  GameEvent& GetGameEvent() const { return *current_game_event_; }
+  GameEvent* GetGameEvent() const { return current_game_event_; }
 
-  const char* GetCurrentEventName() const {
+  const char* GetCurrentEventName(uptr& vtable) const {
     if (current_game_event_ == nullptr || current_game_event_->vtable ==
         nullptr)
       return "";
+    vtable = (uptr)current_game_event_->vtable;
     return Utils::GetClassNameFromVTable(current_game_event_->vtable);
   }
 

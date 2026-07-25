@@ -31,6 +31,7 @@
 #include "feature/feature_day_care.h"
 #include "feature/feature_field_move.h"
 #include "feature/feature_item.h"
+#include "feature/feature_map_data_loader.h"
 #include "feature/feature_map_tile.h"
 #include "feature/feature_overworld.h"
 #include "feature/feature_pokemon_model.h"
@@ -79,7 +80,7 @@ void Initialize() {
   feature::Script::Initialize();
   feature::Overworld::Initialize();
   feature::PokemonModel::Initialize();
-  feature::WeatherManager::Initialize();
+  feature::MapDataLoader::Initialize();
   InitOverworldWeather();
 
   auto& application_manager = ui::ApplicationManager::GetInstance();
@@ -98,6 +99,7 @@ void Initialize() {
 }
 
 void Entrypoint() {
+
   auto& graphics = Graphics::GetInstance();
   auto& controller = Controller::GetInstance();
   auto& application_manager = ui::ApplicationManager::GetInstance();

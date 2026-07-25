@@ -117,10 +117,7 @@ public:
     BaseProcess* process = GetCurrentProcess();
     if (process == nullptr) return "";
     vtable = (uptr)process->vtable;
-    const char* result = Utils::GetClassNameFromVTable(process->vtable);
-    // ui::LogApplication::Print(u"VTABLE=%08X", process->vtable);
-    // ui::LogApplication::Print(u"%s", result);
-    return result;
+    return Utils::GetClassNameFromVTable(process->vtable);
   }
 
   INLINE bool IsCurrentProcess(const char* name) const {

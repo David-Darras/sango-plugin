@@ -25,6 +25,7 @@
 #include "feature_light.h"
 #include "feature_pokemon_model.h"
 #include "feature_title_screen.h"
+#include "game/event_manager.h"
 #include "game/process_manager.h"
 #include "game/constant/weather.h"
 #include "game/overworld/map_manager.h"
@@ -45,7 +46,7 @@ public:
   State old_state = kUnknow;
   State current_state = kUnknow;
   bool heal_team = false;
-
+  bool is_introduction = false;
 
   STATIC_INLINE void Initialize() {
     HookManager::Initialize(HookID::kMainProcessLoop, 0x003AB62C,
@@ -85,8 +86,11 @@ public:
               break;
             case ADDRESS_BATTLE_VTABLE:
               replace_pokemon_model = false;
+              HookManager::ForceEnable(HookID::kUpdateBattleView);
               break;
             case ADDRESS_OVERWORLD_VTABLE:
+              Nuzlocke::FixNickname();
+              Nuzlocke::FixConfig();
               HookManager::Enable(HookID::kEncounterSetPokemon);
               break;
             default:

@@ -57,6 +57,8 @@ public:
 */
   void DrawBottom(Graphics& graphics) override;
 
+  void DrawSplashscreen(Graphics& graphics);
+
   /**
 * @brief Updates the menu state and input handling.
 * Must be called once per frame.

@@ -29,7 +29,7 @@ class TitleScreen {
   u8 top_video = VIDEO_PRIMO_KYOGRE;
   u8 bottom_video = VIDEO_PRIMO_GROUDON;
   bool no_delay = true;
-  u16 pokemon_cry_species = SPECIES_METAGROSS;
+  u16 pokemon_cry_species = SPECIES_BELDUM;
   f32 pokemon_cry_volume = 1.0f;
 
   STATIC_INLINE void Initialize() {

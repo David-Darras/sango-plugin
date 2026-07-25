@@ -82,7 +82,7 @@ void LoadOverworldFieldMovePage(MainApplication& app, void* args) {
 void LoadOverworldCameraPage(MainApplication& app, void* args) {
   if (app.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
 
-  static const c8* STATES[] = {"Idle", "Free", "Rotate", "Fpv", "Tps"};
+  static const c8* STATES[] = {"Idle", "Tps", "Rotate", "Top", "Fps", "Free"};
   bool& skybox = *(bool*)((uptr)&overworld::Renderer::GetInstance() + 0xB74);
   auto& ctx = feature::Camera::GetInstance();
 

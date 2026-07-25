@@ -26,28 +26,9 @@ class WeatherManager {
   MAKE_SINGLETON(WeatherManager)
 public:
   STATIC_INLINE void Initialize() {
-    HookManager::Initialize(HookID::kUpdateZoneWeather,
-                            ADDRESS_UPDATE_ZONE_WEATHER,
-                            (uptr)UpdateZoneWeatherHook);
-    HookManager::Initialize(HookID::kUpdateAreaWeather,
-                            ADDRESS_UPDATE_AREA_WEATHER,
-                            (uptr)UpdateAreaWeatherHook);
-  }
-
-  static void UpdateZoneWeatherHook(overworld::WeatherManager* manager,
-                                    u16 map_id,
-                                    u8 weather) {
-    weather = Nuzlocke::FixAll(map_id, weather);
-    // manager->SetMapId(map_id);
-    // manager->SetWeather(weather);
-  }
-
-  static void UpdateAreaWeatherHook(overworld::WeatherManager* manager,
-                                    u16 map_id,
-                                    u8 weather) {
-    weather = Nuzlocke::FixAll(map_id, weather);
-    // return HookManager::Call<void>(HookID::kUpdateAreaWeather, manager, map_id,
-    //                                weather);
+    // Don't update weather
+    ARM_NOP(ADDRESS_UPDATE_AREA_WEATHER + 0xC);
+    ARM_NOP(ADDRESS_UPDATE_ZONE_WEATHER + 0x4);
   }
 };
 }
