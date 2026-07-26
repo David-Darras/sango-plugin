@@ -16,6 +16,8 @@
  */
 
 #include "feature/feature_app.h"
+#include "feature/feature_battle_config.h"
+#include "feature/feature_engine.h"
 #include "feature/feature_field_move.h"
 #include "feature/feature_overworld.h"
 #include "game/overworld/encounter.h"
@@ -33,34 +35,45 @@ void LoadHmPage(MainApplication& app, void* args) {
     app.Add("UNAVAILABLE");
     return;
   }
-  if (badge_count >= 1) app.Add("Cut", [&](void*) {
-    feature::FieldMove::Execute(0);
-  });
-  if (badge_count >= 2) app.Add("Rock Smash", [&](void*) {
-    feature::FieldMove::Execute(4);
-  });
-  if (badge_count >= 3) app.Add("Strength", [&](void*) {
-    feature::FieldMove::Execute(3);
-  });
-  if (badge_count >= 4) app.Add(
-      "Fly", [&](void*) { feature::GameApp::DoFly(); });
-  if (badge_count >= 5) app.Add("Surf", [&](void*) {
-    feature::FieldMove::Execute(1);
-  });
-  if (badge_count >= 6) app.Add("Dive", [&](void*) {
-    feature::FieldMove::Execute(10);
-  });
-  if (badge_count >= 7) app.Add("Waterfall", [&](void*) {
-    feature::FieldMove::Execute(2);
-  });
+  if (badge_count >= 1)
+    app.Add("Cut", [&](void*) {
+      feature::FieldMove::Execute(0);
+    });
+  if (badge_count >= 2)
+    app.Add("Rock Smash", [&](void*) {
+      feature::FieldMove::Execute(4);
+    });
+  if (badge_count >= 3)
+    app.Add("Strength", [&](void*) {
+      feature::FieldMove::Execute(3);
+    });
+  if (badge_count >= 4)
+    app.Add(
+        "Fly", [&](void*) { feature::GameApp::DoFly(); });
+  if (badge_count >= 5)
+    app.Add("Surf", [&](void*) {
+      feature::FieldMove::Execute(1);
+    });
+  if (badge_count >= 6)
+    app.Add("Dive", [&](void*) {
+      feature::FieldMove::Execute(10);
+    });
+  if (badge_count >= 7)
+    app.Add("Waterfall", [&](void*) {
+      feature::FieldMove::Execute(2);
+    });
 }
 
 void LoadNuzlockePage(MainApplication& app, void* args) {
   auto& bgm = feature::Overworld::GetInstance().background_music;
   auto& camera = feature::Camera::GetInstance();
+  auto& speed = feature::Engine::GetInstance().game_speed;
 
-  app.Add("Camera", camera.state)
+  app //.Add("Trainer", feature::BattleConfig::GetInstance().trainer_id)
+     .Add("Camera", camera.state)
      .WithBounds(0, 4)
+     .Add("Speed", speed)
+     .WithBounds(1, 2)
      .Add("Radio", bgm)
      .WithCallback([&](void*) { Sound::PlayBackgroundMusic(bgm); })
      .WithBounds(0, 250)

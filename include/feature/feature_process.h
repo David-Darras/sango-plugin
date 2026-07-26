@@ -89,6 +89,7 @@ public:
               HookManager::ForceEnable(HookID::kUpdateBattleView);
               break;
             case ADDRESS_OVERWORLD_VTABLE:
+              replace_pokemon_model = false;
               Nuzlocke::FixNickname();
               Nuzlocke::FixConfig();
               HookManager::Enable(HookID::kEncounterSetPokemon);
@@ -141,6 +142,7 @@ public:
     HookManager::ForceEnable(HookID::kUpdateExp);
     HookManager::ForceEnable(HookID::kStartMegaEvolveAnimation);
     HookManager::ForceEnable(HookID::kStartBattleAnimation);
+    HookManager::ForceEnable(HookID::kPlayBattleAnimation);
 
     // CAN'T SAVE
     // feature::Engine::GetInstance().game_speed = 2;
@@ -169,7 +171,6 @@ public:
   }
 
   static void OnEnterAppStatus() {
-    GameApp::OnEnterAppStatus();
   }
 
   static void OnExitAppStatus() {

@@ -41,6 +41,8 @@ class TitleScreen {
       ARM_NOP(0x00740390);
     WRITE(vu32, 0x00740498, title.pokemon_cry_species);
     WRITE(vf32, 0x0074049C, title.pokemon_cry_volume);
+
+    ARM_NOP(0x00740104); // No outline
   }
 };
 } // namespace feature

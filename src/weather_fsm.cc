@@ -163,4 +163,6 @@ void UpdateOverworldWeather(void) {
 
     overworld::WeatherManager::GetInstance().SetWeather(next);
   }
+
+  overworld::WeatherManager::GetInstance().SetWeather(sCurrentOverworldWeather);
 }

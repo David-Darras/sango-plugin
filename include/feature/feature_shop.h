@@ -38,7 +38,6 @@ struct ShopData {
 
 class Shop {
   MAKE_SINGLETON(Shop)
-
   STATIC_INLINE void Initialize() {
     HookManager::Initialize(HookID::kLoadShopItems, ADDRESS_LOAD_SHOP_ITEMS,
                             (uptr)LoadShopItemsHook);
@@ -51,25 +50,31 @@ class Shop {
 
     static const ShopItem MY_ITEMS[] = {
         // Stats
+        // {ITEM_RARE_CANDY, 1},
+        {ITEM_PP_MAX, 1},
         {ITEM_HP_UP, 1},
         {ITEM_PROTEIN, 1},
         {ITEM_IRON, 1},
         {ITEM_CARBOS, 1},
         {ITEM_CALCIUM, 1},
         {ITEM_ZINC, 1},
-        {ITEM_RARE_CANDY, 1},
-        {ITEM_PP_MAX, 1},
-        // Evolution Stones
-        {ITEM_SUN_STONE, 1},
-        {ITEM_MOON_STONE, 1},
-        {ITEM_FIRE_STONE, 1},
-        {ITEM_THUNDER_STONE, 1},
-        {ITEM_WATER_STONE, 1},
-        {ITEM_LEAF_STONE, 1},
-        {ITEM_SHINY_STONE, 1},
-        {ITEM_DUSK_STONE, 1},
-        {ITEM_DAWN_STONE, 1},
-        {ITEM_OVAL_STONE, 1},
+        // Strategic Items
+        {ITEM_AIR_BALLOON, 1},
+        {ITEM_ASSAULT_VEST, 1},
+        {ITEM_CHOICE_BAND, 1},
+        {ITEM_CHOICE_SCARF, 1},
+        {ITEM_CHOICE_SPECS, 1},
+        {ITEM_FOCUS_SASH, 1},
+        {ITEM_LEFTOVERS, 1},
+        {ITEM_LIFE_ORB, 1},
+        {ITEM_ROCKY_HELMET, 1},
+        {ITEM_POWER_HERB, 1},
+        {ITEM_SITRUS_BERRY, 1},
+        {ITEM_EJECT_BUTTON, 1},
+        {ITEM_FLAME_ORB, 1},
+        {ITEM_SCOPE_LENS, 1},
+        {ITEM_TOXIC_ORB, 1},
+        {ITEM_GRIP_CLAW, 1},
         // Balls (26)
         {ITEM_DREAM_BALL, 1},
         {ITEM_PARK_BALL, 1},
@@ -97,23 +102,17 @@ class Shop {
         {ITEM_GREAT_BALL, 1},
         {ITEM_ULTRA_BALL, 1},
         {ITEM_MASTER_BALL, 1},
-        // Strategic Items
-        {ITEM_AIR_BALLOON, 1},
-        {ITEM_ASSAULT_VEST, 1},
-        {ITEM_CHOICE_BAND, 1},
-        {ITEM_CHOICE_SCARF, 1},
-        {ITEM_CHOICE_SPECS, 1},
-        {ITEM_FOCUS_SASH, 1},
-        {ITEM_LEFTOVERS, 1},
-        {ITEM_LIFE_ORB, 1},
-        {ITEM_ROCKY_HELMET, 1},
-        {ITEM_POWER_HERB, 1},
-        {ITEM_SITRUS_BERRY, 1},
-        {ITEM_EJECT_BUTTON, 1},
-        {ITEM_FLAME_ORB, 1},
-        {ITEM_SCOPE_LENS, 1},
-        {ITEM_TOXIC_ORB, 1},
-        {ITEM_GRIP_CLAW, 1}
+        // Evolution Stones
+        {ITEM_SUN_STONE, 1},
+        {ITEM_MOON_STONE, 1},
+        {ITEM_FIRE_STONE, 1},
+        {ITEM_THUNDER_STONE, 1},
+        {ITEM_WATER_STONE, 1},
+        {ITEM_LEAF_STONE, 1},
+        {ITEM_SHINY_STONE, 1},
+        {ITEM_DUSK_STONE, 1},
+        {ITEM_DAWN_STONE, 1},
+        {ITEM_OVAL_STONE, 1},
     };
     static const u32 MY_ITEMS_COUNT = SIZE(MY_ITEMS);
 

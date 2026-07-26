@@ -52,9 +52,6 @@ public:
                             (uptr)CheckAppRequestHook, false);
   }
 
-  static void OnEnterAppStatus() {
-  }
-
   static void OnUpdateAppStatus() {
     auto& controller = Controller::GetInstance();
     static u32 index = 0;

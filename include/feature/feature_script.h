@@ -36,15 +36,15 @@ public:
   static void InitializeVirtualMachineHook(script::AmxRuntime* runtime,
                                            script::AmxHeader* header) {
     HookManager::Call<void>(HookID::kInitializeVirtualMachine, runtime, header);
-    void* buffer = (void*)header;
-    u32 size = header->stack_top_offset;
-    // ui::LogApplication::Print(u"Run Script %08X", buffer);
-    {
-      c16 filename[BUFFER_SIZE];
-      Utils::Format(filename, u"sdmc:/script_%08X.amx", buffer);
-      File file(filename, true);
-      file.Write(buffer, size);
-    }
+    // void* buffer = (void*)header;
+    // u32 size = header->stack_top_offset;
+    // // ui::LogApplication::Print(u"Run Script %08X", buffer);
+    // {
+    //   c16 filename[BUFFER_SIZE];
+    //   Utils::Format(filename, u"sdmc:/script_%08X.amx", buffer);
+    //   File file(filename, true);
+    //   file.Write(buffer, size);
+    // }
   }
 };
 }

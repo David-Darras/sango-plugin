@@ -20,6 +20,7 @@
 #include "game/battle/config.h"
 #include "common.h"
 #include "feature_nuzlocke.h"
+#include "game/constant/form.h"
 #include "ui/log_application.h"
 
 namespace feature {
@@ -40,6 +41,7 @@ struct BattleConfig {
   bool is_capture_forced = false;
   bool no_money = false;
   bool inverse_teams = false;
+  u32 trainer_id = 0;
 
   STATIC_INLINE void Initialize() {
     HookManager::Initialize(HookID::kSetupBattleConfig,
@@ -59,7 +61,7 @@ struct BattleConfig {
                             config, game_manager, trainer_id, p1,
                             battle_format,
                             p2);
-    // feature::Nuzlocke::FixTrainers(*config, trainer_id);
+    Nuzlocke::FixTrainers(*config, trainer_id);
 
     ui::LogApplication::Print(u"[%u] %ls %ls wants to battle!", trainer_id,
                               config->trainer_data[1]->name->GetBuffer(),

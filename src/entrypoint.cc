@@ -77,10 +77,11 @@ void Initialize() {
   feature::Shop::Initialize();
   feature::Item::Initialize();
   feature::Nuzlocke::Initialize();
-  feature::Script::Initialize();
   feature::Overworld::Initialize();
   feature::PokemonModel::Initialize();
   feature::MapDataLoader::Initialize();
+  // feature::Script::Initialize();
+
   InitOverworldWeather();
 
   auto& application_manager = ui::ApplicationManager::GetInstance();
@@ -99,7 +100,6 @@ void Initialize() {
 }
 
 void Entrypoint() {
-
   auto& graphics = Graphics::GetInstance();
   auto& controller = Controller::GetInstance();
   auto& application_manager = ui::ApplicationManager::GetInstance();

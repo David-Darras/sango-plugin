@@ -52,22 +52,22 @@ class Item {
 
     switch (item->id) {
       case ITEM_HP_UP:
-        item->hp_ev_value = 4;
+        item->hp_ev_value = 63;
         break;
       case ITEM_PROTEIN:
-        item->attack_ev_value = 4;
+        item->attack_ev_value = 63;
         break;
       case ITEM_IRON:
-        item->defense_ev_value = 4;
+        item->defense_ev_value = 63;
         break;
       case ITEM_CARBOS:
-        item->speed_ev_value = 4;
+        item->speed_ev_value = 63;
         break;
       case ITEM_CALCIUM:
-        item->sp_atk_ev_value = 4;
+        item->sp_atk_ev_value = 63;
         break;
       case ITEM_ZINC:
-        item->sp_def_ev_value = 4;
+        item->sp_def_ev_value = 63;
         break;
       case ITEM_METAL_COAT:
       case ITEM_DRAGON_SCALE:

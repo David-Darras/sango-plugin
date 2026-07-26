@@ -25,8 +25,6 @@
 #include "game/battle/config.h"
 #include "game/constant/evolution_method.h"
 #include "game/constant/item.h"
-#include "game/constant/form.h"
-#include "game/constant/map.h"
 #include "game/constant/model.h"
 #include "game/constant/species.h"
 #include "game/global_data/evolve.h"
@@ -56,13 +54,13 @@ struct Nuzlocke {
   MAKE_SINGLETON(Nuzlocke)
   uptr archive_buffer = 0;
   u32* size = nullptr;
+  u32 trainer_id = 0;
 
   STATIC_INLINE void Initialize() {
     FixMoves();
     FixPokemon();
     FixOutline();
     FixTrainerModels();
-    FixCamera();
 
     HookManager::Initialize(HookID::kLoadEvolveTable,
                             ADDRESS_GLOBAL_DATA_LOAD_EVOLVE_TABLE,
@@ -81,12 +79,32 @@ struct Nuzlocke {
                             (uptr)IsReadFinished);
     HookManager::Initialize(HookID::kInitializePokemon, 0x0011F754,
                             (uptr)InitializePokemonHook);
+    HookManager::Initialize(HookID::kIsShiny, 0x00168F48,
+                            (uptr)IsShinyHook);
+    HookManager::Initialize(HookID::kFromNormalToShiny,
+                            ADDRESS_POKEMON_UTILS_TO_SHINY,
+                            (uptr)ToShinyHook);
+    HookManager::Initialize(HookID::kFromShinyToNormal,
+                            ADDRESS_POKEMON_UTILS_TO_NORMAL,
+                            (uptr)ToNormalHook);
   }
 
   STATIC_INLINE void FixTrainerModels() {
     auto& manager = TrainerModelManager::GetInstance();
     manager.Replace(TRAINER_MODEL_BRENDAN, TRAINER_MODEL_STEVEN);
     manager.Replace(TRAINER_MODEL_MAY, TRAINER_MODEL_ZINNIA);
+  }
+  static u32 ToShinyHook(u32 id, u32 pid) {
+    return 0b010;
+  }
+
+  static u32 ToNormalHook(u32 id, u32 pid) {
+    return 0b101;
+  }
+
+  // probability : 1/8
+  static bool IsShinyHook(u32 id, u32 pid) {
+    return (pid & 0b111) == 0b010;
   }
 
   static u32 InitializePokemonHook(savedata::PokemonParam* param, u32 heap,
@@ -133,7 +151,7 @@ struct Nuzlocke {
                              u32 p4, u32 p5, u32 p6) {
     u32* archive_table = (u32*)ADDRESS_ARCHIVE_FILENAME_TABLE;
     if (archive[12] == archive_table[ARCHIVE_OVERWORLD_MODEL]) {
-      file_id = FixOverworldModels(file_id);
+      file_id = FixOverworldModels(file_id, true);
     }
     return HookManager::Call<bool>(HookID::kReadFileAsync2, archive, heap,
                                    file_id,
@@ -142,7 +160,7 @@ struct Nuzlocke {
 
   static bool ReadFileAsync(void* file_manager, FileInput* input) {
     if (input->archive_id == ARCHIVE_OVERWORLD_MODEL) {
-      input->file_id = FixOverworldModels(input->file_id);
+      input->file_id = FixOverworldModels(input->file_id, false);
     }
     if (input->archive_id == ARCHIVE_PLAYER_ICON) {
       input->file_id = 72; // STEVEN
@@ -169,33 +187,24 @@ struct Nuzlocke {
     u8 _0[44];
   };
 
-  STATIC_INLINE u32 FixOverworldModels(u32 model) {
+  STATIC_INLINE u32 FixOverworldModels(u32 model, bool is_overworld) {
+    if (!is_overworld) {
+      switch (model) {
+        case MODEL_ZIGZAGOON:
+          return MODEL_GROUDON;
+        case MODEL_SKITTY:
+          return MODEL_KYOGRE;
+      }
+    }
     switch (model) {
       case MODEL_BRENDAN:
         return MODEL_STEVEN_STONE;
-      case MODEL_MAY:
-      case MODEL_MAY_CONTEST:
-      case MODEL_MAY_MAGMA_SUIT:
-      case MODEL_MAY_AQUA_SUIT:
-      // case MODEL_RIVAL_ORAS:
-      // case MODEL_RIVAL_ORAS_WITH_BAG:
       case MODEL_SUPPORT_MAY:
-        // case MODEL_SUPPORT_MAY_BIKE:
         return MODEL_ZINNIA;
-      case MODEL_ZIGZAGOON:
-        return MODEL_GROUDON;
-      case MODEL_SKITTY:
-        return MODEL_KYOGRE;
-      // case MODEL_MACHOKE:
-      // case MODEL_MACHOKE_ALT:
-      //   return MODEL_REGISTEEL;
       case MODEL_MOM_ORAS:
         return MODEL_MR_STONE;
       case MODEL_SNORLAX_DOLL:
         return MODEL_HOOPAS_RING;
-        // case MODEL_POOCHYENA:
-        // case MODEL_BARKING_POOCHYENA:
-        //   return MODEL_ALTARIA;
     }
     return model;
   }
@@ -530,17 +539,12 @@ struct Nuzlocke {
   }
 
   STATIC_INLINE void FixNickname() {
-    static const c16* NICKNAME = u"STEVEN\0";
+    static const c16* NICKNAME = u"STEVEN";
     auto& status = savedata::TrainerStatus::GetInstance();
     for (u32 i = 0; i < savedata::TrainerStatus::kPlayerNameLen; i++) {
       status.name[i] = status.nickname[i] = NICKNAME[i];
       if (NICKNAME[i] == '\0') break;
     }
-  }
-
-  STATIC_INLINE void FixCamera() {
-    auto& camera = Camera::GetInstance();
-    camera.state = Camera::State::kTps;
   }
 
   static const EncounterEntry* GetEncounterEntry(u16 map_id);

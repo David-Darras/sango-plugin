@@ -18,8 +18,10 @@
 #pragma once
 
 #include "common.h"
+#include "feature_overworld.h"
 #include "hook_manager.h"
 #include "game/battle/manager.h"
+#include "game/constant/event.h"
 #include "game/savedata/event_table.h"
 #include "game/savedata/misc.h"
 #include "game/savedata/pokemon_utils.h"
@@ -34,8 +36,8 @@ public:
   bool show_enemy_pov = false;
   bool show_trainer_animation = true;
   bool show_pokeball_animation = true;
-  bool show_fade_in = false;
-  bool show_shiny_animation = false;
+  bool show_fade_in = true;
+  bool show_shiny_animation = true;
 
   STATIC_INLINE void Initialize() {
     // HookManager::GetInstance().Add(HookID::kOnStartTurn, 0x00759B74,
@@ -55,6 +57,26 @@ public:
     HookManager::Initialize(HookID::kStartBattleAnimation,
                             ADDRESS_BATTLE_START_BATTLE_ANIMATION,
                             (uptr)StartBattleAnimation, false);
+    HookManager::Initialize(HookID::kStartBatlleBackgroundMusic,
+                            ADDRESS_BATTLE_START_BACKGROUND_MUSIC,
+                            (uptr)StartBattleBackgroundMusicHook);
+    HookManager::Initialize(HookID::kPlayBattleAnimation,
+                            0x007510A8,
+                            (uptr)PlayAnimationHook, false);
+  }
+
+  static void PlayAnimationHook(uptr view_manager, u16 id) {
+    if (id == 621) return; // disable shiny effect
+    return HookManager::Call<void>(HookID::kPlayBattleAnimation, view_manager,
+                                   id);
+  }
+
+  static void
+  StartBattleBackgroundMusicHook(uptr sound_manager, u32 id, u8 p2) {
+    ui::LogApplication::Print(u"%u", id);
+    id = (1 << 16) + Overworld::GetInstance().background_music;
+    return HookManager::Call<void>(HookID::kStartBatlleBackgroundMusic,
+                                   sound_manager, id, p2);
   }
 
   static void StartBattleAnimation(void* p0, void* p1) {
@@ -124,6 +146,16 @@ public:
 
     u32 count = savedata::Misc::GetInstance().GetBadgesCount();
     u32 max_level = LEVEL_CAPS[count];
+
+    if (count == 0) {
+      auto& event = savedata::EventTable::GetInstance();
+      if (event.Check(EVENT_ROUTE_103_UNLOCKED)) {
+        max_level = 8;
+      }
+      if (event.Check(EVENT_ROUTE_102_UNLOCKED)) {
+        max_level = 11;
+      }
+    }
 
     for (u32 i = 0; i < team->count; i++) {
       data[i].ev_hp = 0;

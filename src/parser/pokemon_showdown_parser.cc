@@ -173,8 +173,8 @@ AST ParsePokemonShowdownString(const std::string& input) {
     } else if (line.rfind("Shiny:", 0) == 0) {
       std::string shiny_val = Trim(line.substr(6));
       current_pokemon.is_shiny = (shiny_val == "Yes" || shiny_val == "yes");
-    } else if (line.rfind("Pokeball:", 0) == 0) {
-      std::string raw_ball = Trim(line.substr(9));
+    } else if (line.rfind("Ball:", 0) == 0) {
+      std::string raw_ball = Trim(line.substr(5));
       current_pokemon.ball = FindIndexInArray<uint8_t>(
           raw_ball, BALL_NAMES, BALL_COUNT);
     } else if (line.rfind("EVs:", 0) == 0) {

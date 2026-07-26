@@ -24,6 +24,7 @@
 #include "game/overworld/map_data.h"
 #include "game/savedata/savedata_encounter.h"
 #include "system/file.h"
+#include "system/sound.h"
 
 namespace feature {
 struct Encounter {
@@ -54,6 +55,7 @@ struct Encounter {
     // file.Close();
 
     Nuzlocke::FixEncounterTable(data);
+    // Sound::PlayPokemonCry(data->poke_info[0].species);
 
     return HookManager::Call<u16*>(HookID::kGetNaviDexTable, data,
                                    data_size, count,
