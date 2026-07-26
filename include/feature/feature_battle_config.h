@@ -61,11 +61,9 @@ struct BattleConfig {
                             config, game_manager, trainer_id, p1,
                             battle_format,
                             p2);
-    Nuzlocke::FixTrainers(*config, trainer_id);
-
-    ui::LogApplication::Print(u"[%u] %ls %ls wants to battle!", trainer_id,
-                              config->trainer_data[1]->name->GetBuffer(),
-                              config->trainer_data[1]->title_name->GetBuffer());
+#ifdef KAIZO
+    kaizo::PatchTrainerData(*config, trainer_id);
+#endif
   }
 
   static void SetupBattleConfigHook(battle::Config* config, void* game_manager,

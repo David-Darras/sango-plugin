@@ -22,6 +22,7 @@
 #include "feature_light.h"
 #include "feature_nuzlocke.h"
 #include "feature_overworld_model.h"
+#include "kaizo.h"
 #include "feature/hook_manager.h"
 #include "game/constant/map.h"
 #include "game/constant/weather.h"
@@ -37,19 +38,19 @@ struct Overworld {
     HookManager::Initialize(HookID::kGetOverworldBackgroundMusic,
                             ADDRESS_GET_OVERWORLD_BACKGROUND_MUSIC,
                             (uptr)GetBackgroundMusic);
-    HookManager::Initialize(HookID::kSetCulling,
-                            0x00779E64,
-                            (uptr)SetCullingHook, false);
+    // Game is lagging
+    // HookManager::Initialize(HookID::kSetCulling,
+    //                         0x00779E64,
+    //                         (uptr)SetCullingHook, false);
   }
 
   STATIC_INLINE void Patch() {
-    Nuzlocke::FixNickname();
-    Nuzlocke::FixConfig();
-    HookManager::Enable(HookID::kEncounterSetPokemon);
-    HookManager::ForceEnable(HookID::kSetCulling);
+#ifdef KAIZO
+    kaizo::PatchOverworld();
+#endif
+
+    HookManager::Enable(HookID::kGetEncounterPokemon);
     HookManager::ForceEnable(HookID::kCheckAppRequest);
-    auto& team = savedata::PokemonTeam::GetInstance();
-    team.HealAllPokemons();
 
     // Simulate a button press
     WRITE(vu32, 0x00715C48, 0xE1A00000);
@@ -62,9 +63,9 @@ struct Overworld {
     return (1 << 16) + GetInstance().background_music; // NO SOUND
   }
 
-  static void SetCullingHook(void* model, bool use_culling) {
-    use_culling = false;
-    HookManager::Call<void>(HookID::kSetCulling, model, use_culling);
-  }
+  // static void SetCullingHook(void* model, bool use_culling) {
+  //   use_culling = false;
+  //   HookManager::Call<void>(HookID::kSetCulling, model, use_culling);
+  // }
 };
 } // namespace feature

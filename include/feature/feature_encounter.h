@@ -31,9 +31,9 @@ struct Encounter {
     CheatCodeManager::Initialize(CheatCodeId::kNoEncounter, AddMaxRepel,
                                  RemoveMaxRepel,
                                  true);
-    HookManager::Initialize(HookID::kEncounterSetPokemon,
+    HookManager::Initialize(HookID::kGetEncounterPokemon,
                             ADDRESS_ENCOUNTER_SET_POKEMON,
-                            (uptr)SetPokemonHook, false);
+                            (uptr)GetEncounterPokemonHook, false);
     HookManager::Initialize(HookID::kGetNaviDexTable,
                             ADDRESS_GET_NAVI_DEX_TABLE,
                             (uptr)GetNaviDexTable, true);
@@ -44,10 +44,9 @@ struct Encounter {
                               u8 p4, bool p5) {
     if (data_size <= 0 || data == nullptr) return nullptr;
 
-    auto& map_id = overworld::MapManager::GetInstance().GetMapId();
-
-    Nuzlocke::FixEncounterTable(data);
-    // Sound::PlayPokemonCry(data->poke_info[0].species);
+#ifdef KAIZO
+    kaizo::PatchEncounterTable(data);
+#endif
 
     return HookManager::Call<u16*>(HookID::kGetNaviDexTable, data,
                                    data_size, count,
@@ -74,10 +73,12 @@ struct Encounter {
     u8 ivs;
   };
 
-  static bool SetPokemonHook(u32 p0, u32 p1) {
-    bool result = HookManager::Call<bool>(HookID::kEncounterSetPokemon, p0, p1);
+  static bool GetEncounterPokemonHook(u32 p0, u32 p1) {
+    bool result = HookManager::Call<bool>(HookID::kGetEncounterPokemon, p0, p1);
+
+#ifdef KAIZO
     u32& map_id = overworld::MapManager::GetInstance().GetMapId();
-    const EncounterEntry* entry = Nuzlocke::GetEncounterEntry(map_id);
+    const kaizo::EncounterEntry* entry = kaizo::GetEncounterEntry(map_id);
     if (entry == nullptr) {
       return result;
     }
@@ -87,6 +88,7 @@ struct Encounter {
       PokemonData& data = READ(PokemonData, p0 + i * sizeof(PokemonData));
       data.species = entry->species[Utils::GetRandomValue(entry->size)];
     }
+#endif
 
     return result;
   }

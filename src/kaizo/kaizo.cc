@@ -15,17 +15,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "kaizo.h"
+
 #include "feature/feature_light.h"
 #include "game/global_data/trainer_model_manager.h"
+#include "game/savedata/pokemon_team.h"
+#include "game/savedata/settings.h"
+#include "game/savedata/trainer_status.h"
 
 namespace kaizo {
-extern void PatchShopData();
-extern void PatchPokemonData();
-extern void PatchMoveData();
-extern void PatchOutline();
-extern void PatchTrainerModels();
-extern void InitializeOverworldWeather();
-
 void Initialize() {
   PatchShopData();
   PatchPokemonData();
@@ -45,5 +43,29 @@ void PatchTrainerModels() {
   auto& manager = TrainerModelManager::GetInstance();
   manager.Replace(TRAINER_MODEL_BRENDAN, TRAINER_MODEL_STEVEN);
   manager.Replace(TRAINER_MODEL_MAY, TRAINER_MODEL_ZINNIA);
+}
+
+void PatchOverworld() {
+  // Player's Name
+  {
+    static const c16* NICKNAME = u"STEVEN";
+    auto& status = savedata::TrainerStatus::GetInstance();
+    for (u32 i = 0; i < savedata::TrainerStatus::kPlayerNameLen; i++) {
+      status.name[i] = status.nickname[i] = NICKNAME[i];
+      if (NICKNAME[i] == '\0') break;
+    }
+  }
+  // Config
+  {
+    auto& data = savedata::Settings::GetInstance();
+    data.text_speed = 3; // Instant message
+    data.battle_style = 1;
+    data.show_battle_animations = 0;
+  }
+  // After a battle
+  {
+    auto& team = savedata::PokemonTeam::GetInstance();
+    team.HealAllPokemons();
+  }
 }
 }

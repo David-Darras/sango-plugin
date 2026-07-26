@@ -22,6 +22,7 @@
 #define USE_SANGO_PLUGIN 1
 #define USE_DEFAULT_CTRPF 1
 #define ENABLE_NUZLOCKE_FEATURES 1
+#define KAIZO 1
 #endif
 
 #include <types.h>

@@ -22,6 +22,7 @@
 #include "game/constant/species.h"
 #include "game/overworld/map_data.h"
 
+namespace kaizo {
 static const u16 ROUTE_101[] = {
     SPECIES_GROWLITHE,
     SPECIES_POOCHYENA,
@@ -96,7 +97,8 @@ static const EncounterEntry s_table[] = {
 };
 static const u32 s_table_size = SIZE(s_table);
 
-const EncounterEntry* feature::Nuzlocke::GetEncounterEntry(u16 map_id) {
+
+const EncounterEntry* GetEncounterEntry(u16 map_id) {
   for (u16 i = 0; i < s_table_size; ++i) {
     if (s_table[i].map_id == map_id) {
       return &s_table[i];
@@ -105,7 +107,7 @@ const EncounterEntry* feature::Nuzlocke::GetEncounterEntry(u16 map_id) {
   return nullptr;
 }
 
-void feature::Nuzlocke::FixEncounterTable(overworld::EncounterData* data) {
+void PatchEncounterTable(overworld::EncounterData* data) {
   auto& map_id = overworld::MapManager::GetInstance().GetMapId();
   const EncounterEntry* entry = GetEncounterEntry(map_id);
   if (entry == nullptr) return;
@@ -117,4 +119,5 @@ void feature::Nuzlocke::FixEncounterTable(overworld::EncounterData* data) {
     data->poke_info[i].form = 0;
     offset = (offset + 1) % 5;
   }
+}
 }

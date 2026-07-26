@@ -74,7 +74,7 @@ class ProcessPatch {
         Overworld::Patch();
         break;
       default:
-        HookManager::Clear(HookID::kEncounterSetPokemon);
+        HookManager::Clear(HookID::kGetEncounterPokemon);
         break;
     }
   }

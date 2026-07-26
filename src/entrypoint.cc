@@ -15,6 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "kaizo.h"
 #include "feature/feature_battle_config.h"
 #include "feature/feature_camera.h"
 #include "ui/page/page_top.h"
@@ -48,11 +49,6 @@ c16 String::s_buffer[128];
 
 extern void UpdateOverworldWeather();
 extern void InitOverworldWeather();
-
-namespace kaizo {
-extern void Initialize();
-extern void UpdateOverworldWeather();
-}
 
 void Initialize() {
   File::MountSdmc();
