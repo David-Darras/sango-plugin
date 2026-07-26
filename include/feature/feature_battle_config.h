@@ -19,9 +19,12 @@
 #include "feature/hook_manager.h"
 #include "game/battle/config.h"
 #include "common.h"
-#include "feature_nuzlocke.h"
 #include "game/constant/form.h"
 #include "ui/log_application.h"
+#include "kaizo.h"
+#include "game/constant/species.h"
+#include "game/savedata/pokemon_data_accessor.h"
+#include "game/savedata/pokemon_team.h"
 
 namespace feature {
 struct BattleConfig {

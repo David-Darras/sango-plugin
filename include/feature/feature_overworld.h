@@ -17,17 +17,10 @@
 
 #pragma once
 #include "common.h"
-#include "feature_app.h"
 #include "feature_camera.h"
-#include "feature_light.h"
-#include "feature_nuzlocke.h"
 #include "feature_overworld_model.h"
 #include "kaizo.h"
 #include "feature/hook_manager.h"
-#include "game/constant/map.h"
-#include "game/constant/weather.h"
-#include "game/overworld/weather_manager.h"
-#include "ui/log_application.h"
 
 namespace feature {
 struct Overworld {

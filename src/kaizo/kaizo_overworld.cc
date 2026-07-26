@@ -14,18 +14,31 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-
-#pragma once
 #include "common.h"
+#include "game/constant/model.h"
 
-namespace feature {
-class WeatherManager {
-  MAKE_SINGLETON(WeatherManager)
-public:
-  STATIC_INLINE void Initialize() {
-    // Don't update weather
-    ARM_NOP(ADDRESS_UPDATE_AREA_WEATHER + 0xC);
-    ARM_NOP(ADDRESS_UPDATE_ZONE_WEATHER + 0x4);
+namespace kaizo {
+u32 PatchOverworldModels(u32 model, bool is_real_overworld) {
+  if (!is_real_overworld) {
+    switch (model) {
+      case MODEL_ZIGZAGOON:
+        return MODEL_GROUDON;
+      case MODEL_SKITTY:
+        return MODEL_KYOGRE;
+    }
   }
-};
+  switch (model) {
+    case MODEL_BRENDAN:
+      return MODEL_STEVEN_STONE;
+    case MODEL_SUPPORT_MAY:
+      return MODEL_ZINNIA;
+    case MODEL_MOM_ORAS:
+      return MODEL_MR_STONE;
+    case MODEL_SNORLAX_DOLL:
+      return MODEL_HOOPAS_RING;
+  }
+  return model;
+}
+
+
 }

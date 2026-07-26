@@ -16,6 +16,7 @@
  */
 
 #include "common.h"
+#include "feature/hook_manager.h"
 #include "game/constant/evolution_method.h"
 #include "game/constant/item.h"
 #include "game/constant/species.h"
@@ -109,5 +110,17 @@ void PatchEvolve(u16 species) {
       evolve.data[0].method = EVOLUTION_METHOD_ITEM;
       break;
   }
+}
+
+static void LoadEvolveTableHook(u32 species, u32 b, u32 c, u32 d) {
+  HookManager::Call<void>(HookID::kLoadEvolveTable, species, b, c, d);
+  PatchEvolve(species);
+}
+
+void InitializeEvolveHook() {
+  HookManager::Initialize(HookID::kLoadEvolveTable,
+                          ADDRESS_GLOBAL_DATA_LOAD_EVOLVE_TABLE,
+                          (uptr)LoadEvolveTableHook
+      );
 }
 }

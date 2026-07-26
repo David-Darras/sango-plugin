@@ -17,6 +17,9 @@
 
 #include "game/constant/species.h"
 #include "common.h"
+#include "feature/hook_manager.h"
+#include "game/savedata/pokemon_data_accessor.h"
+#include "game/savedata/pokemon_team.h"
 
 namespace kaizo {
 static const u16 SPECIAL_POKEMON[] = {
@@ -90,8 +93,30 @@ static const u16 SPECIAL_POKEMON[] = {
 bool IsSpecialPokemon(u16 species) {
   for (u32 i = 0; i < SIZE(SPECIAL_POKEMON); i++) {
     if (species == SPECIAL_POKEMON[i]) {
+      return true;
+    }
+  }
+  return false;
+}
+
+static bool AddPokemonToTeamHook(savedata::PokemonTeam* team,
+                                 savedata::PokemonParam* pokemon) {
+  if (team == &savedata::PokemonTeam::GetInstance()) {
+    pokemon->accessor->Decrypt();
+    u16 species = pokemon->core->species;
+    pokemon->accessor->Encrypt();
+
+    if (IsSpecialPokemon(species)) {
       return false;
     }
   }
+
+  return HookManager::Call<bool>(HookID::kAddPokemonToTeam, team, pokemon);
+}
+
+void InitializeGiftHook() {
+  HookManager::Initialize(HookID::kAddPokemonToTeam,
+                          ADDRESS_ADD_POKEMON_TO_TEAM,
+                          (uptr)AddPokemonToTeamHook);
 }
 }

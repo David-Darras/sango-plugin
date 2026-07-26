@@ -21,11 +21,7 @@
 #include "feature_overworld.h"
 #include "hook_manager.h"
 #include "game/battle/manager.h"
-#include "game/constant/event.h"
-#include "game/savedata/event_table.h"
-#include "game/savedata/misc.h"
-#include "game/savedata/pokemon_utils.h"
-
+#include "kaizo.h"
 
 namespace feature {
 struct Battle {
@@ -37,11 +33,31 @@ public:
   bool show_trainer_animation = true;
   bool show_pokeball_animation = true;
   bool show_fade_in = true;
-  bool show_shiny_animation = true;
+  bool show_shiny_animation = false;
 
   bool no_shader = false;
   bool can_use_item = false;
   bool use_pokeball_boost = false;
+  bool fix_pokemon_size = true;
+  bool sync_overworld_music = true;
+
+  struct LevelUpData {
+    u32 exp;
+
+    u16 ev_hp;
+    u16 ev_attack;
+
+    u16 ev_defense;
+    u16 ev_speed;
+
+    u16 ev_special_attack;
+    u16 ev_special_defense;
+
+    bool _0;
+    bool _1;
+    bool use_exp_share;
+    bool _2;
+  };
 
   STATIC_INLINE void Initialize() {
     // HookManager::GetInstance().Add(HookID::kOnStartTurn, 0x00759B74,
@@ -67,7 +83,8 @@ public:
     HookManager::Initialize(HookID::kPlayBattleAnimation,
                             ADDRESS_BATTLE_PLAY_ANIMATION,
                             (uptr)PlayAnimationHook, false);
-    HookManager::Initialize(HookID::kUpdateBattleView, ADDRESS_UPDATE_BATTLE_VIEW,
+    HookManager::Initialize(HookID::kUpdateBattleView,
+                            ADDRESS_UPDATE_BATTLE_VIEW,
                             (uptr)UpdateBattleViewHook, false);
   }
 
@@ -103,18 +120,19 @@ public:
     }
   }
 
-
   static void UpdateBattleViewHook(uptr p0) {
-    static u32 counter = 20;
-    if (counter >= 20) {
-      FixPokemonSize();
-      counter = 0;
+    if (GetInstance().fix_pokemon_size) {
+      static u32 counter = 20;
+      if (counter >= 20) {
+        PatchPokemonSize();
+        counter = 0;
+      }
+      counter++;
     }
-    counter++;
     HookManager::Call<void>(HookID::kUpdateBattleView, p0);
   }
 
-  static void FixPokemonSize() {
+  static void PatchPokemonSize() {
     for (u32 i = 0; i < 6; i++) {
       u32 pkmMdl = *(u32*)(0x83F84C0 + 4 * i); // Base address of the 3D model
       if (pkmMdl == 0)
@@ -143,15 +161,17 @@ public:
   }
 
   static void PlayAnimationHook(uptr view_manager, u16 id) {
-    if (id == 621) return; // disable shiny effect
+    // disable shiny effect
+    if (id == 621 && !GetInstance().show_shiny_animation) return;
     return HookManager::Call<void>(HookID::kPlayBattleAnimation, view_manager,
                                    id);
   }
 
   static void
   StartBattleBackgroundMusicHook(uptr sound_manager, u32 id, u8 p2) {
-    ui::LogApplication::Print(u"%u", id);
-    id = (1 << 16) + Overworld::GetInstance().background_music;
+    if (GetInstance().sync_overworld_music) {
+      id = (1 << 16) + Overworld::GetInstance().background_music;
+    }
     return HookManager::Call<void>(HookID::kStartBatlleBackgroundMusic,
                                    sound_manager, id, p2);
   }
@@ -189,94 +209,14 @@ public:
                             GetInstance().is_long_mega_evolve_animation);
   }
 
-  struct LevelUpData {
-    u32 exp;
-
-    u16 ev_hp;
-    u16 ev_attack;
-
-    u16 ev_defense;
-    u16 ev_speed;
-
-    u16 ev_special_attack;
-    u16 ev_special_defense;
-
-    bool _0;
-    bool _1;
-    bool use_exp_share;
-    bool _2;
-  };
-
   static bool UpdateExpHook(void* self, battle::Team* team,
                             LevelUpData* data) {
-    static const u8 LEVEL_CAPS[] = {
-        17, // 0 badge
-        19, // 1 badge
-        28, // 2 badges
-        38, // 3 badges
-        42, // 4 badges
-        50, // 5 badges
-        62, // 6 badges
-        67, // 7 badges
-        80 // 8 badges
-    };
-
-    u32 count = savedata::Misc::GetInstance().GetBadgesCount();
-    u32 max_level = LEVEL_CAPS[count];
-
-    if (count == 0) {
-      auto& event = savedata::EventTable::GetInstance();
-      if (event.Check(EVENT_ROUTE_103_UNLOCKED)) {
-        max_level = 8;
-      }
-      if (event.Check(EVENT_ROUTE_102_UNLOCKED)) {
-        max_level = 11;
-      }
-    }
-
-    for (u32 i = 0; i < team->count; i++) {
-      data[i].ev_hp = 0;
-      data[i].ev_attack = 0;
-      data[i].ev_defense = 0;
-      data[i].ev_speed = 0;
-      data[i].ev_special_attack = 0;
-      data[i].ev_special_defense = 0;
-
-      // Game finished => Max Level = 100
-      if (!savedata::EventTable::GetInstance().Check(2720)) {
-        u8 new_level = PokemonUtils::GetLevelFromExperience(
-            team->pokemon[i]->species,
-            team->pokemon[i]->form,
-            team->pokemon[i]->experience + data[i].exp);
-        if (new_level >= max_level) {
-          data[i].exp = 0;
-        }
-      }
-    }
-
+#ifdef KAIZO
+    kaizo::ApplyLevelCaps(team, data);
+#endif
     return HookManager::Call<bool>(HookID::kUpdateExp, self, team, data);
   }
 
-  // static void LoadTrainerModelHook(uptr trainer_model,
-  //                                  void* trainer_model_manager) {
-  //   *(u16*)trainer_model = ctx.trainer_model_id;
-  //   *(u16*)(trainer_model + 2) = 0;
-  //
-  //   return HookManager::GetInstance()
-  //          .Get(HookID::kOnLoadTrainerModel)
-  //          ->CallOriginal<void>(trainer_model, trainer_model_manager);
-  // }
-
-  // static void PlayAnimationHook(void* graphics, u16 animation) {
-  //   // shiny anim -> rainbow anim
-  //   if (animation == 621) {
-  //     animation = 635;
-  //   }
-  //   HookManager::GetInstance()
-  //       .Get(HookID::kPlayBattleAnimation)
-  //       ->CallOriginal<void>(graphics, animation);
-  // }
-  //
   // static u32 StartTurnHook(uptr server, u32 action) {
   //   // uptr server = READ(u32, 0x082061F8);
   //

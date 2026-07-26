@@ -17,7 +17,12 @@
 
 #include "common.h"
 #include "utils.h"
+#include "feature/hook_manager.h"
 #include "game/constant/species.h"
+
+namespace savedata {
+struct PokemonParam;
+}
 
 namespace kaizo {
 void PatchStarter(uptr pkm) {
@@ -46,5 +51,18 @@ void PatchStarter(uptr pkm) {
       pokemon.species = GRASS_STARTERS[rand] + 6;
       break;
   }
+}
+
+static u32 InitializePokemonHook(savedata::PokemonParam* param, u32 heap,
+                                 uptr pkm) {
+  PatchStarter(pkm);
+  return HookManager::Call<
+    u32>(HookID::kInitializePokemon, param, heap, pkm);
+}
+
+void InitializeStarterHook() {
+  HookManager::Initialize(HookID::kInitializePokemon,
+                          ADDRESS_INITIALIZE_POKEMON,
+                          (uptr)InitializePokemonHook);
 }
 } // namespace kaizo

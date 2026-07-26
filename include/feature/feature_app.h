@@ -17,7 +17,6 @@
 
 #pragma once
 #include "common.h"
-#include "feature_nuzlocke.h"
 #include "hook_manager.h"
 #include "game/manager.h"
 #include "game/process_manager.h"

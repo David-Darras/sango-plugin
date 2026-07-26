@@ -74,8 +74,6 @@ void Initialize() {
   feature::PokemonModel::Initialize();
   feature::MapDataLoader::Initialize();
 
-  feature::Nuzlocke::Initialize();
-
 #ifdef KAIZO
   kaizo::Initialize();
 #endif

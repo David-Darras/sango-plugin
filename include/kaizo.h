@@ -19,10 +19,9 @@
 #include "common.h"
 
 namespace battle {
+struct Team;
 struct Config;
 }
-
-struct EncounterEntry;
 
 namespace overworld {
 struct EncounterData;
@@ -43,12 +42,16 @@ extern void PatchOutline();
 extern void PatchTrainerModels();
 extern void InitializeOverworldWeather();
 extern void UpdateOverworldWeather();
-extern void PatchStarter(uptr pkm);
-extern bool IsSpecialPokemon(u16 species);
-extern void PatchEvolve(u16 species);
+extern void InitializeStarterHook();
+extern void InitializeGiftHook();
+extern void InitializeEvolveHook();
 extern void PatchEncounterTable(overworld::EncounterData* data);
 extern const EncounterEntry* GetEncounterEntry(u16 map_id);
 extern void PatchTrainerData(battle::Config& config, u16& trainer_id);
+extern u32 PatchOverworldModels(u32 model, bool is_real_overworld);
+extern void InitializeShinyHook();
+extern void InitializeArchiveHooks();
+extern void ApplyLevelCaps(battle::Team* team, void* data);
 
 extern void Initialize();
 } // namespace kaizo

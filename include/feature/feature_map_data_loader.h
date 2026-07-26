@@ -18,13 +18,8 @@
 #ifndef SANGO_PLUGIN_FEATURE_MAP_DATA_LOADER_H
 #define SANGO_PLUGIN_FEATURE_MAP_DATA_LOADER_H
 #include "common.h"
-#include "feature_nuzlocke.h"
 #include "hook_manager.h"
-#include "game/constant/form.h"
-#include "game/constant/species.h"
-#include "game/overworld/common_resource.h"
 #include "game/overworld/map_data.h"
-#include "game/overworld/map_manager.h"
 #include "ui/log_application.h"
 
 namespace ui {

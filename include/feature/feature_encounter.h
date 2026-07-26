@@ -19,7 +19,6 @@
 #include "cheat_code_manager.h"
 #include "common.h"
 #include "feature_encounter.h"
-#include "feature_nuzlocke.h"
 #include "hook_manager.h"
 #include "game/overworld/map_data.h"
 #include "game/savedata/savedata_encounter.h"

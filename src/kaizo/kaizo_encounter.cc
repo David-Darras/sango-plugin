@@ -17,10 +17,11 @@
 
 #include "common.h"
 #include "utils.h"
-#include "feature/feature_nuzlocke.h"
 #include "game/constant/map.h"
 #include "game/constant/species.h"
 #include "game/overworld/map_data.h"
+#include "kaizo.h"
+#include "game/overworld/map_manager.h"
 
 namespace kaizo {
 static const u16 ROUTE_101[] = {

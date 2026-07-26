@@ -31,6 +31,10 @@ void Initialize() {
   PatchOutline();
   PatchTrainerModels();
   InitializeOverworldWeather();
+  InitializeShinyHook();
+  InitializeEvolveHook();
+  InitializeGiftHook();
+  InitializeArchiveHooks();
 }
 
 void PatchOutline() {
