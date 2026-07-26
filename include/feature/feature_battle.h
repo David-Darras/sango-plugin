@@ -86,7 +86,12 @@ public:
     HookManager::Initialize(HookID::kUpdateBattleView,
                             ADDRESS_UPDATE_BATTLE_VIEW,
                             (uptr)UpdateBattleViewHook, false);
+    HookManager::Initialize(HookID::kBattleCheckPokemonCaptured,
+                            ADDRESS_BATTLE_CHECK_POKEMON_CAPTURED,
+                            (uptr)CheckPokemonCaptured,
+                            false);
   }
+
 
   STATIC_INLINE void Patch() {
     HookManager::ForceEnable(HookID::kUpdateBattleView);
@@ -94,6 +99,7 @@ public:
     HookManager::ForceEnable(HookID::kStartMegaEvolveAnimation);
     HookManager::ForceEnable(HookID::kStartBattleAnimation);
     HookManager::ForceEnable(HookID::kPlayBattleAnimation);
+    HookManager::ForceEnable(HookID::kBattleCheckPokemonCaptured);
 
     auto& feat = GetInstance();
     if (!feat.can_use_item) {
@@ -118,6 +124,28 @@ public:
       ARM_RET(0x003989B0);
       ARM_RET(0x003881EC);
     }
+  }
+
+  static bool CheckPokemonCaptured(u32 p0, u32 p1, u32 p2, u32 p3, u32 p4,
+                                   u32 p5) {
+#ifdef KAIZO
+    // wild battle -> trainer battle (disable capture)
+    u8 battle_type = READ(u8, READ(u32, READ(u32, p1 + 4) + 0x10));
+    if (kaizo::IsNotFirstEncounter()) {
+      WRITE(u8, READ(u32, READ(u32, p1 + 4) + 0x10), 1);
+    }
+#endif
+    bool result = HookManager::Call<bool>(HookID::kBattleCheckPokemonCaptured,
+                                          p0, p1, p2, p3, p4, p5);
+#ifdef KAIZO
+    if (result) {
+      kaizo::SetFirstEncounter();
+    } else {
+      WRITE(u8, READ(u32, READ(u32, p1 + 4) + 0x10), battle_type);
+    }
+#endif
+
+    return result;
   }
 
   static void UpdateBattleViewHook(uptr p0) {

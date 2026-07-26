@@ -20,6 +20,7 @@
 #include "common.h"
 #include "hook_manager.h"
 #include "game/overworld/map_data.h"
+#include "game/overworld/map_manager.h"
 #include "ui/log_application.h"
 
 namespace ui {
@@ -36,6 +37,7 @@ class MapDataLoader {
                             (uptr)LoadMapData);
   }
 
+  // Execute when a new zone is loading
   static bool LoadMapData(overworld::MapData* map_data) {
     bool result = HookManager::Call<bool>(HookID::kLoadMapData, map_data);
     if (result && !GetInstance().is_contact_enabled) {
@@ -47,6 +49,8 @@ class MapDataLoader {
         data.poke_info[i].species = 0;
       }
     }
+    overworld::MapManager::last_map_id = overworld::MapManager::GetInstance().
+        GetMapId();
     return result;
   }
 };

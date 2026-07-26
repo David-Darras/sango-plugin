@@ -61,6 +61,8 @@ extern void InitializeModelHook();
 extern void ShouldReplacePokemonModel(bool no_yes);
 extern void PatchStarterView();
 extern void PatchBattle();
+extern void SetFirstEncounter();
+extern bool IsNotFirstEncounter();
 
 extern void Initialize();
 } // namespace kaizo

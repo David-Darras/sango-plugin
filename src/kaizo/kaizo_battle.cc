@@ -17,9 +17,12 @@
 
 #include "feature/feature_battle.h"
 #include "game/constant/event.h"
+#include "game/constant/map.h"
+#include "game/overworld/map_data.h"
 #include "game/savedata/event_table.h"
 #include "game/savedata/misc.h"
 #include "game/savedata/pokemon_utils.h"
+#include "game/savedata/savedata_encounter.h"
 
 namespace kaizo {
 static const u8 LEVEL_CAPS[] = {
@@ -85,5 +88,35 @@ void PatchBattle() {
   battle.show_shiny_animation = false;
   battle.show_trainer_animation = true;
   battle.sync_overworld_music = true;
+}
+
+void SetFirstEncounter() {
+  auto& map_id = overworld::MapManager::last_map_id;
+  auto& event = savedata::EventTable::GetInstance();
+  switch (map_id) {
+    case MAP_ROUTE_101:
+      event.Set(EVENT_ROUTE_101_POKEMON_CAPTURED);
+      break;
+    case MAP_ROUTE_103:
+      event.Set(EVENT_ROUTE_103_POKEMON_CAPTURED);
+      break;
+    case MAP_ROUTE_102:
+      event.Set(EVENT_ROUTE_102_POKEMON_CAPTURED);
+      break;
+  }
+}
+
+bool IsNotFirstEncounter() {
+  auto& map_id = overworld::MapManager::last_map_id;
+  auto& event = savedata::EventTable::GetInstance();
+  switch (map_id) {
+    case MAP_ROUTE_101:
+      return event.Check(EVENT_ROUTE_101_POKEMON_CAPTURED);
+    case MAP_ROUTE_103:
+      return event.Check(EVENT_ROUTE_103_POKEMON_CAPTURED);
+    case MAP_ROUTE_102:
+      return event.Check(EVENT_ROUTE_102_POKEMON_CAPTURED);
+  }
+  return false;
 }
 }

@@ -45,6 +45,7 @@
 
 String String::s_tmp;
 c16 String::s_buffer[128];
+u16 overworld::MapManager::last_map_id = 0xFFFF;
 
 extern void UpdateOverworldWeather();
 extern void InitOverworldWeather();

@@ -34,6 +34,7 @@ enum class HookID : u32 {
   kIsTouchReleased, ///< Hook for TouchScreen::IsReleased
   kUpdateMatrices,
   kUpdateLookAt,
+  kBattleCheckPokemonCaptured,
   kSetupBattleConfig,
   kSetupTrainerBattleConfig,
   kOnStartTurn,

@@ -27,6 +27,8 @@ class Renderer;
 
 class MapManager {
   SINGLETON(MapManager)
+public:
+  static u16 last_map_id;
 
 public:
   STATIC_INLINE MapManager& GetInstance() {

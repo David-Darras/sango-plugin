@@ -102,5 +102,15 @@ void PatchTrainerData(battle::Config& config, u16& trainer_id) {
   }
 
   config.pokemon_teams[1]->HealAllPokemons();
+
+  // Best AI
+  if (config.trainer_data[0] != nullptr)
+    config.trainer_data[0]->ai_flags = 0b111;
+  if (config.trainer_data[1] != nullptr)
+    config.trainer_data[1]->ai_flags = 0b111;
+  if (config.trainer_data[2] != nullptr)
+    config.trainer_data[2]->ai_flags = 0b111;
+  if (config.trainer_data[3] != nullptr)
+    config.trainer_data[3]->ai_flags = 0b111;
 }
 }
