@@ -25,16 +25,13 @@
 namespace feature {
 struct Overworld {
   MAKE_SINGLETON(Overworld)
-  u16 background_music = 31;
+  bool freeze_background_music = false;
+  u16 background_music = 0;
 
   STATIC_INLINE void Initialize() {
     HookManager::Initialize(HookID::kGetOverworldBackgroundMusic,
                             ADDRESS_GET_OVERWORLD_BACKGROUND_MUSIC,
                             (uptr)GetBackgroundMusic);
-    // Game is lagging
-    // HookManager::Initialize(HookID::kSetCulling,
-    //                         0x00779E64,
-    //                         (uptr)SetCullingHook, false);
   }
 
   STATIC_INLINE void Patch() {
@@ -51,14 +48,12 @@ struct Overworld {
 
   static u32
   GetBackgroundMusic(u32 sound_manager, u32 map_id, u32 player_form) {
-    // u32 result = HookManager::Call<u32>(HookID::kGetOverworldBackgroundMusic,
-    //                                     sound_manager, map_id, player_form);
-    return (1 << 16) + GetInstance().background_music; // NO SOUND
+    auto& instance = GetInstance();
+    if (instance.freeze_background_music) {
+      return (1 << 16) + instance.background_music; // NO SOUND
+    }
+    return HookManager::Call<u32>(HookID::kGetOverworldBackgroundMusic,
+                                  sound_manager, map_id, player_form);
   }
-
-  // static void SetCullingHook(void* model, bool use_culling) {
-  //   use_culling = false;
-  //   HookManager::Call<void>(HookID::kSetCulling, model, use_culling);
-  // }
 };
 } // namespace feature

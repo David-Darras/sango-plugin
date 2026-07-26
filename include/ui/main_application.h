@@ -39,7 +39,7 @@ struct Theme;
 class MainApplication : public Application {
 public:
   friend class MainAppPainter;
-  friend class RetroAppPainter;
+  friend class KaizoAppPainter;
 
   /**
 * @brief Returns the singleton instance of the MainApplication.

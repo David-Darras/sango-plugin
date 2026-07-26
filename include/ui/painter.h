@@ -38,8 +38,8 @@ public:
   bool ShowBottom() override { return true; }
 };
 
-class RetroAppPainter : public Painter {
-  MAKE_SINGLETON(RetroAppPainter)
+class KaizoAppPainter : public Painter {
+  MAKE_SINGLETON(KaizoAppPainter)
 public:
   void DrawPageBackground(MainApplication& app) override;
   void DrawPageItems(MainApplication& app) override;

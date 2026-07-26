@@ -27,19 +27,19 @@ namespace feature {
 struct Battle {
   MAKE_SINGLETON(Battle)
 public:
-  bool is_long_mega_evolve_animation = true;
+  bool is_long_mega_evolve_animation = false;
   bool is_long_encounter_animation = false;
   bool show_enemy_pov = false;
-  bool show_trainer_animation = true;
-  bool show_pokeball_animation = true;
-  bool show_fade_in = true;
+  bool show_trainer_animation = false;
+  bool show_pokeball_animation = false;
+  bool show_fade_in = false;
   bool show_shiny_animation = false;
 
   bool no_shader = false;
-  bool can_use_item = false;
-  bool use_pokeball_boost = false;
+  bool can_use_item = true;
+  bool use_pokeball_boost = true;
   bool fix_pokemon_size = true;
-  bool sync_overworld_music = true;
+  bool sync_overworld_music = false;
 
   struct LevelUpData {
     u32 exp;

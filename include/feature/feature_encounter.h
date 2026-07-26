@@ -20,6 +20,8 @@
 #include "common.h"
 #include "feature_encounter.h"
 #include "hook_manager.h"
+#include "kaizo.h"
+#include "utils.h"
 #include "game/overworld/map_data.h"
 #include "game/savedata/savedata_encounter.h"
 

@@ -44,7 +44,6 @@ struct BattleConfig {
   bool is_capture_forced = false;
   bool no_money = false;
   bool inverse_teams = false;
-  u32 trainer_id = 0;
 
   STATIC_INLINE void Initialize() {
     HookManager::Initialize(HookID::kSetupBattleConfig,

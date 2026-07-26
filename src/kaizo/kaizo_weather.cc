@@ -120,7 +120,7 @@ static u32 RollWeatherDuration(u8 weather) {
   u32 range = data->maxDurationSec - data->minDurationSec;
   u32 result = data->minDurationSec + (
                  range ? Utils::GetRandomValue(range) : 0);
-  return result;
+  return result >> 5;
 }
 
 static u8 PickNextWeather(u8 currentWeather) {
@@ -144,6 +144,10 @@ static u8 PickNextWeather(u8 currentWeather) {
 }
 
 void InitializeOverworldWeather() {
+  // Don't update weather with in game functions
+  ARM_NOP(ADDRESS_UPDATE_AREA_WEATHER + 0xC);
+  ARM_NOP(ADDRESS_UPDATE_ZONE_WEATHER + 0x4);
+
   sCurrentOverworldWeather = WEATHER_OVERWORLD_SUNNY;
   Utils::GetElapsedTime(&sWeatherStartTime);
   sCurrentWeatherDuration = RollWeatherDuration(sCurrentOverworldWeather);

@@ -20,10 +20,6 @@
 
 #include "feature_app.h"
 #include "feature_battle.h"
-#include "feature_camera.h"
-#include "feature_encounter.h"
-#include "feature_pokemon_model.h"
-#include "feature_starter.h"
 #include "feature_title_screen.h"
 #include "game/process_manager.h"
 
@@ -51,21 +47,28 @@ class ProcessPatch {
   }
 
   static void OnLoad(uptr vtable) {
-    auto& patch_pokemon_models = PokemonModel::GetInstance().
-        is_enabled;
+#ifdef KAIZO
+    kaizo::ShouldReplacePokemonModel(false);
+#endif
 
-    patch_pokemon_models = false;
+    if (vtable != ADDRESS_OVERWORLD_VTABLE) {
+      HookManager::Clear(HookID::kGetEncounterPokemon);
+    }
 
     switch (vtable) {
       case ADDRESS_INTRODUCTION_VTABLE:
       case ADDRESS_CINEMATIC_VTABLE:
-        patch_pokemon_models = true;
+#ifdef KAIZO
+        kaizo::ShouldReplacePokemonModel(true);
+#endif
         break;
       case ADDRESS_TITLE_SCREEN_VTABLE:
         TitleScreen::Patch();
         break;
       case ADDRESS_SELECT_STARTER_VTABLE:
-        Starter::Patch();
+#ifdef KAIZO
+        kaizo::PatchStarterView();
+#endif
         break;
       case ADDRESS_BATTLE_VTABLE:
         Battle::Patch();
@@ -74,7 +77,6 @@ class ProcessPatch {
         Overworld::Patch();
         break;
       default:
-        HookManager::Clear(HookID::kGetEncounterPokemon);
         break;
     }
   }

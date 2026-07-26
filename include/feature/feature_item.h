@@ -23,10 +23,12 @@
 #include "ui/log_application.h"
 #include <CTRPluginFramework/System/Hook.hpp>
 
+#include "kaizo.h"
+
 namespace feature {
 class Item {
   MAKE_SINGLETON(Item)
-  bool remove_limit = true;
+  bool remove_limit = false;
 
   STATIC_INLINE void Initialize() {
     auto& feat = Item::GetInstance();
@@ -56,43 +58,9 @@ class Item {
   static u32 GetParamHook(global_data::Item* item, u32 param_id) {
     if (!item) return 0;
 
-    switch (item->id) {
-      case ITEM_HP_UP:
-        item->hp_ev_value = 63;
-        break;
-      case ITEM_PROTEIN:
-        item->attack_ev_value = 63;
-        break;
-      case ITEM_IRON:
-        item->defense_ev_value = 63;
-        break;
-      case ITEM_CARBOS:
-        item->speed_ev_value = 63;
-        break;
-      case ITEM_CALCIUM:
-        item->sp_atk_ev_value = 63;
-        break;
-      case ITEM_ZINC:
-        item->sp_def_ev_value = 63;
-        break;
-      case ITEM_METAL_COAT:
-      case ITEM_DRAGON_SCALE:
-      case ITEM_UP_GRADE:
-      case ITEM_DUBIOUS_DISC:
-      case ITEM_DEEP_SEA_TOOTH:
-      case ITEM_DEEP_SEA_SCALE:
-      case ITEM_PROTECTOR:
-      case ITEM_ELECTIRIZER:
-      case ITEM_MAGMARIZER:
-      case ITEM_REAPER_CLOTH:
-      case ITEM_PRISM_SCALE:
-      case ITEM_SACHET:
-      case ITEM_WHIPPED_DREAM:
-        item->evolve = 1;
-        item->use_on_pokemon = true;
-        item->field_function = 1;
-        break;
-    }
+#ifdef KAIZO
+    kaizo::PatchItemData(item);
+#endif
 
     return GetParam(item, param_id);
   }

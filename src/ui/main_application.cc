@@ -273,13 +273,13 @@ void MainAppPainter::DrawPageItems(MainApplication& app) {
   }
 }
 
-void RetroAppPainter::DrawPageBackground(MainApplication& app) {
+void KaizoAppPainter::DrawPageBackground(MainApplication& app) {
   Graphics::EnableScissor(301, 10, 90, 130);
   Graphics::FillScreen(1, 0.25, 0, 0.25);
   Graphics::DisableScissor();
 }
 
-void RetroAppPainter::DrawPageItems(MainApplication& app) {
+void KaizoAppPainter::DrawPageItems(MainApplication& app) {
   MainApplication::MenuContext& ctx = app.GetContext();
 
   Graphics::EnableScissor(303, 12, 86, 126);

@@ -29,14 +29,13 @@
 #include "feature/feature_app.h"
 #include "feature/feature_battle.h"
 #include "feature/feature_day_care.h"
+#include "feature/feature_encounter.h"
 #include "feature/feature_field_move.h"
 #include "feature/feature_item.h"
 #include "feature/feature_map_data_loader.h"
 #include "feature/feature_map_tile.h"
 #include "feature/feature_overworld.h"
-#include "feature/feature_pokemon_model.h"
 #include "feature/feature_process_patch.h"
-#include "feature/feature_shop.h"
 #include "ui/main_application.h"
 #include "system/device.h"
 #include "system/file.h"
@@ -67,12 +66,11 @@ void Initialize() {
   feature::OverworldModel::Initialize();
   feature::GameApp::Initialize();
   feature::Battle::Initialize();
-  feature::Encounter::Initialize();
   feature::FieldMove::Initialize();
   feature::Item::Initialize();
   feature::Overworld::Initialize();
-  feature::PokemonModel::Initialize();
   feature::MapDataLoader::Initialize();
+  feature::Encounter::Initialize();
 
 #ifdef KAIZO
   kaizo::Initialize();
@@ -82,8 +80,8 @@ void Initialize() {
   auto& root_app = ui::RootApplication::GetInstance();
   auto& main_app = ui::MainApplication::GetInstance();
 
-#if USE_NUZLOCKE_MENU == 0
-  main_app.SetPainter(ui::RetroAppPainter::GetInstance());
+#ifdef KAIZO
+  main_app.SetPainter(ui::KaizoAppPainter::GetInstance());
   main_app.Open(ui::LoadNuzlockePage);
 #else
   main_app.SetPainter(ui::MainAppPainter::GetInstance());

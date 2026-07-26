@@ -22,14 +22,15 @@
 #include "ui/log_application.h"
 #include "game/script/amx.h"
 
+
 namespace feature {
 class Script {
   MAKE_SINGLETON(Script)
 
 public:
   STATIC_INLINE void Initialize() {
-    // HookManager::Initialize(HookID::kLoadScript, 0x003AB0C8, (uptr)LoadScriptHook);
-    HookManager::Initialize(HookID::kInitializeVirtualMachine, 0x00505DB4,
+    HookManager::Initialize(HookID::kInitializeVirtualMachine,
+                            ADDRESS_SCRIPT_INITIALIZE_VIRTUAL_MACHINE,
                             (uptr)InitializeVirtualMachineHook);
   }
 

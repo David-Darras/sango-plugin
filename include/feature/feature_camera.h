@@ -20,7 +20,6 @@
 
 #include "common.h"
 #include "hook_manager.h"
-#include "game/battle/manager.h"
 #include "game/process_manager.h"
 #include "game/overworld/model_manager.h"
 #include "game/overworld/renderer.h"

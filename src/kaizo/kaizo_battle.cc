@@ -16,15 +16,10 @@
  */
 
 #include "feature/feature_battle.h"
-#include "feature/feature_battle.h"
 #include "game/constant/event.h"
 #include "game/savedata/event_table.h"
 #include "game/savedata/misc.h"
 #include "game/savedata/pokemon_utils.h"
-
-namespace battle {
-struct Team;
-}
 
 namespace kaizo {
 static const u8 LEVEL_CAPS[] = {
@@ -74,5 +69,21 @@ void ApplyLevelCaps(battle::Team* team,
       }
     }
   }
+}
+
+void PatchBattle() {
+  auto& battle = feature::Battle::GetInstance();
+  battle.can_use_item = false;
+  battle.fix_pokemon_size = true;
+  battle.no_shader = false;
+  battle.use_pokeball_boost = false;
+  battle.is_long_encounter_animation = false;
+  battle.is_long_mega_evolve_animation = true;
+  battle.show_enemy_pov = false;
+  battle.show_fade_in = true;
+  battle.show_pokeball_animation = true;
+  battle.show_shiny_animation = false;
+  battle.show_trainer_animation = true;
+  battle.sync_overworld_music = true;
 }
 }

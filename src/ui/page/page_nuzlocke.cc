@@ -32,7 +32,7 @@ void LoadHmPage(MainApplication& app, void* args) {
   auto& misc = savedata::Misc::GetInstance();
   auto badge_count = misc.GetBadgesCount();
   if (badge_count == 0) {
-    app.Add("UNAVAILABLE");
+    app.Add("(NONE)");
     return;
   }
   if (badge_count >= 1)
@@ -70,16 +70,16 @@ void LoadNuzlockePage(MainApplication& app, void* args) {
   auto& speed = feature::Engine::GetInstance().game_speed;
 
   app //.Add("Trainer", feature::BattleConfig::GetInstance().trainer_id)
-     .Add("Camera", camera.state)
-     .WithBounds(0, 4)
-     .Add("Speed", speed)
-     .WithBounds(1, 2)
-     .Add("Radio", bgm)
-     .WithCallback([&](void*) { Sound::PlayBackgroundMusic(bgm); })
-     .WithBounds(0, 250)
-     .Add("HM", LoadHmPage)
-     .Add("App", LoadAppPage)
-     .Add("Repel", CheatCodeId::kNoEncounter);
+      .Add("Camera", camera.state)
+      .WithBounds(0, 4)
+      .Add("Speed", speed)
+      .WithBounds(1, 2)
+      .Add("Radio", bgm)
+      .WithCallback([&](void*) { Sound::PlayBackgroundMusic(bgm); })
+      .WithBounds(0, 250)
+      .Add("HM", LoadHmPage)
+      .Add("App", LoadAppPage)
+      .Add("Repel", CheatCodeId::kNoEncounter);
 
   // .Add("Reset Tr", [](void*) {
   //      auto& event_table = savedata::EventTable::GetInstance();

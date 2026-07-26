@@ -19,12 +19,24 @@
 #include "utils.h"
 #include "feature/hook_manager.h"
 #include "game/constant/species.h"
-
-namespace savedata {
-struct PokemonParam;
-}
+#include "game/savedata/pokemon_team.h"
 
 namespace kaizo {
+struct PokemonStarterView {
+  PokeInfo info;
+  u8 padding[0x54 - sizeof(PokeInfo)];
+};
+
+void PatchStarterView() {
+  PokemonStarterView* data = (PokemonStarterView*)(ADDRESS_STARTER);
+  data[0].info.is_egg = true;
+  data[0].info.species = 0;
+  data[1].info.is_egg = true;
+  data[1].info.species = 0;
+  data[2].info.is_egg = true;
+  data[2].info.species = 0;
+}
+
 void PatchStarter(uptr pkm) {
   struct Pokemon {
     u64 id[3];

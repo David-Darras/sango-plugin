@@ -18,6 +18,7 @@
 #pragma once
 #include "common.h"
 #include "hook_manager.h"
+#include "kaizo.h"
 #include "game/constant/form.h"
 #include "game/constant/species.h"
 #include "game/constant/video.h"
@@ -27,13 +28,13 @@
 namespace feature {
 class TitleScreen {
   MAKE_SINGLETON(TitleScreen)
-  bool is_enabled = true;
-  u8 top_video = VIDEO_PRIMO_KYOGRE;
-  u8 bottom_video = VIDEO_PRIMO_GROUDON;
-  bool no_delay = true;
-  bool no_shadow = true;
-  u16 pokemon_cry_species = SPECIES_BELDUM;
-  f32 pokemon_cry_volume = 1.0f;
+  bool is_enabled = false;
+  bool no_delay = false;
+  bool no_shadow = false;
+  u8 top_video = VIDEO_TITLE_ALPHA_SAPPHIRE;
+  u8 bottom_video = VIDEO_PRIMO_KYOGRE;
+  u16 pokemon_cry_species = SPECIES_KYOGRE;
+  f32 pokemon_cry_volume = 0.8f;
 
   STATIC_INLINE void Patch() {
     auto& title = GetInstance();
@@ -48,7 +49,9 @@ class TitleScreen {
     if (title.no_shadow)
       ARM_NOP(0x00740104);
 
-    PokemonModel::GetInstance().is_enabled = true;
+#ifdef KAIZO
+    kaizo::ShouldReplacePokemonModel(true);
+#endif
   }
 };
 } // namespace feature

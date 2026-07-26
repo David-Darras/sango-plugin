@@ -18,6 +18,10 @@
 #pragma once
 #include "common.h"
 
+namespace global_data {
+struct Item;
+}
+
 namespace battle {
 struct Team;
 struct Config;
@@ -52,6 +56,11 @@ extern u32 PatchOverworldModels(u32 model, bool is_real_overworld);
 extern void InitializeShinyHook();
 extern void InitializeArchiveHooks();
 extern void ApplyLevelCaps(battle::Team* team, void* data);
+extern void PatchItemData(global_data::Item* item);
+extern void InitializeModelHook();
+extern void ShouldReplacePokemonModel(bool no_yes);
+extern void PatchStarterView();
+extern void PatchBattle();
 
 extern void Initialize();
 } // namespace kaizo

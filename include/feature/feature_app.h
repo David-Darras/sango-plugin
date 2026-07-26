@@ -30,7 +30,6 @@
 #include "game/savedata/pokemon_team.h"
 #include "game/savedata/trainer_status.h"
 #include "system/device.h"
-#include "ui/log_application.h"
 #include "ui/main_application.h"
 
 namespace feature {

@@ -17,7 +17,11 @@
 
 #include "kaizo.h"
 
+#include "feature/feature_item.h"
 #include "feature/feature_light.h"
+#include "feature/feature_map_data_loader.h"
+#include "feature/feature_overworld.h"
+#include "feature/feature_title_screen.h"
 #include "game/global_data/trainer_model_manager.h"
 #include "game/savedata/pokemon_team.h"
 #include "game/savedata/settings.h"
@@ -29,12 +33,45 @@ void Initialize() {
   PatchPokemonData();
   PatchMoveData();
   PatchOutline();
+  PatchBattle();
   PatchTrainerModels();
   InitializeOverworldWeather();
   InitializeShinyHook();
   InitializeEvolveHook();
   InitializeGiftHook();
   InitializeArchiveHooks();
+  InitializeModelHook();
+  InitializeStarterHook();
+
+  // Map Data
+  {
+    feature::MapDataLoader::GetInstance().is_contact_enabled = false;
+  }
+  // Item
+  {
+    feature::Item::GetInstance().remove_limit = true;
+  }
+  // Music
+  {
+    feature::Overworld::GetInstance().freeze_background_music = true;
+    feature::Overworld::GetInstance().background_music = 31;
+  }
+  // Title Screen
+  {
+    auto& title = feature::TitleScreen::GetInstance();
+    title.is_enabled = true;
+    title.no_shadow = true;
+    title.no_delay = true;
+    title.top_video = VIDEO_PRIMO_KYOGRE;
+    title.bottom_video = VIDEO_PRIMO_GROUDON;
+    title.pokemon_cry_species = SPECIES_BELDUM;
+    title.pokemon_cry_volume = 1.0f;
+  }
+  // Camera
+  {
+    auto& camera = feature::Camera::GetInstance();
+    camera.state = feature::Camera::kTps;
+  }
 }
 
 void PatchOutline() {
