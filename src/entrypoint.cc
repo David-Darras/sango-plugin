@@ -51,6 +51,7 @@ extern void InitOverworldWeather();
 
 namespace kaizo {
 extern void Initialize();
+extern void UpdateOverworldWeather();
 }
 
 void Initialize() {
@@ -83,8 +84,6 @@ void Initialize() {
   kaizo::Initialize();
 #endif
 
-  InitOverworldWeather();
-
   auto& application_manager = ui::ApplicationManager::GetInstance();
   auto& root_app = ui::RootApplication::GetInstance();
   auto& main_app = ui::MainApplication::GetInstance();
@@ -109,7 +108,9 @@ void Entrypoint() {
 
   application->Update(controller);
   cheat_code_manager.Update();
-  UpdateOverworldWeather();
+#ifdef KAIZO
+  kaizo::UpdateOverworldWeather();
+#endif
 
   void* top_buffer = graphics.GetFramebuffer(Screen::kTop);
   if (graphics.BindFramebuffer(top_buffer)) {

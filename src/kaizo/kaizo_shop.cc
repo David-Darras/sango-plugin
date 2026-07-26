@@ -88,7 +88,7 @@ static const ShopItem SHOP_ITEMS[] = {
     {ITEM_OVAL_STONE, 1},
 };
 
-void InitializeShop() {
+void PatchShopData() {
   feature::Shop::Initialize(SHOP_ITEMS, SIZE(SHOP_ITEMS));
 }
 } // namespace kaizo

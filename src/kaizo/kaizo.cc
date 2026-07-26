@@ -15,10 +15,35 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "feature/feature_light.h"
+#include "game/global_data/trainer_model_manager.h"
+
 namespace kaizo {
-extern void InitializeShop();
+extern void PatchShopData();
+extern void PatchPokemonData();
+extern void PatchMoveData();
+extern void PatchOutline();
+extern void PatchTrainerModels();
+extern void InitializeOverworldWeather();
 
 void Initialize() {
-  InitializeShop();
+  PatchShopData();
+  PatchPokemonData();
+  PatchMoveData();
+  PatchOutline();
+  PatchTrainerModels();
+  InitializeOverworldWeather();
+}
+
+void PatchOutline() {
+  auto& light = feature::Light::GetInstance();
+  light.use_outline = true;
+  light.outline_scale = 0.0f;
+}
+
+void PatchTrainerModels() {
+  auto& manager = TrainerModelManager::GetInstance();
+  manager.Replace(TRAINER_MODEL_BRENDAN, TRAINER_MODEL_STEVEN);
+  manager.Replace(TRAINER_MODEL_MAY, TRAINER_MODEL_ZINNIA);
 }
 }

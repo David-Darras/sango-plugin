@@ -21,9 +21,12 @@
 
 namespace global_data {
 struct Move {
+  STATIC_INLINE Move* GetTable() {
+    return (Move*)READ(u32, ADDRESS_GLOBAL_DATA_MOVE_TABLE);
+  }
+
   STATIC_INLINE Move& GetInstance(const u16 move) {
-    Move* table = (Move*)READ(u32, ADDRESS_GLOBAL_DATA_MOVE_TABLE);
-    return table[move];
+    return GetTable()[move];
   }
 
   u8 type;

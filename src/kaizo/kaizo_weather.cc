@@ -20,6 +20,7 @@
 #include "game/constant/weather.h"
 #include "game/overworld/weather_manager.h"
 
+namespace kaizo {
 #define NUM_OVERWORLD_WEATHERS 9
 
 typedef struct {
@@ -63,7 +64,7 @@ static const WeatherTransition sTrans_Thunderstorm[] = {
 
 static const WeatherTransition sTrans_Stormy[] = {
     {WEATHER_OVERWORLD_STORMY, 30},
-    {WEATHER_OVERWORLD_RAINY, 45}, // la tempête finit toujours par se calmer
+    {WEATHER_OVERWORLD_RAINY, 45},
     {WEATHER_OVERWORLD_CLOUDY, 25},
 };
 
@@ -142,13 +143,18 @@ static u8 PickNextWeather(u8 currentWeather) {
   return data->transitions[data->numTransitions - 1].weather;
 }
 
-void InitOverworldWeather(void) {
+void InitializeOverworldWeather() {
   sCurrentOverworldWeather = WEATHER_OVERWORLD_SUNNY;
   Utils::GetElapsedTime(&sWeatherStartTime);
   sCurrentWeatherDuration = RollWeatherDuration(sCurrentOverworldWeather);
 }
 
-void UpdateOverworldWeather(void) {
+void UpdateOverworldWeather() {
+  static s32 counter = 0;
+  counter++;
+  if (counter <= 10) return;
+  counter = 0;
+
   s64 now;
   Utils::GetElapsedTime(&now);
   s64 delta = now - sWeatherStartTime;
@@ -165,4 +171,5 @@ void UpdateOverworldWeather(void) {
   }
 
   overworld::WeatherManager::GetInstance().SetWeather(sCurrentOverworldWeather);
+}
 }
