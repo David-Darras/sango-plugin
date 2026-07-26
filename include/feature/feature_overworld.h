@@ -17,6 +17,7 @@
 
 #pragma once
 #include "common.h"
+#include "feature_app.h"
 #include "feature_camera.h"
 #include "feature_light.h"
 #include "feature_nuzlocke.h"
@@ -39,6 +40,19 @@ struct Overworld {
     HookManager::Initialize(HookID::kSetCulling,
                             0x00779E64,
                             (uptr)SetCullingHook, false);
+  }
+
+  STATIC_INLINE void Patch() {
+    Nuzlocke::FixNickname();
+    Nuzlocke::FixConfig();
+    HookManager::Enable(HookID::kEncounterSetPokemon);
+    HookManager::ForceEnable(HookID::kSetCulling);
+    HookManager::ForceEnable(HookID::kCheckAppRequest);
+    auto& team = savedata::PokemonTeam::GetInstance();
+    team.HealAllPokemons();
+
+    // Simulate a button press
+    WRITE(vu32, 0x00715C48, 0xE1A00000);
   }
 
   static u32

@@ -24,7 +24,7 @@
 #include "system/sound.h"
 #include "utils.h"
 #include "feature/feature_device.h"
-#include "feature/feature_process.h"
+#include "feature/feature_process_patch.h"
 #include "ui/theme.h"
 
 namespace ui {

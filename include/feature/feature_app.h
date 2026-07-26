@@ -42,17 +42,16 @@ class GameApp {
 
 public:
   STATIC_INLINE void Initialize() {
-    // Overworld Menu
-    WRITE(vu32, 0x003D6D18, 0xE3A01C01); // Alloc 0x100 bytes for app hook
-    // Top Menu
-    WRITE(vu32, 0x003D81D4, 0xE3A01C01);
+    // Alloc 0x100 bytes for app hook
+    WRITE(vu32, 0x003D6D18, 0xE3A01C01); // Overworld Menu
+    WRITE(vu32, 0x003D81D4, 0xE3A01C01); // Top Menu
     HookManager::Initialize(HookID::kCallApp, ADDRESS_CALL_APP,
                             (uptr)CallAppHook);
     HookManager::Initialize(HookID::kCheckAppRequest, ADDRESS_CHECK_APP_REQUEST,
                             (uptr)CheckAppRequestHook, false);
   }
 
-  static void OnUpdateAppStatus() {
+  static void PatchAppStatus() {
     auto& controller = Controller::GetInstance();
     static u32 index = 0;
     static u32 get_stats[] = {
@@ -82,13 +81,6 @@ public:
       ((void(*)(void*, u32, bool))ADDRESS_APP_STATUS_UPDATE_POKEMON)(process,
         pokemon_index, false);
     }
-  }
-
-  static void OnEnterOverworld() {
-    // Simulate a button press
-    WRITE(vu32, 0x00715C48, 0xE1A00000);
-    HookManager::ForceEnable(HookID::kCheckAppRequest);
-    HookManager::ForceEnable(HookID::kSetCulling);
   }
 
   void TriggerApp(u32 id) {
@@ -173,7 +165,6 @@ public:
   }
 
   static void CallAppHook(uptr self, game::Manager* manager) {
-    auto& controller = Controller::GetInstance();
     auto& ctx = GetInstance();
 
     u8& choice = READ(u8, self + 28);

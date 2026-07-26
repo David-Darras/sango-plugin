@@ -26,7 +26,8 @@ SOURCES 	:= 	src \
 				src/ui \
 				src/ui/widget \
 				src/ui/page \
-				src/parser
+				src/parser \
+				src/kaizo
 
 PSF 		:= 	$(notdir $(TOPDIR)).plgInfo
 
@@ -39,7 +40,7 @@ CFLAGS	:=	-mword-relocations \
  			-ffunction-sections -fdata-sections -fno-strict-aliasing \
 			$(ARCH) $(BUILD_FLAGS) $(G) \
 		   -DPLUGIN_CREATOR=\"$(PLUGIN_CREATOR)\" -DPLUGIN_VERSION=\"$(PLUGIN_VERSION)\" \
-		   -DUSE_SANGO_PLUGIN=1 -DUSE_DEFAULT_CTRPF=0 -DENABLE_NUZLOCKE_FEATURES=1 -DUSE_NUZLOCKE_MENU=1
+		   -DUSE_SANGO_PLUGIN=1 -DUSE_DEFAULT_CTRPF=0 -DENABLE_NUZLOCKE_FEATURES=1 -DUSE_NUZLOCKE_MENU=1 -DKAIZO=1
 
 CFLAGS		+=	$(INCLUDE) -D__3DS__ $(DEFINES)
 

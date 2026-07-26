@@ -120,9 +120,31 @@ public:
     return Utils::GetClassNameFromVTable(process->vtable);
   }
 
+  uptr GetCurrentVTable() const {
+    BaseProcess* process = GetCurrentProcess();
+    if (process == nullptr) return 0;
+    return (uptr)process->vtable;
+  }
+
   INLINE bool IsCurrentProcess(const char* name) const {
     uptr vtable = 0;
     return std::strcmp(GetCurrentProcessName(vtable), name) == 0;
+  }
+
+  INLINE bool IsCurrentProcess(u32 vtable) const {
+    return vtable == GetCurrentVTable();
+  }
+
+  INLINE void Patch(void (*on_load)(uptr), void (*on_update)(uptr)) {
+    if (handle_ == nullptr) return;
+    auto* process = handle_->process_;
+    if (process == nullptr) return;
+    uptr vtable = (uptr)process->vtable;
+    if (handle_->state_ == ProcessState::kLoading) {
+      on_load(vtable);
+    } else {
+      on_update(vtable);
+    }
   }
 
 private:

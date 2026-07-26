@@ -89,28 +89,17 @@ struct Camera {
                             (uptr)UpdateLookAtHook);
   }
 
-  static f32 RandomFloatRange(f32 min, f32 max) {
-    constexpr u32 kPrecision = 10000;
-    f32 t = static_cast<f32>(Utils::GetRandomValue(kPrecision)) / kPrecision;
-    return min + t * (max - min);
-  }
-
   static u32 UpdateMatricesHook(overworld::StereoCamera* stereo_camera,
                                 bool update) {
     auto& ctx = GetInstance();
 
-    if (game::ProcessManager::GetInstance().
-      IsCurrentProcess(PROCESS_NAME_FIELD_MAP)) {
+    if (game::ProcessManager::GetInstance().IsCurrentProcess(
+        ADDRESS_OVERWORLD_VTABLE)) {
       if (&overworld::Renderer::GetInstance().GetStereoCamera() ==
           stereo_camera) {
         ctx.is_updating_camera = true;
       }
     }
-    // if (ProcessManager::GetInstance().IsCurrentProcess(PROCESS_NAME_BATTLE)) {
-    //   if (&battle::Graphics::GetInstance().GetStereoCamera() == stereo_camera) {
-    //     is_updating_camera = true;
-    //   }
-    // }
 
     return HookManager::Call<u32>(HookID::kUpdateMatrices, stereo_camera,
                                   update);
@@ -120,9 +109,8 @@ struct Camera {
                                  Vec3* target) {
     auto& ctx = GetInstance();
     if (!ctx.is_updating_camera) {
-      return HookManager::GetInstance()
-             .Get(HookID::kUpdateLookAt)
-             ->CallOriginal<Mtx34*>(output, pos, up, target);
+      return HookManager::Call<Mtx34*>(HookID::kUpdateLookAt, output, pos, up,
+                                       target);
     }
     ctx.is_updating_camera = false;
 
@@ -225,9 +213,8 @@ struct Camera {
         break;
     }
 
-    return HookManager::GetInstance()
-           .Get(HookID::kUpdateLookAt)
-           ->CallOriginal<Mtx34*>(output, pos, up, target);
+    return HookManager::Call<Mtx34*>(HookID::kUpdateLookAt, output, pos, up,
+                                     target);
   }
 };
 } // namespace feature

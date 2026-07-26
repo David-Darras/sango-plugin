@@ -21,28 +21,34 @@
 #include "game/constant/form.h"
 #include "game/constant/species.h"
 #include "game/constant/video.h"
+#include "game/renderer/pokemon_model.h"
 #include "ui/log_application.h"
 
 namespace feature {
 class TitleScreen {
   MAKE_SINGLETON(TitleScreen)
+  bool is_enabled = true;
   u8 top_video = VIDEO_PRIMO_KYOGRE;
   u8 bottom_video = VIDEO_PRIMO_GROUDON;
   bool no_delay = true;
+  bool no_shadow = true;
   u16 pokemon_cry_species = SPECIES_BELDUM;
   f32 pokemon_cry_volume = 1.0f;
 
-  STATIC_INLINE void Initialize() {
-    // Load video : 0x007063C4
+  STATIC_INLINE void Patch() {
     auto& title = GetInstance();
+    if (!title.is_enabled) return;
+
     WRITE(vu32, 0x00740378, 0xE3A02000 | title.top_video);
     WRITE(vu32, 0x0074039C, 0xE3A02000 | title.bottom_video);
-    if (title.no_delay)
-      ARM_NOP(0x00740390);
     WRITE(vu32, 0x00740498, title.pokemon_cry_species);
     WRITE(vf32, 0x0074049C, title.pokemon_cry_volume);
+    if (title.no_delay)
+      ARM_NOP(0x00740390);
+    if (title.no_shadow)
+      ARM_NOP(0x00740104);
 
-    ARM_NOP(0x00740104); // No outline
+    PokemonModel::GetInstance().is_enabled = true;
   }
 };
 } // namespace feature

@@ -26,20 +26,26 @@
 namespace feature {
 class Item {
   MAKE_SINGLETON(Item)
+  bool remove_limit = true;
+
   STATIC_INLINE void Initialize() {
-    // No limit to 100 for EVs with ITEM_HP_UP, ITEM_PROTEIN, ITEM_IRON, etc.
-    WRITE(vu32, 0x0047888C, 0xE35000FF);
-    WRITE(vu32, 0x004788F0, 0xE35000FF);
-    WRITE(vu32, 0x004788FC, 0x03A000FF);
-    WRITE(vu32, 0x0046E104, 0xE35B00FF);
-    WRITE(vu32, 0x0046E1A4, 0xE35B00FF);
-    WRITE(vu32, 0x0046E244, 0xE35800FF);
-    WRITE(vu32, 0x0046E2E0, 0xE35900FF);
-    WRITE(vu32, 0x0046E37C, 0xE35A00FF);
-    WRITE(vu32, 0x0046E41C, 0xE35A00FF);
+    auto& feat = Item::GetInstance();
 
     // No level limit with rare candy
     // WRITE(vu32, 0x0046DED8, 0xE35000FF);
+
+    if (feat.remove_limit) {
+      // No limit to 100 for EVs with ITEM_HP_UP, ITEM_PROTEIN, ITEM_IRON, etc.
+      WRITE(vu32, 0x0047888C, 0xE35000FF);
+      WRITE(vu32, 0x004788F0, 0xE35000FF);
+      WRITE(vu32, 0x004788FC, 0x03A000FF);
+      WRITE(vu32, 0x0046E104, 0xE35B00FF);
+      WRITE(vu32, 0x0046E1A4, 0xE35B00FF);
+      WRITE(vu32, 0x0046E244, 0xE35800FF);
+      WRITE(vu32, 0x0046E2E0, 0xE35900FF);
+      WRITE(vu32, 0x0046E37C, 0xE35A00FF);
+      WRITE(vu32, 0x0046E41C, 0xE35A00FF);
+    }
 
     HookManager::Initialize(HookID::kGlobalDataItemGetParam,
                             ADDRESS_GLOBAL_DATA_ITEM_GET_PARAM,

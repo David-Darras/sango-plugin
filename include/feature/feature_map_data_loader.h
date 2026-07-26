@@ -34,14 +34,15 @@ class LogApplication;
 namespace feature {
 class MapDataLoader {
   MAKE_SINGLETON(MapDataLoader)
+  bool is_contact_enabled = false;
   STATIC_INLINE void Initialize() {
-    HookManager::Initialize(HookID::kLoadMapData, 0x003D9BD4,
+    HookManager::Initialize(HookID::kLoadMapData, ADDRESS_LOAD_MAP_DATA,
                             (uptr)LoadMapData);
   }
 
   static bool LoadMapData(overworld::MapData* map_data) {
     bool result = HookManager::Call<bool>(HookID::kLoadMapData, map_data);
-    if (result) {
+    if (result && !GetInstance().is_contact_enabled) {
       // Disable contact encounter
       auto& data = map_data->GetEncounterData();
       for (u32 i = 0; i < 14; i++) {

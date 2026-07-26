@@ -167,7 +167,6 @@ AST ParsePokemonShowdownString(const std::string& input) {
       // Parsing du Level
       current_pokemon.level = static_cast<u8>(std::stoi(Trim(line.substr(6))));
     } else if (line.rfind("Happiness:", 0) == 0) {
-      // Parsing de l'Happiness
       current_pokemon.happiness = static_cast<u8>(std::stoi(
           Trim(line.substr(10))));
     } else if (line.rfind("Shiny:", 0) == 0) {

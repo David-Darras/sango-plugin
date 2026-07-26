@@ -24,7 +24,6 @@ namespace feature {
 struct Engine {
   MAKE_SINGLETON(Engine)
   s32 game_speed = 1;
-  s32 frame_count = 0;
 
   STATIC_INLINE void Initialize() {
     HookManager::Initialize(HookID::kUpdateFrame, ADDRESS_UPDATE_FRAME,
@@ -55,5 +54,8 @@ struct Engine {
 
     return hook->CallOriginal<s32>(addr);
   }
+
+private:
+  s32 frame_count = 0;
 };
 } // namespace feature

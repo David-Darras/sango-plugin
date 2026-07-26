@@ -39,6 +39,10 @@ public:
   bool show_fade_in = true;
   bool show_shiny_animation = true;
 
+  bool no_shader = false;
+  bool can_use_item = false;
+  bool use_pokeball_boost = false;
+
   STATIC_INLINE void Initialize() {
     // HookManager::GetInstance().Add(HookID::kOnStartTurn, 0x00759B74,
     //                                (uptr)OnStartTurn);
@@ -61,8 +65,81 @@ public:
                             ADDRESS_BATTLE_START_BACKGROUND_MUSIC,
                             (uptr)StartBattleBackgroundMusicHook);
     HookManager::Initialize(HookID::kPlayBattleAnimation,
-                            0x007510A8,
+                            ADDRESS_BATTLE_PLAY_ANIMATION,
                             (uptr)PlayAnimationHook, false);
+    HookManager::Initialize(HookID::kUpdateBattleView, ADDRESS_UPDATE_BATTLE_VIEW,
+                            (uptr)UpdateBattleViewHook, false);
+  }
+
+  STATIC_INLINE void Patch() {
+    HookManager::ForceEnable(HookID::kUpdateBattleView);
+    HookManager::ForceEnable(HookID::kUpdateExp);
+    HookManager::ForceEnable(HookID::kStartMegaEvolveAnimation);
+    HookManager::ForceEnable(HookID::kStartBattleAnimation);
+    HookManager::ForceEnable(HookID::kPlayBattleAnimation);
+
+    auto& feat = GetInstance();
+    if (!feat.can_use_item) {
+      // Only access to pokeball
+      WRITE(vu8, 0x007CB09C, 2); // HP/PP -> Ball
+      // WRITE(vu8, 0x007CB0B4, 2) // Ball
+      WRITE(vu8, 0x007CB0CC, 2); // Status -> Ball
+      WRITE(vu8, 0x007CB0E4, 2); // Battle -> Item
+    }
+
+    if (feat.use_pokeball_boost) {
+      // Disable master ball feature
+      ARM_NOP(0x007227A4);
+      ARM_NO_COND(0x007227B8);
+
+      // same ratio for all balls
+      WRITE(vu32, 0x007232E4, 0xE3A00A01); // mov r0, #0x1000
+      ARM_RET(0x007232E8);
+    }
+
+    if (feat.no_shader) {
+      ARM_RET(0x003989B0);
+      ARM_RET(0x003881EC);
+    }
+  }
+
+
+  static void UpdateBattleViewHook(uptr p0) {
+    static u32 counter = 20;
+    if (counter >= 20) {
+      FixPokemonSize();
+      counter = 0;
+    }
+    counter++;
+    HookManager::Call<void>(HookID::kUpdateBattleView, p0);
+  }
+
+  static void FixPokemonSize() {
+    for (u32 i = 0; i < 6; i++) {
+      u32 pkmMdl = *(u32*)(0x83F84C0 + 4 * i); // Base address of the 3D model
+      if (pkmMdl == 0)
+        continue;
+
+      u16 pkmNum = *(u16*)(pkmMdl + 0x170); // Pokédex number
+      if (pkmNum >= 722)
+        continue;
+
+      u32 pkmData = *(u32*)0x617A00 + 0x50 * pkmNum;
+      // Personal data of the Pokémon
+      float realSize = (float)*(u16*)(pkmData + 0x24);
+      // Actual height according to the Pokédex
+      float defaultSize = (float)*(u16*)(pkmData + 0x3C);
+      // Default displayed size in battle
+      float ratio = realSize / defaultSize;
+
+      // Update Pokémon scale
+      *(float*)(pkmMdl + 0x34) = ratio;
+      *(float*)(pkmMdl + 0x38) = ratio;
+      *(float*)(pkmMdl + 0x3C) = ratio;
+
+      // Mark the model to be updated
+      *(bool*)(pkmMdl + 0x4C) = true;
+    }
   }
 
   static void PlayAnimationHook(uptr view_manager, u16 id) {

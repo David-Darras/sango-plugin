@@ -23,7 +23,7 @@
 namespace feature {
 struct MapTile {
   MAKE_SINGLETON(MapTile)
-  bool is_enabled;
+  bool is_enabled = false;
   bool is_impassable;
   bool is_water;
   bool permits_encounters;

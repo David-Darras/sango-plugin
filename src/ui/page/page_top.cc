@@ -21,9 +21,6 @@
 #include "ui/page/page_top.h"
 
 #include "feature/feature_app.h"
-#include "feature/feature_texture.h"
-#include "game/process_manager.h"
-#include "game/savedata/pokemon_team.h"
 
 namespace ui {
 void LoadTopPage(MainApplication& app, void* args) {

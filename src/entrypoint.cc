@@ -24,7 +24,6 @@
 #include "feature/feature_pokemon_texture.h"
 #include "feature/feature_text_box.h"
 #include "feature/feature_device.h"
-#include "feature/feature_texture.h"
 #include "feature/feature_overworld_model.h"
 #include "feature/feature_app.h"
 #include "feature/feature_battle.h"
@@ -35,12 +34,8 @@
 #include "feature/feature_map_tile.h"
 #include "feature/feature_overworld.h"
 #include "feature/feature_pokemon_model.h"
-#include "feature/feature_process.h"
-#include "feature/feature_script.h"
+#include "feature/feature_process_patch.h"
 #include "feature/feature_shop.h"
-#include "feature/feature_title_screen.h"
-#include "feature/feature_weather.h"
-#include "game/constant/video.h"
 #include "ui/main_application.h"
 #include "system/device.h"
 #include "system/file.h"
@@ -54,10 +49,14 @@ c16 String::s_buffer[128];
 extern void UpdateOverworldWeather();
 extern void InitOverworldWeather();
 
+namespace kaizo {
+extern void Initialize();
+}
+
 void Initialize() {
   File::MountSdmc();
 
-  feature::ProcessHookContext::Initialize();
+  feature::ProcessPatch::Initialize();
   feature::DeviceState::Initialize();
   feature::Engine::Initialize();
   feature::Light::Initialize();
@@ -73,14 +72,16 @@ void Initialize() {
   feature::Battle::Initialize();
   feature::Encounter::Initialize();
   feature::FieldMove::Initialize();
-  feature::PokemonIconTexture::Initialize();
-  feature::Shop::Initialize();
   feature::Item::Initialize();
-  feature::Nuzlocke::Initialize();
   feature::Overworld::Initialize();
   feature::PokemonModel::Initialize();
   feature::MapDataLoader::Initialize();
-  // feature::Script::Initialize();
+
+  feature::Nuzlocke::Initialize();
+
+#ifdef KAIZO
+  kaizo::Initialize();
+#endif
 
   InitOverworldWeather();
 
@@ -88,7 +89,7 @@ void Initialize() {
   auto& root_app = ui::RootApplication::GetInstance();
   auto& main_app = ui::MainApplication::GetInstance();
 
-#if USE_NUZLOCKE_MENU == 1
+#if USE_NUZLOCKE_MENU == 0
   main_app.SetPainter(ui::RetroAppPainter::GetInstance());
   main_app.Open(ui::LoadNuzlockePage);
 #else
@@ -108,7 +109,6 @@ void Entrypoint() {
 
   application->Update(controller);
   cheat_code_manager.Update();
-  feature::ProcessHookContext::DoEachFrame();
   UpdateOverworldWeather();
 
   void* top_buffer = graphics.GetFramebuffer(Screen::kTop);

@@ -23,8 +23,6 @@
 #include "hook_manager.h"
 #include "game/overworld/map_data.h"
 #include "game/savedata/savedata_encounter.h"
-#include "system/file.h"
-#include "system/sound.h"
 
 namespace feature {
 struct Encounter {
@@ -48,12 +46,6 @@ struct Encounter {
 
     auto& map_id = overworld::MapManager::GetInstance().GetMapId();
 
-    // c16 buffer[BUFFER_SIZE];
-    // Utils::Format(buffer, u"sdmc:/encounter_%u.bin", map_id);
-    // File file(buffer, true);
-    // file.Write(data, sizeof(*data));
-    // file.Close();
-
     Nuzlocke::FixEncounterTable(data);
     // Sound::PlayPokemonCry(data->poke_info[0].species);
 
@@ -69,7 +61,6 @@ struct Encounter {
   static void RemoveMaxRepel() {
     savedata::Encounter::GetInstance().spray_count = 0;
   }
-
 
   struct PokemonData {
     u16 species;

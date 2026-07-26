@@ -53,6 +53,7 @@ typedef uintptr_t uptr;
 
 #define INLINE inline __attribute__((always_inline))
 #define STATIC_INLINE static inline __attribute__((always_inline))
+#define WEAK __attribute__((weak))
 
 // #define INLINE inline __attribute__((always_inline))
 // #define STATIC_INLINE STATIC_INLINE __attribute__((always_inline))
