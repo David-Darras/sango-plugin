@@ -62,8 +62,8 @@ struct TrainerData {
 };
 
 struct Config {
-  u8 _0;
-  u8 battle_format;
+  u8 battle_type; // wild, trainer
+  u8 battle_format; // solo, double, triple, rotation, horde
   u16 _1;
   u16 _2;
   u8 weather;

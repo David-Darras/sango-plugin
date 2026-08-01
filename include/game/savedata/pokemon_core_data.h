@@ -190,4 +190,22 @@ struct PokemonCoreData {
     iv_special_attack = 31;
     iv_special_defense = 31;
   }
+
+  void SetStats(u8 hp, u8 atk, u8 def, u8 sp_atk,
+                u8 sp_def, u8 spd) {
+    SetMaxIVs();
+    ev_hp = hp;
+    ev_attack = atk;
+    ev_defense = def;
+    ev_special_attack = sp_atk;
+    ev_special_defense = sp_def;
+    ev_speed = spd;
+  }
+
+  void SetMoves(u16 move1, u16 move2, u16 move3, u16 move4) {
+    moves[0] = move1;
+    moves[1] = move2;
+    moves[2] = move3;
+    moves[3] = move4;
+  }
 };

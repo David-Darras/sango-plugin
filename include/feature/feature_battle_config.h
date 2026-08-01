@@ -22,6 +22,7 @@
 #include "game/constant/form.h"
 #include "ui/log_application.h"
 #include "kaizo.h"
+#include "game/constant/battle_trainer.h"
 #include "game/constant/species.h"
 #include "game/savedata/pokemon_data_accessor.h"
 #include "game/savedata/pokemon_team.h"
@@ -59,6 +60,7 @@ struct BattleConfig {
                                            void* game_manager, u16 trainer_id,
                                            void* p1, u8 battle_format,
                                            void* p2) {
+    // trainer_id = BATTLE_TRAINER_ROUTE_102_GIRL;
     HookManager::Call<void>(HookID::kSetupTrainerBattleConfig,
                             config, game_manager, trainer_id, p1,
                             battle_format,

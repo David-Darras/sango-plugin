@@ -31,6 +31,15 @@ public:
     va_end(args);
   }
 
+  static String* FormatString(const c16* pIn, ...) {
+    va_list args;
+    va_start(args, pIn);
+    ((void (*)(c16*, u32, const c16*, va_list))ADDRESS_STD_VSWPRINTF)(
+        String::GetTmpBuf(), 128, pIn, args);
+    va_end(args);
+    return String::GetTmpStr();
+  }
+
   STATIC_INLINE u32 GetLength(const c16* pIn) {
     return ((u32 (*)(const c16*))ADDRESS_STD_WCSLEN)(pIn);
   }

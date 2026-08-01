@@ -32,6 +32,23 @@ struct Overworld {
     HookManager::Initialize(HookID::kGetOverworldBackgroundMusic,
                             ADDRESS_GET_OVERWORLD_BACKGROUND_MUSIC,
                             (uptr)GetBackgroundMusic);
+    HookManager::Initialize(HookID::kOverworldUpdateZone,
+                            ADDRESS_OVERWORLD_UPDATE_ZONE,
+                            (uptr)UpdateZone, false);
+  }
+
+  // load new encounter table, update the weather, etc.
+  static void UpdateZone(overworld::MapManager* manager) {
+    auto& next_map_id = manager->GetNextMapId();
+    static s32 state = 0;
+    if (next_map_id != 0xFFFF && state == 0) {
+      ui::LogApplication::Print(u"New Zone: %u", next_map_id);
+      state = 1;
+    }
+    if (next_map_id == 0xFFFF && state == 1) {
+      state = 0;
+    }
+    return HookManager::Call<void>(HookID::kOverworldUpdateZone, manager);
   }
 
   STATIC_INLINE void Patch() {
@@ -41,6 +58,7 @@ struct Overworld {
 
     HookManager::Enable(HookID::kGetEncounterPokemon);
     HookManager::ForceEnable(HookID::kCheckAppRequest);
+    HookManager::ForceEnable(HookID::kOverworldUpdateZone);
 
     // Simulate a button press
     WRITE(vu32, 0x00715C48, 0xE1A00000);

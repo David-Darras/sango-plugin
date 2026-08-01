@@ -14,20 +14,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
 #pragma once
 
-#define BATTLE_TRAINER_NONE (0)
-
-// ROUTE 103
-#define BATTLE_TRAINER_ROUTE_103_BRENDAN_1 (1)
-#define BATTLE_TRAINER_ROUTE_103_BRENDAN_2 (2)
-#define BATTLE_TRAINER_ROUTE_103_BRENDAN_3 (3)
-#define BATTLE_TRAINER_ROUTE_103_MAY_1 (4)
-#define BATTLE_TRAINER_ROUTE_103_MAY_2 (5)
-#define BATTLE_TRAINER_ROUTE_103_MAY_3 (6)
-
-// ROUTE 102
-#define BATTLE_TRAINER_ROUTE_102_KID_1 (7)
-#define BATTLE_TRAINER_ROUTE_102_KID_2 (8)
-#define BATTLE_TRAINER_ROUTE_102_KID_3 (301)
-#define BATTLE_TRAINER_ROUTE_102_GIRL (10)
+#define BATTLE_AI_CASUAL (1<<0)
+#define BATTLE_AI_COMPETITIVE (1<<1)
+#define BATTLE_AI_STRATEGIST (1<<2)
+#define BATTLE_AI_MULTI (1<<7)
+#define BATTLE_AI_HORDE (1<<14)

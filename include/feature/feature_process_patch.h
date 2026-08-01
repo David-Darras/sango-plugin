@@ -41,6 +41,9 @@ class ProcessPatch {
       case ADDRESS_APP_STATUS_VTABLE:
         GameApp::PatchAppStatus();
         break;
+      // case ADDRESS_APP_POKE_LIST_VTABLE:
+      //   ShowProcess();
+      //   break;
       default:
         break;
     }
@@ -76,11 +79,30 @@ class ProcessPatch {
       case ADDRESS_OVERWORLD_VTABLE:
         Overworld::Patch();
         break;
+      case ADDRESS_APP_STATUS_VTABLE:
+        GameApp::PatchLoadAppStatus();
+        break;
       default:
         break;
     }
   }
-};
+
+  // static void ShowProcess() {
+    // auto& man = game::ProcessManager::GetInstance();
+    // ui::LogApplication::Print(u"poke list = %08X", man.GetCurrentProcess());
+    // uptr addr = READ(vu32, 0x08C69214 + 0x90) + 0x50;
+    // WRITE(vu8, addr, 5);
+    // WRITE(vu8, addr+1, 5);
+    // WRITE(vu8, addr+2, 5);
+  // }
+}; //
 } // namespace feature
+
+/*
+ * 006F5978 E3A00000
+ * B8C692A4 00000000
+ * 00000050 03020100
+ * D2000000 00000000
+ */
 
 #endif //SANGO_PLUGIN_FEATURE_PROCESS_H

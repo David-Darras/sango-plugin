@@ -18,11 +18,9 @@
 #pragma once
 
 #ifdef __CLION_IDE__
-#define USE_NUZLOCKE_MENU 0
-#define USE_SANGO_PLUGIN 1
-#define USE_DEFAULT_CTRPF 1
-#define ENABLE_NUZLOCKE_FEATURES 1
-#define KAIZO 1
+#define USE_SANGO_PLUGIN
+#define USE_DEFAULT_CTRPF
+#define KAIZO
 #endif
 
 #include <types.h>

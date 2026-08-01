@@ -17,6 +17,7 @@
 
 #pragma once
 #include "common.h"
+#include "pokemon_data_accessor.h"
 #include "game/savedata/savedata.h"
 #include "game/savedata/pokemon_core_data.h"
 #include "game/savedata/pokemon_runtime_data.h"
@@ -43,6 +44,23 @@ struct PokemonTeam {
   SINGLETON(PokemonTeam)
   STATIC_INLINE PokemonTeam& GetInstance() {
     return game::DataManager::GetInstance().GetPokemonTeam();
+  }
+
+  u8 GetMaxLevel() const {
+    u8 max_level = 1;
+    for (u32 i = 0; i < count; i++) {
+      pokemons[i]->accessor->Decrypt();
+      u16 species = pokemons[i]->core->species;
+      u8 form = pokemons[i]->core->form;
+      u32 experience = pokemons[i]->core->experience;
+      pokemons[i]->accessor->Encrypt();
+      u8 level =
+          PokemonUtils::GetLevelFromExperience(species, form, experience);
+      if (level > max_level) {
+        max_level = level;
+      }
+    }
+    return max_level;
   }
 
 

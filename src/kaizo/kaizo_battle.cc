@@ -84,9 +84,9 @@ void PatchBattle() {
   battle.is_long_mega_evolve_animation = true;
   battle.show_enemy_pov = false;
   battle.show_fade_in = true;
-  battle.show_pokeball_animation = true;
+  battle.show_pokeball_animation = false;
   battle.show_shiny_animation = false;
-  battle.show_trainer_animation = true;
+  battle.show_trainer_animation = false;
   battle.sync_overworld_music = true;
 }
 

@@ -39,5 +39,6 @@ void PatchMoveData() {
   table[MOVE_ACID_ARMOR].base_pp = 1;
   table[MOVE_STOCKPILE].base_pp = 2;
   table[MOVE_CURSE].base_pp = 2;
+  table[MOVE_SUBSTITUTE].base_pp = 2;
 }
 } // namespace kaizo

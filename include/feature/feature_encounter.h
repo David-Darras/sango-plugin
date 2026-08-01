@@ -23,7 +23,12 @@
 #include "kaizo.h"
 #include "utils.h"
 #include "game/overworld/map_data.h"
+#include "game/savedata/pokemon_team.h"
 #include "game/savedata/savedata_encounter.h"
+
+namespace ui {
+class LogApplication;
+}
 
 namespace feature {
 struct Encounter {
@@ -85,9 +90,14 @@ struct Encounter {
     }
 
     u32 count = READ(u32, p0 + 108);
+    u8 max = savedata::PokemonTeam::GetInstance().GetMaxLevel();
     for (u32 i = 0; i < count; i++) {
       PokemonData& data = READ(PokemonData, p0 + i * sizeof(PokemonData));
       data.species = entry->species[Utils::GetRandomValue(entry->size)];
+      s8 rand = -3 + Utils::GetRandomValue(2);
+      ui::LogApplication::Print(u"rand: %d, max: %d", rand, max);
+      data.level = max + rand;
+      data.ivs = 0xFF;
     }
 #endif
 

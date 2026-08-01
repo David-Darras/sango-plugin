@@ -22,6 +22,7 @@
 #include "game/overworld/map_data.h"
 #include "kaizo.h"
 #include "game/overworld/map_manager.h"
+#include "ui/log_application.h"
 
 namespace kaizo {
 static const u16 ROUTE_101[] = {
@@ -88,10 +89,15 @@ static const u16 ROUTE_104_NORTH[] = {
     SPECIES_HAWLUCHA
 };
 
+static const u16 PETALBURG_CITY[] = {
+    SPECIES_UNOWN
+};
+
 static const EncounterEntry s_table[] = {
     {MAP_ROUTE_101, SIZE(ROUTE_101), ROUTE_101},
     {MAP_ROUTE_102, SIZE(ROUTE_102), ROUTE_102},
     {MAP_ROUTE_103, SIZE(ROUTE_103), ROUTE_103},
+    {MAP_PETALBURG_CITY, SIZE(PETALBURG_CITY), PETALBURG_CITY},
     {MAP_ROUTE_104_SOUTH, SIZE(ROUTE_104_SOUTH), ROUTE_104_SOUTH},
     {MAP_PETALBURG_WOODS, SIZE(PETALBURG_WOODS), PETALBURG_WOODS},
     {MAP_ROUTE_104_NORTH, SIZE(ROUTE_104_NORTH), ROUTE_104_NORTH},

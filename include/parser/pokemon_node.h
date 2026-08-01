@@ -65,10 +65,10 @@ struct PokemonNode {
   void SetNickname(const std::string& str) {
     size_t len = std::min(str.length(), static_cast<size_t>(12));
     for (size_t i = 0; i < len; ++i) {
+      if (str[i] != ' ') has_nickname = true;
       nickname[i] = static_cast<char16_t>(str[i]);
     }
     nickname[len] = u'\0';
-    has_nickname = true;
   }
 };
 

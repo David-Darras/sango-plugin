@@ -18,8 +18,10 @@
 #pragma once
 #include "common.h"
 #include "hook_manager.h"
+#include "../game/renderer/app_layout_manager.h"
 #include "game/manager.h"
 #include "game/process_manager.h"
+#include "game/renderer/text_box.h"
 #include "game/savedata/bag_manager.h"
 #include "game/savedata/battle_box.h"
 #include "game/savedata/box_manager.h"
@@ -38,6 +40,12 @@ class GameApp {
   bool open_app = false;
   u32 app_id = 0;
 
+  struct AppStatus {
+    u8 state = 0;
+  };
+
+  AppStatus app_status;
+
 public:
   STATIC_INLINE void Initialize() {
     // Alloc 0x100 bytes for app hook
@@ -47,14 +55,70 @@ public:
                             (uptr)CallAppHook);
     HookManager::Initialize(HookID::kCheckAppRequest, ADDRESS_CHECK_APP_REQUEST,
                             (uptr)CheckAppRequestHook, false);
+    HookManager::Initialize(HookID::kAppStatusSetupGraphics,
+                            ADDRESS_APP_STATUS_SETUP_GRAPHICS,
+                            (uptr)AppStatusSetupGraphicsHook, false);
+  }
+
+  static void AppStatusSetupGraphicsHook(uptr self,
+                                         savedata::PokemonParam* pokemon) {
+    HookManager::Call<void>(HookID::kAppStatusSetupGraphics, self, pokemon);
+
+    auto& manager = *(AppLayoutManager*)(READ(uptr, self + 8 + 16));
+
+    auto& state = GetInstance().app_status.state;
+    static const char* PREFIX[3] = {"", "IV ", "EV "};
+    const Color8 COLORS[3][2] = {
+        {{255, 255, 255, 255}, {200, 200, 200, 255}},
+        {{255, 0, 255, 255}, {255, 220, 220, 255}},
+        {{0, 255, 255, 255}, {220, 220, 255, 255}},
+    };
+
+    pokemon->accessor->Decrypt();
+    auto& core = *pokemon->core;
+    auto& runtime = *pokemon->runtime;
+    const u16 VALUES[3][6] = {
+        {runtime.hp, runtime.attack, runtime.defense, runtime.special_attack,
+         runtime.special_defense, runtime.speed},
+        {(u16)core.iv_hp, (u16)core.iv_attack, (u16)core.iv_defense,
+         (u16)core.iv_special_attack,
+         (u16)core.iv_special_defense, (u16)core.iv_speed},
+        {(u16)core.ev_hp, (u16)core.ev_attack, (u16)core.ev_defense,
+         (u16)core.ev_special_attack,
+         (u16)core.ev_special_defense, (u16)core.ev_speed},
+    };
+    pokemon->accessor->Encrypt();
+
+    const char* prefix = PREFIX[state];
+    Color8 top = COLORS[state][0];
+    Color8 bottom = COLORS[state][1];
+    const u16* values = VALUES[state];
+
+    static const u8 LABEL_PANES[] = {0, 8, 12, 16, 20, 24};
+    static const u8 VALUE_PANES[] = {4, 10, 14, 18, 22, 26};
+    static const u8 TEXTS[] = {17, 19, 21, 23, 25, 27};
+    static const c16* LABELS[] = {
+        u"%sHP", u"%sAttack", u"%sDefense", u"%sSp. Atk", u"%sSp. Def",
+        u"%sSpeed"
+    };
+
+    for (u32 i = 0; i < 6; i++) {
+      manager.SetTextBoxStringValue(0, LABEL_PANES[i], LABELS[i], prefix);
+      manager.SetTextBoxColor(0, LABEL_PANES[i], &top, &bottom);
+      manager.SetTextBoxIntegerValue(0, VALUE_PANES[i], TEXTS[i], values[i], 3);
+      manager.SetTextBoxColor(0, VALUE_PANES[i], &top, &bottom);
+    }
+
+    manager.Hide(0, 2); // don't show /
+    manager.Hide(0, 6); // don't show max hp
+  }
+
+  static void PatchLoadAppStatus() {
+    HookManager::ForceEnable(HookID::kAppStatusSetupGraphics);
   }
 
   static void PatchAppStatus() {
     auto& controller = Controller::GetInstance();
-    static u32 index = 0;
-    static u32 get_stats[] = {
-        ADDRESS_POKEMON_GET_STATS, ADDRESS_POKEMON_GET_EVS,
-        ADDRESS_POKEMON_GET_IVS};
     static u32 pokemon_index = 0;
     u32 max = savedata::PokemonTeam::GetInstance().count;
     if (controller.IsKeyPressed(Key::kDown)) {
@@ -63,17 +127,16 @@ public:
     if (controller.IsKeyPressed(Key::kUp)) {
       pokemon_index = (pokemon_index - 1 + max) % max;
     }
+    u8& state = GetInstance().app_status.state;
     if (controller.IsKeyPressed(Key::kR)) {
-      index = (index + 1) % 3;
-      WRITE(vu32, ADDRESS_APP_STATUS_GET_STAT_TRAMPOLINE, get_stats[index]);
+      state = (state + 1) % 3;
       game::BaseProcess* process = game::ProcessManager::GetInstance().
           GetCurrentProcess();
       ((void(*)(void*, u32, bool))ADDRESS_APP_STATUS_UPDATE_POKEMON)(process,
         pokemon_index, false);
     }
     if (controller.IsKeyPressed(Key::kL)) {
-      index = (index - 1 + 3) % 3;
-      WRITE(vu32, ADDRESS_APP_STATUS_GET_STAT_TRAMPOLINE, get_stats[index]);
+      state = (state - 1 + 3) % 3;
       game::BaseProcess* process = game::ProcessManager::GetInstance().
           GetCurrentProcess();
       ((void(*)(void*, u32, bool))ADDRESS_APP_STATUS_UPDATE_POKEMON)(process,
