@@ -19,7 +19,7 @@
 
 #ifdef __CLION_IDE__
 #define USE_SANGO_PLUGIN
-#define USE_DEFAULT_CTRPF
+// #define USE_DEFAULT_CTRPF
 #define KAIZO
 #endif
 

@@ -33,8 +33,6 @@
 #include "game/constant/species.h"
 #include "game/savedata/pokemon_data_accessor.h"
 #include "game/savedata/pokemon_team.h"
-#include "parser/pokemon_node.h"
-#include "parser/pokemon_showdown_parser.h"
 #include "ui/log_application.h"
 
 namespace kaizo {
@@ -297,61 +295,6 @@ void PatchTrainer_Level(battle::Config& config) {
   }
 }
 
-void PatchTrainer_Showdown(battle::Config& config, u16& trainer_id) {
-  parser::AST ast;
-  c16 buffer[BUFFER_SIZE];
-
-  Utils::Format(
-      buffer, u"sdmc:/luma/plugins/000400000011C500/trainers/%u.txt",
-      trainer_id);
-  bool res = parser::ParsePokemonShowdownFile(buffer, ast);
-  if (!res) {
-    ui::LogApplication::Print(u"Error");
-    return;
-  }
-
-  config.pokemon_teams[1]->count = ast.size();
-
-  u32 index = 0;
-  for (const auto& node : ast) {
-    auto& pkm = *config.pokemon_teams[1]->pokemons[index++]->core;
-
-    pkm.species = node.species;
-    if (node.has_nickname) {
-      pkm.SetNickname(node.nickname);
-    } else {
-      pkm.ResetNickname();
-    }
-    pkm.gender = node.gender;
-    pkm.item = node.item;
-    pkm.ability = node.ability;
-    pkm.SetShiny(node.is_shiny);
-    pkm.ball = node.ball;
-    pkm.nature = node.nature;
-    pkm.SetLevel(node.level);
-    pkm.contest_friendship = pkm.happiness = node.happiness;
-
-    pkm.moves[0] = node.moves[0];
-    pkm.moves[1] = node.moves[1];
-    pkm.moves[2] = node.moves[2];
-    pkm.moves[3] = node.moves[3];
-
-    pkm.ev_hp = node.evs.hp;
-    pkm.ev_attack = node.evs.atk;
-    pkm.ev_defense = node.evs.def;
-    pkm.ev_speed = node.evs.spe;
-    pkm.ev_special_attack = node.evs.spa;
-    pkm.ev_special_defense = node.evs.spd;
-
-    pkm.iv_hp = node.ivs.hp;
-    pkm.iv_attack = node.ivs.atk;
-    pkm.iv_defense = node.ivs.def;
-    pkm.iv_speed = node.ivs.spe;
-    pkm.iv_special_attack = node.ivs.spa;
-    pkm.iv_special_defense = node.ivs.spd;
-  }
-}
-
 void PatchTrainerData(battle::Config& config, u16& trainer_id) {
   ui::LogApplication::Print(u"[%u] %ls %ls wants to battle!", trainer_id,
                             config.trainer_data[1]->name->GetBuffer(),
@@ -389,7 +332,6 @@ void PatchTrainerData(battle::Config& config, u16& trainer_id) {
       PatchTrainer_Route_102_Girl(config);
       break;
     default:
-      PatchTrainer_Showdown(config, trainer_id);
       break;
   }
 
