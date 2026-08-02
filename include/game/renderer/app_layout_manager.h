@@ -18,6 +18,7 @@
 #pragma once
 
 #include "common.h"
+#include "picture.h"
 #include "ui/log_application.h"
 
 namespace renderer {
@@ -45,6 +46,16 @@ public:
       0x004C8CE0)(GetToken(layout_id), pane_id);
   }
 
+  INLINE renderer::Picture* GetPicture(u32 layout_id, u32 pane_id) {
+    return ((renderer::Picture*(*)(uptr, u32))
+      0x4C8C88)(GetToken(layout_id), pane_id);
+  }
+
+  INLINE renderer::Pane* GetPane(u32 layout_id, u32 pane_id) {
+    return ((renderer::Pane*(*)(uptr, u32))
+      0x4C8C30)(GetToken(layout_id), pane_id);
+  }
+
   void
   SetTextBoxStringValue(u32 layout_id, u32 pane_id, const c16* str, ...) {
     va_list args;
@@ -56,6 +67,7 @@ public:
     ((void(*)(renderer::TextBox*, String*))0x4195F4)(
         GetTextBox(layout_id, pane_id), String::GetTmpStr());
   }
+
 
   INLINE void SetTextBoxIntegerValue(u32 layout_id, u32 pane_id, u32 text_id,
                                      u32 value,
@@ -74,17 +86,31 @@ public:
         );
   }
 
-  INLINE void Show(u32 layout_id, u32 pane_id) {
+  INLINE void ShowPane(u32 layout_id, u32 pane_id) {
     return ((void(*)(AppLayoutManager*, u32, u32, bool))
       ADDRESS_APP_LAYOUT_MANAGER_SHOW_PANE)(
         this, layout_id, pane_id, true
         );
   }
 
-  INLINE void Hide(u32 layout_id, u32 pane_id) {
+  INLINE void HidePane(u32 layout_id, u32 pane_id) {
     return ((void(*)(AppLayoutManager*, u32, u32, bool))
       ADDRESS_APP_LAYOUT_MANAGER_SHOW_PANE)(
         this, layout_id, pane_id, false
+        );
+  }
+
+  INLINE void ShowAnimation(u32 layout_id, u32 anim_id) {
+    return ((void(*)(AppLayoutManager*, u32, u32, bool, bool))
+      ADDRESS_APP_LAYOUT_MANAGER_SHOW_ANIMATION)(
+        this, layout_id, anim_id, true, true
+        );
+  }
+
+  INLINE void HideAnimation(u32 layout_id, u32 anim_id) {
+    return ((void(*)(AppLayoutManager*, u32, u32, bool))
+      ADDRESS_APP_LAYOUT_MANAGER_HIDE_ANIMATION)(
+        this, layout_id, anim_id, false
         );
   }
 };

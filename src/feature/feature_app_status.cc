@@ -21,7 +21,9 @@
 #include "game/renderer/app_layout_manager.h"
 #include "game/constant/ability.h"
 #include "game/constant/form.h"
+#include "game/constant/move.h"
 #include "game/constant/species.h"
+#include "game/renderer/text_box.h"
 
 #define NEXT(x, val, max) x = ((x) + (val)) % (max)
 #define PREV(x, val, max) x = ((x) - (val) + (max)) % (max)
@@ -98,24 +100,26 @@ class BaseProcess;
 namespace feature {
 class Pane {
 public:
-  Pane(u8 label_id, void (*prev)(PokemonCoreData& core, u32 value),
+  Pane(bool is_white, u8 label_id,
+       void (*prev)(PokemonCoreData& core, u32 value),
        void (*next)(PokemonCoreData& core, u32 value),
        void (*print)(Pane* pane, AppLayoutManager& manager,
                      PokemonDataAccessor& accessor) =
            nullptr) :
+    is_white_(is_white),
     label_pane_id_(label_id),
     value_pane_id_(label_id + 2),
     prev_(prev),
     next_(next), print_(print) {
   }
 
-  Pane(u8 label_id, u8 value_id, u8 text_id,
+  Pane(bool is_white, u8 label_id, u8 value_id, u8 text_id,
        void (*prev)(PokemonCoreData& core, u32 value),
        void (*next)(PokemonCoreData& core, u32 value),
        void (*print)(Pane* pane, AppLayoutManager& manager,
                      PokemonDataAccessor& accessor) =
            nullptr) :
-    Pane(label_id, prev, next, print) {
+    Pane(is_white, label_id, prev, next, print) {
     value_pane_id_ = value_id;
     text_id_ = text_id;
   }
@@ -145,20 +149,34 @@ public:
   u8 label_pane_id_ = 0;
   u8 value_pane_id_ = 0;
   u8 text_id_ = 0;
+  bool is_white_;
 };
 
-#define DEFINE_PANE(id, name, field, max)\
+static Color8 WHITE(255, 255, 255, 255);
+static Color8 BLACK(0, 0, 0, 255);
+
+#define DEFINE_PANE(color, id0, id1, name, field, max)\
 static void next_##name(PokemonCoreData& core, u32 value) {\
 NEXT(core.field, value, max);\
 }\
 static void prev_##name(PokemonCoreData& core, u32 value) {\
 PREV(core.field, value, max);\
 }\
-static Pane pane_##name(id, prev_##name, next_##name);
+static Pane pane_##name(color, id0, id1, 0xFF, prev_##name, next_##name, nullptr);
 
-DEFINE_PANE(58, dex_no, species, SPECIES_COUNT)
-DEFINE_PANE(62, id_no, id, 0xFFFFFFFF)
-DEFINE_PANE(38, ability, ability, ABILITY_COUNT)
+DEFINE_PANE(true, 58, 60, dex_no, species, SPECIES_COUNT)
+DEFINE_PANE(true, 62, 64, id_no, id, 0xFFFFFFFF)
+DEFINE_PANE(true, 38, 40, ability, ability, ABILITY_COUNT)
+DEFINE_PANE(false, 0, 0xFF, move_0, moves[0], MOVE_COUNT)
+DEFINE_PANE(false, 18, 0xFF, move_1, moves[1], MOVE_COUNT)
+DEFINE_PANE(false, 34, 0xFF, move_2, moves[2], MOVE_COUNT)
+DEFINE_PANE(false, 50, 0xFF, move_3, moves[3], MOVE_COUNT)
+DEFINE_PANE(false, 0xFF, 0xFF, contest_cool, contest.cool, 256)
+DEFINE_PANE(false, 0xFF, 0xFF, contest_beautiful, contest.beautiful, 256)
+DEFINE_PANE(false, 0xFF, 0xFF, contest_cute, contest.cute, 256)
+DEFINE_PANE(false, 0xFF, 0xFF, contest_smart, contest.smart, 256)
+DEFINE_PANE(false, 0xFF, 0xFF, contest_tough, contest.tough, 256)
+//DEFINE_PANE(false, 0xFF, 0xFF, contest_sheen, contest.sheen, 256)
 
 #undef DEFINE_PANE
 
@@ -194,7 +212,7 @@ manager.SetTextBoxStringValue(0, pane->label_pane_id_, u"%s", str);\
 manager.SetTextBoxIntegerValue(0, pane->value_pane_id_, pane->text_id_, (u32)runtime.stat_field, 3);\
 }\
 }\
-static Pane pane_##name(id0, id1, id2, prev_##name, next_##name, print_##name);
+static Pane pane_##name(true, id0, id1, id2, prev_##name, next_##name, print_##name);
 
 STAT_PANE_FUNCS("HP", hp, 0, 4, 17, hp, iv_hp, ev_hp)
 STAT_PANE_FUNCS("Attack", attack, 8, 10, 19, attack, iv_attack, ev_attack)
@@ -224,7 +242,8 @@ static void print_form_no(Pane* pane, AppLayoutManager& manager,
                                  accessor.GetCoreData()->form, 2);
 }
 
-static Pane pane_form_no(34, 36, 14, prev_form_no, next_form_no, print_form_no);
+static Pane pane_form_no(true, 34, 36, 14, prev_form_no, next_form_no,
+                         print_form_no);
 
 static void toggle_shiny(PokemonCoreData& core, u32 value) {
   if (PokemonUtils::IsShiny(core.id, core.shiny_id)) {
@@ -243,7 +262,8 @@ static void print_shiny(Pane* pane, AppLayoutManager& manager,
                                  is_shiny, 1);
 }
 
-static Pane pane_shiny(66, 68, 11, toggle_shiny, toggle_shiny, print_shiny);
+static Pane pane_shiny(true, 66, 68, 11, toggle_shiny, toggle_shiny,
+                       print_shiny);
 
 struct Direction {
   Pane* center;
@@ -253,7 +273,7 @@ struct Direction {
   Pane* left;
 };
 
-Direction DIRECTIONS[] = {
+static Direction DIRECTIONS[] = {
     // top-left
     {&pane_dex_no, nullptr, &pane_hp, &pane_id_no, nullptr},
     {&pane_id_no, &pane_dex_no, &pane_hp, &pane_shiny, nullptr},
@@ -266,7 +286,34 @@ Direction DIRECTIONS[] = {
     {&pane_sp_attack, &pane_defense, nullptr, &pane_sp_defense, &pane_dex_no},
     {&pane_sp_defense, &pane_sp_attack, nullptr, &pane_speed, &pane_dex_no},
     {&pane_speed, &pane_sp_defense, nullptr, &pane_ability, &pane_dex_no},
-    {&pane_ability, &pane_speed, nullptr, nullptr, &pane_dex_no},
+    {&pane_ability, &pane_speed, nullptr, &pane_move_0, &pane_dex_no},
+    // bottom-right
+    {&pane_move_0, &pane_ability, nullptr, &pane_move_1, &pane_dex_no},
+    {&pane_move_1, &pane_move_0, nullptr, &pane_move_2, &pane_dex_no},
+    {&pane_move_2, &pane_move_1, nullptr, &pane_move_3, &pane_dex_no},
+    {&pane_move_3, &pane_move_2, nullptr, nullptr, &pane_dex_no},
+    // star
+    {&pane_contest_cool, nullptr, &pane_contest_beautiful, nullptr, nullptr},
+    {&pane_contest_beautiful, nullptr, &pane_contest_cute, nullptr, nullptr},
+    {&pane_contest_cute, nullptr, &pane_contest_smart, nullptr, nullptr},
+    {&pane_contest_smart, nullptr, &pane_contest_tough, nullptr, nullptr},
+    {&pane_contest_tough, nullptr, &pane_contest_cool, nullptr, nullptr},
+    //{&pane_contest_sheen, nullptr, &pane_contest_cool, nullptr, nullptr},
+};
+
+static Pane* DRAW_PARAMS[] = {
+    &pane_dex_no, &pane_id_no, &pane_shiny,
+    &pane_form_no, &pane_hp, &pane_attack,
+    &pane_defense, &pane_sp_attack, &pane_sp_defense,
+    &pane_speed, &pane_ability
+};
+
+static Pane* DRAW_MOVES[] = {
+    &pane_move_0, &pane_move_1, &pane_move_2, &pane_move_3
+};
+
+static Pane* SUB_MENUS[] = {
+    &pane_dex_no, &pane_contest_cool, &pane_dex_no
 };
 
 void AppStatus::Update(savedata::PokemonParam& pokemon,
@@ -285,8 +332,16 @@ void AppStatus::Update(savedata::PokemonParam& pokemon,
         case Key::kUp:
           PREV(slot_, 1, pokemon_count);
           break;
+        case Key::kRight:
+          ENUM_NEXT(SubMenu, sub_menu_, 1);
+          break;
+        case Key::kLeft:
+          ENUM_PREV(SubMenu, sub_menu_, 1);
+          break;
         case Key::kY:
           refresh = true;
+          current_pane_ = SUB_MENUS[static_cast<u32>(sub_menu_)];
+          ui::LogApplication::Print(u"c=%p", current_pane_);
           ChangeMode(Mode::kNavigation);
           break;
         default:
@@ -354,6 +409,8 @@ void AppStatus::Update(savedata::PokemonParam& pokemon,
       }
       accessor.Encrypt();
       pokemon.UpdateRuntimeData();
+      // To fix PP
+      savedata::PokemonTeam::GetInstance().HealAllPokemons();
       break;
     }
   }
@@ -417,44 +474,116 @@ void AppStatus::ChangeMode(Mode mode) {
   is_game_input_disabled_ = mode_ != Mode::kIdle;
 }
 
-void AppStatus::Draw(PokemonDataAccessor& accessor,
+void AppStatus::Draw(Pane* panes[], u32 pane_count,
+                     PokemonDataAccessor& accessor,
                      AppLayoutManager& manager) const {
-  Color8 white(255, 255, 255, 255);
   accessor.Decrypt();
-  for (u32 i = 0; i < SIZE(DIRECTIONS); i++) {
-    Pane* pane = DIRECTIONS[i].center;
-    pane->Draw(manager, accessor, white, white);
+  for (u32 i = 0; i < pane_count; i++) {
+    if (panes[i]->is_white_) {
+      panes[i]->Draw(manager, accessor, WHITE, WHITE);
+    } else {
+      panes[i]->Draw(manager, accessor, BLACK, BLACK);
+    }
   }
   accessor.Encrypt();
 
-  if (mode_ == Mode::kNavigation) {
-    Color8 top(255, 0, 0, 255);
-    Color8 bottom(255, 255, 0, 255);
-    current_pane_->SetColors(manager, top, bottom);
-  } else if (mode_ == Mode::kEditing) {
-    Color8 top(255, 0, 255, 255);
-    Color8 bottom(255, 255, 255, 255);
-    current_pane_->SetColors(manager, top, bottom);
-  } else {
-    current_pane_->SetColors(manager, white, white);
+  bool contains_current = false;
+  for (u32 i = 0; i < pane_count; i++) {
+    if (panes[i] == current_pane_) {
+      contains_current = true;
+      break;
+    }
+  }
+
+  if (contains_current) {
+    if (mode_ == Mode::kNavigation) {
+      if (current_pane_->is_white_) {
+        Color8 top(255, 0, 0, 255);
+        Color8 bottom(255, 255, 0, 255);
+        current_pane_->SetColors(manager, top, bottom);
+      } else {
+        Color8 top(255, 0, 0, 255);
+        Color8 bottom(120, 120, 120, 255);
+        current_pane_->SetColors(manager, top, bottom);
+      }
+    } else if (mode_ == Mode::kEditing) {
+      if (current_pane_->is_white_) {
+        Color8 top(255, 0, 255, 255);
+        Color8 bottom(255, 255, 255, 255);
+        current_pane_->SetColors(manager, top, bottom);
+      } else {
+        Color8 top(255, 0, 255, 255);
+        Color8 bottom(120, 120, 120, 255);
+        current_pane_->SetColors(manager, top, bottom);
+      }
+    }
   }
 }
 
-void AppStatus::SetupGraphicsHook(uptr self,
-                                  savedata::PokemonParam* pokemon) {
-  HookManager::Call<void>(HookID::kAppStatusSetupGraphics, self, pokemon);
+void AppStatus::SetupGraphicsParamsHook(uptr self,
+                                        savedata::PokemonParam* pokemon) {
+  HookManager::Call<void>(HookID::kAppStatusSetupGraphicsParams, self, pokemon);
 
   auto& ctx = GetInstance();
   auto& manager = *(AppLayoutManager*)(READ(uptr, self + 8 + 16));
 
-  ctx.Draw(*pokemon->accessor, manager);
+  ctx.Draw(DRAW_PARAMS, SIZE(DRAW_PARAMS), *pokemon->accessor, manager);
 
-  manager.Hide(0, 2); // don't show /
-  manager.Hide(0, 6); // don't show max hp
+  manager.HidePane(0, 2); // don't show /
+  manager.HidePane(0, 6); // don't show max hp
+}
 
-  // pokemon->accessor->Decrypt();
+void AppStatus::SetupGraphicsMovesHook(uptr self,
+                                       savedata::PokemonParam* pokemon,
+                                       u8 move_index) {
+  HookManager::Call<void>(HookID::kAppStatusSetupGraphicsMoves, self, pokemon,
+                          move_index);
 
-  // pokemon->accessor->Encrypt();
+  auto& ctx = GetInstance();
+  auto& manager = *(AppLayoutManager*)(READ(uptr, self + 16));
+
+  ctx.Draw(DRAW_MOVES, SIZE(DRAW_MOVES), *pokemon->accessor, manager);
+}
+
+void AppStatus::SetupGraphicsContestHook(uptr self,
+                                         savedata::PokemonParam* pokemon) {
+  HookManager::Call<void>(HookID::kAppStatusSetupGraphicsContest, self,
+                          pokemon);
+
+  auto& ctx = GetInstance();
+  auto& manager = *(AppLayoutManager*)(READ(uptr, self + 8 + 16));
+
+  static const u8 CONTEST[5][6] = {
+      {148, 146, 144, 12, 17, 22},
+      {152, 164, 166, 13, 18, 23},
+      {154, 168, 170, 14, 19, 24},
+      {156, 172, 174, 15, 20, 25},
+      {158, 176, 178, 16, 21, 26},
+  };
+
+  static const Pane* CONTEST_PANES[] = {
+      &pane_contest_cool,
+      &pane_contest_beautiful,
+      &pane_contest_cute,
+      &pane_contest_smart,
+      &pane_contest_tough,
+  };
+
+  for (u32 i = 0; i < 5; i++) {
+    if (ctx.current_pane_ == CONTEST_PANES[i]) {
+      manager.ShowPane(0, CONTEST[i][0]);
+      manager.ShowPane(0, CONTEST[i][1]);
+      manager.ShowPane(0, CONTEST[i][2]);
+      manager.ShowAnimation(0, CONTEST[i][3]);
+      manager.ShowAnimation(0, CONTEST[i][4]);
+    } else {
+      manager.HidePane(0, CONTEST[i][0]);
+      manager.HidePane(0, CONTEST[i][1]);
+      manager.HidePane(0, CONTEST[i][2]);
+      manager.HideAnimation(0, CONTEST[i][3]);
+      manager.HideAnimation(0, CONTEST[i][4]);
+    }
+  }
 }
 
 void AppStatus::PatchOnUpdate() {
@@ -467,12 +596,14 @@ void AppStatus::PatchOnUpdate() {
 }
 
 void AppStatus::PatchOnLoad() {
-  HookManager::ForceEnable(HookID::kAppStatusSetupGraphics);
+  HookManager::ForceEnable(HookID::kAppStatusSetupGraphicsParams);
+  HookManager::ForceEnable(HookID::kAppStatusSetupGraphicsMoves);
+  HookManager::ForceEnable(HookID::kAppStatusSetupGraphicsContest);
   auto& ctx = GetInstance();
   ctx.page_ = Page::kStat;
   ctx.slot_ = 0;
+  ctx.sub_menu_ = SubMenu::kParamsAndMoves;
   ctx.ChangeMode(Mode::kIdle);
-  ctx.current_pane_ = DIRECTIONS[0].center;
 }
 }
 

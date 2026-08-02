@@ -29,15 +29,26 @@ class AppStatus {
   MAKE_SINGLETON(AppStatus)
 public:
   STATIC_INLINE void Initialize() {
-    HookManager::Initialize(HookID::kAppStatusSetupGraphics,
-                            ADDRESS_APP_STATUS_SETUP_GRAPHICS,
-                            (uptr)SetupGraphicsHook, false);
+    HookManager::Initialize(HookID::kAppStatusSetupGraphicsParams,
+                            ADDRESS_APP_STATUS_SETUP_GRAPHICS_PARAMS,
+                            (uptr)SetupGraphicsParamsHook, false);
+    HookManager::Initialize(HookID::kAppStatusSetupGraphicsMoves,
+                            ADDRESS_APP_STATUS_SETUP_GRAPHICS_MOVES,
+                            (uptr)SetupGraphicsMovesHook, false);
+    HookManager::Initialize(HookID::kAppStatusSetupGraphicsContest,
+                            ADDRESS_APP_STATUS_SETUP_GRAPHICS_CONTEST,
+                            (uptr)SetupGraphicsContestHook, false);
   }
 
   static void PatchOnLoad();
   static void PatchOnUpdate();
-  static void SetupGraphicsHook(uptr self,
-                                savedata::PokemonParam* pokemon);
+  static void SetupGraphicsParamsHook(uptr self,
+                                      savedata::PokemonParam* pokemon);
+  static void SetupGraphicsMovesHook(uptr self,
+                                     savedata::PokemonParam* pokemon,
+                                     u8 move_index);
+  static void SetupGraphicsContestHook(uptr self,
+                                       savedata::PokemonParam* pokemon);
 
   enum class Mode : u8 {
     kIdle,
@@ -52,17 +63,26 @@ public:
     kMax
   };
 
+  enum class SubMenu : u8 {
+    kParamsAndMoves,
+    kContest,
+    kOther,
+    kMax
+  };
+
   bool& is_game_input_disabled_ = DeviceState::GetInstance().
       use_redirection;
 
   s8 slot_; // selected pokemon
   Mode mode_;
   Page page_;
+  SubMenu sub_menu_;
   Pane* current_pane_;
 
   void Update(savedata::PokemonParam& pokemon, Controller& controller);
   void MoveAcrossPanes(Controller& controller);
   void ChangeMode(Mode mode);
-  void Draw(PokemonDataAccessor& accessor, AppLayoutManager& manager) const;
+  void Draw(Pane* panes[], u32 pane_count, PokemonDataAccessor& accessor,
+            AppLayoutManager& manager) const;
 };
 }
