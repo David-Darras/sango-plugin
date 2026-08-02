@@ -66,11 +66,11 @@ public:
         );
   }
 
-  INLINE void SetTextBoxColor(u32 layout_id, u32 pane_id, Color8* top_color,
-                              Color8* bottom_color) {
+  INLINE void SetTextBoxColor(u32 layout_id, u32 pane_id, Color8& top_color,
+                              Color8& bottom_color) {
     return ((void(*)(AppLayoutManager*, u32, u32, Color8*, Color8*))
       ADDRESS_APP_LAYOUT_MANAGER_SET_TEXT_BOX_COLOR)(
-        this, layout_id, pane_id, top_color, bottom_color
+        this, layout_id, pane_id, &top_color, &bottom_color
         );
   }
 

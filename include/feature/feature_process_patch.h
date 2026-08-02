@@ -19,6 +19,7 @@
 #define SANGO_PLUGIN_FEATURE_PROCESS_H
 
 #include "feature_app.h"
+#include "feature_app_status.h"
 #include "feature_battle.h"
 #include "feature_title_screen.h"
 #include "game/process_manager.h"
@@ -39,11 +40,8 @@ class ProcessPatch {
   static void OnUpdate(uptr vtable) {
     switch (vtable) {
       case ADDRESS_APP_STATUS_VTABLE:
-        GameApp::PatchAppStatus();
+        AppStatus::PatchOnUpdate();
         break;
-      // case ADDRESS_APP_POKE_LIST_VTABLE:
-      //   ShowProcess();
-      //   break;
       default:
         break;
     }
@@ -80,7 +78,7 @@ class ProcessPatch {
         Overworld::Patch();
         break;
       case ADDRESS_APP_STATUS_VTABLE:
-        GameApp::PatchLoadAppStatus();
+        AppStatus::PatchOnLoad();
         break;
       default:
         break;
@@ -88,12 +86,12 @@ class ProcessPatch {
   }
 
   // static void ShowProcess() {
-    // auto& man = game::ProcessManager::GetInstance();
-    // ui::LogApplication::Print(u"poke list = %08X", man.GetCurrentProcess());
-    // uptr addr = READ(vu32, 0x08C69214 + 0x90) + 0x50;
-    // WRITE(vu8, addr, 5);
-    // WRITE(vu8, addr+1, 5);
-    // WRITE(vu8, addr+2, 5);
+  // auto& man = game::ProcessManager::GetInstance();
+  // ui::LogApplication::Print(u"poke list = %08X", man.GetCurrentProcess());
+  // uptr addr = READ(vu32, 0x08C69214 + 0x90) + 0x50;
+  // WRITE(vu8, addr, 5);
+  // WRITE(vu8, addr+1, 5);
+  // WRITE(vu8, addr+2, 5);
   // }
 }; //
 } // namespace feature

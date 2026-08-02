@@ -32,6 +32,7 @@ enum class HookID : u32 {
   kIsDPadRepeated, ///< Hook for DPad::IsRepeated
   kIsTouchDown, ///< Hook for TouchScreen::IsDown
   kIsTouchReleased, ///< Hook for TouchScreen::IsReleased
+  kGetRepeatedKey,
   kUpdateMatrices,
   kUpdateLookAt,
   kBattleCheckPokemonCaptured,

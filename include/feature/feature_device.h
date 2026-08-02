@@ -35,8 +35,19 @@ struct DeviceState {
     ADD_HOOK(kIsDPadDown, ADDRESS_DPAD_IS_DOWN_2);
     ADD_HOOK(kIsTouchDown, ADDRESS_TOUCHSCREEN_IS_DOWN);
     ADD_HOOK(kIsTouchReleased, ADDRESS_TOUCHSCREEN_IS_RELEASED);
-
 #undef ADD_HOOK
+
+    HookManager::Initialize(HookID::kGetRepeatedKey,
+                            ADDRESS_CONTROLLER_GET_REPEATED_KEY,
+                            (uptr)GetRepeatKeyHook);
+  }
+
+  static u32 GetRepeatKeyHook(uptr button, u8 channel) {
+    if (GetInstance().use_redirection &&
+        channel != Device::kCustomChannel)
+      return 0;
+
+    return HookManager::Call<u32>(HookID::kGetRepeatedKey, button, channel);
   }
 
 #define DEFINE_INPUT_HOOK(FuncName)                         \

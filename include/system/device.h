@@ -29,6 +29,7 @@ class DPad;
  * @brief Bitmask values for physical hardware buttons.
  */
 enum class Key {
+  kNone = 0,
   kLeft = 1 << 0, ///< D-Pad Left
   kRight = 1 << 1, ///< D-Pad Right
   kUp = 1 << 2, ///< D-Pad Up
@@ -127,6 +128,11 @@ public:
   INLINE bool IsKeyDown(Key key) {
     return ((bool (*)(Controller*, Key, u8))ADDRESS_CONTROLLER_IS_KEY_DOWN)(
         this, key, Device::kCustomChannel);
+  }
+
+  INLINE Key GetRepeatedKey() {
+    return ((Key (*)(Controller*, u8))ADDRESS_CONTROLLER_GET_REPEATED_KEY)(
+        this, Device::kCustomChannel);
   }
 };
 

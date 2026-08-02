@@ -46,8 +46,8 @@ void MainApplication::DrawSplashscreen(Graphics& graphics) {
   Utils::GetElapsedTime(&now);
   s64 delta = now - start;
   u32 elapsed_sec = Utils::ConvertTimeToSeconds(&delta);
-  if (elapsed_sec <= 3) {
-    Color background(0,0,0,1);
+  if (elapsed_sec <= 1) {
+    Color background(0, 0, 0, 0.5);
     Graphics::FillScreen(background);
     Color text(1, 0, 0, 1);
     Graphics::SetTextScale(0.6, 0.6);

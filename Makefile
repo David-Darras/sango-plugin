@@ -27,7 +27,8 @@ SOURCES 	:= 	src \
 				src/ui/widget \
 				src/ui/page \
 				src/parser \
-				src/kaizo
+				src/kaizo \
+				src/feature
 
 PSF 		:= 	$(notdir $(TOPDIR)).plgInfo
 

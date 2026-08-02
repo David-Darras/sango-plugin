@@ -55,6 +55,8 @@ public:
 
   PokemonRuntimeData* GetRuntimeData() const { return pkm_runtime_data_; }
 
+  bool IsEncrypted() const { return is_encrypted_; }
+
 private:
   void ShuffleBlocks() {
     PokemonCoreData data;

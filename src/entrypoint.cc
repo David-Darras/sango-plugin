@@ -27,6 +27,7 @@
 #include "feature/feature_device.h"
 #include "feature/feature_overworld_model.h"
 #include "feature/feature_app.h"
+#include "feature/feature_app_status.h"
 #include "feature/feature_battle.h"
 #include "feature/feature_day_care.h"
 #include "feature/feature_encounter.h"
@@ -72,6 +73,7 @@ void Initialize() {
   feature::Overworld::Initialize();
   feature::MapDataLoader::Initialize();
   feature::Encounter::Initialize();
+  feature::AppStatus::Initialize();
 
 #ifdef KAIZO
   kaizo::Initialize();
