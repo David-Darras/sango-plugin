@@ -521,9 +521,9 @@ void PageItem::Edit(const void* value) {
   if (refresh_) MainApplication::GetInstance().Refresh();
 }
 
-void PageItem::Execute() {
+void PageItem::Execute(MainApplication& application) {
   if (kTypeMenu == type_) {
-    MainApplication::GetInstance().Open((menu_callback_t)address_, args_);
+    application.Open((menu_callback_t)address_, args_);
   } else if (callback_ != nullptr) {
     callback_(args_);
   }

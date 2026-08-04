@@ -53,6 +53,7 @@ enum PageItemType {
 * @brief Represents a single item in the menu, linked to a memory address.
 * Handles display formatting, increment/decrement logic, and execution.
 */
+class MainApplication;
 class PageItem {
 public:
   /**
@@ -145,7 +146,7 @@ public:
   /**
 * @brief Triggers the attached callback if one exists.
 */
-  void Execute();
+  void Execute(MainApplication& application);
 
 private:
   /**

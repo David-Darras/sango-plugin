@@ -48,4 +48,9 @@ public:
     *shiny_id =
         ((u32 (*)(u32, u32))ADDRESS_POKEMON_UTILS_TO_NORMAL)(id, *shiny_id);
   }
+
+  STATIC_INLINE u16 ConvertBallIdToItemId(u8 ball_id) {
+    return ((u16 (*)(u8))
+      ADDRESS_POKEMON_UTILS_FROM_BALL_ID_TO_ITEM_ID)(ball_id);
+  }
 };

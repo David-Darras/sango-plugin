@@ -38,6 +38,9 @@ public:
     HookManager::Initialize(HookID::kAppStatusSetupGraphicsContest,
                             ADDRESS_APP_STATUS_SETUP_GRAPHICS_CONTEST,
                             (uptr)SetupGraphicsContestHook, false);
+    HookManager::Initialize(HookID::kAppStatusSetupGraphicsInfos,
+                            ADDRESS_APP_STATUS_SETUP_GRAPHICS_INFOS,
+                            (uptr)SetupGraphicsInfosHook, false);
   }
 
   static void PatchOnLoad();
@@ -49,6 +52,8 @@ public:
                                      u8 move_index);
   static void SetupGraphicsContestHook(uptr self,
                                        savedata::PokemonParam* pokemon);
+  static void SetupGraphicsInfosHook(uptr self,
+                                     savedata::PokemonParam* pokemon);
 
   enum class Mode : u8 {
     kIdle,
@@ -56,10 +61,16 @@ public:
     kEditing,
   };
 
-  enum class Page : u8 {
+  enum class PowerPage : u8 {
     kStat,
     kIv,
     kEv,
+    kMax
+  };
+
+  enum class ItemPage : u8 {
+    kHeldItem,
+    kBall,
     kMax
   };
 
@@ -75,7 +86,8 @@ public:
 
   s8 slot_; // selected pokemon
   Mode mode_;
-  Page page_;
+  PowerPage power_page_;
+  ItemPage item_page_;
   SubMenu sub_menu_;
   Pane* current_pane_;
 

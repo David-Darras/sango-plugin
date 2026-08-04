@@ -43,3 +43,4 @@
 #define BALL_MOON_BALL (23)
 #define BALL_SPORT_BALL (24)
 #define BALL_DREAM_BALL (25)
+#define BALL_COUNT (26)

@@ -57,6 +57,7 @@ enum class HookID : u32 {
   kAppStatusSetupGraphicsParams,
   kAppStatusSetupGraphicsMoves,
   kAppStatusSetupGraphicsContest,
+  kAppStatusSetupGraphicsInfos,
   kLoadEvolveTable,
   kCheckEvolve,
   kLoadPokemonIconTexture,

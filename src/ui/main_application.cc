@@ -134,7 +134,7 @@ void MainApplication::Update(Controller& controller) {
     Close();
   } else if (controller.IsKeyReleased(Key::kA)) {
     Sound::PlaySoundEffect(theme_.confirm_sound);
-    entry.Execute();
+    entry.Execute(*this);
   } else if (controller.IsKeyReleased(Key::kX) || numpad_.IsButtonOkReleased()
              ||
              keyboard_.IsButtonOkReleased()) {
