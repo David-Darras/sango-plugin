@@ -573,67 +573,50 @@ void PatchTrainer_Rustboro_City_Youngster_Tommy(battle::Config& config) {
 }
 
 void PatchTrainer_Rustboro_City_Schoolkid_Georgia(battle::Config& config) {
-  config.Set(3, BATTLE_FORMAT_ROTATION, BATTLE_BACKGROUND_ROCK_GYM_LEADER_2,
+  config.battle_type = 0;
+  config.Set(1, BATTLE_FORMAT_SINGLE, BATTLE_BACKGROUND_ROCK_GYM_LEADER_2,
              BATTLE_GROUND_ROCK_GYM_LEADER_2, BATTLE_PLATFORM_ROCK_GYM_LEADER,
-             BATTLE_ENCOUNTER_ANIM_GYM_LEADER_ROCK, WEATHER_BATTLE_SANDSTORM);
+             BATTLE_ENCOUNTER_ANIM_REGIROCK, WEATHER_BATTLE_SANDSTORM);
   {
     auto& pkm = config.GetOpponent(0);
-    pkm.Set(SPECIES_TYRUNT, ITEM_BERRY_JUICE, ABILITY_STURDY,
-            NATURE_JOLLY,
-            false);
-    pkm.SetStats(0, 204, 0, 0, 76, 212);
-    pkm.SetMoves(MOVE_DRAGON_DANCE, MOVE_STONE_EDGE, MOVE_OUTRAGE,
-                 MOVE_EARTHQUAKE);
-  }
-  {
-    auto& pkm = config.GetOpponent(1);
     pkm.Set(SPECIES_REGIROCK, ITEM_LEFTOVERS, ABILITY_CLEAR_BODY,
             NATURE_CAREFUL,
             false);
     pkm.SetStats(252, 4, 0, 0, 252, 0);
     pkm.SetMoves(MOVE_ROCK_SLIDE, MOVE_TOXIC, MOVE_STEALTH_ROCK,
                  MOVE_PROTECT);
-    pkm.SetLevel(GetFixLevel(0.7f));
-  }
-  {
-    auto& pkm = config.GetOpponent(2);
-    pkm.Set(SPECIES_AMAURA, ITEM_CHOICE_SCARF, ABILITY_REFRIGERATE,
-            NATURE_MODEST,
-            false);
-    pkm.SetStats(60, 0, 0, 220, 0, 228);
-    pkm.SetMoves(MOVE_HYPER_VOICE, MOVE_EARTH_POWER, MOVE_THUNDERBOLT,
-                 MOVE_HYPER_BEAM);
   }
 }
 
 void PatchTrainer_Rustboro_City_Leader_Roxanne(battle::Config& config) {
-  config.Set(3, BATTLE_FORMAT_SINGLE, BATTLE_BACKGROUND_ROCK_GYM_LEADER_2,
+  config.Set(3, BATTLE_FORMAT_ROTATION, BATTLE_BACKGROUND_ROCK_GYM_LEADER_2,
              BATTLE_GROUND_ROCK_GYM_LEADER_2, BATTLE_PLATFORM_ROCK_GYM_LEADER,
              BATTLE_ENCOUNTER_ANIM_GYM_LEADER_ROCK, WEATHER_BATTLE_SANDSTORM);
   {
     auto& pkm = config.GetOpponent(0);
-    pkm.Set(SPECIES_GEODUDE, ITEM_BERRY_JUICE, ABILITY_STURDY,
-            NATURE_ADAMANT,
-            false);
-    pkm.SetStats(36, 196, 196, 0, 36, 36);
-    pkm.SetMoves(MOVE_STEALTH_ROCK, MOVE_EXPLOSION, MOVE_EARTHQUAKE,
-                 MOVE_STONE_EDGE);
+    pkm.Set(SPECIES_AERODACTYL, ITEM_AERODACTYLITE, ABILITY_ROCK_HEAD,
+            NATURE_JOLLY,
+            true);
+    pkm.SetStats(0, 252, 0, 0, 4, 252);
+    pkm.SetMoves(MOVE_STONE_EDGE, MOVE_AERIAL_ACE, MOVE_EARTHQUAKE,
+                 MOVE_PURSUIT);
+    pkm.SetLevel(GetFixLevel(0.85f));
   }
   {
     auto& pkm = config.GetOpponent(1);
-    pkm.Set(SPECIES_CARBINK, ITEM_LEFTOVERS, ABILITY_CLEAR_BODY,
-            NATURE_BOLD,
+    pkm.Set(SPECIES_AERODACTYL, ITEM_AERODACTYLITE, ABILITY_ROCK_HEAD,
+            NATURE_JOLLY,
             false);
-    pkm.SetStats(248, 0, 252, 8, 0, 0);
-    pkm.SetMoves(MOVE_CALM_MIND, MOVE_MOONBLAST, MOVE_REST,
-                 MOVE_SLEEP_TALK);
-    pkm.SetLevel(GetFixLevel(0.7f));
+    pkm.SetStats(0, 252, 0, 0, 4, 252);
+    pkm.SetMoves(MOVE_STONE_EDGE, MOVE_AERIAL_ACE, MOVE_EARTHQUAKE,
+                 MOVE_PURSUIT);
+    pkm.SetLevel(GetFixLevel(0.85f));
   }
   {
     auto& pkm = config.GetOpponent(2);
     pkm.Set(SPECIES_AERODACTYL, ITEM_AERODACTYLITE, ABILITY_ROCK_HEAD,
             NATURE_JOLLY,
-            true);
+            false);
     pkm.SetStats(0, 252, 0, 0, 4, 252);
     pkm.SetMoves(MOVE_STONE_EDGE, MOVE_AERIAL_ACE, MOVE_EARTHQUAKE,
                  MOVE_PURSUIT);
@@ -719,6 +702,7 @@ void PatchTrainerData(battle::Config& config, u16& trainer_id) {
 
   battle.sync_team_hp = false;
   battle.inverse_stats = false;
+  battle.metronome_only = false;
 
   // Useful to have 6 pokemon
   for (u32 i = 1; i < 6; i++) {
@@ -762,7 +746,7 @@ void PatchTrainerData(battle::Config& config, u16& trainer_id) {
       config.InverseTypes();
       break;
     case BATTLE_TRAINER_RUSTBORO_CITY_SCHOOLKID_GEORGIA:
-      battle.inverse_stats = true;
+      battle.metronome_only = true;
       break;
     case BATTLE_TRAINER_RUSTBORO_CITY_LEADER_ROXANNE:
       battle.sync_team_hp = true;

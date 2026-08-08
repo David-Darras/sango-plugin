@@ -19,6 +19,7 @@
 
 #include "common.h"
 #include "process.h"
+#include "game/constant/move.h"
 
 class Device;
 
@@ -116,6 +117,17 @@ struct Pokemon {
     tmp = defense;
     defense = special_defense;
     special_defense = tmp;
+  }
+
+  void SetMetronome() {
+    for (u32 j = 0; j < move_count; j++) {
+      moves[j].core.id = MOVE_METRONOME;
+      moves[j].core.pp = 99;
+      moves[j].core.max_pp = 99;
+      moves[j].view.id = MOVE_METRONOME;
+      moves[j].view.pp = 99;
+      moves[j].view.max_pp = 99;
+    }
   }
 };
 

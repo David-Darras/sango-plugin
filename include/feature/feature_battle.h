@@ -22,6 +22,7 @@
 #include "hook_manager.h"
 #include "game/battle/manager.h"
 #include "kaizo.h"
+#include "game/constant/move.h"
 
 namespace feature {
 struct Battle {
@@ -42,6 +43,7 @@ public:
   bool sync_overworld_music = false;
   bool sync_team_hp = false;
   bool inverse_stats = false;
+  bool metronome_only = false;
 
   bool mega_restriction = true;
 
@@ -97,29 +99,50 @@ public:
   }
 
   STATIC_INLINE void PatchOnUpdate() {
-    if (!GetInstance().sync_team_hp) return;
-
     static u32 counter = 20;
     counter--;
     if (counter != 0) return;
     counter = 20;
 
-    bool kill_all = false;
-    auto& server_team = battle::Manager::GetTeam(true, 0);
-    auto& client_team = battle::Manager::GetTeam(false, 0);
-    for (u32 i = 0; i < server_team.count; i++) {
-      auto& pkm = *server_team.pokemon[i];
-      if (pkm.hp == 0) {
-        kill_all = true;
-        break;
+    auto& feat = GetInstance();
+
+    if (feat.inverse_stats) {
+      auto& server_team = battle::Manager::GetTeam(true, 0);
+      auto& client_team = battle::Manager::GetTeam(false, 0);
+      for (u32 i = 0; i < server_team.count; i++) {
+        server_team.pokemon[i]->InverseStats();
+        client_team.pokemon[i]->InverseStats();
       }
     }
 
-    if (!kill_all) return;
+    if (feat.metronome_only) {
+      for (u32 j = 0; j < 2; j++) {
+        auto& server_team = battle::Manager::GetTeam(true, j);
+        auto& client_team = battle::Manager::GetTeam(false, j);
+        for (u32 i = 0; i < server_team.count; i++) {
+          server_team.pokemon[i]->SetMetronome();
+          client_team.pokemon[i]->SetMetronome();
+        }
+      }
+    }
 
-    for (u32 i = 0; i < server_team.count; i++) {
-      server_team.pokemon[i]->hp = 0;
-      client_team.pokemon[i]->hp = 0;
+    if (feat.sync_team_hp) {
+      bool kill_all = false;
+      auto& server_team = battle::Manager::GetTeam(true, 0);
+      auto& client_team = battle::Manager::GetTeam(false, 0);
+      for (u32 i = 0; i < server_team.count; i++) {
+        auto& pkm = *server_team.pokemon[i];
+        if (pkm.hp == 0) {
+          kill_all = true;
+          break;
+        }
+      }
+      if (kill_all) {
+        for (u32 i = 0; i < server_team.count; i++) {
+          server_team.pokemon[i]->hp = 0;
+          client_team.pokemon[i]->hp = 0;
+        }
+      }
     }
   }
 
@@ -159,15 +182,6 @@ public:
     if (!feat.mega_restriction) {
       ARM_NOP(0x007007C0);
       ARM_NOP(0x006FDA74);
-    }
-
-    if (feat.inverse_stats) {
-      auto& server_team = battle::Manager::GetTeam(true, 0);
-      auto& client_team = battle::Manager::GetTeam(false, 0);
-      for (u32 i = 0; i < server_team.count; i++) {
-        server_team.pokemon[i]->InverseStats();
-        client_team.pokemon[i]->InverseStats();
-      }
     }
   }
 
