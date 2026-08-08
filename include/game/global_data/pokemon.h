@@ -59,7 +59,7 @@ struct Pokemon {
   u16 give_experience;
   u16 height;
   u16 weight;
-  u32 _3[5];
+  u32 technical_moves[5];
   u16 fake_height;
   u16 _4;
   u32 _5[4];

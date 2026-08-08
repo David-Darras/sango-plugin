@@ -40,6 +40,8 @@ struct EncounterEntry {
 
 extern void PatchOverworld();
 extern void PatchShopData();
+extern void PatchTechnicalMoves();
+extern void PatchBag();
 extern void PatchPokemonData();
 extern void PatchMoveData();
 extern void PatchOutline();
