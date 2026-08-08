@@ -455,7 +455,3 @@
 #define FORM_HOOPA_CONFINED (0)
 #define FORM_HOOPA_UNBOUND (1)
 #define FORM_HOOPA_COUNT (2)
-
-#define FORM_EGG_NORMAL (0)
-#define FORM_EGG_MANAPHY (1)
-#define FORM_EGG_COUNT (2)

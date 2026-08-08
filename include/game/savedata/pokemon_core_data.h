@@ -191,6 +191,15 @@ struct PokemonCoreData {
     iv_special_defense = 31;
   }
 
+  void SetMaxContest() {
+    contest.beautiful = 255;
+    contest.cool = 255;
+    contest.cute = 255;
+    contest.sheen = 255;
+    contest.smart = 255;
+    contest.tough = 255;
+  }
+
   void SetStats(u8 hp, u8 atk, u8 def, u8 sp_atk,
                 u8 sp_def, u8 spd) {
     SetMaxIVs();

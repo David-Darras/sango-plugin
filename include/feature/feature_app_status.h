@@ -19,6 +19,7 @@
 #include "common.h"
 #include "feature_device.h"
 #include "hook_manager.h"
+#include "game/process_manager.h"
 #include "game/renderer/app_layout_manager.h"
 #include "game/savedata/pokemon_team.h"
 
@@ -69,9 +70,12 @@ public:
   };
 
   enum class ItemPage : u8 {
-    kHeldItem,
-    kBall,
-    kMax
+    kHeldItem = 0,
+    kBall = 1,
+    kMax = 2,
+
+    kNature = 0,
+    kForm = 1,
   };
 
   enum class SubMenu : u8 {
@@ -84,12 +88,28 @@ public:
   bool& is_game_input_disabled_ = DeviceState::GetInstance().
       use_redirection;
 
-  s8 slot_; // selected pokemon
+  static SubMenu GetSubMenu() {
+    u8& menu = *(u8*)ADDRESS_APP_STATUS_SUB_MENU;
+    if (menu == 1) return SubMenu::kOther;
+    if (menu == 0) return SubMenu::kContest;
+    return SubMenu::kParamsAndMoves; // 2
+  }
+
+  static uptr GetThis() {
+    return (uptr)game::ProcessManager::GetInstance().
+        GetCurrentProcess();
+  }
+
+  static u8& GetSlot() {
+    return *(u8*)(GetThis() + 124);
+  }
+
+  const s8& slot_ = *(s8*)ADDRESS_APP_STATUS_POKEMON_SLOT;
   Mode mode_;
   PowerPage power_page_;
   ItemPage item_page_;
-  SubMenu sub_menu_;
   Pane* current_pane_;
+  SubMenu sub_menu_;
 
   void Update(savedata::PokemonParam& pokemon, Controller& controller);
   void MoveAcrossPanes(Controller& controller);

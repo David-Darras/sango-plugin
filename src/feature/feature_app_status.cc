@@ -24,9 +24,13 @@
 #include "game/constant/move.h"
 #include "game/constant/item.h"
 #include "game/constant/ball.h"
+#include "game/constant/nature.h"
 #include "game/constant/species.h"
 #include "game/global_data/item.h"
 #include "game/renderer/text_box.h"
+
+#include "nature.inc"
+#include "form.inc"
 
 #define NEXT(x, val, max) x = ((x) + (val)) % (max)
 #define PREV(x, val, max) x = ((x) - (val) + (max)) % (max)
@@ -130,15 +134,25 @@ public:
   void Draw(AppLayoutManager& manager, PokemonDataAccessor& accessor,
             Color8& top,
             Color8& bottom) {
-    SetColors(manager, top, bottom);
+    SetColors(manager, top, bottom, 1.0f);
     if (print_)
       print_(this, manager, accessor);
   }
 
-  void SetColors(AppLayoutManager& manager, Color8& top, Color8& bottom) {
+  void SetColors(AppLayoutManager& manager, Color8& top, Color8& bottom,
+                 f32 scale = 1.0f) {
     manager.SetTextBoxColor(0, label_pane_id_, top, bottom);
-    if (value_pane_id_ != 0xFF)
+    renderer::Pane* left_pane = manager.GetPane(0, label_pane_id_);
+    if (left_pane != nullptr) {
+      left_pane->scale = Vec2(scale, scale);
+    }
+    if (value_pane_id_ != 0xFF) {
       manager.SetTextBoxColor(0, value_pane_id_, top, bottom);
+      renderer::Pane* right_pane = manager.GetPane(0, value_pane_id_);
+      if (right_pane != nullptr) {
+        right_pane->scale = Vec2(scale, scale);
+      }
+    }
   }
 
   void Prev(PokemonCoreData& core, u32 value) { if (prev_) prev_(core, value); }
@@ -167,8 +181,6 @@ PREV(core.field, value, max);\
 }\
 static Pane pane_##name(color, id0, id1, 0xFF, prev_##name, next_##name, nullptr);
 
-DEFINE_PANE(true, 58, 60, dex_no, species, SPECIES_COUNT)
-DEFINE_PANE(true, 62, 64, id_no, id, 0xFFFFFFFF)
 DEFINE_PANE(true, 38, 40, ability, ability, ABILITY_COUNT)
 DEFINE_PANE(false, 0, 0xFF, move_0, moves[0], MOVE_COUNT)
 DEFINE_PANE(false, 18, 0xFF, move_1, moves[1], MOVE_COUNT)
@@ -243,8 +255,9 @@ static void prev_form_no(PokemonCoreData& core, u32 value) {
 static void print_form_no(Pane* pane, AppLayoutManager& manager,
                           PokemonDataAccessor& accessor) {
   manager.SetTextBoxStringValue(0, pane->label_pane_id_, u"Form No.");
-  manager.SetTextBoxIntegerValue(0, pane->value_pane_id_, pane->text_id_,
-                                 accessor.GetCoreData()->form, 2);
+  manager.SetTextBoxStringValue(0, pane->value_pane_id_, u"%s",
+                                FORMS_NORMAL_MEGA[pane->text_id_],
+                                accessor.GetCoreData()->form, 2);
 }
 
 static Pane pane_form_no(true, 34, 36, 14, prev_form_no, next_form_no,
@@ -263,8 +276,8 @@ static void print_shiny(Pane* pane, AppLayoutManager& manager,
   manager.SetTextBoxStringValue(0, pane->label_pane_id_, u"Is Shiny");
   auto& core = *accessor.GetCoreData();
   u32 is_shiny = PokemonUtils::IsShiny(core.id, core.shiny_id);
-  manager.SetTextBoxIntegerValue(0, pane->value_pane_id_, pane->text_id_,
-                                 is_shiny, 1);
+  manager.SetTextBoxStringValue(0, pane->value_pane_id_,
+                                is_shiny ? u"Yes" : u"No");
 }
 
 static Pane pane_shiny(true, 66, 68, 11, toggle_shiny, toggle_shiny,
@@ -273,7 +286,7 @@ static Pane pane_shiny(true, 66, 68, 11, toggle_shiny, toggle_shiny,
 static void next_level(PokemonCoreData& core, u32 value) {
   s8 level = PokemonUtils::GetLevelFromExperience(
       core.species, core.form, core.experience);
-  level++;
+  level += value;
   if (level > 100) level = 1;
   core.experience = PokemonUtils::GetExperienceFromLevel(
       core.species, core.form, level);
@@ -282,7 +295,7 @@ static void next_level(PokemonCoreData& core, u32 value) {
 static void prev_level(PokemonCoreData& core, u32 value) {
   s8 level = PokemonUtils::GetLevelFromExperience(
       core.species, core.form, core.experience);
-  level--;
+  level -= value;
   if (level < 1) level = 100;
   core.experience = PokemonUtils::GetExperienceFromLevel(
       core.species, core.form, level);
@@ -290,6 +303,27 @@ static void prev_level(PokemonCoreData& core, u32 value) {
 
 static Pane pane_level(true, 4, 6, 0xFF, prev_level, next_level,
                        nullptr);
+
+
+static void prev_species(PokemonCoreData& core, u32 value) {
+  PREV(core.species, value, SPECIES_COUNT);
+  core.form = 0;
+}
+
+static void next_species(PokemonCoreData& core, u32 value) {
+  NEXT(core.species, value, SPECIES_COUNT);
+  core.form = 0;
+}
+
+static void print_species(Pane* pane, AppLayoutManager& manager,
+                          PokemonDataAccessor& accessor) {
+  auto& core = *accessor.GetCoreData();
+  manager.SetTextBoxIntegerValue(0, pane->value_pane_id_, pane->text_id_,
+                                 accessor.GetCoreData()->species, 3);
+}
+
+static Pane pane_species(true, 58, 60, 1, prev_species, next_species,
+                         print_species);
 
 static void next_item_ball(PokemonCoreData& core, u32 value) {
   auto& ctx = AppStatus::GetInstance();
@@ -326,6 +360,44 @@ static void print_item_ball(Pane* pane, AppLayoutManager& manager,
 static Pane pane_item_ball(true, 8, 0xFF, 0xFF, prev_item_ball, next_item_ball,
                            print_item_ball);
 
+
+static void next_nature_form(PokemonCoreData& core, u32 value) {
+  auto& ctx = AppStatus::GetInstance();
+  if (ctx.item_page_ == AppStatus::ItemPage::kNature) {
+    NEXT(core.nature, value, NATURE_COUNT);
+  } else if (ctx.item_page_ == AppStatus::ItemPage::kForm) {
+    NEXT(core.form, value, GetFormCount(core.species));
+  }
+}
+
+static void prev_nature_form(PokemonCoreData& core, u32 value) {
+  auto& ctx = AppStatus::GetInstance();
+  if (ctx.item_page_ == AppStatus::ItemPage::kNature) {
+    PREV(core.nature, value, NATURE_COUNT);
+  } else if (ctx.item_page_ == AppStatus::ItemPage::kForm) {
+    PREV(core.form, value, GetFormCount(core.species));
+  }
+}
+
+static void print_nature_form(Pane* pane, AppLayoutManager& manager,
+                              PokemonDataAccessor& accessor) {
+  auto& ctx = AppStatus::GetInstance();
+  auto& core = *accessor.GetCoreData();
+  if (ctx.item_page_ == AppStatus::ItemPage::kNature) {
+    manager.SetTextBoxStringValue(0, pane->label_pane_id_, u"Nature");
+    manager.SetTextBoxStringValue(0, pane->value_pane_id_, u"%s",
+                                  NATURE_NAMES[core.nature]);
+  } else if (ctx.item_page_ == AppStatus::ItemPage::kForm) {
+    manager.SetTextBoxStringValue(0, pane->label_pane_id_, u"Form");
+    manager.SetTextBoxStringValue(0, pane->value_pane_id_, u"%s",
+                                  GetFormName(core.species, core.form));
+  }
+}
+
+static Pane pane_nature_form(true, 52, 50, 47, prev_nature_form,
+                             next_nature_form,
+                             print_nature_form);
+
 struct Direction {
   Pane* center;
   Pane* up;
@@ -336,26 +408,25 @@ struct Direction {
 
 static Direction DIRECTIONS[] = {
     // top-left
-    {&pane_dex_no, nullptr, &pane_hp, &pane_id_no, nullptr},
-    {&pane_id_no, &pane_dex_no, &pane_hp, &pane_shiny, nullptr},
-    {&pane_shiny, &pane_id_no, &pane_hp, &pane_form_no, nullptr},
-    {&pane_form_no, &pane_shiny, &pane_hp, &pane_level, nullptr},
-    {&pane_gender, &pane_form_no, &pane_move_0, &pane_level, &pane_level},
-    {&pane_level, &pane_gender, &pane_gender, &pane_item_ball, nullptr},
-    {&pane_item_ball, &pane_level, &pane_gender, nullptr, nullptr},
+    {&pane_species, nullptr, &pane_hp, &pane_nature_form, nullptr},
+    {&pane_nature_form, &pane_species, &pane_sp_attack, &pane_shiny, nullptr},
+    {&pane_shiny, &pane_nature_form, &pane_speed, &pane_gender, nullptr},
+    {&pane_gender, &pane_shiny, &pane_move_0, &pane_level, &pane_level},
+    {&pane_level, &pane_gender, &pane_move_0, &pane_item_ball, nullptr},
+    {&pane_item_ball, &pane_level, &pane_move_3, nullptr, nullptr},
     // top-right
-    {&pane_hp, nullptr, nullptr, &pane_attack, &pane_dex_no},
-    {&pane_attack, &pane_hp, nullptr, &pane_defense, &pane_dex_no},
-    {&pane_defense, &pane_attack, nullptr, &pane_sp_attack, &pane_dex_no},
-    {&pane_sp_attack, &pane_defense, nullptr, &pane_sp_defense, &pane_dex_no},
-    {&pane_sp_defense, &pane_sp_attack, nullptr, &pane_speed, &pane_dex_no},
-    {&pane_speed, &pane_sp_defense, nullptr, &pane_ability, &pane_dex_no},
-    {&pane_ability, &pane_speed, nullptr, &pane_move_0, &pane_dex_no},
+    {&pane_hp, nullptr, nullptr, &pane_attack, &pane_species},
+    {&pane_attack, &pane_hp, nullptr, &pane_defense, &pane_species},
+    {&pane_defense, &pane_attack, nullptr, &pane_sp_attack, &pane_species},
+    {&pane_sp_attack, &pane_defense, nullptr, &pane_sp_defense, &pane_species},
+    {&pane_sp_defense, &pane_sp_attack, nullptr, &pane_speed, &pane_species},
+    {&pane_speed, &pane_sp_defense, nullptr, &pane_ability, &pane_species},
+    {&pane_ability, &pane_speed, nullptr, &pane_move_0, &pane_species},
     // bottom-right
-    {&pane_move_0, &pane_ability, nullptr, &pane_move_1, &pane_gender},
-    {&pane_move_1, &pane_move_0, nullptr, &pane_move_2, &pane_gender},
-    {&pane_move_2, &pane_move_1, nullptr, &pane_move_3, &pane_gender},
-    {&pane_move_3, &pane_move_2, nullptr, nullptr, &pane_gender},
+    {&pane_move_0, &pane_ability, nullptr, &pane_move_1, &pane_level},
+    {&pane_move_1, &pane_move_0, nullptr, &pane_move_2, &pane_level},
+    {&pane_move_2, &pane_move_1, nullptr, &pane_move_3, &pane_item_ball},
+    {&pane_move_3, &pane_move_2, nullptr, nullptr, &pane_item_ball},
     // star
     {&pane_contest_cool, nullptr, &pane_contest_beautiful, &pane_contest_cute,
      &pane_contest_tough},
@@ -371,8 +442,8 @@ static Direction DIRECTIONS[] = {
 };
 
 static Pane* DRAW_PARAMS[] = {
-    &pane_dex_no, &pane_id_no, &pane_shiny,
-    &pane_form_no, &pane_hp, &pane_attack,
+    &pane_species, &pane_nature_form, &pane_shiny,
+    &pane_hp, &pane_attack,
     &pane_defense, &pane_sp_attack, &pane_sp_defense,
     &pane_speed, &pane_ability
 };
@@ -385,8 +456,10 @@ static Pane* DRAW_INFOS[] = {
     &pane_level, &pane_gender, &pane_item_ball
 };
 
+static Pane pane_null(true, 0xFF, 0xFF, 0xFF, nullptr, nullptr, nullptr);
+
 static Pane* SUB_MENUS[] = {
-    &pane_dex_no, &pane_contest_cool, &pane_dex_no
+    &pane_species, &pane_contest_cool, &pane_null
 };
 
 void AppStatus::Update(savedata::PokemonParam& pokemon,
@@ -399,23 +472,44 @@ void AppStatus::Update(savedata::PokemonParam& pokemon,
   switch (mode_) {
     case Mode::kIdle: {
       switch (key) {
-        case Key::kDown:
-          NEXT(slot_, 1, pokemon_count);
-          break;
-        case Key::kUp:
-          PREV(slot_, 1, pokemon_count);
-          break;
-        case Key::kRight:
-          ENUM_NEXT(SubMenu, sub_menu_, 1);
-          break;
-        case Key::kLeft:
-          ENUM_PREV(SubMenu, sub_menu_, 1);
-          break;
         case Key::kY:
           refresh = true;
           current_pane_ = SUB_MENUS[static_cast<u32>(sub_menu_)];
-          ui::LogApplication::Print(u"c=%p", current_pane_);
           ChangeMode(Mode::kNavigation);
+          break;
+        case Key::kR:
+          refresh = true;
+          ENUM_NEXT(PowerPage, power_page_, 1);
+          ENUM_NEXT(ItemPage, item_page_, 1);
+          break;
+        case Key::kL:
+          refresh = true;
+          ENUM_PREV(PowerPage, power_page_, 1);
+          ENUM_PREV(ItemPage, item_page_, 1);
+          break;
+        case Key::kRight:
+          switch (sub_menu_) {
+            case SubMenu::kParamsAndMoves:
+              sub_menu_ = SubMenu::kContest;
+              break;
+            case SubMenu::kContest:
+              sub_menu_ = SubMenu::kOther;
+              break;
+            default:
+              break;
+          }
+          break;
+        case Key::kLeft:
+          switch (sub_menu_) {
+            case SubMenu::kOther:
+              sub_menu_ = SubMenu::kContest;
+              break;
+            case SubMenu::kContest:
+              sub_menu_ = SubMenu::kParamsAndMoves;
+              break;
+            default:
+              break;
+          }
           break;
         default:
           break;
@@ -457,6 +551,11 @@ void AppStatus::Update(savedata::PokemonParam& pokemon,
       accessor.Decrypt();
       PokemonCoreData& core = *accessor.GetCoreData();
       switch (key) {
+        case Key::kX:
+          core.SetMaxContest();
+          core.SetMaxIVs();
+          core.SetStats(0, 0, 0, 0, 0, 0);
+          break;
         case Key::kRight:
           current_pane_->Next(core, 1);
           break;
@@ -492,15 +591,17 @@ void AppStatus::Update(savedata::PokemonParam& pokemon,
 
   if (refresh && key != Key::kNone) {
     bool new_model = mode_ == Mode::kEditing &&
-                     (current_pane_ == &pane_dex_no || current_pane_ == &
-                      pane_form_no ||
+                     (current_pane_ == &pane_species || current_pane_ == &
+                      pane_gender ||
+                      (current_pane_ == &pane_nature_form && item_page_ ==
+                       ItemPage::kForm) ||
                       current_pane_ == &pane_shiny);
     game::BaseProcess* process = game::ProcessManager::GetInstance().
         GetCurrentProcess();
     bool& update_pokemon = *(bool*)(*(uptr*)((uptr)process + 104) + 284);
     if (!new_model) update_pokemon = false;
     ((void(*)(void*, u32, bool))ADDRESS_APP_STATUS_UPDATE_POKEMON)(process,
-      slot_, false);
+      GetSlot(), false);
     if (!new_model) update_pokemon = true;
   }
 }
@@ -575,21 +676,21 @@ void AppStatus::Draw(Pane* panes[], u32 pane_count,
       if (current_pane_->is_white_) {
         Color8 top(255, 0, 0, 255);
         Color8 bottom(255, 255, 0, 255);
-        current_pane_->SetColors(manager, top, bottom);
+        current_pane_->SetColors(manager, top, bottom, 1.1f);
       } else {
         Color8 top(255, 0, 0, 255);
         Color8 bottom(120, 120, 120, 255);
-        current_pane_->SetColors(manager, top, bottom);
+        current_pane_->SetColors(manager, top, bottom, 1.1f);
       }
     } else if (mode_ == Mode::kEditing) {
       if (current_pane_->is_white_) {
         Color8 top(255, 0, 255, 255);
         Color8 bottom(255, 255, 255, 255);
-        current_pane_->SetColors(manager, top, bottom);
+        current_pane_->SetColors(manager, top, bottom, 1.1f);
       } else {
         Color8 top(255, 0, 255, 255);
         Color8 bottom(120, 120, 120, 255);
-        current_pane_->SetColors(manager, top, bottom);
+        current_pane_->SetColors(manager, top, bottom, 1.1f);
       }
     }
   }
@@ -723,7 +824,7 @@ void AppStatus::SetupGraphicsContestHook(uptr self,
 void AppStatus::PatchOnUpdate() {
   auto& ctx = GetInstance();
   auto& team = savedata::PokemonTeam::GetInstance();
-  auto& pokemon = *team.pokemons[ctx.slot_];
+  auto& pokemon = *team.pokemons[GetSlot()];
   auto& controller = Controller::GetInstance();
 
   ctx.Update(pokemon, controller);
@@ -737,7 +838,6 @@ void AppStatus::PatchOnLoad() {
   auto& ctx = GetInstance();
   ctx.power_page_ = PowerPage::kStat;
   ctx.item_page_ = ItemPage::kHeldItem;
-  ctx.slot_ = 0;
   ctx.sub_menu_ = SubMenu::kParamsAndMoves;
   ctx.ChangeMode(Mode::kIdle);
 }
