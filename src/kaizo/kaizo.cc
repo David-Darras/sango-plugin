@@ -17,6 +17,7 @@
 
 #include "kaizo.h"
 
+#include "feature/feature_battle.h"
 #include "feature/feature_battle_config.h"
 #include "feature/feature_item.h"
 #include "feature/feature_light.h"

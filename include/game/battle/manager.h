@@ -131,6 +131,13 @@ public:
     return (GetInstance().client_.teams[team_idx].pokemon[pkm_idx]);
   }
 
+  static Team& GetTeam(bool is_server, u32 team_idx) {
+    if (is_server) {
+      return (GetInstance().server_.teams[team_idx]);
+    }
+    return (GetInstance().client_.teams[team_idx]);
+  }
+
 private:
   void* heaps_[4];
   Config* config_;

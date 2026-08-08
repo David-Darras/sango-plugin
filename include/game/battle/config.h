@@ -110,6 +110,12 @@ struct Config {
       this->weather = weather;
   }
 
+  void Inverse() {
+    savedata::PokemonTeam* team = pokemon_teams[0];
+    pokemon_teams[0] = pokemon_teams[1];
+    pokemon_teams[1] = team;
+  }
+
   PokemonCoreData& GetOpponent(u8 index) const {
     return *pokemon_teams[1]->pokemons[index]->core;
   }

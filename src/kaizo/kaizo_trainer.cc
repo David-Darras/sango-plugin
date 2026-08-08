@@ -16,6 +16,7 @@
  */
 
 #include "utils.h"
+#include "feature/feature_battle.h"
 #include "game/battle/config.h"
 #include "game/constant/battle_format.h"
 #include "game/constant/battle_trainer.h"
@@ -592,7 +593,7 @@ void PatchTrainer_Rustboro_City_Schoolkid_Georgia(battle::Config& config) {
     pkm.SetStats(252, 4, 0, 0, 252, 0);
     pkm.SetMoves(MOVE_ROCK_SLIDE, MOVE_TOXIC, MOVE_STEALTH_ROCK,
                  MOVE_PROTECT);
-    pkm.SetLevel(GetFixLevel(0.85f));
+    pkm.SetLevel(GetFixLevel(0.7f));
   }
   {
     auto& pkm = config.GetOpponent(2);
@@ -714,6 +715,8 @@ void PatchTrainerData(battle::Config& config, u16& trainer_id) {
                             config.trainer_data[1]->name->GetBuffer(),
                             config.trainer_data[1]->title_name->GetBuffer());
 
+  feature::Battle::GetInstance().sync_team_hp = false;
+
   // Useful to have 6 pokemon
   for (u32 i = 1; i < 6; i++) {
     *config.pokemon_teams[1]->pokemons[i]->core = *config.pokemon_teams[1]->
@@ -747,5 +750,14 @@ void PatchTrainerData(battle::Config& config, u16& trainer_id) {
   }
 
   config.pokemon_teams[1]->HealAllPokemons();
+
+  switch (trainer_id) {
+    case BATTLE_TRAINER_RUSTBORO_CITY_YOUNGSTER_JOSH:
+      feature::Battle::GetInstance().sync_team_hp = true;
+      break;
+    case BATTLE_TRAINER_RUSTBORO_CITY_YOUNGSTER_TOMMY:
+      config.Inverse();
+      break;
+  }
 }
 }

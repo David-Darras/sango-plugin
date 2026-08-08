@@ -42,6 +42,9 @@ class ProcessPatch {
       case ADDRESS_APP_STATUS_VTABLE:
         AppStatus::PatchOnUpdate();
         break;
+      case ADDRESS_BATTLE_VTABLE:
+        Battle::PatchOnUpdate();
+        break;
       default:
         break;
     }
