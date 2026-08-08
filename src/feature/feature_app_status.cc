@@ -34,144 +34,8 @@
 
 #define NEXT(x, val, max) x = ((x) + (val)) % (max)
 #define PREV(x, val, max) x = ((x) - (val) + (max)) % (max)
-
 #define ENUM_NEXT(type, x, val) x = static_cast<type>(( static_cast<u32>(x) + 1) % static_cast<u32>(type::kMax))
 #define ENUM_PREV(type, x, val) x = static_cast<type>(( static_cast<u32>(x) - 1 + static_cast<u32>(type::kMax)) % static_cast<u32>(type::kMax))
-
-/*
- * TODO:
- * Print current mode
- *
- * [Idle]
- *   - up/down : update pokemon_index
- *   - left/right : update power_page_index
- *   - Y : open (use navigation mode)
- * [Navigation]
- *   - DPAD : Move across panes
- *   - L/R : switch subpages (iv/ev/stat)
- *   - A : select pane
- *   - B/Y : leave (use idle mode)
- * [Editing]
- *   - LEFT/RIGHT : decrease/increase value by one
- *   - DOWN/UP : decrease/increase value by ten
- *   - B : leave (use navigation mode)
- *
- * Hide : "/" (2), "<max hp>" (6)
- *
- * [PAGE 0]
- *   [GROUP 0] up-left
- *     - Dex No. <value> (58/60)
- *     - ID No. <value> (62/64)
- *     - To Next Lv. -> Shiny <no/yes> (34/36)
- *   [GROUP 1]
- *     [SUBPAGE 0] up-right
- *       - HP <value> (0/4)
- *       - Attack <value> (8/10)
- *       - Defense <value> (12/14)
- *       - Sp. Atk <value> (16/18)
- *       - Sp. Def <value> (20/22)
- *       - Speed <value> (24/26)
- *     [SUBPAGE 1]
- *       - IV HP <value>
- *       - IV Attack <value>
- *       - IV Defense <value>
- *       - IV Sp. Atk <value>
- *       - IV Sp. Def <value>
- *       - IV Speed <value>
- *     [SUBPAGE 2]
- *       - EV HP <value>
- *       - EV Attack <value>
- *       - EV Defense <value>
- *       - EV Sp. Atk <value>
- *       - EV Sp. Def <value>
- *       - EV Speed <value>
- *     - Ability + Ability info (38/40)
- *   [GROUP 2] down-left
- *     - Lv. <value>
- *     - <item>
- *   [GROUP 3] down-right
- *     - <move 0>
- *     - <pp move 0>
- *     - <move 1>
- *     - <pp move 1>
- *     - <move 2>
- *     - <pp move 2>
- *     - <move 3>
- *     - <pp move 3>
- */
-
-namespace game {
-class BaseProcess;
-}
-
-namespace feature {
-class Pane {
-public:
-  Pane(bool is_white, u8 label_id,
-       void (*prev)(PokemonCoreData& core, u32 value),
-       void (*next)(PokemonCoreData& core, u32 value),
-       void (*print)(Pane* pane, AppLayoutManager& manager,
-                     PokemonDataAccessor& accessor) =
-           nullptr) :
-    is_white_(is_white),
-    label_pane_id_(label_id),
-    value_pane_id_(label_id + 2),
-    prev_(prev),
-    next_(next), print_(print) {
-  }
-
-  Pane(bool is_white, u8 label_id, u8 value_id, u8 text_id,
-       void (*prev)(PokemonCoreData& core, u32 value),
-       void (*next)(PokemonCoreData& core, u32 value),
-       void (*print)(Pane* pane, AppLayoutManager& manager,
-                     PokemonDataAccessor& accessor) =
-           nullptr) :
-    Pane(is_white, label_id, prev, next, print) {
-    value_pane_id_ = value_id;
-    text_id_ = text_id;
-  }
-
-  void Draw(AppLayoutManager& manager, PokemonDataAccessor& accessor,
-            Color8& top,
-            Color8& bottom) {
-    SetColors(manager, top, bottom, 1.0f);
-    if (print_)
-      print_(this, manager, accessor);
-  }
-
-  void SetColors(AppLayoutManager& manager, Color8& top, Color8& bottom,
-                 f32 scale = 1.0f) {
-    manager.SetTextBoxColor(0, label_pane_id_, top, bottom);
-    renderer::Pane* left_pane = manager.GetPane(0, label_pane_id_);
-    if (left_pane != nullptr) {
-      left_pane->scale = Vec2(scale, scale);
-    }
-    if (value_pane_id_ != 0xFF) {
-      manager.SetTextBoxColor(0, value_pane_id_, top, bottom);
-      renderer::Pane* right_pane = manager.GetPane(0, value_pane_id_);
-      if (right_pane != nullptr) {
-        right_pane->scale = Vec2(scale, scale);
-      }
-    }
-  }
-
-  void Prev(PokemonCoreData& core, u32 value) { if (prev_) prev_(core, value); }
-  void Next(PokemonCoreData& core, u32 value) { if (next_) next_(core, value); }
-
-public:
-  void (*prev_)(PokemonCoreData& core, u32 value);
-  void (*next_)(PokemonCoreData& core, u32 value);
-  void (*print_)(Pane* pane, AppLayoutManager& manager,
-                 PokemonDataAccessor& accessor);
-  u8 label_pane_id_ = 0;
-  u8 value_pane_id_ = 0;
-  u8 text_id_ = 0;
-  bool is_white_;
-};
-
-static Color8 WHITE(255, 255, 255, 255);
-static Color8 BLACK(0, 0, 0, 255);
-
 #define DEFINE_PANE(color, id0, id1, name, field, max)\
 static void next_##name(PokemonCoreData& core, u32 value) {\
 NEXT(core.field, value, max);\
@@ -180,24 +44,7 @@ static void prev_##name(PokemonCoreData& core, u32 value) {\
 PREV(core.field, value, max);\
 }\
 static Pane pane_##name(color, id0, id1, 0xFF, prev_##name, next_##name, nullptr);
-
-DEFINE_PANE(true, 38, 40, ability, ability, ABILITY_COUNT)
-DEFINE_PANE(false, 0, 0xFF, move_0, moves[0], MOVE_COUNT)
-DEFINE_PANE(false, 18, 0xFF, move_1, moves[1], MOVE_COUNT)
-DEFINE_PANE(false, 34, 0xFF, move_2, moves[2], MOVE_COUNT)
-DEFINE_PANE(false, 50, 0xFF, move_3, moves[3], MOVE_COUNT)
-DEFINE_PANE(false, 0xFF, 0xFF, contest_cool, contest.cool, 256)
-DEFINE_PANE(false, 0xFF, 0xFF, contest_beautiful, contest.beautiful, 256)
-DEFINE_PANE(false, 0xFF, 0xFF, contest_cute, contest.cute, 256)
-DEFINE_PANE(false, 0xFF, 0xFF, contest_smart, contest.smart, 256)
-DEFINE_PANE(false, 0xFF, 0xFF, contest_tough, contest.tough, 256)
-//DEFINE_PANE(false, 0xFF, 0xFF, contest_sheen, contest.sheen, 256)
-DEFINE_PANE(false, 2, 0xFF, gender, gender, 3);
-DEFINE_PANE(true, 8, 0xFF, item, item, ITEM_COUNT);
-
-#undef DEFINE_PANE
-
-#define STAT_PANE_FUNCS(str, name, id0, id1, id2, stat_field, iv_field, ev_field)\
+#define DEFINE_STAT_PANE(str, name, id0, id1, id2, stat_field, iv_field, ev_field)\
 static void next_##name(PokemonCoreData& core, u32 value) {\
 auto& ctx = feature::AppStatus::GetInstance();\
 if (ctx.power_page_ == AppStatus::PowerPage::kIv) {\
@@ -219,49 +66,129 @@ auto& ctx = feature::AppStatus::GetInstance();\
 auto& core = *accessor.GetCoreData();\
 auto& runtime = *accessor.GetRuntimeData();\
 if (ctx.power_page_ == AppStatus::PowerPage::kIv) {\
-manager.SetTextBoxStringValue(0, pane->label_pane_id_, u"IV %s", str);\
-manager.SetTextBoxIntegerValue(0, pane->value_pane_id_, pane->text_id_, (u32)core.iv_field, 2);\
+pane->SetStringValue0(manager, u"IV %s", str);\
+pane->SetIntegerValue(manager, (u32)core.iv_field, 2);\
 } else if (ctx.power_page_ == AppStatus::PowerPage::kEv) {\
-manager.SetTextBoxStringValue(0, pane->label_pane_id_, u"EV %s", str);\
-manager.SetTextBoxIntegerValue(0, pane->value_pane_id_, pane->text_id_, (u32)core.ev_field, 3);\
+pane->SetStringValue0(manager, u"EV %s", str);\
+pane->SetIntegerValue(manager, (u32)core.ev_field, 3);\
 } else if (ctx.power_page_ == AppStatus::PowerPage::kStat) {\
-manager.SetTextBoxStringValue(0, pane->label_pane_id_, u"%s", str);\
-manager.SetTextBoxIntegerValue(0, pane->value_pane_id_, pane->text_id_, (u32)runtime.stat_field, 3);\
+pane->SetStringValue0(manager, u"%s", str);\
+pane->SetIntegerValue(manager, (u32)runtime.stat_field, 3);\
 }\
 }\
 static Pane pane_##name(true, id0, id1, id2, prev_##name, next_##name, print_##name);
 
-STAT_PANE_FUNCS("HP", hp, 0, 4, 17, hp, iv_hp, ev_hp)
-STAT_PANE_FUNCS("Attack", attack, 8, 10, 19, attack, iv_attack, ev_attack)
-STAT_PANE_FUNCS("Defense", defense, 12, 14, 21, defense, iv_defense, ev_defense)
-STAT_PANE_FUNCS("Sp. Atk", sp_attack, 16, 18, 23, special_attack,
-                iv_special_attack,
-                ev_special_attack)
-STAT_PANE_FUNCS("Sp. Def", sp_defense, 20, 22, 25, special_defense,
-                iv_special_defense,
-                ev_special_defense)
-STAT_PANE_FUNCS("Speed", speed, 24, 26, 27, speed, iv_speed, ev_speed)
+namespace feature {
+class Pane {
+public:
+  using UpdatePokemonDataFunc = std::function<void(
+      PokemonCoreData& core, u32 value)>;
+  using PrintPokemonDataFunc = std::function<void(
+      Pane* pane, AppLayoutManager& manager,
+      PokemonDataAccessor& accessor)>;
 
-#undef STAT_PANE_FUNCS
+  Pane(bool is_white, u8 id_0, u8 id_1, u8 id_2,
+       UpdatePokemonDataFunc prev,
+       UpdatePokemonDataFunc next,
+       PrintPokemonDataFunc print) :
+    is_white_(is_white),
+    id_0_(id_0),
+    id_1_(id_1),
+    id_2_(id_2),
+    prev_(prev),
+    next_(next),
+    print_(print) {
+  }
 
-static void next_form_no(PokemonCoreData& core, u32 value) {
-  NEXT(core.form, value, FORM_UNOWN_COUNT);
-}
+  INLINE bool IsWhite() const { return is_white_; }
 
-static void prev_form_no(PokemonCoreData& core, u32 value) {
-  PREV(core.form, value, FORM_UNOWN_COUNT);
-}
+  void Print(AppLayoutManager& manager, PokemonDataAccessor& accessor,
+             Color8& top,
+             Color8& bottom) {
+    SetColors(manager, top, bottom, 1.0f);
+    if (print_)
+      print_(this, manager, accessor);
+  }
 
-static void print_form_no(Pane* pane, AppLayoutManager& manager,
-                          PokemonDataAccessor& accessor) {
-  manager.SetTextBoxStringValue(0, pane->label_pane_id_, u"Form No.");
-  manager.SetTextBoxStringValue(0, pane->value_pane_id_, u"%s",
-                                FORMS_NORMAL_MEGA[pane->text_id_],
-                                accessor.GetCoreData()->form, 2);
-}
+  void SetStringValue0(AppLayoutManager& manager, const c16* str, ...) const {
+    va_list args;
+    va_start(args, str);
+    ((void (*)(c16*, u32, const c16*, va_list))ADDRESS_STD_VSWPRINTF)(
+        String::GetTmpBuf(), BUFFER_SIZE, str, args);
+    va_end(args);
 
-static Pane pane_form_no(true, 34, 36, 14, prev_form_no, next_form_no,
-                         print_form_no);
+    manager.SetTextBoxStringValue(0, id_0_, String::GetTmpBuf());
+  }
+
+  void SetStringValue1(AppLayoutManager& manager, const c16* str, ...) const {
+    va_list args;
+    va_start(args, str);
+    ((void (*)(c16*, u32, const c16*, va_list))ADDRESS_STD_VSWPRINTF)(
+        String::GetTmpBuf(), BUFFER_SIZE, str, args);
+    va_end(args);
+
+    manager.SetTextBoxStringValue(0, id_1_, String::GetTmpBuf());
+  }
+
+  void SetIntegerValue(AppLayoutManager& manager, u32 value,
+                       u32 count = 3) const {
+    manager.SetTextBoxIntegerValue(0, id_1_, id_2_, value, count);
+  }
+
+  void SetColors(AppLayoutManager& manager, Color8& top, Color8& bottom,
+                 f32 scale = 1.0f) const {
+    manager.SetTextBoxColor(0, id_0_, top, bottom);
+    renderer::Pane* left_pane = manager.GetPane(0, id_0_);
+    if (left_pane != nullptr) {
+      left_pane->scale = Vec2(scale, scale);
+    }
+    if (id_1_ != 0xFF) {
+      manager.SetTextBoxColor(0, id_1_, top, bottom);
+      renderer::Pane* right_pane = manager.GetPane(0, id_1_);
+      if (right_pane != nullptr) {
+        right_pane->scale = Vec2(scale, scale);
+      }
+    }
+  }
+
+  void Prev(PokemonCoreData& core, u32 value) { if (prev_) prev_(core, value); }
+  void Next(PokemonCoreData& core, u32 value) { if (next_) next_(core, value); }
+
+private:
+  UpdatePokemonDataFunc prev_ = nullptr;
+  UpdatePokemonDataFunc next_ = nullptr;
+  PrintPokemonDataFunc print_ = nullptr;
+
+  u8 id_0_ = 0;
+  u8 id_1_ = 0;
+  u8 id_2_ = 0;
+  bool is_white_ = true;
+};
+
+DEFINE_PANE(true, 38, 40, ability, ability, ABILITY_COUNT)
+DEFINE_PANE(false, 0, 0xFF, move_0, moves[0], MOVE_COUNT)
+DEFINE_PANE(false, 18, 0xFF, move_1, moves[1], MOVE_COUNT)
+DEFINE_PANE(false, 34, 0xFF, move_2, moves[2], MOVE_COUNT)
+DEFINE_PANE(false, 50, 0xFF, move_3, moves[3], MOVE_COUNT)
+DEFINE_PANE(false, 2, 0xFF, gender, gender, 3)
+DEFINE_PANE(true, 8, 0xFF, item, item, ITEM_COUNT)
+DEFINE_PANE(false, 0xFF, 0xFF, contest_cool, contest.cool, 256)
+DEFINE_PANE(false, 0xFF, 0xFF, contest_beautiful, contest.beautiful, 256)
+DEFINE_PANE(false, 0xFF, 0xFF, contest_cute, contest.cute, 256)
+DEFINE_PANE(false, 0xFF, 0xFF, contest_smart, contest.smart, 256)
+DEFINE_PANE(false, 0xFF, 0xFF, contest_tough, contest.tough, 256)
+
+DEFINE_STAT_PANE("HP", hp, 0, 4, 17, hp, iv_hp, ev_hp)
+DEFINE_STAT_PANE("Attack", attack, 8, 10, 19, attack, iv_attack, ev_attack)
+DEFINE_STAT_PANE("Defense", defense, 12, 14, 21, defense, iv_defense,
+                 ev_defense)
+DEFINE_STAT_PANE("Sp. Atk", sp_attack, 16, 18, 23, special_attack,
+                 iv_special_attack,
+                 ev_special_attack)
+DEFINE_STAT_PANE("Sp. Def", sp_defense, 20, 22, 25, special_defense,
+                 iv_special_defense,
+                 ev_special_defense)
+DEFINE_STAT_PANE("Speed", speed, 24, 26, 27, speed, iv_speed, ev_speed)
 
 static void toggle_shiny(PokemonCoreData& core, u32 value) {
   if (PokemonUtils::IsShiny(core.id, core.shiny_id)) {
@@ -271,201 +198,135 @@ static void toggle_shiny(PokemonCoreData& core, u32 value) {
   }
 }
 
-static void print_shiny(Pane* pane, AppLayoutManager& manager,
-                        PokemonDataAccessor& accessor) {
-  manager.SetTextBoxStringValue(0, pane->label_pane_id_, u"Is Shiny");
-  auto& core = *accessor.GetCoreData();
-  u32 is_shiny = PokemonUtils::IsShiny(core.id, core.shiny_id);
-  manager.SetTextBoxStringValue(0, pane->value_pane_id_,
-                                is_shiny ? u"Yes" : u"No");
-}
+static Pane pane_shiny
+    (true, 66, 68, 11, toggle_shiny, toggle_shiny,
+     [](Pane* pane, AppLayoutManager& manager,
+        PokemonDataAccessor& accessor) {
+       pane->SetStringValue0(manager, u"Is Shiny");
+       auto& core = *accessor.GetCoreData();
+       u32 is_shiny = PokemonUtils::IsShiny(
+           core.id, core.shiny_id);
+       pane->SetStringValue1(manager, is_shiny ? u"Yes" : u"No");
+     });
 
-static Pane pane_shiny(true, 66, 68, 11, toggle_shiny, toggle_shiny,
-                       print_shiny);
+static Pane pane_level
+    (true, 4, 6, 0xFF, [](PokemonCoreData& core, u32 value) {
+       s8 level = PokemonUtils::GetLevelFromExperience(
+           core.species, core.form, core.experience);
+       level -= value;
+       if (level < 1) level = 100;
+       core.experience = PokemonUtils::GetExperienceFromLevel(
+           core.species, core.form, level);
+     }, [](PokemonCoreData& core, u32 value) {
+       s8 level = PokemonUtils::GetLevelFromExperience(
+           core.species, core.form, core.experience);
+       level += value;
+       if (level > 100) level = 1;
+       core.experience = PokemonUtils::GetExperienceFromLevel(
+           core.species, core.form, level);
+     },
+     nullptr);
 
-static void next_level(PokemonCoreData& core, u32 value) {
-  s8 level = PokemonUtils::GetLevelFromExperience(
-      core.species, core.form, core.experience);
-  level += value;
-  if (level > 100) level = 1;
-  core.experience = PokemonUtils::GetExperienceFromLevel(
-      core.species, core.form, level);
-}
+static Pane pane_species
+    (true, 58, 60, 1, [](PokemonCoreData& core, u32 value) {
+       PREV(core.species, value, SPECIES_COUNT);
+       core.form = 0;
+     }, [](PokemonCoreData& core, u32 value) {
+       NEXT(core.species, value, SPECIES_COUNT);
+       core.form = 0;
+     }, [](Pane* pane, AppLayoutManager& manager,
+           PokemonDataAccessor& accessor) {
+       auto& core = *accessor.GetCoreData();
+       pane->SetIntegerValue(manager, accessor.GetCoreData()->species, 3);
+     });
 
-static void prev_level(PokemonCoreData& core, u32 value) {
-  s8 level = PokemonUtils::GetLevelFromExperience(
-      core.species, core.form, core.experience);
-  level -= value;
-  if (level < 1) level = 100;
-  core.experience = PokemonUtils::GetExperienceFromLevel(
-      core.species, core.form, level);
-}
+static Pane pane_item_ball
+    (true, 8, 0xFF, 0xFF,
+     [](PokemonCoreData& core, u32 value) {
+       auto& ctx = AppStatus::GetInstance();
+       if (ctx.item_page_ ==
+           AppStatus::ItemPage::kHeldItem) {
+         PREV(core.item, value, ITEM_COUNT);
+       } else if (
+         ctx.item_page_ == AppStatus::ItemPage::kBall) {
+         PREV(core.ball, value, BALL_COUNT);
+       }
+     }, [](PokemonCoreData& core, u32 value) {
+       auto& ctx = AppStatus::GetInstance();
+       if (ctx.item_page_ ==
+           AppStatus::ItemPage::kHeldItem) {
+         NEXT(core.item, value, ITEM_COUNT);
+       } else if (
+         ctx.item_page_ == AppStatus::ItemPage::kBall) {
+         NEXT(core.ball, value, BALL_COUNT);
+       }
+     }, [](Pane* pane, AppLayoutManager& manager,
+           PokemonDataAccessor& accessor) {
+       auto& core = *accessor.GetCoreData();
+       auto& ctx = AppStatus::GetInstance();
+       if (ctx.item_page_ ==
+           AppStatus::ItemPage::kHeldItem) {
+         /* CHANGE NOTHING */
+       } else if (
+         ctx.item_page_ == AppStatus::ItemPage::kBall) {
+         u16 item_id =
+             PokemonUtils::ConvertBallIdToItemId(
+                 core.ball);
+         global_data::Item item(item_id);
+         item.GetName(String::GetTmpStr());
+         pane->SetStringValue0(manager, String::GetTmpBuf());
+       }
+     });
 
-static Pane pane_level(true, 4, 6, 0xFF, prev_level, next_level,
-                       nullptr);
-
-
-static void prev_species(PokemonCoreData& core, u32 value) {
-  PREV(core.species, value, SPECIES_COUNT);
-  core.form = 0;
-}
-
-static void next_species(PokemonCoreData& core, u32 value) {
-  NEXT(core.species, value, SPECIES_COUNT);
-  core.form = 0;
-}
-
-static void print_species(Pane* pane, AppLayoutManager& manager,
-                          PokemonDataAccessor& accessor) {
-  auto& core = *accessor.GetCoreData();
-  manager.SetTextBoxIntegerValue(0, pane->value_pane_id_, pane->text_id_,
-                                 accessor.GetCoreData()->species, 3);
-}
-
-static Pane pane_species(true, 58, 60, 1, prev_species, next_species,
-                         print_species);
-
-static void next_item_ball(PokemonCoreData& core, u32 value) {
-  auto& ctx = AppStatus::GetInstance();
-  if (ctx.item_page_ == AppStatus::ItemPage::kHeldItem) {
-    NEXT(core.item, value, ITEM_COUNT);
-  } else if (ctx.item_page_ == AppStatus::ItemPage::kBall) {
-    NEXT(core.ball, value, BALL_COUNT);
-  }
-}
-
-static void prev_item_ball(PokemonCoreData& core, u32 value) {
-  auto& ctx = AppStatus::GetInstance();
-  if (ctx.item_page_ == AppStatus::ItemPage::kHeldItem) {
-    PREV(core.item, value, ITEM_COUNT);
-  } else if (ctx.item_page_ == AppStatus::ItemPage::kBall) {
-    PREV(core.ball, value, BALL_COUNT);
-  }
-}
-
-static void print_item_ball(Pane* pane, AppLayoutManager& manager,
-                            PokemonDataAccessor& accessor) {
-  auto& core = *accessor.GetCoreData();
-  auto& ctx = AppStatus::GetInstance();
-  if (ctx.item_page_ == AppStatus::ItemPage::kHeldItem) {
-    /* CHANGE NOTHING */
-  } else if (ctx.item_page_ == AppStatus::ItemPage::kBall) {
-    u16 item_id = PokemonUtils::ConvertBallIdToItemId(core.ball);
-    global_data::Item item(item_id);
-    item.GetName(String::GetTmpStr());
-    manager.SetTextBoxStringValue(0, pane->label_pane_id_, String::GetTmpBuf());
-  }
-}
-
-static Pane pane_item_ball(true, 8, 0xFF, 0xFF, prev_item_ball, next_item_ball,
-                           print_item_ball);
-
-
-static void next_nature_form(PokemonCoreData& core, u32 value) {
-  auto& ctx = AppStatus::GetInstance();
-  if (ctx.item_page_ == AppStatus::ItemPage::kNature) {
-    NEXT(core.nature, value, NATURE_COUNT);
-  } else if (ctx.item_page_ == AppStatus::ItemPage::kForm) {
-    NEXT(core.form, value, GetFormCount(core.species));
-  }
-}
-
-static void prev_nature_form(PokemonCoreData& core, u32 value) {
-  auto& ctx = AppStatus::GetInstance();
-  if (ctx.item_page_ == AppStatus::ItemPage::kNature) {
-    PREV(core.nature, value, NATURE_COUNT);
-  } else if (ctx.item_page_ == AppStatus::ItemPage::kForm) {
-    PREV(core.form, value, GetFormCount(core.species));
-  }
-}
-
-static void print_nature_form(Pane* pane, AppLayoutManager& manager,
-                              PokemonDataAccessor& accessor) {
-  auto& ctx = AppStatus::GetInstance();
-  auto& core = *accessor.GetCoreData();
-  if (ctx.item_page_ == AppStatus::ItemPage::kNature) {
-    manager.SetTextBoxStringValue(0, pane->label_pane_id_, u"Nature");
-    manager.SetTextBoxStringValue(0, pane->value_pane_id_, u"%s",
-                                  NATURE_NAMES[core.nature]);
-  } else if (ctx.item_page_ == AppStatus::ItemPage::kForm) {
-    manager.SetTextBoxStringValue(0, pane->label_pane_id_, u"Form");
-    manager.SetTextBoxStringValue(0, pane->value_pane_id_, u"%s",
-                                  GetFormName(core.species, core.form));
-  }
-}
-
-static Pane pane_nature_form(true, 52, 50, 47, prev_nature_form,
-                             next_nature_form,
-                             print_nature_form);
-
-struct Direction {
-  Pane* center;
-  Pane* up;
-  Pane* right;
-  Pane* down;
-  Pane* left;
-};
-
-static Direction DIRECTIONS[] = {
-    // top-left
-    {&pane_species, nullptr, &pane_hp, &pane_nature_form, nullptr},
-    {&pane_nature_form, &pane_species, &pane_sp_attack, &pane_shiny, nullptr},
-    {&pane_shiny, &pane_nature_form, &pane_speed, &pane_gender, nullptr},
-    {&pane_gender, &pane_shiny, &pane_move_0, &pane_level, &pane_level},
-    {&pane_level, &pane_gender, &pane_move_0, &pane_item_ball, nullptr},
-    {&pane_item_ball, &pane_level, &pane_move_3, nullptr, nullptr},
-    // top-right
-    {&pane_hp, nullptr, nullptr, &pane_attack, &pane_species},
-    {&pane_attack, &pane_hp, nullptr, &pane_defense, &pane_species},
-    {&pane_defense, &pane_attack, nullptr, &pane_sp_attack, &pane_species},
-    {&pane_sp_attack, &pane_defense, nullptr, &pane_sp_defense, &pane_species},
-    {&pane_sp_defense, &pane_sp_attack, nullptr, &pane_speed, &pane_species},
-    {&pane_speed, &pane_sp_defense, nullptr, &pane_ability, &pane_species},
-    {&pane_ability, &pane_speed, nullptr, &pane_move_0, &pane_species},
-    // bottom-right
-    {&pane_move_0, &pane_ability, nullptr, &pane_move_1, &pane_level},
-    {&pane_move_1, &pane_move_0, nullptr, &pane_move_2, &pane_level},
-    {&pane_move_2, &pane_move_1, nullptr, &pane_move_3, &pane_item_ball},
-    {&pane_move_3, &pane_move_2, nullptr, nullptr, &pane_item_ball},
-    // star
-    {&pane_contest_cool, nullptr, &pane_contest_beautiful, &pane_contest_cute,
-     &pane_contest_tough},
-    {&pane_contest_beautiful, &pane_contest_cool, nullptr, &pane_contest_cute,
-     &pane_contest_tough},
-    {&pane_contest_cute, &pane_contest_beautiful, &pane_contest_beautiful,
-     nullptr, &pane_contest_smart},
-    {&pane_contest_smart, &pane_contest_tough, &pane_contest_cute, nullptr,
-     &pane_contest_tough},
-    {&pane_contest_tough, &pane_contest_cool, &pane_contest_beautiful,
-     &pane_contest_smart, nullptr},
-    //{&pane_contest_sheen, nullptr, &pane_contest_cool, nullptr, nullptr},
-};
-
-static Pane* DRAW_PARAMS[] = {
-    &pane_species, &pane_nature_form, &pane_shiny,
-    &pane_hp, &pane_attack,
-    &pane_defense, &pane_sp_attack, &pane_sp_defense,
-    &pane_speed, &pane_ability
-};
-
-static Pane* DRAW_MOVES[] = {
-    &pane_move_0, &pane_move_1, &pane_move_2, &pane_move_3
-};
-
-static Pane* DRAW_INFOS[] = {
-    &pane_level, &pane_gender, &pane_item_ball
-};
+static Pane pane_nature_form
+    (true, 52, 50, 47,
+     [](PokemonCoreData& core, u32 value) {
+       auto& ctx = AppStatus::GetInstance();
+       if (ctx.item_page_ ==
+           AppStatus::ItemPage::kNature) {
+         PREV(core.nature, value, NATURE_COUNT);
+       } else if (
+         ctx.item_page_ == AppStatus::ItemPage::kForm) {
+         PREV(core.form, value,
+              GetFormCount(core.species));
+       }
+     }, [](PokemonCoreData& core, u32 value) {
+       auto& ctx = AppStatus::GetInstance();
+       if (ctx.item_page_ ==
+           AppStatus::ItemPage::kNature) {
+         NEXT(core.nature, value, NATURE_COUNT);
+       } else if (
+         ctx.item_page_ == AppStatus::ItemPage::kForm) {
+         NEXT(core.form, value,
+              GetFormCount(core.species));
+       }
+     }, [](Pane* pane, AppLayoutManager& manager,
+           PokemonDataAccessor& accessor) {
+       auto& ctx = AppStatus::GetInstance();
+       auto& core = *accessor.GetCoreData();
+       if (ctx.item_page_ ==
+           AppStatus::ItemPage::kNature) {
+         pane->SetStringValue0(manager, u"Nature");
+         pane->SetStringValue1(manager, u"%s",
+                               NATURE_NAMES[core.nature]);
+       } else if (
+         ctx.item_page_ == AppStatus::ItemPage::kForm) {
+         pane->SetStringValue0(manager, u"Form");
+         pane->SetStringValue1(manager, u"%s",
+                               GetFormName(core.species, core.form));
+       }
+     }
+        );
 
 static Pane pane_null(true, 0xFF, 0xFF, 0xFF, nullptr, nullptr, nullptr);
 
-static Pane* SUB_MENUS[] = {
-    &pane_species, &pane_contest_cool, &pane_null
-};
-
 void AppStatus::Update(savedata::PokemonParam& pokemon,
                        Controller& controller) {
+  static Pane* FIRST_PANES[] = {
+      &pane_species, &pane_contest_cool, &pane_null
+  };
+
   const Key key = controller.GetRepeatedKey();
-  const u8 pokemon_count = savedata::PokemonTeam::GetInstance().count;
   bool refresh = false;
   auto& accessor = *pokemon.accessor;
 
@@ -474,7 +335,7 @@ void AppStatus::Update(savedata::PokemonParam& pokemon,
       switch (key) {
         case Key::kY:
           refresh = true;
-          current_pane_ = SUB_MENUS[static_cast<u32>(sub_menu_)];
+          current_pane_ = FIRST_PANES[static_cast<u32>(sub_menu_)];
           ChangeMode(Mode::kNavigation);
           break;
         case Key::kR:
@@ -582,8 +443,8 @@ void AppStatus::Update(savedata::PokemonParam& pokemon,
           break;
       }
       accessor.Encrypt();
-      pokemon.UpdateRuntimeData();
       // To fix PP
+      pokemon.UpdateRuntimeData();
       savedata::PokemonTeam::GetInstance().HealAllPokemons();
       break;
     }
@@ -591,11 +452,9 @@ void AppStatus::Update(savedata::PokemonParam& pokemon,
 
   if (refresh && key != Key::kNone) {
     bool new_model = mode_ == Mode::kEditing &&
-                     (current_pane_ == &pane_species || current_pane_ == &
-                      pane_gender ||
-                      (current_pane_ == &pane_nature_form && item_page_ ==
-                       ItemPage::kForm) ||
-                      current_pane_ == &pane_shiny);
+                     (IsOn(&pane_species) || IsOn(&pane_gender) ||
+                      (IsOn(&pane_nature_form) && item_page_ == ItemPage::kForm)
+                      || IsOn(&pane_shiny));
     game::BaseProcess* process = game::ProcessManager::GetInstance().
         GetCurrentProcess();
     bool& update_pokemon = *(bool*)(*(uptr*)((uptr)process + 104) + 284);
@@ -607,6 +466,51 @@ void AppStatus::Update(savedata::PokemonParam& pokemon,
 }
 
 void AppStatus::MoveAcrossPanes(Controller& controller) {
+  struct Direction {
+    Pane* center;
+    Pane* up;
+    Pane* right;
+    Pane* down;
+    Pane* left;
+  };
+
+  static Direction DIRECTIONS[] = {
+
+      {&pane_species, nullptr, &pane_hp, &pane_nature_form, nullptr},
+      {&pane_nature_form, &pane_species, &pane_sp_attack, &pane_shiny, nullptr},
+      {&pane_shiny, &pane_nature_form, &pane_speed, &pane_gender, nullptr},
+      {&pane_gender, &pane_shiny, &pane_move_0, &pane_level, &pane_level},
+      {&pane_level, &pane_gender, &pane_move_0, &pane_item_ball, nullptr},
+      {&pane_item_ball, &pane_level, &pane_move_3, nullptr, nullptr},
+
+      {&pane_hp, nullptr, nullptr, &pane_attack, &pane_species},
+      {&pane_attack, &pane_hp, nullptr, &pane_defense, &pane_species},
+      {&pane_defense, &pane_attack, nullptr, &pane_sp_attack, &pane_species},
+      {&pane_sp_attack, &pane_defense, nullptr, &pane_sp_defense,
+       &pane_species},
+      {&pane_sp_defense, &pane_sp_attack, nullptr, &pane_speed, &pane_species},
+      {&pane_speed, &pane_sp_defense, nullptr, &pane_ability, &pane_species},
+      {&pane_ability, &pane_speed, nullptr, &pane_move_0, &pane_species},
+
+      {&pane_move_0, &pane_ability, nullptr, &pane_move_1, &pane_level},
+      {&pane_move_1, &pane_move_0, nullptr, &pane_move_2, &pane_level},
+      {&pane_move_2, &pane_move_1, nullptr, &pane_move_3, &pane_item_ball},
+      {&pane_move_3, &pane_move_2, nullptr, nullptr, &pane_item_ball},
+
+      {&pane_contest_cool, nullptr, &pane_contest_beautiful, &pane_contest_cute,
+       &pane_contest_tough},
+      {&pane_contest_beautiful, &pane_contest_cool, nullptr, &pane_contest_cute,
+       &pane_contest_tough},
+      {&pane_contest_cute, &pane_contest_beautiful, &pane_contest_beautiful,
+       nullptr, &pane_contest_smart},
+      {&pane_contest_smart, &pane_contest_tough, &pane_contest_cute, nullptr,
+       &pane_contest_tough},
+      {&pane_contest_tough, &pane_contest_cool, &pane_contest_beautiful,
+       &pane_contest_smart, nullptr},
+
+      {&pane_null, nullptr, nullptr, nullptr, nullptr}
+  };
+
   Direction* direction = nullptr;
   for (u32 i = 0; i < SIZE(DIRECTIONS); i++) {
     if (DIRECTIONS[i].center == current_pane_) {
@@ -653,19 +557,22 @@ void AppStatus::ChangeMode(Mode mode) {
 void AppStatus::Draw(Pane* panes[], u32 pane_count,
                      PokemonDataAccessor& accessor,
                      AppLayoutManager& manager) const {
+  static Color8 WHITE(255, 255, 255, 255);
+  static Color8 BLACK(0, 0, 0, 255);
+
   accessor.Decrypt();
   for (u32 i = 0; i < pane_count; i++) {
-    if (panes[i]->is_white_) {
-      panes[i]->Draw(manager, accessor, WHITE, WHITE);
+    if (panes[i]->IsWhite()) {
+      panes[i]->Print(manager, accessor, WHITE, WHITE);
     } else {
-      panes[i]->Draw(manager, accessor, BLACK, BLACK);
+      panes[i]->Print(manager, accessor, BLACK, BLACK);
     }
   }
   accessor.Encrypt();
 
   bool contains_current = false;
   for (u32 i = 0; i < pane_count; i++) {
-    if (panes[i] == current_pane_) {
+    if (IsOn(panes[i])) {
       contains_current = true;
       break;
     }
@@ -673,7 +580,7 @@ void AppStatus::Draw(Pane* panes[], u32 pane_count,
 
   if (contains_current) {
     if (mode_ == Mode::kNavigation) {
-      if (current_pane_->is_white_) {
+      if (current_pane_->IsWhite()) {
         Color8 top(255, 0, 0, 255);
         Color8 bottom(255, 255, 0, 255);
         current_pane_->SetColors(manager, top, bottom, 1.1f);
@@ -683,7 +590,7 @@ void AppStatus::Draw(Pane* panes[], u32 pane_count,
         current_pane_->SetColors(manager, top, bottom, 1.1f);
       }
     } else if (mode_ == Mode::kEditing) {
-      if (current_pane_->is_white_) {
+      if (current_pane_->IsWhite()) {
         Color8 top(255, 0, 255, 255);
         Color8 bottom(255, 255, 255, 255);
         current_pane_->SetColors(manager, top, bottom, 1.1f);
@@ -700,10 +607,15 @@ void AppStatus::SetupGraphicsParamsHook(uptr self,
                                         savedata::PokemonParam* pokemon) {
   HookManager::Call<void>(HookID::kAppStatusSetupGraphicsParams, self, pokemon);
 
-  auto& ctx = GetInstance();
+  static Pane* PARAMS_PANES[] = {
+      &pane_species, &pane_nature_form, &pane_shiny,
+      &pane_hp, &pane_attack,
+      &pane_defense, &pane_sp_attack, &pane_sp_defense,
+      &pane_speed, &pane_ability
+  };
   auto& manager = *(AppLayoutManager*)(READ(uptr, self + 8 + 16));
-
-  ctx.Draw(DRAW_PARAMS, SIZE(DRAW_PARAMS), *pokemon->accessor, manager);
+  GetInstance().Draw(PARAMS_PANES, SIZE(PARAMS_PANES), *pokemon->accessor,
+                     manager);
 
   manager.HidePane(0, 2); // don't show /
   manager.HidePane(0, 6); // don't show max hp
@@ -715,80 +627,29 @@ void AppStatus::SetupGraphicsMovesHook(uptr self,
   HookManager::Call<void>(HookID::kAppStatusSetupGraphicsMoves, self, pokemon,
                           move_index);
 
-  auto& ctx = GetInstance();
+  static Pane* MOVES_PANES[] = {
+      &pane_move_0, &pane_move_1, &pane_move_2, &pane_move_3
+  };
   auto& manager = *(AppLayoutManager*)(READ(uptr, self + 16));
-
-  ctx.Draw(DRAW_MOVES, SIZE(DRAW_MOVES), *pokemon->accessor, manager);
+  GetInstance().Draw(MOVES_PANES, SIZE(MOVES_PANES), *pokemon->accessor,
+                     manager);
 }
-
-// class IconLoaderThread : public Thread {
-// public:
-//   IconLoaderThread(u8 item_id, u8 slot, renderer::Picture* picture) :
-//     Thread(), item_id_(ITEM_MASTER_BALL), slot_(slot), picture_(picture) {
-//     Start(14);
-//   }
-//
-//   ~IconLoaderThread() override {
-//   }
-//
-//   void Update() override {
-//     uptr icon_manager = READ(vu32, 0x8072518);
-//     // Load Icon Texture
-//     ((void(*)(uptr, u8, u16))0x41E51C)(icon_manager, 0, item_id_);
-//     svcSleepThread(1000000);
-//     bool is_finished = ((bool(*)(uptr, u8))0x41E5C0)(
-//         icon_manager, 0);
-//     if (is_finished) {
-//       // Apply Icon Texture
-//       ((void(*)(uptr, u8, renderer::Picture*))
-//         0x41E740)(icon_manager, 0, picture_);
-//     }
-//   }
-//
-// private:
-//   u8 item_id_ = ITEM_MASTER_BALL;
-//   u8 slot_ = 0;
-//   renderer::Picture* picture_;
-// };
-
 
 void AppStatus::SetupGraphicsInfosHook(uptr self,
                                        savedata::PokemonParam* pokemon) {
   HookManager::Call<void>(HookID::kAppStatusSetupGraphicsInfos, self, pokemon);
 
-  auto& ctx = GetInstance();
+  static Pane* INFOS_PANES[] = {
+      &pane_level, &pane_gender, &pane_item_ball
+  };
   auto& manager = *(AppLayoutManager*)(READ(uptr, self + 8 + 16));
-
-  ctx.Draw(DRAW_INFOS, SIZE(DRAW_INFOS), *pokemon->accessor, manager);
-
-  pokemon->accessor->Decrypt();
-  u32 item_id = ((u16(*)(u8))0x3B7300)(pokemon->core->ball);
-  pokemon->accessor->Encrypt();
-
-  // renderer::Picture* picture = manager.
-  //     GetPicture(0, pane_ball_0.label_pane_id_);
-  // uptr icon_manager = READ(vu32, 0x8072518);
-  // // Load Icon Texture
-  // ((void(*)(uptr, u8, u16))0x41E51C)(icon_manager, 0, item_id);
-  // CTRPluginFramework::Sleep(CTRPluginFramework::Microseconds(1));
-  // bool is_finished = ((bool(*)(uptr, u8))0x41E5C0)(
-  //     icon_manager, 0);
-  // if (is_finished) {
-  //   // Apply Icon Texture
-  //   ((void(*)(uptr, u8, renderer::Picture*))
-  //     0x41E740)(icon_manager, 0, picture);
-  // }
+  GetInstance().Draw(INFOS_PANES, SIZE(INFOS_PANES), *pokemon->accessor,
+                     manager);
 }
 
 void AppStatus::SetupGraphicsContestHook(uptr self,
                                          savedata::PokemonParam* pokemon) {
-  HookManager::Call<void>(HookID::kAppStatusSetupGraphicsContest, self,
-                          pokemon);
-
-  auto& ctx = GetInstance();
-  auto& manager = *(AppLayoutManager*)(READ(uptr, self + 8 + 16));
-
-  static const u8 CONTEST[5][6] = {
+  static const u8 CONTEST_IDS[5][6] = {
       {148, 146, 144, 12, 17, 22},
       {152, 164, 166, 13, 18, 23},
       {154, 168, 170, 14, 19, 24},
@@ -804,30 +665,33 @@ void AppStatus::SetupGraphicsContestHook(uptr self,
       &pane_contest_tough,
   };
 
+  HookManager::Call<void>(HookID::kAppStatusSetupGraphicsContest, self,
+                          pokemon);
+
+  auto& ctx = GetInstance();
+  auto& manager = *(AppLayoutManager*)(READ(uptr, self + 8 + 16));
+
   for (u32 i = 0; i < 5; i++) {
-    if (ctx.current_pane_ == CONTEST_PANES[i]) {
-      manager.ShowPane(0, CONTEST[i][0]);
-      manager.ShowPane(0, CONTEST[i][1]);
-      manager.ShowPane(0, CONTEST[i][2]);
-      manager.ShowAnimation(0, CONTEST[i][3]);
-      manager.ShowAnimation(0, CONTEST[i][4]);
+    if (ctx.IsOn(CONTEST_PANES[i])) {
+      manager.ShowPane(0, CONTEST_IDS[i][0]);
+      manager.ShowPane(0, CONTEST_IDS[i][1]);
+      manager.ShowPane(0, CONTEST_IDS[i][2]);
+      manager.ShowAnimation(0, CONTEST_IDS[i][3]);
+      manager.ShowAnimation(0, CONTEST_IDS[i][4]);
     } else {
-      manager.HidePane(0, CONTEST[i][0]);
-      manager.HidePane(0, CONTEST[i][1]);
-      manager.HidePane(0, CONTEST[i][2]);
-      manager.HideAnimation(0, CONTEST[i][3]);
-      manager.HideAnimation(0, CONTEST[i][4]);
+      manager.HidePane(0, CONTEST_IDS[i][0]);
+      manager.HidePane(0, CONTEST_IDS[i][1]);
+      manager.HidePane(0, CONTEST_IDS[i][2]);
+      manager.HideAnimation(0, CONTEST_IDS[i][3]);
+      manager.HideAnimation(0, CONTEST_IDS[i][4]);
     }
   }
 }
 
 void AppStatus::PatchOnUpdate() {
-  auto& ctx = GetInstance();
-  auto& team = savedata::PokemonTeam::GetInstance();
-  auto& pokemon = *team.pokemons[GetSlot()];
+  auto& pokemon = *savedata::PokemonTeam::GetInstance().pokemons[GetSlot()];
   auto& controller = Controller::GetInstance();
-
-  ctx.Update(pokemon, controller);
+  GetInstance().Update(pokemon, controller);
 }
 
 void AppStatus::PatchOnLoad() {
@@ -835,11 +699,7 @@ void AppStatus::PatchOnLoad() {
   HookManager::ForceEnable(HookID::kAppStatusSetupGraphicsMoves);
   HookManager::ForceEnable(HookID::kAppStatusSetupGraphicsContest);
   HookManager::ForceEnable(HookID::kAppStatusSetupGraphicsInfos);
-  auto& ctx = GetInstance();
-  ctx.power_page_ = PowerPage::kStat;
-  ctx.item_page_ = ItemPage::kHeldItem;
-  ctx.sub_menu_ = SubMenu::kParamsAndMoves;
-  ctx.ChangeMode(Mode::kIdle);
+  GetInstance().Reset();
 }
 }
 
@@ -847,3 +707,5 @@ void AppStatus::PatchOnLoad() {
 #undef PREV
 #undef ENUM_NEXT
 #undef ENUM_PREV
+#undef DEFINE_PANE
+#undef DEFINE_STAT_PANE

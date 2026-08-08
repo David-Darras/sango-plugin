@@ -68,7 +68,6 @@ public:
         GetTextBox(layout_id, pane_id), String::GetTmpStr());
   }
 
-
   INLINE void SetTextBoxIntegerValue(u32 layout_id, u32 pane_id, u32 text_id,
                                      u32 value,
                                      u32 digit_count) {

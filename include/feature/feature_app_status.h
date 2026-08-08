@@ -88,13 +88,6 @@ public:
   bool& is_game_input_disabled_ = DeviceState::GetInstance().
       use_redirection;
 
-  static SubMenu GetSubMenu() {
-    u8& menu = *(u8*)ADDRESS_APP_STATUS_SUB_MENU;
-    if (menu == 1) return SubMenu::kOther;
-    if (menu == 0) return SubMenu::kContest;
-    return SubMenu::kParamsAndMoves; // 2
-  }
-
   static uptr GetThis() {
     return (uptr)game::ProcessManager::GetInstance().
         GetCurrentProcess();
@@ -104,7 +97,17 @@ public:
     return *(u8*)(GetThis() + 124);
   }
 
-  const s8& slot_ = *(s8*)ADDRESS_APP_STATUS_POKEMON_SLOT;
+  INLINE void Reset() {
+    power_page_ = PowerPage::kStat;
+    item_page_ = ItemPage::kHeldItem;
+    sub_menu_ = SubMenu::kParamsAndMoves;
+    ChangeMode(Mode::kIdle);
+  }
+
+  INLINE bool IsOn(const Pane* pane) const {
+    return current_pane_ == pane;
+  }
+
   Mode mode_;
   PowerPage power_page_;
   ItemPage item_page_;
