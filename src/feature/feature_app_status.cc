@@ -27,6 +27,7 @@
 #include "game/constant/nature.h"
 #include "game/constant/species.h"
 #include "game/global_data/item.h"
+#include "game/global_data/pokemon.h"
 #include "game/renderer/text_box.h"
 
 #include "nature.inc"
@@ -50,7 +51,9 @@ auto& ctx = feature::AppStatus::GetInstance();\
 if (ctx.power_page_ == AppStatus::PowerPage::kIv) {\
 NEXT(core.iv_field, value, 31 + 1);\
 } else if (ctx.power_page_ == AppStatus::PowerPage::kEv) {\
+u32 x = core.ev_field;\
 NEXT(core.ev_field, value, 252 + 1);\
+if(core.GetTotalPower() > 510) core.ev_field = x;\
 }\
 }\
 static void prev_##name(PokemonCoreData& core, u32 value) {\
@@ -58,7 +61,9 @@ auto& ctx = feature::AppStatus::GetInstance();\
 if (ctx.power_page_ == AppStatus::PowerPage::kIv) {\
 PREV(core.iv_field, value, 31 + 1);\
 } else if (ctx.power_page_ == AppStatus::PowerPage::kEv) {\
+u32 x = core.ev_field;\
 PREV(core.ev_field, value, 252 + 1);\
+if(core.GetTotalPower() > 510) core.ev_field = x;\
 }\
 }\
 static void print_##name(Pane* pane, AppLayoutManager& manager, PokemonDataAccessor& accessor) {\
@@ -99,6 +104,9 @@ public:
     next_(next),
     print_(print) {
   }
+
+  INLINE void Disable() { is_enabled_ = false; }
+  INLINE bool IsEnabled() const { return is_enabled_; }
 
   INLINE bool IsWhite() const { return is_white_; }
 
@@ -163,9 +171,9 @@ private:
   u8 id_1_ = 0;
   u8 id_2_ = 0;
   bool is_white_ = true;
+  bool is_enabled_ = true;
 };
 
-DEFINE_PANE(true, 38, 40, ability, ability, ABILITY_COUNT)
 DEFINE_PANE(false, 0, 0xFF, move_0, moves[0], MOVE_COUNT)
 DEFINE_PANE(false, 18, 0xFF, move_1, moves[1], MOVE_COUNT)
 DEFINE_PANE(false, 34, 0xFF, move_2, moves[2], MOVE_COUNT)
@@ -318,6 +326,28 @@ static Pane pane_nature_form
      }
         );
 
+static u8 ability_index = 0;
+static Pane pane_ability
+    (true, 38, 40, 0xFF,
+     [](PokemonCoreData& core, u32 value) {
+#ifdef KAIZO
+       auto& pkm = global_data::Pokemon::GetInstance(core.species, core.form);
+       PREV(ability_index, 1, 3);
+       core.ability = pkm.ability[ability_index];
+#else
+       PREV(core.ability, value, ABILITY_COUNT);
+#endif
+     }, [](PokemonCoreData& core, u32 value) {
+#ifdef KAIZO
+       auto& pkm = global_data::Pokemon::GetInstance(core.species, core.form);
+       NEXT(ability_index, 1, 3);
+       core.ability = pkm.ability[ability_index];
+#else
+       NEXT(core.ability, value, ABILITY_COUNT);
+#endif
+     }, nullptr);
+
+
 static Pane pane_null(true, 0xFF, 0xFF, 0xFF, nullptr, nullptr, nullptr);
 
 void AppStatus::Update(savedata::PokemonParam& pokemon,
@@ -396,7 +426,9 @@ void AppStatus::Update(savedata::PokemonParam& pokemon,
           ENUM_PREV(ItemPage, item_page_, 1);
           break;
         case Key::kA:
-          ChangeMode(Mode::kEditing);
+          if (current_pane_->IsEnabled()) {
+            ChangeMode(Mode::kEditing);
+          }
           break;
         case Key::kY:
           ChangeMode(Mode::kIdle);
@@ -700,6 +732,16 @@ void AppStatus::PatchOnLoad() {
   HookManager::ForceEnable(HookID::kAppStatusSetupGraphicsContest);
   HookManager::ForceEnable(HookID::kAppStatusSetupGraphicsInfos);
   GetInstance().Reset();
+#ifdef KAIZO
+  pane_level.Disable();
+  pane_gender.Disable();
+  pane_shiny.Disable();
+  pane_move_0.Disable();
+  pane_move_1.Disable();
+  pane_move_2.Disable();
+  pane_move_3.Disable();
+  pane_species.Disable();
+#endif
 }
 }
 

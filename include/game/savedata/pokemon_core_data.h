@@ -217,4 +217,9 @@ struct PokemonCoreData {
     moves[2] = move3;
     moves[3] = move4;
   }
+
+  u32 GetTotalPower() const {
+    return ev_hp + ev_attack + ev_defense + ev_special_attack
+           + ev_special_defense + ev_speed;
+  }
 };
