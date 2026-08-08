@@ -107,6 +107,7 @@ void PatchOverworld() {
   // After a battle
   {
     auto& team = savedata::PokemonTeam::GetInstance();
+    team.ThrowAllDeadPokemons();
     team.HealAllPokemons();
   }
 }

@@ -63,9 +63,27 @@ struct PokemonTeam {
     return max_level;
   }
 
-
   INLINE void HealAllPokemons() {
     ((void(*)(PokemonTeam*))ADDRESS_HEAL_TEAM)(this);
+  }
+
+  void ThrowAllDeadPokemons() {
+    bool is_dead[6] = {0, 0, 0, 0, 0, 0};
+    for (u32 i = 0; i < count; i++) {
+      pokemons[i]->accessor->Decrypt();
+      if (pokemons[i]->runtime->hp == 0) {
+        is_dead[i] = true;
+      }
+      pokemons[i]->accessor->Encrypt();
+    }
+    const u8 c = count;
+    for (u8 i = 0; i < c; i++) {
+      u8 end = c - i - 1;
+      if (is_dead[end]) {
+        ((void(*)(PokemonTeam*, u8))
+          ADDRESS_REMOVE_POKEMON_FROM_TEAM)(this, end);
+      }
+    }
   }
 
   static constexpr u32 kMaxSlots = 6;

@@ -741,6 +741,7 @@ void AppStatus::PatchOnLoad() {
   pane_move_2.Disable();
   pane_move_3.Disable();
   pane_species.Disable();
+  pane_item_ball.Disable();
 #endif
 }
 }

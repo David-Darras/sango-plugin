@@ -18,6 +18,8 @@
 #pragma once
 
 #include "common.h"
+#include "game/constant/weather.h"
+#include "game/savedata/pokemon_team.h"
 
 namespace savedata {
 struct PokemonTeam;
@@ -95,5 +97,21 @@ struct Config {
   bool is_inverse_battle;
   bool is_capture_forced;
   bool no_money;
+
+  void Set(u8 count, u8 format, u8 background, u8 ground, u8 platform, u8 anim,
+           u8 weather) {
+    this->pokemon_teams[1]->count = count;
+    this->battle_format = format;
+    this->background = background;
+    this->ground = ground;
+    this->platform = platform;
+    this->encounter_animation = anim;
+    if (weather != WEATHER_BATTLE_INVALID)
+      this->weather = weather;
+  }
+
+  PokemonCoreData& GetOpponent(u8 index) const {
+    return *pokemon_teams[1]->pokemons[index]->core;
+  }
 };
 } // namespace battle

@@ -200,6 +200,14 @@ struct PokemonCoreData {
     contest.tough = 255;
   }
 
+  void Set(u16 species, u16 item, u16 ability, u8 nature, bool is_shiny) {
+    this->species = species;
+    this->item = item;
+    this->ability = ability;
+    this->nature = nature;
+    SetShiny(is_shiny);
+  }
+
   void SetStats(u8 hp, u8 atk, u8 def, u8 sp_atk,
                 u8 sp_def, u8 spd) {
     SetMaxIVs();

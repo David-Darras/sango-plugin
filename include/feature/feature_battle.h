@@ -41,6 +41,8 @@ public:
   bool fix_pokemon_size = true;
   bool sync_overworld_music = false;
 
+  bool mega_restriction = true;
+
   struct LevelUpData {
     u32 exp;
 
@@ -123,6 +125,11 @@ public:
     if (feat.no_shader) {
       ARM_RET(0x003989B0);
       ARM_RET(0x003881EC);
+    }
+
+    if (!feat.mega_restriction) {
+      ARM_NOP(0x007007C0);
+      ARM_NOP(0x006FDA74);
     }
   }
 

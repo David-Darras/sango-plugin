@@ -24,13 +24,13 @@ namespace kaizo {
 static const ShopItem SHOP_ITEMS[] = {
     // Stats
     // {ITEM_RARE_CANDY, 1},
-    {ITEM_PP_MAX, 1},
-    {ITEM_HP_UP, 1},
-    {ITEM_PROTEIN, 1},
-    {ITEM_IRON, 1},
-    {ITEM_CARBOS, 1},
-    {ITEM_CALCIUM, 1},
-    {ITEM_ZINC, 1},
+    // {ITEM_PP_MAX, 1},
+    // {ITEM_HP_UP, 1},
+    // {ITEM_PROTEIN, 1},
+    // {ITEM_IRON, 1},
+    // {ITEM_CARBOS, 1},
+    // {ITEM_CALCIUM, 1},
+    // {ITEM_ZINC, 1},
     // Strategic Items
     {ITEM_AIR_BALLOON, 1},
     {ITEM_ASSAULT_VEST, 1},
