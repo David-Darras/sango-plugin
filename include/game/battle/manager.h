@@ -107,6 +107,16 @@ struct Pokemon {
   u8 _4[3];
   u16 turn_count;
   u8 _7[0xB6];
+
+  void InverseStats() {
+    u16 tmp = attack;
+    attack = special_attack;
+    special_attack = tmp;
+
+    tmp = defense;
+    defense = special_defense;
+    special_defense = tmp;
+  }
 };
 
 struct Team {

@@ -23,6 +23,7 @@
 #include "game/savedata/misc.h"
 #include "game/savedata/pokemon_utils.h"
 #include "game/savedata/savedata_encounter.h"
+#include "game/savedata/settings.h"
 
 namespace kaizo {
 static const u8 LEVEL_CAPS[] = {
@@ -89,6 +90,9 @@ void PatchBattle() {
   battle.show_shiny_animation = false;
   battle.show_trainer_animation = false;
   battle.sync_overworld_music = true;
+
+  savedata::Settings::GetInstance().battle_background_id =
+      Utils::GetRandomValue(15);
 }
 
 void SetFirstEncounter() {
@@ -104,6 +108,13 @@ void SetFirstEncounter() {
     case MAP_ROUTE_102:
       event.Set(EVENT_ROUTE_102_POKEMON_CAPTURED);
       break;
+    case MAP_ROUTE_104_NORTH:
+    case MAP_ROUTE_104_SOUTH:
+      event.Set(EVENT_ROUTE_104_POKEMON_CAPTURED);
+      break;
+    case MAP_PETALBURG_WOODS:
+      event.Set(EVENT_PETALBURG_WOODS_POKEMON_CAPTURED);
+      break;
   }
 }
 
@@ -117,6 +128,11 @@ bool IsNotFirstEncounter() {
       return event.Check(EVENT_ROUTE_103_POKEMON_CAPTURED);
     case MAP_ROUTE_102:
       return event.Check(EVENT_ROUTE_102_POKEMON_CAPTURED);
+    case MAP_ROUTE_104_NORTH:
+    case MAP_ROUTE_104_SOUTH:
+      return event.Check(EVENT_ROUTE_104_POKEMON_CAPTURED);
+    case MAP_PETALBURG_WOODS:
+      return event.Check(EVENT_PETALBURG_WOODS_POKEMON_CAPTURED);
   }
   return false;
 }

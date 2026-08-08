@@ -47,7 +47,6 @@ void LoadOverworldMapTilePage(MainApplication& app, void* args) {
      .Add("Footstep Sound Type", ctx.foot_step_id)
      .WithArray(FOOT_STEPS, SIZE(FOOT_STEPS))
      .Add("Battle Background Type", ctx.battle_background_id)
-     //.WithArray(battle::BACKGROUNDS, battle::BACKGROUNDS_COUNT)
      .Add("Ground Type", ctx.ground_id)
      .WithArray(GROUNDS, SIZE(GROUNDS));
 }

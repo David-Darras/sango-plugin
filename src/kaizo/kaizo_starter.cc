@@ -68,8 +68,7 @@ void PatchStarter(uptr pkm) {
 static u32 InitializePokemonHook(savedata::PokemonParam* param, u32 heap,
                                  uptr pkm) {
   PatchStarter(pkm);
-  return HookManager::Call<
-    u32>(HookID::kInitializePokemon, param, heap, pkm);
+  return HookManager::Call<u32>(HookID::kInitializePokemon, param, heap, pkm);
 }
 
 void InitializeStarterHook() {

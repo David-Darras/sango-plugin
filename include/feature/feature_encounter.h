@@ -95,9 +95,7 @@ struct Encounter {
       PokemonData& data = READ(PokemonData, p0 + i * sizeof(PokemonData));
       data.species = entry->species[Utils::GetRandomValue(entry->size)];
       s8 rand = -3 + Utils::GetRandomValue(2);
-      ui::LogApplication::Print(u"rand: %d, max: %d", rand, max);
       data.level = max + rand;
-      data.ivs = 0xFF;
     }
 #endif
 

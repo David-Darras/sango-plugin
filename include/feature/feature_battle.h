@@ -41,6 +41,7 @@ public:
   bool fix_pokemon_size = true;
   bool sync_overworld_music = false;
   bool sync_team_hp = false;
+  bool inverse_stats = false;
 
   bool mega_restriction = true;
 
@@ -96,6 +97,8 @@ public:
   }
 
   STATIC_INLINE void PatchOnUpdate() {
+    if (!GetInstance().sync_team_hp) return;
+
     static u32 counter = 20;
     counter--;
     if (counter != 0) return;
@@ -156,6 +159,15 @@ public:
     if (!feat.mega_restriction) {
       ARM_NOP(0x007007C0);
       ARM_NOP(0x006FDA74);
+    }
+
+    if (feat.inverse_stats) {
+      auto& server_team = battle::Manager::GetTeam(true, 0);
+      auto& client_team = battle::Manager::GetTeam(false, 0);
+      for (u32 i = 0; i < server_team.count; i++) {
+        server_team.pokemon[i]->InverseStats();
+        client_team.pokemon[i]->InverseStats();
+      }
     }
   }
 

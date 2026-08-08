@@ -715,7 +715,10 @@ void PatchTrainerData(battle::Config& config, u16& trainer_id) {
                             config.trainer_data[1]->name->GetBuffer(),
                             config.trainer_data[1]->title_name->GetBuffer());
 
-  feature::Battle::GetInstance().sync_team_hp = false;
+  auto& battle = feature::Battle::GetInstance();
+
+  battle.sync_team_hp = false;
+  battle.inverse_stats = false;
 
   // Useful to have 6 pokemon
   for (u32 i = 1; i < 6; i++) {
@@ -752,11 +755,17 @@ void PatchTrainerData(battle::Config& config, u16& trainer_id) {
   config.pokemon_teams[1]->HealAllPokemons();
 
   switch (trainer_id) {
-    case BATTLE_TRAINER_RUSTBORO_CITY_YOUNGSTER_JOSH:
-      feature::Battle::GetInstance().sync_team_hp = true;
-      break;
     case BATTLE_TRAINER_RUSTBORO_CITY_YOUNGSTER_TOMMY:
-      config.Inverse();
+      config.InverseTeams();
+      break;
+    case BATTLE_TRAINER_RUSTBORO_CITY_YOUNGSTER_JOSH:
+      config.InverseTypes();
+      break;
+    case BATTLE_TRAINER_RUSTBORO_CITY_SCHOOLKID_GEORGIA:
+      battle.inverse_stats = true;
+      break;
+    case BATTLE_TRAINER_RUSTBORO_CITY_LEADER_ROXANNE:
+      battle.sync_team_hp = true;
       break;
   }
 }

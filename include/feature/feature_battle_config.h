@@ -60,7 +60,7 @@ struct BattleConfig {
                                            void* game_manager, u16 trainer_id,
                                            void* p1, u8 battle_format,
                                            void* p2) {
-    // trainer_id = BATTLE_TRAINER_RUSTBORO_CITY_YOUNGSTER_JOSH;
+    trainer_id = BATTLE_TRAINER_RUSTBORO_CITY_SCHOOLKID_GEORGIA;
     HookManager::Call<void>(HookID::kSetupTrainerBattleConfig,
                             config, game_manager, trainer_id, p1,
                             battle_format,
