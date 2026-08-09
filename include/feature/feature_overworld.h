@@ -55,6 +55,7 @@ struct Overworld {
 #ifdef KAIZO
     kaizo::PatchOverworld();
     kaizo::PatchBag();
+    kaizo::RestoreTeamAfterBattle();
 #endif
 
     HookManager::Enable(HookID::kGetEncounterPokemon);

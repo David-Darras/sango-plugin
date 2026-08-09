@@ -17,12 +17,10 @@
 
 #include "feature/feature_battle.h"
 #include "game/constant/event.h"
-#include "game/constant/map.h"
 #include "game/overworld/map_data.h"
 #include "game/savedata/event_table.h"
 #include "game/savedata/misc.h"
 #include "game/savedata/pokemon_utils.h"
-#include "game/savedata/savedata_encounter.h"
 #include "game/savedata/settings.h"
 
 namespace kaizo {

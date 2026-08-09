@@ -90,12 +90,10 @@ struct Encounter {
     }
 
     u32 count = READ(u32, p0 + 108);
-    u8 max = savedata::PokemonTeam::GetInstance().GetMaxLevel();
     for (u32 i = 0; i < count; i++) {
       PokemonData& data = READ(PokemonData, p0 + i * sizeof(PokemonData));
+      data.level = kaizo::GetEncounterLevel();
       data.species = entry->species[Utils::GetRandomValue(entry->size)];
-      s8 rand = -3 + Utils::GetRandomValue(2);
-      data.level = max + rand;
     }
 #endif
 

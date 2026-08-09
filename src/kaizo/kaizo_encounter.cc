@@ -15,6 +15,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <cmath>
+
 #include "common.h"
 #include "utils.h"
 #include "game/constant/map.h"
@@ -22,6 +24,7 @@
 #include "game/overworld/map_data.h"
 #include "kaizo.h"
 #include "game/overworld/map_manager.h"
+#include "game/savedata/pokemon_team.h"
 #include "ui/log_application.h"
 
 namespace kaizo {
@@ -126,5 +129,34 @@ void PatchEncounterTable(overworld::EncounterData* data) {
     data->poke_info[i].form = 0;
     offset = (offset + 1) % 5;
   }
+}
+
+u8 GetEncounterLevel() {
+  auto& team = savedata::PokemonTeam::GetInstance();
+  if (team.count == 0) return 1;
+
+  f32 sum = 0.0f;
+  f32 sumSq = 0.0f;
+  for (u32 i = 0; i < team.count; i++) {
+    auto& pkm = *team.pokemons[i];
+    pkm.accessor->Decrypt();
+    f32 lvl = (f32)pkm.runtime->level;
+    sum += lvl;
+    sumSq += lvl * lvl;
+    pkm.accessor->Encrypt();
+  }
+
+  f32 mean = sum / team.count;
+  f32 variance = (sumSq / team.count) - (mean * mean);
+  f32 sd = sqrtf(variance > 0.0f ? variance : 0.0f);
+
+  sd = sd < 1.0f ? 1.0f : sd;
+
+  s32 spread = static_cast<s32>(sd);
+  s32 level = static_cast<s32>(mean) - spread + Utils::GetRandomValue(
+                  2 * spread + 1);
+
+  level = level < 1 ? 1 : (level > 100 ? 100 : level);
+  return static_cast<u8>(level);
 }
 }

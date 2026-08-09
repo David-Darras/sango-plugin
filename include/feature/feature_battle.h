@@ -299,7 +299,7 @@ public:
   static bool UpdateExpHook(void* self, battle::Team* team,
                             LevelUpData* data) {
 #ifdef KAIZO
-    kaizo::ApplyLevelCaps(team, data);
+    // kaizo::ApplyLevelCaps(team, data);
 #endif
     return HookManager::Call<bool>(HookID::kUpdateExp, self, team, data);
   }
