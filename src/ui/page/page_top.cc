@@ -32,7 +32,7 @@ void LoadTopPage(MainApplication& app, void* args) {
 
   auto& weather_manager = overworld::WeatherManager::GetInstance();
 
-  app.Add("Nuzlocke", LoadNuzlockePage)
+  app.Add("Nuzlocke", LoadKaizoPage)
      .Add("Game Speed", feature::Engine::GetInstance().game_speed)
      .Add("Save Data", LoadSaveDataPage)
      .Add("Global Data", LoadGlobalDataPage)

@@ -45,6 +45,7 @@ struct BattleConfig {
   bool is_capture_forced = false;
   bool no_money = false;
   bool inverse_teams = false;
+  u16 trainer_id = BATTLE_TRAINER_NONE;
 
   STATIC_INLINE void Initialize() {
     HookManager::Initialize(HookID::kSetupBattleConfig,
@@ -60,7 +61,9 @@ struct BattleConfig {
                                            void* game_manager, u16 trainer_id,
                                            void* p1, u8 battle_format,
                                            void* p2) {
-    trainer_id = BATTLE_TRAINER_RUSTBORO_CITY_LEADER_ROXANNE;
+    auto& tid = GetInstance().trainer_id;
+    if (tid != BATTLE_TRAINER_NONE)
+      trainer_id = tid;
     HookManager::Call<void>(HookID::kSetupTrainerBattleConfig,
                             config, game_manager, trainer_id, p1,
                             battle_format,

@@ -20,7 +20,7 @@
 
 namespace ui {
 class MainApplication;
-void LoadNuzlockePage(MainApplication& app, void* args);
+void LoadKaizoPage(MainApplication& app, void* args);
 void LoadThemePage(MainApplication& app, void* args);
 void LoadBattleConfigPage(MainApplication& app, void* args);
 void LoadBattlePage(MainApplication& app, void* args);

@@ -64,22 +64,22 @@ void LoadHmPage(MainApplication& app, void* args) {
     });
 }
 
-void LoadNuzlockePage(MainApplication& app, void* args) {
+void LoadKaizoPage(MainApplication& app, void* args) {
   auto& bgm = feature::Overworld::GetInstance().background_music;
   auto& camera = feature::Camera::GetInstance();
   auto& speed = feature::Engine::GetInstance().game_speed;
 
-  app //.Add("Trainer", feature::BattleConfig::GetInstance().trainer_id)
-      .Add("Camera", camera.state)
-      .WithBounds(0, 4)
-      .Add("Speed", speed)
-      .WithBounds(1, 2)
-      .Add("Radio", bgm)
-      .WithCallback([&](void*) { Sound::PlayBackgroundMusic(bgm); })
-      .WithBounds(0, 250)
-      .Add("HM", LoadHmPage)
-      .Add("App", LoadAppPage)
-      .Add("Repel", CheatCodeId::kNoEncounter);
+  app.Add("TID", feature::BattleConfig::GetInstance().trainer_id)
+     .Add("Camera", camera.state)
+     .WithBounds(0, 4)
+     .Add("Speed", speed)
+     .WithBounds(1, 2)
+     .Add("Radio", bgm)
+     .WithCallback([&](void*) { Sound::PlayBackgroundMusic(bgm); })
+     .WithBounds(0, 250)
+     .Add("HM", LoadHmPage)
+     .Add("App", LoadAppPage)
+     .Add("Repel", CheatCodeId::kNoEncounter);
 
   // .Add("Reset Tr", [](void*) {
   //      auto& event_table = savedata::EventTable::GetInstance();

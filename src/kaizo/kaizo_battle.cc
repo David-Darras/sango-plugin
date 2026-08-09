@@ -94,46 +94,4 @@ void PatchBattle() {
   savedata::Settings::GetInstance().battle_background_id =
       Utils::GetRandomValue(15);
 }
-
-void SetFirstEncounter() {
-  auto& map_id = overworld::MapManager::last_map_id;
-  auto& event = savedata::EventTable::GetInstance();
-  switch (map_id) {
-    case MAP_ROUTE_101:
-      event.Set(EVENT_ROUTE_101_POKEMON_CAPTURED);
-      break;
-    case MAP_ROUTE_103:
-      event.Set(EVENT_ROUTE_103_POKEMON_CAPTURED);
-      break;
-    case MAP_ROUTE_102:
-      event.Set(EVENT_ROUTE_102_POKEMON_CAPTURED);
-      break;
-    case MAP_ROUTE_104_NORTH:
-    case MAP_ROUTE_104_SOUTH:
-      event.Set(EVENT_ROUTE_104_POKEMON_CAPTURED);
-      break;
-    case MAP_PETALBURG_WOODS:
-      event.Set(EVENT_PETALBURG_WOODS_POKEMON_CAPTURED);
-      break;
-  }
-}
-
-bool IsNotFirstEncounter() {
-  auto& map_id = overworld::MapManager::last_map_id;
-  auto& event = savedata::EventTable::GetInstance();
-  switch (map_id) {
-    case MAP_ROUTE_101:
-      return event.Check(EVENT_ROUTE_101_POKEMON_CAPTURED);
-    case MAP_ROUTE_103:
-      return event.Check(EVENT_ROUTE_103_POKEMON_CAPTURED);
-    case MAP_ROUTE_102:
-      return event.Check(EVENT_ROUTE_102_POKEMON_CAPTURED);
-    case MAP_ROUTE_104_NORTH:
-    case MAP_ROUTE_104_SOUTH:
-      return event.Check(EVENT_ROUTE_104_POKEMON_CAPTURED);
-    case MAP_PETALBURG_WOODS:
-      return event.Check(EVENT_PETALBURG_WOODS_POKEMON_CAPTURED);
-  }
-  return false;
-}
 }

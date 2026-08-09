@@ -17,6 +17,9 @@
 
 #pragma once
 #include "common.h"
+#include "game/overworld/map_manager.h"
+#include "game/savedata/pss_photo.h"
+#include "game/savedata/savedata.h"
 
 namespace global_data {
 struct Item;
@@ -36,6 +39,34 @@ struct EncounterEntry {
   const u16 map_id;
   const u16 size;
   const u16* species;
+};
+
+struct CapturedEvent {
+  STATIC_INLINE bool Check() {
+    u32 id = overworld::MapManager::last_map_id;
+    auto& data = savedata::PssPhoto::GetInstance();
+    u8* bits = &data.photo[0];
+    u32 index = id / 8;
+    u32 offset = id % 8;
+    return bits[index] & (1U << offset);
+  }
+
+  STATIC_INLINE void Set() {
+    u32 id = overworld::MapManager::last_map_id;
+    auto& data = savedata::PssPhoto::GetInstance();
+    u8* bits = &data.photo[0];
+    u32 index = id / 8;
+    u32 offset = id % 8;
+    bits[index] |= (1U << offset);
+  }
+
+  STATIC_INLINE void Reset(u32 id) {
+    auto& data = savedata::PssPhoto::GetInstance();
+    u8* bits = &data.photo[0];
+    u32 index = id / 8;
+    u32 offset = id % 8;
+    bits[index] &= ~(1U << offset);
+  }
 };
 
 extern void PatchOverworld();

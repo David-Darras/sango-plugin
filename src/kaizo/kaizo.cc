@@ -32,7 +32,6 @@
 namespace kaizo {
 void Initialize() {
   PatchTechnicalMoves();
-  PatchBag();
   PatchShopData();
   PatchPokemonData();
   PatchMoveData();

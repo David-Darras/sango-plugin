@@ -54,6 +54,7 @@ struct Overworld {
   STATIC_INLINE void Patch() {
 #ifdef KAIZO
     kaizo::PatchOverworld();
+    kaizo::PatchBag();
 #endif
 
     HookManager::Enable(HookID::kGetEncounterPokemon);

@@ -17,6 +17,7 @@
 
 #pragma once
 
+#include "pss.h"
 #include "game/data_manager.h"
 
 namespace savedata {
@@ -33,6 +34,7 @@ struct PokemonTeam;
 struct Settings;
 struct Pokedex;
 struct RecordManager;
+struct PssPhoto;
 struct Minigame;
 struct OPowerManager;
 struct PssGroup;
@@ -122,6 +124,10 @@ public:
 
   INLINE RecordManager& GetRecordManager() {
     return *(RecordManager*)segments_[44];
+  }
+
+  INLINE PssPhoto& GetPssPhoto() {
+    return *(PssPhoto*)segments_[50];
   }
 
   INLINE Settings& GetSettings() { return *(Settings*)segments_[23]; }
