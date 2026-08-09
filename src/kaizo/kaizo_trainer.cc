@@ -685,13 +685,6 @@ u32 GetPokemonBST(PokemonCoreData* core) {
   u32 bst = data.base_hp + data.base_attack + data.base_defense +
             data.base_speed + data.base_special_attack +
             data.base_special_defense;
-
-  ui::LogApplication::Print(
-      u"[BST] species=%d form=%d hp=%d atk=%d def=%d spe=%d spa=%d spd=%d -> BST=%d\n",
-      core->species, core->form, data.base_hp, data.base_attack,
-      data.base_defense, data.base_speed, data.base_special_attack,
-      data.base_special_defense, bst);
-
   return bst;
 }
 
@@ -712,10 +705,6 @@ TeamStats GetTeamStats(savedata::PokemonTeam* team) {
     u8 level = team->pokemons[i]->runtime->level;
     u32 bst = GetPokemonBST(team->pokemons[i]->core);
 
-    ui::LogApplication::Print(
-        u"[TEAM] slot=%d species=%d level=%d bst=%d\n",
-        i, team->pokemons[i]->core->species, level, bst);
-
     sum_level += level;
     sum_bst += bst;
     count++;
@@ -729,10 +718,6 @@ TeamStats GetTeamStats(savedata::PokemonTeam* team) {
     stats.avg_bst = (f32)sum_bst / count;
   }
 
-  ui::LogApplication::Print(
-      u"[TEAM STATS] count=%d max_level=%d avg_level=%f max_bst=%d avg_bst=%f\n",
-      count, stats.max_level, stats.avg_level, stats.max_bst, stats.avg_bst);
-
   return stats;
 }
 
@@ -742,41 +727,23 @@ void PatchTrainer_Level(battle::Config& config,
   savedata::PokemonTeam* my_team = config.pokemon_teams[0];
   savedata::PokemonTeam* enemy_team = config.pokemon_teams[1];
   if (!my_team || !enemy_team) {
-    ui::LogApplication::Print(
-        u"[PatchTrainer_Level] ABORT: my_team=%p enemy_team=%p\n",
-        my_team, enemy_team);
     return;
   }
-
-  ui::LogApplication::Print(
-      u"[PatchTrainer_Level] my_team.count=%d enemy_team.count=%d nerf_strength=%f team_weight=%f\n",
-      my_team->count, enemy_team->count, nerf_strength, team_weight);
 
   TeamStats my_stats = GetTeamStats(my_team);
   u8 max_level_cap = savedata::PokemonTeam::GetInstance().GetMaxLevel();
 
-  ui::LogApplication::Print(u"[PatchTrainer_Level] max_level_cap=%d\n",
-                            max_level_cap);
-
-  // Référence de puissance = interpolation entre moyenne et max
   f32 ref_level = my_stats.avg_level +
                   (my_stats.max_level - my_stats.avg_level) * team_weight;
   f32 ref_bst = my_stats.avg_bst +
                 (my_stats.max_bst - my_stats.avg_bst) * team_weight;
 
-  ui::LogApplication::Print(
-      u"[PatchTrainer_Level] ref_level=%f ref_bst=%f\n", ref_level, ref_bst);
-
   for (u32 i = 0; i < enemy_team->count; i++) {
     savedata::PokemonParam* enemy = enemy_team->pokemons[i];
     if (!enemy) {
-      ui::LogApplication::Print(u"[ENEMY %d] NULL slot, skip\n", i);
       continue;
     }
     if (enemy->core->experience != 0xFFFFFFFF) {
-      ui::LogApplication::Print(
-          u"[ENEMY %d] species=%d has fixed experience=%d, skip auto-level\n",
-          i, enemy->core->species, enemy->core->experience);
       continue;
     }
 
@@ -786,27 +753,14 @@ void PatchTrainer_Level(battle::Config& config,
     s8 rand_offset = -2 + Utils::GetRandomValue(2);
     f32 target_level = ref_level + rand_offset;
 
-    ui::LogApplication::Print(
-        u"[ENEMY %d] species=%d enemy_bst=%d bst_ratio=%f rand_offset=%d target_level(before nerf)=%f\n",
-        i, enemy->core->species, enemy_bst, bst_ratio, rand_offset,
-        target_level);
-
     if (bst_ratio > 1.0f) {
       f32 nerf_amount = (bst_ratio - 1.0f) * nerf_strength * target_level;
       target_level -= nerf_amount;
-
-      ui::LogApplication::Print(
-          u"[ENEMY %d] NERF applied: nerf_amount=%f target_level(after nerf)=%f\n",
-          i, nerf_amount, target_level);
     }
 
     s32 clamped = (s32)(target_level + 0.5f);
     if (clamped < 1) clamped = 1;
     if (clamped > max_level_cap) clamped = max_level_cap;
-
-    ui::LogApplication::Print(
-        u"[ENEMY %d] FINAL level=%d (raw target_level=%f)\n",
-        i, clamped, target_level);
 
     if (config.battle_format == BATTLE_FORMAT_HORDE) {
       clamped >>= 1;
@@ -882,6 +836,8 @@ void PatchTrainerData(battle::Config& config, u16& trainer_id) {
       break;
     case BATTLE_TRAINER_RUSTBORO_CITY_LEADER_ROXANNE:
       battle.sync_team_hp = true;
+      break;
+    default:
       break;
   }
 }

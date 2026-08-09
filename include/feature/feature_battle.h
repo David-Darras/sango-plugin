@@ -23,6 +23,7 @@
 #include "game/battle/manager.h"
 #include "kaizo.h"
 #include "game/constant/move.h"
+#include "game/renderer/app_layout_manager.h"
 
 namespace feature {
 struct Battle {
@@ -96,6 +97,10 @@ public:
                             ADDRESS_BATTLE_CHECK_POKEMON_CAPTURED,
                             (uptr)CheckPokemonCaptured,
                             false);
+    HookManager::Initialize(HookID::kBattleUpdateGauge,
+                            ADDRESS_BATTLE_UPDATE_GAUGE,
+                            (uptr)UpdateGauge,
+                            false);
   }
 
   STATIC_INLINE void PatchOnUpdate() {
@@ -154,6 +159,7 @@ public:
     HookManager::ForceEnable(HookID::kStartBattleAnimation);
     HookManager::ForceEnable(HookID::kPlayBattleAnimation);
     HookManager::ForceEnable(HookID::kBattleCheckPokemonCaptured);
+    HookManager::ForceEnable(HookID::kBattleUpdateGauge);
 
     auto& feat = GetInstance();
     if (!feat.can_use_item) {
@@ -207,6 +213,49 @@ public:
     return result;
   }
 
+  static Color8 LerpColor(Color8 a, Color8 b, f32 t) {
+    Color8 c;
+    c.r = (u8)(a.r + (b.r - a.r) * t);
+    c.g = (u8)(a.g + (b.g - a.g) * t);
+    c.b = (u8)(a.b + (b.b - a.b) * t);
+    c.a = 255;
+    return c;
+  }
+
+  static Color8 GetHpGaugeColor(f32 ratio) {
+    if (ratio < 0.0f) ratio = 0.0f;
+    if (ratio > 1.0f) ratio = 1.0f;
+
+    Color8 magenta = {255, 0, 180, 255};
+    Color8 red = {255, 0, 60, 255};
+    Color8 orange = {255, 100, 0, 255};
+    Color8 yellow = {255, 230, 0, 255};
+    Color8 green = {0, 255, 90, 255};
+    Color8 cyan = {0, 230, 255, 255};
+
+    if (ratio < 0.2f) {
+      return LerpColor(magenta, red, ratio / 0.2f);
+    } else if (ratio < 0.4f) {
+      return LerpColor(red, orange, (ratio - 0.2f) / 0.2f);
+    } else if (ratio < 0.6f) {
+      return LerpColor(orange, yellow, (ratio - 0.4f) / 0.2f);
+    } else if (ratio < 0.8f) {
+      return LerpColor(yellow, green, (ratio - 0.6f) / 0.2f);
+    } else {
+      return LerpColor(green, cyan, (ratio - 0.8f) / 0.2f);
+    }
+  }
+
+  static void UpdateGauge(uptr gauge, u16 max_hp, u32 new_hp) {
+    HookManager::Call<void>(HookID::kBattleUpdateGauge, gauge, max_hp, new_hp);
+    uptr res = ((uptr(*)(uptr))0x4BCD08)(READ(vu32, gauge + 48));
+
+    f32 ratio = (max_hp > 0) ? (f32)new_hp / (f32)max_hp : 0.0f;
+    Color8 color = GetHpGaugeColor(ratio);
+
+    WRITE(vu32, res + 16, color.GetRaw());
+  }
+
   static void UpdateBattleViewHook(uptr p0) {
     if (GetInstance().fix_pokemon_size) {
       static u32 counter = 20;
@@ -231,16 +280,16 @@ public:
 
       u32 pkmData = *(u32*)0x617A00 + 0x50 * pkmNum;
       // Personal data of the Pokémon
-      float realSize = (float)*(u16*)(pkmData + 0x24);
+      f32 realSize = (f32)*(u16*)(pkmData + 0x24);
       // Actual height according to the Pokédex
-      float defaultSize = (float)*(u16*)(pkmData + 0x3C);
+      f32 defaultSize = (f32)*(u16*)(pkmData + 0x3C);
       // Default displayed size in battle
-      float ratio = realSize / defaultSize;
+      f32 ratio = realSize / defaultSize;
 
       // Update Pokémon scale
-      *(float*)(pkmMdl + 0x34) = ratio;
-      *(float*)(pkmMdl + 0x38) = ratio;
-      *(float*)(pkmMdl + 0x3C) = ratio;
+      *(f32*)(pkmMdl + 0x34) = ratio;
+      *(f32*)(pkmMdl + 0x38) = ratio;
+      *(f32*)(pkmMdl + 0x3C) = ratio;
 
       // Mark the model to be updated
       *(bool*)(pkmMdl + 0x4C) = true;

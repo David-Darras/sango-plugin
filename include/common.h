@@ -151,6 +151,10 @@ struct Color8 {
 
   Color8(u8 r0, u8 g0, u8 b0, u8 a0) : r(r0), g(g0), b(b0), a(a0) {
   }
+
+  u32 GetRaw() {
+    return READ(vu32, (uptr)this);
+  }
 };
 
 struct Mtx33 {

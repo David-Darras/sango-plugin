@@ -36,6 +36,7 @@ enum class HookID : u32 {
   kUpdateMatrices,
   kUpdateLookAt,
   kBattleCheckPokemonCaptured,
+  kBattleUpdateGauge,
   kSetupBattleConfig,
   kSetupTrainerBattleConfig,
   kOnStartTurn,
