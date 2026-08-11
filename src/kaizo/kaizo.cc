@@ -50,10 +50,10 @@ void Initialize() {
   {
     feature::MapDataLoader::GetInstance().is_contact_enabled = false;
   }
-  // Item
-  {
-    feature::Item::GetInstance().remove_limit = true;
-  }
+  // Item (useless just use in-game pokémon editor)
+  // {
+  //   feature::Item::GetInstance().remove_limit = true;
+  // }
   // Music
   {
     feature::Overworld::GetInstance().freeze_background_music = true;

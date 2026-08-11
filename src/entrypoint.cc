@@ -75,6 +75,11 @@ void Initialize() {
   feature::Encounter::Initialize();
   feature::AppStatus::Initialize();
 
+  // Disables the keyboard's "No Good Word" filter to allow prohibited words,
+  // phone numbers, etc.
+  WRITE(u32, 0x003A47C0, 0xE3A00000);
+  ARM_RET(0x003A47C4);
+
 #ifdef KAIZO
   kaizo::Initialize();
 #endif
@@ -85,7 +90,7 @@ void Initialize() {
 
 #ifndef KAIZO
   main_app.SetPainter(ui::KaizoAppPainter::GetInstance());
-  main_app.Open(ui::LoadNuzlockePage);
+  main_app.Open(ui::LoadKaizoPage);
 #else
   main_app.SetPainter(ui::MainAppPainter::GetInstance());
   main_app.Open(ui::LoadTopPage);
