@@ -32,7 +32,7 @@ int main() {
 #endif
 
 #ifdef USE_DEFAULT_CTRPF
-  PluginMenu menu;
+  PluginMenu menu();
   menu.SynchronizeWithFrame(true);
   menu.Run();
 #endif

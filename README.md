@@ -32,6 +32,12 @@ been fully migrated to a standard **`.3gx` plugin format**.
 
 ---
 
+## Pokémon Sango Kaizo (ROM Hack)
+
+Check out my flagship mod built using this framework: **[Pokémon Sango Kaizo (Demo)](kaizo.md)** - a complete overhaul featuring hardcoded Nuzlocke rules, live stat editing, competitive AI, and custom QoL features!
+
+---
+
 ## Build & Usage
 
 **To compile:**
