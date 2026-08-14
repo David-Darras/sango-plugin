@@ -88,7 +88,7 @@ void Initialize() {
   auto& root_app = ui::RootApplication::GetInstance();
   auto& main_app = ui::MainApplication::GetInstance();
 
-#ifndef KAIZO
+#ifdef KAIZO
   main_app.SetPainter(ui::KaizoAppPainter::GetInstance());
   main_app.Open(ui::LoadKaizoPage);
 #else

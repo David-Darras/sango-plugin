@@ -69,7 +69,7 @@ void LoadKaizoPage(MainApplication& app, void* args) {
   auto& camera = feature::Camera::GetInstance();
   auto& speed = feature::Engine::GetInstance().game_speed;
 
-  app.Add("TID", feature::BattleConfig::GetInstance().trainer_id)
+  app //.Add("TID", feature::BattleConfig::GetInstance().trainer_id)
      .Add("Camera", camera.state)
      .WithBounds(0, 4)
      .Add("Speed", speed)
