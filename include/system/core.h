@@ -21,6 +21,7 @@
 
 class Device;
 class Graphics;
+class FontManager;
 
 /**
  * @brief The Core class acts as the central bridge to the engine's main
@@ -51,6 +52,8 @@ public:
 
   INLINE u8& GetLanguageId() { return *language_id; }
 
+  INLINE FontManager& GetFontManager() const { return *font_manager_; }
+
 private:
   Device* device_; ///< Pointer to the internal Device manager instance.
   Graphics* graphics_; ///< Pointer to the internal Graphics manager instance.
@@ -58,4 +61,5 @@ private:
   void* _0[21];
 
   u8* language_id;
+  FontManager* font_manager_;
 };

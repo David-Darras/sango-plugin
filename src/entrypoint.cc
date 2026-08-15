@@ -74,6 +74,7 @@ void Initialize() {
   feature::MapDataLoader::Initialize();
   feature::Encounter::Initialize();
   feature::AppStatus::Initialize();
+  feature::Keyboard::Initialize();
 
   // Disables the keyboard's "No Good Word" filter to allow prohibited words,
   // phone numbers, etc.
@@ -117,7 +118,9 @@ void Entrypoint() {
     Graphics::EnableScissor(0, 0, 400, 240);
     Graphics::BeginRender(top_buffer);
     application->DrawTop(graphics);
+    feature::Keyboard::DrawTop();
     Graphics::DisableScissor();
+
   }
 
   void* bottom_buffer = graphics.GetFramebuffer(Screen::kBottom);

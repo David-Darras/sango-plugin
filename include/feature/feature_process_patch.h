@@ -21,6 +21,7 @@
 #include "feature_app.h"
 #include "feature_app_status.h"
 #include "feature_battle.h"
+#include "feature_keyboard.h"
 #include "feature_title_screen.h"
 #include "game/process_manager.h"
 
@@ -83,8 +84,15 @@ class ProcessPatch {
       case ADDRESS_APP_STATUS_VTABLE:
         AppStatus::PatchOnLoad();
         break;
+      case ADDRESS_KEYBOARD_VTABLE:
+        Keyboard::PatchOnLoad();
+        break;
       default:
         break;
+    }
+
+    if (vtable != ADDRESS_KEYBOARD_VTABLE) {
+      Keyboard::GetInstance().is_opened = false;
     }
   }
 

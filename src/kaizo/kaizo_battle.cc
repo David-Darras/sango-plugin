@@ -79,7 +79,7 @@ void PatchBattle() {
   battle.fix_pokemon_size = true;
   battle.no_shader = false;
   battle.mega_restriction = false;
-  battle.use_pokeball_boost = false;
+  battle.same_ratio_for_all_pokeball = true;
   battle.is_long_encounter_animation = false;
   battle.is_long_mega_evolve_animation = true;
   battle.show_enemy_pov = false;

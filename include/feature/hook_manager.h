@@ -65,6 +65,7 @@ enum class HookID : u32 {
   kUpdateAppStatus,
   kGlobalDataItemGetParam,
   kAddPokemonToTeam,
+  kKeyboardUpdateKeys,
   kInitializePokemon,
   kIsShiny,
   kFromNormalToShiny,

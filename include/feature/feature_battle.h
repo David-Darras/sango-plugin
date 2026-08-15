@@ -39,7 +39,7 @@ public:
 
   bool no_shader = false;
   bool can_use_item = true;
-  bool use_pokeball_boost = true;
+  bool same_ratio_for_all_pokeball = false;
   bool fix_pokemon_size = true;
   bool sync_overworld_music = false;
   bool sync_team_hp = false;
@@ -170,7 +170,7 @@ public:
       WRITE(vu8, 0x007CB0E4, 2); // Battle -> Item
     }
 
-    if (feat.use_pokeball_boost) {
+    if (feat.same_ratio_for_all_pokeball) {
       // Disable master ball feature
       ARM_NOP(0x007227A4);
       ARM_NO_COND(0x007227B8);

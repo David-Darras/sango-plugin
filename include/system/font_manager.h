@@ -14,30 +14,41 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include <CTRPluginFramework/Menu/PluginMenu.hpp>
-#include <CTRPluginFramework/System/Hook.hpp>
 
+#pragma once
 #include "common.h"
+#include "core.h"
 
-extern void Initialize();
-extern void Entrypoint();
+struct Font {
+  INLINE bool HasGlyph(u16 c) {
+    return ((bool(*)(Font*, u16))ADDRESS_FONT_HAS_GLYPH)(this, c);
+  }
 
-namespace CTRPluginFramework {
-int main() {
-#ifdef USE_SANGO_PLUGIN
-  Initialize();
+  u32 data[0];
+};
 
-  Hook hook;
-  hook.InitializeForMitm(ADDRESS_ENTRYPOINT, (uptr)Entrypoint);
-  hook.Enable();
-#endif
+struct FontResource {
+  Font* font;
+  void* resource;
+};
 
-#ifdef USE_DEFAULT_CTRPF
-  PluginMenu menu;
-  menu.SynchronizeWithFrame(true);
-  menu.Run();
-#endif
+class FontManager {
+  SINGLETON(FontManager)
+public:
+  STATIC_INLINE FontManager& GetInstance() {
+    return Core::GetInstance().GetFontManager();
+  }
 
-  return 0;
-}
-} // namespace CTRPluginFramework
+  STATIC_INLINE bool IsPrintable(u16 c) {
+    return GetInstance().font->HasGlyph(c);
+  }
+
+  void* archive;
+  Font* font;
+  FontResource ctr;
+  FontResource game_freak;
+  u32 _0;
+  FontResource digit;
+  FontResource battle;
+  FontResource braille;
+};

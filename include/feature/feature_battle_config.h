@@ -22,6 +22,9 @@
 #include "game/constant/form.h"
 #include "ui/log_application.h"
 #include "kaizo.h"
+#include "game/constant/battle_background.h"
+#include "game/constant/battle_encounter_animation.h"
+#include "game/constant/battle_platform.h"
 #include "game/constant/battle_trainer.h"
 #include "game/constant/species.h"
 #include "game/savedata/pokemon_data_accessor.h"
@@ -32,11 +35,13 @@ struct BattleConfig {
   MAKE_SINGLETON(BattleConfig)
   bool is_enabled = false;
   u8 battle_format = 0; // single
-  u8 background = 87;
-  u8 platform = 4;
-  u8 ground = 87;
-  u32 encounter_animation = 22; // rayquaza
-  u32 background_music = (1 << 16) + 2;
+  u8 background = BATTLE_BACKGROUND_AQUA_BOSS;
+  u8 platform = BATTLE_PLATFORM_BOSS_AQUA;
+  u8 ground = BATTLE_ENCOUNTER_ANIM_AQUA_TEAM_BOSS;
+  u32 encounter_animation = BATTLE_ENCOUNTER_ANIM_KYOGRE;
+  u16 species = SPECIES_KYOGRE;
+  u8 form = FORM_KYOGRE_ALPHA;
+  u32 background_music = (1 << 16) + 79;
   f32 money_rate = 1.0f;
   u32 flags = 0;
   bool use_skybox = true;
@@ -113,8 +118,8 @@ struct BattleConfig {
       // config->pokemon_teams[0]->pokemons[0]->accessor->Encrypt();
       //
       config->pokemon_teams[1]->pokemons[0]->accessor->Decrypt();
-      config->pokemon_teams[1]->pokemons[0]->core->species = SPECIES_LATIOS;
-      config->pokemon_teams[1]->pokemons[0]->core->form = FORM_LATIAS_NORMAL;
+      config->pokemon_teams[1]->pokemons[0]->core->species = ctx.species;
+      config->pokemon_teams[1]->pokemons[0]->core->form = ctx.form;
       config->pokemon_teams[1]->pokemons[0]->accessor->Encrypt();
     }
   }
