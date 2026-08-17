@@ -15,6 +15,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include <initializer_list>
+
 #include "utils.h"
 #include "feature/feature_battle.h"
 #include "game/battle/config.h"
@@ -61,592 +63,435 @@ void RestoreTeamAfterBattle() {
   s_count = 0;
 }
 
-void PatchTrainer_May(battle::Config& config) {
-  config.Set(5, BATTLE_FORMAT_HORDE, BATTLE_BACKGROUND_SKY_PILLAR_TOP,
-             BATTLE_GROUND_SKY_PILLAR_TOP, BATTLE_PLATFORM_SKY_PILLAR_TOP,
-             BATTLE_ENCOUNTER_ANIM_RAYQUAZA, WEATHER_BATTLE_STRONG_WINDS);
-  {
-    auto& pkm = config.GetOpponent(0);
-    pkm.Set(SPECIES_WHISMUR, ITEM_NONE, ABILITY_RATTLED, NATURE_MODEST,
-            false);
-    pkm.SetStats(0, 0, 0, 0, 0, 0);
-    pkm.SetMoves(MOVE_NONE, MOVE_NONE, MOVE_NONE, MOVE_NONE);
-    pkm.SetLevel(1);
+// ----------------------------------------------------------------------
+// Trainer data tables.
+//
+// Every hand-picked trainer battle used to be a `PatchTrainer_Xxx()`
+// function that imperatively called `.Set()` / `.SetStats()` /
+// `.SetMoves()` on each opponent slot: ~550 lines that were really just
+// data (species/item/ability/nature/EVs/moves per opponent) written as
+// code. This is now a table of `TrainerSpec` values consumed by a single
+// `ApplyTrainerSpec()` function, so adding/rebalancing a trainer is a
+// one-line data change instead of copy-pasting a whole function.
+// ----------------------------------------------------------------------
+
+/**
+* @brief One opponent slot's data: mirrors, in order, the arguments
+* originally passed to PokemonCoreData::Set(), ::SetStats() and
+* ::SetMoves(), plus the optional form/nickname/level overrides some
+* opponents used.
+*/
+struct TrainerOpponentSpec {
+  u16 species;
+  u16 item;
+  u16 ability;
+  u8 nature;
+  bool is_shiny;
+
+  u8 ev_hp, ev_attack, ev_defense, ev_sp_attack, ev_sp_defense, ev_speed;
+
+  u16 move1, move2, move3, move4;
+
+  u8 form; // 0 = leave the species' default form untouched
+  const c16* nickname; // nullptr = keep the species' default name
+  u8 forced_level; // 0 = don't force a level (PatchTrainer_Level decides)
+
+  TrainerOpponentSpec()
+    : species(0), item(0), ability(0), nature(0), is_shiny(false), ev_hp(0),
+      ev_attack(0), ev_defense(0), ev_sp_attack(0), ev_sp_defense(0),
+      ev_speed(0), move1(0), move2(0), move3(0), move4(0), form(0),
+      nickname(nullptr), forced_level(0) {
   }
-  {
-    auto& pkm = config.GetOpponent(1);
-    pkm.Set(SPECIES_WHISMUR, ITEM_LIFE_ORB, ABILITY_SOUNDPROOF, NATURE_MODEST,
-            true);
-    pkm.SetStats(244, 0, 12, 188, 0, 12);
-    pkm.SetMoves(MOVE_HYPER_VOICE, MOVE_FIRE_BLAST, MOVE_SHADOW_BALL,
-                 MOVE_EXTRASENSORY);
-    pkm.SetNickname(u"Hash");
+
+  TrainerOpponentSpec(u16 species, u16 item, u16 ability, u8 nature,
+                      bool is_shiny, u8 ev_hp, u8 ev_attack, u8 ev_defense,
+                      u8 ev_sp_attack, u8 ev_sp_defense, u8 ev_speed,
+                      u16 move1, u16 move2, u16 move3, u16 move4,
+                      u8 form = 0, const c16* nickname = nullptr,
+                      u8 forced_level = 0)
+    : species(species), item(item), ability(ability), nature(nature),
+      is_shiny(is_shiny), ev_hp(ev_hp), ev_attack(ev_attack),
+      ev_defense(ev_defense), ev_sp_attack(ev_sp_attack),
+      ev_sp_defense(ev_sp_defense), ev_speed(ev_speed), move1(move1),
+      move2(move2), move3(move3), move4(move4), form(form),
+      nickname(nickname), forced_level(forced_level) {
   }
-  {
-    auto& pkm = config.GetOpponent(2);
-    pkm.Set(SPECIES_WHISMUR, ITEM_NONE, ABILITY_RATTLED, NATURE_MODEST,
-            false);
-    pkm.SetStats(0, 0, 0, 0, 0, 0);
-    pkm.SetMoves(MOVE_NONE, MOVE_NONE, MOVE_NONE, MOVE_NONE);
-    pkm.SetLevel(1);
+
+  void ApplyTo(PokemonCoreData& pkm) const {
+    pkm.Set(species, item, ability, nature, is_shiny);
+    if (form != 0) pkm.form = form;
+    pkm.SetStats(ev_hp, ev_attack, ev_defense, ev_sp_attack, ev_sp_defense,
+                ev_speed);
+    pkm.SetMoves(move1, move2, move3, move4);
+    if (nickname != nullptr) pkm.SetNickname(nickname);
+    if (forced_level != 0) pkm.SetLevel(forced_level);
   }
-  {
-    auto& pkm = config.GetOpponent(3);
-    pkm.Set(SPECIES_WHISMUR, ITEM_NONE, ABILITY_RATTLED, NATURE_MODEST,
-            false);
-    pkm.SetStats(0, 0, 0, 0, 0, 0);
-    pkm.SetMoves(MOVE_NONE, MOVE_NONE, MOVE_NONE, MOVE_NONE);
-    pkm.SetLevel(1);
+};
+
+/**
+* @brief A whole trainer battle: mirrors the arguments originally passed
+* to battle::Config::Set(), plus the list of opponents and the one-off
+* `config.battle_type = 0;` override that Georgia used.
+*/
+struct TrainerSpec {
+  u8 opponent_count;
+  u8 format;
+  u8 background;
+  u8 ground;
+  u8 platform;
+  u8 encounter_animation;
+  u8 weather;
+  bool force_wild_battle_type;
+  TrainerOpponentSpec opponents[6];
+
+  TrainerSpec(u8 opponent_count, u8 format, u8 background, u8 ground,
+             u8 platform, u8 encounter_animation, u8 weather,
+             std::initializer_list<TrainerOpponentSpec> opponent_list,
+             bool force_wild_battle_type = false)
+    : opponent_count(opponent_count), format(format), background(background),
+      ground(ground), platform(platform),
+      encounter_animation(encounter_animation), weather(weather),
+      force_wild_battle_type(force_wild_battle_type) {
+    u32 i = 0;
+    for (const auto& opponent : opponent_list) {
+      opponents[i++] = opponent;
+    }
   }
-  {
-    auto& pkm = config.GetOpponent(4);
-    pkm.Set(SPECIES_WHISMUR, ITEM_NONE, ABILITY_RATTLED, NATURE_MODEST,
-            false);
-    pkm.SetStats(0, 0, 0, 0, 0, 0);
-    pkm.SetMoves(MOVE_NONE, MOVE_NONE, MOVE_NONE, MOVE_NONE);
-    pkm.SetLevel(1);
+};
+
+void ApplyTrainerSpec(battle::Config& config, const TrainerSpec& spec) {
+  if (spec.force_wild_battle_type) config.battle_type = 0;
+  config.Set(spec.opponent_count, spec.format, spec.background, spec.ground,
+             spec.platform, spec.encounter_animation, spec.weather);
+  for (u32 i = 0; i < spec.opponent_count; i++) {
+    spec.opponents[i].ApplyTo(config.GetOpponent(i));
   }
 }
 
-void PatchTrainer_Route_102_Kid1(battle::Config& config) {
-  config.Set(2, BATTLE_FORMAT_DOUBLE, BATTLE_BACKGROUND_AQUA_BOSS,
-             BATTLE_GROUND_AQUA_BOSS, BATTLE_PLATFORM_WATER,
-             BATTLE_ENCOUNTER_ANIM_KYOGRE, WEATHER_BATTLE_HEAVY_RAIN);
-  {
-    auto& pkm = config.GetOpponent(0);
-    pkm.Set(SPECIES_FURFROU, ITEM_LEFTOVERS, ABILITY_FUR_COAT, NATURE_JOLLY,
-            true);
-    pkm.form = FORM_FURFROU_HEART;
-    pkm.SetStats(0, 252, 0, 0, 4, 252);
-    pkm.SetMoves(MOVE_U_TURN, MOVE_THUNDER_WAVE, MOVE_RETURN,
-                 MOVE_SUCKER_PUNCH);
-  }
-  {
-    auto& pkm = config.GetOpponent(1);
-    pkm.Set(SPECIES_POOCHYENA, ITEM_TOXIC_ORB, ABILITY_QUICK_FEET, NATURE_JOLLY,
-            true);
-    pkm.SetStats(0, 236, 0, 0, 36, 236);
-    pkm.SetMoves(MOVE_CRUNCH, MOVE_PLAY_ROUGH, MOVE_FACADE, MOVE_FIRE_FANG);
-  }
-}
+static const TrainerSpec kMaySpec(
+    5, BATTLE_FORMAT_HORDE, BATTLE_BACKGROUND_SKY_PILLAR_TOP,
+    BATTLE_GROUND_SKY_PILLAR_TOP, BATTLE_PLATFORM_SKY_PILLAR_TOP,
+    BATTLE_ENCOUNTER_ANIM_RAYQUAZA, WEATHER_BATTLE_STRONG_WINDS,
+    {
+        {SPECIES_WHISMUR, ITEM_NONE, ABILITY_RATTLED, NATURE_MODEST, false,
+         0, 0, 0, 0, 0, 0, MOVE_NONE, MOVE_NONE, MOVE_NONE, MOVE_NONE, 0,
+         nullptr, 1},
+        {SPECIES_WHISMUR, ITEM_LIFE_ORB, ABILITY_SOUNDPROOF, NATURE_MODEST,
+         true, 244, 0, 12, 188, 0, 12, MOVE_HYPER_VOICE, MOVE_FIRE_BLAST,
+         MOVE_SHADOW_BALL, MOVE_EXTRASENSORY, 0, u"Hash"},
+        {SPECIES_WHISMUR, ITEM_NONE, ABILITY_RATTLED, NATURE_MODEST, false,
+         0, 0, 0, 0, 0, 0, MOVE_NONE, MOVE_NONE, MOVE_NONE, MOVE_NONE, 0,
+         nullptr, 1},
+        {SPECIES_WHISMUR, ITEM_NONE, ABILITY_RATTLED, NATURE_MODEST, false,
+         0, 0, 0, 0, 0, 0, MOVE_NONE, MOVE_NONE, MOVE_NONE, MOVE_NONE, 0,
+         nullptr, 1},
+        {SPECIES_WHISMUR, ITEM_NONE, ABILITY_RATTLED, NATURE_MODEST, false,
+         0, 0, 0, 0, 0, 0, MOVE_NONE, MOVE_NONE, MOVE_NONE, MOVE_NONE, 0,
+         nullptr, 1},
+    });
 
-void PatchTrainer_Route_102_Kid2(battle::Config& config) {
-  config.Set(3, BATTLE_FORMAT_TRIPLE, BATTLE_BACKGROUND_MAGMA_BOSS,
-             BATTLE_GROUND_MAGMA_BOSS, BATTLE_PLATFORM_VOLCANO,
-             BATTLE_ENCOUNTER_ANIM_GROUDON,
-             WEATHER_BATTLE_EXTREMELY_HARSH_SUNLIGHT);
-  {
-    auto& pkm = config.GetOpponent(0);
-    pkm.Set(SPECIES_AZURILL, ITEM_EVIOLITE, ABILITY_HUGE_POWER, NATURE_ADAMANT,
-            false);
-    pkm.SetStats(116, 196, 116, 0, 36, 0);
-    pkm.SetMoves(MOVE_RETURN, MOVE_KNOCK_OFF, MOVE_WATERFALL,
-                 MOVE_IRON_TAIL);
-  }
-  {
-    auto& pkm = config.GetOpponent(1);
-    pkm.Set(SPECIES_PICHU, ITEM_EVIOLITE, ABILITY_LIGHTNING_ROD, NATURE_TIMID,
-            true);
-    pkm.SetStats(36, 0, 0, 236, 0, 196);
-    pkm.SetMoves(MOVE_NASTY_PLOT, MOVE_SUBSTITUTE, MOVE_THUNDERBOLT,
-                 MOVE_HIDDEN_POWER);
-  }
-  {
-    auto& pkm = config.GetOpponent(2);
-    pkm.Set(SPECIES_RATTATA, ITEM_FLAME_ORB, ABILITY_GUTS, NATURE_JOLLY,
-            false);
-    pkm.SetStats(0, 228, 76, 0, 0, 180);
-    pkm.SetMoves(MOVE_FACADE, MOVE_SUCKER_PUNCH, MOVE_FLAME_WHEEL,
-                 MOVE_U_TURN);
-  }
-}
+static const TrainerSpec kRoute102Kid1Spec(
+    2, BATTLE_FORMAT_DOUBLE, BATTLE_BACKGROUND_AQUA_BOSS,
+    BATTLE_GROUND_AQUA_BOSS, BATTLE_PLATFORM_WATER,
+    BATTLE_ENCOUNTER_ANIM_KYOGRE, WEATHER_BATTLE_HEAVY_RAIN,
+    {
+        {SPECIES_FURFROU, ITEM_LEFTOVERS, ABILITY_FUR_COAT, NATURE_JOLLY,
+         true, 0, 252, 0, 0, 4, 252, MOVE_U_TURN, MOVE_THUNDER_WAVE,
+         MOVE_RETURN, MOVE_SUCKER_PUNCH, FORM_FURFROU_HEART},
+        {SPECIES_POOCHYENA, ITEM_TOXIC_ORB, ABILITY_QUICK_FEET, NATURE_JOLLY,
+         true, 0, 236, 0, 0, 36, 236, MOVE_CRUNCH, MOVE_PLAY_ROUGH,
+         MOVE_FACADE, MOVE_FIRE_FANG},
+    });
 
-void PatchTrainer_Route_102_Kid3(battle::Config& config) {
-  config.Set(2, BATTLE_FORMAT_SINGLE, BATTLE_BACKGROUND_DEOXYS,
-             BATTLE_GROUND_DEOXYS, BATTLE_PLATFORM_FLYING_GYM_LEADER,
-             BATTLE_ENCOUNTER_ANIM_DEOXYS, WEATHER_BATTLE_HAIL);
-  {
-    auto& pkm = config.GetOpponent(0);
-    pkm.Set(SPECIES_PURRLOIN, ITEM_EVIOLITE, ABILITY_PRANKSTER, NATURE_CAREFUL,
-            false);
-    pkm.SetStats(188, 0, 180, 0, 60, 68);
-    pkm.SetMoves(MOVE_ENCORE, MOVE_U_TURN, MOVE_KNOCK_OFF,
-                 MOVE_THUNDER_WAVE);
-  }
-  {
-    auto& pkm = config.GetOpponent(1);
-    pkm.Set(SPECIES_GLAMEOW, ITEM_LIFE_ORB, ABILITY_LIMBER, NATURE_JOLLY,
-            false);
-    pkm.SetStats(0, 236, 20, 0, 0, 236);
-    pkm.SetMoves(MOVE_RETURN, MOVE_KNOCK_OFF, MOVE_FAKE_OUT,
-                 MOVE_U_TURN);
-  }
-}
+static const TrainerSpec kRoute102Kid2Spec(
+    3, BATTLE_FORMAT_TRIPLE, BATTLE_BACKGROUND_MAGMA_BOSS,
+    BATTLE_GROUND_MAGMA_BOSS, BATTLE_PLATFORM_VOLCANO,
+    BATTLE_ENCOUNTER_ANIM_GROUDON, WEATHER_BATTLE_EXTREMELY_HARSH_SUNLIGHT,
+    {
+        {SPECIES_AZURILL, ITEM_EVIOLITE, ABILITY_HUGE_POWER, NATURE_ADAMANT,
+         false, 116, 196, 116, 0, 36, 0, MOVE_RETURN, MOVE_KNOCK_OFF,
+         MOVE_WATERFALL, MOVE_IRON_TAIL},
+        {SPECIES_PICHU, ITEM_EVIOLITE, ABILITY_LIGHTNING_ROD, NATURE_TIMID,
+         true, 36, 0, 0, 236, 0, 196, MOVE_NASTY_PLOT, MOVE_SUBSTITUTE,
+         MOVE_THUNDERBOLT, MOVE_HIDDEN_POWER},
+        {SPECIES_RATTATA, ITEM_FLAME_ORB, ABILITY_GUTS, NATURE_JOLLY, false,
+         0, 228, 76, 0, 0, 180, MOVE_FACADE, MOVE_SUCKER_PUNCH,
+         MOVE_FLAME_WHEEL, MOVE_U_TURN},
+    });
+
+static const TrainerSpec kRoute102Kid3Spec(
+    2, BATTLE_FORMAT_SINGLE, BATTLE_BACKGROUND_DEOXYS, BATTLE_GROUND_DEOXYS,
+    BATTLE_PLATFORM_FLYING_GYM_LEADER, BATTLE_ENCOUNTER_ANIM_DEOXYS,
+    WEATHER_BATTLE_HAIL,
+    {
+        {SPECIES_PURRLOIN, ITEM_EVIOLITE, ABILITY_PRANKSTER, NATURE_CAREFUL,
+         false, 188, 0, 180, 0, 60, 68, MOVE_ENCORE, MOVE_U_TURN,
+         MOVE_KNOCK_OFF, MOVE_THUNDER_WAVE},
+        {SPECIES_GLAMEOW, ITEM_LIFE_ORB, ABILITY_LIMBER, NATURE_JOLLY, false,
+         0, 236, 20, 0, 0, 236, MOVE_RETURN, MOVE_KNOCK_OFF, MOVE_FAKE_OUT,
+         MOVE_U_TURN},
+    });
 
 // Tiana Lass
-void PatchTrainer_Route_102_Girl(battle::Config& config) {
-  config.Set(3, BATTLE_FORMAT_ROTATION, BATTLE_BACKGROUND_ABANDONED_SHIP,
-             BATTLE_GROUND_ABANDONED_SHIP, BATTLE_PLATFORM_SHIP,
-             BATTLE_ENCOUNTER_ANIM_HOOPA, WEATHER_BATTLE_NONE);
-  {
-    auto& pkm = config.GetOpponent(0);
-    pkm.Set(SPECIES_RAIKOU, ITEM_CHOICE_SPECS, ABILITY_PRESSURE, NATURE_TIMID,
-            false);
-    pkm.SetStats(0, 0, 0, 252, 4, 252);
-    pkm.SetMoves(MOVE_VOLT_SWITCH, MOVE_THUNDERBOLT, MOVE_SHADOW_BALL,
-                 MOVE_HIDDEN_POWER);
-  }
-  {
-    auto& pkm = config.GetOpponent(1);
-    pkm.Set(SPECIES_ENTEI, ITEM_CHOICE_BAND, ABILITY_PRESSURE, NATURE_ADAMANT,
-            true);
-    pkm.SetStats(0, 252, 0, 0, 4, 252);
-    pkm.SetMoves(MOVE_SACRED_FIRE, MOVE_FLARE_BLITZ, MOVE_EXTREME_SPEED,
-                 MOVE_STONE_EDGE);
-  }
-  {
-    auto& pkm = config.GetOpponent(2);
-    pkm.Set(SPECIES_SUICUNE, ITEM_LEFTOVERS, ABILITY_PRESSURE, NATURE_TIMID,
-            false);
-    pkm.SetStats(252, 0, 0, 0, 40, 216);
-    pkm.SetMoves(MOVE_SUBSTITUTE, MOVE_PROTECT, MOVE_CALM_MIND,
-                 MOVE_SCALD);
-  }
-}
+static const TrainerSpec kRoute102GirlSpec(
+    3, BATTLE_FORMAT_ROTATION, BATTLE_BACKGROUND_ABANDONED_SHIP,
+    BATTLE_GROUND_ABANDONED_SHIP, BATTLE_PLATFORM_SHIP,
+    BATTLE_ENCOUNTER_ANIM_HOOPA, WEATHER_BATTLE_NONE,
+    {
+        {SPECIES_RAIKOU, ITEM_CHOICE_SPECS, ABILITY_PRESSURE, NATURE_TIMID,
+         false, 0, 0, 0, 252, 4, 252, MOVE_VOLT_SWITCH, MOVE_THUNDERBOLT,
+         MOVE_SHADOW_BALL, MOVE_HIDDEN_POWER},
+        {SPECIES_ENTEI, ITEM_CHOICE_BAND, ABILITY_PRESSURE, NATURE_ADAMANT,
+         true, 0, 252, 0, 0, 4, 252, MOVE_SACRED_FIRE, MOVE_FLARE_BLITZ,
+         MOVE_EXTREME_SPEED, MOVE_STONE_EDGE},
+        {SPECIES_SUICUNE, ITEM_LEFTOVERS, ABILITY_PRESSURE, NATURE_TIMID,
+         false, 252, 0, 0, 0, 40, 216, MOVE_SUBSTITUTE, MOVE_PROTECT,
+         MOVE_CALM_MIND, MOVE_SCALD},
+    });
 
-void PatchTrainer_Route_104_Youngster_Billy(battle::Config& config) {
-  config.Set(2, BATTLE_FORMAT_SINGLE, BATTLE_BACKGROUND_SKY_BATTLE,
-             BATTLE_GROUND_SKY_BATTLE, BATTLE_PLATFORM_SKY,
-             BATTLE_ENCOUNTER_ANIM_GYM_LEADER_FLYING, WEATHER_BATTLE_INVALID);
-  {
-    auto& pkm = config.GetOpponent(0);
-    pkm.Set(SPECIES_XATU, ITEM_ROCKY_HELMET, ABILITY_MAGIC_BOUNCE, NATURE_TIMID,
-            true);
-    pkm.SetStats(252, 0, 240, 0, 0, 16);
-    pkm.SetMoves(MOVE_PSYCHIC, MOVE_ROOST, MOVE_GRASS_KNOT,
-                 MOVE_U_TURN);
-  }
-  {
-    auto& pkm = config.GetOpponent(1);
-    pkm.Set(SPECIES_TAILLOW, ITEM_LIFE_ORB, ABILITY_SCRAPPY, NATURE_NAIVE,
-            false);
-    pkm.SetStats(0, 0, 36, 196, 36, 236);
-    pkm.SetMoves(MOVE_BOOMBURST, MOVE_HEAT_WAVE, MOVE_HIDDEN_POWER,
-                 MOVE_BRAVE_BIRD);
-  }
-}
+static const TrainerSpec kRoute104YoungsterBillySpec(
+    2, BATTLE_FORMAT_SINGLE, BATTLE_BACKGROUND_SKY_BATTLE,
+    BATTLE_GROUND_SKY_BATTLE, BATTLE_PLATFORM_SKY,
+    BATTLE_ENCOUNTER_ANIM_GYM_LEADER_FLYING, WEATHER_BATTLE_INVALID,
+    {
+        {SPECIES_XATU, ITEM_ROCKY_HELMET, ABILITY_MAGIC_BOUNCE, NATURE_TIMID,
+         true, 252, 0, 240, 0, 0, 16, MOVE_PSYCHIC, MOVE_ROOST,
+         MOVE_GRASS_KNOT, MOVE_U_TURN},
+        {SPECIES_TAILLOW, ITEM_LIFE_ORB, ABILITY_SCRAPPY, NATURE_NAIVE,
+         false, 0, 0, 36, 196, 36, 236, MOVE_BOOMBURST, MOVE_HEAT_WAVE,
+         MOVE_HIDDEN_POWER, MOVE_BRAVE_BIRD},
+    });
 
-void PatchTrainer_Route_104_Rich_Boy_Winston(battle::Config& config) {
-  config.Set(2, BATTLE_FORMAT_DOUBLE, BATTLE_BACKGROUND_SKY_BATTLE,
-             BATTLE_GROUND_SKY_BATTLE, BATTLE_PLATFORM_SKY,
-             BATTLE_ENCOUNTER_ANIM_GYM_LEADER_FLYING, WEATHER_BATTLE_INVALID);
-  {
-    auto& pkm = config.GetOpponent(0);
-    pkm.Set(SPECIES_PIDOVE, ITEM_LIFE_ORB, ABILITY_SUPER_LUCK, NATURE_NAIVE,
-            false);
-    pkm.SetStats(0, 236, 0, 0, 0, 252);
-    pkm.SetMoves(MOVE_TAILWIND, MOVE_FACADE, MOVE_AERIAL_ACE,
-                 MOVE_HEAT_WAVE);
-  }
-  {
-    auto& pkm = config.GetOpponent(1);
-    pkm.Set(SPECIES_DUCKLETT, ITEM_EVIOLITE, ABILITY_HYDRATION, NATURE_CALM,
-            true);
-    pkm.SetStats(180, 0, 196, 4, 116, 0);
-    pkm.SetMoves(MOVE_AIR_SLASH, MOVE_DEFOG, MOVE_ROOST,
-                 MOVE_SCALD);
-  }
-}
+static const TrainerSpec kRoute104RichBoyWinstonSpec(
+    2, BATTLE_FORMAT_DOUBLE, BATTLE_BACKGROUND_SKY_BATTLE,
+    BATTLE_GROUND_SKY_BATTLE, BATTLE_PLATFORM_SKY,
+    BATTLE_ENCOUNTER_ANIM_GYM_LEADER_FLYING, WEATHER_BATTLE_INVALID,
+    {
+        {SPECIES_PIDOVE, ITEM_LIFE_ORB, ABILITY_SUPER_LUCK, NATURE_NAIVE,
+         false, 0, 236, 0, 0, 0, 252, MOVE_TAILWIND, MOVE_FACADE,
+         MOVE_AERIAL_ACE, MOVE_HEAT_WAVE},
+        {SPECIES_DUCKLETT, ITEM_EVIOLITE, ABILITY_HYDRATION, NATURE_CALM,
+         true, 180, 0, 196, 4, 116, 0, MOVE_AIR_SLASH, MOVE_DEFOG,
+         MOVE_ROOST, MOVE_SCALD},
+    });
 
-void PatchTrainer_Petalburg_Woods_Bug_Catcher_Lyle(battle::Config& config) {
-  config.Set(4, BATTLE_FORMAT_DOUBLE, BATTLE_BACKGROUND_FOREST,
-             BATTLE_GROUND_FOREST, BATTLE_PLATFORM_FOREST,
-             BATTLE_ENCOUNTER_ANIM_RAYQUAZA, WEATHER_BATTLE_INVALID);
-  {
-    auto& pkm = config.GetOpponent(0);
-    pkm.Set(SPECIES_METAPOD, ITEM_EVIOLITE, ABILITY_SHED_SKIN, NATURE_NAUGHTY,
-            false);
-    pkm.SetStats(248, 252, 0, 8, 0, 0);
-    pkm.SetMoves(MOVE_BUG_BITE, MOVE_ELECTROWEB, MOVE_IRON_DEFENSE,
-                 MOVE_TACKLE);
-  }
-  {
-    auto& pkm = config.GetOpponent(1);
-    pkm.Set(SPECIES_KAKUNA, ITEM_EVIOLITE, ABILITY_SHED_SKIN, NATURE_NAUGHTY,
-            true);
-    pkm.SetStats(248, 252, 0, 8, 0, 0);
-    pkm.SetMoves(MOVE_BUG_BITE, MOVE_ELECTROWEB, MOVE_IRON_DEFENSE,
-                 MOVE_POISON_STING);
-  }
-  {
-    auto& pkm = config.GetOpponent(2);
-    pkm.Set(SPECIES_SILCOON, ITEM_EVIOLITE, ABILITY_SHED_SKIN, NATURE_NAUGHTY,
-            false);
-    pkm.SetStats(248, 252, 0, 8, 0, 0);
-    pkm.SetMoves(MOVE_ELECTROWEB, MOVE_IRON_DEFENSE, MOVE_BUG_BITE,
-                 MOVE_POISON_STING);
-  }
-  {
-    auto& pkm = config.GetOpponent(3);
-    pkm.Set(SPECIES_CASCOON, ITEM_EVIOLITE, ABILITY_SHED_SKIN, NATURE_NAUGHTY,
-            true);
-    pkm.SetStats(248, 252, 0, 8, 0, 0);
-    pkm.SetMoves(MOVE_ELECTROWEB, MOVE_IRON_DEFENSE, MOVE_BUG_BITE,
-                 MOVE_POISON_STING);
-  }
-}
+static const TrainerSpec kPetalburgWoodsBugCatcherLyleSpec(
+    4, BATTLE_FORMAT_DOUBLE, BATTLE_BACKGROUND_FOREST, BATTLE_GROUND_FOREST,
+    BATTLE_PLATFORM_FOREST, BATTLE_ENCOUNTER_ANIM_RAYQUAZA,
+    WEATHER_BATTLE_INVALID,
+    {
+        {SPECIES_METAPOD, ITEM_EVIOLITE, ABILITY_SHED_SKIN, NATURE_NAUGHTY,
+         false, 248, 252, 0, 8, 0, 0, MOVE_BUG_BITE, MOVE_ELECTROWEB,
+         MOVE_IRON_DEFENSE, MOVE_TACKLE},
+        {SPECIES_KAKUNA, ITEM_EVIOLITE, ABILITY_SHED_SKIN, NATURE_NAUGHTY,
+         true, 248, 252, 0, 8, 0, 0, MOVE_BUG_BITE, MOVE_ELECTROWEB,
+         MOVE_IRON_DEFENSE, MOVE_POISON_STING},
+        {SPECIES_SILCOON, ITEM_EVIOLITE, ABILITY_SHED_SKIN, NATURE_NAUGHTY,
+         false, 248, 252, 0, 8, 0, 0, MOVE_ELECTROWEB, MOVE_IRON_DEFENSE,
+         MOVE_BUG_BITE, MOVE_POISON_STING},
+        {SPECIES_CASCOON, ITEM_EVIOLITE, ABILITY_SHED_SKIN, NATURE_NAUGHTY,
+         true, 248, 252, 0, 8, 0, 0, MOVE_ELECTROWEB, MOVE_IRON_DEFENSE,
+         MOVE_BUG_BITE, MOVE_POISON_STING},
+    });
 
-void PatchTrainer_Petalburg_Woods_Team_Aqua_Grunt(battle::Config& config) {
-  config.Set(5, BATTLE_FORMAT_HORDE, BATTLE_BACKGROUND_FOREST,
-             BATTLE_GROUND_FOREST, BATTLE_PLATFORM_FOREST,
-             BATTLE_ENCOUNTER_ANIM_RAYQUAZA, WEATHER_BATTLE_INVALID);
-  {
-    auto& pkm = config.GetOpponent(0);
-    pkm.Set(SPECIES_SCATTERBUG, ITEM_EVIOLITE, ABILITY_COMPOUND_EYES,
-            NATURE_CAREFUL,
-            true);
-    pkm.SetStats(132, 76, 116, 0, 156, 0);
-    pkm.SetMoves(MOVE_STUN_SPORE, MOVE_POISON_POWDER, MOVE_BUG_BITE,
-                 MOVE_TACKLE);
-  }
-  {
-    auto& pkm = config.GetOpponent(1);
-    pkm.Set(SPECIES_SEWADDLE, ITEM_EVIOLITE, ABILITY_CHLOROPHYLL, NATURE_BOLD,
-            true);
-    pkm.SetStats(156, 0, 196, 40, 116, 0);
-    pkm.SetMoves(MOVE_STICKY_WEB, MOVE_GIGA_DRAIN, MOVE_HIDDEN_POWER,
-                 MOVE_AIR_SLASH);
-  }
-  {
-    auto& pkm = config.GetOpponent(2);
-    pkm.Set(SPECIES_WURMPLE, ITEM_EVIOLITE, ABILITY_SHIELD_DUST, NATURE_RELAXED,
-            true);
-    pkm.SetStats(156, 76, 76, 0, 196, 0);
-    pkm.SetMoves(MOVE_BUG_BITE, MOVE_ELECTROWEB, MOVE_POISON_STING,
-                 MOVE_STRING_SHOT);
-  }
-  {
-    auto& pkm = config.GetOpponent(3);
-    pkm.Set(SPECIES_WEEDLE, ITEM_EVIOLITE, ABILITY_SHIELD_DUST, NATURE_ADAMANT,
-            true);
-    pkm.SetStats(36, 236, 36, 36, 116, 36);
-    pkm.SetMoves(MOVE_BUG_BITE, MOVE_ELECTROWEB, MOVE_POISON_STING,
-                 MOVE_STRING_SHOT);
-  }
-  {
-    auto& pkm = config.GetOpponent(4);
-    pkm.Set(SPECIES_CATERPIE, ITEM_EVIOLITE, ABILITY_SHIELD_DUST,
-            NATURE_RELAXED,
-            true);
-    pkm.SetStats(156, 0, 236, 0, 116, 0);
-    pkm.SetMoves(MOVE_BUG_BITE, MOVE_ELECTROWEB, MOVE_STRING_SHOT,
-                 MOVE_TACKLE);
-  }
-}
+static const TrainerSpec kPetalburgWoodsTeamAquaGruntSpec(
+    5, BATTLE_FORMAT_HORDE, BATTLE_BACKGROUND_FOREST, BATTLE_GROUND_FOREST,
+    BATTLE_PLATFORM_FOREST, BATTLE_ENCOUNTER_ANIM_RAYQUAZA,
+    WEATHER_BATTLE_INVALID,
+    {
+        {SPECIES_SCATTERBUG, ITEM_EVIOLITE, ABILITY_COMPOUND_EYES,
+         NATURE_CAREFUL, true, 132, 76, 116, 0, 156, 0, MOVE_STUN_SPORE,
+         MOVE_POISON_POWDER, MOVE_BUG_BITE, MOVE_TACKLE},
+        {SPECIES_SEWADDLE, ITEM_EVIOLITE, ABILITY_CHLOROPHYLL, NATURE_BOLD,
+         true, 156, 0, 196, 40, 116, 0, MOVE_STICKY_WEB, MOVE_GIGA_DRAIN,
+         MOVE_HIDDEN_POWER, MOVE_AIR_SLASH},
+        {SPECIES_WURMPLE, ITEM_EVIOLITE, ABILITY_SHIELD_DUST, NATURE_RELAXED,
+         true, 156, 76, 76, 0, 196, 0, MOVE_BUG_BITE, MOVE_ELECTROWEB,
+         MOVE_POISON_STING, MOVE_STRING_SHOT},
+        {SPECIES_WEEDLE, ITEM_EVIOLITE, ABILITY_SHIELD_DUST, NATURE_ADAMANT,
+         true, 36, 236, 36, 36, 116, 36, MOVE_BUG_BITE, MOVE_ELECTROWEB,
+         MOVE_POISON_STING, MOVE_STRING_SHOT},
+        {SPECIES_CATERPIE, ITEM_EVIOLITE, ABILITY_SHIELD_DUST, NATURE_RELAXED,
+         true, 156, 0, 236, 0, 116, 0, MOVE_BUG_BITE, MOVE_ELECTROWEB,
+         MOVE_STRING_SHOT, MOVE_TACKLE},
+    });
 
-void PatchTrainer_Petalburg_Woods_Bug_Catcher_James(battle::Config& config) {
-  config.Set(2, BATTLE_FORMAT_SINGLE, BATTLE_BACKGROUND_FOREST,
-             BATTLE_GROUND_FOREST, BATTLE_PLATFORM_FOREST,
-             BATTLE_ENCOUNTER_ANIM_RAYQUAZA, WEATHER_BATTLE_INVALID);
-  {
-    auto& pkm = config.GetOpponent(0);
-    pkm.Set(SPECIES_BUTTERFREE, ITEM_LIFE_ORB, ABILITY_TINTED_LENS,
-            NATURE_TIMID,
-            false);
-    pkm.SetStats(0, 0, 4, 252, 0, 252);
-    pkm.SetMoves(MOVE_SLEEP_POWDER, MOVE_QUIVER_DANCE, MOVE_BUG_BUZZ,
-                 MOVE_ENERGY_BALL);
-  }
-  {
-    auto& pkm = config.GetOpponent(1);
-    pkm.Set(SPECIES_BEEDRILL, ITEM_BEEDRILLITE, ABILITY_SWARM, NATURE_JOLLY,
-            false);
-    pkm.SetStats(0, 252, 4, 0, 0, 252);
-    pkm.SetMoves(MOVE_U_TURN, MOVE_POISON_JAB, MOVE_DRILL_RUN,
-                 MOVE_KNOCK_OFF);
-  }
-}
+static const TrainerSpec kPetalburgWoodsBugCatcherJamesSpec(
+    2, BATTLE_FORMAT_SINGLE, BATTLE_BACKGROUND_FOREST, BATTLE_GROUND_FOREST,
+    BATTLE_PLATFORM_FOREST, BATTLE_ENCOUNTER_ANIM_RAYQUAZA,
+    WEATHER_BATTLE_INVALID,
+    {
+        {SPECIES_BUTTERFREE, ITEM_LIFE_ORB, ABILITY_TINTED_LENS,
+         NATURE_TIMID, false, 0, 0, 4, 252, 0, 252, MOVE_SLEEP_POWDER,
+         MOVE_QUIVER_DANCE, MOVE_BUG_BUZZ, MOVE_ENERGY_BALL},
+        {SPECIES_BEEDRILL, ITEM_BEEDRILLITE, ABILITY_SWARM, NATURE_JOLLY,
+         false, 0, 252, 4, 0, 0, 252, MOVE_U_TURN, MOVE_POISON_JAB,
+         MOVE_DRILL_RUN, MOVE_KNOCK_OFF},
+    });
 
-void PatchTrainer_Route_104_Lady_Cindy(battle::Config& config) {
-  config.Set(1, BATTLE_FORMAT_SINGLE, BATTLE_BACKGROUND_SHORE,
-             BATTLE_GROUND_SHORE, BATTLE_PLATFORM_SHORE,
-             BATTLE_ENCOUNTER_ANIM_KYOGRE, WEATHER_BATTLE_RAIN);
-  {
-    auto& pkm = config.GetOpponent(0);
-    pkm.Set(SPECIES_TOTODILE, ITEM_EVIOLITE, ABILITY_SHEER_FORCE,
-            NATURE_ADAMANT,
-            false);
-    pkm.SetStats(0, 236, 4, 0, 0, 252);
-    pkm.SetMoves(MOVE_DRAGON_DANCE, MOVE_WATERFALL, MOVE_ICE_PUNCH,
-                 MOVE_SUPERPOWER);
-  }
-}
+static const TrainerSpec kRoute104LadyCindySpec(
+    1, BATTLE_FORMAT_SINGLE, BATTLE_BACKGROUND_SHORE, BATTLE_GROUND_SHORE,
+    BATTLE_PLATFORM_SHORE, BATTLE_ENCOUNTER_ANIM_KYOGRE, WEATHER_BATTLE_RAIN,
+    {
+        {SPECIES_TOTODILE, ITEM_EVIOLITE, ABILITY_SHEER_FORCE,
+         NATURE_ADAMANT, false, 0, 236, 4, 0, 0, 252, MOVE_DRAGON_DANCE,
+         MOVE_WATERFALL, MOVE_ICE_PUNCH, MOVE_SUPERPOWER},
+    });
 
-void PatchTrainer_Route_104_Lass_Haley(battle::Config& config) {
-  config.Set(2, BATTLE_FORMAT_SINGLE, BATTLE_BACKGROUND_SHORE,
-             BATTLE_GROUND_SHORE, BATTLE_PLATFORM_SHORE,
-             BATTLE_ENCOUNTER_ANIM_KYOGRE, WEATHER_BATTLE_RAIN);
-  {
-    auto& pkm = config.GetOpponent(0);
-    pkm.Set(SPECIES_PIPLUP, ITEM_EVIOLITE, ABILITY_TORRENT,
-            NATURE_BOLD,
-            true);
-    pkm.SetStats(92, 0, 252, 0, 148, 0);
-    pkm.SetMoves(MOVE_STEALTH_ROCK, MOVE_DEFOG, MOVE_SCALD,
-                 MOVE_ICE_BEAM);
-  }
-  {
-    auto& pkm = config.GetOpponent(1);
-    pkm.Set(SPECIES_OSHAWOTT, ITEM_LIFE_ORB, ABILITY_TORRENT,
-            NATURE_RASH,
-            true);
-    pkm.SetStats(0, 0, 0, 252, 0, 236);
-    pkm.SetMoves(MOVE_HYDRO_PUMP, MOVE_ICE_BEAM, MOVE_AIR_SLASH,
-                 MOVE_AQUA_JET);
-  }
-}
+static const TrainerSpec kRoute104LassHaleySpec(
+    2, BATTLE_FORMAT_SINGLE, BATTLE_BACKGROUND_SHORE, BATTLE_GROUND_SHORE,
+    BATTLE_PLATFORM_SHORE, BATTLE_ENCOUNTER_ANIM_KYOGRE, WEATHER_BATTLE_RAIN,
+    {
+        {SPECIES_PIPLUP, ITEM_EVIOLITE, ABILITY_TORRENT, NATURE_BOLD, true,
+         92, 0, 252, 0, 148, 0, MOVE_STEALTH_ROCK, MOVE_DEFOG, MOVE_SCALD,
+         MOVE_ICE_BEAM},
+        {SPECIES_OSHAWOTT, ITEM_LIFE_ORB, ABILITY_TORRENT, NATURE_RASH, true,
+         0, 0, 0, 252, 0, 236, MOVE_HYDRO_PUMP, MOVE_ICE_BEAM, MOVE_AIR_SLASH,
+         MOVE_AQUA_JET},
+    });
 
-void PatchTrainer_Route_104_Twins_Gina_and_Mia(battle::Config& config) {
-  config.Set(2, BATTLE_FORMAT_DOUBLE, BATTLE_BACKGROUND_SHORE,
-             BATTLE_GROUND_SHORE, BATTLE_PLATFORM_SHORE,
-             BATTLE_ENCOUNTER_ANIM_KYOGRE, WEATHER_BATTLE_HEAVY_RAIN);
-  {
-    auto& pkm = config.GetOpponent(0);
-    pkm.Set(SPECIES_BLASTOISE, ITEM_BLASTOISINITE, ABILITY_RAIN_DISH,
-            NATURE_MODEST,
-            false);
-    pkm.SetStats(248, 0, 0, 252, 8, 0);
-    pkm.SetMoves(MOVE_RAPID_SPIN, MOVE_WATER_PULSE, MOVE_DARK_PULSE,
-                 MOVE_AURA_SPHERE);
-  }
-  {
-    auto& pkm = config.GetOpponent(1);
-    pkm.Set(SPECIES_SWAMPERT, ITEM_SWAMPERTITE, ABILITY_DAMP,
-            NATURE_ADAMANT,
-            false);
-    pkm.SetStats(0, 252, 0, 0, 4, 252);
-    pkm.SetMoves(MOVE_WATERFALL, MOVE_EARTHQUAKE, MOVE_ICE_PUNCH,
-                 MOVE_POWER_UP_PUNCH);
-  }
-}
+static const TrainerSpec kRoute104TwinsGinaAndMiaSpec(
+    2, BATTLE_FORMAT_DOUBLE, BATTLE_BACKGROUND_SHORE, BATTLE_GROUND_SHORE,
+    BATTLE_PLATFORM_SHORE, BATTLE_ENCOUNTER_ANIM_KYOGRE,
+    WEATHER_BATTLE_HEAVY_RAIN,
+    {
+        {SPECIES_BLASTOISE, ITEM_BLASTOISINITE, ABILITY_RAIN_DISH,
+         NATURE_MODEST, false, 248, 0, 0, 252, 8, 0, MOVE_RAPID_SPIN,
+         MOVE_WATER_PULSE, MOVE_DARK_PULSE, MOVE_AURA_SPHERE},
+        {SPECIES_SWAMPERT, ITEM_SWAMPERTITE, ABILITY_DAMP, NATURE_ADAMANT,
+         false, 0, 252, 0, 0, 4, 252, MOVE_WATERFALL, MOVE_EARTHQUAKE,
+         MOVE_ICE_PUNCH, MOVE_POWER_UP_PUNCH},
+    });
 
-void PatchTrainer_Route_104_Fisherman_Ivan(battle::Config& config) {
-  config.Set(5, BATTLE_FORMAT_HORDE, BATTLE_BACKGROUND_SHORE,
-             BATTLE_GROUND_SHORE, BATTLE_PLATFORM_SHORE,
-             BATTLE_ENCOUNTER_ANIM_KYOGRE, WEATHER_BATTLE_HEAVY_RAIN);
-  {
-    auto& pkm = config.GetOpponent(0);
-    pkm.Set(SPECIES_MAGIKARP, ITEM_NONE, ABILITY_RATTLED,
-            NATURE_JOLLY,
-            false);
-    pkm.SetStats(0, 196, 0, 0, 116, 196);
-    pkm.SetMoves(MOVE_SPLASH, MOVE_TACKLE, MOVE_FLAIL,
-                 MOVE_BOUNCE);
-    pkm.SetLevel(1);
-  }
-  {
-    auto& pkm = config.GetOpponent(1);
-    pkm.Set(SPECIES_MAGIKARP, ITEM_NONE, ABILITY_RATTLED,
-            NATURE_JOLLY,
-            false);
-    pkm.SetStats(0, 196, 0, 0, 116, 196);
-    pkm.SetMoves(MOVE_SPLASH, MOVE_TACKLE, MOVE_FLAIL,
-                 MOVE_BOUNCE);
-    pkm.SetLevel(1);
-  }
-  {
-    auto& pkm = config.GetOpponent(2);
-    pkm.Set(SPECIES_GYARADOS, ITEM_GYARADOSITE, ABILITY_INTIMIDATE,
-            NATURE_JOLLY,
-            true);
-    pkm.SetStats(0, 252, 4, 0, 0, 252);
-    pkm.SetMoves(MOVE_DRAGON_DANCE, MOVE_CRUNCH, MOVE_WATERFALL,
-                 MOVE_EARTHQUAKE);
-  }
-  {
-    auto& pkm = config.GetOpponent(3);
-    pkm.Set(SPECIES_MAGIKARP, ITEM_NONE, ABILITY_RATTLED,
-            NATURE_JOLLY,
-            false);
-    pkm.SetStats(0, 196, 0, 0, 116, 196);
-    pkm.SetMoves(MOVE_SPLASH, MOVE_TACKLE, MOVE_FLAIL,
-                 MOVE_BOUNCE);
-    pkm.SetLevel(1);
-  }
-  {
-    auto& pkm = config.GetOpponent(4);
-    pkm.Set(SPECIES_MAGIKARP, ITEM_NONE, ABILITY_RATTLED,
-            NATURE_JOLLY,
-            false);
-    pkm.SetStats(0, 196, 0, 0, 116, 196);
-    pkm.SetMoves(MOVE_SPLASH, MOVE_TACKLE, MOVE_FLAIL,
-                 MOVE_BOUNCE);
-    pkm.SetLevel(1);
-  }
-}
+static const TrainerSpec kRoute104FishermanIvanSpec(
+    5, BATTLE_FORMAT_HORDE, BATTLE_BACKGROUND_SHORE, BATTLE_GROUND_SHORE,
+    BATTLE_PLATFORM_SHORE, BATTLE_ENCOUNTER_ANIM_KYOGRE,
+    WEATHER_BATTLE_HEAVY_RAIN,
+    {
+        {SPECIES_MAGIKARP, ITEM_NONE, ABILITY_RATTLED, NATURE_JOLLY, false,
+         0, 196, 0, 0, 116, 196, MOVE_SPLASH, MOVE_TACKLE, MOVE_FLAIL,
+         MOVE_BOUNCE, 0, nullptr, 1},
+        {SPECIES_MAGIKARP, ITEM_NONE, ABILITY_RATTLED, NATURE_JOLLY, false,
+         0, 196, 0, 0, 116, 196, MOVE_SPLASH, MOVE_TACKLE, MOVE_FLAIL,
+         MOVE_BOUNCE, 0, nullptr, 1},
+        {SPECIES_GYARADOS, ITEM_GYARADOSITE, ABILITY_INTIMIDATE,
+         NATURE_JOLLY, true, 0, 252, 4, 0, 0, 252, MOVE_DRAGON_DANCE,
+         MOVE_CRUNCH, MOVE_WATERFALL, MOVE_EARTHQUAKE},
+        {SPECIES_MAGIKARP, ITEM_NONE, ABILITY_RATTLED, NATURE_JOLLY, false,
+         0, 196, 0, 0, 116, 196, MOVE_SPLASH, MOVE_TACKLE, MOVE_FLAIL,
+         MOVE_BOUNCE, 0, nullptr, 1},
+        {SPECIES_MAGIKARP, ITEM_NONE, ABILITY_RATTLED, NATURE_JOLLY, false,
+         0, 196, 0, 0, 116, 196, MOVE_SPLASH, MOVE_TACKLE, MOVE_FLAIL,
+         MOVE_BOUNCE, 0, nullptr, 1},
+    });
 
 ////////////////////////////////////////////////////////////////////////////////
 
-void PatchTrainer_Rustboro_City_Youngster_Josh(battle::Config& config) {
-  config.Set(4, BATTLE_FORMAT_DOUBLE, BATTLE_BACKGROUND_ROCK_GYM_LEADER_2,
-             BATTLE_GROUND_ROCK_GYM_LEADER_2, BATTLE_PLATFORM_ROCK_GYM_LEADER,
-             BATTLE_ENCOUNTER_ANIM_GYM_LEADER_ROCK, WEATHER_BATTLE_SANDSTORM);
-  {
-    auto& pkm = config.GetOpponent(0);
-    pkm.Set(SPECIES_OMANYTE, ITEM_EVIOLITE, ABILITY_SHELL_ARMOR,
-            NATURE_MODEST,
-            false);
-    pkm.SetStats(76, 0, 0, 196, 0, 236);
-    pkm.SetMoves(MOVE_SHELL_SMASH, MOVE_HYDRO_PUMP, MOVE_ICE_BEAM,
-                 MOVE_EARTH_POWER);
-  }
-  {
-    auto& pkm = config.GetOpponent(1);
-    pkm.Set(SPECIES_KABUTO, ITEM_EVIOLITE, ABILITY_WEAK_ARMOR,
-            NATURE_ADAMANT,
-            false);
-    pkm.SetStats(116, 196, 196, 0, 0, 0);
-    pkm.SetMoves(MOVE_RAPID_SPIN, MOVE_ROCK_SLIDE, MOVE_KNOCK_OFF,
-                 MOVE_WATERFALL);
-  }
-  {
-    auto& pkm = config.GetOpponent(2);
-    pkm.Set(SPECIES_LILEEP, ITEM_EVIOLITE, ABILITY_STORM_DRAIN,
-            NATURE_CALM,
-            false);
-    pkm.SetStats(228, 0, 140, 0, 140, 0);
-    pkm.SetMoves(MOVE_STEALTH_ROCK, MOVE_GIGA_DRAIN, MOVE_RECOVER,
-                 MOVE_ANCIENT_POWER);
-  }
-  {
-    auto& pkm = config.GetOpponent(3);
-    pkm.Set(SPECIES_ANORITH, ITEM_BERRY_JUICE, ABILITY_BATTLE_ARMOR,
-            NATURE_JOLLY,
-            false);
-    pkm.SetStats(0, 236, 36, 0, 0, 236);
-    pkm.SetMoves(MOVE_STEALTH_ROCK, MOVE_RAPID_SPIN, MOVE_ROCK_BLAST,
-                 MOVE_KNOCK_OFF);
-  }
-}
+static const TrainerSpec kRustboroCityYoungsterJoshSpec(
+    4, BATTLE_FORMAT_DOUBLE, BATTLE_BACKGROUND_ROCK_GYM_LEADER_2,
+    BATTLE_GROUND_ROCK_GYM_LEADER_2, BATTLE_PLATFORM_ROCK_GYM_LEADER,
+    BATTLE_ENCOUNTER_ANIM_GYM_LEADER_ROCK, WEATHER_BATTLE_SANDSTORM,
+    {
+        {SPECIES_OMANYTE, ITEM_EVIOLITE, ABILITY_SHELL_ARMOR, NATURE_MODEST,
+         false, 76, 0, 0, 196, 0, 236, MOVE_SHELL_SMASH, MOVE_HYDRO_PUMP,
+         MOVE_ICE_BEAM, MOVE_EARTH_POWER},
+        {SPECIES_KABUTO, ITEM_EVIOLITE, ABILITY_WEAK_ARMOR, NATURE_ADAMANT,
+         false, 116, 196, 196, 0, 0, 0, MOVE_RAPID_SPIN, MOVE_ROCK_SLIDE,
+         MOVE_KNOCK_OFF, MOVE_WATERFALL},
+        {SPECIES_LILEEP, ITEM_EVIOLITE, ABILITY_STORM_DRAIN, NATURE_CALM,
+         false, 228, 0, 140, 0, 140, 0, MOVE_STEALTH_ROCK, MOVE_GIGA_DRAIN,
+         MOVE_RECOVER, MOVE_ANCIENT_POWER},
+        {SPECIES_ANORITH, ITEM_BERRY_JUICE, ABILITY_BATTLE_ARMOR,
+         NATURE_JOLLY, false, 0, 236, 36, 0, 0, 236, MOVE_STEALTH_ROCK,
+         MOVE_RAPID_SPIN, MOVE_ROCK_BLAST, MOVE_KNOCK_OFF},
+    });
 
-void PatchTrainer_Rustboro_City_Youngster_Tommy(battle::Config& config) {
-  config.Set(4, BATTLE_FORMAT_DOUBLE, BATTLE_BACKGROUND_ROCK_GYM_LEADER_2,
-             BATTLE_GROUND_ROCK_GYM_LEADER_2, BATTLE_PLATFORM_ROCK_GYM_LEADER,
-             BATTLE_ENCOUNTER_ANIM_GYM_LEADER_ROCK, WEATHER_BATTLE_SANDSTORM);
-  {
-    auto& pkm = config.GetOpponent(0);
-    pkm.Set(SPECIES_CRANIDOS, ITEM_LIFE_ORB, ABILITY_SHEER_FORCE,
-            NATURE_JOLLY,
-            true);
-    pkm.SetStats(0, 236, 36, 0, 0, 212);
-    pkm.SetMoves(MOVE_ROCK_SLIDE, MOVE_SUPERPOWER, MOVE_ZEN_HEADBUTT,
-                 MOVE_CRUNCH);
-  }
-  {
-    auto& pkm = config.GetOpponent(1);
-    pkm.Set(SPECIES_SHIELDON, ITEM_BERRY_JUICE, ABILITY_STURDY,
-            NATURE_IMPISH,
-            true);
-    pkm.SetStats(116, 20, 212, 0, 132, 0);
-    pkm.SetMoves(MOVE_STEALTH_ROCK, MOVE_HEAVY_SLAM, MOVE_ROCK_BLAST,
-                 MOVE_EARTHQUAKE);
-  }
-  {
-    auto& pkm = config.GetOpponent(2);
-    pkm.Set(SPECIES_TIRTOUGA, ITEM_BERRY_JUICE, ABILITY_STURDY,
-            NATURE_JOLLY,
-            false);
-    pkm.SetStats(0, 212, 92, 0, 0, 180);
-    pkm.SetMoves(MOVE_SHELL_SMASH, MOVE_WATERFALL, MOVE_ROCK_SLIDE,
-                 MOVE_ZEN_HEADBUTT);
-  }
-  {
-    auto& pkm = config.GetOpponent(3);
-    pkm.Set(SPECIES_ARCHEN, ITEM_BERRY_JUICE, ABILITY_DEFEATIST,
-            NATURE_JOLLY,
-            false);
-    pkm.SetStats(76, 20, 76, 0, 76, 196);
-    pkm.SetMoves(MOVE_STEALTH_ROCK, MOVE_ROCK_SLIDE, MOVE_ACROBATICS,
-                 MOVE_EARTHQUAKE);
-  }
-}
+static const TrainerSpec kRustboroCityYoungsterTommySpec(
+    4, BATTLE_FORMAT_DOUBLE, BATTLE_BACKGROUND_ROCK_GYM_LEADER_2,
+    BATTLE_GROUND_ROCK_GYM_LEADER_2, BATTLE_PLATFORM_ROCK_GYM_LEADER,
+    BATTLE_ENCOUNTER_ANIM_GYM_LEADER_ROCK, WEATHER_BATTLE_SANDSTORM,
+    {
+        {SPECIES_CRANIDOS, ITEM_LIFE_ORB, ABILITY_SHEER_FORCE, NATURE_JOLLY,
+         true, 0, 236, 36, 0, 0, 212, MOVE_ROCK_SLIDE, MOVE_SUPERPOWER,
+         MOVE_ZEN_HEADBUTT, MOVE_CRUNCH},
+        {SPECIES_SHIELDON, ITEM_BERRY_JUICE, ABILITY_STURDY, NATURE_IMPISH,
+         true, 116, 20, 212, 0, 132, 0, MOVE_STEALTH_ROCK, MOVE_HEAVY_SLAM,
+         MOVE_ROCK_BLAST, MOVE_EARTHQUAKE},
+        {SPECIES_TIRTOUGA, ITEM_BERRY_JUICE, ABILITY_STURDY, NATURE_JOLLY,
+         false, 0, 212, 92, 0, 0, 180, MOVE_SHELL_SMASH, MOVE_WATERFALL,
+         MOVE_ROCK_SLIDE, MOVE_ZEN_HEADBUTT},
+        {SPECIES_ARCHEN, ITEM_BERRY_JUICE, ABILITY_DEFEATIST, NATURE_JOLLY,
+         false, 76, 20, 76, 0, 76, 196, MOVE_STEALTH_ROCK, MOVE_ROCK_SLIDE,
+         MOVE_ACROBATICS, MOVE_EARTHQUAKE},
+    });
 
-void PatchTrainer_Rustboro_City_Schoolkid_Georgia(battle::Config& config) {
-  config.battle_type = 0;
-  config.Set(1, BATTLE_FORMAT_SINGLE, BATTLE_BACKGROUND_ROCK_GYM_LEADER_2,
-             BATTLE_GROUND_ROCK_GYM_LEADER_2, BATTLE_PLATFORM_ROCK_GYM_LEADER,
-             BATTLE_ENCOUNTER_ANIM_REGIROCK, WEATHER_BATTLE_SANDSTORM);
-  {
-    auto& pkm = config.GetOpponent(0);
-    pkm.Set(SPECIES_REGIROCK, ITEM_LEFTOVERS, ABILITY_CLEAR_BODY,
-            NATURE_CAREFUL,
-            false);
-    pkm.SetStats(252, 4, 0, 0, 252, 0);
-    pkm.SetMoves(MOVE_ROCK_SLIDE, MOVE_TOXIC, MOVE_STEALTH_ROCK,
-                 MOVE_PROTECT);
-  }
-}
+// This trainer forces a wild-style battle_type (see the original
+// PatchTrainer_Rustboro_City_Schoolkid_Georgia, which set
+// `config.battle_type = 0;` before calling `config.Set()`).
+static const TrainerSpec kRustboroCitySchoolkidGeorgiaSpec(
+    1, BATTLE_FORMAT_SINGLE, BATTLE_BACKGROUND_ROCK_GYM_LEADER_2,
+    BATTLE_GROUND_ROCK_GYM_LEADER_2, BATTLE_PLATFORM_ROCK_GYM_LEADER,
+    BATTLE_ENCOUNTER_ANIM_REGIROCK, WEATHER_BATTLE_SANDSTORM,
+    {
+        {SPECIES_REGIROCK, ITEM_LEFTOVERS, ABILITY_CLEAR_BODY,
+         NATURE_CAREFUL, false, 252, 4, 0, 0, 252, 0, MOVE_ROCK_SLIDE,
+         MOVE_TOXIC, MOVE_STEALTH_ROCK, MOVE_PROTECT},
+    },
+    /* force_wild_battle_type = */ true);
 
-void PatchTrainer_Rustboro_City_Leader_Roxanne(battle::Config& config) {
-  config.Set(3, BATTLE_FORMAT_ROTATION, BATTLE_BACKGROUND_ROCK_GYM_LEADER_2,
-             BATTLE_GROUND_ROCK_GYM_LEADER_2, BATTLE_PLATFORM_ROCK_GYM_LEADER,
-             BATTLE_ENCOUNTER_ANIM_GYM_LEADER_ROCK, WEATHER_BATTLE_SANDSTORM);
-  {
-    auto& pkm = config.GetOpponent(0);
-    pkm.Set(SPECIES_AERODACTYL, ITEM_AERODACTYLITE, ABILITY_ROCK_HEAD,
-            NATURE_JOLLY,
-            true);
-    pkm.SetStats(0, 252, 0, 0, 4, 252);
-    pkm.SetMoves(MOVE_STONE_EDGE, MOVE_AERIAL_ACE, MOVE_EARTHQUAKE,
-                 MOVE_PURSUIT);
-  }
-  {
-    auto& pkm = config.GetOpponent(1);
-    pkm.Set(SPECIES_AERODACTYL, ITEM_AERODACTYLITE, ABILITY_ROCK_HEAD,
-            NATURE_JOLLY,
-            false);
-    pkm.SetStats(0, 252, 0, 0, 4, 252);
-    pkm.SetMoves(MOVE_STONE_EDGE, MOVE_AERIAL_ACE, MOVE_EARTHQUAKE,
-                 MOVE_PURSUIT);
-  }
-  {
-    auto& pkm = config.GetOpponent(2);
-    pkm.Set(SPECIES_AERODACTYL, ITEM_AERODACTYLITE, ABILITY_ROCK_HEAD,
-            NATURE_JOLLY,
-            false);
-    pkm.SetStats(0, 252, 0, 0, 4, 252);
-    pkm.SetMoves(MOVE_STONE_EDGE, MOVE_AERIAL_ACE, MOVE_EARTHQUAKE,
-                 MOVE_PURSUIT);
-  }
-}
+static const TrainerSpec kRustboroCityLeaderRoxanneSpec(
+    3, BATTLE_FORMAT_ROTATION, BATTLE_BACKGROUND_ROCK_GYM_LEADER_2,
+    BATTLE_GROUND_ROCK_GYM_LEADER_2, BATTLE_PLATFORM_ROCK_GYM_LEADER,
+    BATTLE_ENCOUNTER_ANIM_GYM_LEADER_ROCK, WEATHER_BATTLE_SANDSTORM,
+    {
+        {SPECIES_AERODACTYL, ITEM_AERODACTYLITE, ABILITY_ROCK_HEAD,
+         NATURE_JOLLY, true, 0, 252, 0, 0, 4, 252, MOVE_STONE_EDGE,
+         MOVE_AERIAL_ACE, MOVE_EARTHQUAKE, MOVE_PURSUIT},
+        {SPECIES_AERODACTYL, ITEM_AERODACTYLITE, ABILITY_ROCK_HEAD,
+         NATURE_JOLLY, false, 0, 252, 0, 0, 4, 252, MOVE_STONE_EDGE,
+         MOVE_AERIAL_ACE, MOVE_EARTHQUAKE, MOVE_PURSUIT},
+        {SPECIES_AERODACTYL, ITEM_AERODACTYLITE, ABILITY_ROCK_HEAD,
+         NATURE_JOLLY, false, 0, 252, 0, 0, 4, 252, MOVE_STONE_EDGE,
+         MOVE_AERIAL_ACE, MOVE_EARTHQUAKE, MOVE_PURSUIT},
+    });
 
-struct NewTrainer {
+struct TrainerEntry {
   u16 id;
-  void (*patch)(battle::Config& config);
+  const TrainerSpec* spec;
 };
 
-static NewTrainer TRAINERS[] = {
-    {BATTLE_TRAINER_ROUTE_103_MAY_1, PatchTrainer_May},
-    {BATTLE_TRAINER_ROUTE_103_MAY_2, PatchTrainer_May},
-    {BATTLE_TRAINER_ROUTE_103_MAY_3, PatchTrainer_May},
-    {BATTLE_TRAINER_ROUTE_102_KID_1, PatchTrainer_Route_102_Kid1},
-    {BATTLE_TRAINER_ROUTE_102_KID_2, PatchTrainer_Route_102_Kid2},
-    {BATTLE_TRAINER_ROUTE_102_KID_3, PatchTrainer_Route_102_Kid3},
-    {BATTLE_TRAINER_ROUTE_102_GIRL, PatchTrainer_Route_102_Girl},
-    {BATTLE_TRAINER_ROUTE_104_YOUNGSTER_BILLY, PatchTrainer_Route_104_Youngster_Billy},
-    {BATTLE_TRAINER_ROUTE_104_RICH_BOY_WINSTON, PatchTrainer_Route_104_Rich_Boy_Winston},
-    {BATTLE_TRAINER_PETALBURG_WOODS_BUG_CATCHER_LYLE, PatchTrainer_Petalburg_Woods_Bug_Catcher_Lyle},
-    {BATTLE_TRAINER_PETALBURG_WOODS_TEAM_AQUA_GRUNT, PatchTrainer_Petalburg_Woods_Team_Aqua_Grunt},
-    {BATTLE_TRAINER_PETALBURG_WOODS_BUG_CATCHER_JAMES, PatchTrainer_Petalburg_Woods_Bug_Catcher_James},
-    {BATTLE_TRAINER_ROUTE_104_LADY_CINDY, PatchTrainer_Route_104_Lady_Cindy},
-    {BATTLE_TRAINER_ROUTE_104_LASS_HALEY, PatchTrainer_Route_104_Lass_Haley},
-    {BATTLE_TRAINER_ROUTE_104_TWINS_GINA_AND_MIA, PatchTrainer_Route_104_Twins_Gina_and_Mia},
-    {BATTLE_TRAINER_ROUTE_104_FISHERMAN_IVAN, PatchTrainer_Route_104_Fisherman_Ivan},
+static const TrainerEntry TRAINERS[] = {
+    {BATTLE_TRAINER_ROUTE_103_MAY_1, &kMaySpec},
+    {BATTLE_TRAINER_ROUTE_103_MAY_2, &kMaySpec},
+    {BATTLE_TRAINER_ROUTE_103_MAY_3, &kMaySpec},
+    {BATTLE_TRAINER_ROUTE_102_KID_1, &kRoute102Kid1Spec},
+    {BATTLE_TRAINER_ROUTE_102_KID_2, &kRoute102Kid2Spec},
+    {BATTLE_TRAINER_ROUTE_102_KID_3, &kRoute102Kid3Spec},
+    {BATTLE_TRAINER_ROUTE_102_GIRL, &kRoute102GirlSpec},
+    {BATTLE_TRAINER_ROUTE_104_YOUNGSTER_BILLY,
+     &kRoute104YoungsterBillySpec},
+    {BATTLE_TRAINER_ROUTE_104_RICH_BOY_WINSTON,
+     &kRoute104RichBoyWinstonSpec},
+    {BATTLE_TRAINER_PETALBURG_WOODS_BUG_CATCHER_LYLE,
+     &kPetalburgWoodsBugCatcherLyleSpec},
+    {BATTLE_TRAINER_PETALBURG_WOODS_TEAM_AQUA_GRUNT,
+     &kPetalburgWoodsTeamAquaGruntSpec},
+    {BATTLE_TRAINER_PETALBURG_WOODS_BUG_CATCHER_JAMES,
+     &kPetalburgWoodsBugCatcherJamesSpec},
+    {BATTLE_TRAINER_ROUTE_104_LADY_CINDY, &kRoute104LadyCindySpec},
+    {BATTLE_TRAINER_ROUTE_104_LASS_HALEY, &kRoute104LassHaleySpec},
+    {BATTLE_TRAINER_ROUTE_104_TWINS_GINA_AND_MIA,
+     &kRoute104TwinsGinaAndMiaSpec},
+    {BATTLE_TRAINER_ROUTE_104_FISHERMAN_IVAN, &kRoute104FishermanIvanSpec},
 
-    {BATTLE_TRAINER_RUSTBORO_CITY_YOUNGSTER_JOSH, PatchTrainer_Rustboro_City_Youngster_Josh},
-    {BATTLE_TRAINER_RUSTBORO_CITY_YOUNGSTER_TOMMY, PatchTrainer_Rustboro_City_Youngster_Tommy},
-    {BATTLE_TRAINER_RUSTBORO_CITY_SCHOOLKID_GEORGIA, PatchTrainer_Rustboro_City_Schoolkid_Georgia},
-    {BATTLE_TRAINER_RUSTBORO_CITY_LEADER_ROXANNE, PatchTrainer_Rustboro_City_Leader_Roxanne},
+    {BATTLE_TRAINER_RUSTBORO_CITY_YOUNGSTER_JOSH,
+     &kRustboroCityYoungsterJoshSpec},
+    {BATTLE_TRAINER_RUSTBORO_CITY_YOUNGSTER_TOMMY,
+     &kRustboroCityYoungsterTommySpec},
+    {BATTLE_TRAINER_RUSTBORO_CITY_SCHOOLKID_GEORGIA,
+     &kRustboroCitySchoolkidGeorgiaSpec},
+    {BATTLE_TRAINER_RUSTBORO_CITY_LEADER_ROXANNE,
+     &kRustboroCityLeaderRoxanneSpec},
 };
 
 void PatchTrainer_AI(battle::Config& config) {
@@ -802,7 +647,7 @@ void PatchTrainerData(battle::Config& config, u16& trainer_id) {
 
   for (u32 i = 0; i < SIZE(TRAINERS); i++) {
     if (TRAINERS[i].id == trainer_id) {
-      TRAINERS[i].patch(config);
+      ApplyTrainerSpec(config, *TRAINERS[i].spec);
       break;
     }
   }

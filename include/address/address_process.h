@@ -17,19 +17,15 @@
 
 #pragma once
 
-// This header used to be one flat list of ~200 #define'd memory addresses.
-// It's now a facade that pulls in the same macros from topic-specific
-// headers below (include/address/address_*.h), so `#include "address.h"`
-// still works exactly as before for every existing caller.
-
-#include "address/address_hid.h"
-#include "address/address_graphics.h"
-#include "address/address_sound.h"
-#include "address/address_filesystem.h"
-#include "address/address_system.h"
-#include "address/address_pokemon.h"
-#include "address/address_battle.h"
-#include "address/address_overworld.h"
-#include "address/address_ui.h"
-#include "address/address_process.h"
-#include "address/address_misc.h"
+/** * @name Process & Screen VTable Addresses
+ * @{ */
+#define ADDRESS_TITLE (0x00740184)
+#define ADDRESS_INTRO_VTABLE (0x007203C8)
+#define ADDRESS_INTRO_FSM (0x0071DAE8)
+#define ADDRESS_CINEMATIC_VTABLE (0x0072518C)
+#define ADDRESS_TITLE_SCREEN_VTABLE (0x00747320)
+#define ADDRESS_INTRODUCTION_VTABLE (0x007203C8)
+#define ADDRESS_SELECT_STARTER_VTABLE (0x006FA8DC)
+#define ADDRESS_EVENT_SCRIPT_VTABLE (0x005DF018)
+#define ADDRESS_STARTER (0x0804F3F0)
+/** @} */

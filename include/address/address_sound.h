@@ -17,19 +17,10 @@
 
 #pragma once
 
-// This header used to be one flat list of ~200 #define'd memory addresses.
-// It's now a facade that pulls in the same macros from topic-specific
-// headers below (include/address/address_*.h), so `#include "address.h"`
-// still works exactly as before for every existing caller.
-
-#include "address/address_hid.h"
-#include "address/address_graphics.h"
-#include "address/address_sound.h"
-#include "address/address_filesystem.h"
-#include "address/address_system.h"
-#include "address/address_pokemon.h"
-#include "address/address_battle.h"
-#include "address/address_overworld.h"
-#include "address/address_ui.h"
-#include "address/address_process.h"
-#include "address/address_misc.h"
+/** * @name Sound & Audio Addresses
+ * @{ */
+#define ADDRESS_SOUND_PLAY_POKEMON_CRY (0x004500C0)
+#define ADDRESS_SOUND_CHANGE_POKEMON_CRY_VOLUME (0x0044EB4C)
+#define ADDRESS_SOUND_PLAY_SOUND_EFFECT (0x0044FC88)
+#define ADDRESS_SOUND_PLAY_BACKGROUND_MUSIC (0x044E6CC)
+/** @} */

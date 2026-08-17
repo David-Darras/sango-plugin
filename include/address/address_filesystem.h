@@ -17,19 +17,12 @@
 
 #pragma once
 
-// This header used to be one flat list of ~200 #define'd memory addresses.
-// It's now a facade that pulls in the same macros from topic-specific
-// headers below (include/address/address_*.h), so `#include "address.h"`
-// still works exactly as before for every existing caller.
-
-#include "address/address_hid.h"
-#include "address/address_graphics.h"
-#include "address/address_sound.h"
-#include "address/address_filesystem.h"
-#include "address/address_system.h"
-#include "address/address_pokemon.h"
-#include "address/address_battle.h"
-#include "address/address_overworld.h"
-#include "address/address_ui.h"
-#include "address/address_process.h"
-#include "address/address_misc.h"
+/** * @name Filesystem & Archive Addresses
+ * @{ */
+#define ADDRESS_FILE_OPEN (0x00123FA8)
+#define ADDRESS_FILE_READ (0x00145CF0)
+#define ADDRESS_FILE_WRITE (0x001F5BE0)
+#define ADDRESS_ARCHIVE_FILENAME_TABLE (0x005F5050)
+#define ADDRESS_ARCHIVE_READ_FILE_ASYNC (0x0036DC68)
+#define ADDRESS_ARCHIVE_READ_FILE_ASYNC_2 (0x0036ED10)
+/** @} */

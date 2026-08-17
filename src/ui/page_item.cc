@@ -33,6 +33,51 @@ static void SetBits(u32* num, u32 offset, u32 size, u32 value) {
   SET_BITS(*num, offset, size, value);
 }
 
+/**
+* @brief Adds `count` to the value at `address`, wrapping back to `min`
+* if the result would exceed `max` (when a max bound is set).
+*/
+template <typename T>
+static void IncrementWrapped(void* address, s32 min, s32 max,
+                             bool is_max_used, u32 count) {
+  T val = *(T*)address;
+  if (is_max_used && ((s32)val + (s32)count > max)) {
+    val = (T)min;
+  } else {
+    val += (T)count;
+  }
+  *(T*)address = val;
+}
+
+/**
+* @brief Subtracts `count` from the value at `address`, wrapping back to
+* `max` if the result would fall below `min` (when a min bound is set).
+*/
+template <typename T>
+static void DecrementWrapped(void* address, s32 min, s32 max,
+                             bool is_min_used, u32 count) {
+  T val = *(T*)address;
+  if (is_min_used && ((s32)val - (s32)count < min)) {
+    val = (T)max;
+  } else {
+    val -= (T)count;
+  }
+  *(T*)address = val;
+}
+
+/**
+* @brief Writes `value` to `address`, clamped to [`min`, `max`] (each bound
+* only applied if it was set).
+*/
+template <typename T>
+static void EditClamped(const void* value, void* address, s32 min, s32 max,
+                        bool is_min_used, bool is_max_used) {
+  T val = *(const T*)value;
+  if (is_min_used && (s32)val < min) val = (T)min;
+  if (is_max_used && (s32)val > max) val = (T)max;
+  *(T*)address = val;
+}
+
 PageItem::PageItem()
   : name_(nullptr),
     address_(nullptr),
@@ -283,35 +328,23 @@ void PageItem::GetDisplayValue(c16* buffer) const {
 }
 
 void PageItem::Increment(u32 count) {
-#define INCREMENT_WRAP(type)                              \
-  {                                                       \
-    type val = *(type *)address_;                         \
-    /* Si on va dépasser le max, on revient au min */     \
-    if (is_max_used_ && ((s32)val + (s32)count > max_)) { \
-      val = (type)min_;                                   \
-    } else {                                              \
-      val += (type)count;                                 \
-    }                                                     \
-    *(type *)address_ = val;                              \
-  }
-
   switch (type_) {
     case kTypeU8:
     case kTypeAbility:
     case kTypeS8:
-      INCREMENT_WRAP(u8);
+      IncrementWrapped<u8>(address_, min_, max_, is_max_used_, count);
       break;
     case kTypeU16:
     case kTypeSpecies:
     case kTypeS16:
     case kTypeMove:
     case kTypeItem:
-      INCREMENT_WRAP(u16);
+      IncrementWrapped<u16>(address_, min_, max_, is_max_used_, count);
       break;
     case kTypeU32:
     case kTypeS32:
     case kTypePointer:
-      INCREMENT_WRAP(u32);
+      IncrementWrapped<u32>(address_, min_, max_, is_max_used_, count);
       break;
 
     case kTypeU64:
@@ -361,40 +394,27 @@ void PageItem::Increment(u32 count) {
       break;
   }
 
-#undef INCREMENT_WRAP
   if (refresh_) MainApplication::GetInstance().Refresh();
 }
 
 void PageItem::Decrement(u32 count) {
-#define DECREMENT_WRAP(type)                                 \
-  {                                                          \
-    type val = *(type *)address_;                            \
-    /* Si on va descendre en dessous du min, on va au max */ \
-    if (is_min_used_ && ((s32)val - (s32)count < min_)) {    \
-      val = (type)max_;                                      \
-    } else {                                                 \
-      val -= (type)count;                                    \
-    }                                                        \
-    *(type *)address_ = val;                                 \
-  }
-
   switch (type_) {
     case kTypeU8:
     case kTypeAbility:
     case kTypeS8:
-      DECREMENT_WRAP(u8);
+      DecrementWrapped<u8>(address_, min_, max_, is_min_used_, count);
       break;
     case kTypeU16:
     case kTypeSpecies:
     case kTypeS16:
     case kTypeMove:
     case kTypeItem:
-      DECREMENT_WRAP(u16);
+      DecrementWrapped<u16>(address_, min_, max_, is_min_used_, count);
       break;
     case kTypeU32:
     case kTypeS32:
     case kTypePointer:
-      DECREMENT_WRAP(u32);
+      DecrementWrapped<u32>(address_, min_, max_, is_min_used_, count);
       break;
 
     case kTypeU64:
@@ -438,36 +458,30 @@ void PageItem::Decrement(u32 count) {
       break;
   }
 
-#undef DECREMENT_WRAP
   if (refresh_) MainApplication::GetInstance().Refresh();
 }
 
 void PageItem::Edit(const void* value) {
-#define EDIT_CLAMP(type)                                   \
-  {                                                        \
-    type val = *(type *)value;                             \
-    if (is_min_used_ && (s32)val < min_) val = (type)min_; \
-    if (is_max_used_ && (s32)val > max_) val = (type)max_; \
-    *(type *)address_ = val;                               \
-  }
-
   switch (type_) {
     case kTypeU8:
     case kTypeAbility:
     case kTypeS8:
-      EDIT_CLAMP(u8);
+      EditClamped<u8>(value, address_, min_, max_, is_min_used_,
+                      is_max_used_);
       break;
     case kTypeU16:
     case kTypeSpecies:
     case kTypeS16:
     case kTypeMove:
     case kTypeItem:
-      EDIT_CLAMP(u16);
+      EditClamped<u16>(value, address_, min_, max_, is_min_used_,
+                       is_max_used_);
       break;
     case kTypeU32:
     case kTypeS32:
     case kTypePointer:
-      EDIT_CLAMP(u32);
+      EditClamped<u32>(value, address_, min_, max_, is_min_used_,
+                       is_max_used_);
       break;
 
     case kTypeF32: {
@@ -517,7 +531,6 @@ void PageItem::Edit(const void* value) {
       break;
   }
 
-#undef EDIT_CLAMP
   if (refresh_) MainApplication::GetInstance().Refresh();
 }
 

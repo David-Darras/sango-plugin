@@ -69,8 +69,7 @@ void LoadKaizoPage(MainApplication& app, void* args) {
   auto& camera = feature::Camera::GetInstance();
   auto& speed = feature::Engine::GetInstance().game_speed;
 
-  app //.Add("TID", feature::BattleConfig::GetInstance().trainer_id)
-     .Add("Camera", camera.state)
+  app.Add("Camera", camera.state)
      .WithBounds(0, 4)
      .Add("Speed", speed)
      .WithBounds(1, 2)
@@ -80,12 +79,5 @@ void LoadKaizoPage(MainApplication& app, void* args) {
      .Add("HM", LoadHmPage)
      .Add("App", LoadAppPage)
      .Add("Repel", CheatCodeId::kNoEncounter);
-
-  // .Add("Reset Tr", [](void*) {
-  //      auto& event_table = savedata::EventTable::GetInstance();
-  //      for (u32 i = 1740; i < 2719; i++) {
-  //        event_table.Reset(i);
-  //      }
-  //    })
 }
 } // namespace ui

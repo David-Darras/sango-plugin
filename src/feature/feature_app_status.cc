@@ -37,6 +37,8 @@
 #define PREV(x, val, max) x = ((x) - (val) + (max)) % (max)
 #define ENUM_NEXT(type, x, val) x = static_cast<type>(( static_cast<u32>(x) + 1) % static_cast<u32>(type::kMax))
 #define ENUM_PREV(type, x, val) x = static_cast<type>(( static_cast<u32>(x) - 1 + static_cast<u32>(type::kMax)) % static_cast<u32>(type::kMax))
+// Maximum sum of a Pokemon's 6 EVs allowed by the games' mechanics.
+static constexpr u32 kMaxTotalEv = 510;
 #define DEFINE_PANE(color, id0, id1, name, field, max)\
 static void next_##name(PokemonCoreData& core, u32 value) {\
 NEXT(core.field, value, max);\
@@ -53,7 +55,7 @@ NEXT(core.iv_field, value, 31 + 1);\
 } else if (ctx.power_page_ == AppStatus::PowerPage::kEv) {\
 u32 x = core.ev_field;\
 NEXT(core.ev_field, value, 252 + 1);\
-if(core.GetTotalPower() > 510) core.ev_field = x;\
+if(core.GetTotalPower() > kMaxTotalEv) core.ev_field = x;\
 }\
 }\
 static void prev_##name(PokemonCoreData& core, u32 value) {\
@@ -63,7 +65,7 @@ PREV(core.iv_field, value, 31 + 1);\
 } else if (ctx.power_page_ == AppStatus::PowerPage::kEv) {\
 u32 x = core.ev_field;\
 PREV(core.ev_field, value, 252 + 1);\
-if(core.GetTotalPower() > 510) core.ev_field = x;\
+if(core.GetTotalPower() > kMaxTotalEv) core.ev_field = x;\
 }\
 }\
 static void print_##name(Pane* pane, AppLayoutManager& manager, PokemonDataAccessor& accessor) {\
@@ -487,9 +489,16 @@ void AppStatus::Update(savedata::PokemonParam& pokemon,
                      (IsOn(&pane_species) || IsOn(&pane_gender) ||
                       (IsOn(&pane_nature_form) && item_page_ == ItemPage::kForm)
                       || IsOn(&pane_shiny));
+    // Reverse-engineered layout of the AppStatus process instance: at
+    // +kOffsetToRenderContext sits a pointer to its render context, and
+    // +kOffsetToUpdatePokemonFlag within that context is the bool that
+    // tells the game to rebuild the on-screen Pokemon model.
+    constexpr uptr kOffsetToRenderContext = 104;
+    constexpr uptr kOffsetToUpdatePokemonFlag = 284;
     game::BaseProcess* process = game::ProcessManager::GetInstance().
         GetCurrentProcess();
-    bool& update_pokemon = *(bool*)(*(uptr*)((uptr)process + 104) + 284);
+    bool& update_pokemon = *(bool*)(*(uptr*)((uptr)process +
+        kOffsetToRenderContext) + kOffsetToUpdatePokemonFlag);
     if (!new_model) update_pokemon = false;
     ((void(*)(void*, u32, bool))ADDRESS_APP_STATUS_UPDATE_POKEMON)(process,
       GetSlot(), false);

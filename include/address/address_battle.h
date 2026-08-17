@@ -17,19 +17,18 @@
 
 #pragma once
 
-// This header used to be one flat list of ~200 #define'd memory addresses.
-// It's now a facade that pulls in the same macros from topic-specific
-// headers below (include/address/address_*.h), so `#include "address.h"`
-// still works exactly as before for every existing caller.
-
-#include "address/address_hid.h"
-#include "address/address_graphics.h"
-#include "address/address_sound.h"
-#include "address/address_filesystem.h"
-#include "address/address_system.h"
-#include "address/address_pokemon.h"
-#include "address/address_battle.h"
-#include "address/address_overworld.h"
-#include "address/address_ui.h"
-#include "address/address_process.h"
-#include "address/address_misc.h"
+/** * @name Battle Addresses
+ * @{ */
+#define ADDRESS_BATTLE_MAIN_PROCESS (0x08C69214)
+#define ADDRESS_BATTLE_SETUP_CONFIG (0x001D6CD8)
+#define ADDRESS_SETUP_TRAINER_BATTLE_CONFIG (0x001D6E0C)
+#define PROCESS_NAME_BATTLE ("N3btl14BattleMainProcE")
+#define ADDRESS_BATTLE_UPDATE_EXP (0x0075D73C)
+#define ADDRESS_BATTLE_START_MEGA_EVOLVE_ANIMATION (0x0072EF18)
+#define ADDRESS_BATTLE_START_BATTLE_ANIMATION (0x00775354)
+#define ADDRESS_BATTLE_START_BACKGROUND_MUSIC (0x0044D560)
+#define ADDRESS_BATTLE_PLAY_ANIMATION (0x007510A8)
+#define ADDRESS_UPDATE_BATTLE_VIEW (0x0073B60C)
+#define ADDRESS_BATTLE_VTABLE (0x007D85D0)
+#define ADDRESS_BATTLE_UPDATE_GAUGE (0x0071E174)
+/** @} */

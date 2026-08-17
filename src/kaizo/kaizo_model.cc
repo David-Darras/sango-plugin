@@ -71,15 +71,20 @@ void PatchPokemonModels(PokeInfo* poke_info) {
       }
       count++;
       break;
-    case SPECIES_AZURILL:
-      WRITE(vu32, 0x0071E05C, 0x03A00003); // skip name input
-      // ARM_NO_COND(0x0071AD04); // disable left/right (male only)
-      // ARM_NO_COND(0x0071ACF4);
-      WRITE(vu32, 0x00719D60, 0xE3A00000 | 25);
+    case SPECIES_AZURILL: {
+      // Skip the mandatory nickname-entry prompt that normally follows
+      // catching/receiving this species.
+      constexpr uptr kAddressSkipNameInput = 0x0071E05C;
+      WRITE(vu32, kAddressSkipNameInput, 0x03A00003);
+      // Force the gift/starter level to 25 regardless of the game's default.
+      constexpr uptr kAddressForceLevel = 0x00719D60;
+      constexpr u32 kForcedLevel = 25;
+      WRITE(vu32, kAddressForceLevel, 0xE3A00000 | kForcedLevel);
       poke_info->species = SPECIES_KELDEO;
       poke_info->form = FORM_KELDEO_RESOLUTE;
       poke_info->is_shiny = false;
       break;
+    }
     case SPECIES_LAIRON:
       poke_info->is_shiny = true;
       break;

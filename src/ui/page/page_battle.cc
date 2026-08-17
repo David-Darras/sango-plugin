@@ -189,13 +189,5 @@ void LoadBattlePage(MainApplication& app, void* args) {
      .WithRefresh()
      .Add("Pokemon Data", LoadBattlePokemonDataPage)
      .Add("Pokemon Model", LoadBattlePokemonModelPage);
-
-  // static u8 trainer_model_id = 11;
-  // static const c8* TRAINER_MODELS[] = {
-  //     "Yvonne", "Xavier", "Malva", "Hologram", "May",
-  //     "Brendan", "Wally", "Wally2", "Steven", "Maxie",
-  //     "Archie", "Zinnia", "Shauna", "Tierno", "Trevor"};
-  // .Add("Trainer Model", ctx.trainer_model_id)
-  // .WithArray(TRAINER_MODELS, SIZE(TRAINER_MODELS))
 }
 } // namespace ui

@@ -274,20 +274,22 @@ void LoadSaveDataRecordsPage(MainApplication& app, void* args) {
 }
 
 void LoadSaveDataMiscellaneousPage(MainApplication& app, void* args) {
+  static const c8* BADGE_LABELS[] = {
+      "Badge 1", "Badge 2", "Badge 3", "Badge 4",
+      "Badge 5", "Badge 6", "Badge 7", "Badge 8"
+  };
+
   auto& data = savedata::Misc::GetInstance();
 
   app.Add("Money", data.money)
      .Add("Battle Points", data.battle_points)
-     .AddSeparator()
-     .Add("Badge 1", &data.badges, 0, 1)
-     .Add("Badge 2", &data.badges, 1, 1)
-     .Add("Badge 3", &data.badges, 2, 1)
-     .Add("Badge 4", &data.badges, 3, 1)
-     .Add("Badge 5", &data.badges, 4, 1)
-     .Add("Badge 6", &data.badges, 5, 1)
-     .Add("Badge 7", &data.badges, 6, 1)
-     .Add("Badge 8", &data.badges, 7, 1)
-     .AddSeparator()
+     .AddSeparator();
+
+  for (u32 i = 0; i < SIZE(BADGE_LABELS); i++) {
+    app.Add(BADGE_LABELS[i], &data.badges, i, 1);
+  }
+
+  app.AddSeparator()
      .Add("Rival Nickname", data.rival_nickname,
           savedata::Misc::kNicknameLength)
      .Add("Unlock Pokémon League Wallpapers", &data.flags, 0, 1)
@@ -484,8 +486,9 @@ void LoadSaveDataPokedexPage(MainApplication& app, void* args) {
      .WithRefresh()
      .AddSeparator();
 
-  idx = data.GetFormIndex(species);
-  if (idx != -1) {
+  s32 form_index = data.GetFormIndex(species);
+  if (form_index >= 0) {
+    idx = (u32)form_index;
     s32 table_index, form_max;
     savedata::Pokedex::GetTableIndexAndFormMax(table_index, form_max, species);
     if (form >= form_max) form = 0;

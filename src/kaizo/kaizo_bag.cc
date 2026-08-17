@@ -17,6 +17,7 @@
 
 #include "game/constant/item.h"
 #include "game/savedata/item_manager.h"
+#include "kaizo_item_catalog.h"
 
 namespace kaizo {
 void PatchBag() {
@@ -44,55 +45,23 @@ void PatchBag() {
   }
   auto* slot = manager.GetNormalItems();
   {
-    static const u16 STRAT_ITEMS[] = {
-        ITEM_CHOICE_BAND, ITEM_CHOICE_SCARF,
-        ITEM_CHOICE_SPECS, ITEM_LIFE_ORB,
-        ITEM_LEFTOVERS, ITEM_FOCUS_SASH,
-        ITEM_AIR_BALLOON, ITEM_ASSAULT_VEST,
-        ITEM_ROCKY_HELMET, ITEM_SITRUS_BERRY,
-        ITEM_POWER_HERB, ITEM_FLAME_ORB,
-        ITEM_EJECT_BUTTON, ITEM_SCOPE_LENS,
-        ITEM_TOXIC_ORB, ITEM_GRIP_CLAW
-    };
-    for (u32 i = 0; i < SIZE(STRAT_ITEMS); i++) {
+    for (u32 i = 0; i < SIZE(kStrategicItems); i++) {
       slot->count = 100;
-      slot->id = STRAT_ITEMS[i];
+      slot->id = kStrategicItems[i];
       slot++;
     }
   }
   {
-    static const u16 STONES[] = {
-        ITEM_SUN_STONE, ITEM_MOON_STONE,
-        ITEM_FIRE_STONE, ITEM_THUNDER_STONE,
-        ITEM_WATER_STONE, ITEM_LEAF_STONE,
-        ITEM_SHINY_STONE, ITEM_DUSK_STONE,
-        ITEM_DAWN_STONE, ITEM_OVAL_STONE,
-    };
-    for (u32 i = 0; i < SIZE(STONES); i++) {
+    for (u32 i = 0; i < SIZE(kEvolutionStones); i++) {
       slot->count = 100;
-      slot->id = STONES[i];
+      slot->id = kEvolutionStones[i];
       slot++;
     }
   }
   {
-    static const u16 BALLS[] = {
-        ITEM_MASTER_BALL, ITEM_ULTRA_BALL,
-        ITEM_GREAT_BALL,ITEM_POKE_BALL,
-        ITEM_SAFARI_BALL, ITEM_NET_BALL,
-        ITEM_DIVE_BALL, ITEM_NEST_BALL,
-        ITEM_REPEAT_BALL,ITEM_TIMER_BALL,
-        ITEM_LUXURY_BALL,ITEM_PREMIER_BALL,
-        ITEM_DUSK_BALL,ITEM_HEAL_BALL,
-        ITEM_QUICK_BALL,ITEM_CHERISH_BALL,
-        ITEM_FAST_BALL,ITEM_LEVEL_BALL,
-        ITEM_LURE_BALL,ITEM_HEAVY_BALL,
-        ITEM_LOVE_BALL, ITEM_FRIEND_BALL,
-        ITEM_MOON_BALL, ITEM_SPORT_BALL,
-        ITEM_PARK_BALL, ITEM_DREAM_BALL,
-    };
-    for (u32 i = 0; i < SIZE(BALLS); i++) {
+    for (u32 i = 0; i < SIZE(kBalls); i++) {
       slot->count = 100;
-      slot->id = BALLS[i];
+      slot->id = kBalls[i];
       slot++;
     }
   }

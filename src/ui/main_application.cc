@@ -235,20 +235,11 @@ bool MainApplication::AreKeysReleased(Controller& controller) {
     return controller.IsKeyReleased(Key::kStart);
   }
 
-  u32 key = 1 << (theme_.keys[0] - 1);
-  bool res = controller.IsKeyReleased((Key)key);
-  if (theme_.keys[1] == 0) {
-    return res;
+  bool res = true;
+  for (u32 i = 0; i < SIZE(theme_.keys) && theme_.keys[i] != 0; i++) {
+    u32 key = 1 << (theme_.keys[i] - 1);
+    res &= controller.IsKeyReleased((Key)key);
   }
-
-  key = 1 << (theme_.keys[1] - 1);
-  res &= controller.IsKeyReleased((Key)key);
-  if (theme_.keys[2] == 0) {
-    return res;
-  }
-
-  key = 1 << (theme_.keys[2] - 1);
-  res &= controller.IsKeyReleased((Key)key);
   return res;
 }
 
