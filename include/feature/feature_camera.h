@@ -23,46 +23,67 @@
 #include "game/process_manager.h"
 #include "game/overworld/model_manager.h"
 #include "game/overworld/renderer.h"
+#include "game/battle/manager.h"
 
 namespace overworld {
 class StereoCamera;
 }
 
 namespace feature {
+// Shared "look-at" camera used both by the overworld and by battles: the
+// engine funnels both through the same ADDRESS_STEREO_CAMERA_UPDATE_* pair,
+// so a single hook handles both contexts. Overworld and battle each keep
+// their own independent mode/target so switching one doesn't disturb the
+// other; `active_context` records which one is live for the current frame,
+// set by UpdateMatricesHook and consumed by UpdateLookAtHook right after.
 struct Camera {
   enum State { kIdle, kTps, kRotate, kTop, kFpv, kFree };
 
-  void SetCameraIdle() {
-    state = State::kIdle;
+  enum class Context { kNone, kOverworld, kBattle };
+
+  void SetCameraIdle(bool is_battle) {
+    (is_battle ? battle_state : overworld_state) = State::kIdle;
   }
 
-  void SetCameraFree(f32 x, f32 y, f32 z, f32 yaw, f32 pitch) {
-    state = State::kFree;
+  void SetCameraFree(bool is_battle, f32 x, f32 y, f32 z, f32 yaw,
+                     f32 pitch) {
+    u32& state_ref = is_battle ? battle_state : overworld_state;
+    u8& old_state_ref = is_battle ? battle_old_state : overworld_old_state;
+    state_ref = State::kFree;
     pos.x = x;
     pos.y = y;
     pos.z = z;
     rot.y = yaw;
     rot.x = pitch;
-    old_state = state;
+    old_state_ref = (u8)state_ref;
   }
 
-  void SetCameraRotate(f32 r, f32 h, f32 w = 0.0f) {
-    state = State::kRotate;
+  void SetCameraRotate(bool is_battle, f32 r, f32 h, f32 w = 0.0f) {
+    (is_battle ? battle_state : overworld_state) = State::kRotate;
     radius = r;
     height = h;
     theta = w;
   }
 
-  void SetCameraTPS(f32 dist, f32 height, f32 offset) {
-    state = State::kTps;
+  void SetCameraTPS(bool is_battle, f32 dist, f32 height, f32 offset) {
+    (is_battle ? battle_state : overworld_state) = State::kTps;
     tps_dist = dist;
     tps_height = height;
     tps_offset = offset;
   }
 
   MAKE_SINGLETON(Camera)
-  u32 state = kIdle;
-  u8 old_state = 0;
+  u32 overworld_state = kIdle;
+  u8 overworld_old_state = 0;
+  u32 battle_state = kIdle;
+  u8 battle_old_state = 0;
+  Context active_context = Context::kNone;
+
+  // Which of the 6 on-field Pokemon model slots (see
+  // battle::Graphics::GetPokemonModel) the battle camera targets for
+  // kRotate/kTop/kFpv/kTps.
+  u8 battle_target_pokemon_slot = 0;
+
   Vec3 rot;
   Vec3 pos;
   Vec3 up;
@@ -91,13 +112,21 @@ struct Camera {
   static u32 UpdateMatricesHook(overworld::StereoCamera* stereo_camera,
                                 bool update) {
     auto& ctx = GetInstance();
+    auto& process_manager = game::ProcessManager::GetInstance();
 
-    if (game::ProcessManager::GetInstance().IsCurrentProcess(
-        ADDRESS_OVERWORLD_VTABLE)) {
+    if (process_manager.IsCurrentProcess(ADDRESS_OVERWORLD_VTABLE)) {
       if (&overworld::Renderer::GetInstance().GetStereoCamera() ==
           stereo_camera) {
         ctx.is_updating_camera = true;
+        ctx.active_context = Context::kOverworld;
       }
+    } else if (process_manager.IsCurrentProcess(ADDRESS_BATTLE_VTABLE)) {
+      ui::LogApplication::Print(u"Update battle camera");
+//      if (&battle::Manager::GetInstance().GetGraphics().GetStereoCamera() ==
+//          stereo_camera) {
+        ctx.is_updating_camera = true;
+        ctx.active_context = Context::kBattle;
+//      }
     }
 
     return HookManager::Call<u32>(HookID::kUpdateMatrices, stereo_camera,
@@ -113,8 +142,12 @@ struct Camera {
     }
     ctx.is_updating_camera = false;
 
-    if (ctx.state != ctx.old_state) {
-      if (static_cast<State>(ctx.state) == State::kFree) {
+    bool is_battle = (ctx.active_context == Context::kBattle);
+    u32& state = is_battle ? ctx.battle_state : ctx.overworld_state;
+    u8& old_state = is_battle ? ctx.battle_old_state : ctx.overworld_old_state;
+
+    if (state != old_state) {
+      if (static_cast<State>(state) == State::kFree) {
         ctx.pos = *pos;
         f32 dx = target->x - pos->x;
         f32 dy = target->y - pos->y;
@@ -124,14 +157,34 @@ struct Camera {
         ctx.rot.y = std::atan2(dz, dx);
         ctx.rot.x = (dist > 0.0001f) ? std::asin(dy / dist) : 0.0f;
       }
-      ctx.old_state = ctx.state;
+      old_state = (u8)state;
     }
 
-    auto& player = overworld::ModelManager::GetInstance().GetPlayer();
+    // Resolve what "the subject" is for this frame: the overworld player
+    // model, or the selected battle Pokemon model. kFree ignores both (it
+    // only depends on ctx.pos/ctx.rot), so it behaves identically in both
+    // contexts.
+    Vec3 target_pos;
+    Vec3 facing;
+    if (is_battle) {
+      auto& model = battle::Manager::GetInstance().GetGraphics().
+                                                   GetPokemonModel(
+                                                       ctx.
+                                                       battle_target_pokemon_slot);
+      target_pos = model.position;
+      // BaseModel has no ready-made facing vector like the overworld
+      // player does, so it's derived from its yaw (rotation.y). Only used
+      // by kFpv/kTps; kRotate/kTop only need target_pos.
+      facing = {std::sin(model.rotation.y), 0.0f, std::cos(model.rotation.y)};
+    } else {
+      auto& player = overworld::ModelManager::GetInstance().GetPlayer();
+      target_pos = player.draw_pos;
+      facing = player.facing_direction;
+    }
 
-    switch (static_cast<State>(ctx.state)) {
+    switch (static_cast<State>(state)) {
       case State::kRotate:
-        *target = player.draw_pos;
+        *target = target_pos;
         *up = {0.0f, 1.0f, 0.0f};
         pos->x = target->x + ctx.radius * std::cos(ctx.theta);
         pos->z = target->z + ctx.radius * std::sin(ctx.theta);
@@ -140,7 +193,7 @@ struct Camera {
         break;
 
       case State::kTop:
-        *target = player.draw_pos;
+        *target = target_pos;
         *up = {0.0f, 0.0f, -1.0f};
         pos->x = target->x;
         pos->z = target->z;
@@ -164,16 +217,16 @@ struct Camera {
       }
 
       case State::kFpv: {
-        Vec3 dir = player.facing_direction;
+        Vec3 dir = facing;
         f32 len = std::sqrt(dir.x * dir.x + dir.y * dir.y + dir.z * dir.z);
         if (len > 0.0001f) {
           dir.x /= len;
           dir.z /= len;
         }
 
-        pos->x = player.draw_pos.x - (dir.x * ctx.fpv_offset);
-        pos->y = player.draw_pos.y + ctx.fpv_height;
-        pos->z = player.draw_pos.z - (dir.z * ctx.fpv_offset);
+        pos->x = target_pos.x - (dir.x * ctx.fpv_offset);
+        pos->y = target_pos.y + ctx.fpv_height;
+        pos->z = target_pos.z - (dir.z * ctx.fpv_offset);
 
         *target = {
             pos->x + dir.x,
@@ -185,23 +238,23 @@ struct Camera {
       }
 
       case State::kTps: {
-        Vec3 dir = player.facing_direction;
+        Vec3 dir = facing;
         f32 len = std::sqrt(dir.x * dir.x + dir.y * dir.y + dir.z * dir.z);
         if (len > 0.0f) {
           dir.x /= len;
           dir.z /= len;
         }
 
-        pos->x = player.draw_pos.x - (dir.x * ctx.tps_dist) +
+        pos->x = target_pos.x - (dir.x * ctx.tps_dist) +
                  (-dir.z * ctx.tps_offset);
-        pos->y = player.draw_pos.y + ctx.tps_height;
+        pos->y = target_pos.y + ctx.tps_height;
         pos->z =
-            player.draw_pos.z - (dir.z * ctx.tps_dist) + (
+            target_pos.z - (dir.z * ctx.tps_dist) + (
               dir.x * ctx.tps_offset);
 
         *target = {
-            player.draw_pos.x, player.draw_pos.y + ctx.tps_height,
-            player.draw_pos.z
+            target_pos.x, target_pos.y + ctx.tps_height,
+            target_pos.z
         };
         *up = {0.0f, 1.0f, 0.0f};
         break;

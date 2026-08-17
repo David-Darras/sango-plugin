@@ -73,7 +73,7 @@ void Initialize() {
   // Camera
   {
     auto& camera = feature::Camera::GetInstance();
-    camera.state = feature::Camera::kTps;
+    camera.overworld_state = feature::Camera::kTps;
   }
 }
 

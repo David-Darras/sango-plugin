@@ -88,7 +88,7 @@ void LoadOverworldCameraPage(MainApplication& app, void* args) {
   app.WithNoBackground()
      .Add("Skybox", skybox)
      .AddSeparator()
-     .Add("State", ctx.state)
+     .Add("State", ctx.overworld_state)
      .WithArray(STATES, SIZE(STATES))
      .AddSeparator()
      .Add("Free Pos X (Left/Right)", ctx.pos.x)

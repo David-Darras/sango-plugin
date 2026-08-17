@@ -21,6 +21,7 @@
 
 #include "game/battle/manager.h"
 #include "feature/feature_battle_config.h"
+#include "feature/feature_camera.h"
 #include "ui/main_application.h"
 
 namespace ui {
@@ -175,6 +176,44 @@ void LoadBattlePokemonModelPage(MainApplication& app, void* args) {
      .WithRefresh();
 }
 
+void LoadBattleCameraPage(MainApplication& app, void* args) {
+  if (app.CheckProcess(PROCESS_NAME_BATTLE)) return;
+
+  // Same mode set as the overworld camera page (Overworld > Camera), plus
+  // a selector for which of the 6 on-field Pokemon model slots the camera
+  // targets for Rotate/Top/Fpv/Tps.
+  static const c8* STATES[] = {"Idle", "Tps", "Rotate", "Top", "Fpv", "Free"};
+  auto& ctx = feature::Camera::GetInstance();
+
+  app.WithNoBackground()
+     .Add("State", ctx.battle_state)
+     .WithArray(STATES, SIZE(STATES))
+     .Add("Target Pokemon Slot", ctx.battle_target_pokemon_slot)
+     .WithBounds(0, 5)
+     .AddSeparator()
+     .Add("Free Pos X (Left/Right)", ctx.pos.x)
+     .WithFactor(5.0f)
+     .Add("Free Pos Y (Up/Down)", ctx.pos.y)
+     .WithFactor(5.0f)
+     .Add("Free Pos Z (Forward/Back)", ctx.pos.z)
+     .WithFactor(5.0f)
+     .Add("Free Yaw (Turn)", ctx.rot.y)
+     .WithFactor(0.05f)
+     .Add("Free Pitch (Look)", ctx.rot.x)
+     .WithFactor(0.05f)
+     .AddSeparator()
+     .Add("TPS Distance", ctx.tps_dist)
+     .Add("TPS Height", ctx.tps_height)
+     .Add("TPS Shoulder Offset", ctx.tps_offset)
+     .AddSeparator()
+     .Add("Radius", ctx.radius)
+     .WithFactor(3.0f)
+     .Add("Height", ctx.height)
+     .WithFactor(3.0f)
+     .Add("Orbit Rot Speed", ctx.theta_speed)
+     .WithFactor(0.01f);
+}
+
 void LoadBattlePage(MainApplication& app, void* args) {
   if (app.CheckProcess(PROCESS_NAME_BATTLE)) return;
 
@@ -188,6 +227,7 @@ void LoadBattlePage(MainApplication& app, void* args) {
      .WithBounds(0, 5)
      .WithRefresh()
      .Add("Pokemon Data", LoadBattlePokemonDataPage)
-     .Add("Pokemon Model", LoadBattlePokemonModelPage);
+     .Add("Pokemon Model", LoadBattlePokemonModelPage)
+     .Add("Camera", LoadBattleCameraPage);
 }
 } // namespace ui

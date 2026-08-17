@@ -27,7 +27,7 @@ using namespace TevCombine;
 
 struct H3dModel {
   MAKE_SINGLETON(H3dModel)
-  u8 filter = 2;
+  u8 filter = 3;
   u8 mesh = 0;
 
   STATIC_INLINE void Initialize() {

@@ -92,6 +92,10 @@ public:
                             ADDRESS_BATTLE_UPDATE_GAUGE,
                             (uptr)UpdateGauge,
                             false);
+    HookManager::Initialize(HookID::kBattleUpdateView,
+                            ADDRESS_BATTLE_UPDATE_VIEW,
+                            (uptr)UpdateView,
+                            false);
   }
 
   STATIC_INLINE void PatchOnUpdate() {
@@ -151,6 +155,7 @@ public:
     HookManager::ForceEnable(HookID::kPlayBattleAnimation);
     HookManager::ForceEnable(HookID::kBattleCheckPokemonCaptured);
     HookManager::ForceEnable(HookID::kBattleUpdateGauge);
+    HookManager::ForceEnable(HookID::kBattleUpdateView);
 
     auto& feat = GetInstance();
     if (!feat.can_use_item) {
@@ -342,6 +347,13 @@ public:
     // kaizo::ApplyLevelCaps(team, data);
 #endif
     return HookManager::Call<bool>(HookID::kUpdateExp, self, team, data);
+  }
+
+  static void UpdateView(uptr self) {
+    u32* camera = *(u32**)(self + 408);
+    camera[4] = 0; // don't use split view
+    camera[5] = 0x7FFFFFFF; // disable camera animation
+    return HookManager::Call<void>(HookID::kBattleUpdateView, self);
   }
 };
 } // namespace feature

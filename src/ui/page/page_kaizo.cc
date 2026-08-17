@@ -65,12 +65,19 @@ void LoadHmPage(MainApplication& app, void* args) {
 }
 
 void LoadKaizoPage(MainApplication& app, void* args) {
+  // Kaizo mode only exposes this single page (no access to the full
+  // Overworld/Battle menu tree), so it keeps its own direct camera state
+  // control rather than pointing to the dedicated Overworld > Camera page.
+  static const c8* CAMERA_STATES[] = {
+      "Idle", "Tps", "Rotate", "Top", "Fpv", "Free"
+  };
+
   auto& bgm = feature::Overworld::GetInstance().background_music;
   auto& camera = feature::Camera::GetInstance();
   auto& speed = feature::Engine::GetInstance().game_speed;
 
-  app.Add("Camera", camera.state)
-     .WithBounds(0, 4)
+  app.Add("Camera", camera.overworld_state)
+     .WithArray(CAMERA_STATES, SIZE(CAMERA_STATES))
      .Add("Speed", speed)
      .WithBounds(1, 2)
      .Add("Radio", bgm)
