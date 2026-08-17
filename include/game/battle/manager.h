@@ -20,6 +20,7 @@
 #include "common.h"
 #include "process.h"
 #include "game/constant/move.h"
+#include "game/renderer/h3d_model.h"
 
 class Device;
 
@@ -185,7 +186,7 @@ private:
   } client_, server_;
 };
 
-struct Model {
+struct BaseModel {
   void* vtable;
   Vec3 position;
   Vec3 position_offset;
@@ -194,11 +195,23 @@ struct Model {
   Vec3 scale;
   Vec3 scale_offset;
   bool update;
-  u8 _0[0x164 - 4 + 6 * sizeof(Vec3) - 1];
-  void* pokemon_model;
-  void* _1[2];
-  u16 species;
-  u16 form;
+  bool _0[3];
+
+  u32 _1[1 + 3 + 1 + 8 + 1 + 1 + 3 + 3 + 1 + 1 + 1 + 2 + 6 + 3 * 3];
+
+  renderer::H3dModel* h3d_model;
+};
+
+struct Environnement {
+  uptr vtable;
+  uptr _0[11];
+  renderer::H3dModel* ground;
+  uptr _1[4 + 4 + 1];
+  renderer::H3dModel* landscape;
+  void* _2;
+  renderer::H3dModel* unknow_0;
+  void* _3[2];
+  renderer::H3dModel* unknow_1;
 };
 
 class Graphics {
@@ -212,8 +225,29 @@ public:
     return *(overworld::StereoCamera*)((uptr)this + 0x1F0);
   }
 
-  Model& GetPokemonModel(u32 index) {
-    return *(Model*)(READ(vu32, (uptr)this + 0x100 + index * 4));
+  BaseModel& GetPokemonModel(u32 index) const {
+    if (index >= 6) index = 5;
+    return *pokemon_model[index];
   }
+
+  BaseModel& GetTrainerModel(u32 index) const {
+    if (index >= 4) index = 3;
+    return *trainer_model[index];
+  }
+
+  u8 _0[0x100];
+  BaseModel* pokemon_model[6];
+  BaseModel* trainer_model[4];
+  Environnement* environnement;
+  u32 _1;
+  ResourcePack* platform_pack_0;
+  ResourcePack* platform_pack_1;
+  void* platform_resource[7];
+  BaseModel* platform_model[6];
+  void* big_platform_resource[2];
+  BaseModel* big_platform_model[4];
+  u32 _2;
+  BaseModel* prop_model;
+  BaseModel* unknow;
 };
 } // namespace battle

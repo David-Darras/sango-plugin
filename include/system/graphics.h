@@ -19,6 +19,7 @@
 
 #include "common.h"
 #include "core.h"
+#include "font_manager.h"
 
 /**
  * @brief Identifiers for the available hardware screens.

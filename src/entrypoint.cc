@@ -22,7 +22,6 @@
 #include "feature/feature_engine.h"
 #include "feature/feature_light.h"
 #include "feature/feature_picture.h"
-#include "feature/feature_pokemon_texture.h"
 #include "feature/feature_text_box.h"
 #include "feature/feature_device.h"
 #include "feature/feature_overworld_model.h"
@@ -32,6 +31,7 @@
 #include "feature/feature_day_care.h"
 #include "feature/feature_encounter.h"
 #include "feature/feature_field_move.h"
+#include "feature/feature_h3d_model.h"
 #include "feature/feature_item.h"
 #include "feature/feature_map_data_loader.h"
 #include "feature/feature_map_tile.h"
@@ -60,7 +60,7 @@ void Initialize() {
   feature::Light::Initialize();
   feature::TextBox::Initialize();
   feature::Picture::Initialize();
-  feature::PokemonTexture::Initialize();
+  feature::H3dModel::Initialize();
   feature::BattleConfig::Initialize();
   feature::DayCare::Initialize();
   feature::MapTile::Initialize();
@@ -89,13 +89,14 @@ void Initialize() {
   auto& root_app = ui::RootApplication::GetInstance();
   auto& main_app = ui::MainApplication::GetInstance();
 
-#ifdef KAIZO
+#ifdef  KAIZO
   main_app.SetPainter(ui::KaizoAppPainter::GetInstance());
   main_app.Open(ui::LoadKaizoPage);
 #else
   main_app.SetPainter(ui::MainAppPainter::GetInstance());
   main_app.Open(ui::LoadTopPage);
 #endif
+
 
   application_manager.Push(root_app);
 }
