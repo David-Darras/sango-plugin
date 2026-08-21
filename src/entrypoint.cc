@@ -37,6 +37,7 @@
 #include "feature/feature_map_tile.h"
 #include "feature/feature_overworld.h"
 #include "feature/feature_process_patch.h"
+#include "feature/feature_script.h"
 #include "ui/main_application.h"
 #include "system/device.h"
 #include "system/file.h"
@@ -75,6 +76,7 @@ void Initialize() {
   feature::Encounter::Initialize();
   feature::AppStatus::Initialize();
   feature::Keyboard::Initialize();
+  feature::Script::Initialize();
 
   // Disables the keyboard's "No Good Word" filter to allow prohibited words,
   // phone numbers, etc.

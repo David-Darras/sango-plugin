@@ -15,18 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#pragma once
+#include "feature/feature_script.h"
+#include "ui/main_application.h"
 
-/** * @name Filesystem & Archive Addresses
- * @{ */
-#define ADDRESS_FILE_OPEN (0x00123FA8)
-#define ADDRESS_FILE_READ (0x00145CF0)
-#define ADDRESS_FILE_WRITE (0x001F5BE0)
-#define ADDRESS_FS_MOUNT_SDMC (0x001F7CFC)
-#define ADDRESS_FS_CREATE_FILE (0x001F5C50)
-#define ADDRESS_FS_DELETE_FILE (0x001F5CCC)
-#define ADDRESS_FS_CREATE_DIRECTORY (0x001F5F0C)
-#define ADDRESS_ARCHIVE_FILENAME_TABLE (0x005F5050)
-#define ADDRESS_ARCHIVE_READ_FILE_ASYNC (0x0036DC68)
-#define ADDRESS_ARCHIVE_READ_FILE_ASYNC_2 (0x0036ED10)
-/** @} */
+namespace ui {
+void LoadScriptPage(MainApplication& app, void* args) {
+  auto& ctx = feature::Script::GetInstance();
+
+  app.Add("Dump Scripts", ctx.dump_scripts)
+     .Add("Load Edited Scripts", ctx.inject_scripts)
+     .Add("Log To Screen", ctx.log_activity)
+     .AddSeparator()
+     .Add("Scripts Dumped", ctx.dumped_count)
+     .Add("Scripts Replaced", ctx.injected_count);
+}
+} // namespace ui

@@ -46,6 +46,7 @@ void LoadTopPage(MainApplication& app, void* args) {
      .WithArray(WEATHERS, SIZE(WEATHERS))
      .Add("Day Care", LoadDayCarePage)
      .Add("Sound", LoadSoundPage)
+     .Add("Scripts", LoadScriptPage)
      .Add("Plugin Theme", LoadThemePage);
 }
 } // namespace ui

@@ -61,6 +61,10 @@ public:
     ((void (*)(const c16*))ADDRESS_FS_DELETE_FILE)(filename);
   }
 
+  STATIC_INLINE void CreateDirectory(const c16* path) {
+    ((void (*)(const c16*))ADDRESS_FS_CREATE_DIRECTORY)(path);
+  }
+
   /**
  * @brief Default constructor.
  */
@@ -88,9 +92,18 @@ public:
  * @param mode     Bitmask of Mode flags.
  */
   INLINE void Open(const c16* filename, u32 mode = kRead | kWrite | kCreate) {
+    handle_ = nullptr;
+    pos_ = 0;
     ((void (*)(void**, const c16*, u32))ADDRESS_FILE_OPEN)(&handle_, filename,
       mode);
   }
+
+  /**
+ * @brief Whether the last Open() produced a usable handle.
+ * Opening without kCreate is how a missing file is detected: the engine
+ * leaves the out-parameter alone, so the handle stays null.
+ */
+  INLINE bool IsOpen() const { return handle_ != nullptr; }
 
   /**
  * @brief Closes the file handle and releases resources.
@@ -109,12 +122,32 @@ public:
  * @param size   Number of bytes to read.
  * @param offset Optional offset to apply before reading.
  */
-  INLINE void Read(void* buffer, u32 size, s64 offset = 0) {
-    s32 out;
+  INLINE s32 Read(void* buffer, u32 size, s64 offset = 0) {
+    s32 out = 0;
     pos_ += offset;
     ((void (*)(s32*, void*, s64, void*, u32))ADDRESS_FILE_READ)(
         &out, handle_, pos_, buffer, size);
     pos_ += size;
+    return out;
+  }
+
+  /**
+ * @brief Reads a whole file into a buffer, in one call.
+ * @param buffer   Destination buffer.
+ * @param capacity Size of the buffer.
+ * @return Bytes read, or 0 if the file is missing, empty, or larger than
+ *         the buffer.
+ * @note Asking for more than the file holds is how the size is learned:
+ *       the engine reports what it actually read, so no separate stat
+ *       call is needed.
+ */
+  static u32 ReadAll(const c16* filename, void* buffer, u32 capacity) {
+    File file;
+    file.Open(filename, kRead);
+    if (!file.IsOpen()) return 0;
+    const s32 read = file.Read(buffer, capacity);
+    if (read <= 0 || (u32)read > capacity) return 0;
+    return (u32)read;
   }
 
   /**
