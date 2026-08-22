@@ -52,7 +52,7 @@ enum class HookID : u32 {
   kOnSaveGameData,
   kUpdateFrame,
   // kCreatePokemonModel,
-  kAddH3DModel,
+  kSceneRegister0,
   kCallApp,
   kLoadShopItems,
   kUpdateExp,
@@ -92,6 +92,7 @@ enum class HookID : u32 {
   kUpdateZoneWeather,
   kUpdateAreaWeather,
   kUpdateBattleView,
+  kH3dResourceSetup,
   kMax
 };
 

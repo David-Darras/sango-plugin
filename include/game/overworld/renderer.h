@@ -17,12 +17,13 @@
 
 #pragma once
 
+#include "common.h"
 #include "game/overworld/map_manager.h"
+#include "game/renderer/h3d_resource.h"
 
 namespace game {
 class Manager;
 } // namespace game
-class Graphics;
 
 namespace overworld {
 struct StereoCamera {
@@ -39,27 +40,47 @@ struct StereoCamera {
 
 class Renderer {
   SINGLETON(Renderer)
+
 public:
   STATIC_INLINE Renderer& GetInstance() {
     return MapManager::GetInstance().GetRenderer();
   }
 
-  INLINE StereoCamera& GetStereoCamera() { return *stereo_camera2_; }
+  INLINE void* GetScene() const { return scene_; }
+
+  INLINE renderer::H3dResource* GetShaderResource() const {
+    return (renderer::H3dResource*)shader_h3d_resource_;
+  }
+
+  INLINE void* GetHeapAllocator() const { return heap_allocator_; }
+  INLINE void* GetDeviceAllocator() const { return device_allocator_; }
+
+  INLINE StereoCamera& GetStereoCamera() { return *use_camera_; }
 
 private:
-  u32 _0[5];
-  game::Manager* game_manager_;
-  Graphics* graphics_;
-  void* _1;
-  u32 _2[2];
-  void* _3[23];
-
-  u32 _4[3];
-
-  f32 _5[640];
-  u32 _6[4];
-
-  StereoCamera* stereo_camera_;
-  StereoCamera* stereo_camera2_;
+  u32 _000[5]; // 0x00 m_animation_camera
+  game::Manager* game_manager_; // 0x14
+  void* _00; // 0x18
+  void* _0; // 0x1C
+  u32 _1; // 0x20
+  s32 _2; // 0x24
+  void* heap_allocator_; // 0x28
+  void* device_allocator_; // 0x2C
+  void* _3; // 0x30
+  void* scene_; // 0x34
+  void* _4[4]; // 0x38
+  void* _5[2]; // 0x48
+  void* _6[2]; // 0x50
+  void* _7; // 0x58
+  void* shader_h3d_resource_; // 0x5C
+  void* _8[8]; // 0x60
+  void* _9; // 0x80
+  s32 _10; // 0x84
+  s32 _11; // 0x88
+  s32 _12; // 0x8C
+  f32 _13[640]; // 0x90
+  u32 _14[4]; // 0xA90
+  u32 _15; // 0xAA0
+  StereoCamera* use_camera_; // 0xAA4
 };
 } // namespace overworld

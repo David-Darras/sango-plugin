@@ -27,6 +27,7 @@ void LoadBattlePage(MainApplication& app, void* args);
 void LoadDayCarePage(MainApplication& app, void* args);
 void LoadGameTimePage(MainApplication& app, void* args);
 void LoadGlobalDataPage(MainApplication& app, void* args);
+void LoadModelLoaderPage(MainApplication& app, void* args);
 void LoadOverworldPage(MainApplication& app, void* args);
 void LoadRendererPage(MainApplication& app, void* args);
 void LoadSaveDataPage(MainApplication& app, void* args);

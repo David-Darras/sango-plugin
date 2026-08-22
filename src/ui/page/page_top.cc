@@ -16,11 +16,9 @@
  */
 
 #include "feature/feature_engine.h"
-#include "ui/main_application.h"
 #include "game/overworld/weather_manager.h"
+#include "ui/main_application.h"
 #include "ui/page/page_top.h"
-
-#include "feature/feature_app.h"
 
 namespace ui {
 void LoadTopPage(MainApplication& app, void* args) {
@@ -32,16 +30,15 @@ void LoadTopPage(MainApplication& app, void* args) {
 
   auto& weather_manager = overworld::WeatherManager::GetInstance();
 
-  app.Add("Nuzlocke", LoadKaizoPage)
-     .Add("Game Speed", feature::Engine::GetInstance().game_speed)
+  app.Add("Game Speed", feature::Engine::GetInstance().game_speed)
+     .Add("Overworld", LoadOverworldPage)
+     .Add("Battle", LoadBattlePage)
      .Add("Save Data", LoadSaveDataPage)
      .Add("Global Data", LoadGlobalDataPage)
      .Add("Renderer", LoadRendererPage)
      .Add("App", LoadAppPage)
      .Add("Battle Config", LoadBattleConfigPage)
-     .Add("Battle", LoadBattlePage)
      .Add("Game Time", LoadGameTimePage)
-     .Add("Overworld", LoadOverworldPage)
      .Add("Weather", weather_manager.GetRequestedWeather())
      .WithArray(WEATHERS, SIZE(WEATHERS))
      .Add("Day Care", LoadDayCarePage)

@@ -31,8 +31,8 @@ struct H3dModel {
   u8 mesh = 0;
 
   STATIC_INLINE void Initialize() {
-    HookManager::Initialize(HookID::kAddH3DModel,
-                            ADDRESS_ADD_H3D_MODEL,
+    HookManager::Initialize(HookID::kSceneRegister0,
+                            ADDRESS_SCENE_REGISTER_0,
                             (uptr)AddH3dModel);
   }
 
@@ -135,7 +135,7 @@ struct H3dModel {
 
   static void AddH3dModel(uptr scene, renderer::H3dModel* model, u32 idx) {
     UpdateH3dModel(model);
-    HookManager::Call<void>(HookID::kAddH3DModel, scene, model, idx);
+    HookManager::Call<void>(HookID::kSceneRegister0, scene, model, idx);
   }
 };
 } // namespace feature

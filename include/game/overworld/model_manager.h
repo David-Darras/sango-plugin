@@ -19,6 +19,7 @@
 
 #include "common.h"
 #include "game/data_manager.h"
+#include "game/renderer/h3d_resource.h"
 
 namespace overworld {
 struct Position {
@@ -104,9 +105,25 @@ public:
     return *(Model*)((uptr)overworld_models_ + Model::kSize * idx);
   }
 
+  INLINE void* Get3DModelManager() {
+    return *(void**)((uptr)&resource_count_ - 8);
+  }
+
   static constexpr u32 kMaxModels = 32;
 
+  INLINE void* Get3DModelManager() const { return move_3d_model_manager_; }
+
+  INLINE renderer::H3dResource* GetShaderResource() const {
+    if (move_3d_model_manager_ == nullptr) return nullptr;
+    auto* resource = *(renderer::H3dResource**)(
+      (uptr)move_3d_model_manager_ + kCharacterShaderOffset);
+    if (resource == nullptr || !resource->IsValid()) return nullptr;
+    return resource;
+  }
+
 private:
+  static constexpr u32 kCharacterShaderOffset = 0x2EA8;
+
   void* heap_;
   game::DataManager* game_data_manager_;
   void* _0[5];
@@ -114,7 +131,9 @@ private:
   Model* overworld_models_;
   u32 overworld_model_count_;
 
-  u32 _2[8];
+  void* _2[6]; // collision, etc.
+  void* move_3d_model_manager_;
+  void* effect_manager_;
 
 public:
   u32 resource_count_;

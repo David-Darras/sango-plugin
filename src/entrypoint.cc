@@ -91,14 +91,13 @@ void Initialize() {
   auto& root_app = ui::RootApplication::GetInstance();
   auto& main_app = ui::MainApplication::GetInstance();
 
-#ifdef  KAIZO
+#ifndef  KAIZO
   main_app.SetPainter(ui::KaizoAppPainter::GetInstance());
   main_app.Open(ui::LoadKaizoPage);
 #else
   main_app.SetPainter(ui::MainAppPainter::GetInstance());
   main_app.Open(ui::LoadTopPage);
 #endif
-
 
   application_manager.Push(root_app);
 }
@@ -116,6 +115,19 @@ void Entrypoint() {
   kaizo::UpdateOverworldWeather();
 #endif
 
+  extern feature::LoadedModel g_my_1st_pokemon;
+  if (g_my_1st_pokemon.model != nullptr) {
+    auto& player = overworld::ModelManager::GetInstance().GetPlayer();
+    auto& model = player.GetDrawModel();
+    Vec3 pos = model.position;
+    Vec3 rot = model.rotation;
+    pos.x += -16.0 * player.facing_direction.x;
+    pos.y += -16.0 * player.facing_direction.y;
+    pos.z += -16.0 * player.facing_direction.z;
+    g_my_1st_pokemon.model->SetTranslate(pos);
+    g_my_1st_pokemon.model->SetRotate(rot);
+  }
+
   void* top_buffer = graphics.GetFramebuffer(Screen::kTop);
   if (graphics.BindFramebuffer(top_buffer)) {
     Graphics::EnableScissor(0, 0, 400, 240);
@@ -123,7 +135,6 @@ void Entrypoint() {
     application->DrawTop(graphics);
     feature::Keyboard::DrawTop();
     Graphics::DisableScissor();
-
   }
 
   void* bottom_buffer = graphics.GetFramebuffer(Screen::kBottom);

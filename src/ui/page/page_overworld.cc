@@ -21,6 +21,7 @@
 #include "feature/feature_overworld_model.h"
 #include "ui/main_application.h"
 #include "game/overworld/encounter.h"
+#include "ui/page/page_top.h"
 
 namespace ui {
 #include "game/overworld/tile.inc"
@@ -151,7 +152,8 @@ void LoadOverworldPage(MainApplication& app, void* args) {
 
   auto& man = overworld::MapManager::GetInstance();
   app.Add("Map Id", man.GetMapId())
-      .Add("Model", LoadOverworldModelPage)
+     .Add("Model Loader", LoadModelLoaderPage)
+     .Add("Model", LoadOverworldModelPage)
      .Add("Encounter", LoadOverworldEncounterPage)
      .Add("Map Tile", LoadOverworldMapTilePage)
      .Add("Field Move", LoadOverworldFieldMovePage)

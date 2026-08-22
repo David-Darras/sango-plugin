@@ -18,6 +18,7 @@
 #ifndef SANGO_PLUGIN_FEATURE_MAP_DATA_LOADER_H
 #define SANGO_PLUGIN_FEATURE_MAP_DATA_LOADER_H
 #include "common.h"
+#include "feature/feature_model_loader.h"
 #include "hook_manager.h"
 #include "game/overworld/map_data.h"
 #include "game/overworld/map_manager.h"
@@ -37,8 +38,9 @@ class MapDataLoader {
                             (uptr)LoadMapData);
   }
 
-  // Execute when a new zone is loading
   static bool LoadMapData(overworld::MapData* map_data) {
+    ModelLoader::DropAll();
+
     bool result = HookManager::Call<bool>(HookID::kLoadMapData, map_data);
     if (result && !GetInstance().is_contact_enabled) {
       auto& data = map_data->GetEncounterData();

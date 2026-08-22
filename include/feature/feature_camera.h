@@ -121,12 +121,8 @@ struct Camera {
         ctx.active_context = Context::kOverworld;
       }
     } else if (process_manager.IsCurrentProcess(ADDRESS_BATTLE_VTABLE)) {
-      ui::LogApplication::Print(u"Update battle camera");
-//      if (&battle::Manager::GetInstance().GetGraphics().GetStereoCamera() ==
-//          stereo_camera) {
         ctx.is_updating_camera = true;
         ctx.active_context = Context::kBattle;
-//      }
     }
 
     return HookManager::Call<u32>(HookID::kUpdateMatrices, stereo_camera,

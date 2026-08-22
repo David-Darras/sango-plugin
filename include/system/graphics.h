@@ -137,31 +137,49 @@ public:
 */
   STATIC_INLINE void FillScreen(f32 r, f32 g, f32 b, f32 a) {
     const Color color{r, g, b, a};
-    SetTextScale(kScalePrimitiveX, kScalePrimitiveY);
-    DrawText(-10, -10, u"\uE080", color);
-    SetTextScale(kScaleDefaultX, kScaleDefaultY);
+    DrawRect(0, 0, 400, 240, color);
   }
 
   STATIC_INLINE void FillScreen(Color color) {
-    SetTextScale(kScalePrimitiveX, kScalePrimitiveY);
-    DrawText(-10, -10, u"\uE080", color);
-    SetTextScale(kScaleDefaultX, kScaleDefaultY);
+    DrawRect(0, 0, 400, 240, color);
   }
 
-  /**
- * @brief Draws a solid rectangle using scissor testing and a scaled glyph.
- * * @param x      X position.
- * @param y      Y position.
- * @param width  Width of the rectangle.
- * @param height Height of the rectangle.
- * @param color  The color of the rectangle.
- */
+  struct Material {
+    u32 _0;
+    u8 _1;
+    u8 _2[3];
+    u32 _3;
+    u32 _4;
+    u32 _5;
+    f32 _6[3];
+    f32 _7[3];
+    f32 _8[3];
+    f32 color[4];
+    void* _9;
+    f32 _10[2];
+  };
+
   STATIC_INLINE void
   DrawRect(s32 x, s32 y, s32 width, s32 height, Color color) {
-    EnableScissor(x, y, width, height);
-    SetTextScale(kScalePrimitiveX, kScalePrimitiveY);
-    DrawText(-10, -10, u"\uE080", color);
-    SetTextScale(kScaleDefaultX, kScaleDefaultY);
-    DisableScissor();
+    Material mat = {};
+    mat._0 = 0;
+    mat._1 = 1;
+    mat._3 = 0x8006;
+    mat._4 = 0x0302;
+    mat._5 = 0x0303;
+    mat._6[0] = 1.f;
+    mat._7[0] = mat._7[1] =
+                             mat._7[2] = .7f;
+    mat._8[0] = mat._8[1] =
+                             mat._8[2] = .3f;
+    mat.color[0] = mat.color[1] =
+                            mat.color[2] = mat.color[3] = 1.f;
+    ((void (*)(const Material*))ADDRESS_GRAPHICS_SET_MATERIAL)(&mat);
+
+    const Color c = color;
+    ((void (*)(s32, s32, s32, s32, const Color*))ADDRESS_GRAPHICS_DRAW_RECT)(
+        x, y, width, height, &c);
+
+    SetTextScale(0.6, 0.6);
   }
 };

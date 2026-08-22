@@ -59,67 +59,67 @@ struct H3dModel {
 
   INLINE void SetMeshVisible(u8 index, bool is_visible) {
     return ((void(*)(H3dModel*, u8, bool))
-      ADDRESS_H3DMODEL_SET_MESH_VISIBLE)(this, index, is_visible);
+      ADDRESS_H3D_MODEL_SET_MESH_VISIBLE)(this, index, is_visible);
   }
 
   INLINE s32 GetMaterialCount() {
     return ((s32(*)(H3dModel*))
-      ADDRESS_H3DMODEL_GET_MATERIAL_COUNT)(this);
+      ADDRESS_H3D_MODEL_GET_MATERIAL_COUNT)(this);
   }
 
   INLINE void SetCombineRgb(s32 mat, s32 step, s32 combine) {
     return ((void(*)(H3dModel*, s32, s32, s32))
-      ADDRESS_H3DMODEL_SET_COMBINER_COMBINE_RGB)(this, mat, step, combine);
+      ADDRESS_H3D_MODEL_SET_COMBINER_COMBINE_RGB)(this, mat, step, combine);
   }
 
   INLINE void SetScaleRgb(s32 mat, s32 step, s32 scale) {
     return ((void(*)(H3dModel*, s32, s32, s32))
-      ADDRESS_H3DMODEL_SET_COMBINER_SCALE_RGB)(this, mat, step, scale);
+      ADDRESS_H3D_MODEL_SET_COMBINER_SCALE_RGB)(this, mat, step, scale);
   }
 
   INLINE void SetSourceRgb(s32 mat, s32 step, s32 no, s32 source) {
     return ((void(*)(H3dModel*, s32, s32, s32, s32))
-      ADDRESS_H3DMODEL_SET_COMBINER_SOURCE_RGB)(this, mat, step, no, source);
+      ADDRESS_H3D_MODEL_SET_COMBINER_SOURCE_RGB)(this, mat, step, no, source);
   }
 
   INLINE void SetOperandRgb(s32 mat, s32 step, s32 no, s32 ope) {
     return ((void(*)(H3dModel*, s32, s32, s32, s32))
-      ADDRESS_H3DMODEL_SET_COMBINER_OPERAND_RGB)(this, mat, step, no, ope);
+      ADDRESS_H3D_MODEL_SET_COMBINER_OPERAND_RGB)(this, mat, step, no, ope);
   }
 
   INLINE void SetCombinerConstantSlot(s32 mat, s32 step, s32 no) {
     return ((void(*)(H3dModel*, s32, s32, s32))
-      ADDRESS_H3DMODEL_SET_COMBINER_CONSTANT)(this, mat, step, no);
+      ADDRESS_H3D_MODEL_SET_COMBINER_CONSTANT)(this, mat, step, no);
   }
 
   INLINE void SetColorConstant(s32 mat, s32 no, const Color& c) {
     return ((void(*)(H3dModel*, s32, s32, const Color&))
-      ADDRESS_H3DMODEL_SET_COLOR_CONSTANT)(this, mat, no, c);
+      ADDRESS_H3D_MODEL_SET_COLOR_CONSTANT)(this, mat, no, c);
   }
 
   INLINE void SetCombineAlpha(s32 mat, s32 step, s32 combine) {
     return ((void(*)(H3dModel*, s32, s32, s32))
-      ADDRESS_H3DMODEL_SET_COMBINER_COMBINE_ALPHA)(this, mat, step, combine);
+      ADDRESS_H3D_MODEL_SET_COMBINER_COMBINE_ALPHA)(this, mat, step, combine);
   }
 
   INLINE void SetSourceAlpha(s32 mat, s32 step, s32 no, s32 source) {
     return ((void(*)(H3dModel*, s32, s32, s32, s32))
-      ADDRESS_H3DMODEL_SET_COMBINER_SOURCE_ALPHA)(this, mat, step, no, source);
+      ADDRESS_H3D_MODEL_SET_COMBINER_SOURCE_ALPHA)(this, mat, step, no, source);
   }
 
   INLINE void SetOperandAlpha(s32 mat, s32 step, s32 no, s32 ope) {
     return ((void(*)(H3dModel*, s32, s32, s32, s32))
-      ADDRESS_H3DMODEL_SET_COMBINER_OPERAND_ALPHA)(this, mat, step, no, ope);
+      ADDRESS_H3D_MODEL_SET_COMBINER_OPERAND_ALPHA)(this, mat, step, no, ope);
   }
 
   INLINE void SetTranslucencyKind(s32 mat, s32 kind) {
     return ((void(*)(H3dModel*, s32, s32))
-      ADDRESS_H3DMODEL_SET_TRANSLUCENCY_KIND)(this, mat, kind);
+      ADDRESS_H3D_MODEL_SET_TRANSLUCENCY_KIND)(this, mat, kind);
   }
 
   INLINE void SetAlphaTestEnable(s32 mat, bool enable) {
     return ((void(*)(H3dModel*, s32, bool))
-      ADDRESS_H3DMODEL_SET_ALPHA_TEST_ENABLE)(this, mat, enable);
+      ADDRESS_H3D_MODEL_SET_ALPHA_TEST_ENABLE)(this, mat, enable);
   }
 
   void ConfigureStage(s32 step, s32 combine,
