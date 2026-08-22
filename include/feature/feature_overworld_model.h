@@ -93,6 +93,7 @@ struct OverworldModel {
   static void Noclip() {
     auto& ctx = GetInstance();
     auto& player = overworld::ModelManager::GetInstance().GetPlayer();
+    auto& draw_model = player.GetDrawModel();
     auto& controller = Controller::GetInstance();
 
 #define ADD_MOVEMENT(key, composant, val)                                    \
@@ -100,6 +101,7 @@ if (controller.IsKeyDown(Key::key)) {                                      \
 player.map_pos.coords.composant += (val) * ctx.speed.composant;          \
 player.world_pos.coords.composant += (val) * 9.0f * ctx.speed.composant; \
 player.draw_pos.composant += (val) * 9.0f * ctx.speed.composant;         \
+draw_model.position.composant += (val) * 9.0f * ctx.speed.composant;         \
 }
 
     ADD_MOVEMENT(kLeft, x, -1)
