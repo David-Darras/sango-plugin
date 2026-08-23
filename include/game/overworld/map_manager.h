@@ -24,6 +24,7 @@ class Manager;
 
 namespace overworld {
 class Renderer;
+class PropModelManager;
 
 class MapManager {
   SINGLETON(MapManager)
@@ -54,7 +55,7 @@ public:
   /// and its resource, so the current map is not a single mesh.
   INLINE void* GetMapper() const { return mapper_; }
 
-  INLINE void* GetPropModelManager() const { return prop_model_manager_; }
+  INLINE PropModelManager& GetPropModelManager() const { return *prop_model_manager_; }
 
 private:
   void* __0; // 0x00
@@ -89,6 +90,6 @@ private:
   void* mapper_; // 0x10C
   u32 _3[12]; // 0x110
   u32 _4[12]; // 0x140
-  void* prop_model_manager_; // 0x170
+  PropModelManager* prop_model_manager_; // 0x170
 };
 } // namespace overworld

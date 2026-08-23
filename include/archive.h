@@ -17,6 +17,7 @@
 
 #pragma once
 
+#define ARCHIVE_PROP_MODEL (23)
 #define ARCHIVE_OVERWORLD_AREA (14)
 #define ARCHIVE_OVERWORLD_MODEL (21)
 #define ARCHIVE_PLAYER_ICON (108)

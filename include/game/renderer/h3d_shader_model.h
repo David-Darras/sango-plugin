@@ -18,10 +18,16 @@
 #pragma once
 
 #include "common.h"
+#include "h3d_model.h"
 #include "game/renderer/h3d_resource.h"
 
 namespace renderer {
 struct H3dShaderModel {
+  u8 _0[0xE8];
+  Vec3 scale;
+  Vec3 rotation;
+  Vec3 position;
+
   static constexpr u32 kSize = 380;
 
   struct Metadata {

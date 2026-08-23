@@ -42,7 +42,6 @@ void Initialize() {
   InitializeShinyHook();
   InitializeEvolveHook();
   InitializeGiftHook();
-  InitializeArchiveHooks();
   InitializeModelHook();
   InitializeStarterHook();
 

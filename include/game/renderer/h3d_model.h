@@ -55,7 +55,6 @@ using namespace feature::TevCombine;
 
 struct H3dModel {
   uptr vtable;
-  u32 _0[0];
 
   INLINE void SetMeshVisible(u8 index, bool is_visible) {
     return ((void(*)(H3dModel*, u8, bool))

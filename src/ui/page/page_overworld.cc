@@ -21,6 +21,8 @@
 #include "feature/feature_overworld_model.h"
 #include "ui/main_application.h"
 #include "game/overworld/encounter.h"
+#include "game/overworld/prop_model_manager.h"
+#include "game/renderer/h3d_shader_model.h"
 #include "ui/page/page_top.h"
 
 namespace ui {
@@ -147,13 +149,63 @@ void LoadOverworldModelPage(MainApplication& app, void* args) {
      .WithCallback(feature::OverworldModel::PlayAnimation);
 }
 
+void LoadPropModelPage(MainApplication& app, void* args) {
+  static const char* PROP_SOUND_EFFECTS[] = {
+      "None",
+      "Normal Door",
+      "Push Door",
+      "Double Door",
+      "Automatic Door",
+      "Pokemon Center",
+      "Big Double Door",
+      "Temple Door",
+      "Metal Door",
+      "Elite Four Door"
+  };
+
+  if (app.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
+
+  auto& manager = overworld::PropModelManager::GetInstance();
+  static u32 choice = 0;
+  ui::LogApplication::Print(u"man=%p", &manager);
+
+  app.Add("Choice", choice)
+     .WithBounds(0, manager.count - 1)
+     .WithRefresh();
+
+  auto& prop = manager.prop_models[choice];
+  if (!prop.is_initialized) return;
+
+  auto* shader = manager.prop_models[choice].shader;
+
+  app.Add("Is Visible", shader->_0[0xE4])
+     .Add("Sound Effect", prop.sound_effect)
+     .WithArray(PROP_SOUND_EFFECTS, SIZE(PROP_SOUND_EFFECTS))
+     .Add("Position X", shader->position.x)
+     .Add("Position Y", shader->position.y)
+     .Add("Position Z", shader->position.z)
+     .Add("Rotation X", shader->rotation.x)
+     .WithFactor(M_PI / 12.0f)
+     .Add("Rotation Y", shader->rotation.y)
+     .WithFactor(M_PI / 12.0f)
+     .Add("Rotation Z", shader->rotation.z)
+     .WithFactor(M_PI / 12.0f)
+     .Add("Scale X", shader->scale.x)
+     .WithFactor(0.2f)
+     .Add("Scale Y", shader->scale.y)
+     .WithFactor(0.2f)
+     .Add("Scale Z", shader->scale.z)
+     .WithFactor(0.2f);
+}
+
 void LoadOverworldPage(MainApplication& app, void* args) {
   if (app.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
 
   auto& man = overworld::MapManager::GetInstance();
   app.Add("Map Id", man.GetMapId())
      .Add("Model Loader", LoadModelLoaderPage)
-     .Add("Model", LoadOverworldModelPage)
+     .Add("Prop Model", LoadPropModelPage)
+     .Add("NPC Model", LoadOverworldModelPage)
      .Add("Encounter", LoadOverworldEncounterPage)
      .Add("Map Tile", LoadOverworldMapTilePage)
      .Add("Field Move", LoadOverworldFieldMovePage)

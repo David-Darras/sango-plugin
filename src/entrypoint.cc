@@ -27,6 +27,7 @@
 #include "feature/feature_overworld_model.h"
 #include "feature/feature_app.h"
 #include "feature/feature_app_status.h"
+#include "feature/feature_archive.h"
 #include "feature/feature_battle.h"
 #include "feature/feature_day_care.h"
 #include "feature/feature_encounter.h"
@@ -77,6 +78,7 @@ void Initialize() {
   feature::AppStatus::Initialize();
   feature::Keyboard::Initialize();
   feature::Script::Initialize();
+  feature::ArchivePatch::Initiliaze();
 
   // Disables the keyboard's "No Good Word" filter to allow prohibited words,
   // phone numbers, etc.
@@ -91,7 +93,7 @@ void Initialize() {
   auto& root_app = ui::RootApplication::GetInstance();
   auto& main_app = ui::MainApplication::GetInstance();
 
-#ifndef  KAIZO
+#ifdef  KAIZO
   main_app.SetPainter(ui::KaizoAppPainter::GetInstance());
   main_app.Open(ui::LoadKaizoPage);
 #else
