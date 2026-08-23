@@ -61,7 +61,9 @@ void MainApplication::DrawSplashscreen(Graphics& graphics) {
 }
 
 void MainApplication::DrawBottom(Graphics& graphics) {
+#ifdef  KAIZO
   DrawSplashscreen(graphics);
+#endif
 
   if (!IsOpened() || !painter_->ShowBottom()) return;
 

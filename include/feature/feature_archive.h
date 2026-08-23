@@ -33,6 +33,9 @@ public:
     HookManager::Initialize(HookID::kReadFileAsync2,
                             ADDRESS_ARCHIVE_READ_FILE_ASYNC_2,
                             (uptr)ReadFileAsync2);
+    HookManager::Initialize(HookID::kReadMapFile,
+                            0x003A0C44,
+                            (uptr)ReadMapFile);
   }
 
   struct Input {
@@ -44,6 +47,12 @@ public:
     uptr buffer;
     u32* size;
   };
+
+  static u32 ReadMapFile(u32 self, u32 file_id, u32 x, u32 y) {
+    ui::LogApplication::Print(u"map=%d", file_id);
+    return HookManager::Call<u32>(HookID::kReadMapFile, self, file_id,
+                                   x, y);
+  }
 
   static bool ReadFileAsync2(u32* archive, void* heap, u32 file_id,
                              void* buffer,
@@ -63,6 +72,9 @@ public:
 #ifdef KAIZO
     if (input->archive_id == ARCHIVE_OVERWORLD_MODEL) {
       input->file_id = kaizo::PatchOverworldModels(input->file_id, false);
+    }
+    if (input->archive_id == 39) {
+      ui::LogApplication::Print(u"map=%d", input->file_id);
     }
     if (input->archive_id == ARCHIVE_PLAYER_ICON) {
       input->file_id = 72; // STEVEN

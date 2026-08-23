@@ -24,6 +24,7 @@
 #include "game/overworld/model_manager.h"
 #include "game/overworld/renderer.h"
 #include "game/battle/manager.h"
+#include "game/constant/direction.h"
 
 namespace overworld {
 class StereoCamera;
@@ -107,6 +108,90 @@ struct Camera {
     HookManager::Initialize(HookID::kUpdateLookAt,
                             ADDRESS_STEREO_CAMERA_UPDATE_LOOK_AT,
                             (uptr)UpdateLookAtHook);
+    HookManager::Initialize(HookID::kGetPlayerMovement,
+                            ADDRESS_OVERWORLD_GET_PLAYER_MOVEMENT,
+                            (uptr)GetPlayerMovement, false);
+  }
+
+  static u32 GetPlayerMovement(uptr self, Vec3* dir_vec, f32* speed,
+                               u8* dir, u8* x) {
+    u32 result = HookManager::Call<u32>(HookID::kGetPlayerMovement,
+                                        self, dir_vec, speed, dir, x);
+
+    auto& ctx = GetInstance();
+    if (ctx.overworld_state != State::kFpv) return result;
+
+    auto& player = overworld::ModelManager::GetInstance().GetPlayer();
+
+    auto& controller = Controller::GetInstance();
+    if (controller.IsKeyPressed(Key::kL)) {
+      if (player.facing_direction.x == 1.0f
+          && player.facing_direction.z == 0.0f) {
+        player.facing_direction.x = 0.0f;
+        player.facing_direction.z = 1.0f;
+      } else if (player.facing_direction.x == -1.0f
+                 && player.facing_direction.z == 0.0f) {
+        player.facing_direction.x = 0.0f;
+        player.facing_direction.z = -1.0f;
+      } else if (player.facing_direction.x == 0.0f
+                 && player.facing_direction.z == 1.0f) {
+        player.facing_direction.x = -1.0f;
+        player.facing_direction.z = 0.0f;
+      } else if (player.facing_direction.x == 0.0f
+                 && player.facing_direction.z == -1.0f) {
+        player.facing_direction.x = 1.0f;
+        player.facing_direction.z = 0.0f;
+      }
+    }
+    if (controller.IsKeyPressed(Key::kR)) {
+      if (player.facing_direction.x == 1.0f
+          && player.facing_direction.z ==
+          0.0f) {
+        player.facing_direction.x = 0.0f;
+        player.facing_direction.z = -1.0f;
+      } else if (player.facing_direction.x == -1.0f
+                 && player.facing_direction.z
+                 == 0.0f) {
+        player.facing_direction.x = 0.0f;
+        player.facing_direction.z = 1.0f;
+      } else if (player.facing_direction.x == 0.0f
+                 && player.facing_direction.z
+                 == 1.0f) {
+        player.facing_direction.x = 1.0f;
+        player.facing_direction.z = 0.0f;
+      } else if (player.facing_direction.x == 0.0f
+                 && player.facing_direction.z
+                 == -1.0f) {
+        player.facing_direction.x = -1.0f;
+        player.facing_direction.z = 0.0f;
+      }
+    }
+
+    if (*dir == DIRECTION_UP) {
+      if (player.facing_direction.x > 0.0f) {
+        *dir = DIRECTION_RIGHT;
+        dir_vec->x = 1.0f;
+        dir_vec->z = 0.0f;
+      } else if (player.facing_direction.x < 0.0f) {
+        *dir = DIRECTION_LEFT;
+        dir_vec->x = -1.0f;
+        dir_vec->z = 0.0f;
+      } else if (player.facing_direction.z > 0.0f) {
+        *dir = DIRECTION_DOWN;
+        dir_vec->x = 0.0f;
+        dir_vec->z = -1.0f;
+      } else if (player.facing_direction.z < 0.0f) {
+        *dir = DIRECTION_UP;
+        dir_vec->x = 0.0f;
+        dir_vec->z = 1.0f;
+      }
+    } else {
+      *dir = DIRECTION_INVALID;
+      dir_vec->x = 0.0f;
+      dir_vec->z = 0.0f;
+    }
+
+    return result;
   }
 
   static u32 UpdateMatricesHook(overworld::StereoCamera* stereo_camera,
@@ -121,8 +206,8 @@ struct Camera {
         ctx.active_context = Context::kOverworld;
       }
     } else if (process_manager.IsCurrentProcess(ADDRESS_BATTLE_VTABLE)) {
-        ctx.is_updating_camera = true;
-        ctx.active_context = Context::kBattle;
+      ctx.is_updating_camera = true;
+      ctx.active_context = Context::kBattle;
     }
 
     return HookManager::Call<u32>(HookID::kUpdateMatrices, stereo_camera,

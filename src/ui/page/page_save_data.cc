@@ -65,6 +65,12 @@ static void SavePokemon(void*) {
   ctx.accessor.Encrypt();
   std::memcpy(ctx.core_data, &ctx.backup_core_data,
               sizeof(ctx.backup_core_data));
+  auto& team = savedata::PokemonTeam::GetInstance();
+  for (u32 i = 0; i < team.count; i++) {
+    if (team.pokemons[i]->core == ctx.core_data) {
+      team.pokemons[i]->UpdateRuntimeData();
+    }
+  }
   ctx.accessor.Decrypt();
 }
 

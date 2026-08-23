@@ -61,6 +61,7 @@ struct Overworld {
     HookManager::Enable(HookID::kGetEncounterPokemon);
     HookManager::ForceEnable(HookID::kCheckAppRequest);
     HookManager::ForceEnable(HookID::kOverworldUpdateZone);
+    HookManager::ForceEnable(HookID::kGetPlayerMovement);
 
     // Simulate a button press
     WRITE(vu32, 0x00715C48, 0xE1A00000);

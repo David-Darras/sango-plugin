@@ -19,6 +19,7 @@
 #include "feature/feature_field_move.h"
 #include "feature/feature_map_tile.h"
 #include "feature/feature_overworld_model.h"
+#include "game/constant/map.h"
 #include "ui/main_application.h"
 #include "game/overworld/encounter.h"
 #include "game/overworld/prop_model_manager.h"
@@ -198,17 +199,30 @@ void LoadPropModelPage(MainApplication& app, void* args) {
      .WithFactor(0.2f);
 }
 
+// static u16 map_id = MAP_INSIDE_OF_TRUCK;
+//
+// void Teleport(void*) {
+//   static const u32 PARAMS[] = {
+//       40, map_id, 0, 0, 0, 0, 0, 1, 0, 1
+//   };
+//   ((void(*)(uptr, const u32*))0x00747B4C)(0, PARAMS);
+// }
+
 void LoadOverworldPage(MainApplication& app, void* args) {
   if (app.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
 
   auto& man = overworld::MapManager::GetInstance();
-  app.Add("Map Id", man.GetMapId())
-     .Add("Model Loader", LoadModelLoaderPage)
-     .Add("Prop Model", LoadPropModelPage)
-     .Add("NPC Model", LoadOverworldModelPage)
-     .Add("Encounter", LoadOverworldEncounterPage)
-     .Add("Map Tile", LoadOverworldMapTilePage)
-     .Add("Field Move", LoadOverworldFieldMovePage)
-     .Add("Camera", LoadOverworldCameraPage);
+  app
+      // .WithNoBackground()
+      // .Add("Teleport", map_id)
+      // .WithCallback(Teleport)
+      .Add("Map Id", man.GetMapId())
+      .Add("Model Loader", LoadModelLoaderPage)
+      .Add("Prop Model", LoadPropModelPage)
+      .Add("NPC Model", LoadOverworldModelPage)
+      .Add("Encounter", LoadOverworldEncounterPage)
+      .Add("Map Tile", LoadOverworldMapTilePage)
+      .Add("Field Move", LoadOverworldFieldMovePage)
+      .Add("Camera", LoadOverworldCameraPage);
 }
 } // namespace ui

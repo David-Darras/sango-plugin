@@ -20,6 +20,8 @@
 #include "ui/main_application.h"
 #include "ui/page/page_top.h"
 
+#include "config_manager.h"
+
 namespace ui {
 void LoadTopPage(MainApplication& app, void* args) {
   static const c8* WEATHERS[] = {
@@ -44,6 +46,7 @@ void LoadTopPage(MainApplication& app, void* args) {
      .Add("Day Care", LoadDayCarePage)
      .Add("Sound", LoadSoundPage)
      .Add("Scripts", LoadScriptPage)
-     .Add("Plugin Theme", LoadThemePage);
+     .Add("Plugin Theme", LoadThemePage)
+     .Add("Save Config", ConfigManager::Save);
 }
 } // namespace ui

@@ -15,6 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "config_manager.h"
 #include "kaizo.h"
 #include "feature/feature_battle_config.h"
 #include "feature/feature_camera.h"
@@ -55,6 +56,8 @@ extern void InitOverworldWeather();
 
 void Initialize() {
   File::MountSdmc();
+
+  ConfigManager::Load();
 
   feature::ProcessPatch::Initialize();
   feature::DeviceState::Initialize();
