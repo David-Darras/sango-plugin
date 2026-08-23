@@ -169,11 +169,11 @@ public:
     mat._5 = 0x0303;
     mat._6[0] = 1.f;
     mat._7[0] = mat._7[1] =
-                             mat._7[2] = .7f;
+                mat._7[2] = .7f;
     mat._8[0] = mat._8[1] =
-                             mat._8[2] = .3f;
+                mat._8[2] = .3f;
     mat.color[0] = mat.color[1] =
-                            mat.color[2] = mat.color[3] = 1.f;
+                   mat.color[2] = mat.color[3] = 1.f;
     ((void (*)(const Material*))ADDRESS_GRAPHICS_SET_MATERIAL)(&mat);
 
     const Color c = color;
@@ -181,5 +181,14 @@ public:
         x, y, width, height, &c);
 
     SetTextScale(0.6, 0.6);
+  }
+
+  STATIC_INLINE void
+  DrawRectStroke(s32 x, s32 y, s32 width, s32 height, s32 thickness,
+                 Color color) {
+    DrawRect(x, y, width, thickness, color);
+    DrawRect(x, y + height - thickness, width, thickness, color);
+    DrawRect(x, y, thickness, height, color);
+    DrawRect(x + width - thickness, y, thickness, height, color);
   }
 };

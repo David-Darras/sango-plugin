@@ -155,96 +155,100 @@ PageItem& PageItem::WithFactor(f32 factor) {
 u8 PageItem::GetType() const { return type_; }
 
 void PageItem::GetDefaultDisplayValue(c16* buffer) const {
+  const c16* prefix = (callback_ == nullptr) ? u"" : u"\uE000 ";
+
   switch (type_) {
     case kTypeU8:
-      Utils::Format(buffer, u"%s : %u", name_, *(u8*)address_);
+      Utils::Format(buffer, u"%ls%s : %u", prefix, name_, *(u8*)address_);
       break;
 
     case kTypeS8:
-      Utils::Format(buffer, u"%s : %d", name_, *(s8*)address_);
+      Utils::Format(buffer, u"%ls%s : %d", prefix, name_, *(s8*)address_);
       break;
 
     case kTypeU16:
-      Utils::Format(buffer, u"%s : %u", name_, *(u16*)address_);
+      Utils::Format(buffer, u"%ls%s : %u", prefix, name_, *(u16*)address_);
       break;
 
     case kTypeS16:
-      Utils::Format(buffer, u"%s : %d", name_, *(s16*)address_);
+      Utils::Format(buffer, u"%ls%s : %d", prefix, name_, *(s16*)address_);
       break;
 
     case kTypePointer:
-      Utils::Format(buffer, u"%s : 0x%08X", name_, address_);
+      Utils::Format(buffer, u"%ls%s : 0x%08X", prefix, name_, address_);
       break;
 
     case kTypeU32:
-      Utils::Format(buffer, u"%s : %u", name_, *(u32*)address_);
+      Utils::Format(buffer, u"%ls%s : %u", prefix, name_, *(u32*)address_);
       break;
 
     case kTypeS32:
-      Utils::Format(buffer, u"%s : %d", name_, *(s32*)address_);
+      Utils::Format(buffer, u"%ls%s : %d", prefix, name_, *(s32*)address_);
       break;
 
     case kTypeU64:
-      Utils::Format(buffer, u"%s : %llu", name_, *(u64*)address_);
+      Utils::Format(buffer, u"%ls%s : %llu", prefix, name_, *(u64*)address_);
       break;
 
     case kTypeS64:
-      Utils::Format(buffer, u"%s : %lld", name_, *(s64*)address_);
+      Utils::Format(buffer, u"%ls%s : %lld", prefix, name_, *(s64*)address_);
       break;
 
     case kTypeF32:
-      Utils::Format(buffer, u"%s : %.2f", name_, *(f32*)address_);
+      Utils::Format(buffer, u"%ls%s : %.2f", prefix, name_, *(f32*)address_);
       break;
 
     case kTypeF64:
-      Utils::Format(buffer, u"%s : %.2f", name_, *(f64*)address_);
+      Utils::Format(buffer, u"%ls%s : %.2f", prefix, name_, *(f64*)address_);
       break;
 
     case kTypeBits:
-      Utils::Format(buffer, u"%s : %u", name_,
+      Utils::Format(buffer, u"%ls%s : %u", prefix, name_,
                     GET_BITS(*(u32*)address_, bit_offset_, bit_size_));
       break;
 
     case kTypeBoolean:
-      Utils::Format(buffer, u"%s : %s", name_, *(bool*)address_ ? "On" : "Off");
+      Utils::Format(buffer, u"%ls%s : %s", prefix, name_,
+                    *(bool*)address_ ? "On" : "Off");
       break;
 
     case kTypeCheatCode:
-      Utils::Format(buffer, u"%s : %s", name_,
+      Utils::Format(buffer, u"%ls%s : %s", prefix, name_,
                     ((CheatCode*)address_)->IsEnabled() ? "On" : "Off");
       break;
 
     case kTypeUnicode:
-      Utils::Format(buffer, u"%s : \"%ls\"", name_, address_);
+      Utils::Format(buffer, u"%ls%s : \"%ls\"", prefix, name_, address_);
       break;
 
     case kTypeIdle:
-      Utils::Format(buffer, u"%s", name_);
+      Utils::Format(buffer, u"%ls%s", prefix, name_);
       break;
 
     case kTypeAbility:
       ((void (*)(String*, u8))ADDRESS_GET_ABILITY_NAME)(String::GetTmpStr(),
         *(u8*)address_);
-      Utils::Format(buffer, u"%s : %ls", name_, String::GetTmpBuf());
+      Utils::Format(buffer, u"%ls%s : %ls", prefix, name_, String::GetTmpBuf());
       break;
 
     case kTypeSpecies:
       ((void (*)(String*, u16))ADDRESS_GET_SPECIES_NAME)(String::GetTmpStr(),
         *(u16*)address_);
-      Utils::Format(buffer, u"%s : N°%03d %ls", name_, *(u16*)address_,
+      Utils::Format(buffer, u"%ls%s : N°%03d %ls", prefix, name_,
+                    *(u16*)address_,
                     String::GetTmpBuf());
       break;
 
     case kTypeMove:
       ((void (*)(u16, String*))ADDRESS_GET_MOVE_NAME)(*(u16*)address_,
         String::GetTmpStr());
-      Utils::Format(buffer, u"%s : %ls", name_, String::GetTmpBuf());
+      Utils::Format(buffer, u"%ls%s : %ls", prefix, name_, String::GetTmpBuf());
       break;
 
     case kTypeItem: {
       global_data::Item item(*(u16*)address_);
       item.GetName(String::GetTmpStr());
-      Utils::Format(buffer, u"%s : %ls", name_, String::GetTmpBuf());
+      Utils::Format(buffer, u"%ls%s : %ls", prefix, name_, String::GetTmpBuf());
     }
     break;
 
@@ -258,12 +262,13 @@ void PageItem::GetDefaultDisplayValue(c16* buffer) const {
     break;
 
     default:
-      Utils::Format(buffer, u"%s : ???", name_);
+      Utils::Format(buffer, u"%ls%s : ???", prefix, name_);
       break;
   }
 }
 
 void PageItem::GetArrayDisplayValue(c16* buffer) const {
+  const c16* prefix = (callback_ == nullptr) ? u"" : u"\uE000 ";
   u32 index = 0;
 
   switch (type_) {
@@ -305,12 +310,12 @@ void PageItem::GetArrayDisplayValue(c16* buffer) const {
       index = *(bool*)address_;
       break;
     default:
-      Utils::Format(buffer, u"%s : ???", name_);
+      Utils::Format(buffer, u"%ls%s : ???", prefix, name_);
       return;
   }
 
   index %= array_size_;
-  Utils::Format(buffer, u"%s : <%s> [%d/%d]", name_, array_[index],
+  Utils::Format(buffer, u"%ls%s : <%s> [%d/%d]", prefix, name_, array_[index],
                 index + 1,
                 array_size_);
 }

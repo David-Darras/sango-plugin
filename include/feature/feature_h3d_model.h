@@ -92,8 +92,8 @@ struct H3dModel {
     if (!IsInBattle()) {
       return;
     }
-    if (!IsBattlePokemonModel(h3d_model) && !IsBattlePlatformModel(h3d_model)
-        && !IsBattleEnvironnementModel(h3d_model)) {
+
+    if (!IsBattlePokemonModel(h3d_model)) {
       return;
     }
 

@@ -33,7 +33,7 @@ struct Settings {
   u16 species = 317;
   u16 form = 0;
   bool is_shiny = true;
-  f32 scale = 0.25f;
+  f32 scale = 1.0f;
   f32 distance = 0.0f;
 };
 
@@ -53,8 +53,7 @@ Vec3 SpawnPosition() {
   return position;
 }
 
-void ApplyScale(const feature::LoadedModel& loaded) {
-  const f32 scale = GetSettings().scale;
+void ApplyScale(const feature::LoadedModel& loaded, f32 scale) {
   if (loaded.model == nullptr || scale == 1.0f) return;
   loaded.model->SetScale(scale, scale, scale);
 }
@@ -67,7 +66,7 @@ void SpawnOverworldModel(void*) {
   const u16 model_id = GetSettings().model_id;
   if (feature::ModelLoader::LoadOverworldModel(&g_overworld_model, model_id,
                                                SpawnPosition())) {
-    ApplyScale(g_overworld_model);
+    ApplyScale(g_overworld_model, GetSettings().scale);
     ui::LogApplication::Print(u"model %d spawned", model_id);
   }
 }
@@ -81,7 +80,7 @@ void SpawnPokemon(void*) {
   if (feature::ModelLoader::LoadPokemon(&g_pokemon_model, settings.species,
                                         (u8)settings.form, settings.is_shiny,
                                         SpawnPosition())) {
-    ApplyScale(g_pokemon_model);
+    ApplyScale(g_pokemon_model, GetSettings().scale);
     ui::LogApplication::Print(u"species %d spawned", settings.species);
   }
 }
@@ -96,7 +95,7 @@ void Spawn1stPokemon(void*) {
   if (feature::ModelLoader::LoadPokemon(&g_my_1st_pokemon, species,
                                         (u8)form, is_shiny,
                                         SpawnPosition())) {
-    ApplyScale(g_my_1st_pokemon);
+    ApplyScale(g_my_1st_pokemon, 0.25f);
   }
 }
 
@@ -113,7 +112,7 @@ void LoadModelLoaderPage(MainApplication& app, void* args) {
      .WithBounds(0, 0x1FF)
      .AddSeparator()
      .Add("Spawn Pokemon", SpawnPokemon)
-     .Add("Species", settings.species)
+     .AddSpecies("Species", settings.species)
      .WithBounds(1, SPECIES_VOLCANION)
      .Add("Form", settings.form)
      .WithBounds(0, 30)

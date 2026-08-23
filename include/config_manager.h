@@ -21,6 +21,6 @@
 class ConfigManager {
   MAKE_SINGLETON(ConfigManager)
 public:
-  static void Load();
+  static bool Load();
   static void Save(void*);
 };

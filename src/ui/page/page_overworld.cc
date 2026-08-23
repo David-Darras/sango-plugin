@@ -23,6 +23,7 @@
 #include "ui/main_application.h"
 #include "game/overworld/encounter.h"
 #include "game/overworld/prop_model_manager.h"
+#include "game/overworld/weather_manager.h"
 #include "game/renderer/h3d_shader_model.h"
 #include "ui/page/page_top.h"
 
@@ -90,8 +91,6 @@ void LoadOverworldCameraPage(MainApplication& app, void* args) {
   auto& ctx = feature::Camera::GetInstance();
 
   app.WithNoBackground()
-     .Add("Skybox", skybox)
-     .AddSeparator()
      .Add("State", ctx.overworld_state)
      .WithArray(STATES, SIZE(STATES))
      .AddSeparator()
@@ -179,24 +178,29 @@ void LoadPropModelPage(MainApplication& app, void* args) {
 
   auto* shader = manager.prop_models[choice].shader;
 
-  app.Add("Is Visible", shader->_0[0xE4])
+  app.AddSeparator()
+     .Add("Is Visible", shader->_0[0xE4])
      .Add("Sound Effect", prop.sound_effect)
      .WithArray(PROP_SOUND_EFFECTS, SIZE(PROP_SOUND_EFFECTS))
-     .Add("Position X", shader->position.x)
-     .Add("Position Y", shader->position.y)
-     .Add("Position Z", shader->position.z)
+     .AddSeparator()
+     .Add("Scale X", shader->scale.x)
+     .WithFactor(0.2f)
+     .Add("Scale Y", shader->scale.y)
+     .WithFactor(0.2f)
+     .Add("Scale Z", shader->scale.z)
+     .WithFactor(0.2f)
+     .AddSeparator()
      .Add("Rotation X", shader->rotation.x)
      .WithFactor(M_PI / 12.0f)
      .Add("Rotation Y", shader->rotation.y)
      .WithFactor(M_PI / 12.0f)
      .Add("Rotation Z", shader->rotation.z)
      .WithFactor(M_PI / 12.0f)
-     .Add("Scale X", shader->scale.x)
-     .WithFactor(0.2f)
-     .Add("Scale Y", shader->scale.y)
-     .WithFactor(0.2f)
-     .Add("Scale Z", shader->scale.z)
-     .WithFactor(0.2f);
+     .AddSeparator()
+     .Add("Position X", shader->position.x)
+     .Add("Position Y", shader->position.y)
+     .Add("Position Z", shader->position.z)
+     .AddSeparator();
 }
 
 // static u16 map_id = MAP_INSIDE_OF_TRUCK;
@@ -209,20 +213,29 @@ void LoadPropModelPage(MainApplication& app, void* args) {
 // }
 
 void LoadOverworldPage(MainApplication& app, void* args) {
+  static const c8* WEATHERS[] = {
+      "Sunny", "Rainy", "Thunderstorm",
+      "Misty", "Ash", "Sandstorm",
+      "Cloudy", "Stormy", "Dry"
+  };
+
   if (app.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
 
+  auto& weather_manager = overworld::WeatherManager::GetInstance();
   auto& man = overworld::MapManager::GetInstance();
   app
       // .WithNoBackground()
       // .Add("Teleport", map_id)
       // .WithCallback(Teleport)
-      .Add("Map Id", man.GetMapId())
+      .Add("Weather", weather_manager.GetRequestedWeather())
+      .WithArray(WEATHERS, SIZE(WEATHERS))
+      .Add("Camera", LoadOverworldCameraPage)
       .Add("Model Loader", LoadModelLoaderPage)
-      .Add("Prop Model", LoadPropModelPage)
-      .Add("NPC Model", LoadOverworldModelPage)
+      .Add("Prop", LoadPropModelPage)
+      .Add("Player", LoadOverworldModelPage)
       .Add("Encounter", LoadOverworldEncounterPage)
       .Add("Map Tile", LoadOverworldMapTilePage)
       .Add("Field Move", LoadOverworldFieldMovePage)
-      .Add("Camera", LoadOverworldCameraPage);
+      .Add("Map Id", man.GetMapId());
 }
 } // namespace ui

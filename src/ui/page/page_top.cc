@@ -24,27 +24,17 @@
 
 namespace ui {
 void LoadTopPage(MainApplication& app, void* args) {
-  static const c8* WEATHERS[] = {
-      "Sunny", "Rainy", "Thunderstorm",
-      "Misty", "Ash", "Sandstorm",
-      "Cloudy", "Stormy", "Dry"
-  };
-
-  auto& weather_manager = overworld::WeatherManager::GetInstance();
-
   app.Add("Game Speed", feature::Engine::GetInstance().game_speed)
      .Add("Overworld", LoadOverworldPage)
-     .Add("Battle", LoadBattlePage)
      .Add("Save Data", LoadSaveDataPage)
      .Add("Global Data", LoadGlobalDataPage)
      .Add("Renderer", LoadRendererPage)
-     .Add("App", LoadAppPage)
+     .Add("Battle", LoadBattlePage)
      .Add("Battle Config", LoadBattleConfigPage)
-     .Add("Game Time", LoadGameTimePage)
-     .Add("Weather", weather_manager.GetRequestedWeather())
-     .WithArray(WEATHERS, SIZE(WEATHERS))
-     .Add("Day Care", LoadDayCarePage)
+     .Add("App", LoadAppPage)
      .Add("Sound", LoadSoundPage)
+     .Add("Day Care", LoadDayCarePage)
+     .Add("Game Time", LoadGameTimePage)
      .Add("Scripts", LoadScriptPage)
      .Add("Plugin Theme", LoadThemePage)
      .Add("Save Config", ConfigManager::Save);

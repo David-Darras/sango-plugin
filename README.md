@@ -7,7 +7,7 @@
 ![Platform](https://img.shields.io/badge/platform-3DS%20%2B%20Citra%20%2B%20Azahar-red.svg)
 
 <div style="display: flex; justify-content: space-between; gap: 10px;">
-  <img src="assets/sango-plugin-v3.0.0.jpg">
+  <img src="assets/sango_plugin_v4.jpg">
   <img src="assets/battle.png">
   <img src="assets/camera_menu.jpg">
   <img src="assets/overworld_cheat_code.jpg">

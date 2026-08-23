@@ -33,7 +33,9 @@
 static const c16* kConfigFilename =
     u"sdmc:/luma/plugins/000400000011C500/sango.cfg";
 
-void ConfigManager::Load() {
+static const u32 kConfigVersion = 1;
+
+bool ConfigManager::Load() {
   auto& theme = ui::Theme::GetInstance();
   auto& battle = feature::Battle::GetInstance();
   auto& battle_config = feature::BattleConfig::GetInstance();
@@ -48,11 +50,16 @@ void ConfigManager::Load() {
   auto& text_box = feature::TextBox::GetInstance();
   auto& title_screen = feature::TitleScreen::GetInstance();
 
-#define FILE_READ(x) size = file.Read(&x, sizeof(x)); if(size < sizeof(x)) return;
+#define FILE_READ(x) size = file.Read(&x, sizeof(x)); if(size < sizeof(x)) return false;
 
   // WARNING: There is some issues with File & game save feature
   u32 size = 0;
+  u32 version = 0;
   File file(kConfigFilename, false);
+  FILE_READ(version);
+  if (version != kConfigVersion) {
+    return false;
+  }
   FILE_READ(theme);
   FILE_READ(battle);
   FILE_READ(battle_config);
@@ -68,6 +75,8 @@ void ConfigManager::Load() {
   FILE_READ(title_screen);
 
 #undef FILE_READ
+
+  return true;
 }
 
 void ConfigManager::Save(void*) {
@@ -89,6 +98,7 @@ void ConfigManager::Save(void*) {
 
   // WARNING: There is some issues with File & game save feature
   File file(kConfigFilename, true);
+  FILE_WRITE(kConfigVersion);
   FILE_WRITE(theme);
   FILE_WRITE(battle);
   FILE_WRITE(battle_config);

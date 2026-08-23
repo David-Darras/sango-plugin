@@ -104,8 +104,8 @@ void LoadLayoutPicturePage(MainApplication& app, void* args) {
 
 void LoadRendererPage(MainApplication& app, void* args) {
   app.Add("Light", LoadLightPage)
-     .Add("Layout - Text Box", LoadLayoutTextBoxPage)
-     .Add("Layout - Picture", LoadLayoutPicturePage)
-     .Add("Pokemon Texture", LoadPokemonTexturePage);
+     .Add("Battle Pokemon Texture", LoadPokemonTexturePage)
+     .Add("Text Box", LoadLayoutTextBoxPage)
+     .Add("Picture", LoadLayoutPicturePage);
 }
 } // namespace ui

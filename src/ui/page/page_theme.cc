@@ -25,8 +25,7 @@ void LoadThemePage(MainApplication& app, void* args) {
   app.Add("Background Color", LoadColorPage, &theme.background_color)
       .Add("Unselected Text Color", LoadColorPage,
            &theme.unselected_text_color)
-      .Add("Selected Text Color", LoadColorPage, &theme.selected_text_color)
-      .Add("Edited Text Color", LoadColorPage, &theme.edited_text_color);
+      .Add("Selected Text Color", LoadColorPage, &theme.selected_text_color);
 
   app.AddSeparator()
       .Add("Open Plugin Sound Effect", theme.open_sound)

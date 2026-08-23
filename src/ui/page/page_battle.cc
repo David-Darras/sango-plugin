@@ -145,7 +145,8 @@ void LoadBattlePokemonModelPage(MainApplication& app, void* args) {
   constexpr f32 kRotationFactor = 4.0f * M_PI / 180.0f;
   constexpr f32 kPositionFactor = 4.0f;
 
-  app.Add("Position X", model.position.x)
+  app.WithNoBackground()
+     .Add("Position X", model.position.x)
      .WithFactor(kPositionFactor)
      .WithRefresh()
      .Add("Position Y", model.position.y)

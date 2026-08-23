@@ -26,6 +26,33 @@
 #include "feature/feature_device.h"
 #include "feature/feature_process_patch.h"
 #include "ui/theme.h"
+#include <cxxabi.h>
+#include <cstdlib>
+#include <cstring>
+
+
+static const char* Unmangle(const char* mangled_name) {
+  static char buffer[BUFFER_SIZE];
+
+  if (!mangled_name) {
+    return "";
+  }
+
+  int status = -1;
+  char* demangled =
+      abi::__cxa_demangle(mangled_name, nullptr, nullptr, &status);
+
+  if (status == 0 && demangled != nullptr) {
+    strncpy(buffer, demangled, BUFFER_SIZE - 1);
+    buffer[BUFFER_SIZE - 1] = '\0';
+    std::free(demangled);
+  } else {
+    strncpy(buffer, mangled_name, BUFFER_SIZE - 1);
+    buffer[BUFFER_SIZE - 1] = '\0';
+  }
+
+  return buffer;
+}
 
 namespace ui {
 MainApplication MainApplication::instance_ = MainApplication();
@@ -34,6 +61,9 @@ void MainApplication::DrawTop(Graphics& graphics) {
   if (!IsOpened()) return;
 
   painter_->DrawPageBackground(*this);
+  Graphics::SetTextScale(1.0f, 1.0f);
+  Graphics::DrawText(390, 220, u"『さんご』",
+                     Theme::GetInstance().selected_text_color);
   painter_->DrawPageItems(*this);
 }
 
@@ -60,6 +90,14 @@ void MainApplication::DrawSplashscreen(Graphics& graphics) {
   }
 }
 
+#include <cxxabi.h>
+#include <cstdlib>
+#include <cstring>
+
+#ifndef BUFFER_SIZE
+#define BUFFER_SIZE 1024
+#endif
+
 void MainApplication::DrawBottom(Graphics& graphics) {
 #ifdef  KAIZO
   DrawSplashscreen(graphics);
@@ -68,6 +106,8 @@ void MainApplication::DrawBottom(Graphics& graphics) {
   if (!IsOpened() || !painter_->ShowBottom()) return;
 
   Graphics::FillScreen(theme_.background_color);
+  Graphics::DrawRectStroke(0, 0, 320, 240, 1,
+                           theme_.selected_text_color);
 
   if (GetSelectedEntry().GetType() == kTypeUnicode) {
     keyboard_.Draw();
@@ -78,21 +118,24 @@ void MainApplication::DrawBottom(Graphics& graphics) {
   uptr vtable = 0;
   c16 buffer[BUFFER_SIZE];
   auto& game_manager = game::ProcessManager::GetInstance();
-  const char* process_name = game_manager.GetCurrentProcessName(vtable);
-  Utils::Format(buffer, u"Process[%08X]=%s", vtable, process_name);
+  const char* process_name = Unmangle(
+      game_manager.GetCurrentProcessName(vtable));
+
+  Utils::Format(buffer, u"Process[%s]", process_name);
   Graphics::DrawText(5, 150, buffer, theme_.unselected_text_color);
 
-  const char* event_name = game::EventManager::GetInstance().
-      GetCurrentEventName(vtable);
-  Utils::Format(buffer, u"Event[%08X]=%s", vtable, event_name);
+  const char* event_name = Unmangle(
+      game::EventManager::GetInstance().GetCurrentEventName(vtable));
+  Utils::Format(buffer, u"Event[%s]", event_name);
   Graphics::DrawText(5, 170, buffer, theme_.unselected_text_color);
 
   Graphics::SetTextScale(0.5, 0.5);
-  Utils::Format(buffer, u"Plugin by: %s", PLUGIN_CREATOR);
-  Graphics::DrawText(5, 200, buffer, theme_.edited_text_color);
-  Utils::Format(buffer, u"Ver: %s (Build: %s %s)", PLUGIN_VERSION, __DATE__,
+  Utils::Format(buffer, u"Sango Plugin (%s) | Created by %s", PLUGIN_VERSION,
+                PLUGIN_CREATOR);
+  Graphics::DrawText(5, 200, buffer, theme_.selected_text_color);
+  Utils::Format(buffer, u"Build: %s %s", PLUGIN_VERSION, __DATE__,
                 __TIME__);
-  Graphics::DrawText(5, 216, buffer, theme_.edited_text_color);
+  Graphics::DrawText(5, 216, buffer, theme_.selected_text_color);
 }
 
 void MainApplication::ForceClose() {
@@ -156,7 +199,7 @@ void MainApplication::Update(Controller& controller) {
   if (controller.IsKeyRepeated(Key::kLeft) || controller.IsKeyRepeated(
           Key::kRight) ||
       controller.IsKeyRepeated(Key::kDown) || controller.
-      IsKeyReleased(Key::kUp)) {
+      IsKeyRepeated(Key::kUp)) {
     Sound::PlaySoundEffect(theme_.next_sound);
   }
 
@@ -246,13 +289,17 @@ bool MainApplication::AreKeysReleased(Controller& controller) {
 }
 
 void MainAppPainter::DrawPageBackground(MainApplication& app) {
-  if (app.no_background_) return;
-  Graphics::FillScreen(app.theme_.background_color);
+  if (!app.no_background_) {
+    Graphics::FillScreen(app.theme_.background_color);
+  }
+  Graphics::DrawRectStroke(0, 0, 400, 240, 1,
+                           Theme::GetInstance().selected_text_color);
 }
 
 void MainAppPainter::DrawPageItems(MainApplication& app) {
   MainApplication::MenuContext& ctx = app.GetContext();
 
+  Graphics::SetTextScale(0.6, 0.6);
   Graphics::DrawText(5, 6 + ctx.cursor * MainApplication::kLineHeight,
                      u"\uE077", app.theme_.selected_text_color);
 
