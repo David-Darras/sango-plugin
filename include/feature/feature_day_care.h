@@ -25,30 +25,30 @@ class DayCare {
   STATIC_INLINE void Initialize() {
     CheatCodeManager::Initialize(CheatCodeId::kInstantEggHatch,
                                  [] {
-                                   WRITE(u32, ADDRESS_EGG_HATCH, 0xEA000007);
+                                   WRITE32(ADDRESS_EGG_HATCH, 0xEA000007);
                                  }, [] {
-                                   WRITE(u32, ADDRESS_EGG_HATCH, 0x0A000007);
+                                   WRITE32(ADDRESS_EGG_HATCH, 0x0A000007);
                                  }, false
         );
     CheatCodeManager::Initialize(CheatCodeId::kInstantEggGeneration,
                                  [] {
-                                   WRITE(u32, ADDRESS_EGG_GENERATION,
+                                   WRITE32(ADDRESS_EGG_GENERATION,
                                          0xE1A00000);
                                  }, [] {
-                                   WRITE(u32, ADDRESS_EGG_GENERATION,
+                                   WRITE32(ADDRESS_EGG_GENERATION,
                                          0x2A000002);
                                  }, false
         );
     CheatCodeManager::Initialize(CheatCodeId::kInstantMaxExpForDayCare,
                                  [] {
-                                   WRITE(u32, ADDRESS_DAY_CARE_MAX_EXP,
+                                   WRITE32(ADDRESS_DAY_CARE_MAX_EXP,
                                          0x15824004);
-                                   WRITE(u32, ADDRESS_DAY_CARE_MAX_EXP + 0x20,
+                                   WRITE32(ADDRESS_DAY_CARE_MAX_EXP + 0x20,
                                          0x158240F4);
                                  }, [] {
-                                   WRITE(u32, ADDRESS_DAY_CARE_MAX_EXP,
+                                   WRITE32(ADDRESS_DAY_CARE_MAX_EXP,
                                          0x1582C004);
-                                   WRITE(u32, ADDRESS_DAY_CARE_MAX_EXP + 0x20,
+                                   WRITE32(ADDRESS_DAY_CARE_MAX_EXP + 0x20,
                                          0x1582C0F4);
                                  }, false
         );

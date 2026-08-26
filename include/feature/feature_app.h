@@ -45,8 +45,8 @@ class GameApp {
 public:
   STATIC_INLINE void Initialize() {
     // Alloc 0x100 bytes for app hook
-    WRITE(vu32, 0x003D6D18, 0xE3A01C01); // Overworld Menu
-    WRITE(vu32, 0x003D81D4, 0xE3A01C01); // Top Menu
+    WRITE32(0x003D6D18, 0xE3A01C01); // Overworld Menu
+    WRITE32(0x003D81D4, 0xE3A01C01); // Top Menu
     HookManager::Initialize(HookID::kCallApp, ADDRESS_CALL_APP,
                             (uptr)CallAppHook);
     HookManager::Initialize(HookID::kCheckAppRequest, ADDRESS_CHECK_APP_REQUEST,
@@ -105,7 +105,7 @@ public:
   static bool CheckAppRequestHook(uptr menu, u32 id) {
     auto& ctx = GetInstance();
     if (ctx.open_app) {
-      *(u32*)(menu + 4 * (5 >> 5) + 0xB0) = 1 << (5 % 32);
+      WRITE32(menu + 4 * (5 >> 5) + 0xB0, 1 << (5 % 32));
     }
 
     return HookManager::Call<bool>(HookID::kCheckAppRequest, menu, id);
@@ -137,7 +137,7 @@ public:
   static void CallAppHook(uptr self, game::Manager* manager) {
     auto& ctx = GetInstance();
 
-    u8& choice = READ(u8, self + 28);
+    u8 choice = READ8(self + 28);
     if (choice != 0 || !ctx.open_app) {
       HookManager::Call<void>(HookID::kCallApp, self, manager);
       return;
@@ -145,32 +145,32 @@ public:
 
     // Call Move Tutor
     if (ctx.app_id == 7) {
-      choice = 7;
-      auto* input = (MoveInput*)READ(u32, self+0x20);
+      WRITE8(self + 28, 7);
+      auto* input = (MoveInput*)READ32(self+0x20);
       input->pokemon = savedata::PokemonTeam::GetInstance().pokemons[0];
       input->move_id = 620;
-      WRITE(u32, self + 0x2C, (uptr)MoveTutorCallback);
+      WRITE32(self + 0x2C, (uptr)MoveTutorCallback);
     }
 
     // Call Move Deleter
     if (ctx.app_id == 8) {
-      choice = 8;
-      auto* input = (MoveInput*)READ(u32, self+0x20);
+      WRITE8(self + 28, 8);
+      auto* input = (MoveInput*)READ32(self+0x20);
       input->pokemon = savedata::PokemonTeam::GetInstance().pokemons[0];
-      WRITE(u32, self + 0x2C, (uptr)MoveDeleterCallback);
+      WRITE32(self + 0x2C, (uptr)MoveDeleterCallback);
     }
 
     // Call Move Reminder
     if (ctx.app_id == 9) {
-      choice = 9;
-      auto* input = (MoveInput*)READ(u32, self+0x20);
+      WRITE8(self + 28, 9);
+      auto* input = (MoveInput*)READ32(self+0x20);
       input->pokemon = savedata::PokemonTeam::GetInstance().pokemons[0];
     }
 
     // Call Box
     if (ctx.app_id == 17) {
-      choice = 17;
-      auto* input = (BoxInput*)READ(u32, self+0x20);
+      WRITE8(self + 28, 17);
+      auto* input = (BoxInput*)READ32(self+0x20);
       input->box_manager = &savedata::BoxManager::GetInstance();
       input->pokemon_box = &savedata::PokemonBox::GetInstance();
       input->battle_box = &savedata::BattleBox::GetInstance();
@@ -186,10 +186,10 @@ public:
 
     // Call Townmap
     if (ctx.app_id == 15) {
-      choice = 15;
-      TownMapInput* data = (TownMapInput*)READ(u32, self+0x20);
+      WRITE8(self + 28, 15);
+      TownMapInput* data = (TownMapInput*)READ32(self+0x20);
       data->is_fly_mode = true;
-      WRITE(u32, self + 0x30, (uptr)TownMapCallback);
+      WRITE32(self + 0x30, (uptr)TownMapCallback);
     }
 
     ctx.open_app = false;

@@ -31,23 +31,23 @@ public:
 
   INLINE u8& GetRequestedWeather() { return *(u8*)((uptr)this + 0x1E); }
 
-  INLINE void SetMapId(u16 map_id) { WRITE(vu16, (uptr)this + 0x14, map_id); }
-  INLINE void SetWeather(u8 weather) { WRITE(vu8, (uptr)this + 0x1E, weather); }
+  INLINE void SetMapId(u16 map_id) { WRITE16((uptr)this + 0x14, map_id); }
+  INLINE void SetWeather(u8 weather) { WRITE8((uptr)this + 0x1E, weather); }
 
   INLINE void SetSkybox(bool is_enabled) {
-    uptr addr = READ(vu32, (uptr)this);
-    WRITE(vu32, addr + 64, is_enabled);
+    uptr addr = READ32((uptr)this);
+    WRITE32(addr + 64, is_enabled);
   }
 
   INLINE void SetWeatherEffects(bool is_enabled) {
-    uptr addr = READ(vu32, (uptr)this + 16);
-    if (!READ(vu32, addr + 12)) {
-      WRITE(vu8, addr + 33, is_enabled);
+    uptr addr = READ32((uptr)this + 16);
+    if (!READ32(addr + 12)) {
+      WRITE8(addr + 33, is_enabled);
     }
   }
 
   INLINE void Synchronize(bool sync) {
-    WRITE(vu32, (uptr)this + 48, sync);
+    WRITE32((uptr)this + 48, sync);
   }
 };
 } // namespace overworld

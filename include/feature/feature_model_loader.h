@@ -125,8 +125,9 @@ public:
   }
 
   static void DropAll() {
-    auto& context = GetInstance();
     void* scene = Scene();
+    if (scene == nullptr) return;
+    auto& context = GetInstance();
     for (u32 i = 0; i < kMaxLoaded; ++i) {
       LoadedModel* entry = context.loaded_[i];
       if (entry == nullptr) continue;
@@ -168,7 +169,13 @@ private:
   }
 
   STATIC_INLINE void* Scene() {
-    return overworld::Renderer::GetInstance().GetScene();
+    if (game::ProcessManager::GetInstance().IsCurrentProcess(
+        ADDRESS_OVERWORLD_VTABLE)) {
+      auto* renderer = overworld::Renderer::GetInstance();
+      if (renderer == nullptr) return nullptr;
+      return renderer->GetScene();
+    }
+    return nullptr;
   }
 
   static void* OpenArchive(u32 archive_id) {
@@ -287,7 +294,7 @@ private:
     }
 
     void* scene = Scene();
-    if (!renderer::Scene::Register0(scene, out->model) ||
+    if (scene == nullptr || !renderer::Scene::Register0(scene, out->model) ||
         !renderer::Scene::Register1(scene, out->model)) {
       ui::LogApplication::Print(u"scene registration refused");
       return false;

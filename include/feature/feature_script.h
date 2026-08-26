@@ -37,12 +37,12 @@ public:
   u32 injected_count = 0;
 
   STATIC_INLINE void Initialize() {
-    File::CreateDirectory(u"sdmc:/pkpawn");
-    File::CreateDirectory(u"sdmc:/pkpawn/dump");
+    //File::CreateDirectory(u"sdmc:/pkpawn");
+    //File::CreateDirectory(u"sdmc:/pkpawn/dump");
 
-    HookManager::Initialize(HookID::kLoadScript,
-                            ADDRESS_SCRIPT_PAWN_BASE_LOAD,
-                            (uptr)LoadHook);
+    // HookManager::Initialize(HookID::kLoadScript,
+    //                         ADDRESS_SCRIPT_PAWN_BASE_LOAD,
+    //                         (uptr)LoadHook);
   }
 
   static void LoadHook(void* self, const void* buffer, u32 size,
@@ -127,9 +127,6 @@ private:
 
   void AppendIndexEntry(u32 id, u32 size) {
     c16 line[BUFFER_SIZE];
-    Utils::Format(line, u"%08x  %6d bytes  map=%d\n", id, size,
-                  overworld::MapManager::last_map_id);
-
     c8 ascii[BUFFER_SIZE];
     u32 length = 0;
     while (length < BUFFER_SIZE - 1 && line[length]) {

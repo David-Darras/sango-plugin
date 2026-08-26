@@ -49,17 +49,17 @@ public:
   static const c8* GetClassNameFromVTable(void* vtable) {
     u32 addr = (uptr)vtable;
     if (addr < 0x00100000 || addr > 0x00900000)return "";
-    addr = READ(u32, addr - 4);
+    addr = READ32(addr - 4);
     if (addr == 0) return "";
-    addr = READ(u32, addr + 4);
+    addr = READ32(addr + 4);
     if (addr == 0) return "";
     return (const char*)addr;
   }
 
   // Example : overworld_models_
-  STATIC_INLINE u32 GetArrayElementSize(uptr addr) { return READ(u32, addr - 8); }
+  STATIC_INLINE u32 GetArrayElementSize(uptr addr) { return READ32(addr - 8); }
 
-  STATIC_INLINE u32 GetArrayCapacity(uptr addr) { return READ(u32, addr - 4); }
+  STATIC_INLINE u32 GetArrayCapacity(uptr addr) { return READ32(addr - 4); }
 
   STATIC_INLINE u32 GetRandomValue(u32 max = 0xFFFFFFFF) {
     return ((u32(*)(u32))ADDRESS_GET_RANDOM_VALUE)(max);

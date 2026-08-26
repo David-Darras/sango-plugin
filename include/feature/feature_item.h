@@ -34,19 +34,19 @@ class Item {
     auto& feat = Item::GetInstance();
 
     // No level limit with rare candy
-    // WRITE(vu32, 0x0046DED8, 0xE35000FF);
+    // WRITE32(0x0046DED8, 0xE35000FF);
 
     if (feat.remove_limit) {
       // No limit to 100 for EVs with ITEM_HP_UP, ITEM_PROTEIN, ITEM_IRON, etc.
-      WRITE(vu32, 0x0047888C, 0xE35000FF);
-      WRITE(vu32, 0x004788F0, 0xE35000FF);
-      WRITE(vu32, 0x004788FC, 0x03A000FF);
-      WRITE(vu32, 0x0046E104, 0xE35B00FF);
-      WRITE(vu32, 0x0046E1A4, 0xE35B00FF);
-      WRITE(vu32, 0x0046E244, 0xE35800FF);
-      WRITE(vu32, 0x0046E2E0, 0xE35900FF);
-      WRITE(vu32, 0x0046E37C, 0xE35A00FF);
-      WRITE(vu32, 0x0046E41C, 0xE35A00FF);
+      WRITE32(0x0047888C, 0xE35000FF);
+      WRITE32(0x004788F0, 0xE35000FF);
+      WRITE32(0x004788FC, 0x03A000FF);
+      WRITE32(0x0046E104, 0xE35B00FF);
+      WRITE32(0x0046E1A4, 0xE35B00FF);
+      WRITE32(0x0046E244, 0xE35800FF);
+      WRITE32(0x0046E2E0, 0xE35900FF);
+      WRITE32(0x0046E37C, 0xE35A00FF);
+      WRITE32(0x0046E41C, 0xE35A00FF);
     }
 
     HookManager::Initialize(HookID::kGlobalDataItemGetParam,

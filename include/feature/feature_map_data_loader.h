@@ -39,7 +39,7 @@ class MapDataLoader {
   }
 
   static bool LoadMapData(overworld::MapData* map_data) {
-    ModelLoader::DropAll();
+    // ModelLoader::DropAll();
 
     bool result = HookManager::Call<bool>(HookID::kLoadMapData, map_data);
     if (result && !GetInstance().is_contact_enabled) {
@@ -51,8 +51,11 @@ class MapDataLoader {
         data.poke_info[i].species = 0;
       }
     }
-    overworld::MapManager::last_map_id = overworld::MapManager::GetInstance().
-        GetMapId();
+    // if (game::ProcessManager::GetInstance().
+    //   IsCurrentProcess(ADDRESS_OVERWORLD_VTABLE)) {
+    //   overworld::MapManager::last_map_id =
+    //       overworld::MapManager::GetInstance().GetMapId();
+    // }
     return result;
   }
 };

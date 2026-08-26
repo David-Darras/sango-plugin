@@ -42,7 +42,7 @@ class Renderer {
   SINGLETON(Renderer)
 
 public:
-  STATIC_INLINE Renderer& GetInstance() {
+  STATIC_INLINE Renderer* GetInstance() {
     return MapManager::GetInstance().GetRenderer();
   }
 
@@ -55,7 +55,7 @@ public:
   INLINE void* GetHeapAllocator() const { return heap_allocator_; }
   INLINE void* GetDeviceAllocator() const { return device_allocator_; }
 
-  INLINE StereoCamera& GetStereoCamera() { return *use_camera_; }
+  INLINE StereoCamera* GetStereoCamera() const { return use_camera_; }
 
 private:
   u32 _000[5]; // 0x00 m_animation_camera

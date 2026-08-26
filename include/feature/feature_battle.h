@@ -75,7 +75,7 @@ public:
     HookManager::Initialize(HookID::kStartBattleAnimation,
                             ADDRESS_BATTLE_START_BATTLE_ANIMATION,
                             (uptr)StartBattleAnimation, false);
-    HookManager::Initialize(HookID::kStartBatlleBackgroundMusic,
+    HookManager::Initialize(HookID::kStartBattleBackgroundMusic,
                             ADDRESS_BATTLE_START_BACKGROUND_MUSIC,
                             (uptr)StartBattleBackgroundMusicHook);
     HookManager::Initialize(HookID::kPlayBattleAnimation,
@@ -160,10 +160,10 @@ public:
     auto& feat = GetInstance();
     if (!feat.can_use_item) {
       // Only access to pokeball
-      WRITE(vu8, 0x007CB09C, 2); // HP/PP -> Ball
-      // WRITE(vu8, 0x007CB0B4, 2) // Ball
-      WRITE(vu8, 0x007CB0CC, 2); // Status -> Ball
-      WRITE(vu8, 0x007CB0E4, 2); // Battle -> Item
+      WRITE8(0x007CB09C, 2); // HP/PP -> Ball
+      // WRITE8(0x007CB0B4, 2) // Ball
+      WRITE8(0x007CB0CC, 2); // Status -> Ball
+      WRITE8(0x007CB0E4, 2); // Battle -> Item
     }
 
     if (feat.same_ratio_for_all_pokeball) {
@@ -172,7 +172,7 @@ public:
       ARM_NO_COND(0x007227B8);
 
       // same ratio for all balls
-      WRITE(vu32, 0x007232E4, 0xE3A00A01); // mov r0, #0x1000
+      WRITE32(0x007232E4, 0xE3A00A01); // mov r0, #0x1000
       ARM_RET(0x007232E8);
     }
 
@@ -191,9 +191,9 @@ public:
                                    u32 p5) {
 #ifdef KAIZO
     // wild battle -> trainer battle (disable capture)
-    u8 battle_type = READ(u8, READ(u32, READ(u32, p1 + 4) + 0x10));
+    u8 battle_type = READ8(READ32(READ32(p1 + 4) + 0x10));
     if (kaizo::CapturedEvent::Check()) {
-      WRITE(u8, READ(u32, READ(u32, p1 + 4) + 0x10), 1);
+      WRITE8(READ32(READ32(p1 + 4) + 0x10), 1);
     }
 #endif
     bool result = HookManager::Call<bool>(HookID::kBattleCheckPokemonCaptured,
@@ -202,7 +202,7 @@ public:
     if (result) {
       kaizo::CapturedEvent::Set();
     } else {
-      WRITE(u8, READ(u32, READ(u32, p1 + 4) + 0x10), battle_type);
+      WRITE8(READ32(READ32(p1 + 4) + 0x10), battle_type);
     }
 #endif
 
@@ -244,12 +244,12 @@ public:
 
   static void UpdateGauge(uptr gauge, u16 max_hp, u32 new_hp) {
     HookManager::Call<void>(HookID::kBattleUpdateGauge, gauge, max_hp, new_hp);
-    uptr res = ((uptr(*)(uptr))0x4BCD08)(READ(vu32, gauge + 48));
+    uptr res = ((uptr(*)(uptr))0x4BCD08)(READ32(gauge + 48));
 
     f32 ratio = (max_hp > 0) ? (f32)new_hp / (f32)max_hp : 0.0f;
     Color8 color = GetHpGaugeColor(ratio);
 
-    WRITE(vu32, res + 16, color.GetRaw());
+    WRITE32(res + 16, color.GetRaw());
   }
 
   static void UpdateBattleViewHook(uptr p0) {
@@ -266,29 +266,30 @@ public:
 
   static void PatchPokemonSize() {
     for (u32 i = 0; i < 6; i++) {
-      u32 pkmMdl = *(u32*)(0x83F84C0 + 4 * i); // Base address of the 3D model
+      u32 pkmMdl = READ32(0x83F84C0 + 4 * i); // Base address of the 3D model
       if (pkmMdl == 0)
         continue;
 
-      u16 pkmNum = *(u16*)(pkmMdl + 0x170); // Pokédex number
+      u16 pkmNum = READ16(pkmMdl + 0x170); // Pokédex number
       if (pkmNum >= 722)
         continue;
 
-      u32 pkmData = *(u32*)0x617A00 + 0x50 * pkmNum;
+      u32 pkmData = READ32(0x617A00) + 0x50 * pkmNum;
       // Personal data of the Pokémon
-      f32 realSize = (f32)*(u16*)(pkmData + 0x24);
+      f32 realSize = (f32)READ16(pkmData + 0x24);
       // Actual height according to the Pokédex
-      f32 defaultSize = (f32)*(u16*)(pkmData + 0x3C);
+      f32 defaultSize = (f32)READ16(pkmData + 0x3C);
       // Default displayed size in battle
       f32 ratio = realSize / defaultSize;
 
       // Update Pokémon scale
-      *(f32*)(pkmMdl + 0x34) = ratio;
-      *(f32*)(pkmMdl + 0x38) = ratio;
-      *(f32*)(pkmMdl + 0x3C) = ratio;
+      WRITEF(pkmMdl + 0x34, ratio);
+      WRITEF(pkmMdl + 0x38, ratio);
+      WRITEF(pkmMdl + 0x3C, ratio);
 
       // Mark the model to be updated
-      *(bool*)(pkmMdl + 0x4C) = true;
+      WRITEF(pkmMdl + 0x3C, ratio);
+      WRITEB(pkmMdl + 0x4C, true);
     }
   }
 
@@ -304,7 +305,7 @@ public:
     if (GetInstance().sync_overworld_music) {
       id = (1 << 16) + Overworld::GetInstance().background_music;
     }
-    return HookManager::Call<void>(HookID::kStartBatlleBackgroundMusic,
+    return HookManager::Call<void>(HookID::kStartBattleBackgroundMusic,
                                    sound_manager, id, p2);
   }
 

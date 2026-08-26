@@ -99,10 +99,10 @@ class ProcessPatch {
   // static void ShowProcess() {
   // auto& man = game::ProcessManager::GetInstance();
   // ui::LogApplication::Print(u"poke list = %08X", man.GetCurrentProcess());
-  // uptr addr = READ(vu32, 0x08C69214 + 0x90) + 0x50;
-  // WRITE(vu8, addr, 5);
-  // WRITE(vu8, addr+1, 5);
-  // WRITE(vu8, addr+2, 5);
+  // uptr addr = READ32(0x08C69214 + 0x90) + 0x50;
+  // WRITE8(addr, 5);
+  // WRITE8(addr+1, 5);
+  // WRITE8(addr+2, 5);
   // }
 }; //
 } // namespace feature

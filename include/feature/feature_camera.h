@@ -200,7 +200,8 @@ struct Camera {
     auto& process_manager = game::ProcessManager::GetInstance();
 
     if (process_manager.IsCurrentProcess(ADDRESS_OVERWORLD_VTABLE)) {
-      if (&overworld::Renderer::GetInstance().GetStereoCamera() ==
+      auto* renderer = overworld::Renderer::GetInstance();
+      if (renderer != nullptr && renderer->GetStereoCamera() ==
           stereo_camera) {
         ctx.is_updating_camera = true;
         ctx.active_context = Context::kOverworld;

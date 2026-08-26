@@ -111,7 +111,7 @@ public:
   INLINE void Close() {
     if (handle_) {
       // Vtable call to close the handle (offset 44)
-      (*(void (**)())(*(u32*)handle_ + 44))();
+      (*(void (**)())(READ32((uptr)handle_)  + 44))();
       handle_ = nullptr;
     }
   }

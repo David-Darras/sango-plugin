@@ -121,8 +121,8 @@ void LoadModelLoaderPage(MainApplication& app, void* args) {
      .Add("Scale", settings.scale)
      .WithFactor(0.1f)
      .Add("Distance", settings.distance)
-     .WithFactor(1.0f)
-     .AddSeparator()
-     .Add("Clear spawned", ClearModels);
+     .WithFactor(1.0f);
+     //.AddSeparator()
+     //.Add("Clear spawned", ClearModels);
 }
 } // namespace ui

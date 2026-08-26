@@ -18,6 +18,7 @@
 #pragma once
 
 #include "common.h"
+#include "ui/log_application.h"
 
 /**
  * @brief Handles function redirection (Hooking) via instruction overwriting.
@@ -59,15 +60,15 @@ public:
   void Enable(bool force = false) {
     if (!force && is_enabled_) return;
 
-    if (! is_initialized_) {
+    if (!is_initialized_) {
       // Save the original first two instructions (8 bytes) of the source function
-      original_code_[0] = READ(vu32, src_addr_);
-      original_code_[1] = READ(vu32, src_addr_ + 4);
+      original_code_[0] = READ32(src_addr_);
+      original_code_[1] = READ32(src_addr_ + 4);
       svcFlushProcessDataCache(0xFFFF8001, (uptr)original_code_, 8);
 
       // Setup the gateway to allow calling the original function
-      gateway_[0] = READ(vu32, src_addr_);
-      gateway_[1] = READ(vu32, src_addr_ + 4);
+      gateway_[0] = READ32(src_addr_);
+      gateway_[1] = READ32(src_addr_ + 4);
       gateway_[2] = 0xE51FF004; // ARM opcode for: ldr pc, [pc, #-4]
       gateway_[3] = src_addr_ + 8;
       // Address to jump back to, skipping the hooked bytes
@@ -81,8 +82,8 @@ public:
 
     // Overwrite the start of the function with an absolute jump to our
     // destination
-    WRITE(vu32, src_addr_, 0xE51FF004); // ldr pc, [pc, #-4]
-    WRITE(vu32, src_addr_ + 4, dst_addr_); // .word dst
+    WRITE32(src_addr_, 0xE51FF004); // ldr pc, [pc, #-4]
+    WRITE32(src_addr_ + 4, dst_addr_); // .word dst
     svcFlushProcessDataCache(0xFFFF8001, src_addr_, 8);
 
     is_enabled_ = true;
@@ -100,8 +101,8 @@ public:
     svcInvalidateEntireInstructionCache();
 
     // Restore the original instructions
-    WRITE(vu32, src_addr_, original_code_[0]);
-    WRITE(vu32, src_addr_ + 4, original_code_[1]);
+    WRITE32(src_addr_, original_code_[0]);
+    WRITE32(src_addr_ + 4, original_code_[1]);
     svcFlushProcessDataCache(0xFFFF8001, src_addr_, 8);
 
     is_enabled_ = false;
@@ -109,7 +110,10 @@ public:
 
   INLINE bool IsEnabled() const { return is_enabled_; }
   INLINE bool IsInitialized() const { return is_initialized_; }
-  INLINE void Clear() { is_enabled_ = false; is_initialized_ = false; }
+  INLINE void Clear() {
+    is_enabled_ = false;
+    is_initialized_ = false;
+  }
 
   /**
  * @brief Calls the original, unhooked function through the gateway.

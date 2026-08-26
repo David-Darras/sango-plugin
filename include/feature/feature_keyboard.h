@@ -33,7 +33,8 @@ public:
   static constexpr u8 kMaxPages = 154;
 
   STATIC_INLINE void Initialize() {
-    HookManager::Initialize(HookID::kKeyboardUpdateKeys, 0x00744540,
+    HookManager::Initialize(HookID::kKeyboardUpdateKeys,
+                            ADDRESS_KEYBOARD_UPDATE_KEYS,
                             (uptr)UpdateKeys, false);
   }
 
@@ -42,7 +43,7 @@ public:
     // Force to refresh when pressing L
     ARM_NOP(0x0074323C);
     // Pressing R is like pressing L
-    *(u32*)(0x00742F58 + 6 * 4) = *(u32*)(0x00742F58 + 4 * 4);
+    WRITE32(0x00742F58 + 6 * 4, 0x00742F58 + 4 * 4);
     // Don't switch between the two keyboard mode
     ARM_NOP(0x00746294);
     auto& self = GetInstance();

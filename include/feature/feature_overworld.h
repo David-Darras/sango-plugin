@@ -64,7 +64,7 @@ struct Overworld {
     HookManager::ForceEnable(HookID::kGetPlayerMovement);
 
     // Simulate a button press
-    WRITE(vu32, 0x00715C48, 0xE1A00000);
+    WRITE32(0x00715C48, 0xE1A00000);
   }
 
   static u32

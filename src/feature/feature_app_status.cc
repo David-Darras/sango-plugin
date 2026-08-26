@@ -497,12 +497,15 @@ void AppStatus::Update(savedata::PokemonParam& pokemon,
     constexpr uptr kOffsetToUpdatePokemonFlag = 284;
     game::BaseProcess* process = game::ProcessManager::GetInstance().
         GetCurrentProcess();
-    bool& update_pokemon = *(bool*)(*(uptr*)((uptr)process +
-        kOffsetToRenderContext) + kOffsetToUpdatePokemonFlag);
-    if (!new_model) update_pokemon = false;
+    bool update_pokemon = READB(READ32((uptr)process + kOffsetToRenderContext) + kOffsetToUpdatePokemonFlag);
+    if (!new_model) {
+      WRITEB(READ32((uptr)process + kOffsetToRenderContext) + kOffsetToUpdatePokemonFlag, false);
+    }
     ((void(*)(void*, u32, bool))ADDRESS_APP_STATUS_UPDATE_POKEMON)(process,
       GetSlot(), false);
-    if (!new_model) update_pokemon = true;
+    if (!new_model) {
+      WRITEB(READ32((uptr)process + kOffsetToRenderContext) + kOffsetToUpdatePokemonFlag, true);
+    }
   }
 }
 
@@ -654,7 +657,7 @@ void AppStatus::SetupGraphicsParamsHook(uptr self,
       &pane_defense, &pane_sp_attack, &pane_sp_defense,
       &pane_speed, &pane_ability
   };
-  auto& manager = *(AppLayoutManager*)(READ(uptr, self + 8 + 16));
+  auto& manager = *(AppLayoutManager*)(READ32(self + 8 + 16));
   GetInstance().Draw(PARAMS_PANES, SIZE(PARAMS_PANES), *pokemon->accessor,
                      manager);
 
@@ -671,7 +674,7 @@ void AppStatus::SetupGraphicsMovesHook(uptr self,
   static Pane* MOVES_PANES[] = {
       &pane_move_0, &pane_move_1, &pane_move_2, &pane_move_3
   };
-  auto& manager = *(AppLayoutManager*)(READ(uptr, self + 16));
+  auto& manager = *(AppLayoutManager*)(READ32(self + 16));
   GetInstance().Draw(MOVES_PANES, SIZE(MOVES_PANES), *pokemon->accessor,
                      manager);
 }
@@ -683,7 +686,7 @@ void AppStatus::SetupGraphicsInfosHook(uptr self,
   static Pane* INFOS_PANES[] = {
       &pane_level, &pane_gender, &pane_item_ball
   };
-  auto& manager = *(AppLayoutManager*)(READ(uptr, self + 8 + 16));
+  auto& manager = *(AppLayoutManager*)(READ32(self + 8 + 16));
   GetInstance().Draw(INFOS_PANES, SIZE(INFOS_PANES), *pokemon->accessor,
                      manager);
 }
@@ -710,7 +713,7 @@ void AppStatus::SetupGraphicsContestHook(uptr self,
                           pokemon);
 
   auto& ctx = GetInstance();
-  auto& manager = *(AppLayoutManager*)(READ(uptr, self + 8 + 16));
+  auto& manager = *(AppLayoutManager*)(READ32(self + 8 + 16));
 
   for (u32 i = 0; i < 5; i++) {
     if (ctx.IsOn(CONTEST_PANES[i])) {

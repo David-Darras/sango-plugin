@@ -40,10 +40,10 @@ class TitleScreen {
     auto& title = GetInstance();
     if (!title.is_enabled) return;
 
-    WRITE(vu32, 0x00740378, 0xE3A02000 | title.top_video);
-    WRITE(vu32, 0x0074039C, 0xE3A02000 | title.bottom_video);
-    WRITE(vu32, 0x00740498, title.pokemon_cry_species);
-    WRITE(vf32, 0x0074049C, title.pokemon_cry_volume);
+    WRITE32(0x00740378, 0xE3A02000 | title.top_video);
+    WRITE32(0x0074039C, 0xE3A02000 | title.bottom_video);
+    WRITE32(0x00740498, title.pokemon_cry_species);
+    WRITEF(0x0074049C, title.pokemon_cry_volume);
     if (title.no_delay)
       ARM_NOP(0x00740390);
     if (title.no_shadow)

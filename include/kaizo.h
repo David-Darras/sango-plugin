@@ -17,6 +17,7 @@
 
 #pragma once
 #include "common.h"
+#include "game/constant/map.h"
 #include "game/overworld/map_manager.h"
 #include "game/savedata/pss_photo.h"
 #include "game/savedata/savedata.h"
@@ -43,7 +44,8 @@ struct EncounterEntry {
 
 struct CapturedEvent {
   STATIC_INLINE bool Check() {
-    u32 id = overworld::MapManager::last_map_id;
+    // u32 id = overworld::MapManager::last_map_id;
+    u32 id = MAP_ROUTE_101;
     auto& data = savedata::PssPhoto::GetInstance();
     u8* bits = &data.photo[0];
     u32 index = id / 8;
@@ -52,7 +54,8 @@ struct CapturedEvent {
   }
 
   STATIC_INLINE void Set() {
-    u32 id = overworld::MapManager::last_map_id;
+    // u32 id = overworld::MapManager::last_map_id;
+    u32 id = MAP_ROUTE_101;
     auto& data = savedata::PssPhoto::GetInstance();
     u8* bits = &data.photo[0];
     u32 index = id / 8;

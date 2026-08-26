@@ -87,7 +87,6 @@ void LoadOverworldCameraPage(MainApplication& app, void* args) {
   if (app.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
 
   static const c8* STATES[] = {"Idle", "Tps", "Rotate", "Top", "Fps", "Free"};
-  bool& skybox = *(bool*)((uptr)&overworld::Renderer::GetInstance() + 0xB74);
   auto& ctx = feature::Camera::GetInstance();
 
   app.WithNoBackground()
@@ -230,7 +229,7 @@ void LoadOverworldPage(MainApplication& app, void* args) {
       .Add("Weather", weather_manager.GetRequestedWeather())
       .WithArray(WEATHERS, SIZE(WEATHERS))
       .Add("Camera", LoadOverworldCameraPage)
-      .Add("Model Loader", LoadModelLoaderPage)
+      .Add("Model Loader (Instable)", LoadModelLoaderPage)
       .Add("Prop", LoadPropModelPage)
       .Add("Player", LoadOverworldModelPage)
       .Add("Encounter", LoadOverworldEncounterPage)

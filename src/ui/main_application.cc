@@ -130,7 +130,7 @@ void MainApplication::DrawBottom(Graphics& graphics) {
   Graphics::DrawText(5, 170, buffer, theme_.unselected_text_color);
 
   Graphics::SetTextScale(0.5, 0.5);
-  Utils::Format(buffer, u"Sango Plugin (%s) | Created by %s", PLUGIN_VERSION,
+  Utils::Format(buffer, u"Sango Plugin | Created by %s",
                 PLUGIN_CREATOR);
   Graphics::DrawText(5, 200, buffer, theme_.selected_text_color);
   Utils::Format(buffer, u"Build: %s %s", PLUGIN_VERSION, __DATE__,

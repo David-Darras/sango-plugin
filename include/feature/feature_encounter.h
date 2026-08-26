@@ -22,6 +22,7 @@
 #include "hook_manager.h"
 #include "kaizo.h"
 #include "utils.h"
+#include "game/process_manager.h"
 #include "game/overworld/map_data.h"
 #include "game/savedata/pokemon_team.h"
 #include "game/savedata/savedata_encounter.h"
@@ -83,13 +84,16 @@ struct Encounter {
     bool result = HookManager::Call<bool>(HookID::kGetEncounterPokemon, p0, p1);
 
 #ifdef KAIZO
+    if (!game::ProcessManager::GetInstance().IsCurrentProcess(
+        ADDRESS_OVERWORLD_VTABLE))
+      return result;
     u32& map_id = overworld::MapManager::GetInstance().GetMapId();
     const kaizo::EncounterEntry* entry = kaizo::GetEncounterEntry(map_id);
     if (entry == nullptr) {
       return result;
     }
 
-    u32 count = READ(u32, p0 + 108);
+    u32 count = READ32(p0 + 108);
     for (u32 i = 0; i < count; i++) {
       PokemonData& data = READ(PokemonData, p0 + i * sizeof(PokemonData));
       data.level = kaizo::GetEncounterLevel();

@@ -34,7 +34,7 @@ class AppLayoutManager {
   SINGLETON(AppLayoutManager)
 public:
   INLINE uptr GetSubManager() {
-    return READ(uptr, (uptr)this + 4);
+    return READ32((uptr)this + 4);
   }
 
   INLINE uptr GetToken(u32 layout_id) {
@@ -53,7 +53,7 @@ public:
 
   INLINE renderer::Pane* GetPane(u32 layout_id, u32 pane_id) {
     return ((renderer::Pane*(*)(u32, u32))
-      0x4C9140)(READ(vu32, GetToken(layout_id) + 4), pane_id);
+      0x4C9140)(READ32(GetToken(layout_id) + 4), pane_id);
   } // or 0x4C8C30 ?
 
   void

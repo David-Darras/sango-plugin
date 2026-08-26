@@ -34,7 +34,7 @@ struct Table {
 };
 
 void PatchEvolve(u16 species) {
-  Table* table = (Table*)READ(uptr, 0x617A04 + 0x34);
+  Table* table = (Table*)READ32(0x617A04 + 0x34);
   auto& evolve = *table->evolve;
   switch (species) {
     case SPECIES_MACHOKE:

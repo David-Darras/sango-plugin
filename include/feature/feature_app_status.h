@@ -93,8 +93,8 @@ public:
         GetCurrentProcess();
   }
 
-  static u8& GetSlot() {
-    return *(u8*)(GetThis() + 124);
+  static u8 GetSlot() {
+    return READ8(GetThis() + 124);
   }
 
   INLINE void Reset() {

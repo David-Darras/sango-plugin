@@ -640,3 +640,5 @@
 #define MOVE_DRAGON_ASCENT (620)
 #define MOVE_HYPERSPACE_FURY (621)
 #define MOVE_COUNT (622)
+
+#define MOVE_XXX (1000)

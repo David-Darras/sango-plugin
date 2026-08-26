@@ -589,7 +589,7 @@ void LoadSaveDataPlayTimePage(MainApplication& app, void* args) {
 void OnUpdateLanguage(void*) {
   auto& settings = savedata::Settings::GetInstance();
   Core::GetInstance().GetLanguageId() = settings.language_id;
-  WRITE(vu32, ADDRESS_LANGUAGE_ID, settings.language_id);
+  WRITE32(ADDRESS_LANGUAGE_ID, settings.language_id);
 }
 
 void LoadSaveDataSettingsPage(MainApplication& app, void* args) {

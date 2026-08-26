@@ -29,14 +29,14 @@ class PropModelManager;
 class MapManager {
   SINGLETON(MapManager)
 public:
-  static u16 last_map_id;
+  // static u16 last_map_id;
 
 public:
   STATIC_INLINE MapManager& GetInstance() {
     return game::Manager::GetInstance().GetOverworldMapManager();
   }
 
-  INLINE Renderer& GetRenderer() { return *renderer_; }
+  INLINE Renderer* GetRenderer() const { return renderer_; }
 
   INLINE void* GetAddr() { return &renderer_; }
 

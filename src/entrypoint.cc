@@ -33,6 +33,7 @@
 #include "feature/feature_day_care.h"
 #include "feature/feature_encounter.h"
 #include "feature/feature_field_move.h"
+#include "feature/feature_game_text_manager.h"
 #include "feature/feature_h3d_model.h"
 #include "feature/feature_item.h"
 #include "feature/feature_map_data_loader.h"
@@ -49,16 +50,16 @@
 
 String String::s_tmp;
 c16 String::s_buffer[128];
-u16 overworld::MapManager::last_map_id = 0xFFFF;
+// u16 overworld::MapManager::last_map_id = 0xFFFF;
 
 extern void UpdateOverworldWeather();
 extern void InitOverworldWeather();
 
 void Initialize() {
-  File::MountSdmc();
+  // File::MountSdmc();
+  // ConfigManager::Load();
 
-  ConfigManager::Load();
-
+  // feature::CroManager::Initialize();
   feature::ProcessPatch::Initialize();
   feature::DeviceState::Initialize();
   feature::Engine::Initialize();
@@ -80,12 +81,13 @@ void Initialize() {
   feature::Encounter::Initialize();
   feature::AppStatus::Initialize();
   feature::Keyboard::Initialize();
-  feature::Script::Initialize();
+  // feature::Script::Initialize();
   feature::ArchivePatch::Initiliaze();
+  // feature::GameTextManager::Initialize();
 
   // Disables the keyboard's "No Good Word" filter to allow prohibited words,
   // phone numbers, etc.
-  WRITE(u32, 0x003A47C0, 0xE3A00000);
+  WRITE32(0x003A47C0, 0xE3A00000);
   ARM_RET(0x003A47C4);
 
 #ifdef KAIZO
@@ -121,7 +123,9 @@ void Entrypoint() {
 #endif
 
   extern feature::LoadedModel g_my_1st_pokemon;
-  if (g_my_1st_pokemon.model != nullptr) {
+  if (g_my_1st_pokemon.model != nullptr &&
+      game::ProcessManager::GetInstance().IsCurrentProcess(
+          ADDRESS_OVERWORLD_VTABLE)) {
     auto& player = overworld::ModelManager::GetInstance().GetPlayer();
     auto& model = player.GetDrawModel();
     Vec3 pos = model.position;
