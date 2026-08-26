@@ -33,14 +33,12 @@
 #include "feature/feature_day_care.h"
 #include "feature/feature_encounter.h"
 #include "feature/feature_field_move.h"
-#include "feature/feature_game_text_manager.h"
 #include "feature/feature_h3d_model.h"
 #include "feature/feature_item.h"
 #include "feature/feature_map_data_loader.h"
 #include "feature/feature_map_tile.h"
 #include "feature/feature_overworld.h"
 #include "feature/feature_process_patch.h"
-#include "feature/feature_script.h"
 #include "ui/main_application.h"
 #include "system/device.h"
 #include "system/file.h"
@@ -50,45 +48,46 @@
 
 String String::s_tmp;
 c16 String::s_buffer[128];
-// u16 overworld::MapManager::last_map_id = 0xFFFF;
 
 extern void UpdateOverworldWeather();
 extern void InitOverworldWeather();
+extern void Entrypoint();
 
 void Initialize() {
-  // File::MountSdmc();
-  // ConfigManager::Load();
+  File::MountSdmc();
+  ConfigManager::Load();
 
-  // feature::CroManager::Initialize();
-  feature::ProcessPatch::Initialize();
+  // feature::ProcessPatch::Initialize();
   feature::DeviceState::Initialize();
   feature::Engine::Initialize();
   feature::Light::Initialize();
   feature::TextBox::Initialize();
   feature::Picture::Initialize();
-  feature::H3dModel::Initialize();
-  feature::BattleConfig::Initialize();
+  // feature::H3dModel::Initialize();
+  // feature::BattleConfig::Initialize();
   feature::DayCare::Initialize();
   feature::MapTile::Initialize();
   feature::Camera::Initialize();
-  feature::OverworldModel::Initialize();
-  feature::GameApp::Initialize();
-  feature::Battle::Initialize();
-  feature::FieldMove::Initialize();
-  feature::Item::Initialize();
-  feature::Overworld::Initialize();
-  feature::MapDataLoader::Initialize();
-  feature::Encounter::Initialize();
-  feature::AppStatus::Initialize();
-  feature::Keyboard::Initialize();
-  // feature::Script::Initialize();
-  feature::ArchivePatch::Initiliaze();
-  // feature::GameTextManager::Initialize();
+  // feature::OverworldModel::Initialize();
+  // feature::GameApp::Initialize();
+  // feature::Battle::Initialize();
+  // feature::FieldMove::Initialize();
+  // feature::Item::Initialize();
+  // feature::Overworld::Initialize();
+  // feature::MapDataLoader::Initialize();
+  // feature::Encounter::Initialize();
+  // feature::AppStatus::Initialize();
+  // feature::Keyboard::Initialize();
+  // feature::ArchivePatch::Initiliaze();
+  // // feature::GameTextManager::Initialize();
+  // // feature::Script::Initialize();
 
   // Disables the keyboard's "No Good Word" filter to allow prohibited words,
   // phone numbers, etc.
-  WRITE32(0x003A47C0, 0xE3A00000);
-  ARM_RET(0x003A47C4);
+  {
+    WRITE32(0x003A47C0, 0xE3A00000);
+    ARM_RET(0x003A47C4);
+  }
 
 #ifdef KAIZO
   kaizo::Initialize();
@@ -107,6 +106,9 @@ void Initialize() {
 #endif
 
   application_manager.Push(root_app);
+
+  HookManager::Initialize(HookID::kEntrypoint, ADDRESS_ENTRYPOINT,
+                          (uptr)Entrypoint);
 }
 
 void Entrypoint() {
@@ -122,27 +124,27 @@ void Entrypoint() {
   kaizo::UpdateOverworldWeather();
 #endif
 
-  extern feature::LoadedModel g_my_1st_pokemon;
-  if (g_my_1st_pokemon.model != nullptr &&
-      game::ProcessManager::GetInstance().IsCurrentProcess(
-          ADDRESS_OVERWORLD_VTABLE)) {
-    auto& player = overworld::ModelManager::GetInstance().GetPlayer();
-    auto& model = player.GetDrawModel();
-    Vec3 pos = model.position;
-    Vec3 rot = model.rotation;
-    pos.x += -16.0 * player.facing_direction.x;
-    pos.y += -16.0 * player.facing_direction.y;
-    pos.z += -16.0 * player.facing_direction.z;
-    g_my_1st_pokemon.model->SetTranslate(pos);
-    g_my_1st_pokemon.model->SetRotate(rot);
-  }
+  // extern feature::LoadedModel g_my_1st_pokemon;
+  // if (g_my_1st_pokemon.model != nullptr &&
+  //     game::ProcessManager::GetInstance().IsCurrentProcess(
+  //         ADDRESS_OVERWORLD_VTABLE)) {
+  //   auto& player = overworld::ModelManager::GetInstance().GetPlayer();
+  //   auto& model = player.GetDrawModel();
+  //   Vec3 pos = model.position;
+  //   Vec3 rot = model.rotation;
+  //   pos.x += -16.0 * player.facing_direction.x;
+  //   pos.y += -16.0 * player.facing_direction.y;
+  //   pos.z += -16.0 * player.facing_direction.z;
+  //   g_my_1st_pokemon.model->SetTranslate(pos);
+  //   g_my_1st_pokemon.model->SetRotate(rot);
+  // }
 
   void* top_buffer = graphics.GetFramebuffer(Screen::kTop);
   if (graphics.BindFramebuffer(top_buffer)) {
     Graphics::EnableScissor(0, 0, 400, 240);
     Graphics::BeginRender(top_buffer);
     application->DrawTop(graphics);
-    feature::Keyboard::DrawTop();
+    // feature::Keyboard::DrawTop();
     Graphics::DisableScissor();
   }
 

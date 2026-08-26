@@ -28,7 +28,6 @@
 #include "address.h"
 #include <CTRPluginFramework/System/Process.hpp>
 
-
 #define TYPEDEF_FLOAT(n, t) \
 typedef t f##n;           \
 typedef volatile t vf##n;
@@ -75,100 +74,21 @@ public:
 class MemoryManager {
   MAKE_SINGLETON(MemoryManager);
 
-public:
-  STATIC_INLINE void Write32(u32 address, u32 value) {
-    if (Toggle(address, true)) {
-      *(vu32*)address = value;
-      Toggle(address, false);
-    }
-  }
-
-  STATIC_INLINE u32 Read32(u32 address) {
-    u32 value = 0;
-
-    if (Toggle(address, true)) {
-      value = *(vu32*)address;
-      Toggle(address, false);
-      return value;
-    }
-
-    return 0;
-  }
-
-  STATIC_INLINE void Write16(u32 address, u16 value) {
-    if (Toggle(address, true)) {
-      *(vu16*)address = value;
-      Toggle(address, false);
-    }
-  }
-
-  STATIC_INLINE u16 Read16(u32 address) {
-    u16 value = 0;
-
-    if (Toggle(address, true)) {
-      value = *(vu16*)address;
-      Toggle(address, false);
-      return value;
-    }
-
-    return 0;
-  }
-
-  STATIC_INLINE void Write8(u32 address, u8 value) {
-    if (Toggle(address, true)) {
-      *(vu8*)address = value;
-      Toggle(address, false);
-    }
-  }
-
-  STATIC_INLINE u8 Read8(u32 address) {
-    u8 value = 0;
-
-    if (Toggle(address, true)) {
-      value = *(vu8*)address;
-      Toggle(address, false);
-      return value;
-    }
-
-    return 0;
-  }
-
-  STATIC_INLINE void WriteF(u32 address, f32 value) {
-    if (Toggle(address, true)) {
-      *(vf32*)address = value;
-      Toggle(address, false);
-    }
-  }
-
-  STATIC_INLINE f32 ReadF(u32 address) {
-    f32 value = 0.0f;
-
-    if (Toggle(address, true)) {
-      value = *(vf32*)address;
-      Toggle(address, false);
-      return value;
-    }
-
-    return 0.0f;
-  }
-
-private:
-  static bool Toggle(u32 address, bool ON) {
+  static bool ToggleProtection(u32 address, bool on) {
     Handle processHandle;
     u32 pID;
-    Result res;
     bool out = false;
     MemInfo mInfo;
     PageInfo pInfo;
     svcGetProcessId(&pID, CUR_PROCESS_HANDLE);
 
-    if (R_SUCCEEDED(res = svcOpenProcess( &processHandle, pID ))) {
-      if (R_SUCCEEDED(res = svcQueryMemory( &mInfo, &pInfo, address ))) {
+    if (R_SUCCEEDED(svcOpenProcess( &processHandle, pID ))) {
+      if (R_SUCCEEDED(svcQueryMemory( &mInfo, &pInfo, address ))) {
         if (R_SUCCEEDED(
-            res = svcControlProcessMemory( processHandle, mInfo.base_addr, 0,
+            svcControlProcessMemory( processHandle, mInfo.base_addr, 0,
               mInfo.size, MemOp( MEMOP_PROT ),
-              ON ? MemPerm( MEMPERM_READ | MEMPERM_EXECUTE | MEMPERM_WRITE ) :
-              MemPerm( MEMPERM_READ | MEMPERM_EXECUTE ) ))) {
+              on ? MemPerm( MEMPERM_READ | MEMPERM_EXECUTE | MEMPERM_WRITE )
+              : MemPerm( MEMPERM_READ | MEMPERM_EXECUTE ) ))) {
           out = true;
         }
       }
@@ -188,30 +108,104 @@ typedef void (*menu_callback_t)(ui::MainApplication& app, void* args);
 // typedef void (*callback_t)(void* args);
 typedef std::function<void(void*)> callback_t;
 typedef std::function<void()> cheat_code_callback_t;
+#define UNPROTECT(address) MemoryManager::ToggleProtection((address), true)
+#define PROTECT(address)  MemoryManager::ToggleProtection((address), false)
 
+#define WRITE64(address, value) *(vu64*)(address) = (value)
+#define WRITE32(address, value) *(vu32*)(address) = (value)
+#define WRITE16(address, value) *(vu16*)(address) = (value)
+#define WRITE8(address, value) *(vu8*)(address) = (value)
+#define WRITEF(address, value) *(vf32*)(address) = (value)
+#define WRITEB(address, value) *(volatile bool*)(address) = (value)
 
-#define WRITE32(address, value) MemoryManager::Write32(address, value)
-#define WRITE16(address, value) MemoryManager::Write16(address, value)
-#define WRITE8(address, value) MemoryManager::Write8(address, value)
-#define WRITEF(address, value) MemoryManager::WriteF(address, value)
-#define WRITEB(address, value) MemoryManager::Write8(address, (bool)value)
-#define READ32(address) MemoryManager::Read32(address)
-#define READ16(address) MemoryManager::Read16(address)
-#define READ8(address) MemoryManager::Read8(address)
-#define READF(address) MemoryManager::ReadF(address)
-#define READB(address) MemoryManager::Read8(address)
+#define READ64(address) *(vu64*)(address)
+#define READ32(address) *(vu32*)(address)
+#define READ16(address) *(vu16*)(address)
+#define READ8(address) *(vu8*)(address)
+#define READF(address) *(vf32*)(address)
+#define READB(address) *(volatile bool*)(address)
 
-#define ARM_NOP(address) MemoryManager::Write32(address, 0xE1A00000)
-#define ARM_RET(address) MemoryManager::Write32(address, 0xE12FFF1E) // bx lr
-#define ARM_NO_COND(address) MemoryManager::Write32(address, (MemoryManager::Read32(address) & 0x0FFFFFFF)  | 0xE0000000 )
+#define SAFE_WRITE64(address, value) do {\
+  MemoryManager::ToggleProtection((address), true);\
+  *(vu64*)(address) = (value);\
+  MemoryManager::ToggleProtection((address), false);\
+} while(0)
+
+#define SAFE_WRITE32(address, value) do {\
+  MemoryManager::ToggleProtection((address), true);\
+  *(vu32*)(address) = (value);\
+  MemoryManager::ToggleProtection((address), false);\
+} while(0)
+
+#define SAFE_WRITE16(address, value) do {\
+  MemoryManager::ToggleProtection((address), true);\
+  *(vu16*)(address) = (value);\
+  MemoryManager::ToggleProtection((address), false);\
+} while(0)
+
+#define SAFE_WRITE8(address, value) do {\
+  MemoryManager::ToggleProtection((address), true);\
+  *(vu8*)(address) = (value);\
+  MemoryManager::ToggleProtection((address), false);\
+} while(0)
+
+#define SAFE_WRITEF(address, value) do {\
+  MemoryManager::ToggleProtection((address), true);\
+  *(vf32*)(address) = (value);\
+  MemoryManager::ToggleProtection((address), false);\
+} while(0)
+
+#define SAFE_WRITEB(address, value) do {\
+  MemoryManager::ToggleProtection((address), true);\
+  *(volatile bool*)(address) = (value);\
+  MemoryManager::ToggleProtection((address), false);\
+} while(0)
+
+#define SAFE_READ64(address, result) do {\
+  MemoryManager::ToggleProtection((address), true);\
+  (result) = *(vu64*)(address);\
+  MemoryManager::ToggleProtection((address), false);\
+} while(0)
+
+#define SAFE_READ32(address, result) do {\
+  MemoryManager::ToggleProtection((address), true);\
+  (result) = *(vu32*)(address);\
+  MemoryManager::ToggleProtection((address), false);\
+} while(0)
+
+#define SAFE_READ16(address, result) do {\
+  MemoryManager::ToggleProtection((address), true);\
+  (result) = *(vu16*)(address);\
+  MemoryManager::ToggleProtection((address), false);\
+} while(0)
+
+#define SAFE_READ8(address, result) do {\
+  MemoryManager::ToggleProtection((address), true);\
+  (result) = *(vu8*)(address);\
+  MemoryManager::ToggleProtection((address), false);\
+} while(0)
+
+#define SAFE_READF(address, result) do {\
+  MemoryManager::ToggleProtection((address), true);\
+  (result) = *(vf32*)(address);\
+  MemoryManager::ToggleProtection((address), false);\
+} while(0)
+
+#define SAFE_READB(address, result) do {\
+  MemoryManager::ToggleProtection((address), true);\
+  (result) = *(volatile bool*)(address);\
+  MemoryManager::ToggleProtection((address), false);\
+} while(0)
+
+#define ARM_NOP(address) *(vu32*)(address) = 0xE1A00000
+#define ARM_RET(address) *(vu32*)(address) = 0xE12FFF1E // bx lr
+#define ARM_NO_COND(address) *(vu32*)(address) = (*(vu32*)(address) & 0x0FFFFFFF) | 0xE0000000
 
 #define SET_BITS(b, p, n, v) \
   ((b) = ((b) & ~(((1u << (n)) - 1) << (p))) | ((v) << (p)))
 #define GET_BITS(b, p, n) (((b) >> (p)) & ((1u << (n)) - 1))
 
 #define SIZE(x) ((sizeof(x)) / (sizeof(x[0])))
-
-// extern "C" s32 svcFlushProcessDataCache(u32 handle, u32 addr, u32 size);
 
 extern "C" s32 svcInvalidateEntireInstructionCache();
 

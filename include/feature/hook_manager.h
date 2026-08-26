@@ -24,6 +24,7 @@
  * Used by the HookManager to track and manage multiple hooks.
  */
 enum class HookID : u32 {
+  kEntrypoint,
   kIsKeyPressed, ///< Hook for Controller::IsKeyPressed
   kIsKeyReleased, ///< Hook for Controller::IsKeyReleased
   kIsKeyDown, ///< Hook for Controller::IsKeyDown

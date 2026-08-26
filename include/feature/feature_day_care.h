@@ -23,34 +23,37 @@ namespace feature {
 class DayCare {
   MAKE_SINGLETON(DayCare)
   STATIC_INLINE void Initialize() {
-    CheatCodeManager::Initialize(CheatCodeId::kInstantEggHatch,
-                                 [] {
-                                   WRITE32(ADDRESS_EGG_HATCH, 0xEA000007);
-                                 }, [] {
-                                   WRITE32(ADDRESS_EGG_HATCH, 0x0A000007);
-                                 }, false
+    CheatCodeManager::Initialize(
+        CheatCodeId::kInstantEggHatch,
+        [] {
+          SAFE_WRITE32(ADDRESS_EGG_HATCH, 0xEA000007);
+        }, [] {
+          SAFE_WRITE32(ADDRESS_EGG_HATCH, 0x0A000007);
+        }, false
         );
-    CheatCodeManager::Initialize(CheatCodeId::kInstantEggGeneration,
-                                 [] {
-                                   WRITE32(ADDRESS_EGG_GENERATION,
-                                         0xE1A00000);
-                                 }, [] {
-                                   WRITE32(ADDRESS_EGG_GENERATION,
-                                         0x2A000002);
-                                 }, false
+    CheatCodeManager::Initialize(
+        CheatCodeId::kInstantEggGeneration,
+        [] {
+          SAFE_WRITE32(ADDRESS_EGG_GENERATION,
+                       0xE1A00000);
+        }, [] {
+          SAFE_WRITE32(ADDRESS_EGG_GENERATION,
+                       0x2A000002);
+        }, false
         );
-    CheatCodeManager::Initialize(CheatCodeId::kInstantMaxExpForDayCare,
-                                 [] {
-                                   WRITE32(ADDRESS_DAY_CARE_MAX_EXP,
-                                         0x15824004);
-                                   WRITE32(ADDRESS_DAY_CARE_MAX_EXP + 0x20,
-                                         0x158240F4);
-                                 }, [] {
-                                   WRITE32(ADDRESS_DAY_CARE_MAX_EXP,
-                                         0x1582C004);
-                                   WRITE32(ADDRESS_DAY_CARE_MAX_EXP + 0x20,
-                                         0x1582C0F4);
-                                 }, false
+    CheatCodeManager::Initialize(
+        CheatCodeId::kInstantMaxExpForDayCare,
+        [] {
+          WRITE32(ADDRESS_DAY_CARE_MAX_EXP,
+                  0x15824004);
+          WRITE32(ADDRESS_DAY_CARE_MAX_EXP + 0x20,
+                  0x158240F4);
+        }, [] {
+          WRITE32(ADDRESS_DAY_CARE_MAX_EXP,
+                  0x1582C004);
+          WRITE32(ADDRESS_DAY_CARE_MAX_EXP + 0x20,
+                  0x1582C0F4);
+        }, false
         );
   }
 };

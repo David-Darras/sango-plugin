@@ -14,27 +14,18 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#include <CTRPluginFramework/Menu/PluginMenu.hpp>
-#include <CTRPluginFramework/System/Hook.hpp>
-
 #include "common.h"
+#include <CTRPluginFramework.hpp>
 
 extern void Initialize();
-extern void Entrypoint();
 
 namespace CTRPluginFramework {
 int main() {
-
 #ifdef USE_SANGO_PLUGIN
   Initialize();
-
-  Hook hook;
-  hook.InitializeForMitm(ADDRESS_ENTRYPOINT, (uptr)Entrypoint);
-  hook.Enable();
 #endif
 
 #ifdef USE_DEFAULT_CTRPF
-
   PluginMenu menu;
   menu.SynchronizeWithFrame(true);
   menu.Run();
