@@ -320,7 +320,6 @@ void LoadSaveDataTrainerStatusPage(MainApplication& app, void* args) {
      .AddSeparator()
 
      .Add("Game Version", data.game_version)
-     .Add("Language", data.language)
      .Add("Mega Ring Obtained", &data.mega_flags, 0, 1)
      .Add("Mega Rayquaza Evolution Unlock", &data.mega_flags, 1, 1)
      .AddSeparator()
@@ -590,6 +589,7 @@ void OnUpdateLanguage(void*) {
   auto& settings = savedata::Settings::GetInstance();
   Core::GetInstance().GetLanguageId() = settings.language_id;
   WRITE32(ADDRESS_LANGUAGE_ID, settings.language_id);
+  savedata::TrainerStatus::GetInstance().language = settings.language_id;
 }
 
 void LoadSaveDataSettingsPage(MainApplication& app, void* args) {
@@ -619,7 +619,7 @@ void LoadSaveDataSettingsPage(MainApplication& app, void* args) {
      .Add("Battle Style", &settings.core, 3, 1)
      .WithArray(BATTLE_STYLE, SIZE(BATTLE_STYLE))
 
-     .Add("Language ID (Press A)", &settings.core, 4, 4)
+     .Add("Language ID", &settings.core, 4, 4)
      .WithCallback(OnUpdateLanguage)
      .WithArray(LANGUAGES, SIZE(LANGUAGES))
 

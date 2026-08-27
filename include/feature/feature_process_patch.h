@@ -39,79 +39,62 @@ class ProcessPatch {
   }
 
   static void OnUpdate(uptr vtable) {
-    switch (vtable) {
-      case ADDRESS_APP_STATUS_VTABLE:
-        AppStatus::PatchOnUpdate();
-        break;
-      case ADDRESS_BATTLE_VTABLE:
-        Battle::PatchOnUpdate();
-        break;
-      default:
-        break;
-    }
+    // switch (vtable) {
+    //   case ADDRESS_APP_STATUS_VTABLE:
+    //     AppStatus::PatchOnUpdate();
+    //     break;
+    //   case ADDRESS_BATTLE_VTABLE:
+    //     Battle::PatchOnUpdate();
+    //     break;
+    //   default:
+    //     break;
+    // }
   }
 
   static void OnLoad(uptr vtable) {
-#ifdef KAIZO
-    kaizo::ShouldReplacePokemonModel(false);
-#endif
-
-    if (vtable != ADDRESS_OVERWORLD_VTABLE) {
-      HookManager::Clear(HookID::kGetEncounterPokemon);
+// #ifdef KAIZO
+//     kaizo::ShouldReplacePokemonModel(false);
+// #endif
+//
+//     if (vtable != ADDRESS_OVERWORLD_VTABLE) {
+//       HookManager::Clear(HookID::kGetEncounterPokemon);
+//     }
+    if (vtable != ADDRESS_KEYBOARD_VTABLE) {
+      Keyboard::GetInstance().is_opened = false;
     }
 
     switch (vtable) {
-      case ADDRESS_INTRODUCTION_VTABLE:
-      case ADDRESS_CINEMATIC_VTABLE:
-#ifdef KAIZO
-        kaizo::ShouldReplacePokemonModel(true);
-#endif
-        break;
-      case ADDRESS_TITLE_SCREEN_VTABLE:
-        TitleScreen::Patch();
-        break;
-      case ADDRESS_SELECT_STARTER_VTABLE:
-#ifdef KAIZO
-        kaizo::PatchStarterView();
-#endif
-        break;
-      case ADDRESS_BATTLE_VTABLE:
-        Battle::Patch();
-        break;
-      case ADDRESS_OVERWORLD_VTABLE:
-        Overworld::Patch();
-        break;
-      case ADDRESS_APP_STATUS_VTABLE:
-        AppStatus::PatchOnLoad();
-        break;
+// #ifdef KAIZO
+//       case ADDRESS_INTRODUCTION_VTABLE:
+//       case ADDRESS_CINEMATIC_VTABLE:
+//         kaizo::ShouldReplacePokemonModel(true);
+//         break;
+//       case ADDRESS_SELECT_STARTER_VTABLE:
+//         kaizo::PatchStarterView();
+//         break;
+// #endif
+//       case ADDRESS_TITLE_SCREEN_VTABLE:
+//         TitleScreen::Patch();
+//         break;
+//       case ADDRESS_BATTLE_VTABLE:
+//         Battle::Patch();
+//         break;
+//       case ADDRESS_OVERWORLD_VTABLE:
+//         Overworld::Patch();
+//         break;
+//       case ADDRESS_APP_STATUS_VTABLE:
+//         AppStatus::PatchOnLoad();
+//         break;
       case ADDRESS_KEYBOARD_VTABLE:
         Keyboard::PatchOnLoad();
         break;
       default:
         break;
     }
-
-    if (vtable != ADDRESS_KEYBOARD_VTABLE) {
-      Keyboard::GetInstance().is_opened = false;
-    }
   }
 
-  // static void ShowProcess() {
-  // auto& man = game::ProcessManager::GetInstance();
-  // ui::LogApplication::Print(u"poke list = %08X", man.GetCurrentProcess());
-  // uptr addr = READ32(0x08C69214 + 0x90) + 0x50;
-  // WRITE8(addr, 5);
-  // WRITE8(addr+1, 5);
-  // WRITE8(addr+2, 5);
-  // }
-}; //
+};
 } // namespace feature
 
-/*
- * 006F5978 E3A00000
- * B8C692A4 00000000
- * 00000050 03020100
- * D2000000 00000000
- */
 
 #endif //SANGO_PLUGIN_FEATURE_PROCESS_H

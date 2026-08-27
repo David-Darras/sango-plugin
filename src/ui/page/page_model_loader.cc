@@ -122,7 +122,23 @@ void LoadModelLoaderPage(MainApplication& app, void* args) {
      .WithFactor(0.1f)
      .Add("Distance", settings.distance)
      .WithFactor(1.0f);
-     //.AddSeparator()
-     //.Add("Clear spawned", ClearModels);
+  //.AddSeparator()
+  //.Add("Clear spawned", ClearModels);
 }
 } // namespace ui
+
+void UpdateFollowingPokemon() {
+  if (g_my_1st_pokemon.model != nullptr &&
+      game::ProcessManager::GetInstance().IsCurrentProcess(
+          ADDRESS_OVERWORLD_VTABLE)) {
+    auto& player = overworld::ModelManager::GetInstance().GetPlayer();
+    auto& model = player.GetDrawModel();
+    Vec3 pos = model.position;
+    Vec3 rot = model.rotation;
+    pos.x += -16.0 * player.facing_direction.x;
+    pos.y += -16.0 * player.facing_direction.y;
+    pos.z += -16.0 * player.facing_direction.z;
+    g_my_1st_pokemon.model->SetTranslate(pos);
+    g_my_1st_pokemon.model->SetRotate(rot);
+  }
+}

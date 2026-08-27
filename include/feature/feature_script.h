@@ -37,12 +37,12 @@ public:
   u32 injected_count = 0;
 
   STATIC_INLINE void Initialize() {
-    //File::CreateDirectory(u"sdmc:/pkpawn");
-    //File::CreateDirectory(u"sdmc:/pkpawn/dump");
+    File::CreateDirectory(u"sdmc:/pkpawn");
+    File::CreateDirectory(u"sdmc:/pkpawn/dump");
 
-    // HookManager::Initialize(HookID::kLoadScript,
-    //                         ADDRESS_SCRIPT_PAWN_BASE_LOAD,
-    //                         (uptr)LoadHook);
+    HookManager::Initialize(HookID::kLoadScript,
+                            ADDRESS_SCRIPT_PAWN_BASE_LOAD,
+                            (uptr)LoadHook);
   }
 
   static void LoadHook(void* self, const void* buffer, u32 size,

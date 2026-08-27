@@ -26,6 +26,7 @@
 #include "game/constant/battle_encounter_animation.h"
 #include "game/constant/battle_platform.h"
 #include "game/constant/battle_trainer.h"
+#include "game/constant/battle_format.h"
 #include "game/constant/species.h"
 #include "game/savedata/pokemon_data_accessor.h"
 #include "game/savedata/pokemon_team.h"
@@ -34,7 +35,7 @@ namespace feature {
 struct BattleConfig {
   MAKE_SINGLETON(BattleConfig)
   bool is_enabled = false;
-  u8 battle_format = 0; // single
+  u8 battle_format = BATTLE_FORMAT_SINGLE;
   u8 background = BATTLE_BACKGROUND_AQUA_BOSS;
   u8 platform = BATTLE_PLATFORM_BOSS_AQUA;
   u8 ground = BATTLE_ENCOUNTER_ANIM_AQUA_TEAM_BOSS;
@@ -113,10 +114,6 @@ struct BattleConfig {
       config->is_capture_forced = ctx.is_capture_forced;
       config->no_money = ctx.no_money;
 
-      // config->pokemon_teams[0]->pokemons[0]->accessor->Decrypt();
-      // config->pokemon_teams[0]->pokemons[0]->core->species = 94;
-      // config->pokemon_teams[0]->pokemons[0]->accessor->Encrypt();
-      //
       config->pokemon_teams[1]->pokemons[0]->accessor->Decrypt();
       config->pokemon_teams[1]->pokemons[0]->core->species = ctx.species;
       config->pokemon_teams[1]->pokemons[0]->core->form = ctx.form;

@@ -73,31 +73,9 @@ public:
 
 class MemoryManager {
   MAKE_SINGLETON(MemoryManager);
-
-  static bool ToggleProtection(u32 address, bool on) {
-    Handle processHandle;
-    u32 pID;
-    bool out = false;
-    MemInfo mInfo;
-    PageInfo pInfo;
-    svcGetProcessId(&pID, CUR_PROCESS_HANDLE);
-
-    if (R_SUCCEEDED(svcOpenProcess( &processHandle, pID ))) {
-      if (R_SUCCEEDED(svcQueryMemory( &mInfo, &pInfo, address ))) {
-        if (R_SUCCEEDED(
-            svcControlProcessMemory( processHandle, mInfo.base_addr, 0,
-              mInfo.size, MemOp( MEMOP_PROT ),
-              on ? MemPerm( MEMPERM_READ | MEMPERM_EXECUTE | MEMPERM_WRITE )
-              : MemPerm( MEMPERM_READ | MEMPERM_EXECUTE ) ))) {
-          out = true;
-        }
-      }
-
-      svcCloseHandle(processHandle);
-    }
-
-    return out;
-  }
+  static bool ToggleProtection(u32 address, bool on);
+  // static bool Unprotect(u32 address, u32 size);
+  // static bool Protect(u32 address, u32 size);
 };
 
 namespace ui {
@@ -198,6 +176,7 @@ typedef std::function<void()> cheat_code_callback_t;
 } while(0)
 
 #define ARM_NOP(address) *(vu32*)(address) = 0xE1A00000
+#define SAFE_ARM_NOP(address) SAFE_WRITE32(address, 0xE1A00000)
 #define ARM_RET(address) *(vu32*)(address) = 0xE12FFF1E // bx lr
 #define ARM_NO_COND(address) *(vu32*)(address) = (*(vu32*)(address) & 0x0FFFFFFF) | 0xE0000000
 

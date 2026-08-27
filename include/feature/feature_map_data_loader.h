@@ -39,8 +39,6 @@ class MapDataLoader {
   }
 
   static bool LoadMapData(overworld::MapData* map_data) {
-    // ModelLoader::DropAll();
-
     bool result = HookManager::Call<bool>(HookID::kLoadMapData, map_data);
     if (result && !GetInstance().is_contact_enabled) {
       auto& data = map_data->GetEncounterData();
@@ -51,11 +49,6 @@ class MapDataLoader {
         data.poke_info[i].species = 0;
       }
     }
-    // if (game::ProcessManager::GetInstance().
-    //   IsCurrentProcess(ADDRESS_OVERWORLD_VTABLE)) {
-    //   overworld::MapManager::last_map_id =
-    //       overworld::MapManager::GetInstance().GetMapId();
-    // }
     return result;
   }
 };

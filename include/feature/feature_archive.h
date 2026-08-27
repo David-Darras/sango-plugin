@@ -54,12 +54,20 @@ public:
   //                                  x, y);
   // }
 
+  STATIC_INLINE bool IsArchive(const u32* archive_data, const u32 archive_id) {
+    u32* archive_table = (u32*)ADDRESS_ARCHIVE_FILENAME_TABLE;
+    return archive_data[12] == archive_table[archive_id];
+  }
+
+  STATIC_INLINE bool IsArchive(const Input* input, const u32 archive_id) {
+    return input->archive_id == archive_id;
+  }
+
   static bool ReadFileAsync2(u32* archive, void* heap, u32 file_id,
                              void* buffer,
                              u32 p4, u32 p5, u32 p6) {
-    u32* archive_table = (u32*)ADDRESS_ARCHIVE_FILENAME_TABLE;
 #ifdef KAIZO
-    if (archive[12] == archive_table[ARCHIVE_OVERWORLD_MODEL]) {
+    if (IsArchive(archive, ARCHIVE_OVERWORLD_MODEL)) {
       file_id = kaizo::PatchOverworldModels(file_id, true);
     }
 #endif
@@ -70,13 +78,10 @@ public:
 
   static bool ReadFileAsync(void* file_manager, Input* input) {
 #ifdef KAIZO
-    if (input->archive_id == ARCHIVE_OVERWORLD_MODEL) {
+    if (IsArchive(input, ARCHIVE_OVERWORLD_MODEL)) {
       input->file_id = kaizo::PatchOverworldModels(input->file_id, false);
     }
-    if (input->archive_id == 39) {
-      ui::LogApplication::Print(u"map=%d", input->file_id);
-    }
-    if (input->archive_id == ARCHIVE_PLAYER_ICON) {
+    if (IsArchive(input, ARCHIVE_PLAYER_ICON)) {
       input->file_id = 72; // STEVEN
     }
 #endif

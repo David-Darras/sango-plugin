@@ -39,6 +39,7 @@
 #include "feature/feature_map_tile.h"
 #include "feature/feature_overworld.h"
 #include "feature/feature_process_patch.h"
+#include "feature/feature_script.h"
 #include "ui/main_application.h"
 #include "system/device.h"
 #include "system/file.h"
@@ -52,35 +53,37 @@ c16 String::s_buffer[128];
 extern void UpdateOverworldWeather();
 extern void InitOverworldWeather();
 extern void Entrypoint();
+extern void UpdateFollowingPokemon();
 
 void Initialize() {
   File::MountSdmc();
   ConfigManager::Load();
 
-  // feature::ProcessPatch::Initialize();
   feature::DeviceState::Initialize();
   feature::Engine::Initialize();
   feature::Light::Initialize();
   feature::TextBox::Initialize();
   feature::Picture::Initialize();
-  // feature::H3dModel::Initialize();
-  // feature::BattleConfig::Initialize();
   feature::DayCare::Initialize();
   feature::MapTile::Initialize();
   feature::Camera::Initialize();
+  feature::FieldMove::Initialize();
+  feature::Item::Initialize();
+  feature::Overworld::Initialize();
+  feature::MapDataLoader::Initialize();
+  feature::Encounter::Initialize();
+  feature::ArchivePatch::Initiliaze();
+  feature::Script::Initialize();
+  feature::BattleConfig::Initialize();
+  feature::ProcessPatch::Initialize();
+  feature::Keyboard::Initialize();
+
+  // feature::H3dModel::Initialize();
   // feature::OverworldModel::Initialize();
   // feature::GameApp::Initialize();
   // feature::Battle::Initialize();
-  // feature::FieldMove::Initialize();
-  // feature::Item::Initialize();
-  // feature::Overworld::Initialize();
-  // feature::MapDataLoader::Initialize();
-  // feature::Encounter::Initialize();
   // feature::AppStatus::Initialize();
-  // feature::Keyboard::Initialize();
-  // feature::ArchivePatch::Initiliaze();
   // // feature::GameTextManager::Initialize();
-  // // feature::Script::Initialize();
 
   // Disables the keyboard's "No Good Word" filter to allow prohibited words,
   // phone numbers, etc.
@@ -124,27 +127,14 @@ void Entrypoint() {
   kaizo::UpdateOverworldWeather();
 #endif
 
-  // extern feature::LoadedModel g_my_1st_pokemon;
-  // if (g_my_1st_pokemon.model != nullptr &&
-  //     game::ProcessManager::GetInstance().IsCurrentProcess(
-  //         ADDRESS_OVERWORLD_VTABLE)) {
-  //   auto& player = overworld::ModelManager::GetInstance().GetPlayer();
-  //   auto& model = player.GetDrawModel();
-  //   Vec3 pos = model.position;
-  //   Vec3 rot = model.rotation;
-  //   pos.x += -16.0 * player.facing_direction.x;
-  //   pos.y += -16.0 * player.facing_direction.y;
-  //   pos.z += -16.0 * player.facing_direction.z;
-  //   g_my_1st_pokemon.model->SetTranslate(pos);
-  //   g_my_1st_pokemon.model->SetRotate(rot);
-  // }
+  // UpdateFollowingPokemon();
 
   void* top_buffer = graphics.GetFramebuffer(Screen::kTop);
   if (graphics.BindFramebuffer(top_buffer)) {
     Graphics::EnableScissor(0, 0, 400, 240);
     Graphics::BeginRender(top_buffer);
     application->DrawTop(graphics);
-    // feature::Keyboard::DrawTop();
+    feature::Keyboard::DrawTop();
     Graphics::DisableScissor();
   }
 
@@ -155,4 +145,38 @@ void Entrypoint() {
     application->DrawBottom(graphics);
     Graphics::DisableScissor();
   }
+}
+
+bool MemoryManager::ToggleProtection(u32 address, bool on) {
+  u32 pID;
+  if (R_FAILED(svcGetProcessId(&pID, CUR_PROCESS_HANDLE))) {
+    return false;
+  }
+
+  Handle processHandle;
+  if (R_FAILED(svcOpenProcess(&processHandle, pID))) {
+    return false;
+  }
+
+  MemInfo mInfo;
+  PageInfo pInfo;
+  if (R_FAILED(svcQueryMemory(&mInfo, &pInfo, address))) {
+    svcCloseHandle(processHandle);
+    return false;
+  }
+
+  MemPerm perm = on
+                   ? MemPerm(MEMPERM_READ | MEMPERM_EXECUTE | MEMPERM_WRITE)
+                   : MemPerm(MEMPERM_READ | MEMPERM_EXECUTE);
+
+  Result res = svcControlProcessMemory(processHandle, mInfo.base_addr, 0,
+                                       mInfo.size, MemOp(MEMOP_PROT), perm);
+
+  ui::LogApplication::Print(u"%s %X, %X",
+                            on ? "Unprotect" : "Protect",
+                            mInfo.base_addr,
+                            mInfo.size);
+
+  svcCloseHandle(processHandle);
+  return R_SUCCEEDED(res);
 }

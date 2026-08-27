@@ -41,11 +41,11 @@ public:
   STATIC_INLINE void PatchOnLoad() {
     HookManager::ForceEnable(HookID::kKeyboardUpdateKeys);
     // Force to refresh when pressing L
-    ARM_NOP(0x0074323C);
+    SAFE_ARM_NOP(0x0074323C);
     // Pressing R is like pressing L
-    WRITE32(0x00742F58 + 6 * 4, 0x00742F58 + 4 * 4);
+    SAFE_WRITE32(0x00742F58 + 6 * 4, 0x00742F58 + 4 * 4);
     // Don't switch between the two keyboard mode
-    ARM_NOP(0x00746294);
+    SAFE_ARM_NOP(0x00746294);
     auto& self = GetInstance();
     self.is_opened = true;
     self.page = 0;
