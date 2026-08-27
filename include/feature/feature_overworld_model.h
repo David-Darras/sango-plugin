@@ -20,6 +20,7 @@
 
 #include "cheat_code_manager.h"
 #include "common.h"
+#include "game/process_manager.h"
 #include "game/overworld/model_manager.h"
 #include "system/device.h"
 
@@ -47,6 +48,10 @@ struct OverworldModel {
   }
 
   static void PlayAnimation(void*) {
+    if (!game::ProcessManager::GetInstance().IsCurrentProcess(
+        ADDRESS_OVERWORLD_VTABLE))
+      return;
+
     auto& ctx = GetInstance();
 
     ((void (*)(overworld::Model*, u16, u8))ADDRESS_MODEL_PLAY_ANIMATION)(
@@ -55,6 +60,9 @@ struct OverworldModel {
   }
 
   static void SwarmMod() {
+    if (!game::ProcessManager::GetInstance().IsCurrentProcess(
+        ADDRESS_OVERWORLD_VTABLE))
+      return;
     auto& ctx = GetInstance();
 
     auto& man = overworld::ModelManager::GetInstance();
@@ -91,6 +99,10 @@ struct OverworldModel {
   }
 
   static void Noclip() {
+    if (!game::ProcessManager::GetInstance().IsCurrentProcess(
+        ADDRESS_OVERWORLD_VTABLE))
+      return;
+
     auto& ctx = GetInstance();
     auto& player = overworld::ModelManager::GetInstance().GetPlayer();
     auto& draw_model = player.GetDrawModel();

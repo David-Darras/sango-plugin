@@ -167,7 +167,7 @@ public:
     return *this;
   }
 
-  bool CheckProcess(const char* name);
+  bool CheckProcess(uptr vtable);
 
   /**
 * @brief Rebuilds the current menu by re-executing its load callback.
@@ -394,7 +394,7 @@ private:
       entries_count_(0),
       contexts_count_(0),
       no_background_(0),
-      process_name_(nullptr),
+      process_vtable_(0),
       theme_(Theme::GetInstance()) {
   }
 
@@ -430,7 +430,7 @@ private:
   u32 no_background_ : 1;
   u32  : 21; ///< Reserved.
 
-  const char* process_name_;
+  uptr process_vtable_;
 
   PageItem entries_[kMaxEntries]; ///< Entry pool.
   MenuContext contexts_[kMaxContexts]; ///< Context stack.

@@ -31,7 +31,6 @@ void LoadTopPage(MainApplication& app, void* args) {
      .Add("Renderer", LoadRendererPage)
      .Add("Battle", LoadBattlePage)
      .Add("Battle Config", LoadBattleConfigPage)
-     .Add("App", LoadAppPage)
      .Add("Sound", LoadSoundPage)
      .Add("Day Care", LoadDayCarePage)
      .Add("Game Time", LoadGameTimePage)

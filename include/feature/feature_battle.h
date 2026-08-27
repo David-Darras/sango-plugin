@@ -98,7 +98,7 @@ public:
                             false);
   }
 
-  STATIC_INLINE void PatchOnUpdate() {
+  STATIC_INLINE void PatchUpdate() {
     static u32 counter = 20;
     counter--;
     if (counter != 0) return;
@@ -147,7 +147,8 @@ public:
   }
 
 
-  STATIC_INLINE void Patch() {
+  STATIC_INLINE void PatchLoad() {
+    MEMORY_SCOPE(0x6F3000, 0xD8000);
     HookManager::ForceEnable(HookID::kUpdateBattleView);
     HookManager::ForceEnable(HookID::kUpdateExp);
     HookManager::ForceEnable(HookID::kStartMegaEvolveAnimation);

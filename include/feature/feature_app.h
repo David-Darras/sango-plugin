@@ -107,7 +107,6 @@ public:
     if (ctx.open_app) {
       WRITE32(menu + 4 * (5 >> 5) + 0xB0, 1 << (5 % 32));
     }
-
     return HookManager::Call<bool>(HookID::kCheckAppRequest, menu, id);
   }
 

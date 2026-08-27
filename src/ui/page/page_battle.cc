@@ -68,7 +68,7 @@ static void SavePokemon(void*) {
 }
 
 void LoadBattlePokemonDataPage(MainApplication& app, void* args) {
-  if (app.CheckProcess(PROCESS_NAME_BATTLE)) return;
+  if (app.CheckProcess(ADDRESS_BATTLE_VTABLE)) return;
 
   auto& pkm = *pkm_server;
 
@@ -133,7 +133,7 @@ void LoadBattlePokemonDataPage(MainApplication& app, void* args) {
 }
 
 void LoadBattlePokemonModelPage(MainApplication& app, void* args) {
-  if (app.CheckProcess(PROCESS_NAME_BATTLE)) return;
+  if (app.CheckProcess(ADDRESS_BATTLE_VTABLE)) return;
 
   auto& model =
       battle::Manager::GetInstance().GetGraphics().GetPokemonModel(
@@ -178,11 +178,8 @@ void LoadBattlePokemonModelPage(MainApplication& app, void* args) {
 }
 
 void LoadBattleCameraPage(MainApplication& app, void* args) {
-  if (app.CheckProcess(PROCESS_NAME_BATTLE)) return;
+  if (app.CheckProcess(ADDRESS_BATTLE_VTABLE)) return;
 
-  // Same mode set as the overworld camera page (Overworld > Camera), plus
-  // a selector for which of the 6 on-field Pokemon model slots the camera
-  // targets for Rotate/Top/Fpv/Tps.
   static const c8* STATES[] = {"Idle", "Tps", "Rotate", "Top", "Fpv", "Free"};
   auto& ctx = feature::Camera::GetInstance();
 
@@ -216,7 +213,7 @@ void LoadBattleCameraPage(MainApplication& app, void* args) {
 }
 
 void LoadBattlePage(MainApplication& app, void* args) {
-  if (app.CheckProcess(PROCESS_NAME_BATTLE)) return;
+  if (app.CheckProcess(ADDRESS_BATTLE_VTABLE)) return;
 
   pkm_server = battle::Manager::GetPokemon(true, team_idx, pokemon_idx);
   pkm_client = battle::Manager::GetPokemon(false, team_idx, pokemon_idx);

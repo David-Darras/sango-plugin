@@ -732,13 +732,13 @@ void AppStatus::SetupGraphicsContestHook(uptr self,
   }
 }
 
-void AppStatus::PatchOnUpdate() {
+void AppStatus::PatchUpdate() {
   auto& pokemon = *savedata::PokemonTeam::GetInstance().pokemons[GetSlot()];
   auto& controller = Controller::GetInstance();
   GetInstance().Update(pokemon, controller);
 }
 
-void AppStatus::PatchOnLoad() {
+void AppStatus::PatchLoad() {
   HookManager::ForceEnable(HookID::kAppStatusSetupGraphicsParams);
   HookManager::ForceEnable(HookID::kAppStatusSetupGraphicsMoves);
   HookManager::ForceEnable(HookID::kAppStatusSetupGraphicsContest);

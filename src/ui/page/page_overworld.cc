@@ -15,6 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "feature/feature_app.h"
 #include "feature/feature_camera.h"
 #include "feature/feature_field_move.h"
 #include "feature/feature_map_tile.h"
@@ -31,6 +32,8 @@ namespace ui {
 #include "game/overworld/tile.inc"
 
 void LoadOverworldMapTilePage(MainApplication& app, void* args) {
+  if (app.CheckProcess(ADDRESS_OVERWORLD_VTABLE)) return;
+
   auto& ctx = feature::MapTile::GetInstance();
 
   app.Add("Is Enabled", ctx.is_enabled)
@@ -57,7 +60,7 @@ void LoadOverworldMapTilePage(MainApplication& app, void* args) {
 }
 
 void LoadOverworldEncounterPage(MainApplication& app, void* args) {
-  if (app.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
+  if (app.CheckProcess(ADDRESS_OVERWORLD_VTABLE)) return;
 
   auto& data = overworld::Encounter::GetInstance();
 
@@ -67,9 +70,9 @@ void LoadOverworldEncounterPage(MainApplication& app, void* args) {
 }
 
 void LoadOverworldFieldMovePage(MainApplication& app, void* args) {
-  static u32 choice = 0;
+  if (app.CheckProcess(ADDRESS_OVERWORLD_VTABLE)) return;
 
-  if (app.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
+  static u32 choice = 0;
 
   static const c8* MOVES[] = {
       "Cut", "Surf", "Waterfall",
@@ -84,7 +87,7 @@ void LoadOverworldFieldMovePage(MainApplication& app, void* args) {
 }
 
 void LoadOverworldCameraPage(MainApplication& app, void* args) {
-  if (app.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
+  if (app.CheckProcess(ADDRESS_OVERWORLD_VTABLE)) return;
 
   static const c8* STATES[] = {"Idle", "Tps", "Rotate", "Top", "Fps", "Free"};
   auto& ctx = feature::Camera::GetInstance();
@@ -117,7 +120,7 @@ void LoadOverworldCameraPage(MainApplication& app, void* args) {
 }
 
 void LoadOverworldModelPage(MainApplication& app, void* args) {
-  if (app.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
+  if (app.CheckProcess(ADDRESS_OVERWORLD_VTABLE)) return;
 
   auto& ctx = feature::OverworldModel::GetInstance();
   auto& man = overworld::ModelManager::GetInstance();
@@ -149,6 +152,8 @@ void LoadOverworldModelPage(MainApplication& app, void* args) {
 }
 
 void LoadPropModelPage(MainApplication& app, void* args) {
+  if (app.CheckProcess(ADDRESS_OVERWORLD_VTABLE)) return;
+
   static const char* PROP_SOUND_EFFECTS[] = {
       "None",
       "Normal Door",
@@ -161,8 +166,6 @@ void LoadPropModelPage(MainApplication& app, void* args) {
       "Metal Door",
       "Elite Four Door"
   };
-
-  if (app.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
 
   auto& manager = overworld::PropModelManager::GetInstance();
   static u32 choice = 0;
@@ -202,6 +205,33 @@ void LoadPropModelPage(MainApplication& app, void* args) {
      .AddSeparator();
 }
 
+void LoadAppPage(MainApplication& app, void* args) {
+  if (app.CheckProcess(ADDRESS_OVERWORLD_VTABLE)) return;
+
+  auto& ctx = feature::GameApp::GetInstance();
+
+  const std::pair<const char*, u32> apps[] = {
+      // {"Tutor", 7},
+      {"PC", 17},
+      {"Remind", 9},
+      {"Delete", 8}
+  };
+
+  for (const auto& app_pair : apps) {
+    app.Add(app_pair.first, [&ctx, app_pair](void*) {
+      ctx.TriggerApp(app_pair.second);
+    });
+  }
+}
+
+void LoadDayCarePage(MainApplication& app, void* args) {
+  if (app.CheckProcess(ADDRESS_OVERWORLD_VTABLE)) return;
+
+  app.Add("Instant Egg Hatch", CheatCodeId::kInstantEggHatch)
+     .Add("Instant Egg Generation", CheatCodeId::kInstantEggGeneration)
+     .Add("Instant Max Exp", CheatCodeId::kInstantMaxExpForDayCare);
+}
+
 // static u16 map_id = MAP_INSIDE_OF_TRUCK;
 //
 // void Teleport(void*) {
@@ -211,14 +241,15 @@ void LoadPropModelPage(MainApplication& app, void* args) {
 //   ((void(*)(uptr, const u32*))0x00747B4C)(0, PARAMS);
 // }
 
+
 void LoadOverworldPage(MainApplication& app, void* args) {
+  if (app.CheckProcess(ADDRESS_OVERWORLD_VTABLE)) return;
+
   static const c8* WEATHERS[] = {
       "Sunny", "Rainy", "Thunderstorm",
       "Misty", "Ash", "Sandstorm",
       "Cloudy", "Stormy", "Dry"
   };
-
-  if (app.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
 
   auto& weather_manager = overworld::WeatherManager::GetInstance();
   auto& man = overworld::MapManager::GetInstance();
@@ -228,6 +259,7 @@ void LoadOverworldPage(MainApplication& app, void* args) {
       // .WithCallback(Teleport)
       .Add("Weather", weather_manager.GetRequestedWeather())
       .WithArray(WEATHERS, SIZE(WEATHERS))
+      .Add("App", LoadAppPage)
       .Add("Camera", LoadOverworldCameraPage)
       .Add("Model Loader (Instable)", LoadModelLoaderPage)
       .Add("Prop", LoadPropModelPage)

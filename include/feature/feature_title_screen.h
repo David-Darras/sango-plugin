@@ -28,18 +28,19 @@
 namespace feature {
 class TitleScreen {
   MAKE_SINGLETON(TitleScreen)
-  bool is_enabled = false;
+  bool is_enabled = true;
   bool no_delay = false;
   bool no_shadow = false;
-  u8 top_video = VIDEO_TITLE_ALPHA_SAPPHIRE;
-  u8 bottom_video = VIDEO_PRIMO_KYOGRE;
-  u16 pokemon_cry_species = SPECIES_KYOGRE;
+  u8 top_video = VIDEO_TITLE_OMEGA_RUBY;
+  u8 bottom_video = VIDEO_PRIMO_GROUDON;
+  u16 pokemon_cry_species = SPECIES_GROUDON;
   f32 pokemon_cry_volume = 0.8f;
 
-  STATIC_INLINE void Patch() {
+  STATIC_INLINE void PatchLoad() {
     auto& title = GetInstance();
     if (!title.is_enabled) return;
 
+    MEMORY_SCOPE(0x00728000, 0x1E000);
     WRITE32(0x00740378, 0xE3A02000 | title.top_video);
     WRITE32(0x0074039C, 0xE3A02000 | title.bottom_video);
     WRITE32(0x00740498, title.pokemon_cry_species);

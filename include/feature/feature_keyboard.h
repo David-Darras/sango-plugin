@@ -38,7 +38,7 @@ public:
                             (uptr)UpdateKeys, false);
   }
 
-  STATIC_INLINE void PatchOnLoad() {
+  STATIC_INLINE void PatchLoad() {
     HookManager::ForceEnable(HookID::kKeyboardUpdateKeys);
     // Force to refresh when pressing L
     SAFE_ARM_NOP(0x0074323C);

@@ -26,7 +26,6 @@ int main() {
 #endif
 
 #ifdef USE_DEFAULT_CTRPF
-
   PluginMenu menu;
   menu.SynchronizeWithFrame(true);
   menu.Run();

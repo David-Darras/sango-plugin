@@ -154,8 +154,8 @@ void MainApplication::Update(Controller& controller) {
 
   if (!IsOpened()) return;
 
-  if (process_name_ != nullptr && !game::ProcessManager::GetInstance().
-      IsCurrentProcess(process_name_)) {
+  if (process_vtable_ != 0 && !game::ProcessManager::GetInstance().
+      IsCurrentProcess(process_vtable_)) {
     Close();
     return;
   }
@@ -227,7 +227,7 @@ void MainApplication::Open(menu_callback_t load_menu, void* args) {
 
   entries_count_ = 0;
   no_background_ = 0;
-  process_name_ = nullptr;
+  process_vtable_ = 0;
   load_menu(*this, args);
 
   MenuContext& ctx = GetContext();
@@ -244,7 +244,7 @@ void MainApplication::Close() {
 
   entries_count_ = 0;
   no_background_ = 0;
-  process_name_ = nullptr;
+  process_vtable_ = 0;
   ctx.load_menu(*this, ctx.args);
 
   ctx.display_count =
@@ -263,15 +263,15 @@ void MainApplication::Refresh() {
   }
 }
 
-bool MainApplication::CheckProcess(const char* name) {
-  if (!game::ProcessManager::GetInstance().IsCurrentProcess(name)) {
+bool MainApplication::CheckProcess(uptr vtable) {
+  if (!game::ProcessManager::GetInstance().IsCurrentProcess(vtable)) {
     while (contexts_count_ > 1) {
       Close();
     }
     Sound::PlaySoundEffect(theme_.error_sound);
     return true;
   }
-  process_name_ = name;
+  process_vtable_ = vtable;
   return false;
 }
 

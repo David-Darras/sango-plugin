@@ -51,7 +51,8 @@ struct Overworld {
     return HookManager::Call<void>(HookID::kOverworldUpdateZone, manager);
   }
 
-  STATIC_INLINE void Patch() {
+  STATIC_INLINE void PatchLoad() {
+    MEMORY_SCOPE(0x6F3000, 0xF1000);
 #ifdef KAIZO
     kaizo::PatchOverworld();
     kaizo::PatchBag();

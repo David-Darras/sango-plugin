@@ -37,8 +37,8 @@ struct H3dModel {
   }
 
   static bool IsInBattle() {
-    auto& manager = game::ProcessManager::GetInstance();
-    return manager.GetCurrentVTable() == ADDRESS_BATTLE_VTABLE;
+    return game::ProcessManager::GetInstance().IsCurrentProcess(
+        ADDRESS_BATTLE_VTABLE);
   }
 
   static bool IsBattlePokemonModel(const renderer::H3dModel* h3d_model) {

@@ -44,8 +44,8 @@ public:
                             (uptr)SetupGraphicsInfosHook, false);
   }
 
-  static void PatchOnLoad();
-  static void PatchOnUpdate();
+  static void PatchLoad();
+  static void PatchUpdate();
   static void SetupGraphicsParamsHook(uptr self,
                                       savedata::PokemonParam* pokemon);
   static void SetupGraphicsMovesHook(uptr self,

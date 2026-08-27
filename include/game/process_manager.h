@@ -147,6 +147,14 @@ public:
     }
   }
 
+  STATIC_INLINE bool IsOverworldActive() {
+    return GetInstance().IsCurrentProcess(ADDRESS_OVERWORLD_VTABLE);
+  }
+
+  STATIC_INLINE bool IsBattleActive() {
+    return GetInstance().IsCurrentProcess(ADDRESS_BATTLE_VTABLE);
+  }
+
 private:
   // Member fields mapped to the engine memory layout
   void* vtable_; ///< Pointer to the virtual method table.

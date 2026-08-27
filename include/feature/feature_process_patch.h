@@ -22,6 +22,7 @@
 #include "feature_app_status.h"
 #include "feature_battle.h"
 #include "feature_keyboard.h"
+#include "feature_overworld.h"
 #include "feature_title_screen.h"
 #include "game/process_manager.h"
 
@@ -39,60 +40,59 @@ class ProcessPatch {
   }
 
   static void OnUpdate(uptr vtable) {
-    // switch (vtable) {
-    //   case ADDRESS_APP_STATUS_VTABLE:
-    //     AppStatus::PatchOnUpdate();
-    //     break;
-    //   case ADDRESS_BATTLE_VTABLE:
-    //     Battle::PatchOnUpdate();
-    //     break;
-    //   default:
-    //     break;
-    // }
-  }
-
-  static void OnLoad(uptr vtable) {
-// #ifdef KAIZO
-//     kaizo::ShouldReplacePokemonModel(false);
-// #endif
-//
-//     if (vtable != ADDRESS_OVERWORLD_VTABLE) {
-//       HookManager::Clear(HookID::kGetEncounterPokemon);
-//     }
-    if (vtable != ADDRESS_KEYBOARD_VTABLE) {
-      Keyboard::GetInstance().is_opened = false;
-    }
-
     switch (vtable) {
-// #ifdef KAIZO
-//       case ADDRESS_INTRODUCTION_VTABLE:
-//       case ADDRESS_CINEMATIC_VTABLE:
-//         kaizo::ShouldReplacePokemonModel(true);
-//         break;
-//       case ADDRESS_SELECT_STARTER_VTABLE:
-//         kaizo::PatchStarterView();
-//         break;
-// #endif
-//       case ADDRESS_TITLE_SCREEN_VTABLE:
-//         TitleScreen::Patch();
-//         break;
-//       case ADDRESS_BATTLE_VTABLE:
-//         Battle::Patch();
-//         break;
-//       case ADDRESS_OVERWORLD_VTABLE:
-//         Overworld::Patch();
-//         break;
-//       case ADDRESS_APP_STATUS_VTABLE:
-//         AppStatus::PatchOnLoad();
-//         break;
-      case ADDRESS_KEYBOARD_VTABLE:
-        Keyboard::PatchOnLoad();
+      case ADDRESS_APP_STATUS_VTABLE:
+        AppStatus::PatchUpdate();
+        break;
+      case ADDRESS_BATTLE_VTABLE:
+        Battle::PatchUpdate();
         break;
       default:
         break;
     }
   }
 
+  static void OnLoad(uptr vtable) {
+#ifdef KAIZO
+    kaizo::ShouldReplacePokemonModel(false);
+#endif
+
+    if (vtable != ADDRESS_OVERWORLD_VTABLE) {
+      HookManager::Clear(HookID::kGetEncounterPokemon);
+    }
+    if (vtable != ADDRESS_KEYBOARD_VTABLE) {
+      Keyboard::GetInstance().is_opened = false;
+    }
+
+    switch (vtable) {
+#ifdef KAIZO
+      case ADDRESS_INTRODUCTION_VTABLE:
+      case ADDRESS_CINEMATIC_VTABLE:
+        kaizo::ShouldReplacePokemonModel(true);
+        break;
+      case ADDRESS_SELECT_STARTER_VTABLE:
+        kaizo::PatchStarterView();
+        break;
+#endif
+      case ADDRESS_TITLE_SCREEN_VTABLE:
+        TitleScreen::PatchLoad();
+        break;
+      case ADDRESS_BATTLE_VTABLE:
+        Battle::PatchLoad();
+        break;
+      case ADDRESS_OVERWORLD_VTABLE:
+        Overworld::PatchLoad();
+        break;
+      case ADDRESS_APP_STATUS_VTABLE:
+        AppStatus::PatchLoad();
+        break;
+      case ADDRESS_KEYBOARD_VTABLE:
+        Keyboard::PatchLoad();
+        break;
+      default:
+        break;
+    }
+  }
 };
 } // namespace feature
 

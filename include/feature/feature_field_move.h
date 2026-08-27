@@ -30,7 +30,7 @@ struct FieldMove {
 
   static void Execute(u32 choice) {
     auto& main_app = ui::MainApplication::GetInstance();
-    if (main_app.CheckProcess(PROCESS_NAME_FIELD_MAP)) return;
+    if (main_app.CheckProcess(ADDRESS_OVERWORLD_VTABLE)) return;
 
     auto& map_manager = overworld::MapManager::GetInstance();
 

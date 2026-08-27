@@ -74,9 +74,31 @@ public:
 class MemoryManager {
   MAKE_SINGLETON(MemoryManager);
   static bool ToggleProtection(u32 address, bool on);
-  // static bool Unprotect(u32 address, u32 size);
-  // static bool Protect(u32 address, u32 size);
+  static bool Unprotect(u32 address, u32 size);
+  static bool Protect(u32 address, u32 size);
 };
+
+class MemoryRange {
+public:
+  MemoryRange(u32 address, u32 size) : address_(address), size_(size) {
+    MemoryManager::Unprotect(address, size);
+  }
+
+  ~MemoryRange() {
+    MemoryManager::Protect(address_, size_);
+  }
+
+  MemoryRange(const MemoryRange&) = delete;
+  MemoryRange& operator=(const MemoryRange&) = delete;
+
+private:
+  u32 address_;
+  u32 size_;
+};
+
+#define CONCAT_IMPL(x, y) x##y
+#define CONCAT(x, y) CONCAT_IMPL(x, y)
+#define MEMORY_SCOPE(addr, size) MemoryRange CONCAT(mem_scope_, __COUNTER__)(addr, size)
 
 namespace ui {
 class MainApplication;
