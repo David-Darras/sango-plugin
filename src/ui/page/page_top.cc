@@ -34,6 +34,7 @@ void LoadTopPage(MainApplication& app, void* args) {
      .Add("Battle Config", LoadBattleConfigPage)
      .Add("Sound", LoadSoundPage)
      .Add("Game Time", LoadGameTimePage)
+     .Add("Title Screen", LoadTitleScreenPage)
      .Add("Scripts", LoadScriptPage)
      .Add("Plugin Theme", LoadThemePage)
      .Add("Save Config", ConfigManager::Save);

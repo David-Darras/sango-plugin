@@ -35,4 +35,5 @@ void LoadScriptPage(MainApplication& app, void* args);
 void LoadSoundPage(MainApplication& app, void* args);
 void LoadTopPage(MainApplication& app, void* args);
 void LoadAppPage(MainApplication& app, void* args);
+void LoadTitleScreenPage(MainApplication& app, void* args);
 }
