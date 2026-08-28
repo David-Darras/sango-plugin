@@ -171,10 +171,10 @@ bool MemoryManager::ToggleProtection(u32 address, bool on) {
   Result res = svcControlProcessMemory(processHandle, mInfo.base_addr, 0,
                                        mInfo.size, MemOp(MEMOP_PROT), perm);
 
-  ui::LogApplication::Print(u"%s %X, %X, %X",
-                            on ? "Unprotect" : "Protect",
-                            mInfo.base_addr,
-                            mInfo.size, processHandle);
+  // ui::LogApplication::Print(u"%s %X, %X, %X",
+  //                           on ? "Unprotect" : "Protect",
+  //                           mInfo.base_addr,
+  //                           mInfo.size, processHandle);
 
   svcCloseHandle(processHandle);
   return R_SUCCEEDED(res);

@@ -712,6 +712,7 @@ void LoadSaveDataDayCarePage(MainApplication& app, void* args) {
   app.Add("Location", loc)
      .WithBounds(0, 1)
      .WithRefresh()
+     .Add("Is Egg Available", day_care.location[loc].is_egg_available)
      .Add("Index", idx)
      .WithBounds(0, 1)
      .WithRefresh()

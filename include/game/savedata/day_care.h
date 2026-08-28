@@ -35,7 +35,7 @@ struct DayCare {
 
   struct Location {
     Pokemon pokemon[2];
-    u8 _0;
+    bool is_egg_available;
     u64 random;
   };
 

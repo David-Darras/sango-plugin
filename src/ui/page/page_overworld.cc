@@ -73,18 +73,42 @@ void LoadOverworldEncounterPage(MainApplication& app, void* args) {
 void LoadOverworldFieldMovePage(MainApplication& app, void* args) {
   if (app.CheckProcess(ADDRESS_OVERWORLD_VTABLE)) return;
 
-  static u32 choice = 0;
-
-  static const c8* MOVES[] = {
-      "Cut", "Surf", "Waterfall",
-      "Strength", "Rock Smash", "Fly",
-      "Flash", "Teleport", "Dig",
-      "Sweet Scent", "Dive", "Secret Power"
-  };
-
-  app.Add("Field Move", choice);
-  app.WithArray(MOVES, SIZE(MOVES));
-  app.Add("Execute", [&](void*) { feature::FieldMove::Execute(choice); });
+  app.Add("Cut", [](void*) {
+    feature::FieldMove::Execute(0);
+  });
+  app.Add("Rock Smash", [](void*) {
+    feature::FieldMove::Execute(4);
+  });
+  app.Add("Strength", [](void*) {
+    feature::FieldMove::Execute(3);
+  });
+  app.Add("Fly", [](void*) {
+    feature::GameApp::DoFly();
+  });
+  app.Add("Surf", [](void*) {
+    feature::FieldMove::Execute(1);
+  });
+  app.Add("Dive", [](void*) {
+    feature::FieldMove::Execute(10);
+  });
+  app.Add("Waterfall", [](void*) {
+    feature::FieldMove::Execute(2);
+  });
+  app.Add("Sweet Scent", [](void*) {
+    feature::FieldMove::Execute(9);
+  });
+  app.Add("Flash", [](void*) {
+    feature::FieldMove::Execute(6);
+  });
+  app.Add("Teleport", [](void*) {
+    feature::FieldMove::Execute(7);
+  });
+  app.Add("Dig", [](void*) {
+    feature::FieldMove::Execute(8);
+  });
+  app.Add("Secret Power", [](void*) {
+    feature::FieldMove::Execute(11);
+  });
 }
 
 void LoadOverworldCameraPage(MainApplication& app, void* args) {
@@ -235,8 +259,9 @@ void LoadDayCarePage(MainApplication& app, void* args) {
   auto& day_care = feature::DayCare::GetInstance();
 
   app.Add("Instant Egg Hatch", day_care.instant_egg_hatch)
-     .Add("Instant Egg Generation", day_care.instant_egg_generation)
-     .Add("Instant Max Exp", day_care.instant_max_exp);
+     .WithCallback(feature::DayCare::ApplyEggHatch)
+     .Add("Instant Max Exp", day_care.instant_max_exp)
+     .WithCallback(feature::DayCare::ApplyMaxExp);
 }
 
 // static u16 map_id = MAP_INSIDE_OF_TRUCK;
@@ -266,6 +291,7 @@ void LoadOverworldPage(MainApplication& app, void* args) {
       // .WithCallback(Teleport)
       .Add("Weather", weather_manager.GetRequestedWeather())
       .WithArray(WEATHERS, SIZE(WEATHERS))
+      .Add("Field Move", LoadOverworldFieldMovePage)
       .Add("App", LoadAppPage)
       .Add("Camera", LoadOverworldCameraPage)
       .Add("Model Loader (Instable)", LoadModelLoaderPage)
@@ -273,7 +299,6 @@ void LoadOverworldPage(MainApplication& app, void* args) {
       .Add("Player", LoadOverworldModelPage)
       .Add("Encounter", LoadOverworldEncounterPage)
       .Add("Map Tile", LoadOverworldMapTilePage)
-      .Add("Field Move", LoadOverworldFieldMovePage)
       .Add("Day Care", LoadDayCarePage)
       .Add("Map Id", man.GetMapId());
 }
