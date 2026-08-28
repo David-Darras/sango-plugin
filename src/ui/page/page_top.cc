@@ -32,7 +32,6 @@ void LoadTopPage(MainApplication& app, void* args) {
      .Add("Battle", LoadBattlePage)
      .Add("Battle Config", LoadBattleConfigPage)
      .Add("Sound", LoadSoundPage)
-     .Add("Day Care", LoadDayCarePage)
      .Add("Game Time", LoadGameTimePage)
      .Add("Scripts", LoadScriptPage)
      .Add("Plugin Theme", LoadThemePage)

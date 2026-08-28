@@ -20,9 +20,6 @@
 #include "feature/cheat_code.h"
 
 enum class CheatCodeId {
-  kInstantEggHatch,
-  kInstantEggGeneration,
-  kInstantMaxExpForDayCare,
   kNoclip,
   kSwarmMod,
   kNoEncounter,

@@ -49,6 +49,7 @@ enum class HookID : u32 {
   kDrawTextBox,
   kGetMapTile,
   kUpdateFrame,
+  kStartBackupThread,
   kSceneRegister0,
   kCallApp,
   kLoadShopItems,

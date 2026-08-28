@@ -30,7 +30,6 @@
 #include "feature/feature_app_status.h"
 #include "feature/feature_archive.h"
 #include "feature/feature_battle.h"
-#include "feature/feature_day_care.h"
 #include "feature/feature_encounter.h"
 #include "feature/feature_field_move.h"
 #include "feature/feature_h3d_model.h"
@@ -64,7 +63,6 @@ void Initialize() {
   feature::Light::Initialize();
   feature::TextBox::Initialize();
   feature::Picture::Initialize();
-  feature::DayCare::Initialize();
   feature::MapTile::Initialize();
   feature::Camera::Initialize();
   feature::FieldMove::Initialize();
@@ -80,7 +78,7 @@ void Initialize() {
   feature::OverworldModel::Initialize();
 
   feature::ProcessPatch::Initialize();
-  // feature::Keyboard::Initialize();
+  feature::Keyboard::Initialize();
   feature::GameApp::Initialize();
   feature::AppStatus::Initialize();
 
@@ -135,7 +133,7 @@ void Entrypoint() {
     Graphics::EnableScissor(0, 0, 400, 240);
     Graphics::BeginRender(top_buffer);
     application->DrawTop(graphics);
-    // feature::Keyboard::DrawTop();
+    feature::Keyboard::DrawTop();
     Graphics::DisableScissor();
   }
 

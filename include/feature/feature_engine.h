@@ -28,6 +28,14 @@ struct Engine {
   STATIC_INLINE void Initialize() {
     HookManager::Initialize(HookID::kUpdateFrame, ADDRESS_UPDATE_FRAME,
                             (uptr)UpdateFrameHook);
+    HookManager::Initialize(HookID::kStartBackupThread,
+                            ADDRESS_START_BACKUP_THREAD,
+                            (uptr)StartBackupThread);
+  }
+
+  static void StartBackupThread(uptr self, u32 a, u32 b, u32 c, u32 d) {
+    GetInstance().game_speed = 1;
+    HookManager::Call<void>(HookID::kStartBackupThread, self, a, b, c, d);
   }
 
   static s32 UpdateFrameHook(uptr addr) {

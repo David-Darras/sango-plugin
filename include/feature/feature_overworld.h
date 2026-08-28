@@ -18,6 +18,7 @@
 #pragma once
 #include "common.h"
 #include "feature_camera.h"
+#include "feature_day_care.h"
 #include "feature_overworld_model.h"
 #include "kaizo.h"
 #include "feature/hook_manager.h"
@@ -58,6 +59,8 @@ struct Overworld {
     kaizo::PatchBag();
     kaizo::RestoreTeamAfterBattle();
 #endif
+
+    DayCare::PatchLoad();
 
     HookManager::Enable(HookID::kGetEncounterPokemon);
     HookManager::ForceEnable(HookID::kCheckAppRequest);

@@ -17,6 +17,7 @@
 
 #include "feature/feature_app.h"
 #include "feature/feature_camera.h"
+#include "feature/feature_day_care.h"
 #include "feature/feature_field_move.h"
 #include "feature/feature_map_tile.h"
 #include "feature/feature_overworld_model.h"
@@ -153,6 +154,11 @@ void LoadOverworldModelPage(MainApplication& app, void* args) {
 
 void LoadPropModelPage(MainApplication& app, void* args) {
   if (app.CheckProcess(ADDRESS_OVERWORLD_VTABLE)) return;
+  auto& manager = overworld::PropModelManager::GetInstance();
+  if (manager.count == 0) {
+    app.Add("There is no prop here...");
+    return;
+  }
 
   static const char* PROP_SOUND_EFFECTS[] = {
       "None",
@@ -167,7 +173,6 @@ void LoadPropModelPage(MainApplication& app, void* args) {
       "Elite Four Door"
   };
 
-  auto& manager = overworld::PropModelManager::GetInstance();
   static u32 choice = 0;
   ui::LogApplication::Print(u"man=%p", &manager);
 
@@ -227,9 +232,11 @@ void LoadAppPage(MainApplication& app, void* args) {
 void LoadDayCarePage(MainApplication& app, void* args) {
   if (app.CheckProcess(ADDRESS_OVERWORLD_VTABLE)) return;
 
-  app.Add("Instant Egg Hatch", CheatCodeId::kInstantEggHatch)
-     .Add("Instant Egg Generation", CheatCodeId::kInstantEggGeneration)
-     .Add("Instant Max Exp", CheatCodeId::kInstantMaxExpForDayCare);
+  auto& day_care = feature::DayCare::GetInstance();
+
+  app.Add("Instant Egg Hatch", day_care.instant_egg_hatch)
+     .Add("Instant Egg Generation", day_care.instant_egg_generation)
+     .Add("Instant Max Exp", day_care.instant_max_exp);
 }
 
 // static u16 map_id = MAP_INSIDE_OF_TRUCK;
@@ -267,6 +274,7 @@ void LoadOverworldPage(MainApplication& app, void* args) {
       .Add("Encounter", LoadOverworldEncounterPage)
       .Add("Map Tile", LoadOverworldMapTilePage)
       .Add("Field Move", LoadOverworldFieldMovePage)
+      .Add("Day Care", LoadDayCarePage)
       .Add("Map Id", man.GetMapId());
 }
 } // namespace ui
