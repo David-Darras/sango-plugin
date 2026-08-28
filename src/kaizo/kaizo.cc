@@ -23,6 +23,7 @@
 #include "feature/feature_light.h"
 #include "feature/feature_map_data_loader.h"
 #include "feature/feature_overworld.h"
+#include "feature/feature_shiny.h"
 #include "feature/feature_title_screen.h"
 #include "game/global_data/trainer_model_manager.h"
 #include "game/savedata/pokemon_team.h"
@@ -39,12 +40,15 @@ void Initialize() {
   PatchBattle();
   PatchTrainerModels();
   InitializeOverworldWeather();
-  InitializeShinyHook();
   InitializeEvolveHook();
   InitializeGiftHook();
   InitializeModelHook();
   InitializeStarterHook();
 
+  // Shiny
+  {
+    feature::Shiny::GetInstance().rate = feature::Shiny::k1_8;
+  }
   // Map Data
   {
     feature::MapDataLoader::GetInstance().is_contact_enabled = false;

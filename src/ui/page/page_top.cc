@@ -21,8 +21,23 @@
 #include "ui/page/page_top.h"
 
 #include "config_manager.h"
+#include "feature/feature_shiny.h"
 
 namespace ui {
+void LoadShinyPage(MainApplication& app, void* args) {
+  static const c8* SHINY_RATES[] = {"Off", "1/1", "1/2", "1/4", "1/8", "1/16",
+                                    "1/32", "1/64", "1/128", "1/256", "1/512",
+                                    "1/1024", "1/2048", "1/4096", "1/8192",
+                                    "1/16384", "1/32768", "1/65536", "1/131072",
+                                    "1/262144", "1/524288", "1/1048576"};
+
+  auto& shiny = feature::Shiny::GetInstance();
+
+  app.Add("Shiny Rate", shiny.rate)
+     .WithArray(SHINY_RATES, SIZE(SHINY_RATES))
+     .WithBounds(0, SIZE(SHINY_RATES) - 1);
+}
+
 void LoadTopPage(MainApplication& app, void* args) {
   app.Add("Game Speed", feature::Engine::GetInstance().game_speed)
      .Add("Repel", CheatCodeId::kNoEncounter)
@@ -31,8 +46,11 @@ void LoadTopPage(MainApplication& app, void* args) {
      .Add("Global Data", LoadGlobalDataPage)
      .Add("Renderer", LoadRendererPage)
      .Add("Battle", LoadBattlePage)
-     .Add("Battle Config", LoadBattleConfigPage)
-     .Add("Sound", LoadSoundPage)
+     .Add("Battle Config", LoadBattleConfigPage);
+
+  LoadShinyPage(app, args);
+
+  app.Add("Sound", LoadSoundPage)
      .Add("Game Time", LoadGameTimePage)
      .Add("Title Screen", LoadTitleScreenPage)
      .Add("Scripts", LoadScriptPage)

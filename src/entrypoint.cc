@@ -39,6 +39,7 @@
 #include "feature/feature_overworld.h"
 #include "feature/feature_process_patch.h"
 #include "feature/feature_script.h"
+#include "feature/feature_shiny.h"
 #include "ui/main_application.h"
 #include "system/device.h"
 #include "system/file.h"
@@ -56,7 +57,6 @@ extern void UpdateFollowingPokemon();
 
 void Initialize() {
   File::MountSdmc();
-  ConfigManager::Load();
 
   feature::DeviceState::Initialize();
   feature::Engine::Initialize();
@@ -80,12 +80,16 @@ void Initialize() {
   feature::Keyboard::Initialize();
   feature::GameApp::Initialize();
   feature::AppStatus::Initialize();
+  feature::Shiny::Initialize();
 
   // feature::GameTextManager::Initialize();
 
 #ifdef KAIZO
   kaizo::Initialize();
 #endif
+
+  // Loaded last so the saved config overrides the defaults set above.
+  ConfigManager::Load();
 
   auto& application_manager = ui::ApplicationManager::GetInstance();
   auto& root_app = ui::RootApplication::GetInstance();

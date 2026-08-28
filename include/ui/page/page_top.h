@@ -32,6 +32,7 @@ void LoadOverworldPage(MainApplication& app, void* args);
 void LoadRendererPage(MainApplication& app, void* args);
 void LoadSaveDataPage(MainApplication& app, void* args);
 void LoadScriptPage(MainApplication& app, void* args);
+void LoadShinyPage(MainApplication& app, void* args);
 void LoadSoundPage(MainApplication& app, void* args);
 void LoadTopPage(MainApplication& app, void* args);
 void LoadAppPage(MainApplication& app, void* args);

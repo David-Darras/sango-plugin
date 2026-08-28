@@ -25,6 +25,7 @@
 #include "feature/feature_map_tile.h"
 #include "feature/feature_picture.h"
 #include "feature/feature_script.h"
+#include "feature/feature_shiny.h"
 #include "feature/feature_text_box.h"
 #include "feature/feature_title_screen.h"
 #include "system/file.h"
@@ -33,7 +34,7 @@
 static const c16* kConfigFilename =
     u"sdmc:/luma/plugins/000400000011C500/sango.cfg";
 
-static const u32 kConfigVersion = 4;
+static const u32 kConfigVersion = 5;
 
 bool ConfigManager::Load() {
   auto& theme = ui::Theme::GetInstance();
@@ -47,6 +48,7 @@ bool ConfigManager::Load() {
   auto& overworld = feature::Overworld::GetInstance();
   auto& picture = feature::Picture::GetInstance();
   auto& script = feature::Script::GetInstance();
+  auto& shiny = feature::Shiny::GetInstance();
   auto& text_box = feature::TextBox::GetInstance();
   auto& title_screen = feature::TitleScreen::GetInstance();
 
@@ -73,6 +75,7 @@ bool ConfigManager::Load() {
   FILE_READ(script);
   FILE_READ(text_box);
   FILE_READ(title_screen);
+  FILE_READ(shiny);
 
 #undef FILE_READ
 
@@ -91,6 +94,7 @@ void ConfigManager::Save(void*) {
   auto& overworld = feature::Overworld::GetInstance();
   auto& picture = feature::Picture::GetInstance();
   auto& script = feature::Script::GetInstance();
+  auto& shiny = feature::Shiny::GetInstance();
   auto& text_box = feature::TextBox::GetInstance();
   auto& title_screen = feature::TitleScreen::GetInstance();
 
@@ -112,6 +116,7 @@ void ConfigManager::Save(void*) {
   FILE_WRITE(script);
   FILE_WRITE(text_box);
   FILE_WRITE(title_screen);
+  FILE_WRITE(shiny);
 
 #undef FILE_WRITE
 }
