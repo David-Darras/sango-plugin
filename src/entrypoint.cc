@@ -76,20 +76,12 @@ void Initialize() {
   feature::H3dModel::Initialize();
   feature::Battle::Initialize();
   feature::OverworldModel::Initialize();
-
   feature::ProcessPatch::Initialize();
   feature::Keyboard::Initialize();
   feature::GameApp::Initialize();
   feature::AppStatus::Initialize();
 
   // feature::GameTextManager::Initialize();
-
-  // Disables the keyboard's "No Good Word" filter to allow prohibited words,
-  // phone numbers, etc.
-  {
-    WRITE32(0x003A47C0, 0xE3A00000);
-    ARM_RET(0x003A47C4);
-  }
 
 #ifdef KAIZO
   kaizo::Initialize();

@@ -21,6 +21,8 @@
 #include "game/savedata/bag_manager.h"
 #include "game/savedata/battle_box.h"
 #include "game/savedata/box_manager.h"
+#include "game/savedata/day_care.h"
+#include "game/savedata/fusion.h"
 #include "game/savedata/item_manager.h"
 #include "game/savedata/minigame.h"
 #include "game/savedata/misc.h"
@@ -41,6 +43,7 @@
 #include "game/savedata/trainer_status.h"
 
 #include "system/core.h"
+#include "ui/log_application.h"
 
 namespace ui {
 static struct {
@@ -83,6 +86,11 @@ void LoadSaveDataPokemonPage(MainApplication& app, void* args) {
   ctx.accessor.Decrypt();
 
   PokemonCoreData* pkm = ctx.accessor.GetCoreData();
+
+  if (pkm->species == 0) {
+    app.Add("No pokemon");
+    return;
+  }
 
   ctx.level = PokemonUtils::GetLevelFromExperience(pkm->species, pkm->form,
                                                    pkm->experience);
@@ -694,12 +702,33 @@ void LoadSaveDataPssGroupPage(MainApplication& app, void* args) {
   LoadSaveDataPssProfilePage(app, &grp.user_data[choice].datagram.profile);
 }
 
+void LoadSaveDataDayCarePage(MainApplication& app, void* args) {
+  static u32 loc = 0;
+  static u32 idx = 0;
+
+  auto& day_care = savedata::DayCare::GetInstance();
+  PokemonCoreData* data = &day_care.location[loc].pokemon[idx].data;
+
+  app.Add("Location", loc)
+     .WithBounds(0, 1)
+     .WithRefresh()
+     .Add("Index", idx)
+     .WithBounds(0, 1)
+     .WithRefresh()
+     .AddSeparator();
+
+  LoadSaveDataPokemonPage(app, data);
+}
+
 void LoadSaveDataPage(MainApplication& app, void* args) {
   auto& sv = savedata::SaveData::GetInstance();
+  auto& fusion = savedata::Fusion::GetInstance();
 
   app.Add("Team", LoadSaveDataTeamPage)
      .Add("PC", LoadSaveDataPokemonBoxPage)
      .Add("Battle Box", LoadSaveDataBattleBoxPage)
+     .Add("Day Care", LoadSaveDataDayCarePage)
+     .Add("Fusion", LoadSaveDataPokemonPage, &fusion.pokemon)
      .AddSeparator()
 
      .Add("Bag Items", LoadSaveDataBagItemsPage)

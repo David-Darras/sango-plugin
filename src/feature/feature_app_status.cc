@@ -739,6 +739,7 @@ void AppStatus::PatchUpdate() {
 }
 
 void AppStatus::PatchLoad() {
+  MEMORY_SCOPE(0x0070B000, 0x10000);
   HookManager::ForceEnable(HookID::kAppStatusSetupGraphicsParams);
   HookManager::ForceEnable(HookID::kAppStatusSetupGraphicsMoves);
   HookManager::ForceEnable(HookID::kAppStatusSetupGraphicsContest);

@@ -36,16 +36,29 @@ public:
     HookManager::Initialize(HookID::kKeyboardUpdateKeys,
                             ADDRESS_KEYBOARD_UPDATE_KEYS,
                             (uptr)UpdateKeys, false);
+
+    // Disables the keyboard's "No Good Word" filter to allow prohibited words,
+    // phone numbers, etc.
+    WRITE32(0x003A47C0, 0xE3A00000);
+    ARM_RET(0x003A47C4);
   }
 
   STATIC_INLINE void PatchLoad() {
+    MEMORY_SCOPE(0x00742000, 0x7000);
     HookManager::ForceEnable(HookID::kKeyboardUpdateKeys);
     // Force to refresh when pressing L
-    SAFE_ARM_NOP(0x0074323C);
+    ARM_NOP(0x0074323C);
     // Pressing R is like pressing L
-    SAFE_WRITE32(0x00742F58 + 6 * 4, 0x00742F58 + 4 * 4);
+    WRITE32(0x00742F58 + 6 * 4, READ32(0x00742F58 + 4 * 4));
     // Don't switch between the two keyboard mode
-    SAFE_ARM_NOP(0x00746294);
+    ARM_NOP(0x00746294);
+
+    // No animation
+    ARM_NOP(0x00743250);
+    ARM_NOP(0x0074326C);
+    ARM_NOP(0x007432DC);
+    ARM_NOP(0x007432F8);
+
     auto& self = GetInstance();
     self.is_opened = true;
     self.page = 0;

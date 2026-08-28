@@ -41,6 +41,8 @@ struct PssGroup;
 struct Encounter;
 struct OverworldMenu;
 struct EventTable;
+struct DayCare;
+struct Fusion;
 
 /**
 * @class SaveData
@@ -126,9 +128,15 @@ public:
     return *(RecordManager*)segments_[44];
   }
 
+  INLINE DayCare& GetDayCare() {
+    return *(DayCare*)segments_[38];
+  }
+
   INLINE PssPhoto& GetPssPhoto() {
     return *(PssPhoto*)segments_[50];
   }
+
+  INLINE Fusion& GetFusion() { return *(Fusion*)segments_[22]; }
 
   INLINE Settings& GetSettings() { return *(Settings*)segments_[23]; }
 

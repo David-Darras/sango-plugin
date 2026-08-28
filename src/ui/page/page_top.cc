@@ -25,6 +25,7 @@
 namespace ui {
 void LoadTopPage(MainApplication& app, void* args) {
   app.Add("Game Speed", feature::Engine::GetInstance().game_speed)
+     .Add("Repel", CheatCodeId::kNoEncounter)
      .Add("Overworld", LoadOverworldPage)
      .Add("Save Data", LoadSaveDataPage)
      .Add("Global Data", LoadGlobalDataPage)
