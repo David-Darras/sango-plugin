@@ -9,7 +9,7 @@ endif
 export TOPDIR ?= $(CURDIR)
 include $(DEVKITARM)/3ds_rules
 
-PLUGIN_VERSION  := 4.0.0
+PLUGIN_VERSION  := 4.1.0
 PLUGIN_CREATOR  := ZettaD
 
 DEST      := C:/Users/David/AppData/Roaming/Azahar/sdmc/luma/plugins/000400000011C500
