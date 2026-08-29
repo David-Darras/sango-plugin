@@ -23,6 +23,7 @@
 #include "game/savedata/box_manager.h"
 #include "game/savedata/day_care.h"
 #include "game/savedata/fusion.h"
+#include "game/savedata/hall_of_fame.h"
 #include "game/savedata/item_manager.h"
 #include "game/savedata/minigame.h"
 #include "game/savedata/misc.h"
@@ -721,6 +722,63 @@ void LoadSaveDataDayCarePage(MainApplication& app, void* args) {
   LoadSaveDataPokemonPage(app, data);
 }
 
+void LoadSaveDataHallOfFamePokemonPage(MainApplication& app, void* args) {
+  auto* pkm = (savedata::HallOfFame::Pokemon*)args;
+
+  if (pkm->species == 0) {
+    app.Add("No pokemon");
+    return;
+  }
+
+  app.AddSpecies("Species", pkm->species)
+     .Add("Form", &pkm->flags, 0, 5)
+     .Add("Gender", &pkm->flags, 5, 2)
+     .Add("Level", &pkm->flags, 7, 7)
+     .WithBounds(1, 100)
+     .Add("Is Shiny", &pkm->flags, 14, 1)
+     .Add("Has Nickname", &pkm->flags, 15, 1)
+     .Add("O.T Gender", &pkm->flags, 16, 1)
+     .AddSeparator()
+     .Add("Nickname", pkm->nickname, 12)
+     .Add("O.T Name", pkm->trainer_name, 12)
+     .AddItem("Item", pkm->item)
+     .Add("ID 0", pkm->id0)
+     .Add("ID 1", pkm->id1)
+     .AddSeparator()
+     .AddMove("Move 1", pkm->moves[0])
+     .AddMove("Move 2", pkm->moves[1])
+     .AddMove("Move 3", pkm->moves[2])
+     .AddMove("Move 4", pkm->moves[3]);
+}
+
+void LoadSaveDataHallOfFamePage(MainApplication& app, void* args) {
+  static u8 entry_idx = 0;
+  static u8 slot_idx = 0;
+
+  auto& data = savedata::HallOfFame::GetInstance();
+
+  app.Add("Entry Index", entry_idx)
+     .WithBounds(0, 15)
+     .WithRefresh()
+     .Add("Slot Index", slot_idx)
+     .WithBounds(0, 5)
+     .WithRefresh()
+     .AddSeparator();
+
+  auto& entry = data.entries[entry_idx];
+
+  app.Add("Completion Count", &entry.flags, 0, 14)
+     .Add("Year", &entry.flags, 14, 8)
+     .Add("Month", &entry.flags, 22, 4)
+     .WithBounds(1, 12)
+     .Add("Day", &entry.flags, 26, 5)
+     .WithBounds(1, 31)
+     .Add("Is Used", &entry.flags, 31, 1)
+     .AddSeparator();
+
+  LoadSaveDataHallOfFamePokemonPage(app, &entry.pokemon[slot_idx]);
+}
+
 void LoadSaveDataPage(MainApplication& app, void* args) {
   auto& sv = savedata::SaveData::GetInstance();
   auto& fusion = savedata::Fusion::GetInstance();
@@ -745,6 +803,7 @@ void LoadSaveDataPage(MainApplication& app, void* args) {
      .Add("Overworld Menu", LoadSaveDataOverworldMenuPage)
      .AddSeparator()
 
+     .Add("Hall of Fame", LoadSaveDataHallOfFamePage)
      .Add("Pokemon-Amie", LoadSaveDataPokemonAmiePage)
      .Add("Minigame", LoadSaveDataMinigamePage)
      .Add("Records", LoadSaveDataRecordsPage)

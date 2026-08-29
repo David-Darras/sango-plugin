@@ -43,6 +43,7 @@ struct OverworldMenu;
 struct EventTable;
 struct DayCare;
 struct Fusion;
+struct HallOfFame;
 
 /**
 * @class SaveData
@@ -118,6 +119,10 @@ public:
 
   INLINE Encounter& GetEncounter() {
     return *(Encounter*)segments_[31];
+  }
+
+  INLINE HallOfFame& GetHallOfFame() {
+    return *(HallOfFame*)segments_[36];
   }
 
   INLINE OverworldMenu& GetOverworldMenu() {

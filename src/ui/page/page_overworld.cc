@@ -294,7 +294,7 @@ void LoadOverworldPage(MainApplication& app, void* args) {
       .Add("Field Move", LoadOverworldFieldMovePage)
       .Add("App", LoadAppPage)
       .Add("Camera", LoadOverworldCameraPage)
-      .Add("Model Loader (Instable)", LoadModelLoaderPage)
+      .Add("Model Loader (Unstable)", LoadModelLoaderPage)
       .Add("Prop", LoadPropModelPage)
       .Add("Player", LoadOverworldModelPage)
       .Add("Encounter", LoadOverworldEncounterPage)

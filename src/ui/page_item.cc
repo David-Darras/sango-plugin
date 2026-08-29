@@ -217,9 +217,16 @@ void PageItem::GetDefaultDisplayValue(c16* buffer) const {
                     ((CheatCode*)address_)->IsEnabled() ? "On" : "Off");
       break;
 
-    case kTypeUnicode:
-      Utils::Format(buffer, u"%ls%s : \"%ls\"", prefix, name_, address_);
+    case kTypeUnicode: {
+      c16 temp_buf[64];
+      u32 max_len = (bit_offset_ < 64) ? bit_offset_ : 63;
+      for (u32 i = 0; i < max_len; i++) {
+        temp_buf[i] = ((c16*)address_)[i];
+      }
+      temp_buf[max_len] = 0;
+      Utils::Format(buffer, u"%ls%s : \"%ls\"", prefix, name_, temp_buf);
       break;
+    }
 
     case kTypeIdle:
       Utils::Format(buffer, u"%ls%s", prefix, name_);
