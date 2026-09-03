@@ -304,11 +304,44 @@ struct String {
     return buffer;
   }
 
+  void Set(const c16* input) {
+    if (capacity == 0) {
+      is_initialized = false;
+      return;
+    }
+    u32 index = 0;
+    while (true) {
+      if (index == capacity - 1 || input[index] == 0) {
+        buffer[index] = 0;
+        size = index;
+        is_initialized = true;
+        return;
+      }
+      buffer[index] = input[index];
+      index++;
+    }
+  }
+
   void* vtable;
   c16* buffer;
   u16 capacity;
   u16 size;
   bool is_initialized;
+};
+
+struct Message {
+  uptr vtable;
+  uptr heap;
+  u32* archive;
+  u8 kind; // 0 -> one, 1 -> all
+  u32 file_id;
+  u32 language;
+  uptr _0, _1, _2;
+
+  INLINE void GetString(u32 str_id, String* output) {
+    return ((void(*)(Message*, u32, String*))
+      ADDRESS_MESSAGE_GET_STRING)(this, str_id, output);
+  }
 };
 
 struct ResourcePack {

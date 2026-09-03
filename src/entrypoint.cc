@@ -17,6 +17,7 @@
 
 #include "config_manager.h"
 #include "kaizo.h"
+#include "feature/feature_game_extension.h"
 #include "feature/feature_battle_config.h"
 #include "feature/feature_camera.h"
 #include "ui/page/page_top.h"
@@ -81,6 +82,7 @@ void Initialize() {
   feature::GameApp::Initialize();
   feature::AppStatus::Initialize();
   feature::Shiny::Initialize();
+  feature::GameExtension::Initialize();
 
   // feature::GameTextManager::Initialize();
 

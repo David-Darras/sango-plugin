@@ -18,6 +18,7 @@
 #pragma once
 
 #include "common.h"
+#include "feature_game_extension.h"
 #include "feature_overworld.h"
 #include "hook_manager.h"
 #include "game/battle/manager.h"
@@ -157,6 +158,7 @@ public:
     HookManager::ForceEnable(HookID::kBattleCheckPokemonCaptured);
     HookManager::ForceEnable(HookID::kBattleUpdateGauge);
     HookManager::ForceEnable(HookID::kBattleUpdateView);
+    GameExtension::PatchBattleLoad();
 
     auto& feat = GetInstance();
     if (!feat.can_use_item) {
