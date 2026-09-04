@@ -64,9 +64,25 @@ public:
                             0x00762B18,
                             (uptr)GetBattleMoveHandlerHook,
                             false);
+    HookManager::Initialize(HookID::kBattleLoadAnimation,
+                            0x0074E908,
+                            (uptr)BattleLoadAnimationHook,
+                            false);
     HookManager::Initialize(HookID::kLoadMoveData,
                             ADDRESS_LOAD_MOVE_DATA,
                             (uptr)LoadMoveData);
+  }
+
+  static void BattleLoadAnimationHook(uptr self, u32 id, bool is_move) {
+    if (is_move) {
+      if (id == MOVE_ABSOLUTE_ZERO) {
+        id = MOVE_ICE_PUNCH;
+      }
+      if (id == MOVE_SOLAR_FLARE) {
+        id = MOVE_FIRE_PUNCH;
+      }
+    }
+    HookManager::Call<void>(HookID::kBattleLoadAnimation, self, id, is_move);
   }
 
   static u32 LoadMoveData(uptr self, u16 move_id) {
@@ -155,6 +171,7 @@ public:
   STATIC_INLINE void PatchBattleLoad() {
     HookManager::ForceEnable(HookID::kBattleGetAbilityHandler);
     HookManager::ForceEnable(HookID::kBattleGetMoveHandler);
+    HookManager::ForceEnable(HookID::kBattleLoadAnimation);
   }
 
   static u32 GetValue(u32 var) {
@@ -203,7 +220,7 @@ public:
     } table[] = {
         {39, (uptr)handler_sun}
     };
-    if (move == MOVE_SOLAR_FLARE) {
+    if (move == MOVE_SOLAR_FLARE || move == MOVE_ABSOLUTE_ZERO) {
       return ((uptr(*)(u32, u32, u32, u32, u32, u32, u32))0x00743EFC)(
           0, move, 0, x, pkm->uid, (uptr)table, SIZE(table));
     }

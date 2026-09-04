@@ -66,6 +66,7 @@ enum class HookID : u32 {
   kMessageGetString,
   kBattleGetAbilityHandler,
   kBattleGetMoveHandler,
+  kBattleLoadAnimation,
   kSetAbilityName,
   kSetMoveName,
   kGetAbilityDescription,
