@@ -17,567 +17,571 @@
 
 #pragma once
 
-/* ---------------------------------------------------------
- CHARACTER MODELS (X/Y base engine)
- --------------------------------------------------------- */
-#define MODEL_NONE 0x0 /* No model drawn */
-#define MODEL_SERENA 0x1 /* Female protagonist (X/Y) */
-#define MODEL_CALEM 0x2 /* Male protagonist (X/Y) */
-#define MODEL_SHAUNA 0x3 /* Friend B */
-#define MODEL_TIERNO 0x4 /* Friend C */
-#define MODEL_TREVOR 0x5 /* Friend D */
-#define MODEL_PROFESSOR_SYCAMORE 0x6
-#define MODEL_MOM 0x7
-#define MODEL_MYSTERIOUS_WOMAN 0x8 /* Masked woman */
-#define MODEL_MYSTERIOUS_MAN 0x9 /* Masked man */
-#define MODEL_DIANTHA 0xa /* Champion */
-#define MODEL_WIKSTROM 0xb /* Elite Four - Steel */
-#define MODEL_MALVA 0xc /* Elite Four - Fire */
-#define MODEL_DRASNA 0xd /* Elite Four - Dragon */
-#define MODEL_SIEBOLD 0xe /* Elite Four - Water */
-#define MODEL_VIOLA 0xf /* Gym Leader - Bug */
-#define MODEL_GRANT 0x10 /* Gym Leader - Rock */
-#define MODEL_KORRINA 0x11 /* Gym Leader - Fighting */
-#define MODEL_RAMOS 0x12 /* Gym Leader - Grass */
-#define MODEL_CLEMONT 0x13 /* Gym Leader - Electric */
-#define MODEL_VALERIE 0x14 /* Gym Leader - Fairy */
-#define MODEL_OLYMPIA 0x15 /* Gym Leader - Psychic */
-#define MODEL_WULFRIC 0x16 /* Gym Leader - Ice */
-#define MODEL_LYSANDRE 0x17 /* Team Flare boss */
-#define MODEL_TEAM_FLARE_ADMIN_MALE 0x18
-#define MODEL_TEAM_FLARE_ADMIN_FEMALE 0x19
-#define MODEL_TEAM_FLARE_GRUNT_MALE 0x1a
-#define MODEL_TEAM_FLARE_GRUNT_FEMALE 0x1b
-#define MODEL_TEAM_FLARE_SCIENTIST_X 0x1c
-#define MODEL_TEAM_FLARE_SCIENTIST_M 0x1d
-#define MODEL_TEAM_FLARE_SCIENTIST_C 0x1e
-#define MODEL_TEAM_FLARE_SCIENTIST_B 0x1f
-#define MODEL_TEAM_FLARE_SCIENTIST_A 0x20
-#define MODEL_AZ 0x21
-#define MODEL_BATTLE_CHATEAU_NOBLE_A 0x22
-#define MODEL_BATTLE_CHATEAU_NOBLE_B 0x23
-#define MODEL_BATTLE_CHATEAU_NOBLE_C 0x24
-#define MODEL_BATTLE_CHATEAU_NOBLE_D 0x25
-#define MODEL_LOOKER 0x26 /* "Handsome" alias */
-#define MODEL_LASS 0x27
-#define MODEL_TODDLER_GIRL 0x28
-#define MODEL_YOUNGSTER 0x29
-#define MODEL_TODDLER_BOY 0x2a
-#define MODEL_YOUNG_GIRL 0x2b
-#define MODEL_SCHOOLGIRL 0x2c
-#define MODEL_YOUNG_BOY 0x2d
-#define MODEL_YOUNG_LADY 0x2e /* rich girl */
-#define MODEL_WOMAN 0x2f
-#define MODEL_SCHOOLBOY 0x30
-#define MODEL_YOUNG_MAN 0x31
-#define MODEL_RICH_BOY 0x32
-#define MODEL_TOURIST_MALE 0x33
-#define MODEL_TOURIST_FEMALE 0x34
-#define MODEL_BACKPACKER 0x35
-#define MODEL_SOCIALITE 0x36 /* Madame */
-#define MODEL_GENTLEMAN 0x37
-#define MODEL_BEAUTY 0x38
-#define MODEL_PUNK_GUY 0x39 /* skinhead */
-#define MODEL_PUNK_GIRL 0x3a
-#define MODEL_PC_CLERK 0x3b /* PC box counter staff */
-#define MODEL_SHOP_CLERK 0x3c
-#define MODEL_GYM_GUIDE_DANPEI 0x3d
-#define MODEL_RECEPTIONIST 0x3e
-#define MODEL_BOUTIQUE_CLERK 0x3f
-#define MODEL_DELIVERY_MAN 0x40
-#define MODEL_HAIRDRESSER 0x41
-#define MODEL_PHOTOGRAPHER 0x42
-#define MODEL_LITTLE_BOY_SHORTS 0x43
-#define MODEL_POKEFAN_MALE 0x44
-#define MODEL_POKEFAN_FEMALE 0x45
-#define MODEL_TWINS 0x46
-#define MODEL_FASHIONISTA 0x47 /* miniskirt */
-#define MODEL_SHOP_OWNER 0x48
-#define MODEL_WAITRESS 0x49
-#define MODEL_BATTLE_GIRL 0x4a
-#define MODEL_ROLLER_SKATER_FEMALE 0x4b
-#define MODEL_ROLLER_SKATER_MALE 0x4c
-#define MODEL_FISHERMAN 0x4d
-#define MODEL_RISING_STAR_FEMALE 0x4e
-#define MODEL_ACE_TRAINER_FEMALE 0x4f
-#define MODEL_VETERAN_FEMALE 0x50
-#define MODEL_SWIMMER_MALE 0x51
-#define MODEL_SWIMMER_FEMALE 0x52
-#define MODEL_ARTIST_MALE 0x53
-#define MODEL_ARTIST_FEMALE 0x54
-#define MODEL_TRAVELER_FEMALE 0x55
-#define MODEL_POKEMON_BREEDER_MALE 0x56
-#define MODEL_POKEMON_BREEDER_FEMALE 0x57
-#define MODEL_PSYCHIC_MALE 0x58
-#define MODEL_RISING_STAR_MALE 0x59
-#define MODEL_ACE_TRAINER_MALE 0x5a
-#define MODEL_VETERAN_MALE 0x5b
-#define MODEL_POKEMON_RANGER_MALE 0x5c
-#define MODEL_POKEMON_RANGER_FEMALE 0x5d
-#define MODEL_CHEF 0x5e
-#define MODEL_RESEARCHER_MALE 0x5f
-#define MODEL_RESEARCHER_FEMALE 0x60
-#define MODEL_WORKER_A 0x61
-#define MODEL_WORKER_B 0x62
-#define MODEL_HEX_MANIAC 0x63
-#define MODEL_FAIRY_TALE_GIRL 0x64
-#define MODEL_BUTLER 0x65
-#define MODEL_MAID 0x66
-#define MODEL_GARDENER 0x67
-#define MODEL_FURISODE_WHITE 0x68
-#define MODEL_FURISODE_BLACK 0x69
-#define MODEL_FURISODE_FLOWER 0x6a
-#define MODEL_FURISODE_OCEAN 0x6b
-#define MODEL_SKY_TRAINER_MALE 0x6c
-#define MODEL_SKY_TRAINER_FEMALE 0x6d
-#define MODEL_SURFING_ELITE_MALE 0x6e
-#define MODEL_SURFING_ELITE_FEMALE 0x6f
-#define MODEL_HIKER 0x70
-#define MODEL_BLACK_BELT 0x71
-#define MODEL_WAITER 0x72 /* garcon */
-#define MODEL_APPRENTICE_MALE 0x73
-#define MODEL_APPRENTICE_FEMALE 0x74
-#define MODEL_CYCLIST 0x75
-#define MODEL_TV_CREW 0x76
-#define MODEL_MONSIEUR_KIZUNA 0x77
-#define MODEL_SERENA_MANNEQUIN 0x78
-#define MODEL_SERENA_MULTIPLAYER 0x79
-#define MODEL_WORK_REF_00 0x7a /* variable-reference slots */
-#define MODEL_WORK_REF_01 0x7b
-#define MODEL_WORK_REF_02 0x7c
-#define MODEL_WORK_REF_03 0x7d
-#define MODEL_WORK_REF_04 0x7e
-#define MODEL_WORK_REF_05 0x7f
-#define MODEL_WORK_REF_06 0x80
-#define MODEL_WORK_REF_07 0x81
-#define MODEL_WORK_REF_08 0x82
-#define MODEL_WORK_REF_09 0x83
-#define MODEL_WORK_REF_10 0x84
-#define MODEL_WORK_REF_11 0x85
-#define MODEL_WORK_REF_12 0x86
-#define MODEL_WORK_REF_13 0x87
-#define MODEL_WORK_REF_14 0x88
-#define MODEL_WORK_REF_15 0x89
-#define MODEL_STOPPER 0x8a
-#define MODEL_MYSTERIOUS_MAN_UNMASKED 0x8b
-#define MODEL_MYSTERIOUS_WOMAN_UNMASKED 0x8c
-#define MODEL_TRAVELER_FEMALE_STANDING 0x8d
-#define MODEL_TRAVELER_FEMALE_SITTING 0x8e
-#define MODEL_TOURIST_MALE_STANDING 0x8f
-#define MODEL_TOURIST_FEMALE_STANDING 0x90
-#define MODEL_TOURIST_MALE_SITTING 0x91
-#define MODEL_TOURIST_FEMALE_SITTING 0x92
-#define MODEL_RIVAL_MALE 0x93
-#define MODEL_RIVAL_FEMALE 0x94
-#define MODEL_3D_DUNGEON_ENEMY 0x95
-#define MODEL_CALEM_MANNEQUIN 0x96
-#define MODEL_MEGA_EVOLUTION_GURU 0x97
-#define MODEL_GAME_DIRECTOR_CAMEO 0x98
-#define MODEL_TALL_MAN 0x99
-#define MODEL_VIOLAS_SISTER 0x9a /* Alexa */
-#define MODEL_CLEMONTS_SISTER 0x9b /* Bonnie */
-#define MODEL_LYSANDRE_ALT 0x9c
-#define MODEL_C02_NPC_GIRL 0x9d
-#define MODEL_C02_NPC_GIRL_EX 0x9e
-#define MODEL_RIVAL_MALE_OMEGA 0x9f
-#define MODEL_RIVAL_FEMALE_OMEGA 0xa0
-#define MODEL_PGL_DELIVERY_MAN 0xa1
-#define MODEL_TWINS_2 0xa2
-#define MODEL_SWIMMER_MALE_2 0xa3
-#define MODEL_SWIMMER_FEMALE_2 0xa4
-#define MODEL_FISHERMAN_2 0xa5
-#define MODEL_MIDDLE_AGED_MAN_2 0xa6
-#define MODEL_FLUTE_PLAYER 0xa7 /* Black Belt with flute */
-#define MODEL_GENTLEMAN_WITH_BOOK 0xa8
-#define MODEL_WOMAN_WITH_BOOK 0xa9
-#define MODEL_RESERVE_CHAR_4 0xaa
+#include <types.h>
 
-/* ---------------------------------------------------------
- CHARACTER MODELS (Ruby/Sapphire -> ORAS remake)
- --------------------------------------------------------- */
-#define MODEL_MAY 0xab
-#define MODEL_BRENDAN 0xac
-#define MODEL_MAY_CONTEST 0xad
-#define MODEL_BRENDAN_CONTEST 0xae
-#define MODEL_MAY_MAGMA_SUIT 0xaf
-#define MODEL_MAY_AQUA_SUIT 0xb0
-#define MODEL_BRENDAN_MAGMA_SUIT 0xb1
-#define MODEL_BRENDAN_AQUA_SUIT 0xb2
-#define MODEL_PROFESSOR_BIRCH 0xb3
-#define MODEL_RIVAL_ORAS 0xb4 /* Brendan/May, opposite gender */
-#define MODEL_RIVAL_ORAS_WITH_BAG 0xb5
-#define MODEL_STEVEN_STONE 0xb6
-#define MODEL_SIDNEY 0xb7 /* Elite Four - Dark */
-#define MODEL_PHOEBE 0xb8 /* Elite Four - Ghost */
-#define MODEL_GLACIA 0xb9 /* Elite Four - Ice */
-#define MODEL_DRAKE 0xba /* Elite Four - Dragon */
-#define MODEL_ROXANNE 0xbb
-#define MODEL_BRAWLY 0xbc
-#define MODEL_WATTSON 0xbd
-#define MODEL_FLANNERY 0xbe
-#define MODEL_NORMAN 0xbf
-#define MODEL_WINONA 0xc0
-#define MODEL_TATE 0xc1
-#define MODEL_LIZA 0xc2
-#define MODEL_JUAN 0xc3
-#define MODEL_MAXIE 0xc4
-#define MODEL_TABITHA 0xc5
-#define MODEL_COURTNEY 0xc6
-#define MODEL_TEAM_MAGMA_GRUNT_MALE 0xc7
-#define MODEL_TEAM_MAGMA_GRUNT_FEMALE 0xc8
-#define MODEL_ARCHIE 0xc9
-#define MODEL_MATT 0xca
-#define MODEL_SHELLY 0xcb
-#define MODEL_TEAM_AQUA_GRUNT_MALE 0xcc
-#define MODEL_TEAM_AQUA_GRUNT_FEMALE 0xcd
-#define MODEL_BATTLE_RESORT_BOSS_GREEN 0xce
-#define MODEL_BATTLE_RESORT_BOSS_RED 0xcf
-#define MODEL_BATTLE_RESORT_BOSS_BLUE 0xd0
-#define MODEL_BATTLE_RESORT_BOSS_YELLOW 0xd1
-#define MODEL_CONTEST_NPC 0xd2
-#define MODEL_SECRET_BASE_NPC 0xd3
-#define MODEL_ZINNIA 0xd4
-#define MODEL_ZINNIA_MAGMA 0xd5
-#define MODEL_ZINNIA_AQUA 0xd6
-#define MODEL_LOOKER_ORAS 0xd7
-#define MODEL_MAIN_STORY_NPC_1 0xd8
-#define MODEL_MAIN_STORY_NPC_2 0xd9
-#define MODEL_YOUNGSTER_SHORTS 0xda
-#define MODEL_LASS_MINISKIRT 0xdb
-#define MODEL_BUG_CATCHER 0xdc
-#define MODEL_SCHOOLKID_MALE 0xdd
-#define MODEL_SCHOOLKID_FEMALE 0xde
-#define MODEL_CAMPER 0xdf
-#define MODEL_PICNICKER 0xe0
-#define MODEL_RICH_BOY_ORAS 0xe1
-#define MODEL_RICH_GIRL_ORAS 0xe2
-#define MODEL_TUBE_KID_MALE 0xe3 /* inflatable ring */
-#define MODEL_TUBE_KID_FEMALE 0xe4
-#define MODEL_SWIMMER_MALE_ORAS 0xe5
-#define MODEL_SWIMMER_FEMALE_ORAS 0xe6
-#define MODEL_GENTLEMAN_ORAS 0xe7
-#define MODEL_SAILOR 0xe8
-#define MODEL_HIKER_ORAS 0xe9
-#define MODEL_POKEMON_BREEDER_MALE_ORAS 0xea
-#define MODEL_POKEMON_BREEDER_FEMALE_ORAS 0xeb
-#define MODEL_BLACK_BELT_ORAS 0xec
-#define MODEL_BATTLE_GIRL_ORAS 0xed
-#define MODEL_POKEMON_COLLECTOR 0xee
-#define MODEL_FISHERMAN_ORAS 0xef
-#define MODEL_MONSTER_MANIAC 0xf0
-#define MODEL_BUG_MANIAC 0xf1
-#define MODEL_RUIN_MANIAC 0xf2
-#define MODEL_HEX_MANIAC_ORAS 0xf3
-#define MODEL_PSYCHIC_MALE_ORAS 0xf4
-#define MODEL_NINJA_BOY 0xf5
-#define MODEL_CAMPFIRE_NPC 0xf6
-#define MODEL_BIRD_KEEPER 0xf7
-#define MODEL_DRAGON_TAMER 0xf8
-#define MODEL_GUITARIST 0xf9
-#define MODEL_POKEMON_RANGER_MALE_ORAS 0xfa
-#define MODEL_POKEMON_RANGER_FEMALE_ORAS 0xfb
-#define MODEL_BEAUTY_ORAS 0xfc
-#define MODEL_PARASOL_LADY 0xfd
-#define MODEL_AROMA_LADY 0xfe
-#define MODEL_POKEFAN_MALE_ORAS 0xff
-#define MODEL_POKEFAN_FEMALE_ORAS 0x100
-#define MODEL_TRIATHLETE_RUNNER 0x101
-#define MODEL_TRIATHLETE_CYCLIST 0x102
-#define MODEL_TRIATHLETE_SWIMMER 0x103
-#define MODEL_ACE_TRAINER_MALE_ORAS 0x104
-#define MODEL_ACE_TRAINER_FEMALE_ORAS 0x105
-#define MODEL_VETERAN_MALE_ORAS 0x106
-#define MODEL_VETERAN_FEMALE_ORAS 0x107
-#define MODEL_REPORTER 0x108
-#define MODEL_CAMERAMAN_ORAS 0x109
-#define MODEL_TWINS_1_ORAS 0x10a
-#define MODEL_TWINS_2_ORAS 0x10b
-#define MODEL_LOVEY_DOVEY_COUPLE_MALE 0x10c
-#define MODEL_LOVEY_DOVEY_COUPLE_FEMALE 0x10d
-#define MODEL_SENIOR 0x10e /* sempai */
-#define MODEL_JUNIOR 0x10f /* kohai */
-#define MODEL_FAIRY_TALE_GIRL_ORAS 0x110
-#define MODEL_SURFING_ELITE_MALE_ORAS 0x111
-#define MODEL_SURFING_ELITE_FEMALE_ORAS 0x112
-#define MODEL_BACKPACKER_ORAS 0x113
-#define MODEL_SCARY_MAN 0x114
-#define MODEL_SCARY_WOMAN 0x115
-#define MODEL_DIVER_MALE 0x116
-#define MODEL_DIVER_FEMALE 0x117
-#define MODEL_MOM_ORAS 0x118
-#define MODEL_WALLY 0x119
-#define MODEL_MR_STONE 0x11a /* Steven's father */
-#define MODEL_OLD_MAN_HAGI 0x11b
-#define MODEL_TODDLER_BOY_ORAS 0x11c
-#define MODEL_TODDLER_GIRL_ORAS 0x11d
-#define MODEL_OLD_MAN_KIMONO 0x11e
-#define MODEL_OLD_WOMAN_KIMONO 0x11f
-#define MODEL_MIDDLE_AGED_MAN_BALD 0x120
-#define MODEL_MIDDLE_AGED_MAN_STOUT 0x121
-#define MODEL_TRENDY_OLD_MAN 0x122
-#define MODEL_FAIRY_TALE_OLD_MAN 0x123
-#define MODEL_SINGER_SONGWRITER_OLD_MAN 0x124
-#define MODEL_ITEM_TRADER_OLD_MAN 0x125
-#define MODEL_LEGENDARY_OLD_MAN 0x126
-#define MODEL_MECHANICAL_KING 0x127 /* karakuri daiou */
-#define MODEL_MIDDLE_AGED_WOMAN 0x128
-#define MODEL_SUNGLASSES_GUY 0x129
-#define MODEL_PC_LADY 0x12a
-#define MODEL_SHOP_CLERK_ORAS 0x12b
-#define MODEL_RECEPTIONIST_ORAS 0x12c
-#define MODEL_GYM_GUIDE_DANPEI_ORAS 0x12d
-#define MODEL_DELIVERY_MAN_1 0x12e
-#define MODEL_DELIVERY_MAN_2 0x12f
-#define MODEL_CONTEST_MC 0x130
-#define MODEL_YOUNG_GIRL_ORAS 0x131
-#define MODEL_YOUNG_MAN_ORAS 0x132
-#define MODEL_RESEARCHER_MALE_ORAS 0x133
-#define MODEL_MONSIEUR_KIZUNA_ORAS 0x134
-#define MODEL_CAPTAIN_KUSUNOKI 0x135
-#define MODEL_PROFESSOR_SORAISHI 0x136
-#define MODEL_FURISODE_FLOWER_ORAS 0x137
-#define MODEL_STOPPER_3 0x138
-#define MODEL_GAME_DIRECTOR_CAMEO_ORAS 0x139
-#define MODEL_SUPPORT_MAY 0x13a /* multiplayer helper */
-#define MODEL_SUPPORT_BRENDAN 0x13b
-#define MODEL_SUPPORT_MAY_BIKE 0x13c
-#define MODEL_SUPPORT_BRENDAN_BIKE 0x13d
-#define MODEL_PROFESSOR_BIRCH_PANICKED 0x13e
-#define MODEL_NORMAN_SHOES 0x13f
-#define MODEL_OFFICE_WORKER 0x140
-#define MODEL_BOY_WITH_3DS 0x141
-#define MODEL_GENERIC_WOMAN 0x142
-#define MODEL_YOUNGSTER_SHORTS_BAREFOOT 0x143
-#define MODEL_LASS_MINISKIRT_BAREFOOT 0x144
-#define MODEL_SCHOOLKID_MALE_BAREFOOT 0x145
-#define MODEL_SCHOOLKID_FEMALE_BAREFOOT 0x146
-#define MODEL_HIKER_BAREFOOT 0x147
-#define MODEL_AROMA_LADY_BAREFOOT 0x148
-#define MODEL_ACE_TRAINER_MALE_BAREFOOT 0x149
-#define MODEL_ACE_TRAINER_FEMALE_BAREFOOT 0x14a
-#define MODEL_VETERAN_MALE_BAREFOOT 0x14b
-#define MODEL_VETERAN_FEMALE_BAREFOOT 0x14c
-#define MODEL_SCARY_MAN_BAREFOOT 0x14d
-#define MODEL_SCARY_WOMAN_BAREFOOT 0x14e
-#define MODEL_OLD_MAN_HAGI_BAREFOOT 0x14f
-#define MODEL_TODDLER_BOY_BAREFOOT 0x150
-#define MODEL_TODDLER_GIRL_BAREFOOT 0x151
-#define MODEL_OLD_MAN_KIMONO_BAREFOOT 0x152
-#define MODEL_OLD_WOMAN_KIMONO_BAREFOOT 0x153
-#define MODEL_MIDDLE_AGED_MAN_BALD_BAREFOOT 0x154
-#define MODEL_MIDDLE_AGED_MAN_STOUT_BAREFOOT 0x155
-#define MODEL_MIDDLE_AGED_WOMAN_BAREFOOT 0x156
-#define MODEL_YOUNG_MAN_BAREFOOT 0x157
-#define MODEL_FISHERMAN_2_ORAS 0x158
-#define MODEL_SWIMMER_FEMALE_2_ORAS 0x159
-#define MODEL_SWIMMER_MALE_2_ORAS 0x15a
-#define MODEL_TUBE_KID_MALE_2 0x15b
-#define MODEL_TUBE_KID_FEMALE_2 0x15c
-#define MODEL_BRAWLY_ALT_POSE 0x15d
-#define MODEL_PHOEBE_ALT_POSE 0x15e
-#define MODEL_WINONA_ALT_POSE 0x15f
-#define MODEL_SIDNEY_ALT_POSE 0x160
-#define MODEL_MAYUMI 0x161
+enum class ModelID : u16 {
+  /* ---------------------------------------------------------
+  CHARACTER MODELS (X/Y base engine)
+  --------------------------------------------------------- */
+  kNone = 0x0, /* No model drawn */
+  kSerena = 0x1, /* Female protagonist (X/Y) */
+  kCalem = 0x2, /* Male protagonist (X/Y) */
+  kShauna = 0x3, /* Friend B */
+  kTierno = 0x4, /* Friend C */
+  kTrevor = 0x5, /* Friend D */
+  kProfessorSycamore = 0x6,
+  kMom = 0x7,
+  kMysteriousWoman = 0x8, /* Masked woman */
+  kMysteriousMan = 0x9, /* Masked man */
+  kDiantha = 0xa, /* Champion */
+  kWikstrom = 0xb, /* Elite Four - Steel */
+  kMalva = 0xc, /* Elite Four - Fire */
+  kDrasna = 0xd, /* Elite Four - Dragon */
+  kSiebold = 0xe, /* Elite Four - Water */
+  kViola = 0xf, /* Gym Leader - Bug */
+  kGrant = 0x10, /* Gym Leader - Rock */
+  kKorrina = 0x11, /* Gym Leader - Fighting */
+  kRamos = 0x12, /* Gym Leader - Grass */
+  kClemont = 0x13, /* Gym Leader - Electric */
+  kValerie = 0x14, /* Gym Leader - Fairy */
+  kOlympia = 0x15, /* Gym Leader - Psychic */
+  kWulfric = 0x16, /* Gym Leader - Ice */
+  kLysandre = 0x17, /* Team Flare boss */
+  kTeamFlareAdminMale = 0x18,
+  kTeamFlareAdminFemale = 0x19,
+  kTeamFlareGruntMale = 0x1a,
+  kTeamFlareGruntFemale = 0x1b,
+  kTeamFlareScientistX = 0x1c,
+  kTeamFlareScientistM = 0x1d,
+  kTeamFlareScientistC = 0x1e,
+  kTeamFlareScientistB = 0x1f,
+  kTeamFlareScientistA = 0x20,
+  kAz = 0x21,
+  kBattleChateauNobleA = 0x22,
+  kBattleChateauNobleB = 0x23,
+  kBattleChateauNobleC = 0x24,
+  kBattleChateauNobleD = 0x25,
+  kLooker = 0x26, /* "Handsome" alias */
+  kLass = 0x27,
+  kToddlerGirl = 0x28,
+  kYoungster = 0x29,
+  kToddlerBoy = 0x2a,
+  kYoungGirl = 0x2b,
+  kSchoolgirl = 0x2c,
+  kYoungBoy = 0x2d,
+  kYoungLady = 0x2e, /* rich girl */
+  kWoman = 0x2f,
+  kSchoolboy = 0x30,
+  kYoungMan = 0x31,
+  kRichBoy = 0x32,
+  kTouristMale = 0x33,
+  kTouristFemale = 0x34,
+  kBackpacker = 0x35,
+  kSocialite = 0x36, /* Madame */
+  kGentleman = 0x37,
+  kBeauty = 0x38,
+  kPunkGuy = 0x39, /* skinhead */
+  kPunkGirl = 0x3a,
+  kPcClerk = 0x3b, /* PC box counter staff */
+  kShopClerk = 0x3c,
+  kGymGuideDanpei = 0x3d,
+  kReceptionist = 0x3e,
+  kBoutiqueClerk = 0x3f,
+  kDeliveryMan = 0x40,
+  kHairdresser = 0x41,
+  kPhotographer = 0x42,
+  kLittleBoyShorts = 0x43,
+  kPokefanMale = 0x44,
+  kPokefanFemale = 0x45,
+  kTwins = 0x46,
+  kFashionista = 0x47, /* miniskirt */
+  kShopOwner = 0x48,
+  kWaitress = 0x49,
+  kBattleGirl = 0x4a,
+  kRollerSkaterFemale = 0x4b,
+  kRollerSkaterMale = 0x4c,
+  kFisherman = 0x4d,
+  kRisingStarFemale = 0x4e,
+  kAceTrainerFemale = 0x4f,
+  kVeteranFemale = 0x50,
+  kSwimmerMale = 0x51,
+  kSwimmerFemale = 0x52,
+  kArtistMale = 0x53,
+  kArtistFemale = 0x54,
+  kTravelerFemale = 0x55,
+  kPokemonBreederMale = 0x56,
+  kPokemonBreederFemale = 0x57,
+  kPsychicMale = 0x58,
+  kRisingStarMale = 0x59,
+  kAceTrainerMale = 0x5a,
+  kVeteranMale = 0x5b,
+  kPokemonRangerMale = 0x5c,
+  kPokemonRangerFemale = 0x5d,
+  kChef = 0x5e,
+  kResearcherMale = 0x5f,
+  kResearcherFemale = 0x60,
+  kWorkerA = 0x61,
+  kWorkerB = 0x62,
+  kHexManiac = 0x63,
+  kFairyTaleGirl = 0x64,
+  kButler = 0x65,
+  kMaid = 0x66,
+  kGardener = 0x67,
+  kFurisodeWhite = 0x68,
+  kFurisodeBlack = 0x69,
+  kFurisodeFlower = 0x6a,
+  kFurisodeOcean = 0x6b,
+  kSkyTrainerMale = 0x6c,
+  kSkyTrainerFemale = 0x6d,
+  kSurfingEliteMale = 0x6e,
+  kSurfingEliteFemale = 0x6f,
+  kHiker = 0x70,
+  kBlackBelt = 0x71,
+  kWaiter = 0x72, /* garcon */
+  kApprenticeMale = 0x73,
+  kApprenticeFemale = 0x74,
+  kCyclist = 0x75,
+  kTvCrew = 0x76,
+  kMonsieurKizuna = 0x77,
+  kSerenaMannequin = 0x78,
+  kSerenaMultiplayer = 0x79,
+  kWorkRef00 = 0x7a, /* variable-reference slots */
+  kWorkRef01 = 0x7b,
+  kWorkRef02 = 0x7c,
+  kWorkRef03 = 0x7d,
+  kWorkRef04 = 0x7e,
+  kWorkRef05 = 0x7f,
+  kWorkRef06 = 0x80,
+  kWorkRef07 = 0x81,
+  kWorkRef08 = 0x82,
+  kWorkRef09 = 0x83,
+  kWorkRef10 = 0x84,
+  kWorkRef11 = 0x85,
+  kWorkRef12 = 0x86,
+  kWorkRef13 = 0x87,
+  kWorkRef14 = 0x88,
+  kWorkRef15 = 0x89,
+  kStopper = 0x8a,
+  kMysteriousManUnmasked = 0x8b,
+  kMysteriousWomanUnmasked = 0x8c,
+  kTravelerFemaleStanding = 0x8d,
+  kTravelerFemaleSitting = 0x8e,
+  kTouristMaleStanding = 0x8f,
+  kTouristFemaleStanding = 0x90,
+  kTouristMaleSitting = 0x91,
+  kTouristFemaleSitting = 0x92,
+  kRivalMale = 0x93,
+  kRivalFemale = 0x94,
+  k3dDungeonEnemy = 0x95,
+  kCalemMannequin = 0x96,
+  kMegaEvolutionGuru = 0x97,
+  kGameDirectorCameo = 0x98,
+  kTallMan = 0x99,
+  kViolasSister = 0x9a, /* Alexa */
+  kClemontsSister = 0x9b, /* Bonnie */
+  kLysandreAlt = 0x9c,
+  kC02NpcGirl = 0x9d,
+  kC02NpcGirlEx = 0x9e,
+  kRivalMaleOmega = 0x9f,
+  kRivalFemaleOmega = 0xa0,
+  kPglDeliveryMan = 0xa1,
+  kTwins2 = 0xa2,
+  kSwimmerMale2 = 0xa3,
+  kSwimmerFemale2 = 0xa4,
+  kFisherman2 = 0xa5,
+  kMiddleAgedMan2 = 0xa6,
+  kFlutePlayer = 0xa7, /* Black Belt with flute */
+  kGentlemanWithBook = 0xa8,
+  kWomanWithBook = 0xa9,
+  kReserveChar4 = 0xaa,
 
-/* ---------------------------------------------------------
- OBJECTS / ITEMS / SCENERY
- --------------------------------------------------------- */
-#define MODEL_POKEBALL 0x162
-#define MODEL_POKEBALL_RARE 0x163
-#define MODEL_GRASS_RUSTLE_EFFECT 0x164
-#define MODEL_WATER_SPLASH_EFFECT 0x165
-#define MODEL_DUST_CLOUD_EFFECT 0x166
-#define MODEL_FLYING_POKEMON_EFFECT 0x167
-#define MODEL_CEILING_POKEMON_EFFECT 0x168
-#define MODEL_LEAF_EFFECT 0x169
-#define MODEL_SNOW_EFFECT 0x16a
-#define MODEL_STRENGTH_BOULDER 0x16b
-#define MODEL_STRENGTH_BOULDER_LARGE 0x16c
-#define MODEL_CUT_TREE 0x16d
-#define MODEL_ROCK_SMASH_BOULDER 0x16e
-#define MODEL_RHYHORN_BREAKABLE_ROCK 0x16f
-#define MODEL_BERRY_TREE 0x170
-#define MODEL_FOSSIL_1 0x171
-#define MODEL_FOSSIL_2 0x172
-#define MODEL_BERRY_TREE_02 0x173
-#define MODEL_BERRY_TREE_03 0x174
-#define MODEL_BERRY_TREE_04 0x175
-#define MODEL_BERRY_TREE_05 0x176
-#define MODEL_BERRY_TREE_06 0x177
-#define MODEL_BERRY_TREE_07 0x178
-#define MODEL_BERRY_TREE_08 0x179
-#define MODEL_BERRY_TREE_09 0x17a
-#define MODEL_BERRY_TREE_10 0x17b
-#define MODEL_BERRY_TREE_11 0x17c
-#define MODEL_BERRY_TREE_12 0x17d
-#define MODEL_BERRY_TREE_13 0x17e
-#define MODEL_BERRY_TREE_14 0x17f
-#define MODEL_BERRY_TREE_15 0x180
-#define MODEL_BERRY_TREE_16 0x181
-#define MODEL_BERRY_TREE_17 0x182
-#define MODEL_BERRY_TREE_18 0x183
-#define MODEL_BERRY_TREE_19 0x184
-#define MODEL_BERRY_TREE_20 0x185
-#define MODEL_BERRY_TREE_21 0x186
-#define MODEL_BERRY_TREE_22 0x187
-#define MODEL_BERRY_TREE_23 0x188
-#define MODEL_BERRY_TREE_24 0x189
-#define MODEL_BERRY_TREE_25 0x18a
-#define MODEL_BERRY_TREE_26 0x18b
-#define MODEL_BERRY_TREE_27 0x18c
-#define MODEL_BERRY_TREE_28 0x18d
-#define MODEL_BERRY_TREE_29 0x18e
-#define MODEL_BERRY_TREE_30 0x18f
-#define MODEL_BERRY_TREE_31 0x190
-#define MODEL_BERRY_TREE_32 0x191
-#define MODEL_BERRY_TREE_33 0x192
-#define MODEL_BERRY_TREE_34 0x193
-#define MODEL_BERRY_TREE_35 0x194
-#define MODEL_BERRY_TREE_36 0x195
-#define MODEL_ROCK_SMASH_WALL 0x196
-#define MODEL_MAMOSWINE_BREAKABLE_SNOW 0x197
-#define MODEL_KALOS_DEX_AWARD 0x198
-#define MODEL_NATIONAL_DEX_AWARD 0x199
-#define MODEL_XERNEAS_TREE 0x19a
-#define MODEL_YVELTAL_COCOON 0x19b
-#define MODEL_PLAINS_DEX_AWARD 0x19c
-#define MODEL_COASTAL_DEX_AWARD 0x19d
-#define MODEL_MOUNTAIN_DEX_AWARD 0x19e
-#define MODEL_SPARKLE_EFFECT 0x19f
-#define MODEL_TRAFFIC_CONE 0x1a0
-#define MODEL_SUNGLASSES_PROP 0x1a1
-#define MODEL_FOOD_CLOCHE 0x1a2
-#define MODEL_HOTEL_TABLE 0x1a3
-#define MODEL_SPARKLE_EFFECT_2 0x1a4
-#define MODEL_POKEMON_FLUTE 0x1a5
-#define MODEL_COFFEE_CUP 0x1a6
-#define MODEL_BOOK 0x1a7
-#define MODEL_RESERVE_OBJECT_4 0x1a8
-#define MODEL_HOENN_DEX_AWARD 0x1a9
-#define MODEL_NATIONAL_DEX_AWARD_ORAS 0x1aa
-#define MODEL_PROFESSOR_BIRCH_BAG 0x1ab
-#define MODEL_AZURILL_DOLL 0x1ac
-#define MODEL_SKITTY_DOLL 0x1ad
-#define MODEL_SWABLU_DOLL 0x1ae
-#define MODEL_LAPRAS_DOLL 0x1af
-#define MODEL_SNORLAX_DOLL 0x1b0
-#define MODEL_BLUE_ORB 0x1b1
-#define MODEL_RED_ORB 0x1b2
-#define MODEL_FOSSIL_ORAS 0x1b3
-#define MODEL_KEYSTONE_TABLET 0x1b4
-#define MODEL_MONOLITH 0x1b5
-#define MODEL_GENERIC_FLYING_BIRD 0x1b6
-#define MODEL_HOOPAS_RING 0x1b7
-#define MODEL_MAGMA_SUIT_PROP 0x1b8
-#define MODEL_AQUA_SUIT_PROP 0x1b9
-#define MODEL_TIDE_POOL_WATER 0x1ba
-#define MODEL_TIDE_POOL_SHELL 0x1bb
-#define MODEL_NATURE_STOPPER 0x1bc
-#define MODEL_STEVENS_LETTER 0x1bd
+  /* ---------------------------------------------------------
+  CHARACTER MODELS (Ruby/Sapphire -> ORAS remake)
+  --------------------------------------------------------- */
+  kMay = 0xab,
+  kBrendan = 0xac,
+  kMayContest = 0xad,
+  kBrendanContest = 0xae,
+  kMayMagmaSuit = 0xaf,
+  kMayAquaSuit = 0xb0,
+  kBrendanMagmaSuit = 0xb1,
+  kBrendanAquaSuit = 0xb2,
+  kProfessorBirch = 0xb3,
+  kRivalOras = 0xb4, /* Brendan/May, opposite gender */
+  kRivalOrasWithBag = 0xb5,
+  kStevenStone = 0xb6,
+  kSidney = 0xb7, /* Elite Four - Dark */
+  kPhoebe = 0xb8, /* Elite Four - Ghost */
+  kGlacia = 0xb9, /* Elite Four - Ice */
+  kDrake = 0xba, /* Elite Four - Dragon */
+  kRoxanne = 0xbb,
+  kBrawly = 0xbc,
+  kWattson = 0xbd,
+  kFlannery = 0xbe,
+  kNorman = 0xbf,
+  kWinona = 0xc0,
+  kTate = 0xc1,
+  kLiza = 0xc2,
+  kJuan = 0xc3,
+  kMaxie = 0xc4,
+  kTabitha = 0xc5,
+  kCourtney = 0xc6,
+  kTeamMagmaGruntMale = 0xc7,
+  kTeamMagmaGruntFemale = 0xc8,
+  kArchie = 0xc9,
+  kMatt = 0xca,
+  kShelly = 0xcb,
+  kTeamAquaGruntMale = 0xcc,
+  kTeamAquaGruntFemale = 0xcd,
+  kBattleResortBossGreen = 0xce,
+  kBattleResortBossRed = 0xcf,
+  kBattleResortBossBlue = 0xd0,
+  kBattleResortBossYellow = 0xd1,
+  kContestNpc = 0xd2,
+  kSecretBaseNpc = 0xd3,
+  kZinnia = 0xd4,
+  kZinniaMagma = 0xd5,
+  kZinniaAqua = 0xd6,
+  kLookerOras = 0xd7,
+  kMainStoryNpc1 = 0xd8,
+  kMainStoryNpc2 = 0xd9,
+  kYoungsterShorts = 0xda,
+  kLassMiniskirt = 0xdb,
+  kBugCatcher = 0xdc,
+  kSchoolkidMale = 0xdd,
+  kSchoolkidFemale = 0xde,
+  kCamper = 0xdf,
+  kPicnicker = 0xe0,
+  kRichBoyOras = 0xe1,
+  kRichGirlOras = 0xe2,
+  kTubeKidMale = 0xe3, /* inflatable ring */
+  kTubeKidFemale = 0xe4,
+  kSwimmerMaleOras = 0xe5,
+  kSwimmerFemaleOras = 0xe6,
+  kGentlemanOras = 0xe7,
+  kSailor = 0xe8,
+  kHikerOras = 0xe9,
+  kPokemonBreederMaleOras = 0xea,
+  kPokemonBreederFemaleOras = 0xeb,
+  kBlackBeltOras = 0xec,
+  kBattleGirlOras = 0xed,
+  kPokemonCollector = 0xee,
+  kFishermanOras = 0xef,
+  kMonsterManiac = 0xf0,
+  kBugManiac = 0xf1,
+  kRuinManiac = 0xf2,
+  kHexManiacOras = 0xf3,
+  kPsychicMaleOras = 0xf4,
+  kNinjaBoy = 0xf5,
+  kCampfireNpc = 0xf6,
+  kBirdKeeper = 0xf7,
+  kDragonTamer = 0xf8,
+  kGuitarist = 0xf9,
+  kPokemonRangerMaleOras = 0xfa,
+  kPokemonRangerFemaleOras = 0xfb,
+  kBeautyOras = 0xfc,
+  kParasolLady = 0xfd,
+  kAromaLady = 0xfe,
+  kPokefanMaleOras = 0xff,
+  kPokefanFemaleOras = 0x100,
+  kTriathleteRunner = 0x101,
+  kTriathleteCyclist = 0x102,
+  kTriathleteSwimmer = 0x103,
+  kAceTrainerMaleOras = 0x104,
+  kAceTrainerFemaleOras = 0x105,
+  kVeteranMaleOras = 0x106,
+  kVeteranFemaleOras = 0x107,
+  kReporter = 0x108,
+  kCameramanOras = 0x109,
+  kTwins1Oras = 0x10a,
+  kTwins2Oras = 0x10b,
+  kLoveyDoveyCoupleMale = 0x10c,
+  kLoveyDoveyCoupleFemale = 0x10d,
+  kSenior = 0x10e, /* sempai */
+  kJunior = 0x10f, /* kohai */
+  kFairyTaleGirlOras = 0x110,
+  kSurfingEliteMaleOras = 0x111,
+  kSurfingEliteFemaleOras = 0x112,
+  kBackpackerOras = 0x113,
+  kScaryMan = 0x114,
+  kScaryWoman = 0x115,
+  kDiverMale = 0x116,
+  kDiverFemale = 0x117,
+  kMomOras = 0x118,
+  kWally = 0x119,
+  kMrStone = 0x11a, /* Steven's father */
+  kOldManHagi = 0x11b,
+  kToddlerBoyOras = 0x11c,
+  kToddlerGirlOras = 0x11d,
+  kOldManKimono = 0x11e,
+  kOldWomanKimono = 0x11f,
+  kMiddleAgedManBald = 0x120,
+  kMiddleAgedManStout = 0x121,
+  kTrendyOldMan = 0x122,
+  kFairyTaleOldMan = 0x123,
+  kSingerSongwriterOldMan = 0x124,
+  kItemTraderOldMan = 0x125,
+  kLegendaryOldMan = 0x126,
+  kMechanicalKing = 0x127, /* karakuri daiou */
+  kMiddleAgedWoman = 0x128,
+  kSunglassesGuy = 0x129,
+  kPcLady = 0x12a,
+  kShopClerkOras = 0x12b,
+  kReceptionistOras = 0x12c,
+  kGymGuideDanpeiOras = 0x12d,
+  kDeliveryMan1 = 0x12e,
+  kDeliveryMan2 = 0x12f,
+  kContestMc = 0x130,
+  kYoungGirlOras = 0x131,
+  kYoungManOras = 0x132,
+  kResearcherMaleOras = 0x133,
+  kMonsieurKizunaOras = 0x134,
+  kCaptainKusunoki = 0x135,
+  kProfessorSoraishi = 0x136,
+  kFurisodeFlowerOras = 0x137,
+  kStopper3 = 0x138,
+  kGameDirectorCameoOras = 0x139,
+  kSupportMay = 0x13a, /* multiplayer helper */
+  kSupportBrendan = 0x13b,
+  kSupportMayBike = 0x13c,
+  kSupportBrendanBike = 0x13d,
+  kProfessorBirchPanicked = 0x13e,
+  kNormanShoes = 0x13f,
+  kOfficeWorker = 0x140,
+  kBoyWith3ds = 0x141,
+  kGenericWoman = 0x142,
+  kYoungsterShortsBarefoot = 0x143,
+  kLassMiniskirtBarefoot = 0x144,
+  kSchoolkidMaleBarefoot = 0x145,
+  kSchoolkidFemaleBarefoot = 0x146,
+  kHikerBarefoot = 0x147,
+  kAromaLadyBarefoot = 0x148,
+  kAceTrainerMaleBarefoot = 0x149,
+  kAceTrainerFemaleBarefoot = 0x14a,
+  kVeteranMaleBarefoot = 0x14b,
+  kVeteranFemaleBarefoot = 0x14c,
+  kScaryManBarefoot = 0x14d,
+  kScaryWomanBarefoot = 0x14e,
+  kOldManHagiBarefoot = 0x14f,
+  kToddlerBoyBarefoot = 0x150,
+  kToddlerGirlBarefoot = 0x151,
+  kOldManKimonoBarefoot = 0x152,
+  kOldWomanKimonoBarefoot = 0x153,
+  kMiddleAgedManBaldBarefoot = 0x154,
+  kMiddleAgedManStoutBarefoot = 0x155,
+  kMiddleAgedWomanBarefoot = 0x156,
+  kYoungManBarefoot = 0x157,
+  kFisherman2Oras = 0x158,
+  kSwimmerFemale2Oras = 0x159,
+  kSwimmerMale2Oras = 0x15a,
+  kTubeKidMale2 = 0x15b,
+  kTubeKidFemale2 = 0x15c,
+  kBrawlyAltPose = 0x15d,
+  kPhoebeAltPose = 0x15e,
+  kWinonaAltPose = 0x15f,
+  kSidneyAltPose = 0x160,
+  kMayumi = 0x161,
 
-/* ---------------------------------------------------------
- COMPANION / RIDE POKEMON
- --------------------------------------------------------- */
-#define MODEL_PUMPKABOO_STAGE1 0x1be
-#define MODEL_DIGGERSBY_STAGE2 0x1bf
-#define MODEL_PACKAGE_POKEMON_ZYGARDE 0x1c0
-#define MODEL_LITLEO_STAGE1 0x1c1
-#define MODEL_GOGOAT_STAGE2 0x1c2
-#define MODEL_UNUSED_1 0x1c3
-#define MODEL_SLEEPING_RHYHORN 0x1c4
-#define MODEL_MAMOSWINE 0x1c5
-#define MODEL_RIDEABLE_GOGOAT 0x1c6
-#define MODEL_LUCARIO 0x1c7
-#define MODEL_FURFROU_NATURAL 0x1c8
-#define MODEL_FLETCHLING 0x1c9
-#define MODEL_SNORLAX 0x1ca
-#define MODEL_ESPURR 0x1cb
-#define MODEL_LAPRAS 0x1cc
-#define MODEL_RHYHORN_SPECIAL 0x1cd
-#define MODEL_ABOMASNOW 0x1ce
-#define MODEL_UNRIDEABLE_GOAT 0x1cf
-#define MODEL_UNUSED_2 0x1d0
-#define MODEL_AZUMARILL 0x1d1
-#define MODEL_RHYHORN_TUTORIAL 0x1d2
-#define MODEL_PACKAGE_POKEMON_XERNEAS 0x1d3
-#define MODEL_PACKAGE_POKEMON_YVELTAL 0x1d4
-#define MODEL_MEWTWO 0x1d5
-#define MODEL_RESERVE_POKEMON_2 0x1d6
-#define MODEL_RESERVE_POKEMON_3 0x1d7
-#define MODEL_RESERVE_POKEMON_4 0x1d8
-#define MODEL_GROUDON 0x1d9
-#define MODEL_MEGA_GROUDON 0x1da
-#define MODEL_KYOGRE 0x1db
-#define MODEL_MEGA_KYOGRE 0x1dc
-#define MODEL_RAYQUAZA 0x1dd
-#define MODEL_MEGA_RAYQUAZA 0x1de
-#define MODEL_LATIAS 0x1df
-#define MODEL_LATIOS 0x1e0
-#define MODEL_MEGA_LATIAS 0x1e1
-#define MODEL_MEGA_LATIOS 0x1e2
-#define MODEL_MACHOKE 0x1e3
-#define MODEL_WINGULL 0x1e4
-#define MODEL_CORPHISH 0x1e5
-#define MODEL_TROPIUS 0x1e6
-#define MODEL_KECLEON 0x1e7
-#define MODEL_REGIROCK 0x1e8
-#define MODEL_REGICE 0x1e9
-#define MODEL_REGISTEEL 0x1ea
-#define MODEL_POOCHYENA 0x1eb
-#define MODEL_SKITTY 0x1ec
-#define MODEL_ZIGZAGOON 0x1ed
-#define MODEL_WAILMER 0x1ee
-#define MODEL_PLUSLE 0x1ef
-#define MODEL_MINUN 0x1f0
-#define MODEL_MEDITITE 0x1f1
-#define MODEL_SHROOMISH 0x1f2
-#define MODEL_SLAKOTH 0x1f3
-#define MODEL_ROSELIA 0x1f4
-#define MODEL_TAILLOW 0x1f5
-#define MODEL_HOOPA 0x1f6
-#define MODEL_WHISMUR 0x1f7
-#define MODEL_ELECTRIKE 0x1f8
-#define MODEL_ALTARIA 0x1f9
-#define MODEL_BARKING_POOCHYENA 0x1fa
-#define MODEL_PETRIFIED_GROUDON 0x1fb
-#define MODEL_PETRIFIED_KYOGRE 0x1fc
-#define MODEL_MACHOKE_ALT 0x1fd
+  /* ---------------------------------------------------------
+  OBJECTS / ITEMS / SCENERY
+  --------------------------------------------------------- */
+  kPokeball = 0x162,
+  kPokeballRare = 0x163,
+  kGrassRustleEffect = 0x164,
+  kWaterSplashEffect = 0x165,
+  kDustCloudEffect = 0x166,
+  kFlyingPokemonEffect = 0x167,
+  kCeilingPokemonEffect = 0x168,
+  kLeafEffect = 0x169,
+  kSnowEffect = 0x16a,
+  kStrengthBoulder = 0x16b,
+  kStrengthBoulderLarge = 0x16c,
+  kCutTree = 0x16d,
+  kRockSmashBoulder = 0x16e,
+  kRhyhornBreakableRock = 0x16f,
+  kBerryTree = 0x170,
+  kFossil1 = 0x171,
+  kFossil2 = 0x172,
+  kBerryTree02 = 0x173,
+  kBerryTree03 = 0x174,
+  kBerryTree04 = 0x175,
+  kBerryTree05 = 0x176,
+  kBerryTree06 = 0x177,
+  kBerryTree07 = 0x178,
+  kBerryTree08 = 0x179,
+  kBerryTree09 = 0x17a,
+  kBerryTree10 = 0x17b,
+  kBerryTree11 = 0x17c,
+  kBerryTree12 = 0x17d,
+  kBerryTree13 = 0x17e,
+  kBerryTree14 = 0x17f,
+  kBerryTree15 = 0x180,
+  kBerryTree16 = 0x181,
+  kBerryTree17 = 0x182,
+  kBerryTree18 = 0x183,
+  kBerryTree19 = 0x184,
+  kBerryTree20 = 0x185,
+  kBerryTree21 = 0x186,
+  kBerryTree22 = 0x187,
+  kBerryTree23 = 0x188,
+  kBerryTree24 = 0x189,
+  kBerryTree25 = 0x18a,
+  kBerryTree26 = 0x18b,
+  kBerryTree27 = 0x18c,
+  kBerryTree28 = 0x18d,
+  kBerryTree29 = 0x18e,
+  kBerryTree30 = 0x18f,
+  kBerryTree31 = 0x190,
+  kBerryTree32 = 0x191,
+  kBerryTree33 = 0x192,
+  kBerryTree34 = 0x193,
+  kBerryTree35 = 0x194,
+  kBerryTree36 = 0x195,
+  kRockSmashWall = 0x196,
+  kMamoswineBreakableSnow = 0x197,
+  kKalosDexAward = 0x198,
+  kNationalDexAward = 0x199,
+  kXerneasTree = 0x19a,
+  kYveltalCocoon = 0x19b,
+  kPlainsDexAward = 0x19c,
+  kCoastalDexAward = 0x19d,
+  kMountainDexAward = 0x19e,
+  kSparkleEffect = 0x19f,
+  kTrafficCone = 0x1a0,
+  kSunglassesProp = 0x1a1,
+  kFoodCloche = 0x1a2,
+  kHotelTable = 0x1a3,
+  kSparkleEffect2 = 0x1a4,
+  kPokemonFlute = 0x1a5,
+  kCoffeeCup = 0x1a6,
+  kBook = 0x1a7,
+  kReserveObject4 = 0x1a8,
+  kHoennDexAward = 0x1a9,
+  kNationalDexAwardOras = 0x1aa,
+  kProfessorBirchBag = 0x1ab,
+  kAzurillDoll = 0x1ac,
+  kSkittyDoll = 0x1ad,
+  kSwabluDoll = 0x1ae,
+  kLaprasDoll = 0x1af,
+  kSnorlaxDoll = 0x1b0,
+  kBlueOrb = 0x1b1,
+  kRedOrb = 0x1b2,
+  kFossilOras = 0x1b3,
+  kKeystoneTablet = 0x1b4,
+  kMonolith = 0x1b5,
+  kGenericFlyingBird = 0x1b6,
+  kHoopasRing = 0x1b7,
+  kMagmaSuitProp = 0x1b8,
+  kAquaSuitProp = 0x1b9,
+  kTidePoolWater = 0x1ba,
+  kTidePoolShell = 0x1bb,
+  kNatureStopper = 0x1bc,
+  kStevensLetter = 0x1bd,
 
-/* ---------------------------------------------------------
- SUB-OBJECTS (held items / mounts shown on characters)
- --------------------------------------------------------- */
-#define MODEL_SUB_BASE 0x1fe
-#define MODEL_SUB_BICYCLE 0x1fe
-#define MODEL_SUB_WAILMER_WHALE 0x1ff
-#define MODEL_SUB_FISHING_ROD 0x200
-#define MODEL_SUB_BICYCLE_2 0x201
-#define MODEL_SUB_POKEBALL 0x202
-#define MODEL_SUB_PENCIL 0x203
-#define MODEL_SUB_POKEBALL_RARE 0x204
-#define MODEL_SUB_BIRD 0x205
-#define MODEL_SUB_FISHING_ROD_2 0x206
-#define MODEL_SUB_FISHING_ROD_3 0x207
-#define MODEL_SUB_DOWSING_MACHINE 0x208
-#define MODEL_SUB_WATERING_CAN 0x209
-#define MODEL_SUB_LAPRAS 0x20a
-#define MODEL_SUB_RESERVE_1 0x20b
-#define MODEL_SUB_RESERVE_2 0x20c
-#define MODEL_SUB_RESERVE_3 0x20d
-#define MODEL_SUB_RESERVE_4 0x20e
-#define MODEL_SUB_SURF_KYOGRE 0x20f
-#define MODEL_SUB_DIVE_KYOGRE 0x210
-#define MODEL_SUB_GROUDON 0x211
-#define MODEL_SUB_DIVE_LAPRAS 0x212
-#define MODEL_SUB_SURF_SHARPEDO 0x213
-#define MODEL_SUB_DIVE_SHARPEDO 0x214
-#define MODEL_SUB_SURF_WAILORD 0x215
-#define MODEL_SUB_DIVE_WAILORD 0x216
-#define MODEL_SUB_DEVON_SCOPE 0x217
-#define MODEL_SUB_ACRO_BIKE 0x218
-#define MODEL_SUB_MACH_BIKE 0x219
-#define MODEL_SUB_DOWSING_MACHINE_ORAS 0x21a
-#define MODEL_SUB_WATERING_CAN_ORAS 0x21b
-#define MODEL_SUB_FOSSIL 0x21c
-#define MODEL_SUB_PENCIL_M 0x21d
-#define MODEL_SUB_DOWSING_MACHINE_M 0x21e
-#define MODEL_SUB_DEVON_SCOPE_M 0x21f
+  /* ---------------------------------------------------------
+  COMPANION / RIDE POKEMON
+  --------------------------------------------------------- */
+  kPumpkabooStage1 = 0x1be,
+  kDiggersbyStage2 = 0x1bf,
+  kPackagePokemonZygarde = 0x1c0,
+  kLitleoStage1 = 0x1c1,
+  kGogoatStage2 = 0x1c2,
+  kUnused1 = 0x1c3,
+  kSleepingRhyhorn = 0x1c4,
+  kMamoswine = 0x1c5,
+  kRideableGogoat = 0x1c6,
+  kLucario = 0x1c7,
+  kFurfrouNatural = 0x1c8,
+  kFletchling = 0x1c9,
+  kSnorlax = 0x1ca,
+  kEspurr = 0x1cb,
+  kLapras = 0x1cc,
+  kRhyhornSpecial = 0x1cd,
+  kAbomasnow = 0x1ce,
+  kUnrideableGoat = 0x1cf,
+  kUnused2 = 0x1d0,
+  kAzumarill = 0x1d1,
+  kRhyhornTutorial = 0x1d2,
+  kPackagePokemonXerneas = 0x1d3,
+  kPackagePokemonYveltal = 0x1d4,
+  kMewtwo = 0x1d5,
+  kReservePokemon2 = 0x1d6,
+  kReservePokemon3 = 0x1d7,
+  kReservePokemon4 = 0x1d8,
+  kGroudon = 0x1d9,
+  kMegaGroudon = 0x1da,
+  kKyogre = 0x1db,
+  kMegaKyogre = 0x1dc,
+  kRayquaza = 0x1dd,
+  kMegaRayquaza = 0x1de,
+  kLatias = 0x1df,
+  kLatios = 0x1e0,
+  kMegaLatias = 0x1e1,
+  kMegaLatios = 0x1e2,
+  kMachoke = 0x1e3,
+  kWingull = 0x1e4,
+  kCorphish = 0x1e5,
+  kTropius = 0x1e6,
+  kKecleon = 0x1e7,
+  kRegirock = 0x1e8,
+  kRegice = 0x1e9,
+  kRegisteel = 0x1ea,
+  kPoochyena = 0x1eb,
+  kSkitty = 0x1ec,
+  kZigzagoon = 0x1ed,
+  kWailmer = 0x1ee,
+  kPlusle = 0x1ef,
+  kMinun = 0x1f0,
+  kMeditite = 0x1f1,
+  kShroomish = 0x1f2,
+  kSlakoth = 0x1f3,
+  kRoselia = 0x1f4,
+  kTaillow = 0x1f5,
+  kHoopa = 0x1f6,
+  kWhismur = 0x1f7,
+  kElectrike = 0x1f8,
+  kAltaria = 0x1f9,
+  kBarkingPoochyena = 0x1fa,
+  kPetrifiedGroudon = 0x1fb,
+  kPetrifiedKyogre = 0x1fc,
+  kMachokeAlt = 0x1fd,
+
+  /* ---------------------------------------------------------
+  SUB-OBJECTS (held items / mounts shown on characters)
+  --------------------------------------------------------- */
+  kSubBase = 0x1fe,
+  kSubBicycle = 0x1fe,
+  kSubWailmerWhale = 0x1ff,
+  kSubFishingRod = 0x200,
+  kSubBicycle2 = 0x201,
+  kSubPokeball = 0x202,
+  kSubPencil = 0x203,
+  kSubPokeballRare = 0x204,
+  kSubBird = 0x205,
+  kSubFishingRod2 = 0x206,
+  kSubFishingRod3 = 0x207,
+  kSubDowsingMachine = 0x208,
+  kSubWateringCan = 0x209,
+  kSubLapras = 0x20a,
+  kSubReserve1 = 0x20b,
+  kSubReserve2 = 0x20c,
+  kSubReserve3 = 0x20d,
+  kSubReserve4 = 0x20e,
+  kSubSurfKyogre = 0x20f,
+  kSubDiveKyogre = 0x210,
+  kSubGroudon = 0x211,
+  kSubDiveLapras = 0x212,
+  kSubSurfSharpedo = 0x213,
+  kSubDiveSharpedo = 0x214,
+  kSubSurfWailord = 0x215,
+  kSubDiveWailord = 0x216,
+  kSubDevonScope = 0x217,
+  kSubAcroBike = 0x218,
+  kSubMachBike = 0x219,
+  kSubDowsingMachineOras = 0x21a,
+  kSubWateringCanOras = 0x21b,
+  kSubFossil = 0x21c,
+  kSubPencilM = 0x21d,
+  kSubDowsingMachineM = 0x21e,
+  kSubDevonScopeM = 0x21f,
+};

@@ -18,7 +18,7 @@
 #pragma once
 
 #include "common.h"
-#include "game/process_manager.h"
+#include "game/core/process_manager.h"
 #include "game/renderer/h3d_model.h"
 
 namespace ui {

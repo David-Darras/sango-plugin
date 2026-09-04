@@ -17,24 +17,24 @@
 
 #include "config_manager.h"
 
-#include "feature/feature_battle.h"
-#include "feature/feature_battle_config.h"
-#include "feature/feature_engine.h"
-#include "feature/feature_h3d_model.h"
-#include "feature/feature_light.h"
-#include "feature/feature_map_tile.h"
-#include "feature/feature_picture.h"
-#include "feature/feature_script.h"
-#include "feature/feature_shiny.h"
-#include "feature/feature_text_box.h"
-#include "feature/feature_title_screen.h"
+#include "feature/battle/feature_battle.h"
+#include "feature/battle/feature_battle_config.h"
+#include "feature/core/feature_engine.h"
+#include "feature/rendering/feature_h3d_model.h"
+#include "feature/rendering/feature_light.h"
+#include "feature/overworld/feature_map_tile.h"
+#include "feature/rendering/feature_picture.h"
+#include "feature/core/feature_script.h"
+#include "feature/pokemon/feature_shiny.h"
+#include "feature/rendering/feature_text_box.h"
+#include "feature/ui/feature_title_screen.h"
 #include "system/file.h"
 #include "ui/theme.h"
 
 static const c16* kConfigFilename =
     u"sdmc:/luma/plugins/000400000011C500/sango.cfg";
 
-static const u32 kConfigVersion = 6;
+static const u32 kConfigVersion = 7; // bumped: BattleConfig layout changed (enum class fields)
 
 bool ConfigManager::Load() {
   auto& theme = ui::Theme::GetInstance();

@@ -23,52 +23,54 @@
 #include "game/global_data/technical_machine.h"
 
 namespace kaizo {
-static const u16 TM_MOVES[100] =
+static const MoveID TM_MOVES[100] =
 {
-    MOVE_STEALTH_ROCK, MOVE_TOXIC_SPIKES, MOVE_STICKY_WEB,
-    MOVE_RAPID_SPIN, MOVE_DEFOG, MOVE_TRICK_ROOM, MOVE_TAILWIND,
-    MOVE_TOXIC, MOVE_WILL_O_WISP, MOVE_THUNDER_WAVE, MOVE_TAUNT,
-    MOVE_ENCORE,
-    MOVE_LEECH_SEED, MOVE_WHIRLWIND,
-    MOVE_HAZE, MOVE_RECOVER, MOVE_ROOST, MOVE_SYNTHESIS,
-    MOVE_MOONLIGHT, MOVE_SLACK_OFF, MOVE_WISH,
-    MOVE_REST, MOVE_SWORDS_DANCE, MOVE_NASTY_PLOT,
-    MOVE_CALM_MIND, MOVE_DRAGON_DANCE, MOVE_BULK_UP, MOVE_COIL,
-    MOVE_SHELL_SMASH, MOVE_QUIVER_DANCE, MOVE_AGILITY,
-    MOVE_AUTOTOMIZE, MOVE_PROTECT,
-    MOVE_SUBSTITUTE, MOVE_BATON_PASS, MOVE_EXTREME_SPEED, MOVE_SUCKER_PUNCH,
-    MOVE_BULLET_PUNCH, MOVE_MACH_PUNCH, MOVE_ICE_SHARD, MOVE_AQUA_JET,
-    MOVE_SHADOW_SNEAK, MOVE_FAKE_OUT, MOVE_VACUUM_WAVE, MOVE_U_TURN,
-    MOVE_VOLT_SWITCH, MOVE_EARTHQUAKE,
-    MOVE_CLOSE_COMBAT, MOVE_SUPERPOWER, MOVE_KNOCK_OFF, MOVE_FACADE,
-    MOVE_BODY_SLAM, MOVE_RETURN, MOVE_DRAIN_PUNCH, MOVE_CRUNCH,
-    MOVE_NIGHT_SLASH, MOVE_IRON_HEAD, MOVE_METEOR_MASH, MOVE_STONE_EDGE,
-    MOVE_ROCK_SLIDE, MOVE_ROCK_BLAST, MOVE_BRAVE_BIRD, MOVE_ACROBATICS,
-    MOVE_WATERFALL, MOVE_IRON_TAIL, MOVE_POISON_JAB, MOVE_GUNK_SHOT,
-    MOVE_CROSS_POISON, MOVE_SEED_BOMB, MOVE_POWER_WHIP, MOVE_WOOD_HAMMER,
-    MOVE_BULLET_SEED, MOVE_FLARE_BLITZ, MOVE_OUTRAGE, MOVE_ICE_BEAM,
-    MOVE_THUNDERBOLT, MOVE_FLAMETHROWER, MOVE_FIRE_BLAST, MOVE_OVERHEAT,
-    MOVE_SURF, MOVE_SCALD, MOVE_HYDRO_PUMP, MOVE_DRACO_METEOR,
-    MOVE_DRAGON_PULSE, MOVE_EARTH_POWER, MOVE_FLASH_CANNON, MOVE_GIGA_DRAIN,
-    MOVE_HURRICANE, MOVE_PLAY_ROUGH, MOVE_MOONBLAST, MOVE_PSYCHIC,
-    MOVE_DARK_PULSE
+    MoveID::kStealthRock, MoveID::kToxicSpikes, MoveID::kStickyWeb,
+    MoveID::kRapidSpin, MoveID::kDefog, MoveID::kTrickRoom, MoveID::kTailwind,
+    MoveID::kToxic, MoveID::kWillOWisp, MoveID::kThunderWave, MoveID::kTaunt,
+    MoveID::kEncore,
+    MoveID::kLeechSeed, MoveID::kWhirlwind,
+    MoveID::kHaze, MoveID::kRecover, MoveID::kRoost, MoveID::kSynthesis,
+    MoveID::kMoonlight, MoveID::kSlackOff, MoveID::kWish,
+    MoveID::kRest, MoveID::kSwordsDance, MoveID::kNastyPlot,
+    MoveID::kCalmMind, MoveID::kDragonDance, MoveID::kBulkUp, MoveID::kCoil,
+    MoveID::kShellSmash, MoveID::kQuiverDance, MoveID::kAgility,
+    MoveID::kAutotomize, MoveID::kProtect,
+    MoveID::kSubstitute, MoveID::kBatonPass, MoveID::kExtremeSpeed, MoveID::kSuckerPunch,
+    MoveID::kBulletPunch, MoveID::kMachPunch, MoveID::kIceShard, MoveID::kAquaJet,
+    MoveID::kShadowSneak, MoveID::kFakeOut, MoveID::kVacuumWave, MoveID::kUTurn,
+    MoveID::kVoltSwitch, MoveID::kEarthquake,
+    MoveID::kCloseCombat, MoveID::kSuperpower, MoveID::kKnockOff, MoveID::kFacade,
+    MoveID::kBodySlam, MoveID::kReturn, MoveID::kDrainPunch, MoveID::kCrunch,
+    MoveID::kNightSlash, MoveID::kIronHead, MoveID::kMeteorMash, MoveID::kStoneEdge,
+    MoveID::kRockSlide, MoveID::kRockBlast, MoveID::kBraveBird, MoveID::kAcrobatics,
+    MoveID::kWaterfall, MoveID::kIronTail, MoveID::kPoisonJab, MoveID::kGunkShot,
+    MoveID::kCrossPoison, MoveID::kSeedBomb, MoveID::kPowerWhip, MoveID::kWoodHammer,
+    MoveID::kBulletSeed, MoveID::kFlareBlitz, MoveID::kOutrage, MoveID::kIceBeam,
+    MoveID::kThunderbolt, MoveID::kFlamethrower, MoveID::kFireBlast, MoveID::kOverheat,
+    MoveID::kSurf, MoveID::kScald, MoveID::kHydroPump, MoveID::kDracoMeteor,
+    MoveID::kDragonPulse, MoveID::kEarthPower, MoveID::kFlashCannon, MoveID::kGigaDrain,
+    MoveID::kHurricane, MoveID::kPlayRough, MoveID::kMoonblast, MoveID::kPsychic,
+    MoveID::kDarkPulse
 };
 
 void PatchTechnicalMoves() {
   auto* table = global_data::TechnicalMachine::GetTable();
   for (u32 i = 0; i < SIZE(TM_MOVES); i++) {
-    table[i] = TM_MOVES[i];
+    table[i] = static_cast<u16>(TM_MOVES[i]);
   }
-  for (u32 species = SPECIES_BULBASAUR;
-       species <= SPECIES_VOLCANION;
-       species++) {
-    auto& movepool = global_data::Movepool::GetInstance(species, 0);
-    auto& pokemon = global_data::Pokemon::GetInstance(species, 0);
+  for (u32 species_id = static_cast<u16>(Species::kBulbasaur);
+       species_id <= static_cast<u16>(Species::kVolcanion);
+       species_id++) {
+    const auto species = static_cast<Species>(species_id);
+    const auto form = static_cast<Form>(0);
+    auto& movepool = global_data::Movepool::GetInstance(species, form);
+    auto& pokemon = global_data::Pokemon::GetInstance(species, form);
     for (u32 tm_index = 0; tm_index < SIZE(TM_MOVES); tm_index++) {
       u32* tm_bits = &pokemon.technical_moves[0];
       u32 array_index = tm_index / 32;
       u32 bit_shift = tm_index % 32;
-      if (movepool.contains(TM_MOVES[tm_index])) {
+      if (movepool.contains(static_cast<u16>(TM_MOVES[tm_index]))) {
         tm_bits[array_index] |= (1U << bit_shift);
       } else {
         tm_bits[array_index] &= ~(1U << bit_shift);

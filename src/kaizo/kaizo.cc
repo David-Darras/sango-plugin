@@ -15,16 +15,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "kaizo.h"
+#include "kaizo/kaizo.h"
 
-#include "feature/feature_battle.h"
-#include "feature/feature_battle_config.h"
-#include "feature/feature_item.h"
-#include "feature/feature_light.h"
-#include "feature/feature_map_data_loader.h"
-#include "feature/feature_overworld.h"
-#include "feature/feature_shiny.h"
-#include "feature/feature_title_screen.h"
+#include "feature/battle/feature_battle.h"
+#include "feature/battle/feature_battle_config.h"
+#include "feature/pokemon/feature_item.h"
+#include "feature/rendering/feature_light.h"
+#include "feature/overworld/feature_map_data_loader.h"
+#include "feature/overworld/feature_overworld.h"
+#include "feature/pokemon/feature_shiny.h"
+#include "feature/ui/feature_title_screen.h"
 #include "game/global_data/trainer_model_manager.h"
 #include "game/savedata/pokemon_team.h"
 #include "game/savedata/settings.h"
@@ -33,7 +33,6 @@
 namespace kaizo {
 void Initialize() {
   PatchTechnicalMoves();
-  PatchShopData();
   PatchPokemonData();
   PatchMoveData();
   PatchOutline();
@@ -68,9 +67,9 @@ void Initialize() {
     title.is_enabled = true;
     title.no_shadow = true;
     title.no_delay = true;
-    title.top_video = VIDEO_PRIMO_KYOGRE;
-    title.bottom_video = VIDEO_PRIMO_GROUDON;
-    title.pokemon_cry_species = SPECIES_BELDUM;
+    title.top_video = Video::kPrimoKyogre;
+    title.bottom_video = Video::kPrimoGroudon;
+    title.pokemon_cry_species = Species::kBeldum;
     title.pokemon_cry_volume = 1.0f;
   }
   // Camera
@@ -88,8 +87,8 @@ void PatchOutline() {
 
 void PatchTrainerModels() {
   auto& manager = TrainerModelManager::GetInstance();
-  manager.Replace(TRAINER_MODEL_BRENDAN, TRAINER_MODEL_STEVEN);
-  manager.Replace(TRAINER_MODEL_MAY, TRAINER_MODEL_ZINNIA);
+  manager.Replace(TrainerModel::kBrendan, TrainerModel::kSteven);
+  manager.Replace(TrainerModel::kMay, TrainerModel::kZinnia);
 }
 
 void PatchOverworld() {

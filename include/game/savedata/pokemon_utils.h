@@ -18,20 +18,28 @@
 #pragma once
 
 #include "common.h"
+#include "game/constant/ball.h"
+#include "game/constant/form.h"
+#include "game/constant/item.h"
+#include "game/constant/species.h"
 
 class PokemonUtils {
 public:
-  STATIC_INLINE u32 GetExperienceFromLevel(u16 species, u8 form, u16 level) {
-    ((void (*)(u16, u8))ADDRESS_POKEMON_UTILS_LOAD_POKEMON_EXPERIENCE_TABLE)(
-        species, form);
+  // The raw function pointers below are real game-ABI entry points. Each enum
+  // class has the exact integer width the ABI expects, so the pointer types
+  // below simply declare the enum directly instead of casting at every call.
+  STATIC_INLINE u32 GetExperienceFromLevel(Species species, Form form,
+                                           u16 level) {
+    ((void (*)(Species, Form))
+        ADDRESS_POKEMON_UTILS_LOAD_POKEMON_EXPERIENCE_TABLE)(species, form);
     return ((u32 (*)(u8))ADDRESS_POKEMON_UTILS_GET_POKEMON_MINIMUM_EXPERIENCE)(
         level);
   }
 
   STATIC_INLINE u8
-  GetLevelFromExperience(u16 species, u8 form, u32 experience) {
-    return ((u8 (*)(
-        u16, u8, u32))ADDRESS_POKEMON_UTILS_GET_POKEMON_LEVEL_FROM_EXPERIENCE)(
+  GetLevelFromExperience(Species species, Form form, u32 experience) {
+    return ((u8 (*)(Species, Form, u32))
+        ADDRESS_POKEMON_UTILS_GET_POKEMON_LEVEL_FROM_EXPERIENCE)(
         species, form, experience);
   }
 
@@ -49,8 +57,8 @@ public:
         ((u32 (*)(u32, u32))ADDRESS_POKEMON_UTILS_TO_NORMAL)(id, *shiny_id);
   }
 
-  STATIC_INLINE u16 ConvertBallIdToItemId(u8 ball_id) {
-    return ((u16 (*)(u8))
+  STATIC_INLINE ItemID ConvertBallIdToItemId(Ball ball_id) {
+    return ((ItemID (*)(Ball))
       ADDRESS_POKEMON_UTILS_FROM_BALL_ID_TO_ITEM_ID)(ball_id);
   }
 };

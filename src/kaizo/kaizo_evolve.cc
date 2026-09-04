@@ -16,7 +16,7 @@
  */
 
 #include "common.h"
-#include "feature/hook_manager.h"
+#include "feature/core/hook_manager.h"
 #include "game/constant/evolution_method.h"
 #include "game/constant/item.h"
 #include "game/constant/species.h"
@@ -33,88 +33,88 @@ struct Table {
   global_data::Evolve* evolve;
 };
 
-void PatchEvolve(u16 species) {
-  Table* table = (Table*)READ32(0x617A04 + 0x34);
+void PatchEvolve(Species species) {
+  Table* table = (Table*)READ32(ADDRESS_GLOBAL_DATA_EVOLVE_TABLE + 0x34);
   auto& evolve = *table->evolve;
   switch (species) {
-    case SPECIES_MACHOKE:
-    case SPECIES_GRAVELER:
-    case SPECIES_KADABRA:
-    case SPECIES_BOLDORE:
-    case SPECIES_GURDURR:
-    case SPECIES_HAUNTER:
-    case SPECIES_KARRABLAST:
-    case SPECIES_SHELMET:
+    case Species::kMachoke:
+    case Species::kGraveler:
+    case Species::kKadabra:
+    case Species::kBoldore:
+    case Species::kGurdurr:
+    case Species::kHaunter:
+    case Species::kKarrablast:
+    case Species::kShelmet:
       evolve.data[0].arg = 30; // level
-      evolve.data[0].method = EVOLUTION_METHOD_LEVEL_UP;
+      evolve.data[0].method = static_cast<u16>(EvolutionMethod::kLevelUp);
       break;
-    case SPECIES_SLOWPOKE:
-    case SPECIES_POLIWHIRL:
-      evolve.data[0].arg = ITEM_KINGS_ROCK;
-      evolve.data[0].method = EVOLUTION_METHOD_ITEM;
+    case Species::kSlowpoke:
+    case Species::kPoliwhirl:
+      evolve.data[0].arg = static_cast<u16>(ItemID::kKingsRock);
+      evolve.data[0].method = static_cast<u16>(EvolutionMethod::kItem);
       break;
-    case SPECIES_SCYTHER:
-    case SPECIES_ONIX:
-      evolve.data[0].arg = ITEM_METAL_COAT;
-      evolve.data[0].method = EVOLUTION_METHOD_ITEM;
+    case Species::kScyther:
+    case Species::kOnix:
+      evolve.data[0].arg = static_cast<u16>(ItemID::kMetalCoat);
+      evolve.data[0].method = static_cast<u16>(EvolutionMethod::kItem);
       break;
-    case SPECIES_SEADRA:
-      evolve.data[0].arg = ITEM_DRAGON_SCALE;
-      evolve.data[0].method = EVOLUTION_METHOD_ITEM;
+    case Species::kSeadra:
+      evolve.data[0].arg = static_cast<u16>(ItemID::kDragonScale);
+      evolve.data[0].method = static_cast<u16>(EvolutionMethod::kItem);
       break;
-    case SPECIES_PORYGON:
-      evolve.data[0].arg = ITEM_UP_GRADE;
-      evolve.data[0].method = EVOLUTION_METHOD_ITEM;
+    case Species::kPorygon:
+      evolve.data[0].arg = static_cast<u16>(ItemID::kUpGrade);
+      evolve.data[0].method = static_cast<u16>(EvolutionMethod::kItem);
       break;
-    case SPECIES_PORYGON2:
-      evolve.data[0].arg = ITEM_DUBIOUS_DISC;
-      evolve.data[0].method = EVOLUTION_METHOD_ITEM;
+    case Species::kPorygon2:
+      evolve.data[0].arg = static_cast<u16>(ItemID::kDubiousDisc);
+      evolve.data[0].method = static_cast<u16>(EvolutionMethod::kItem);
       break;
-    case SPECIES_CLAMPERL:
-      evolve.data[0].arg = ITEM_DEEP_SEA_TOOTH;
-      evolve.data[0].method = EVOLUTION_METHOD_ITEM;
-      evolve.data[1].arg = ITEM_DEEP_SEA_SCALE;
-      evolve.data[1].method = EVOLUTION_METHOD_ITEM;
+    case Species::kClamperl:
+      evolve.data[0].arg = static_cast<u16>(ItemID::kDeepSeaTooth);
+      evolve.data[0].method = static_cast<u16>(EvolutionMethod::kItem);
+      evolve.data[1].arg = static_cast<u16>(ItemID::kDeepSeaScale);
+      evolve.data[1].method = static_cast<u16>(EvolutionMethod::kItem);
       break;
-    case SPECIES_RHYDON:
-      evolve.data[0].arg = ITEM_PROTECTOR;
-      evolve.data[0].method = EVOLUTION_METHOD_ITEM;
+    case Species::kRhydon:
+      evolve.data[0].arg = static_cast<u16>(ItemID::kProtector);
+      evolve.data[0].method = static_cast<u16>(EvolutionMethod::kItem);
       break;
-    case SPECIES_ELECTABUZZ:
-      evolve.data[0].arg = ITEM_ELECTIRIZER;
-      evolve.data[0].method = EVOLUTION_METHOD_ITEM;
+    case Species::kElectabuzz:
+      evolve.data[0].arg = static_cast<u16>(ItemID::kElectirizer);
+      evolve.data[0].method = static_cast<u16>(EvolutionMethod::kItem);
       break;
-    case SPECIES_MAGMAR:
-      evolve.data[0].arg = ITEM_MAGMARIZER;
-      evolve.data[0].method = EVOLUTION_METHOD_ITEM;
+    case Species::kMagmar:
+      evolve.data[0].arg = static_cast<u16>(ItemID::kMagmarizer);
+      evolve.data[0].method = static_cast<u16>(EvolutionMethod::kItem);
       break;
-    case SPECIES_DUSCLOPS:
-      evolve.data[0].arg = ITEM_REAPER_CLOTH;
-      evolve.data[0].method = EVOLUTION_METHOD_ITEM;
+    case Species::kDusclops:
+      evolve.data[0].arg = static_cast<u16>(ItemID::kReaperCloth);
+      evolve.data[0].method = static_cast<u16>(EvolutionMethod::kItem);
       break;
-    case SPECIES_FEEBAS:
-      evolve.data[0].arg = ITEM_PRISM_SCALE;
-      evolve.data[0].method = EVOLUTION_METHOD_ITEM;
+    case Species::kFeebas:
+      evolve.data[0].arg = static_cast<u16>(ItemID::kPrismScale);
+      evolve.data[0].method = static_cast<u16>(EvolutionMethod::kItem);
       break;
-    case SPECIES_SPRITZEE:
-      evolve.data[0].arg = ITEM_SACHET;
-      evolve.data[0].method = EVOLUTION_METHOD_ITEM;
+    case Species::kSpritzee:
+      evolve.data[0].arg = static_cast<u16>(ItemID::kSachet);
+      evolve.data[0].method = static_cast<u16>(EvolutionMethod::kItem);
       break;
-    case SPECIES_SWIRLIX:
-      evolve.data[0].arg = ITEM_WHIPPED_DREAM;
-      evolve.data[0].method = EVOLUTION_METHOD_ITEM;
+    case Species::kSwirlix:
+      evolve.data[0].arg = static_cast<u16>(ItemID::kWhippedDream);
+      evolve.data[0].method = static_cast<u16>(EvolutionMethod::kItem);
       break;
-    case SPECIES_PHANTUMP:
-    case SPECIES_PUMPKABOO:
-      evolve.data[0].arg = ITEM_LEAF_STONE;
-      evolve.data[0].method = EVOLUTION_METHOD_ITEM;
+    case Species::kPhantump:
+    case Species::kPumpkaboo:
+      evolve.data[0].arg = static_cast<u16>(ItemID::kLeafStone);
+      evolve.data[0].method = static_cast<u16>(EvolutionMethod::kItem);
       break;
   }
 }
 
 static void LoadEvolveTableHook(u32 species, u32 b, u32 c, u32 d) {
   HookManager::Call<void>(HookID::kLoadEvolveTable, species, b, c, d);
-  PatchEvolve(species);
+  PatchEvolve(static_cast<Species>(species));
 }
 
 void InitializeEvolveHook() {

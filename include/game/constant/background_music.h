@@ -17,219 +17,223 @@
 
 #pragma once
 
-#define BACKGROUND_MUSIC_POKEMON_THEME (0)
-#define BACKGROUND_MUSIC_EVOLUTION (1)
-#define BACKGROUND_MUSIC_TRADE (2)
-#define BACKGROUND_MUSIC_BICYCLE (3)
-#define BACKGROUND_MUSIC_SURF (4)
-#define BACKGROUND_MUSIC_ROUTE_101 (5)
-#define BACKGROUND_MUSIC_ROUTE_102 (6)
-#define BACKGROUND_MUSIC_ROUTE_103 (7)
-#define BACKGROUND_MUSIC_ROUTE_104 (8)
-#define BACKGROUND_MUSIC_ROUTE_105 (9)
-#define BACKGROUND_MUSIC_ROUTE_106 (10)
-#define BACKGROUND_MUSIC_ROUTE_107 (11)
-#define BACKGROUND_MUSIC_ROUTE_108 (12)
-#define BACKGROUND_MUSIC_ROUTE_109 (13)
-#define BACKGROUND_MUSIC_ROUTE_110 (14)
-#define BACKGROUND_MUSIC_ROUTE_111 (15)
-#define BACKGROUND_MUSIC_POKEMON_CENTER (16)
-#define BACKGROUND_MUSIC_GYM (17)
-#define BACKGROUND_MUSIC_LABORATORY (18)
-#define BACKGROUND_MUSIC_FANFARE_CLEAR (19)
-#define BACKGROUND_MUSIC_EVENT_01 (20)
-#define BACKGROUND_MUSIC_EVENT_02 (21)
-#define BACKGROUND_MUSIC_EVENT_03 (22)
-#define BACKGROUND_MUSIC_EVENT_04 (23)
-#define BACKGROUND_MUSIC_VS_WILD_POKEMON (24)
-#define BACKGROUND_MUSIC_VS_TRAINER (25)
-#define BACKGROUND_MUSIC_VS_GYM_LEADER (26)
-#define BACKGROUND_MUSIC_WIN_VICTORY (27)
-#define BACKGROUND_MUSIC_WIN_GYM_LEADER (28)
-#define BACKGROUND_MUSIC_WIN_WILD (29)
-#define BACKGROUND_MUSIC_CREDITS (30)
-#define BACKGROUND_MUSIC_CINEMA (31)
-#define BACKGROUND_MUSIC_BATTLE_TOWER_LOBBY (32)
-#define BACKGROUND_MUSIC_SOOTOPOLIS_CITY (33)
-#define BACKGROUND_MUSIC_ABANDONED_SHIP (34)
-#define BACKGROUND_MUSIC_MIRAGE_ISLAND (35)
-#define BACKGROUND_MUSIC_MIRAGE_FOREST (36)
-#define BACKGROUND_MUSIC_MIRAGE_CAVE (37)
-#define BACKGROUND_MUSIC_MIRAGE_MOUNTAIN (38)
-#define BACKGROUND_MUSIC_MIRAGE_ISLAND2 (39)
-#define BACKGROUND_MUSIC_SECRET_MEADOW (40)
-#define BACKGROUND_MUSIC_SECRET_ISLE (41)
-#define BACKGROUND_MUSIC_EVENT_05 (42)
-#define BACKGROUND_MUSIC_EVENT_06 (43)
-#define BACKGROUND_MUSIC_SILENCE (44)
-#define BACKGROUND_MUSIC_CLOYSTER_LAKE (45)
-#define BACKGROUND_MUSIC_THEME_01 (46)
-#define BACKGROUND_MUSIC_GAME_OVER (47)
-#define BACKGROUND_MUSIC_STARTING (48)
-#define BACKGROUND_MUSIC_PACIFIDLOG_TOWN (49)
-#define BACKGROUND_MUSIC_MOSSDEEP_CITY (50)
-#define BACKGROUND_MUSIC_VERDANTURF_TOWN (51)
-#define BACKGROUND_MUSIC_ENDING (52)
-#define BACKGROUND_MUSIC_ROUTE_112 (53)
-#define BACKGROUND_MUSIC_ROUTE_113 (54)
-#define BACKGROUND_MUSIC_ROUTE_114 (55)
-#define BACKGROUND_MUSIC_ROUTE_115 (56)
-#define BACKGROUND_MUSIC_ROUTE_116 (57)
-#define BACKGROUND_MUSIC_ROUTE_117 (58)
-#define BACKGROUND_MUSIC_ROUTE_118 (59)
-#define BACKGROUND_MUSIC_ROUTE_119 (60)
-#define BACKGROUND_MUSIC_ROUTE_120 (61)
-#define BACKGROUND_MUSIC_ROUTE_121 (62)
-#define BACKGROUND_MUSIC_ROUTE_122 (63)
-#define BACKGROUND_MUSIC_ROUTE_123 (64)
-#define BACKGROUND_MUSIC_ROUTE_124 (65)
-#define BACKGROUND_MUSIC_VICTORY_ROAD (66)
-#define BACKGROUND_MUSIC_BATTLE_RESORT (67)
-#define BACKGROUND_MUSIC_RESORT_AREA (68)
-#define BACKGROUND_MUSIC_FRONTIER_BRAIN (69)
-#define BACKGROUND_MUSIC_BATTLE_PALACE (70)
-#define BACKGROUND_MUSIC_BATTLE_PYRAMID (71)
-#define BACKGROUND_MUSIC_BATTLE_TOWER (72)
-#define BACKGROUND_MUSIC_EVENT_07 (73)
-#define BACKGROUND_MUSIC_EVENT_08 (74)
-#define BACKGROUND_MUSIC_EVENT_09 (75)
-#define BACKGROUND_MUSIC_EVENT_10 (76)
-#define BACKGROUND_MUSIC_EVENT_11 (77)
-#define BACKGROUND_MUSIC_EVENT_12 (78)
-#define BACKGROUND_MUSIC_EVENT_13 (79)
-#define BACKGROUND_MUSIC_EVENT_14 (80)
-#define BACKGROUND_MUSIC_MIRAGE_TOWN (81)
-#define BACKGROUND_MUSIC_CAVE_OF_ORIGIN (82)
-#define BACKGROUND_MUSIC_SKY_PILLAR (83)
-#define BACKGROUND_MUSIC_ROUTE_125 (84)
-#define BACKGROUND_MUSIC_GAME_START (85)
-#define BACKGROUND_MUSIC_VS_RIVAL (86)
-#define BACKGROUND_MUSIC_VS_TEAM_MAGMA_AQUA (87)
-#define BACKGROUND_MUSIC_VS_ELITE_FOUR (88)
-#define BACKGROUND_MUSIC_VS_CHAMPION (89)
-#define BACKGROUND_MUSIC_METEOR_FALLS (90)
-#define BACKGROUND_MUSIC_GAME_SYNC (91)
-#define BACKGROUND_MUSIC_SEALED_CHAMBER (92)
-#define BACKGROUND_MUSIC_VS_SPECIAL (93)
-#define BACKGROUND_MUSIC_MT_CHIMNEY (94)
-#define BACKGROUND_MUSIC_VS_SECRET_BOSS (95)
-#define BACKGROUND_MUSIC_AQUA_MAGMA_HIDEOUT (96)
-#define BACKGROUND_MUSIC_BATTLE_DOME (97)
-#define BACKGROUND_MUSIC_BATTLE_FACTORY (98)
-#define BACKGROUND_MUSIC_SAFARI_ZONE (99)
-#define BACKGROUND_MUSIC_WIN_ELITE_FOUR (100)
-#define BACKGROUND_MUSIC_WIN_CHAMPION (101)
-#define BACKGROUND_MUSIC_VS_GYM_LEADER_2 (102)
-#define BACKGROUND_MUSIC_EPILOGUE_2 (103)
-#define BACKGROUND_MUSIC_HALL_OF_FAME (104)
-#define BACKGROUND_MUSIC_GRANITE_CAVE (105)
-#define BACKGROUND_MUSIC_JAGGED_PASS (106)
-#define BACKGROUND_MUSIC_UNDERWATER (107)
-#define BACKGROUND_MUSIC_DEWFORD_TOWN (108)
-#define BACKGROUND_MUSIC_CAVE_OF_ORIGIN_DEMO (109)
-#define BACKGROUND_MUSIC_SOOTOPOLIS_DEMO (110)
-#define BACKGROUND_MUSIC_EPILOGUE_3 (111)
-#define BACKGROUND_MUSIC_RUSTBORO_CITY (112)
-#define BACKGROUND_MUSIC_FALLARBOR_TOWN (113)
-#define BACKGROUND_MUSIC_VS_BATTLE_FRONTIER (114)
-#define BACKGROUND_MUSIC_VS_GIRATINA (115)
-#define BACKGROUND_MUSIC_VS_DIALGA (116)
-#define BACKGROUND_MUSIC_VS_HEATRAN (117)
-#define BACKGROUND_MUSIC_LAVARIDGE_TOWN (118)
-#define BACKGROUND_MUSIC_FORTREE_CITY (119)
-#define BACKGROUND_MUSIC_POKEMON_LINK (120)
-#define BACKGROUND_MUSIC_WIFI_PRESENT (121)
-#define BACKGROUND_MUSIC_NAMCAVE (122)
-#define BACKGROUND_MUSIC_GTS (123)
-#define BACKGROUND_MUSIC_RANDOM_MATCH (124)
-#define BACKGROUND_MUSIC_SKY_TOWER (125)
-#define BACKGROUND_MUSIC_ROUTE_126 (126)
-#define BACKGROUND_MUSIC_ROUTE_127 (127)
-#define BACKGROUND_MUSIC_LILYCOVE_CITY (128)
-#define BACKGROUND_MUSIC_SCORCHED_SLAB (129)
-#define BACKGROUND_MUSIC_NEW_MAUVILLE (130)
-#define BACKGROUND_MUSIC_ROUTE_128 (131)
-#define BACKGROUND_MUSIC_DESERT_RUINS (132)
-#define BACKGROUND_MUSIC_AQUA_HIDEOUT (133)
-#define BACKGROUND_MUSIC_MAGMA_HIDEOUT (134)
-#define BACKGROUND_MUSIC_ROUTE_129 (135)
-#define BACKGROUND_MUSIC_SOARING (136)
-#define BACKGROUND_MUSIC_BATTLE_RESORT_VILLA (137)
-#define BACKGROUND_MUSIC_VS_LEGENDARY (138)
-#define BACKGROUND_MUSIC_SLATEPORT_CITY (139)
-#define BACKGROUND_MUSIC_MAUVILLE_CITY (140)
-#define BACKGROUND_MUSIC_VERDANTURF_HOUSE (141)
-#define BACKGROUND_MUSIC_PETALBURG_CITY (142)
-#define BACKGROUND_MUSIC_OLDALE_TOWN (143)
-#define BACKGROUND_MUSIC_VS_TEAM_MAGMA (144)
-#define BACKGROUND_MUSIC_VS_TEAM_AQUA (145)
-#define BACKGROUND_MUSIC_BATTLE_RESORT_2 (146)
-#define BACKGROUND_MUSIC_SECRET_BASE (147)
-#define BACKGROUND_MUSIC_ISLAND (148)
-#define BACKGROUND_MUSIC_POKEMON_LEAGUE (149)
-#define BACKGROUND_MUSIC_SKY (150)
-#define BACKGROUND_MUSIC_VS_DEOXYS (151)
-#define BACKGROUND_MUSIC_STARTING_2 (152)
-#define BACKGROUND_MUSIC_DEMO_TRACK (153)
-#define BACKGROUND_MUSIC_ENDING_2 (154)
-#define BACKGROUND_MUSIC_VS_SUICUNE (155)
-#define BACKGROUND_MUSIC_ROUTE_124_2 (156)
-#define BACKGROUND_MUSIC_VS_MIRAGE_BOSS (157)
-#define BACKGROUND_MUSIC_CONTEST_2 (158)
-#define BACKGROUND_MUSIC_VS_HO_OH (159)
-#define BACKGROUND_MUSIC_VS_LUGIA (160)
-#define BACKGROUND_MUSIC_VS_UXIE (161)
-#define BACKGROUND_MUSIC_VS_COBALION (162)
-#define BACKGROUND_MUSIC_VS_ZEKROM (163)
-#define BACKGROUND_MUSIC_VS_TEAM_FLARE_BOSS (164)
-#define BACKGROUND_MUSIC_MENU (165)
-#define BACKGROUND_MUSIC_STAGE (166)
-#define BACKGROUND_MUSIC_LITTLEROOT_TOWN (167)
-#define BACKGROUND_MUSIC_BATTLE_ARCADE (168)
-#define BACKGROUND_MUSIC_BATTLE_HALL (169)
-#define BACKGROUND_MUSIC_BATTLE_CASTLE (170)
-#define BACKGROUND_MUSIC_ARTISAN_CAVE (171)
-#define BACKGROUND_MUSIC_FIERY_PATH (172)
-#define BACKGROUND_MUSIC_SHOAL_CAVE (173)
-#define BACKGROUND_MUSIC_LOOKER_02 (174)
-#define BACKGROUND_MUSIC_STAGE_02 (175)
-#define BACKGROUND_MUSIC_VS_PSS_TRAINER (176)
-#define BACKGROUND_MUSIC_VS_LEGEND (177)
-#define BACKGROUND_MUSIC_MIRACLE_TRADE (178)
-#define BACKGROUND_MUSIC_EPILOGUE (179)
-#define BACKGROUND_MUSIC_TRAINER_SCHOOL (180)
-#define BACKGROUND_MUSIC_MUSEUM (181)
-#define BACKGROUND_MUSIC_ART_GALLERY (182)
-#define BACKGROUND_MUSIC_CONTEST_LOBBY (183)
-#define BACKGROUND_MUSIC_MECHANICAL (184)
-#define BACKGROUND_MUSIC_LEGEND_ROOM (185)
-#define BACKGROUND_MUSIC_MAY (186)
-#define BACKGROUND_MUSIC_BRENDAN (187)
-#define BACKGROUND_MUSIC_MAGMA (188)
-#define BACKGROUND_MUSIC_AQUA (189)
-#define BACKGROUND_MUSIC_ELITE_FOUR (190)
-#define BACKGROUND_MUSIC_CONTEST (191)
-#define BACKGROUND_MUSIC_CONTEST_RESULT (192)
-#define BACKGROUND_MUSIC_CONTEST_CHAMP (193)
-#define BACKGROUND_MUSIC_DIVING (194)
-#define BACKGROUND_MUSIC_SKY_2 (195)
-#define BACKGROUND_MUSIC_ROUTE_130 (196)
-#define BACKGROUND_MUSIC_VS_WILD_POKEMON_SG (197)
-#define BACKGROUND_MUSIC_VS_TRAINER_SG (198)
-#define BACKGROUND_MUSIC_VS_GYM_LEADER_SG (199)
-#define BACKGROUND_MUSIC_VS_RIVAL_SG (200)
-#define BACKGROUND_MUSIC_VS_AQUA (201)
-#define BACKGROUND_MUSIC_VS_MAGMA (202)
-#define BACKGROUND_MUSIC_VS_AQUA_LEADER (203)
-#define BACKGROUND_MUSIC_VS_MAGMA_LEADER (204)
-#define BACKGROUND_MUSIC_VS_ELITE_FOUR_SG (205)
-#define BACKGROUND_MUSIC_VS_CHAMPION_SG (206)
-#define BACKGROUND_MUSIC_VS_LEGENDARY_SG (207)
-#define BACKGROUND_MUSIC_VS_SPECIAL_02 (208)
-#define BACKGROUND_MUSIC_POKEMON_CENTER_2 (209)
-#define BACKGROUND_MUSIC_THEME_02 (210)
-#define BACKGROUND_MUSIC_KW_GAME01_01 (211)
-#define BACKGROUND_MUSIC_KW_GAME01 (212)
-#define BACKGROUND_MUSIC_KW_GAME02 (213)
-#define BACKGROUND_MUSIC_KW_GAME03 (214)
-#define BACKGROUND_MUSIC_KW_GAME03_01 (215)
+#include <types.h>
+
+enum class BackgroundMusic : u8 {
+  kPokemonTheme = 0,
+  kEvolution = 1,
+  kTrade = 2,
+  kBicycle = 3,
+  kSurf = 4,
+  kRoute101 = 5,
+  kRoute102 = 6,
+  kRoute103 = 7,
+  kRoute104 = 8,
+  kRoute105 = 9,
+  kRoute106 = 10,
+  kRoute107 = 11,
+  kRoute108 = 12,
+  kRoute109 = 13,
+  kRoute110 = 14,
+  kRoute111 = 15,
+  kPokemonCenter = 16,
+  kGym = 17,
+  kLaboratory = 18,
+  kFanfareClear = 19,
+  kEvent01 = 20,
+  kEvent02 = 21,
+  kEvent03 = 22,
+  kEvent04 = 23,
+  kVsWildPokemon = 24,
+  kVsTrainer = 25,
+  kVsGymLeader = 26,
+  kWinVictory = 27,
+  kWinGymLeader = 28,
+  kWinWild = 29,
+  kCredits = 30,
+  kCinema = 31,
+  kBattleTowerLobby = 32,
+  kSootopolisCity = 33,
+  kAbandonedShip = 34,
+  kMirageIsland = 35,
+  kMirageForest = 36,
+  kMirageCave = 37,
+  kMirageMountain = 38,
+  kMirageIsland2 = 39,
+  kSecretMeadow = 40,
+  kSecretIsle = 41,
+  kEvent05 = 42,
+  kEvent06 = 43,
+  kSilence = 44,
+  kCloysterLake = 45,
+  kTheme01 = 46,
+  kGameOver = 47,
+  kStarting = 48,
+  kPacifidlogTown = 49,
+  kMossdeepCity = 50,
+  kVerdanturfTown = 51,
+  kEnding = 52,
+  kRoute112 = 53,
+  kRoute113 = 54,
+  kRoute114 = 55,
+  kRoute115 = 56,
+  kRoute116 = 57,
+  kRoute117 = 58,
+  kRoute118 = 59,
+  kRoute119 = 60,
+  kRoute120 = 61,
+  kRoute121 = 62,
+  kRoute122 = 63,
+  kRoute123 = 64,
+  kRoute124 = 65,
+  kVictoryRoad = 66,
+  kBattleResort = 67,
+  kResortArea = 68,
+  kFrontierBrain = 69,
+  kBattlePalace = 70,
+  kBattlePyramid = 71,
+  kBattleTower = 72,
+  kEvent07 = 73,
+  kEvent08 = 74,
+  kEvent09 = 75,
+  kEvent10 = 76,
+  kEvent11 = 77,
+  kEvent12 = 78,
+  kEvent13 = 79,
+  kEvent14 = 80,
+  kMirageTown = 81,
+  kCaveOfOrigin = 82,
+  kSkyPillar = 83,
+  kRoute125 = 84,
+  kGameStart = 85,
+  kVsRival = 86,
+  kVsTeamMagmaAqua = 87,
+  kVsEliteFour = 88,
+  kVsChampion = 89,
+  kMeteorFalls = 90,
+  kGameSync = 91,
+  kSealedChamber = 92,
+  kVsSpecial = 93,
+  kMtChimney = 94,
+  kVsSecretBoss = 95,
+  kAquaMagmaHideout = 96,
+  kBattleDome = 97,
+  kBattleFactory = 98,
+  kSafariZone = 99,
+  kWinEliteFour = 100,
+  kWinChampion = 101,
+  kVsGymLeader2 = 102,
+  kEpilogue2 = 103,
+  kHallOfFame = 104,
+  kGraniteCave = 105,
+  kJaggedPass = 106,
+  kUnderwater = 107,
+  kDewfordTown = 108,
+  kCaveOfOriginDemo = 109,
+  kSootopolisDemo = 110,
+  kEpilogue3 = 111,
+  kRustboroCity = 112,
+  kFallarborTown = 113,
+  kVsBattleFrontier = 114,
+  kVsGiratina = 115,
+  kVsDialga = 116,
+  kVsHeatran = 117,
+  kLavaridgeTown = 118,
+  kFortreeCity = 119,
+  kPokemonLink = 120,
+  kWifiPresent = 121,
+  kNamcave = 122,
+  kGts = 123,
+  kRandomMatch = 124,
+  kSkyTower = 125,
+  kRoute126 = 126,
+  kRoute127 = 127,
+  kLilycoveCity = 128,
+  kScorchedSlab = 129,
+  kNewMauville = 130,
+  kRoute128 = 131,
+  kDesertRuins = 132,
+  kAquaHideout = 133,
+  kMagmaHideout = 134,
+  kRoute129 = 135,
+  kSoaring = 136,
+  kBattleResortVilla = 137,
+  kVsLegendary = 138,
+  kSlateportCity = 139,
+  kMauvilleCity = 140,
+  kVerdanturfHouse = 141,
+  kPetalburgCity = 142,
+  kOldaleTown = 143,
+  kVsTeamMagma = 144,
+  kVsTeamAqua = 145,
+  kBattleResort2 = 146,
+  kSecretBase = 147,
+  kIsland = 148,
+  kPokemonLeague = 149,
+  kSky = 150,
+  kVsDeoxys = 151,
+  kStarting2 = 152,
+  kDemoTrack = 153,
+  kEnding2 = 154,
+  kVsSuicune = 155,
+  kRoute1242 = 156,
+  kVsMirageBoss = 157,
+  kContest2 = 158,
+  kVsHoOh = 159,
+  kVsLugia = 160,
+  kVsUxie = 161,
+  kVsCobalion = 162,
+  kVsZekrom = 163,
+  kVsTeamFlareBoss = 164,
+  kMenu = 165,
+  kStage = 166,
+  kLittlerootTown = 167,
+  kBattleArcade = 168,
+  kBattleHall = 169,
+  kBattleCastle = 170,
+  kArtisanCave = 171,
+  kFieryPath = 172,
+  kShoalCave = 173,
+  kLooker02 = 174,
+  kStage02 = 175,
+  kVsPssTrainer = 176,
+  kVsLegend = 177,
+  kMiracleTrade = 178,
+  kEpilogue = 179,
+  kTrainerSchool = 180,
+  kMuseum = 181,
+  kArtGallery = 182,
+  kContestLobby = 183,
+  kMechanical = 184,
+  kLegendRoom = 185,
+  kMay = 186,
+  kBrendan = 187,
+  kMagma = 188,
+  kAqua = 189,
+  kEliteFour = 190,
+  kContest = 191,
+  kContestResult = 192,
+  kContestChamp = 193,
+  kDiving = 194,
+  kSky2 = 195,
+  kRoute130 = 196,
+  kVsWildPokemonSg = 197,
+  kVsTrainerSg = 198,
+  kVsGymLeaderSg = 199,
+  kVsRivalSg = 200,
+  kVsAqua = 201,
+  kVsMagma = 202,
+  kVsAquaLeader = 203,
+  kVsMagmaLeader = 204,
+  kVsEliteFourSg = 205,
+  kVsChampionSg = 206,
+  kVsLegendarySg = 207,
+  kVsSpecial02 = 208,
+  kPokemonCenter2 = 209,
+  kTheme02 = 210,
+  kKwGame0101 = 211,
+  kKwGame01 = 212,
+  kKwGame02 = 213,
+  kKwGame03 = 214,
+  kKwGame0301 = 215,
+};

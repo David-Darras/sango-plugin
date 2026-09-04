@@ -17,30 +17,34 @@
 
 #pragma once
 
-#define BALL_NONE (0)
-#define BALL_MASTER_BALL (1)
-#define BALL_ULTRA_BALL (2)
-#define BALL_GREAT_BALL (3)
-#define BALL_POKE_BALL (4)
-#define BALL_SAFARI_BALL (5)
-#define BALL_NET_BALL (6)
-#define BALL_DIVE_BALL (7)
-#define BALL_NEST_BALL (8)
-#define BALL_REPEAT_BALL (9)
-#define BALL_TIMER_BALL (10)
-#define BALL_LUXURY_BALL (11)
-#define BALL_PREMIER_BALL (12)
-#define BALL_DUSK_BALL (13)
-#define BALL_HEAL_BALL (14)
-#define BALL_QUICK_BALL (15)
-#define BALL_CHERISH_BALL (16)
-#define BALL_SPEED_BALL (17)
-#define BALL_LEVEL_BALL (18)
-#define BALL_LURE_BALL (19)
-#define BALL_HEAVY_BALL (20)
-#define BALL_LOVE_BALL (21)
-#define BALL_FRIEND_BALL (22)
-#define BALL_MOON_BALL (23)
-#define BALL_SPORT_BALL (24)
-#define BALL_DREAM_BALL (25)
-#define BALL_COUNT (26)
+#include <types.h>
+
+enum class Ball : u8 {
+  kNone = 0,
+  kMasterBall = 1,
+  kUltraBall = 2,
+  kGreatBall = 3,
+  kPokeBall = 4,
+  kSafariBall = 5,
+  kNetBall = 6,
+  kDiveBall = 7,
+  kNestBall = 8,
+  kRepeatBall = 9,
+  kTimerBall = 10,
+  kLuxuryBall = 11,
+  kPremierBall = 12,
+  kDuskBall = 13,
+  kHealBall = 14,
+  kQuickBall = 15,
+  kCherishBall = 16,
+  kSpeedBall = 17,
+  kLevelBall = 18,
+  kLureBall = 19,
+  kHeavyBall = 20,
+  kLoveBall = 21,
+  kFriendBall = 22,
+  kMoonBall = 23,
+  kSportBall = 24,
+  kDreamBall = 25,
+  kCount = 26,
+};

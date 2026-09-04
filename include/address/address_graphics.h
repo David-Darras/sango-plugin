@@ -74,3 +74,9 @@
 #define ADDRESS_SCENE_UNREGISTER 0x003917D0
 
 #define ADDRESS_GRAPHICS_SET_MATERIAL 0x0014DA94
+
+/** * @name Shader Entry Points Patched By The "No Shader" Option
+ * @{ */
+#define ADDRESS_RENDERER_APPLY_SHADER (0x003989B0)
+#define ADDRESS_RENDERER_APPLY_SHADER_2 (0x003881EC)
+/** @} */

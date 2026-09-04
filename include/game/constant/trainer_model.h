@@ -17,19 +17,23 @@
 
 #pragma once
 
-#define TRAINER_MODEL_SERENA (0)
-#define TRAINER_MODEL_CALEM (1)
-#define TRAINER_MODEL_MALVA (2)
-#define TRAINER_MODEL_HOLOCASTER (3)
-#define TRAINER_MODEL_MAY (4)
-#define TRAINER_MODEL_BRENDAN (5)
-#define TRAINER_MODEL_WALLY (6)
-#define TRAINER_MODEL_WALLY_ALT (7)
-#define TRAINER_MODEL_STEVEN (8)
-#define TRAINER_MODEL_MAXIE (9)
-#define TRAINER_MODEL_ARCHIE (10)
-#define TRAINER_MODEL_ZINNIA (11)
-#define TRAINER_MODEL_SHAUNA (12)
-#define TRAINER_MODEL_TIERNO (13)
-#define TRAINER_MODEL_TREVOR (14)
-#define TRAINER_MODEL_COUNT (15)
+#include <types.h>
+
+enum class TrainerModel : u8 {
+  kSerena = 0,
+  kCalem = 1,
+  kMalva = 2,
+  kHolocaster = 3,
+  kMay = 4,
+  kBrendan = 5,
+  kWally = 6,
+  kWallyAlt = 7,
+  kSteven = 8,
+  kMaxie = 9,
+  kArchie = 10,
+  kZinnia = 11,
+  kShauna = 12,
+  kTierno = 13,
+  kTrevor = 14,
+  kCount = 15,
+};

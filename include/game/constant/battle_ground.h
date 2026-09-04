@@ -17,96 +17,100 @@
 
 #pragma once
 
-#define BATTLE_GROUND_NONE                  (0)
-#define BATTLE_GROUND_GRASS                 (1)
-#define BATTLE_GROUND_FACTORY               (2)
-#define BATTLE_GROUND_CAVE                  (3)
-#define BATTLE_GROUND_FOREST                (4)
-#define BATTLE_GROUND_SHORE                 (5)
-#define BATTLE_GROUND_MOUNTAIN              (6)
-#define BATTLE_GROUND_INDOORS               (7)
-#define BATTLE_GROUND_CITY                  (8)
-#define BATTLE_GROUND_TOWN                  (9)
-#define BATTLE_GROUND_PALACE                (10)
-#define BATTLE_GROUND_COMMUNICATION         (11)
-#define BATTLE_GROUND_WATER                 (12)
-#define BATTLE_GROUND_SEA                   (13)
-#define BATTLE_GROUND_SNOW_CAVE             (14)
-#define BATTLE_GROUND_MIRROR_DUNGEON        (15)
-#define BATTLE_GROUND_ROCK_GYM_LEADER       (16)
-#define BATTLE_GROUND_FIGHTING_GYM_LEADER   (17)
-#define BATTLE_GROUND_ELECTRIC_GYM_LEADER   (18)
-#define BATTLE_GROUND_FIRE_GYM_LEADER       (19)
-#define BATTLE_GROUND_NORMAL_GYM_LEADER     (20)
-#define BATTLE_GROUND_FLYING_GYM_LEADER     (21)
-#define BATTLE_GROUND_PSYCHIC_GYM_LEADER    (22)
-#define BATTLE_GROUND_WATER_GYM_LEADER      (23)
-#define BATTLE_GROUND_ELITE_FOUR_DARK       (24)
-#define BATTLE_GROUND_ELITE_FOUR_ICE        (25)
-#define BATTLE_GROUND_ELITE_FOUR_GHOST      (26)
-#define BATTLE_GROUND_ELITE_FOUR_DRAGON     (27)
-#define BATTLE_GROUND_CHAMPION_BATTLE       (28)
-#define BATTLE_GROUND_DARK_ROOM             (29)
-#define BATTLE_GROUND_WCS                   (30)
-#define BATTLE_GROUND_WCS_2                 (31)
-#define BATTLE_GROUND_ROCK_GYM_LEADER_2     (32)
-#define BATTLE_GROUND_FIGHTING_GYM_LEADER_2 (33)
-#define BATTLE_GROUND_ELECTRIC_GYM_LEADER_2 (34)
-#define BATTLE_GROUND_FIRE_GYM_LEADER_2     (35)
-#define BATTLE_GROUND_NORMAL_GYM_LEADER_2   (36)
-#define BATTLE_GROUND_FLYING_GYM_LEADER_2   (37)
-#define BATTLE_GROUND_PSYCHIC_GYM_LEADER_2  (38)
-#define BATTLE_GROUND_WATER_GYM_LEADER_2    (39)
-#define BATTLE_GROUND_SKY_BATTLE            (40)
-#define BATTLE_GROUND_WATER_CAVE            (41)
-#define BATTLE_GROUND_GREY                  (42)
-#define BATTLE_GROUND_DESERT                (43)
-#define BATTLE_GROUND_VOLCANIC              (44)
-#define BATTLE_GROUND_CITY_SHORE            (45)
-#define BATTLE_GROUND_FORD                  (46)
-#define BATTLE_GROUND_CITY_FORD             (47)
-#define BATTLE_GROUND_SEABED                (48)
-#define BATTLE_GROUND_STONE_CAVE            (49)
-#define BATTLE_GROUND_WATERFALL_CAVE        (50)
-#define BATTLE_GROUND_SEABED_CAVE           (51)
-#define BATTLE_GROUND_WATERFALL             (52)
-#define BATTLE_GROUND_UNDERSEA_AQUA_HIDEOUT (53)
-#define BATTLE_GROUND_CYCLING               (54)
-#define BATTLE_GROUND_SHIP                  (55)
-#define BATTLE_GROUND_CEMETERY              (56)
-#define BATTLE_GROUND_SKY_PILLAR            (57)
-#define BATTLE_GROUND_POKEMON_RUBY          (58)
-#define BATTLE_GROUND_POKEMON_SAPPHIRE      (59)
-#define BATTLE_GROUND_POKEMON_EMERALD       (60)
-#define BATTLE_GROUND_POKEMON_LEGENDARY     (61)
-#define BATTLE_GROUND_CONTEST_A_COOL        (62)
-#define BATTLE_GROUND_CONTEST_A_BEAUTIFUL   (63)
-#define BATTLE_GROUND_CONTEST_A_CUTE        (64)
-#define BATTLE_GROUND_CONTEST_A_CLEVER      (65)
-#define BATTLE_GROUND_CONTEST_A_STRONG      (66)
-#define BATTLE_GROUND_CONTEST_B_COOL        (67)
-#define BATTLE_GROUND_CONTEST_B_BEAUTIFUL   (68)
-#define BATTLE_GROUND_CONTEST_B_CUTE        (69)
-#define BATTLE_GROUND_CONTEST_B_CLEVER      (70)
-#define BATTLE_GROUND_CONTEST_B_STRONG      (71)
-#define BATTLE_GROUND_CONTEST_C_COOL        (72)
-#define BATTLE_GROUND_CONTEST_C_BEAUTIFUL   (73)
-#define BATTLE_GROUND_CONTEST_C_CUTE        (74)
-#define BATTLE_GROUND_CONTEST_C_CLEVER      (75)
-#define BATTLE_GROUND_CONTEST_C_STRONG      (76)
-#define BATTLE_GROUND_CONTEST_D_COOL        (77)
-#define BATTLE_GROUND_CONTEST_D_BEAUTIFUL   (78)
-#define BATTLE_GROUND_CONTEST_D_CUTE        (79)
-#define BATTLE_GROUND_CONTEST_D_CLEVER      (80)
-#define BATTLE_GROUND_CONTEST_D_STRONG      (81)
-#define BATTLE_GROUND_CONTEST_OPENING       (82)
-#define BATTLE_GROUND_CONTEST_ENDING        (83)
-#define BATTLE_GROUND_AQUA_BOSS             (84)
-#define BATTLE_GROUND_MAGMA_BOSS            (85)
-#define BATTLE_GROUND_SKY_PILLAR_TOP        (86)
-#define BATTLE_GROUND_DEOXYS                (87)
-#define BATTLE_GROUND_VOLCANO               (88)
-#define BATTLE_GROUND_VICTORY_ROAD          (89)
-#define BATTLE_GROUND_ALL_NIGHT_EVENT       (90)
-#define BATTLE_GROUND_AQUA_HIDEOUT_CAVE     (91)
-#define BATTLE_GROUND_ABANDONED_SHIP        (92)
+#include <types.h>
+
+enum class BattleGround : u8 {
+  kNone = 0,
+  kGrass = 1,
+  kFactory = 2,
+  kCave = 3,
+  kForest = 4,
+  kShore = 5,
+  kMountain = 6,
+  kIndoors = 7,
+  kCity = 8,
+  kTown = 9,
+  kPalace = 10,
+  kCommunication = 11,
+  kWater = 12,
+  kSea = 13,
+  kSnowCave = 14,
+  kMirrorDungeon = 15,
+  kRockGymLeader = 16,
+  kFightingGymLeader = 17,
+  kElectricGymLeader = 18,
+  kFireGymLeader = 19,
+  kNormalGymLeader = 20,
+  kFlyingGymLeader = 21,
+  kPsychicGymLeader = 22,
+  kWaterGymLeader = 23,
+  kEliteFourDark = 24,
+  kEliteFourIce = 25,
+  kEliteFourGhost = 26,
+  kEliteFourDragon = 27,
+  kChampionBattle = 28,
+  kDarkRoom = 29,
+  kWcs = 30,
+  kWcs2 = 31,
+  kRockGymLeader2 = 32,
+  kFightingGymLeader2 = 33,
+  kElectricGymLeader2 = 34,
+  kFireGymLeader2 = 35,
+  kNormalGymLeader2 = 36,
+  kFlyingGymLeader2 = 37,
+  kPsychicGymLeader2 = 38,
+  kWaterGymLeader2 = 39,
+  kSkyBattle = 40,
+  kWaterCave = 41,
+  kGrey = 42,
+  kDesert = 43,
+  kVolcanic = 44,
+  kCityShore = 45,
+  kFord = 46,
+  kCityFord = 47,
+  kSeabed = 48,
+  kStoneCave = 49,
+  kWaterfallCave = 50,
+  kSeabedCave = 51,
+  kWaterfall = 52,
+  kUnderseaAquaHideout = 53,
+  kCycling = 54,
+  kShip = 55,
+  kCemetery = 56,
+  kSkyPillar = 57,
+  kPokemonRuby = 58,
+  kPokemonSapphire = 59,
+  kPokemonEmerald = 60,
+  kPokemonLegendary = 61,
+  kContestACool = 62,
+  kContestABeautiful = 63,
+  kContestACute = 64,
+  kContestAClever = 65,
+  kContestAStrong = 66,
+  kContestBCool = 67,
+  kContestBBeautiful = 68,
+  kContestBCute = 69,
+  kContestBClever = 70,
+  kContestBStrong = 71,
+  kContestCCool = 72,
+  kContestCBeautiful = 73,
+  kContestCCute = 74,
+  kContestCClever = 75,
+  kContestCStrong = 76,
+  kContestDCool = 77,
+  kContestDBeautiful = 78,
+  kContestDCute = 79,
+  kContestDClever = 80,
+  kContestDStrong = 81,
+  kContestOpening = 82,
+  kContestEnding = 83,
+  kAquaBoss = 84,
+  kMagmaBoss = 85,
+  kSkyPillarTop = 86,
+  kDeoxys = 87,
+  kVolcano = 88,
+  kVictoryRoad = 89,
+  kAllNightEvent = 90,
+  kAquaHideoutCave = 91,
+  kAbandonedShip = 92,
+};

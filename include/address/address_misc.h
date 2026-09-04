@@ -41,3 +41,11 @@
 #define ADDRESS_ON_UPDATE_FRAME (0x0011EEA4)
 #define ADDRESS_KEYBOARD_UPDATE_KEYS (0x00744540)
 /** @} */
+
+/** * @name In-Game Application (Menu) Addresses
+ * @{ */
+/// Allocation size immediates patched so the hooked app gets 0x100 extra bytes.
+#define ADDRESS_OVERWORLD_MENU_APP_ALLOC_SIZE (0x003D6D18)
+#define ADDRESS_TOP_MENU_APP_ALLOC_SIZE (0x003D81D4)
+#define ADDRESS_TOWN_MAP_CALLBACK (0x003EF898)
+/** @} */

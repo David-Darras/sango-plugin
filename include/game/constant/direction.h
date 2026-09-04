@@ -15,13 +15,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#define DIRECTION_UP (0)
-#define DIRECTION_DOWN (1)
-#define DIRECTION_LEFT (2)
-#define DIRECTION_RIGHT (3)
-#define DIRECTION_UP_LEFT (4)
-#define DIRECTION_UP_RIGHT (5)
-#define DIRECTION_DOWN_LEFT (6)
-#define DIRECTION_DOWN_RIGHT (7)
-#define DIRECTION_COUNT (8)
-#define DIRECTION_INVALID (9)
+#pragma once
+
+#include <types.h>
+
+enum class Direction : u8 {
+  kUp = 0,
+  kDown = 1,
+  kLeft = 2,
+  kRight = 3,
+  kUpLeft = 4,
+  kUpRight = 5,
+  kDownLeft = 6,
+  kDownRight = 7,
+  kCount = 8,
+  kInvalid = 9,
+};

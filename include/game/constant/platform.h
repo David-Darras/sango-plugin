@@ -17,95 +17,99 @@
 
 #pragma once
 
-#define PLATFORM_NONE (0)
-#define PLATFORM_GRASS (1)
-#define PLATFORM_FACTORY (2)
-#define PLATFORM_CAVE (3)
-#define PLATFORM_FOREST (4)
-#define PLATFORM_SHORE (5)
-#define PLATFORM_MOUNTAIN (6)
-#define PLATFORM_ROOM (7)
-#define PLATFORM_CITY (8)
-#define PLATFORM_TOWN (9)
-#define PLATFORM_PALACE (10)
-#define PLATFORM_COMM_ROOM (11)
-#define PLATFORM_POND_WATER (12)
-#define PLATFORM_OCEAN_SURFACE (13)
-#define PLATFORM_FROST_CAVE (14)
-#define PLATFORM_REFLECTION_CAVE (15)
-#define PLATFORM_GYM_ROCK_TRAINER (16)
-#define PLATFORM_GYM_FIGHTING_TRAINER (17)
-#define PLATFORM_GYM_ELECTRIC_TRAINER (18)
-#define PLATFORM_GYM_FIRE_TRAINER (19)
-#define PLATFORM_GYM_NORMAL_TRAINER (20)
-#define PLATFORM_GYM_FLYING_TRAINER (21)
-#define PLATFORM_GYM_PSYCHIC_TRAINER (22)
-#define PLATFORM_GYM_WATER_TRAINER (23)
-#define PLATFORM_ELITE_FOUR_SIDNEY (24)
-#define PLATFORM_ELITE_FOUR_PHOEBE (25)
-#define PLATFORM_ELITE_FOUR_GLACIA (26)
-#define PLATFORM_ELITE_FOUR_DRAKE (27)
-#define PLATFORM_CHAMPION_STEVEN (28)
-#define PLATFORM_DARK_ROOM (29)
-#define PLATFORM_WCS_POKEMON_LEAGUE (30)
-#define PLATFORM_WCS_POKEMON_LEAGUE_ALT (31)
-#define PLATFORM_GYM_ROXANNE (32)
-#define PLATFORM_GYM_BRAWLY (33)
-#define PLATFORM_GYM_WATTSON (34)
-#define PLATFORM_GYM_FLANNERY (35)
-#define PLATFORM_GYM_NORMAN (36)
-#define PLATFORM_GYM_WINONA (37)
-#define PLATFORM_GYM_TATE_LIZA (38)
-#define PLATFORM_GYM_WALLACE (39)
-#define PLATFORM_SKY_BATTLE (40)
-#define PLATFORM_WATER_CAVE (41)
-#define PLATFORM_GREY (42)
-#define PLATFORM_DESERT (43)
-#define PLATFORM_VOLCANIC_ASH (44)
-#define PLATFORM_BEACH_SIDE (45)
-#define PLATFORM_SHALLOW_WATER (46)
-#define PLATFORM_SHALLOW_WATER_CITY (47)
-#define PLATFORM_UNDERWATER_SEABED (48)
-#define PLATFORM_GRANITE_CAVE (49)
-#define PLATFORM_METEOR_FALLS (50)
-#define PLATFORM_SEAFLOOR_CAVE (51)
-#define PLATFORM_WATERFALL (52)
-#define PLATFORM_TEAM_AQUA_HIDEOUT (53)
-#define PLATFORM_CYCLING_ROAD (54)
-#define PLATFORM_S_S_CACTUS (55)
-#define PLATFORM_MT_PYRE_CEMETERY (56)
-#define PLATFORM_SKY_PILLAR (57)
-#define PLATFORM_GROUDON_PRIMAL (58)
-#define PLATFORM_KYOGRE_PRIMAL (59)
-#define PLATFORM_RAYQUAZA_MEGA (60)
-#define PLATFORM_LEGENDARY_RING (61)
-#define PLATFORM_CONTEST_NORMAL_COOL (62)
-#define PLATFORM_CONTEST_NORMAL_BEAUTIFUL (63)
-#define PLATFORM_CONTEST_NORMAL_CUTE (64)
-#define PLATFORM_CONTEST_NORMAL_CLEVER (65)
-#define PLATFORM_CONTEST_NORMAL_TOUGH (66)
-#define PLATFORM_CONTEST_SUPER_COOL (67)
-#define PLATFORM_CONTEST_SUPER_BEAUTIFUL (68)
-#define PLATFORM_CONTEST_SUPER_CUTE (69)
-#define PLATFORM_CONTEST_SUPER_CLEVER (70)
-#define PLATFORM_CONTEST_SUPER_TOUGH (71)
-#define PLATFORM_CONTEST_HYPER_COOL (72)
-#define PLATFORM_CONTEST_HYPER_BEAUTIFUL (73)
-#define PLATFORM_CONTEST_HYPER_CUTE (74)
-#define PLATFORM_CONTEST_HYPER_CLEVER (75)
-#define PLATFORM_CONTEST_HYPER_TOUGH (76)
-#define PLATFORM_CONTEST_MASTER_COOL (77)
-#define PLATFORM_CONTEST_MASTER_BEAUTIFUL (78)
-#define PLATFORM_CONTEST_MASTER_CUTE (79)
-#define PLATFORM_CONTEST_MASTER_CLEVER (80)
-#define PLATFORM_CONTEST_MASTER_TOUGH (81)
-#define PLATFORM_CONTEST_INTRO (82)
-#define PLATFORM_CONTEST_RESULTS (83)
-#define PLATFORM_ARCHIE_BOSS (84)
-#define PLATFORM_MAXIE_BOSS (85)
-#define PLATFORM_SKY_PILLAR_TOP (86)
-#define PLATFORM_DEOXYS_DNA (87)
-#define PLATFORM_FIERY_PATH (88)
-#define PLATFORM_WALLY_VICTORY_ROAD (89)
-#define PLATFORM_PLAIN (90)
-#define PLATFORM_GREY_ALT (91)
+#include <types.h>
+
+enum class Platform : u8 {
+  kNone = 0,
+  kGrass = 1,
+  kFactory = 2,
+  kCave = 3,
+  kForest = 4,
+  kShore = 5,
+  kMountain = 6,
+  kRoom = 7,
+  kCity = 8,
+  kTown = 9,
+  kPalace = 10,
+  kCommRoom = 11,
+  kPondWater = 12,
+  kOceanSurface = 13,
+  kFrostCave = 14,
+  kReflectionCave = 15,
+  kGymRockTrainer = 16,
+  kGymFightingTrainer = 17,
+  kGymElectricTrainer = 18,
+  kGymFireTrainer = 19,
+  kGymNormalTrainer = 20,
+  kGymFlyingTrainer = 21,
+  kGymPsychicTrainer = 22,
+  kGymWaterTrainer = 23,
+  kEliteFourSidney = 24,
+  kEliteFourPhoebe = 25,
+  kEliteFourGlacia = 26,
+  kEliteFourDrake = 27,
+  kChampionSteven = 28,
+  kDarkRoom = 29,
+  kWcsPokemonLeague = 30,
+  kWcsPokemonLeagueAlt = 31,
+  kGymRoxanne = 32,
+  kGymBrawly = 33,
+  kGymWattson = 34,
+  kGymFlannery = 35,
+  kGymNorman = 36,
+  kGymWinona = 37,
+  kGymTateLiza = 38,
+  kGymWallace = 39,
+  kSkyBattle = 40,
+  kWaterCave = 41,
+  kGrey = 42,
+  kDesert = 43,
+  kVolcanicAsh = 44,
+  kBeachSide = 45,
+  kShallowWater = 46,
+  kShallowWaterCity = 47,
+  kUnderwaterSeabed = 48,
+  kGraniteCave = 49,
+  kMeteorFalls = 50,
+  kSeafloorCave = 51,
+  kWaterfall = 52,
+  kTeamAquaHideout = 53,
+  kCyclingRoad = 54,
+  kSSCactus = 55,
+  kMtPyreCemetery = 56,
+  kSkyPillar = 57,
+  kGroudonPrimal = 58,
+  kKyogrePrimal = 59,
+  kRayquazaMega = 60,
+  kLegendaryRing = 61,
+  kContestNormalCool = 62,
+  kContestNormalBeautiful = 63,
+  kContestNormalCute = 64,
+  kContestNormalClever = 65,
+  kContestNormalTough = 66,
+  kContestSuperCool = 67,
+  kContestSuperBeautiful = 68,
+  kContestSuperCute = 69,
+  kContestSuperClever = 70,
+  kContestSuperTough = 71,
+  kContestHyperCool = 72,
+  kContestHyperBeautiful = 73,
+  kContestHyperCute = 74,
+  kContestHyperClever = 75,
+  kContestHyperTough = 76,
+  kContestMasterCool = 77,
+  kContestMasterBeautiful = 78,
+  kContestMasterCute = 79,
+  kContestMasterClever = 80,
+  kContestMasterTough = 81,
+  kContestIntro = 82,
+  kContestResults = 83,
+  kArchieBoss = 84,
+  kMaxieBoss = 85,
+  kSkyPillarTop = 86,
+  kDeoxysDna = 87,
+  kFieryPath = 88,
+  kWallyVictoryRoad = 89,
+  kPlain = 90,
+  kGreyAlt = 91,
+};

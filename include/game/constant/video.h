@@ -17,73 +17,77 @@
 
 #pragma once
 
-#define VIDEO_TITLE_OMEGA_RUBY (2)
-#define VIDEO_TITLE_ALPHA_SAPPHIRE (3)
-#define VIDEO_TRUCK_LOOK_AT_POKEDEX (4)
-#define VIDEO_TRUCK_SHOW_POKEMON (5)
-#define VIDEO_TRUCK_OPEN_DOORS (6)
-#define VIDEO_TRUCK_JUMP_OUTSIDE (7)
+#include <types.h>
 
-#define VIDEO_BOAT (9)
+enum class Video : u8 {
+  kTitleOmegaRuby = 2,
+  kTitleAlphaSapphire = 3,
+  kTruckLookAtPokedex = 4,
+  kTruckShowPokemon = 5,
+  kTruckOpenDoors = 6,
+  kTruckJumpOutside = 7,
 
-#define VIDEO_SKY_UP (11)
-#define VIDEO_SKY_DOWN (12)
-#define VIDEO_FLYING_WITH_LATIOS_AND_STEVEN (13)
-#define VIDEO_FLYING_WITH_LATIAS_AND_STEVEN (14)
-#define VIDEO_GREEN_LIGHT (15)
+  kBoat = 9,
 
-#define VIDEO_GROUDON_WALKING (20)
-#define VIDEO_KYOGRE_DIVING (21)
+  kSkyUp = 11,
+  kSkyDown = 12,
+  kFlyingWithLatiosAndSteven = 13,
+  kFlyingWithLatiasAndSteven = 14,
+  kGreenLight = 15,
 
-#define VIDEO_BROWN_PIXELS (28)
-#define VIDEO_RAYQUAZA_FLY_OMEGA_RUBY (29)
-#define VIDEO_RAYQUAZA_FLY_ALPHA_SAPPHIRE (30)
-#define VIDEO_SKY_PILLAR (31)
+  kGroudonWalking = 20,
+  kKyogreDiving = 21,
 
-#define VIDEO_DIVING_GO_DOWN (32)
-#define VIDEO_DIVING_GO_UP (33)
+  kBrownPixels = 28,
+  kRayquazaFlyOmegaRuby = 29,
+  kRayquazaFlyAlphaSapphire = 30,
+  kSkyPillar = 31,
 
-#define VIDEO_EGG_HATCHING (34)
+  kDivingGoDown = 32,
+  kDivingGoUp = 33,
 
-#define VIDEO_WATERFALL_DOWN (35)
-#define VIDEO_WATERFALL_UP (36)
+  kEggHatching = 34,
 
-#define VIDEO_EXECUTE_FIELD_MOVE (37)
-#define VIDEO_EXECUTE_FIELD_MOVE_2 (38)
-#define VIDEO_BULBASAUR_AND_WINDOW (39)
-#define VIDEO_BULBASAUR_AND_WINDOW_2 (43)
-#define VIDEO_WINDOW (46)
-#define VIDEO_FLY (47)
+  kWaterfallDown = 35,
+  kWaterfallUp = 36,
 
-#define VIDEO_BADGE_1 (48)
-#define VIDEO_BADGE_2 (49)
-#define VIDEO_BADGE_3 (50)
-#define VIDEO_BADGE_4 (51)
-#define VIDEO_BADGE_5 (52)
-#define VIDEO_BADGE_6 (53)
-#define VIDEO_BADGE_7 (54)
-#define VIDEO_BADGE_8 (55)
+  kExecuteFieldMove = 37,
+  kExecuteFieldMove2 = 38,
+  kBulbasaurAndWindow = 39,
+  kBulbasaurAndWindow2 = 43,
+  kWindow = 46,
+  kFly = 47,
 
-#define VIDEO_USE_HM_BUGGED (56)
+  kBadge1 = 48,
+  kBadge2 = 49,
+  kBadge3 = 50,
+  kBadge4 = 51,
+  kBadge5 = 52,
+  kBadge6 = 53,
+  kBadge7 = 54,
+  kBadge8 = 55,
 
-#define VIDEO_MEGA_LATIOS_FLY (57)
-#define VIDEO_FLASH_1 (58)
-#define VIDEO_MEGA_LATIOS_LAND (59)
-#define VIDEO_FLASH_2 (60)
+  kUseHmBugged = 56,
 
-#define VIDEO_EVOLUTION (61)
-#define VIDEO_EVOLUTION_2 (62)
-#define VIDEO_EVOLUTION_3 (63)
+  kMegaLatiosFly = 57,
+  kFlash1 = 58,
+  kMegaLatiosLand = 59,
+  kFlash2 = 60,
 
-#define VIDEO_RECEIVE_POKEMON (64)
-#define VIDEO_RECEIVE_POKEMON_2 (65)
-#define VIDEO_SEND_POKEMON (66)
+  kEvolution = 61,
+  kEvolution2 = 62,
+  kEvolution3 = 63,
 
-#define VIDEO_POKEMON_EXCHANGE_RED (67)
-#define VIDEO_POKEMON_EXCHANGE_BLUE (68)
+  kReceivePokemon = 64,
+  kReceivePokemon2 = 65,
+  kSendPokemon = 66,
 
-#define VIDEO_BLACK_LINES (69)
-#define VIDEO_BLACK_LINES_2 (70)
-#define VIDEO_SMALL_WINDOW (84)
-#define VIDEO_PRIMO_GROUDON (85)
-#define VIDEO_PRIMO_KYOGRE (86)
+  kPokemonExchangeRed = 67,
+  kPokemonExchangeBlue = 68,
+
+  kBlackLines = 69,
+  kBlackLines2 = 70,
+  kSmallWindow = 84,
+  kPrimoGroudon = 85,
+  kPrimoKyogre = 86,
+};

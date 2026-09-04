@@ -17,8 +17,12 @@
 
 #pragma once
 
-#define BATTLE_FORMAT_SINGLE (0)
-#define BATTLE_FORMAT_DOUBLE (1)
-#define BATTLE_FORMAT_TRIPLE (2)
-#define BATTLE_FORMAT_ROTATION (3)
-#define BATTLE_FORMAT_HORDE (4)
+#include <types.h>
+
+enum class BattleFormat : u8 {
+  kSingle = 0,
+  kDouble = 1,
+  kTriple = 2,
+  kRotation = 3,
+  kHorde = 4,
+};

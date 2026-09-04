@@ -17,7 +17,7 @@
 
 #include "ui/page_item.h"
 
-#include "feature/cheat_code.h"
+#include "feature/core/cheat_code.h"
 #include "ui/main_application.h"
 #include "utils.h"
 #include "game/global_data/item.h"
@@ -253,7 +253,7 @@ void PageItem::GetDefaultDisplayValue(c16* buffer) const {
       break;
 
     case kTypeItem: {
-      global_data::Item item(*(u16*)address_);
+      global_data::Item item(static_cast<ItemID>(*(u16*)address_));
       item.GetName(String::GetTmpStr());
       Utils::Format(buffer, u"%ls%s : %ls", prefix, name_, String::GetTmpBuf());
     }

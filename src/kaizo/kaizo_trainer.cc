@@ -18,7 +18,7 @@
 #include <initializer_list>
 
 #include "utils.h"
-#include "feature/feature_battle.h"
+#include "feature/battle/feature_battle.h"
 #include "game/battle/config.h"
 #include "game/constant/battle_format.h"
 #include "game/constant/battle_trainer.h"
@@ -82,31 +82,34 @@ void RestoreTeamAfterBattle() {
 * opponents used.
 */
 struct TrainerOpponentSpec {
-  u16 species;
-  u16 item;
-  u16 ability;
-  u8 nature;
+  Species species;
+  ItemID item;
+  Ability ability;
+  Nature nature;
   bool is_shiny;
 
   u8 ev_hp, ev_attack, ev_defense, ev_sp_attack, ev_sp_defense, ev_speed;
 
-  u16 move1, move2, move3, move4;
+  MoveID move1, move2, move3, move4;
 
   u8 form; // 0 = leave the species' default form untouched
   const c16* nickname; // nullptr = keep the species' default name
   u8 forced_level; // 0 = don't force a level (PatchTrainer_Level decides)
 
   TrainerOpponentSpec()
-    : species(0), item(0), ability(0), nature(0), is_shiny(false), ev_hp(0),
+    : species(Species::kNone), item(ItemID::kNone), ability(Ability::kNone),
+      nature(Nature::kHardy), is_shiny(false), ev_hp(0),
       ev_attack(0), ev_defense(0), ev_sp_attack(0), ev_sp_defense(0),
-      ev_speed(0), move1(0), move2(0), move3(0), move4(0), form(0),
+      ev_speed(0), move1(MoveID::kNone), move2(MoveID::kNone),
+      move3(MoveID::kNone), move4(MoveID::kNone), form(0),
       nickname(nullptr), forced_level(0) {
   }
 
-  TrainerOpponentSpec(u16 species, u16 item, u16 ability, u8 nature,
+  TrainerOpponentSpec(Species species, ItemID item, Ability ability,
+                      Nature nature,
                       bool is_shiny, u8 ev_hp, u8 ev_attack, u8 ev_defense,
                       u8 ev_sp_attack, u8 ev_sp_defense, u8 ev_speed,
-                      u16 move1, u16 move2, u16 move3, u16 move4,
+                      MoveID move1, MoveID move2, MoveID move3, MoveID move4,
                       u8 form = 0, const c16* nickname = nullptr,
                       u8 forced_level = 0)
     : species(species), item(item), ability(ability), nature(nature),
@@ -119,7 +122,8 @@ struct TrainerOpponentSpec {
 
   void ApplyTo(PokemonCoreData& pkm) const {
     pkm.Set(species, item, ability, nature, is_shiny);
-    if (form != 0) pkm.form = form;
+    // `form` is a sentinel-carrying raw value here (0 = keep the default).
+    if (form != 0) pkm.form = static_cast<Form>(form);
     pkm.SetStats(ev_hp, ev_attack, ev_defense, ev_sp_attack, ev_sp_defense,
                 ev_speed);
     pkm.SetMoves(move1, move2, move3, move4);
@@ -135,17 +139,20 @@ struct TrainerOpponentSpec {
 */
 struct TrainerSpec {
   u8 opponent_count;
-  u8 format;
-  u8 background;
-  u8 ground;
-  u8 platform;
-  u8 encounter_animation;
-  u8 weather;
+  BattleFormat format;
+  BattleBackground background;
+  BattleGround ground;
+  BattlePlatform platform;
+  BattleEncounterAnimation encounter_animation;
+  BattleWeather weather;
   bool force_wild_battle_type;
   TrainerOpponentSpec opponents[6];
 
-  TrainerSpec(u8 opponent_count, u8 format, u8 background, u8 ground,
-             u8 platform, u8 encounter_animation, u8 weather,
+  TrainerSpec(u8 opponent_count, BattleFormat format,
+             BattleBackground background, BattleGround ground,
+             BattlePlatform platform,
+             BattleEncounterAnimation encounter_animation,
+             BattleWeather weather,
              std::initializer_list<TrainerOpponentSpec> opponent_list,
              bool force_wild_battle_type = false)
     : opponent_count(opponent_count), format(format), background(background),
@@ -169,359 +176,360 @@ void ApplyTrainerSpec(battle::Config& config, const TrainerSpec& spec) {
 }
 
 static const TrainerSpec kMaySpec(
-    5, BATTLE_FORMAT_HORDE, BATTLE_BACKGROUND_SKY_PILLAR_TOP,
-    BATTLE_GROUND_SKY_PILLAR_TOP, BATTLE_PLATFORM_SKY_PILLAR_TOP,
-    BATTLE_ENCOUNTER_ANIM_RAYQUAZA, WEATHER_BATTLE_STRONG_WINDS,
+    5, BattleFormat::kHorde, BattleBackground::kSkyPillarTop,
+    BattleGround::kSkyPillarTop, BattlePlatform::kSkyPillarTop,
+    BattleEncounterAnimation::kRayquaza, BattleWeather::kStrongWinds,
     {
-        {SPECIES_WHISMUR, ITEM_NONE, ABILITY_RATTLED, NATURE_MODEST, false,
-         0, 0, 0, 0, 0, 0, MOVE_NONE, MOVE_NONE, MOVE_NONE, MOVE_NONE, 0,
+        {Species::kWhismur, ItemID::kNone, Ability::kRattled, Nature::kModest, false,
+         0, 0, 0, 0, 0, 0, MoveID::kNone, MoveID::kNone, MoveID::kNone, MoveID::kNone, 0,
          nullptr, 1},
-        {SPECIES_WHISMUR, ITEM_LIFE_ORB, ABILITY_SOUNDPROOF, NATURE_MODEST,
-         true, 244, 0, 12, 188, 0, 12, MOVE_HYPER_VOICE, MOVE_FIRE_BLAST,
-         MOVE_SHADOW_BALL, MOVE_EXTRASENSORY, 0, u"Hash"},
-        {SPECIES_WHISMUR, ITEM_NONE, ABILITY_RATTLED, NATURE_MODEST, false,
-         0, 0, 0, 0, 0, 0, MOVE_NONE, MOVE_NONE, MOVE_NONE, MOVE_NONE, 0,
+        {Species::kWhismur, ItemID::kLifeOrb, Ability::kSoundproof, Nature::kModest,
+         true, 244, 0, 12, 188, 0, 12, MoveID::kHyperVoice, MoveID::kFireBlast,
+         MoveID::kShadowBall, MoveID::kExtrasensory, 0, u"Hash"},
+        {Species::kWhismur, ItemID::kNone, Ability::kRattled, Nature::kModest, false,
+         0, 0, 0, 0, 0, 0, MoveID::kNone, MoveID::kNone, MoveID::kNone, MoveID::kNone, 0,
          nullptr, 1},
-        {SPECIES_WHISMUR, ITEM_NONE, ABILITY_RATTLED, NATURE_MODEST, false,
-         0, 0, 0, 0, 0, 0, MOVE_NONE, MOVE_NONE, MOVE_NONE, MOVE_NONE, 0,
+        {Species::kWhismur, ItemID::kNone, Ability::kRattled, Nature::kModest, false,
+         0, 0, 0, 0, 0, 0, MoveID::kNone, MoveID::kNone, MoveID::kNone, MoveID::kNone, 0,
          nullptr, 1},
-        {SPECIES_WHISMUR, ITEM_NONE, ABILITY_RATTLED, NATURE_MODEST, false,
-         0, 0, 0, 0, 0, 0, MOVE_NONE, MOVE_NONE, MOVE_NONE, MOVE_NONE, 0,
+        {Species::kWhismur, ItemID::kNone, Ability::kRattled, Nature::kModest, false,
+         0, 0, 0, 0, 0, 0, MoveID::kNone, MoveID::kNone, MoveID::kNone, MoveID::kNone, 0,
          nullptr, 1},
     });
 
 static const TrainerSpec kRoute102Kid1Spec(
-    2, BATTLE_FORMAT_DOUBLE, BATTLE_BACKGROUND_AQUA_BOSS,
-    BATTLE_GROUND_AQUA_BOSS, BATTLE_PLATFORM_WATER,
-    BATTLE_ENCOUNTER_ANIM_KYOGRE, WEATHER_BATTLE_HEAVY_RAIN,
+    2, BattleFormat::kDouble, BattleBackground::kAquaBoss,
+    BattleGround::kAquaBoss, BattlePlatform::kWater,
+    BattleEncounterAnimation::kKyogre, BattleWeather::kHeavyRain,
     {
-        {SPECIES_FURFROU, ITEM_LEFTOVERS, ABILITY_FUR_COAT, NATURE_JOLLY,
-         true, 0, 252, 0, 0, 4, 252, MOVE_U_TURN, MOVE_THUNDER_WAVE,
-         MOVE_RETURN, MOVE_SUCKER_PUNCH, FORM_FURFROU_HEART},
-        {SPECIES_POOCHYENA, ITEM_TOXIC_ORB, ABILITY_QUICK_FEET, NATURE_JOLLY,
-         true, 0, 236, 0, 0, 36, 236, MOVE_CRUNCH, MOVE_PLAY_ROUGH,
-         MOVE_FACADE, MOVE_FIRE_FANG},
+        {Species::kFurfrou, ItemID::kLeftovers, Ability::kFurCoat, Nature::kJolly,
+         true, 0, 252, 0, 0, 4, 252, MoveID::kUTurn, MoveID::kThunderWave,
+         MoveID::kReturn, MoveID::kSuckerPunch,
+         static_cast<u8>(Form::kFurfrouHeart)},
+        {Species::kPoochyena, ItemID::kToxicOrb, Ability::kQuickFeet, Nature::kJolly,
+         true, 0, 236, 0, 0, 36, 236, MoveID::kCrunch, MoveID::kPlayRough,
+         MoveID::kFacade, MoveID::kFireFang},
     });
 
 static const TrainerSpec kRoute102Kid2Spec(
-    3, BATTLE_FORMAT_TRIPLE, BATTLE_BACKGROUND_MAGMA_BOSS,
-    BATTLE_GROUND_MAGMA_BOSS, BATTLE_PLATFORM_VOLCANO,
-    BATTLE_ENCOUNTER_ANIM_GROUDON, WEATHER_BATTLE_EXTREMELY_HARSH_SUNLIGHT,
+    3, BattleFormat::kTriple, BattleBackground::kMagmaBoss,
+    BattleGround::kMagmaBoss, BattlePlatform::kVolcano,
+    BattleEncounterAnimation::kGroudon, BattleWeather::kExtremelyHarshSunlight,
     {
-        {SPECIES_AZURILL, ITEM_EVIOLITE, ABILITY_HUGE_POWER, NATURE_ADAMANT,
-         false, 116, 196, 116, 0, 36, 0, MOVE_RETURN, MOVE_KNOCK_OFF,
-         MOVE_WATERFALL, MOVE_IRON_TAIL},
-        {SPECIES_PICHU, ITEM_EVIOLITE, ABILITY_LIGHTNING_ROD, NATURE_TIMID,
-         true, 36, 0, 0, 236, 0, 196, MOVE_NASTY_PLOT, MOVE_SUBSTITUTE,
-         MOVE_THUNDERBOLT, MOVE_HIDDEN_POWER},
-        {SPECIES_RATTATA, ITEM_FLAME_ORB, ABILITY_GUTS, NATURE_JOLLY, false,
-         0, 228, 76, 0, 0, 180, MOVE_FACADE, MOVE_SUCKER_PUNCH,
-         MOVE_FLAME_WHEEL, MOVE_U_TURN},
+        {Species::kAzurill, ItemID::kEviolite, Ability::kHugePower, Nature::kAdamant,
+         false, 116, 196, 116, 0, 36, 0, MoveID::kReturn, MoveID::kKnockOff,
+         MoveID::kWaterfall, MoveID::kIronTail},
+        {Species::kPichu, ItemID::kEviolite, Ability::kLightningRod, Nature::kTimid,
+         true, 36, 0, 0, 236, 0, 196, MoveID::kNastyPlot, MoveID::kSubstitute,
+         MoveID::kThunderbolt, MoveID::kHiddenPower},
+        {Species::kRattata, ItemID::kFlameOrb, Ability::kGuts, Nature::kJolly, false,
+         0, 228, 76, 0, 0, 180, MoveID::kFacade, MoveID::kSuckerPunch,
+         MoveID::kFlameWheel, MoveID::kUTurn},
     });
 
 static const TrainerSpec kRoute102Kid3Spec(
-    2, BATTLE_FORMAT_SINGLE, BATTLE_BACKGROUND_DEOXYS, BATTLE_GROUND_DEOXYS,
-    BATTLE_PLATFORM_FLYING_GYM_LEADER, BATTLE_ENCOUNTER_ANIM_DEOXYS,
-    WEATHER_BATTLE_HAIL,
+    2, BattleFormat::kSingle, BattleBackground::kDeoxys, BattleGround::kDeoxys,
+    BattlePlatform::kFlyingGymLeader, BattleEncounterAnimation::kDeoxys,
+    BattleWeather::kHail,
     {
-        {SPECIES_PURRLOIN, ITEM_EVIOLITE, ABILITY_PRANKSTER, NATURE_CAREFUL,
-         false, 188, 0, 180, 0, 60, 68, MOVE_ENCORE, MOVE_U_TURN,
-         MOVE_KNOCK_OFF, MOVE_THUNDER_WAVE},
-        {SPECIES_GLAMEOW, ITEM_LIFE_ORB, ABILITY_LIMBER, NATURE_JOLLY, false,
-         0, 236, 20, 0, 0, 236, MOVE_RETURN, MOVE_KNOCK_OFF, MOVE_FAKE_OUT,
-         MOVE_U_TURN},
+        {Species::kPurrloin, ItemID::kEviolite, Ability::kPrankster, Nature::kCareful,
+         false, 188, 0, 180, 0, 60, 68, MoveID::kEncore, MoveID::kUTurn,
+         MoveID::kKnockOff, MoveID::kThunderWave},
+        {Species::kGlameow, ItemID::kLifeOrb, Ability::kLimber, Nature::kJolly, false,
+         0, 236, 20, 0, 0, 236, MoveID::kReturn, MoveID::kKnockOff, MoveID::kFakeOut,
+         MoveID::kUTurn},
     });
 
 // Tiana Lass
 static const TrainerSpec kRoute102GirlSpec(
-    3, BATTLE_FORMAT_ROTATION, BATTLE_BACKGROUND_ABANDONED_SHIP,
-    BATTLE_GROUND_ABANDONED_SHIP, BATTLE_PLATFORM_SHIP,
-    BATTLE_ENCOUNTER_ANIM_HOOPA, WEATHER_BATTLE_NONE,
+    3, BattleFormat::kRotation, BattleBackground::kAbandonedShip,
+    BattleGround::kAbandonedShip, BattlePlatform::kShip,
+    BattleEncounterAnimation::kHoopa, BattleWeather::kNone,
     {
-        {SPECIES_RAIKOU, ITEM_CHOICE_SPECS, ABILITY_PRESSURE, NATURE_TIMID,
-         false, 0, 0, 0, 252, 4, 252, MOVE_VOLT_SWITCH, MOVE_THUNDERBOLT,
-         MOVE_SHADOW_BALL, MOVE_HIDDEN_POWER},
-        {SPECIES_ENTEI, ITEM_CHOICE_BAND, ABILITY_PRESSURE, NATURE_ADAMANT,
-         true, 0, 252, 0, 0, 4, 252, MOVE_SACRED_FIRE, MOVE_FLARE_BLITZ,
-         MOVE_EXTREME_SPEED, MOVE_STONE_EDGE},
-        {SPECIES_SUICUNE, ITEM_LEFTOVERS, ABILITY_PRESSURE, NATURE_TIMID,
-         false, 252, 0, 0, 0, 40, 216, MOVE_SUBSTITUTE, MOVE_PROTECT,
-         MOVE_CALM_MIND, MOVE_SCALD},
+        {Species::kRaikou, ItemID::kChoiceSpecs, Ability::kPressure, Nature::kTimid,
+         false, 0, 0, 0, 252, 4, 252, MoveID::kVoltSwitch, MoveID::kThunderbolt,
+         MoveID::kShadowBall, MoveID::kHiddenPower},
+        {Species::kEntei, ItemID::kChoiceBand, Ability::kPressure, Nature::kAdamant,
+         true, 0, 252, 0, 0, 4, 252, MoveID::kSacredFire, MoveID::kFlareBlitz,
+         MoveID::kExtremeSpeed, MoveID::kStoneEdge},
+        {Species::kSuicune, ItemID::kLeftovers, Ability::kPressure, Nature::kTimid,
+         false, 252, 0, 0, 0, 40, 216, MoveID::kSubstitute, MoveID::kProtect,
+         MoveID::kCalmMind, MoveID::kScald},
     });
 
 static const TrainerSpec kRoute104YoungsterBillySpec(
-    2, BATTLE_FORMAT_SINGLE, BATTLE_BACKGROUND_SKY_BATTLE,
-    BATTLE_GROUND_SKY_BATTLE, BATTLE_PLATFORM_SKY,
-    BATTLE_ENCOUNTER_ANIM_GYM_LEADER_FLYING, WEATHER_BATTLE_INVALID,
+    2, BattleFormat::kSingle, BattleBackground::kSkyBattle,
+    BattleGround::kSkyBattle, BattlePlatform::kSky,
+    BattleEncounterAnimation::kGymLeaderFlying, BattleWeather::kInvalid,
     {
-        {SPECIES_XATU, ITEM_ROCKY_HELMET, ABILITY_MAGIC_BOUNCE, NATURE_TIMID,
-         true, 252, 0, 240, 0, 0, 16, MOVE_PSYCHIC, MOVE_ROOST,
-         MOVE_GRASS_KNOT, MOVE_U_TURN},
-        {SPECIES_TAILLOW, ITEM_LIFE_ORB, ABILITY_SCRAPPY, NATURE_NAIVE,
-         false, 0, 0, 36, 196, 36, 236, MOVE_BOOMBURST, MOVE_HEAT_WAVE,
-         MOVE_HIDDEN_POWER, MOVE_BRAVE_BIRD},
+        {Species::kXatu, ItemID::kRockyHelmet, Ability::kMagicBounce, Nature::kTimid,
+         true, 252, 0, 240, 0, 0, 16, MoveID::kPsychic, MoveID::kRoost,
+         MoveID::kGrassKnot, MoveID::kUTurn},
+        {Species::kTaillow, ItemID::kLifeOrb, Ability::kScrappy, Nature::kNaive,
+         false, 0, 0, 36, 196, 36, 236, MoveID::kBoomburst, MoveID::kHeatWave,
+         MoveID::kHiddenPower, MoveID::kBraveBird},
     });
 
 static const TrainerSpec kRoute104RichBoyWinstonSpec(
-    2, BATTLE_FORMAT_DOUBLE, BATTLE_BACKGROUND_SKY_BATTLE,
-    BATTLE_GROUND_SKY_BATTLE, BATTLE_PLATFORM_SKY,
-    BATTLE_ENCOUNTER_ANIM_GYM_LEADER_FLYING, WEATHER_BATTLE_INVALID,
+    2, BattleFormat::kDouble, BattleBackground::kSkyBattle,
+    BattleGround::kSkyBattle, BattlePlatform::kSky,
+    BattleEncounterAnimation::kGymLeaderFlying, BattleWeather::kInvalid,
     {
-        {SPECIES_PIDOVE, ITEM_LIFE_ORB, ABILITY_SUPER_LUCK, NATURE_NAIVE,
-         false, 0, 236, 0, 0, 0, 252, MOVE_TAILWIND, MOVE_FACADE,
-         MOVE_AERIAL_ACE, MOVE_HEAT_WAVE},
-        {SPECIES_DUCKLETT, ITEM_EVIOLITE, ABILITY_HYDRATION, NATURE_CALM,
-         true, 180, 0, 196, 4, 116, 0, MOVE_AIR_SLASH, MOVE_DEFOG,
-         MOVE_ROOST, MOVE_SCALD},
+        {Species::kPidove, ItemID::kLifeOrb, Ability::kSuperLuck, Nature::kNaive,
+         false, 0, 236, 0, 0, 0, 252, MoveID::kTailwind, MoveID::kFacade,
+         MoveID::kAerialAce, MoveID::kHeatWave},
+        {Species::kDucklett, ItemID::kEviolite, Ability::kHydration, Nature::kCalm,
+         true, 180, 0, 196, 4, 116, 0, MoveID::kAirSlash, MoveID::kDefog,
+         MoveID::kRoost, MoveID::kScald},
     });
 
 static const TrainerSpec kPetalburgWoodsBugCatcherLyleSpec(
-    4, BATTLE_FORMAT_DOUBLE, BATTLE_BACKGROUND_FOREST, BATTLE_GROUND_FOREST,
-    BATTLE_PLATFORM_FOREST, BATTLE_ENCOUNTER_ANIM_RAYQUAZA,
-    WEATHER_BATTLE_INVALID,
+    4, BattleFormat::kDouble, BattleBackground::kForest, BattleGround::kForest,
+    BattlePlatform::kForest, BattleEncounterAnimation::kRayquaza,
+    BattleWeather::kInvalid,
     {
-        {SPECIES_METAPOD, ITEM_EVIOLITE, ABILITY_SHED_SKIN, NATURE_NAUGHTY,
-         false, 248, 252, 0, 8, 0, 0, MOVE_BUG_BITE, MOVE_ELECTROWEB,
-         MOVE_IRON_DEFENSE, MOVE_TACKLE},
-        {SPECIES_KAKUNA, ITEM_EVIOLITE, ABILITY_SHED_SKIN, NATURE_NAUGHTY,
-         true, 248, 252, 0, 8, 0, 0, MOVE_BUG_BITE, MOVE_ELECTROWEB,
-         MOVE_IRON_DEFENSE, MOVE_POISON_STING},
-        {SPECIES_SILCOON, ITEM_EVIOLITE, ABILITY_SHED_SKIN, NATURE_NAUGHTY,
-         false, 248, 252, 0, 8, 0, 0, MOVE_ELECTROWEB, MOVE_IRON_DEFENSE,
-         MOVE_BUG_BITE, MOVE_POISON_STING},
-        {SPECIES_CASCOON, ITEM_EVIOLITE, ABILITY_SHED_SKIN, NATURE_NAUGHTY,
-         true, 248, 252, 0, 8, 0, 0, MOVE_ELECTROWEB, MOVE_IRON_DEFENSE,
-         MOVE_BUG_BITE, MOVE_POISON_STING},
+        {Species::kMetapod, ItemID::kEviolite, Ability::kShedSkin, Nature::kNaughty,
+         false, 248, 252, 0, 8, 0, 0, MoveID::kBugBite, MoveID::kElectroweb,
+         MoveID::kIronDefense, MoveID::kTackle},
+        {Species::kKakuna, ItemID::kEviolite, Ability::kShedSkin, Nature::kNaughty,
+         true, 248, 252, 0, 8, 0, 0, MoveID::kBugBite, MoveID::kElectroweb,
+         MoveID::kIronDefense, MoveID::kPoisonSting},
+        {Species::kSilcoon, ItemID::kEviolite, Ability::kShedSkin, Nature::kNaughty,
+         false, 248, 252, 0, 8, 0, 0, MoveID::kElectroweb, MoveID::kIronDefense,
+         MoveID::kBugBite, MoveID::kPoisonSting},
+        {Species::kCascoon, ItemID::kEviolite, Ability::kShedSkin, Nature::kNaughty,
+         true, 248, 252, 0, 8, 0, 0, MoveID::kElectroweb, MoveID::kIronDefense,
+         MoveID::kBugBite, MoveID::kPoisonSting},
     });
 
 static const TrainerSpec kPetalburgWoodsTeamAquaGruntSpec(
-    5, BATTLE_FORMAT_HORDE, BATTLE_BACKGROUND_FOREST, BATTLE_GROUND_FOREST,
-    BATTLE_PLATFORM_FOREST, BATTLE_ENCOUNTER_ANIM_RAYQUAZA,
-    WEATHER_BATTLE_INVALID,
+    5, BattleFormat::kHorde, BattleBackground::kForest, BattleGround::kForest,
+    BattlePlatform::kForest, BattleEncounterAnimation::kRayquaza,
+    BattleWeather::kInvalid,
     {
-        {SPECIES_SCATTERBUG, ITEM_EVIOLITE, ABILITY_COMPOUND_EYES,
-         NATURE_CAREFUL, true, 132, 76, 116, 0, 156, 0, MOVE_STUN_SPORE,
-         MOVE_POISON_POWDER, MOVE_BUG_BITE, MOVE_TACKLE},
-        {SPECIES_SEWADDLE, ITEM_EVIOLITE, ABILITY_CHLOROPHYLL, NATURE_BOLD,
-         true, 156, 0, 196, 40, 116, 0, MOVE_STICKY_WEB, MOVE_GIGA_DRAIN,
-         MOVE_HIDDEN_POWER, MOVE_AIR_SLASH},
-        {SPECIES_WURMPLE, ITEM_EVIOLITE, ABILITY_SHIELD_DUST, NATURE_RELAXED,
-         true, 156, 76, 76, 0, 196, 0, MOVE_BUG_BITE, MOVE_ELECTROWEB,
-         MOVE_POISON_STING, MOVE_STRING_SHOT},
-        {SPECIES_WEEDLE, ITEM_EVIOLITE, ABILITY_SHIELD_DUST, NATURE_ADAMANT,
-         true, 36, 236, 36, 36, 116, 36, MOVE_BUG_BITE, MOVE_ELECTROWEB,
-         MOVE_POISON_STING, MOVE_STRING_SHOT},
-        {SPECIES_CATERPIE, ITEM_EVIOLITE, ABILITY_SHIELD_DUST, NATURE_RELAXED,
-         true, 156, 0, 236, 0, 116, 0, MOVE_BUG_BITE, MOVE_ELECTROWEB,
-         MOVE_STRING_SHOT, MOVE_TACKLE},
+        {Species::kScatterbug, ItemID::kEviolite, Ability::kCompoundEyes,
+         Nature::kCareful, true, 132, 76, 116, 0, 156, 0, MoveID::kStunSpore,
+         MoveID::kPoisonPowder, MoveID::kBugBite, MoveID::kTackle},
+        {Species::kSewaddle, ItemID::kEviolite, Ability::kChlorophyll, Nature::kBold,
+         true, 156, 0, 196, 40, 116, 0, MoveID::kStickyWeb, MoveID::kGigaDrain,
+         MoveID::kHiddenPower, MoveID::kAirSlash},
+        {Species::kWurmple, ItemID::kEviolite, Ability::kShieldDust, Nature::kRelaxed,
+         true, 156, 76, 76, 0, 196, 0, MoveID::kBugBite, MoveID::kElectroweb,
+         MoveID::kPoisonSting, MoveID::kStringShot},
+        {Species::kWeedle, ItemID::kEviolite, Ability::kShieldDust, Nature::kAdamant,
+         true, 36, 236, 36, 36, 116, 36, MoveID::kBugBite, MoveID::kElectroweb,
+         MoveID::kPoisonSting, MoveID::kStringShot},
+        {Species::kCaterpie, ItemID::kEviolite, Ability::kShieldDust, Nature::kRelaxed,
+         true, 156, 0, 236, 0, 116, 0, MoveID::kBugBite, MoveID::kElectroweb,
+         MoveID::kStringShot, MoveID::kTackle},
     });
 
 static const TrainerSpec kPetalburgWoodsBugCatcherJamesSpec(
-    2, BATTLE_FORMAT_SINGLE, BATTLE_BACKGROUND_FOREST, BATTLE_GROUND_FOREST,
-    BATTLE_PLATFORM_FOREST, BATTLE_ENCOUNTER_ANIM_RAYQUAZA,
-    WEATHER_BATTLE_INVALID,
+    2, BattleFormat::kSingle, BattleBackground::kForest, BattleGround::kForest,
+    BattlePlatform::kForest, BattleEncounterAnimation::kRayquaza,
+    BattleWeather::kInvalid,
     {
-        {SPECIES_BUTTERFREE, ITEM_LIFE_ORB, ABILITY_TINTED_LENS,
-         NATURE_TIMID, false, 0, 0, 4, 252, 0, 252, MOVE_SLEEP_POWDER,
-         MOVE_QUIVER_DANCE, MOVE_BUG_BUZZ, MOVE_ENERGY_BALL},
-        {SPECIES_BEEDRILL, ITEM_BEEDRILLITE, ABILITY_SWARM, NATURE_JOLLY,
-         false, 0, 252, 4, 0, 0, 252, MOVE_U_TURN, MOVE_POISON_JAB,
-         MOVE_DRILL_RUN, MOVE_KNOCK_OFF},
+        {Species::kButterfree, ItemID::kLifeOrb, Ability::kTintedLens,
+         Nature::kTimid, false, 0, 0, 4, 252, 0, 252, MoveID::kSleepPowder,
+         MoveID::kQuiverDance, MoveID::kBugBuzz, MoveID::kEnergyBall},
+        {Species::kBeedrill, ItemID::kBeedrillite, Ability::kSwarm, Nature::kJolly,
+         false, 0, 252, 4, 0, 0, 252, MoveID::kUTurn, MoveID::kPoisonJab,
+         MoveID::kDrillRun, MoveID::kKnockOff},
     });
 
 static const TrainerSpec kRoute104LadyCindySpec(
-    1, BATTLE_FORMAT_SINGLE, BATTLE_BACKGROUND_SHORE, BATTLE_GROUND_SHORE,
-    BATTLE_PLATFORM_SHORE, BATTLE_ENCOUNTER_ANIM_KYOGRE, WEATHER_BATTLE_RAIN,
+    1, BattleFormat::kSingle, BattleBackground::kShore, BattleGround::kShore,
+    BattlePlatform::kShore, BattleEncounterAnimation::kKyogre, BattleWeather::kRain,
     {
-        {SPECIES_TOTODILE, ITEM_EVIOLITE, ABILITY_SHEER_FORCE,
-         NATURE_ADAMANT, false, 0, 236, 4, 0, 0, 252, MOVE_DRAGON_DANCE,
-         MOVE_WATERFALL, MOVE_ICE_PUNCH, MOVE_SUPERPOWER},
+        {Species::kTotodile, ItemID::kEviolite, Ability::kSheerForce,
+         Nature::kAdamant, false, 0, 236, 4, 0, 0, 252, MoveID::kDragonDance,
+         MoveID::kWaterfall, MoveID::kIcePunch, MoveID::kSuperpower},
     });
 
 static const TrainerSpec kRoute104LassHaleySpec(
-    2, BATTLE_FORMAT_SINGLE, BATTLE_BACKGROUND_SHORE, BATTLE_GROUND_SHORE,
-    BATTLE_PLATFORM_SHORE, BATTLE_ENCOUNTER_ANIM_KYOGRE, WEATHER_BATTLE_RAIN,
+    2, BattleFormat::kSingle, BattleBackground::kShore, BattleGround::kShore,
+    BattlePlatform::kShore, BattleEncounterAnimation::kKyogre, BattleWeather::kRain,
     {
-        {SPECIES_PIPLUP, ITEM_EVIOLITE, ABILITY_TORRENT, NATURE_BOLD, true,
-         92, 0, 252, 0, 148, 0, MOVE_STEALTH_ROCK, MOVE_DEFOG, MOVE_SCALD,
-         MOVE_ICE_BEAM},
-        {SPECIES_OSHAWOTT, ITEM_LIFE_ORB, ABILITY_TORRENT, NATURE_RASH, true,
-         0, 0, 0, 252, 0, 236, MOVE_HYDRO_PUMP, MOVE_ICE_BEAM, MOVE_AIR_SLASH,
-         MOVE_AQUA_JET},
+        {Species::kPiplup, ItemID::kEviolite, Ability::kTorrent, Nature::kBold, true,
+         92, 0, 252, 0, 148, 0, MoveID::kStealthRock, MoveID::kDefog, MoveID::kScald,
+         MoveID::kIceBeam},
+        {Species::kOshawott, ItemID::kLifeOrb, Ability::kTorrent, Nature::kRash, true,
+         0, 0, 0, 252, 0, 236, MoveID::kHydroPump, MoveID::kIceBeam, MoveID::kAirSlash,
+         MoveID::kAquaJet},
     });
 
 static const TrainerSpec kRoute104TwinsGinaAndMiaSpec(
-    2, BATTLE_FORMAT_DOUBLE, BATTLE_BACKGROUND_SHORE, BATTLE_GROUND_SHORE,
-    BATTLE_PLATFORM_SHORE, BATTLE_ENCOUNTER_ANIM_KYOGRE,
-    WEATHER_BATTLE_HEAVY_RAIN,
+    2, BattleFormat::kDouble, BattleBackground::kShore, BattleGround::kShore,
+    BattlePlatform::kShore, BattleEncounterAnimation::kKyogre,
+    BattleWeather::kHeavyRain,
     {
-        {SPECIES_BLASTOISE, ITEM_BLASTOISINITE, ABILITY_RAIN_DISH,
-         NATURE_MODEST, false, 248, 0, 0, 252, 8, 0, MOVE_RAPID_SPIN,
-         MOVE_WATER_PULSE, MOVE_DARK_PULSE, MOVE_AURA_SPHERE},
-        {SPECIES_SWAMPERT, ITEM_SWAMPERTITE, ABILITY_DAMP, NATURE_ADAMANT,
-         false, 0, 252, 0, 0, 4, 252, MOVE_WATERFALL, MOVE_EARTHQUAKE,
-         MOVE_ICE_PUNCH, MOVE_POWER_UP_PUNCH},
+        {Species::kBlastoise, ItemID::kBlastoisinite, Ability::kRainDish,
+         Nature::kModest, false, 248, 0, 0, 252, 8, 0, MoveID::kRapidSpin,
+         MoveID::kWaterPulse, MoveID::kDarkPulse, MoveID::kAuraSphere},
+        {Species::kSwampert, ItemID::kSwampertite, Ability::kDamp, Nature::kAdamant,
+         false, 0, 252, 0, 0, 4, 252, MoveID::kWaterfall, MoveID::kEarthquake,
+         MoveID::kIcePunch, MoveID::kPowerUpPunch},
     });
 
 static const TrainerSpec kRoute104FishermanIvanSpec(
-    5, BATTLE_FORMAT_HORDE, BATTLE_BACKGROUND_SHORE, BATTLE_GROUND_SHORE,
-    BATTLE_PLATFORM_SHORE, BATTLE_ENCOUNTER_ANIM_KYOGRE,
-    WEATHER_BATTLE_HEAVY_RAIN,
+    5, BattleFormat::kHorde, BattleBackground::kShore, BattleGround::kShore,
+    BattlePlatform::kShore, BattleEncounterAnimation::kKyogre,
+    BattleWeather::kHeavyRain,
     {
-        {SPECIES_MAGIKARP, ITEM_NONE, ABILITY_RATTLED, NATURE_JOLLY, false,
-         0, 196, 0, 0, 116, 196, MOVE_SPLASH, MOVE_TACKLE, MOVE_FLAIL,
-         MOVE_BOUNCE, 0, nullptr, 1},
-        {SPECIES_MAGIKARP, ITEM_NONE, ABILITY_RATTLED, NATURE_JOLLY, false,
-         0, 196, 0, 0, 116, 196, MOVE_SPLASH, MOVE_TACKLE, MOVE_FLAIL,
-         MOVE_BOUNCE, 0, nullptr, 1},
-        {SPECIES_GYARADOS, ITEM_GYARADOSITE, ABILITY_INTIMIDATE,
-         NATURE_JOLLY, true, 0, 252, 4, 0, 0, 252, MOVE_DRAGON_DANCE,
-         MOVE_CRUNCH, MOVE_WATERFALL, MOVE_EARTHQUAKE},
-        {SPECIES_MAGIKARP, ITEM_NONE, ABILITY_RATTLED, NATURE_JOLLY, false,
-         0, 196, 0, 0, 116, 196, MOVE_SPLASH, MOVE_TACKLE, MOVE_FLAIL,
-         MOVE_BOUNCE, 0, nullptr, 1},
-        {SPECIES_MAGIKARP, ITEM_NONE, ABILITY_RATTLED, NATURE_JOLLY, false,
-         0, 196, 0, 0, 116, 196, MOVE_SPLASH, MOVE_TACKLE, MOVE_FLAIL,
-         MOVE_BOUNCE, 0, nullptr, 1},
+        {Species::kMagikarp, ItemID::kNone, Ability::kRattled, Nature::kJolly, false,
+         0, 196, 0, 0, 116, 196, MoveID::kSplash, MoveID::kTackle, MoveID::kFlail,
+         MoveID::kBounce, 0, nullptr, 1},
+        {Species::kMagikarp, ItemID::kNone, Ability::kRattled, Nature::kJolly, false,
+         0, 196, 0, 0, 116, 196, MoveID::kSplash, MoveID::kTackle, MoveID::kFlail,
+         MoveID::kBounce, 0, nullptr, 1},
+        {Species::kGyarados, ItemID::kGyaradosite, Ability::kIntimidate,
+         Nature::kJolly, true, 0, 252, 4, 0, 0, 252, MoveID::kDragonDance,
+         MoveID::kCrunch, MoveID::kWaterfall, MoveID::kEarthquake},
+        {Species::kMagikarp, ItemID::kNone, Ability::kRattled, Nature::kJolly, false,
+         0, 196, 0, 0, 116, 196, MoveID::kSplash, MoveID::kTackle, MoveID::kFlail,
+         MoveID::kBounce, 0, nullptr, 1},
+        {Species::kMagikarp, ItemID::kNone, Ability::kRattled, Nature::kJolly, false,
+         0, 196, 0, 0, 116, 196, MoveID::kSplash, MoveID::kTackle, MoveID::kFlail,
+         MoveID::kBounce, 0, nullptr, 1},
     });
 
 ////////////////////////////////////////////////////////////////////////////////
 
 static const TrainerSpec kRustboroCityYoungsterJoshSpec(
-    4, BATTLE_FORMAT_DOUBLE, BATTLE_BACKGROUND_ROCK_GYM_LEADER_2,
-    BATTLE_GROUND_ROCK_GYM_LEADER_2, BATTLE_PLATFORM_ROCK_GYM_LEADER,
-    BATTLE_ENCOUNTER_ANIM_GYM_LEADER_ROCK, WEATHER_BATTLE_SANDSTORM,
+    4, BattleFormat::kDouble, BattleBackground::kRockGymLeader2,
+    BattleGround::kRockGymLeader2, BattlePlatform::kRockGymLeader,
+    BattleEncounterAnimation::kGymLeaderRock, BattleWeather::kSandstorm,
     {
-        {SPECIES_OMANYTE, ITEM_EVIOLITE, ABILITY_SHELL_ARMOR, NATURE_MODEST,
-         false, 76, 0, 0, 196, 0, 236, MOVE_SHELL_SMASH, MOVE_HYDRO_PUMP,
-         MOVE_ICE_BEAM, MOVE_EARTH_POWER},
-        {SPECIES_KABUTO, ITEM_EVIOLITE, ABILITY_WEAK_ARMOR, NATURE_ADAMANT,
-         false, 116, 196, 196, 0, 0, 0, MOVE_RAPID_SPIN, MOVE_ROCK_SLIDE,
-         MOVE_KNOCK_OFF, MOVE_WATERFALL},
-        {SPECIES_LILEEP, ITEM_EVIOLITE, ABILITY_STORM_DRAIN, NATURE_CALM,
-         false, 228, 0, 140, 0, 140, 0, MOVE_STEALTH_ROCK, MOVE_GIGA_DRAIN,
-         MOVE_RECOVER, MOVE_ANCIENT_POWER},
-        {SPECIES_ANORITH, ITEM_BERRY_JUICE, ABILITY_BATTLE_ARMOR,
-         NATURE_JOLLY, false, 0, 236, 36, 0, 0, 236, MOVE_STEALTH_ROCK,
-         MOVE_RAPID_SPIN, MOVE_ROCK_BLAST, MOVE_KNOCK_OFF},
+        {Species::kOmanyte, ItemID::kEviolite, Ability::kShellArmor, Nature::kModest,
+         false, 76, 0, 0, 196, 0, 236, MoveID::kShellSmash, MoveID::kHydroPump,
+         MoveID::kIceBeam, MoveID::kEarthPower},
+        {Species::kKabuto, ItemID::kEviolite, Ability::kWeakArmor, Nature::kAdamant,
+         false, 116, 196, 196, 0, 0, 0, MoveID::kRapidSpin, MoveID::kRockSlide,
+         MoveID::kKnockOff, MoveID::kWaterfall},
+        {Species::kLileep, ItemID::kEviolite, Ability::kStormDrain, Nature::kCalm,
+         false, 228, 0, 140, 0, 140, 0, MoveID::kStealthRock, MoveID::kGigaDrain,
+         MoveID::kRecover, MoveID::kAncientPower},
+        {Species::kAnorith, ItemID::kBerryJuice, Ability::kBattleArmor,
+         Nature::kJolly, false, 0, 236, 36, 0, 0, 236, MoveID::kStealthRock,
+         MoveID::kRapidSpin, MoveID::kRockBlast, MoveID::kKnockOff},
     });
 
 static const TrainerSpec kRustboroCityYoungsterTommySpec(
-    4, BATTLE_FORMAT_DOUBLE, BATTLE_BACKGROUND_ROCK_GYM_LEADER_2,
-    BATTLE_GROUND_ROCK_GYM_LEADER_2, BATTLE_PLATFORM_ROCK_GYM_LEADER,
-    BATTLE_ENCOUNTER_ANIM_GYM_LEADER_ROCK, WEATHER_BATTLE_SANDSTORM,
+    4, BattleFormat::kDouble, BattleBackground::kRockGymLeader2,
+    BattleGround::kRockGymLeader2, BattlePlatform::kRockGymLeader,
+    BattleEncounterAnimation::kGymLeaderRock, BattleWeather::kSandstorm,
     {
-        {SPECIES_CRANIDOS, ITEM_LIFE_ORB, ABILITY_SHEER_FORCE, NATURE_JOLLY,
-         true, 0, 236, 36, 0, 0, 212, MOVE_ROCK_SLIDE, MOVE_SUPERPOWER,
-         MOVE_ZEN_HEADBUTT, MOVE_CRUNCH},
-        {SPECIES_SHIELDON, ITEM_BERRY_JUICE, ABILITY_STURDY, NATURE_IMPISH,
-         true, 116, 20, 212, 0, 132, 0, MOVE_STEALTH_ROCK, MOVE_HEAVY_SLAM,
-         MOVE_ROCK_BLAST, MOVE_EARTHQUAKE},
-        {SPECIES_TIRTOUGA, ITEM_BERRY_JUICE, ABILITY_STURDY, NATURE_JOLLY,
-         false, 0, 212, 92, 0, 0, 180, MOVE_SHELL_SMASH, MOVE_WATERFALL,
-         MOVE_ROCK_SLIDE, MOVE_ZEN_HEADBUTT},
-        {SPECIES_ARCHEN, ITEM_BERRY_JUICE, ABILITY_DEFEATIST, NATURE_JOLLY,
-         false, 76, 20, 76, 0, 76, 196, MOVE_STEALTH_ROCK, MOVE_ROCK_SLIDE,
-         MOVE_ACROBATICS, MOVE_EARTHQUAKE},
+        {Species::kCranidos, ItemID::kLifeOrb, Ability::kSheerForce, Nature::kJolly,
+         true, 0, 236, 36, 0, 0, 212, MoveID::kRockSlide, MoveID::kSuperpower,
+         MoveID::kZenHeadbutt, MoveID::kCrunch},
+        {Species::kShieldon, ItemID::kBerryJuice, Ability::kSturdy, Nature::kImpish,
+         true, 116, 20, 212, 0, 132, 0, MoveID::kStealthRock, MoveID::kHeavySlam,
+         MoveID::kRockBlast, MoveID::kEarthquake},
+        {Species::kTirtouga, ItemID::kBerryJuice, Ability::kSturdy, Nature::kJolly,
+         false, 0, 212, 92, 0, 0, 180, MoveID::kShellSmash, MoveID::kWaterfall,
+         MoveID::kRockSlide, MoveID::kZenHeadbutt},
+        {Species::kArchen, ItemID::kBerryJuice, Ability::kDefeatist, Nature::kJolly,
+         false, 76, 20, 76, 0, 76, 196, MoveID::kStealthRock, MoveID::kRockSlide,
+         MoveID::kAcrobatics, MoveID::kEarthquake},
     });
 
 // This trainer forces a wild-style battle_type (see the original
 // PatchTrainer_Rustboro_City_Schoolkid_Georgia, which set
 // `config.battle_type = 0;` before calling `config.Set()`).
 static const TrainerSpec kRustboroCitySchoolkidGeorgiaSpec(
-    1, BATTLE_FORMAT_SINGLE, BATTLE_BACKGROUND_ROCK_GYM_LEADER_2,
-    BATTLE_GROUND_ROCK_GYM_LEADER_2, BATTLE_PLATFORM_ROCK_GYM_LEADER,
-    BATTLE_ENCOUNTER_ANIM_REGIROCK, WEATHER_BATTLE_SANDSTORM,
+    1, BattleFormat::kSingle, BattleBackground::kRockGymLeader2,
+    BattleGround::kRockGymLeader2, BattlePlatform::kRockGymLeader,
+    BattleEncounterAnimation::kRegirock, BattleWeather::kSandstorm,
     {
-        {SPECIES_REGIROCK, ITEM_LEFTOVERS, ABILITY_CLEAR_BODY,
-         NATURE_CAREFUL, false, 252, 4, 0, 0, 252, 0, MOVE_ROCK_SLIDE,
-         MOVE_TOXIC, MOVE_STEALTH_ROCK, MOVE_PROTECT},
+        {Species::kRegirock, ItemID::kLeftovers, Ability::kClearBody,
+         Nature::kCareful, false, 252, 4, 0, 0, 252, 0, MoveID::kRockSlide,
+         MoveID::kToxic, MoveID::kStealthRock, MoveID::kProtect},
     },
     /* force_wild_battle_type = */ true);
 
 static const TrainerSpec kRustboroCityLeaderRoxanneSpec(
-    3, BATTLE_FORMAT_ROTATION, BATTLE_BACKGROUND_ROCK_GYM_LEADER_2,
-    BATTLE_GROUND_ROCK_GYM_LEADER_2, BATTLE_PLATFORM_ROCK_GYM_LEADER,
-    BATTLE_ENCOUNTER_ANIM_GYM_LEADER_ROCK, WEATHER_BATTLE_SANDSTORM,
+    3, BattleFormat::kRotation, BattleBackground::kRockGymLeader2,
+    BattleGround::kRockGymLeader2, BattlePlatform::kRockGymLeader,
+    BattleEncounterAnimation::kGymLeaderRock, BattleWeather::kSandstorm,
     {
-        {SPECIES_AERODACTYL, ITEM_AERODACTYLITE, ABILITY_ROCK_HEAD,
-         NATURE_JOLLY, true, 0, 252, 0, 0, 4, 252, MOVE_STONE_EDGE,
-         MOVE_AERIAL_ACE, MOVE_EARTHQUAKE, MOVE_PURSUIT},
-        {SPECIES_AERODACTYL, ITEM_AERODACTYLITE, ABILITY_ROCK_HEAD,
-         NATURE_JOLLY, false, 0, 252, 0, 0, 4, 252, MOVE_STONE_EDGE,
-         MOVE_AERIAL_ACE, MOVE_EARTHQUAKE, MOVE_PURSUIT},
-        {SPECIES_AERODACTYL, ITEM_AERODACTYLITE, ABILITY_ROCK_HEAD,
-         NATURE_JOLLY, false, 0, 252, 0, 0, 4, 252, MOVE_STONE_EDGE,
-         MOVE_AERIAL_ACE, MOVE_EARTHQUAKE, MOVE_PURSUIT},
+        {Species::kAerodactyl, ItemID::kAerodactylite, Ability::kRockHead,
+         Nature::kJolly, true, 0, 252, 0, 0, 4, 252, MoveID::kStoneEdge,
+         MoveID::kAerialAce, MoveID::kEarthquake, MoveID::kPursuit},
+        {Species::kAerodactyl, ItemID::kAerodactylite, Ability::kRockHead,
+         Nature::kJolly, false, 0, 252, 0, 0, 4, 252, MoveID::kStoneEdge,
+         MoveID::kAerialAce, MoveID::kEarthquake, MoveID::kPursuit},
+        {Species::kAerodactyl, ItemID::kAerodactylite, Ability::kRockHead,
+         Nature::kJolly, false, 0, 252, 0, 0, 4, 252, MoveID::kStoneEdge,
+         MoveID::kAerialAce, MoveID::kEarthquake, MoveID::kPursuit},
     });
 
 struct TrainerEntry {
-  u16 id;
+  BattleTrainer id;
   const TrainerSpec* spec;
 };
 
 static const TrainerEntry TRAINERS[] = {
-    {BATTLE_TRAINER_ROUTE_103_MAY_1, &kMaySpec},
-    {BATTLE_TRAINER_ROUTE_103_MAY_2, &kMaySpec},
-    {BATTLE_TRAINER_ROUTE_103_MAY_3, &kMaySpec},
-    {BATTLE_TRAINER_ROUTE_102_KID_1, &kRoute102Kid1Spec},
-    {BATTLE_TRAINER_ROUTE_102_KID_2, &kRoute102Kid2Spec},
-    {BATTLE_TRAINER_ROUTE_102_KID_3, &kRoute102Kid3Spec},
-    {BATTLE_TRAINER_ROUTE_102_GIRL, &kRoute102GirlSpec},
-    {BATTLE_TRAINER_ROUTE_104_YOUNGSTER_BILLY,
+    {BattleTrainer::kRoute103May1, &kMaySpec},
+    {BattleTrainer::kRoute103May2, &kMaySpec},
+    {BattleTrainer::kRoute103May3, &kMaySpec},
+    {BattleTrainer::kRoute102Kid1, &kRoute102Kid1Spec},
+    {BattleTrainer::kRoute102Kid2, &kRoute102Kid2Spec},
+    {BattleTrainer::kRoute102Kid3, &kRoute102Kid3Spec},
+    {BattleTrainer::kRoute102Girl, &kRoute102GirlSpec},
+    {BattleTrainer::kRoute104YoungsterBilly,
      &kRoute104YoungsterBillySpec},
-    {BATTLE_TRAINER_ROUTE_104_RICH_BOY_WINSTON,
+    {BattleTrainer::kRoute104RichBoyWinston,
      &kRoute104RichBoyWinstonSpec},
-    {BATTLE_TRAINER_PETALBURG_WOODS_BUG_CATCHER_LYLE,
+    {BattleTrainer::kPetalburgWoodsBugCatcherLyle,
      &kPetalburgWoodsBugCatcherLyleSpec},
-    {BATTLE_TRAINER_PETALBURG_WOODS_TEAM_AQUA_GRUNT,
+    {BattleTrainer::kPetalburgWoodsTeamAquaGrunt,
      &kPetalburgWoodsTeamAquaGruntSpec},
-    {BATTLE_TRAINER_PETALBURG_WOODS_BUG_CATCHER_JAMES,
+    {BattleTrainer::kPetalburgWoodsBugCatcherJames,
      &kPetalburgWoodsBugCatcherJamesSpec},
-    {BATTLE_TRAINER_ROUTE_104_LADY_CINDY, &kRoute104LadyCindySpec},
-    {BATTLE_TRAINER_ROUTE_104_LASS_HALEY, &kRoute104LassHaleySpec},
-    {BATTLE_TRAINER_ROUTE_104_TWINS_GINA_AND_MIA,
+    {BattleTrainer::kRoute104LadyCindy, &kRoute104LadyCindySpec},
+    {BattleTrainer::kRoute104LassHaley, &kRoute104LassHaleySpec},
+    {BattleTrainer::kRoute104TwinsGinaAndMia,
      &kRoute104TwinsGinaAndMiaSpec},
-    {BATTLE_TRAINER_ROUTE_104_FISHERMAN_IVAN, &kRoute104FishermanIvanSpec},
+    {BattleTrainer::kRoute104FishermanIvan, &kRoute104FishermanIvanSpec},
 
-    {BATTLE_TRAINER_RUSTBORO_CITY_YOUNGSTER_JOSH,
+    {BattleTrainer::kRustboroCityYoungsterJosh,
      &kRustboroCityYoungsterJoshSpec},
-    {BATTLE_TRAINER_RUSTBORO_CITY_YOUNGSTER_TOMMY,
+    {BattleTrainer::kRustboroCityYoungsterTommy,
      &kRustboroCityYoungsterTommySpec},
-    {BATTLE_TRAINER_RUSTBORO_CITY_SCHOOLKID_GEORGIA,
+    {BattleTrainer::kRustboroCitySchoolkidGeorgia,
      &kRustboroCitySchoolkidGeorgiaSpec},
-    {BATTLE_TRAINER_RUSTBORO_CITY_LEADER_ROXANNE,
+    {BattleTrainer::kRustboroCityLeaderRoxanne,
      &kRustboroCityLeaderRoxanneSpec},
 };
 
 void PatchTrainer_AI(battle::Config& config) {
   // Best AI
-  u32 flags;
-  switch (config.battle_format) {
-    case BATTLE_FORMAT_DOUBLE:
-    case BATTLE_FORMAT_TRIPLE:
-    case BATTLE_FORMAT_ROTATION:
-      flags = BATTLE_AI_CASUAL | BATTLE_AI_COMPETITIVE | BATTLE_AI_STRATEGIST |
-              BATTLE_AI_MULTI;
+  BattleAi flags;
+  switch (static_cast<BattleFormat>(config.battle_format)) {
+    case BattleFormat::kDouble:
+    case BattleFormat::kTriple:
+    case BattleFormat::kRotation:
+      flags = BattleAi::kCasual | BattleAi::kCompetitive | BattleAi::kStrategist |
+              BattleAi::kMulti;
       break;
-    case BATTLE_FORMAT_HORDE:
-      flags = BATTLE_AI_CASUAL | BATTLE_AI_COMPETITIVE | BATTLE_AI_STRATEGIST |
-              BATTLE_AI_HORDE;
+    case BattleFormat::kHorde:
+      flags = BattleAi::kCasual | BattleAi::kCompetitive | BattleAi::kStrategist |
+              BattleAi::kHorde;
       break;
-    case BATTLE_FORMAT_SINGLE:
+    case BattleFormat::kSingle:
     default:
-      flags = BATTLE_AI_CASUAL | BATTLE_AI_COMPETITIVE | BATTLE_AI_STRATEGIST;
+      flags = BattleAi::kCasual | BattleAi::kCompetitive | BattleAi::kStrategist;
       break;
   }
 
   if (config.trainer_data[0] != nullptr)
-    config.trainer_data[0]->ai_flags = flags;
+    config.trainer_data[0]->ai_flags = static_cast<u32>(flags);
   if (config.trainer_data[1] != nullptr)
-    config.trainer_data[1]->ai_flags = flags;
+    config.trainer_data[1]->ai_flags = static_cast<u32>(flags);
   if (config.trainer_data[2] != nullptr)
-    config.trainer_data[2]->ai_flags = flags;
+    config.trainer_data[2]->ai_flags = static_cast<u32>(flags);
   if (config.trainer_data[3] != nullptr)
-    config.trainer_data[3]->ai_flags = flags;
+    config.trainer_data[3]->ai_flags = static_cast<u32>(flags);
 }
 
 u32 GetPokemonBST(PokemonCoreData* core) {
@@ -607,7 +615,7 @@ void PatchTrainer_Level(battle::Config& config,
     if (clamped < 1) clamped = 1;
     if (clamped > max_level_cap) clamped = max_level_cap;
 
-    if (config.battle_format == BATTLE_FORMAT_HORDE) {
+    if (config.battle_format == static_cast<u8>(BattleFormat::kHorde)) {
       clamped >>= 1;
     }
 
@@ -622,7 +630,7 @@ void PatchTrainerData(battle::Config& config, u16& trainer_id) {
 
   // remove items
   for (u32 i = 0; i < 4; i++) {
-    config.trainer_data[1]->items[i] = ITEM_NONE;
+    config.trainer_data[1]->items[i] = ItemID::kNone;
   }
 
   auto& battle = feature::Battle::GetInstance();
@@ -646,7 +654,7 @@ void PatchTrainerData(battle::Config& config, u16& trainer_id) {
   }
 
   for (u32 i = 0; i < SIZE(TRAINERS); i++) {
-    if (TRAINERS[i].id == trainer_id) {
+    if (TRAINERS[i].id == static_cast<BattleTrainer>(trainer_id)) {
       ApplyTrainerSpec(config, *TRAINERS[i].spec);
       break;
     }
@@ -667,19 +675,19 @@ void PatchTrainerData(battle::Config& config, u16& trainer_id) {
 
   config.pokemon_teams[1]->HealAllPokemons();
 
-  switch (trainer_id) {
-    case BATTLE_TRAINER_RUSTBORO_CITY_YOUNGSTER_JOSH:
+  switch (static_cast<BattleTrainer>(trainer_id)) {
+    case BattleTrainer::kRustboroCityYoungsterJosh:
       config.InverseTypes();
       break;
-    case BATTLE_TRAINER_RUSTBORO_CITY_YOUNGSTER_TOMMY:
+    case BattleTrainer::kRustboroCityYoungsterTommy:
       SaveTeamBeforeBattle();
       config.InverseTeams();
       break;
-    case BATTLE_TRAINER_RUSTBORO_CITY_SCHOOLKID_GEORGIA:
+    case BattleTrainer::kRustboroCitySchoolkidGeorgia:
       SaveTeamBeforeBattle();
       battle.metronome_only = true;
       break;
-    case BATTLE_TRAINER_RUSTBORO_CITY_LEADER_ROXANNE:
+    case BattleTrainer::kRustboroCityLeaderRoxanne:
       battle.sync_team_hp = true;
       break;
     default:

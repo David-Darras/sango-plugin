@@ -15,9 +15,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "feature/feature_model_loader.h"
-#include "game/data_manager.h"
-#include "game/data_manager.h"
+#include "feature/pokemon/feature_model_loader.h"
+#include "game/core/data_manager.h"
+#include "game/core/data_manager.h"
+#include "game/constant/form.h"
 #include "game/constant/model.h"
 #include "game/constant/species.h"
 #include "game/overworld/model_manager.h"
@@ -29,9 +30,9 @@ feature::LoadedModel g_my_1st_pokemon;
 
 namespace {
 struct Settings {
-  u16 model_id = MODEL_STEVEN_STONE;
-  u16 species = 317;
-  u16 form = 0;
+  ModelID model_id = ModelID::kStevenStone;
+  Species species = static_cast<Species>(317);
+  Form form = static_cast<Form>(0);
   bool is_shiny = true;
   f32 scale = 1.0f;
   f32 distance = 0.0f;
@@ -63,11 +64,11 @@ void SpawnOverworldModel(void*) {
     ui::LogApplication::Print(u"already spawned, clear first");
     return;
   }
-  const u16 model_id = GetSettings().model_id;
-  if (feature::ModelLoader::LoadOverworldModel(&g_overworld_model, model_id,
-                                               SpawnPosition())) {
+  const ModelID model_id = GetSettings().model_id;
+  if (feature::ModelLoader::LoadOverworldModel(
+          &g_overworld_model, static_cast<u16>(model_id), SpawnPosition())) {
     ApplyScale(g_overworld_model, GetSettings().scale);
-    ui::LogApplication::Print(u"model %d spawned", model_id);
+    ui::LogApplication::Print(u"model %d spawned", static_cast<u16>(model_id));
   }
 }
 
@@ -78,10 +79,11 @@ void SpawnPokemon(void*) {
   }
   const Settings& settings = GetSettings();
   if (feature::ModelLoader::LoadPokemon(&g_pokemon_model, settings.species,
-                                        (u8)settings.form, settings.is_shiny,
+                                        settings.form, settings.is_shiny,
                                         SpawnPosition())) {
     ApplyScale(g_pokemon_model, GetSettings().scale);
-    ui::LogApplication::Print(u"species %d spawned", settings.species);
+    ui::LogApplication::Print(u"species %d spawned",
+                              static_cast<u16>(settings.species));
   }
 }
 
@@ -89,11 +91,11 @@ void Spawn1stPokemon(void*) {
   auto& team = savedata::PokemonTeam::GetInstance();
   auto& pkm = *team.pokemons[0];
   pkm.accessor->Decrypt();
-  u16 species = pkm.core->species;
-  u16 form = pkm.core->form;
+  Species species = pkm.core->species;
+  Form form = pkm.core->form;
   bool is_shiny = PokemonUtils::IsShiny(pkm.core->id, pkm.core->shiny_id);
   if (feature::ModelLoader::LoadPokemon(&g_my_1st_pokemon, species,
-                                        (u8)form, is_shiny,
+                                        form, is_shiny,
                                         SpawnPosition())) {
     ApplyScale(g_my_1st_pokemon, 0.25f);
   }
@@ -113,7 +115,7 @@ void LoadModelLoaderPage(MainApplication& app, void* args) {
      .AddSeparator()
      .Add("Spawn Pokemon", SpawnPokemon)
      .AddSpecies("Species", settings.species)
-     .WithBounds(1, SPECIES_VOLCANION)
+     .WithBounds(1, static_cast<u16>(Species::kVolcanion))
      .Add("Form", settings.form)
      .WithBounds(0, 30)
      .Add("Shiny", settings.is_shiny)

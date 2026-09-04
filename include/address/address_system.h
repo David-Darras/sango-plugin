@@ -42,3 +42,24 @@
 
 #define ADDRESS_HEAP_ALLOC (0x0011ED58)
 #define ADDRESS_HEAP_FREE (0x00139DA4)
+
+/** * @name Thread Addresses
+ * @{ */
+#define ADDRESS_THREAD_INITIALIZE (0x0014E424)
+#define ADDRESS_THREAD_START (0x00139C5C)
+#define ADDRESS_THREAD_DESTROY (0x003A8174)
+/** @} */
+
+/** * @name Process Memory Layout
+ * @{ */
+/// Bounds of the game process' own code/data segment, used to sanity check a
+/// pointer before dereferencing it.
+#define ADDRESS_PROCESS_MEMORY_START (0x00100000)
+#define ADDRESS_PROCESS_MEMORY_END (0x00900000)
+/// Bases of the regions temporarily unprotected by MEMORY_SCOPE before
+/// patching game code (the size is passed at each use site).
+#define ADDRESS_MEMORY_REGION_GAME_CODE (0x006F3000)
+#define ADDRESS_MEMORY_REGION_APP_STATUS (0x0070B000)
+#define ADDRESS_MEMORY_REGION_TITLE_SCREEN (0x00728000)
+#define ADDRESS_MEMORY_REGION_KEYBOARD (0x00742000)
+/** @} */

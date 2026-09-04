@@ -18,6 +18,8 @@
 #pragma once
 
 #include "common.h"
+#include "game/constant/move.h"
+#include "game/constant/move_type.h"
 
 namespace global_data {
 struct Move {
@@ -25,11 +27,11 @@ struct Move {
     return (Move*)READ32(ADDRESS_GLOBAL_DATA_MOVE_TABLE);
   }
 
-  STATIC_INLINE Move& GetInstance(const u16 move) {
-    return GetTable()[move];
+  STATIC_INLINE Move& GetInstance(const MoveID move) {
+    return GetTable()[static_cast<u16>(move)];
   }
 
-  u8 type;
+  MoveType type;
   u8 category;
   u8 damage_category;
   u8 power;

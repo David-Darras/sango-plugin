@@ -17,22 +17,26 @@
 
 #pragma once
 
-#define MOVE_TYPE_NORMAL 0
-#define MOVE_TYPE_FIGHTING 1
-#define MOVE_TYPE_FLYING 2
-#define MOVE_TYPE_POISON 3
-#define MOVE_TYPE_GROUND 4
-#define MOVE_TYPE_ROCK 5
-#define MOVE_TYPE_BUG 6
-#define MOVE_TYPE_GHOST 7
-#define MOVE_TYPE_STEEL 8
-#define MOVE_TYPE_FIRE 9
-#define MOVE_TYPE_WATER 10
-#define MOVE_TYPE_GRASS 11
-#define MOVE_TYPE_ELECTRIC 12
-#define MOVE_TYPE_PSYCHIC 13
-#define MOVE_TYPE_ICE 14
-#define MOVE_TYPE_DRAGON 15
-#define MOVE_TYPE_DARK 16
-#define MOVE_TYPE_FAIRY 17
-#define MOVE_TYPE_COUNT 18
+#include <types.h>
+
+enum class MoveType : u8 {
+  kNormal = 0,
+  kFighting = 1,
+  kFlying = 2,
+  kPoison = 3,
+  kGround = 4,
+  kRock = 5,
+  kBug = 6,
+  kGhost = 7,
+  kSteel = 8,
+  kFire = 9,
+  kWater = 10,
+  kGrass = 11,
+  kElectric = 12,
+  kPsychic = 13,
+  kIce = 14,
+  kDragon = 15,
+  kDark = 16,
+  kFairy = 17,
+  kCount = 18,
+};

@@ -17,628 +17,632 @@
 
 #pragma once
 
-#define MOVE_NONE (0)
-#define MOVE_POUND (1)
-#define MOVE_KARATE_CHOP (2)
-#define MOVE_DOUBLE_SLAP (3)
-#define MOVE_COMET_PUNCH (4)
-#define MOVE_MEGA_PUNCH (5)
-#define MOVE_PAY_DAY (6)
-#define MOVE_FIRE_PUNCH (7)
-#define MOVE_ICE_PUNCH (8)
-#define MOVE_THUNDER_PUNCH (9)
-#define MOVE_SCRATCH (10)
-#define MOVE_VISE_GRIP (11)
-#define MOVE_GUILLOTINE (12)
-#define MOVE_RAZOR_WIND (13)
-#define MOVE_SWORDS_DANCE (14)
-#define MOVE_CUT (15)
-#define MOVE_GUST (16)
-#define MOVE_WING_ATTACK (17)
-#define MOVE_WHIRLWIND (18)
-#define MOVE_FLY (19)
-#define MOVE_BIND (20)
-#define MOVE_SLAM (21)
-#define MOVE_VINE_WHIP (22)
-#define MOVE_STOMP (23)
-#define MOVE_DOUBLE_KICK (24)
-#define MOVE_MEGA_KICK (25)
-#define MOVE_JUMP_KICK (26)
-#define MOVE_ROLLING_KICK (27)
-#define MOVE_SAND_ATTACK (28)
-#define MOVE_HEADBUTT (29)
-#define MOVE_HORN_ATTACK (30)
-#define MOVE_FURY_ATTACK (31)
-#define MOVE_HORN_DRILL (32)
-#define MOVE_TACKLE (33)
-#define MOVE_BODY_SLAM (34)
-#define MOVE_WRAP (35)
-#define MOVE_TAKE_DOWN (36)
-#define MOVE_THRASH (37)
-#define MOVE_DOUBLE_EDGE (38)
-#define MOVE_TAIL_WHIP (39)
-#define MOVE_POISON_STING (40)
-#define MOVE_TWINEEDLE (41)
-#define MOVE_PIN_MISSILE (42)
-#define MOVE_LEER (43)
-#define MOVE_BITE (44)
-#define MOVE_GROWL (45)
-#define MOVE_ROAR (46)
-#define MOVE_SING (47)
-#define MOVE_SUPERSONIC (48)
-#define MOVE_SONIC_BOOM (49)
-#define MOVE_DISABLE (50)
-#define MOVE_ACID (51)
-#define MOVE_EMBER (52)
-#define MOVE_FLAMETHROWER (53)
-#define MOVE_MIST (54)
-#define MOVE_WATER_GUN (55)
-#define MOVE_HYDRO_PUMP (56)
-#define MOVE_SURF (57)
-#define MOVE_ICE_BEAM (58)
-#define MOVE_BLIZZARD (59)
-#define MOVE_PSYBEAM (60)
-#define MOVE_BUBBLE_BEAM (61)
-#define MOVE_AURORA_BEAM (62)
-#define MOVE_HYPER_BEAM (63)
-#define MOVE_PECK (64)
-#define MOVE_DRILL_PECK (65)
-#define MOVE_SUBMISSION (66)
-#define MOVE_LOW_KICK (67)
-#define MOVE_COUNTER (68)
-#define MOVE_SEISMIC_TOSS (69)
-#define MOVE_STRENGTH (70)
-#define MOVE_ABSORB (71)
-#define MOVE_MEGA_DRAIN (72)
-#define MOVE_LEECH_SEED (73)
-#define MOVE_GROWTH (74)
-#define MOVE_RAZOR_LEAF (75)
-#define MOVE_SOLAR_BEAM (76)
-#define MOVE_POISON_POWDER (77)
-#define MOVE_STUN_SPORE (78)
-#define MOVE_SLEEP_POWDER (79)
-#define MOVE_PETAL_DANCE (80)
-#define MOVE_STRING_SHOT (81)
-#define MOVE_DRAGON_RAGE (82)
-#define MOVE_FIRE_SPIN (83)
-#define MOVE_THUNDER_SHOCK (84)
-#define MOVE_THUNDERBOLT (85)
-#define MOVE_THUNDER_WAVE (86)
-#define MOVE_THUNDER (87)
-#define MOVE_ROCK_THROW (88)
-#define MOVE_EARTHQUAKE (89)
-#define MOVE_FISSURE (90)
-#define MOVE_DIG (91)
-#define MOVE_TOXIC (92)
-#define MOVE_CONFUSION (93)
-#define MOVE_PSYCHIC (94)
-#define MOVE_HYPNOSIS (95)
-#define MOVE_MEDITATE (96)
-#define MOVE_AGILITY (97)
-#define MOVE_QUICK_ATTACK (98)
-#define MOVE_RAGE (99)
-#define MOVE_TELEPORT (100)
-#define MOVE_NIGHT_SHADE (101)
-#define MOVE_MIMIC (102)
-#define MOVE_SCREECH (103)
-#define MOVE_DOUBLE_TEAM (104)
-#define MOVE_RECOVER (105)
-#define MOVE_HARDEN (106)
-#define MOVE_MINIMIZE (107)
-#define MOVE_SMOKESCREEN (108)
-#define MOVE_CONFUSE_RAY (109)
-#define MOVE_WITHDRAW (110)
-#define MOVE_DEFENSE_CURL (111)
-#define MOVE_BARRIER (112)
-#define MOVE_LIGHT_SCREEN (113)
-#define MOVE_HAZE (114)
-#define MOVE_REFLECT (115)
-#define MOVE_FOCUS_ENERGY (116)
-#define MOVE_BIDE (117)
-#define MOVE_METRONOME (118)
-#define MOVE_MIRROR_MOVE (119)
-#define MOVE_SELF_DESTRUCT (120)
-#define MOVE_EGG_BOMB (121)
-#define MOVE_LICK (122)
-#define MOVE_SMOG (123)
-#define MOVE_SLUDGE (124)
-#define MOVE_BONE_CLUB (125)
-#define MOVE_FIRE_BLAST (126)
-#define MOVE_WATERFALL (127)
-#define MOVE_CLAMP (128)
-#define MOVE_SWIFT (129)
-#define MOVE_SKULL_BASH (130)
-#define MOVE_SPIKE_CANNON (131)
-#define MOVE_CONSTRICT (132)
-#define MOVE_AMNESIA (133)
-#define MOVE_KINESIS (134)
-#define MOVE_SOFT_BOILED (135)
-#define MOVE_HIGH_JUMP_KICK (136)
-#define MOVE_GLARE (137)
-#define MOVE_DREAM_EATER (138)
-#define MOVE_POISON_GAS (139)
-#define MOVE_BARRAGE (140)
-#define MOVE_LEECH_LIFE (141)
-#define MOVE_LOVELY_KISS (142)
-#define MOVE_SKY_ATTACK (143)
-#define MOVE_TRANSFORM (144)
-#define MOVE_BUBBLE (145)
-#define MOVE_DIZZY_PUNCH (146)
-#define MOVE_SPORE (147)
-#define MOVE_FLASH (148)
-#define MOVE_PSYWAVE (149)
-#define MOVE_SPLASH (150)
-#define MOVE_ACID_ARMOR (151)
-#define MOVE_CRABHAMMER (152)
-#define MOVE_EXPLOSION (153)
-#define MOVE_FURY_SWIPES (154)
-#define MOVE_BONEMERANG (155)
-#define MOVE_REST (156)
-#define MOVE_ROCK_SLIDE (157)
-#define MOVE_HYPER_FANG (158)
-#define MOVE_SHARPEN (159)
-#define MOVE_CONVERSION (160)
-#define MOVE_TRI_ATTACK (161)
-#define MOVE_SUPER_FANG (162)
-#define MOVE_SLASH (163)
-#define MOVE_SUBSTITUTE (164)
-#define MOVE_STRUGGLE (165)
-#define MOVE_SKETCH (166)
-#define MOVE_TRIPLE_KICK (167)
-#define MOVE_THIEF (168)
-#define MOVE_SPIDER_WEB (169)
-#define MOVE_MIND_READER (170)
-#define MOVE_NIGHTMARE (171)
-#define MOVE_FLAME_WHEEL (172)
-#define MOVE_SNORE (173)
-#define MOVE_CURSE (174)
-#define MOVE_FLAIL (175)
-#define MOVE_CONVERSION_2 (176)
-#define MOVE_AEROBLAST (177)
-#define MOVE_COTTON_SPORE (178)
-#define MOVE_REVERSAL (179)
-#define MOVE_SPITE (180)
-#define MOVE_POWDER_SNOW (181)
-#define MOVE_PROTECT (182)
-#define MOVE_MACH_PUNCH (183)
-#define MOVE_SCARY_FACE (184)
-#define MOVE_FEINT_ATTACK (185)
-#define MOVE_SWEET_KISS (186)
-#define MOVE_BELLY_DRUM (187)
-#define MOVE_SLUDGE_BOMB (188)
-#define MOVE_MUD_SLAP (189)
-#define MOVE_OCTAZOOKA (190)
-#define MOVE_SPIKES (191)
-#define MOVE_ZAP_CANNON (192)
-#define MOVE_FORESIGHT (193)
-#define MOVE_DESTINY_BOND (194)
-#define MOVE_PERISH_SONG (195)
-#define MOVE_ICY_WIND (196)
-#define MOVE_DETECT (197)
-#define MOVE_BONE_RUSH (198)
-#define MOVE_LOCK_ON (199)
-#define MOVE_OUTRAGE (200)
-#define MOVE_SANDSTORM (201)
-#define MOVE_GIGA_DRAIN (202)
-#define MOVE_ENDURE (203)
-#define MOVE_CHARM (204)
-#define MOVE_ROLLOUT (205)
-#define MOVE_FALSE_SWIPE (206)
-#define MOVE_SWAGGER (207)
-#define MOVE_MILK_DRINK (208)
-#define MOVE_SPARK (209)
-#define MOVE_FURY_CUTTER (210)
-#define MOVE_STEEL_WING (211)
-#define MOVE_MEAN_LOOK (212)
-#define MOVE_ATTRACT (213)
-#define MOVE_SLEEP_TALK (214)
-#define MOVE_HEAL_BELL (215)
-#define MOVE_RETURN (216)
-#define MOVE_PRESENT (217)
-#define MOVE_FRUSTRATION (218)
-#define MOVE_SAFEGUARD (219)
-#define MOVE_PAIN_SPLIT (220)
-#define MOVE_SACRED_FIRE (221)
-#define MOVE_MAGNITUDE (222)
-#define MOVE_DYNAMIC_PUNCH (223)
-#define MOVE_MEGAHORN (224)
-#define MOVE_DRAGON_BREATH (225)
-#define MOVE_BATON_PASS (226)
-#define MOVE_ENCORE (227)
-#define MOVE_PURSUIT (228)
-#define MOVE_RAPID_SPIN (229)
-#define MOVE_SWEET_SCENT (230)
-#define MOVE_IRON_TAIL (231)
-#define MOVE_METAL_CLAW (232)
-#define MOVE_VITAL_THROW (233)
-#define MOVE_MORNING_SUN (234)
-#define MOVE_SYNTHESIS (235)
-#define MOVE_MOONLIGHT (236)
-#define MOVE_HIDDEN_POWER (237)
-#define MOVE_CROSS_CHOP (238)
-#define MOVE_TWISTER (239)
-#define MOVE_RAIN_DANCE (240)
-#define MOVE_SUNNY_DAY (241)
-#define MOVE_CRUNCH (242)
-#define MOVE_MIRROR_COAT (243)
-#define MOVE_PSYCH_UP (244)
-#define MOVE_EXTREME_SPEED (245)
-#define MOVE_ANCIENT_POWER (246)
-#define MOVE_SHADOW_BALL (247)
-#define MOVE_FUTURE_SIGHT (248)
-#define MOVE_ROCK_SMASH (249)
-#define MOVE_WHIRLPOOL (250)
-#define MOVE_BEAT_UP (251)
-#define MOVE_FAKE_OUT (252)
-#define MOVE_UPROAR (253)
-#define MOVE_STOCKPILE (254)
-#define MOVE_SPIT_UP (255)
-#define MOVE_SWALLOW (256)
-#define MOVE_HEAT_WAVE (257)
-#define MOVE_HAIL (258)
-#define MOVE_TORMENT (259)
-#define MOVE_FLATTER (260)
-#define MOVE_WILL_O_WISP (261)
-#define MOVE_MEMENTO (262)
-#define MOVE_FACADE (263)
-#define MOVE_FOCUS_PUNCH (264)
-#define MOVE_SMELLING_SALTS (265)
-#define MOVE_FOLLOW_ME (266)
-#define MOVE_NATURE_POWER (267)
-#define MOVE_CHARGE (268)
-#define MOVE_TAUNT (269)
-#define MOVE_HELPING_HAND (270)
-#define MOVE_TRICK (271)
-#define MOVE_ROLE_PLAY (272)
-#define MOVE_WISH (273)
-#define MOVE_ASSIST (274)
-#define MOVE_INGRAIN (275)
-#define MOVE_SUPERPOWER (276)
-#define MOVE_MAGIC_COAT (277)
-#define MOVE_RECYCLE (278)
-#define MOVE_REVENGE (279)
-#define MOVE_BRICK_BREAK (280)
-#define MOVE_YAWN (281)
-#define MOVE_KNOCK_OFF (282)
-#define MOVE_ENDEAVOR (283)
-#define MOVE_ERUPTION (284)
-#define MOVE_SKILL_SWAP (285)
-#define MOVE_IMPRISON (286)
-#define MOVE_REFRESH (287)
-#define MOVE_GRUDGE (288)
-#define MOVE_SNATCH (289)
-#define MOVE_SECRET_POWER (290)
-#define MOVE_DIVE (291)
-#define MOVE_ARM_THRUST (292)
-#define MOVE_CAMOUFLAGE (293)
-#define MOVE_TAIL_GLOW (294)
-#define MOVE_LUSTER_PURGE (295)
-#define MOVE_MIST_BALL (296)
-#define MOVE_FEATHER_DANCE (297)
-#define MOVE_TEETER_DANCE (298)
-#define MOVE_BLAZE_KICK (299)
-#define MOVE_MUD_SPORT (300)
-#define MOVE_ICE_BALL (301)
-#define MOVE_NEEDLE_ARM (302)
-#define MOVE_SLACK_OFF (303)
-#define MOVE_HYPER_VOICE (304)
-#define MOVE_POISON_FANG (305)
-#define MOVE_CRUSH_CLAW (306)
-#define MOVE_BLAST_BURN (307)
-#define MOVE_HYDRO_CANNON (308)
-#define MOVE_METEOR_MASH (309)
-#define MOVE_ASTONISH (310)
-#define MOVE_WEATHER_BALL (311)
-#define MOVE_AROMATHERAPY (312)
-#define MOVE_FAKE_TEARS (313)
-#define MOVE_AIR_CUTTER (314)
-#define MOVE_OVERHEAT (315)
-#define MOVE_ODOR_SLEUTH (316)
-#define MOVE_ROCK_TOMB (317)
-#define MOVE_SILVER_WIND (318)
-#define MOVE_METAL_SOUND (319)
-#define MOVE_GRASS_WHISTLE (320)
-#define MOVE_TICKLE (321)
-#define MOVE_COSMIC_POWER (322)
-#define MOVE_WATER_SPOUT (323)
-#define MOVE_SIGNAL_BEAM (324)
-#define MOVE_SHADOW_PUNCH (325)
-#define MOVE_EXTRASENSORY (326)
-#define MOVE_SKY_UPPERCUT (327)
-#define MOVE_SAND_TOMB (328)
-#define MOVE_SHEER_COLD (329)
-#define MOVE_MUDDY_WATER (330)
-#define MOVE_BULLET_SEED (331)
-#define MOVE_AERIAL_ACE (332)
-#define MOVE_ICICLE_SPEAR (333)
-#define MOVE_IRON_DEFENSE (334)
-#define MOVE_BLOCK (335)
-#define MOVE_HOWL (336)
-#define MOVE_DRAGON_CLAW (337)
-#define MOVE_FRENZY_PLANT (338)
-#define MOVE_BULK_UP (339)
-#define MOVE_BOUNCE (340)
-#define MOVE_MUD_SHOT (341)
-#define MOVE_POISON_TAIL (342)
-#define MOVE_COVET (343)
-#define MOVE_VOLT_TACKLE (344)
-#define MOVE_MAGICAL_LEAF (345)
-#define MOVE_WATER_SPORT (346)
-#define MOVE_CALM_MIND (347)
-#define MOVE_LEAF_BLADE (348)
-#define MOVE_DRAGON_DANCE (349)
-#define MOVE_ROCK_BLAST (350)
-#define MOVE_SHOCK_WAVE (351)
-#define MOVE_WATER_PULSE (352)
-#define MOVE_DOOM_DESIRE (353)
-#define MOVE_PSYCHO_BOOST (354)
-#define MOVE_ROOST (355)
-#define MOVE_GRAVITY (356)
-#define MOVE_MIRACLE_EYE (357)
-#define MOVE_WAKE_UP_SLAP (358)
-#define MOVE_HAMMER_ARM (359)
-#define MOVE_GYRO_BALL (360)
-#define MOVE_HEALING_WISH (361)
-#define MOVE_BRINE (362)
-#define MOVE_NATURAL_GIFT (363)
-#define MOVE_FEINT (364)
-#define MOVE_PLUCK (365)
-#define MOVE_TAILWIND (366)
-#define MOVE_ACUPRESSURE (367)
-#define MOVE_METAL_BURST (368)
-#define MOVE_U_TURN (369)
-#define MOVE_CLOSE_COMBAT (370)
-#define MOVE_PAYBACK (371)
-#define MOVE_ASSURANCE (372)
-#define MOVE_EMBARGO (373)
-#define MOVE_FLING (374)
-#define MOVE_PSYCHO_SHIFT (375)
-#define MOVE_TRUMP_CARD (376)
-#define MOVE_HEAL_BLOCK (377)
-#define MOVE_WRING_OUT (378)
-#define MOVE_POWER_TRICK (379)
-#define MOVE_GASTRO_ACID (380)
-#define MOVE_LUCKY_CHANT (381)
-#define MOVE_ME_FIRST (382)
-#define MOVE_COPYCAT (383)
-#define MOVE_POWER_SWAP (384)
-#define MOVE_GUARD_SWAP (385)
-#define MOVE_PUNISHMENT (386)
-#define MOVE_LAST_RESORT (387)
-#define MOVE_WORRY_SEED (388)
-#define MOVE_SUCKER_PUNCH (389)
-#define MOVE_TOXIC_SPIKES (390)
-#define MOVE_HEART_SWAP (391)
-#define MOVE_AQUA_RING (392)
-#define MOVE_MAGNET_RISE (393)
-#define MOVE_FLARE_BLITZ (394)
-#define MOVE_FORCE_PALM (395)
-#define MOVE_AURA_SPHERE (396)
-#define MOVE_ROCK_POLISH (397)
-#define MOVE_POISON_JAB (398)
-#define MOVE_DARK_PULSE (399)
-#define MOVE_NIGHT_SLASH (400)
-#define MOVE_AQUA_TAIL (401)
-#define MOVE_SEED_BOMB (402)
-#define MOVE_AIR_SLASH (403)
-#define MOVE_X_SCISSOR (404)
-#define MOVE_BUG_BUZZ (405)
-#define MOVE_DRAGON_PULSE (406)
-#define MOVE_DRAGON_RUSH (407)
-#define MOVE_POWER_GEM (408)
-#define MOVE_DRAIN_PUNCH (409)
-#define MOVE_VACUUM_WAVE (410)
-#define MOVE_FOCUS_BLAST (411)
-#define MOVE_ENERGY_BALL (412)
-#define MOVE_BRAVE_BIRD (413)
-#define MOVE_EARTH_POWER (414)
-#define MOVE_SWITCHEROO (415)
-#define MOVE_GIGA_IMPACT (416)
-#define MOVE_NASTY_PLOT (417)
-#define MOVE_BULLET_PUNCH (418)
-#define MOVE_AVALANCHE (419)
-#define MOVE_ICE_SHARD (420)
-#define MOVE_SHADOW_CLAW (421)
-#define MOVE_THUNDER_FANG (422)
-#define MOVE_ICE_FANG (423)
-#define MOVE_FIRE_FANG (424)
-#define MOVE_SHADOW_SNEAK (425)
-#define MOVE_MUD_BOMB (426)
-#define MOVE_PSYCHO_CUT (427)
-#define MOVE_ZEN_HEADBUTT (428)
-#define MOVE_MIRROR_SHOT (429)
-#define MOVE_FLASH_CANNON (430)
-#define MOVE_ROCK_CLIMB (431)
-#define MOVE_DEFOG (432)
-#define MOVE_TRICK_ROOM (433)
-#define MOVE_DRACO_METEOR (434)
-#define MOVE_DISCHARGE (435)
-#define MOVE_LAVA_PLUME (436)
-#define MOVE_LEAF_STORM (437)
-#define MOVE_POWER_WHIP (438)
-#define MOVE_ROCK_WRECKER (439)
-#define MOVE_CROSS_POISON (440)
-#define MOVE_GUNK_SHOT (441)
-#define MOVE_IRON_HEAD (442)
-#define MOVE_MAGNET_BOMB (443)
-#define MOVE_STONE_EDGE (444)
-#define MOVE_CAPTIVATE (445)
-#define MOVE_STEALTH_ROCK (446)
-#define MOVE_GRASS_KNOT (447)
-#define MOVE_CHATTER (448)
-#define MOVE_JUDGMENT (449)
-#define MOVE_BUG_BITE (450)
-#define MOVE_CHARGE_BEAM (451)
-#define MOVE_WOOD_HAMMER (452)
-#define MOVE_AQUA_JET (453)
-#define MOVE_ATTACK_ORDER (454)
-#define MOVE_DEFEND_ORDER (455)
-#define MOVE_HEAL_ORDER (456)
-#define MOVE_HEAD_SMASH (457)
-#define MOVE_DOUBLE_HIT (458)
-#define MOVE_ROAR_OF_TIME (459)
-#define MOVE_SPACIAL_REND (460)
-#define MOVE_LUNAR_DANCE (461)
-#define MOVE_CRUSH_GRIP (462)
-#define MOVE_MAGMA_STORM (463)
-#define MOVE_DARK_VOID (464)
-#define MOVE_SEED_FLARE (465)
-#define MOVE_OMINOUS_WIND (466)
-#define MOVE_SHADOW_FORCE (467)
-#define MOVE_HONE_CLAWS (468)
-#define MOVE_WIDE_GUARD (469)
-#define MOVE_GUARD_SPLIT (470)
-#define MOVE_POWER_SPLIT (471)
-#define MOVE_WONDER_ROOM (472)
-#define MOVE_PSYSHOCK (473)
-#define MOVE_VENOSHOCK (474)
-#define MOVE_AUTOTOMIZE (475)
-#define MOVE_RAGE_POWDER (476)
-#define MOVE_TELEKINESIS (477)
-#define MOVE_MAGIC_ROOM (478)
-#define MOVE_SMACK_DOWN (479)
-#define MOVE_STORM_THROW (480)
-#define MOVE_FLAME_BURST (481)
-#define MOVE_SLUDGE_WAVE (482)
-#define MOVE_QUIVER_DANCE (483)
-#define MOVE_HEAVY_SLAM (484)
-#define MOVE_SYNCHRONOISE (485)
-#define MOVE_ELECTRO_BALL (486)
-#define MOVE_SOAK (487)
-#define MOVE_FLAME_CHARGE (488)
-#define MOVE_COIL (489)
-#define MOVE_LOW_SWEEP (490)
-#define MOVE_ACID_SPRAY (491)
-#define MOVE_FOUL_PLAY (492)
-#define MOVE_SIMPLE_BEAM (493)
-#define MOVE_ENTRAINMENT (494)
-#define MOVE_AFTER_YOU (495)
-#define MOVE_ROUND (496)
-#define MOVE_ECHOED_VOICE (497)
-#define MOVE_CHIP_AWAY (498)
-#define MOVE_CLEAR_SMOG (499)
-#define MOVE_STORED_POWER (500)
-#define MOVE_QUICK_GUARD (501)
-#define MOVE_ALLY_SWITCH (502)
-#define MOVE_SCALD (503)
-#define MOVE_SHELL_SMASH (504)
-#define MOVE_HEAL_PULSE (505)
-#define MOVE_HEX (506)
-#define MOVE_SKY_DROP (507)
-#define MOVE_SHIFT_GEAR (508)
-#define MOVE_CIRCLE_THROW (509)
-#define MOVE_INCINERATE (510)
-#define MOVE_QUASH (511)
-#define MOVE_ACROBATICS (512)
-#define MOVE_REFLECT_TYPE (513)
-#define MOVE_RETALIATE (514)
-#define MOVE_FINAL_GAMBIT (515)
-#define MOVE_BESTOW (516)
-#define MOVE_INFERNO (517)
-#define MOVE_WATER_PLEDGE (518)
-#define MOVE_FIRE_PLEDGE (519)
-#define MOVE_GRASS_PLEDGE (520)
-#define MOVE_VOLT_SWITCH (521)
-#define MOVE_STRUGGLE_BUG (522)
-#define MOVE_BULLDOZE (523)
-#define MOVE_FROST_BREATH (524)
-#define MOVE_DRAGON_TAIL (525)
-#define MOVE_WORK_UP (526)
-#define MOVE_ELECTROWEB (527)
-#define MOVE_WILD_CHARGE (528)
-#define MOVE_DRILL_RUN (529)
-#define MOVE_DUAL_CHOP (530)
-#define MOVE_HEART_STAMP (531)
-#define MOVE_HORN_LEECH (532)
-#define MOVE_SACRED_SWORD (533)
-#define MOVE_RAZOR_SHELL (534)
-#define MOVE_HEAT_CRASH (535)
-#define MOVE_LEAF_TORNADO (536)
-#define MOVE_STEAMROLLER (537)
-#define MOVE_COTTON_GUARD (538)
-#define MOVE_NIGHT_DAZE (539)
-#define MOVE_PSYSTRIKE (540)
-#define MOVE_TAIL_SLAP (541)
-#define MOVE_HURRICANE (542)
-#define MOVE_HEAD_CHARGE (543)
-#define MOVE_GEAR_GRIND (544)
-#define MOVE_SEARING_SHOT (545)
-#define MOVE_TECHNO_BLAST (546)
-#define MOVE_RELIC_SONG (547)
-#define MOVE_SECRET_SWORD (548)
-#define MOVE_GLACIATE (549)
-#define MOVE_BOLT_STRIKE (550)
-#define MOVE_BLUE_FLARE (551)
-#define MOVE_FIERY_DANCE (552)
-#define MOVE_FREEZE_SHOCK (553)
-#define MOVE_ICE_BURN (554)
-#define MOVE_SNARL (555)
-#define MOVE_ICICLE_CRASH (556)
-#define MOVE_V_CREATE (557)
-#define MOVE_FUSION_FLARE (558)
-#define MOVE_FUSION_BOLT (559)
-#define MOVE_FLYING_PRESS (560)
-#define MOVE_MAT_BLOCK (561)
-#define MOVE_BELCH (562)
-#define MOVE_ROTOTILLER (563)
-#define MOVE_STICKY_WEB (564)
-#define MOVE_FELL_STINGER (565)
-#define MOVE_PHANTOM_FORCE (566)
-#define MOVE_TRICK_OR_TREAT (567)
-#define MOVE_NOBLE_ROAR (568)
-#define MOVE_ION_DELUGE (569)
-#define MOVE_PARABOLIC_CHARGE (570)
-#define MOVE_FORESTS_CURSE (571)
-#define MOVE_PETAL_BLIZZARD (572)
-#define MOVE_FREEZE_DRY (573)
-#define MOVE_DISARMING_VOICE (574)
-#define MOVE_PARTING_SHOT (575)
-#define MOVE_TOPSY_TURVY (576)
-#define MOVE_DRAINING_KISS (577)
-#define MOVE_CRAFTY_SHIELD (578)
-#define MOVE_FLOWER_SHIELD (579)
-#define MOVE_GRASSY_TERRAIN (580)
-#define MOVE_MISTY_TERRAIN (581)
-#define MOVE_ELECTRIFY (582)
-#define MOVE_PLAY_ROUGH (583)
-#define MOVE_FAIRY_WIND (584)
-#define MOVE_MOONBLAST (585)
-#define MOVE_BOOMBURST (586)
-#define MOVE_FAIRY_LOCK (587)
-#define MOVE_KINGS_SHIELD (588)
-#define MOVE_PLAY_NICE (589)
-#define MOVE_CONFIDE (590)
-#define MOVE_DIAMOND_STORM (591)
-#define MOVE_STEAM_ERUPTION (592)
-#define MOVE_HYPERSPACE_HOLE (593)
-#define MOVE_WATER_SHURIKEN (594)
-#define MOVE_MYSTICAL_FIRE (595)
-#define MOVE_SPIKY_SHIELD (596)
-#define MOVE_AROMATIC_MIST (597)
-#define MOVE_ERIE_IMPULSE (598)
-#define MOVE_VENOM_DRENCH (599)
-#define MOVE_POWDER (600)
-#define MOVE_GEOMANCY (601)
-#define MOVE_MAGNETIC_FLUX (602)
-#define MOVE_HAPPY_HOUR (603)
-#define MOVE_ELECTRIC_TERRAIN (604)
-#define MOVE_DAZZLING_GLEAM (605)
-#define MOVE_CELEBRATE (606)
-#define MOVE_HOLD_HANDS (607)
-#define MOVE_BABY_DOLL_EYES (608)
-#define MOVE_NUZZLE (609)
-#define MOVE_HOLD_BACK (610)
-#define MOVE_INFESTATION (611)
-#define MOVE_POWER_UP_PUNCH (612)
-#define MOVE_OBLIVION_WING (613)
-#define MOVE_THOUSAND_ARROWS (614)
-#define MOVE_THOUSAND_WAVES (615)
-#define MOVE_LANDS_WRATH (616)
-#define MOVE_LIGHT_OF_RUIN (617)
-#define MOVE_ORIGIN_PULSE (618)
-#define MOVE_PRECIPICE_BLADES (619)
-#define MOVE_DRAGON_ASCENT (620)
-#define MOVE_HYPERSPACE_FURY (621)
-#define MOVE_COUNT (622)
+#include <types.h>
 
-#define MOVE_XXX (1000)
+enum class MoveID : u16 {
+  kNone = 0,
+  kPound = 1,
+  kKarateChop = 2,
+  kDoubleSlap = 3,
+  kCometPunch = 4,
+  kMegaPunch = 5,
+  kPayDay = 6,
+  kFirePunch = 7,
+  kIcePunch = 8,
+  kThunderPunch = 9,
+  kScratch = 10,
+  kViseGrip = 11,
+  kGuillotine = 12,
+  kRazorWind = 13,
+  kSwordsDance = 14,
+  kCut = 15,
+  kGust = 16,
+  kWingAttack = 17,
+  kWhirlwind = 18,
+  kFly = 19,
+  kBind = 20,
+  kSlam = 21,
+  kVineWhip = 22,
+  kStomp = 23,
+  kDoubleKick = 24,
+  kMegaKick = 25,
+  kJumpKick = 26,
+  kRollingKick = 27,
+  kSandAttack = 28,
+  kHeadbutt = 29,
+  kHornAttack = 30,
+  kFuryAttack = 31,
+  kHornDrill = 32,
+  kTackle = 33,
+  kBodySlam = 34,
+  kWrap = 35,
+  kTakeDown = 36,
+  kThrash = 37,
+  kDoubleEdge = 38,
+  kTailWhip = 39,
+  kPoisonSting = 40,
+  kTwineedle = 41,
+  kPinMissile = 42,
+  kLeer = 43,
+  kBite = 44,
+  kGrowl = 45,
+  kRoar = 46,
+  kSing = 47,
+  kSupersonic = 48,
+  kSonicBoom = 49,
+  kDisable = 50,
+  kAcid = 51,
+  kEmber = 52,
+  kFlamethrower = 53,
+  kMist = 54,
+  kWaterGun = 55,
+  kHydroPump = 56,
+  kSurf = 57,
+  kIceBeam = 58,
+  kBlizzard = 59,
+  kPsybeam = 60,
+  kBubbleBeam = 61,
+  kAuroraBeam = 62,
+  kHyperBeam = 63,
+  kPeck = 64,
+  kDrillPeck = 65,
+  kSubmission = 66,
+  kLowKick = 67,
+  kCounter = 68,
+  kSeismicToss = 69,
+  kStrength = 70,
+  kAbsorb = 71,
+  kMegaDrain = 72,
+  kLeechSeed = 73,
+  kGrowth = 74,
+  kRazorLeaf = 75,
+  kSolarBeam = 76,
+  kPoisonPowder = 77,
+  kStunSpore = 78,
+  kSleepPowder = 79,
+  kPetalDance = 80,
+  kStringShot = 81,
+  kDragonRage = 82,
+  kFireSpin = 83,
+  kThunderShock = 84,
+  kThunderbolt = 85,
+  kThunderWave = 86,
+  kThunder = 87,
+  kRockThrow = 88,
+  kEarthquake = 89,
+  kFissure = 90,
+  kDig = 91,
+  kToxic = 92,
+  kConfusion = 93,
+  kPsychic = 94,
+  kHypnosis = 95,
+  kMeditate = 96,
+  kAgility = 97,
+  kQuickAttack = 98,
+  kRage = 99,
+  kTeleport = 100,
+  kNightShade = 101,
+  kMimic = 102,
+  kScreech = 103,
+  kDoubleTeam = 104,
+  kRecover = 105,
+  kHarden = 106,
+  kMinimize = 107,
+  kSmokescreen = 108,
+  kConfuseRay = 109,
+  kWithdraw = 110,
+  kDefenseCurl = 111,
+  kBarrier = 112,
+  kLightScreen = 113,
+  kHaze = 114,
+  kReflect = 115,
+  kFocusEnergy = 116,
+  kBide = 117,
+  kMetronome = 118,
+  kMirrorMove = 119,
+  kSelfDestruct = 120,
+  kEggBomb = 121,
+  kLick = 122,
+  kSmog = 123,
+  kSludge = 124,
+  kBoneClub = 125,
+  kFireBlast = 126,
+  kWaterfall = 127,
+  kClamp = 128,
+  kSwift = 129,
+  kSkullBash = 130,
+  kSpikeCannon = 131,
+  kConstrict = 132,
+  kAmnesia = 133,
+  kKinesis = 134,
+  kSoftBoiled = 135,
+  kHighJumpKick = 136,
+  kGlare = 137,
+  kDreamEater = 138,
+  kPoisonGas = 139,
+  kBarrage = 140,
+  kLeechLife = 141,
+  kLovelyKiss = 142,
+  kSkyAttack = 143,
+  kTransform = 144,
+  kBubble = 145,
+  kDizzyPunch = 146,
+  kSpore = 147,
+  kFlash = 148,
+  kPsywave = 149,
+  kSplash = 150,
+  kAcidArmor = 151,
+  kCrabhammer = 152,
+  kExplosion = 153,
+  kFurySwipes = 154,
+  kBonemerang = 155,
+  kRest = 156,
+  kRockSlide = 157,
+  kHyperFang = 158,
+  kSharpen = 159,
+  kConversion = 160,
+  kTriAttack = 161,
+  kSuperFang = 162,
+  kSlash = 163,
+  kSubstitute = 164,
+  kStruggle = 165,
+  kSketch = 166,
+  kTripleKick = 167,
+  kThief = 168,
+  kSpiderWeb = 169,
+  kMindReader = 170,
+  kNightmare = 171,
+  kFlameWheel = 172,
+  kSnore = 173,
+  kCurse = 174,
+  kFlail = 175,
+  kConversion2 = 176,
+  kAeroblast = 177,
+  kCottonSpore = 178,
+  kReversal = 179,
+  kSpite = 180,
+  kPowderSnow = 181,
+  kProtect = 182,
+  kMachPunch = 183,
+  kScaryFace = 184,
+  kFeintAttack = 185,
+  kSweetKiss = 186,
+  kBellyDrum = 187,
+  kSludgeBomb = 188,
+  kMudSlap = 189,
+  kOctazooka = 190,
+  kSpikes = 191,
+  kZapCannon = 192,
+  kForesight = 193,
+  kDestinyBond = 194,
+  kPerishSong = 195,
+  kIcyWind = 196,
+  kDetect = 197,
+  kBoneRush = 198,
+  kLockOn = 199,
+  kOutrage = 200,
+  kSandstorm = 201,
+  kGigaDrain = 202,
+  kEndure = 203,
+  kCharm = 204,
+  kRollout = 205,
+  kFalseSwipe = 206,
+  kSwagger = 207,
+  kMilkDrink = 208,
+  kSpark = 209,
+  kFuryCutter = 210,
+  kSteelWing = 211,
+  kMeanLook = 212,
+  kAttract = 213,
+  kSleepTalk = 214,
+  kHealBell = 215,
+  kReturn = 216,
+  kPresent = 217,
+  kFrustration = 218,
+  kSafeguard = 219,
+  kPainSplit = 220,
+  kSacredFire = 221,
+  kMagnitude = 222,
+  kDynamicPunch = 223,
+  kMegahorn = 224,
+  kDragonBreath = 225,
+  kBatonPass = 226,
+  kEncore = 227,
+  kPursuit = 228,
+  kRapidSpin = 229,
+  kSweetScent = 230,
+  kIronTail = 231,
+  kMetalClaw = 232,
+  kVitalThrow = 233,
+  kMorningSun = 234,
+  kSynthesis = 235,
+  kMoonlight = 236,
+  kHiddenPower = 237,
+  kCrossChop = 238,
+  kTwister = 239,
+  kRainDance = 240,
+  kSunnyDay = 241,
+  kCrunch = 242,
+  kMirrorCoat = 243,
+  kPsychUp = 244,
+  kExtremeSpeed = 245,
+  kAncientPower = 246,
+  kShadowBall = 247,
+  kFutureSight = 248,
+  kRockSmash = 249,
+  kWhirlpool = 250,
+  kBeatUp = 251,
+  kFakeOut = 252,
+  kUproar = 253,
+  kStockpile = 254,
+  kSpitUp = 255,
+  kSwallow = 256,
+  kHeatWave = 257,
+  kHail = 258,
+  kTorment = 259,
+  kFlatter = 260,
+  kWillOWisp = 261,
+  kMemento = 262,
+  kFacade = 263,
+  kFocusPunch = 264,
+  kSmellingSalts = 265,
+  kFollowMe = 266,
+  kNaturePower = 267,
+  kCharge = 268,
+  kTaunt = 269,
+  kHelpingHand = 270,
+  kTrick = 271,
+  kRolePlay = 272,
+  kWish = 273,
+  kAssist = 274,
+  kIngrain = 275,
+  kSuperpower = 276,
+  kMagicCoat = 277,
+  kRecycle = 278,
+  kRevenge = 279,
+  kBrickBreak = 280,
+  kYawn = 281,
+  kKnockOff = 282,
+  kEndeavor = 283,
+  kEruption = 284,
+  kSkillSwap = 285,
+  kImprison = 286,
+  kRefresh = 287,
+  kGrudge = 288,
+  kSnatch = 289,
+  kSecretPower = 290,
+  kDive = 291,
+  kArmThrust = 292,
+  kCamouflage = 293,
+  kTailGlow = 294,
+  kLusterPurge = 295,
+  kMistBall = 296,
+  kFeatherDance = 297,
+  kTeeterDance = 298,
+  kBlazeKick = 299,
+  kMudSport = 300,
+  kIceBall = 301,
+  kNeedleArm = 302,
+  kSlackOff = 303,
+  kHyperVoice = 304,
+  kPoisonFang = 305,
+  kCrushClaw = 306,
+  kBlastBurn = 307,
+  kHydroCannon = 308,
+  kMeteorMash = 309,
+  kAstonish = 310,
+  kWeatherBall = 311,
+  kAromatherapy = 312,
+  kFakeTears = 313,
+  kAirCutter = 314,
+  kOverheat = 315,
+  kOdorSleuth = 316,
+  kRockTomb = 317,
+  kSilverWind = 318,
+  kMetalSound = 319,
+  kGrassWhistle = 320,
+  kTickle = 321,
+  kCosmicPower = 322,
+  kWaterSpout = 323,
+  kSignalBeam = 324,
+  kShadowPunch = 325,
+  kExtrasensory = 326,
+  kSkyUppercut = 327,
+  kSandTomb = 328,
+  kSheerCold = 329,
+  kMuddyWater = 330,
+  kBulletSeed = 331,
+  kAerialAce = 332,
+  kIcicleSpear = 333,
+  kIronDefense = 334,
+  kBlock = 335,
+  kHowl = 336,
+  kDragonClaw = 337,
+  kFrenzyPlant = 338,
+  kBulkUp = 339,
+  kBounce = 340,
+  kMudShot = 341,
+  kPoisonTail = 342,
+  kCovet = 343,
+  kVoltTackle = 344,
+  kMagicalLeaf = 345,
+  kWaterSport = 346,
+  kCalmMind = 347,
+  kLeafBlade = 348,
+  kDragonDance = 349,
+  kRockBlast = 350,
+  kShockWave = 351,
+  kWaterPulse = 352,
+  kDoomDesire = 353,
+  kPsychoBoost = 354,
+  kRoost = 355,
+  kGravity = 356,
+  kMiracleEye = 357,
+  kWakeUpSlap = 358,
+  kHammerArm = 359,
+  kGyroBall = 360,
+  kHealingWish = 361,
+  kBrine = 362,
+  kNaturalGift = 363,
+  kFeint = 364,
+  kPluck = 365,
+  kTailwind = 366,
+  kAcupressure = 367,
+  kMetalBurst = 368,
+  kUTurn = 369,
+  kCloseCombat = 370,
+  kPayback = 371,
+  kAssurance = 372,
+  kEmbargo = 373,
+  kFling = 374,
+  kPsychoShift = 375,
+  kTrumpCard = 376,
+  kHealBlock = 377,
+  kWringOut = 378,
+  kPowerTrick = 379,
+  kGastroAcid = 380,
+  kLuckyChant = 381,
+  kMeFirst = 382,
+  kCopycat = 383,
+  kPowerSwap = 384,
+  kGuardSwap = 385,
+  kPunishment = 386,
+  kLastResort = 387,
+  kWorrySeed = 388,
+  kSuckerPunch = 389,
+  kToxicSpikes = 390,
+  kHeartSwap = 391,
+  kAquaRing = 392,
+  kMagnetRise = 393,
+  kFlareBlitz = 394,
+  kForcePalm = 395,
+  kAuraSphere = 396,
+  kRockPolish = 397,
+  kPoisonJab = 398,
+  kDarkPulse = 399,
+  kNightSlash = 400,
+  kAquaTail = 401,
+  kSeedBomb = 402,
+  kAirSlash = 403,
+  kXScissor = 404,
+  kBugBuzz = 405,
+  kDragonPulse = 406,
+  kDragonRush = 407,
+  kPowerGem = 408,
+  kDrainPunch = 409,
+  kVacuumWave = 410,
+  kFocusBlast = 411,
+  kEnergyBall = 412,
+  kBraveBird = 413,
+  kEarthPower = 414,
+  kSwitcheroo = 415,
+  kGigaImpact = 416,
+  kNastyPlot = 417,
+  kBulletPunch = 418,
+  kAvalanche = 419,
+  kIceShard = 420,
+  kShadowClaw = 421,
+  kThunderFang = 422,
+  kIceFang = 423,
+  kFireFang = 424,
+  kShadowSneak = 425,
+  kMudBomb = 426,
+  kPsychoCut = 427,
+  kZenHeadbutt = 428,
+  kMirrorShot = 429,
+  kFlashCannon = 430,
+  kRockClimb = 431,
+  kDefog = 432,
+  kTrickRoom = 433,
+  kDracoMeteor = 434,
+  kDischarge = 435,
+  kLavaPlume = 436,
+  kLeafStorm = 437,
+  kPowerWhip = 438,
+  kRockWrecker = 439,
+  kCrossPoison = 440,
+  kGunkShot = 441,
+  kIronHead = 442,
+  kMagnetBomb = 443,
+  kStoneEdge = 444,
+  kCaptivate = 445,
+  kStealthRock = 446,
+  kGrassKnot = 447,
+  kChatter = 448,
+  kJudgment = 449,
+  kBugBite = 450,
+  kChargeBeam = 451,
+  kWoodHammer = 452,
+  kAquaJet = 453,
+  kAttackOrder = 454,
+  kDefendOrder = 455,
+  kHealOrder = 456,
+  kHeadSmash = 457,
+  kDoubleHit = 458,
+  kRoarOfTime = 459,
+  kSpacialRend = 460,
+  kLunarDance = 461,
+  kCrushGrip = 462,
+  kMagmaStorm = 463,
+  kDarkVoid = 464,
+  kSeedFlare = 465,
+  kOminousWind = 466,
+  kShadowForce = 467,
+  kHoneClaws = 468,
+  kWideGuard = 469,
+  kGuardSplit = 470,
+  kPowerSplit = 471,
+  kWonderRoom = 472,
+  kPsyshock = 473,
+  kVenoshock = 474,
+  kAutotomize = 475,
+  kRagePowder = 476,
+  kTelekinesis = 477,
+  kMagicRoom = 478,
+  kSmackDown = 479,
+  kStormThrow = 480,
+  kFlameBurst = 481,
+  kSludgeWave = 482,
+  kQuiverDance = 483,
+  kHeavySlam = 484,
+  kSynchronoise = 485,
+  kElectroBall = 486,
+  kSoak = 487,
+  kFlameCharge = 488,
+  kCoil = 489,
+  kLowSweep = 490,
+  kAcidSpray = 491,
+  kFoulPlay = 492,
+  kSimpleBeam = 493,
+  kEntrainment = 494,
+  kAfterYou = 495,
+  kRound = 496,
+  kEchoedVoice = 497,
+  kChipAway = 498,
+  kClearSmog = 499,
+  kStoredPower = 500,
+  kQuickGuard = 501,
+  kAllySwitch = 502,
+  kScald = 503,
+  kShellSmash = 504,
+  kHealPulse = 505,
+  kHex = 506,
+  kSkyDrop = 507,
+  kShiftGear = 508,
+  kCircleThrow = 509,
+  kIncinerate = 510,
+  kQuash = 511,
+  kAcrobatics = 512,
+  kReflectType = 513,
+  kRetaliate = 514,
+  kFinalGambit = 515,
+  kBestow = 516,
+  kInferno = 517,
+  kWaterPledge = 518,
+  kFirePledge = 519,
+  kGrassPledge = 520,
+  kVoltSwitch = 521,
+  kStruggleBug = 522,
+  kBulldoze = 523,
+  kFrostBreath = 524,
+  kDragonTail = 525,
+  kWorkUp = 526,
+  kElectroweb = 527,
+  kWildCharge = 528,
+  kDrillRun = 529,
+  kDualChop = 530,
+  kHeartStamp = 531,
+  kHornLeech = 532,
+  kSacredSword = 533,
+  kRazorShell = 534,
+  kHeatCrash = 535,
+  kLeafTornado = 536,
+  kSteamroller = 537,
+  kCottonGuard = 538,
+  kNightDaze = 539,
+  kPsystrike = 540,
+  kTailSlap = 541,
+  kHurricane = 542,
+  kHeadCharge = 543,
+  kGearGrind = 544,
+  kSearingShot = 545,
+  kTechnoBlast = 546,
+  kRelicSong = 547,
+  kSecretSword = 548,
+  kGlaciate = 549,
+  kBoltStrike = 550,
+  kBlueFlare = 551,
+  kFieryDance = 552,
+  kFreezeShock = 553,
+  kIceBurn = 554,
+  kSnarl = 555,
+  kIcicleCrash = 556,
+  kVCreate = 557,
+  kFusionFlare = 558,
+  kFusionBolt = 559,
+  kFlyingPress = 560,
+  kMatBlock = 561,
+  kBelch = 562,
+  kRototiller = 563,
+  kStickyWeb = 564,
+  kFellStinger = 565,
+  kPhantomForce = 566,
+  kTrickOrTreat = 567,
+  kNobleRoar = 568,
+  kIonDeluge = 569,
+  kParabolicCharge = 570,
+  kForestsCurse = 571,
+  kPetalBlizzard = 572,
+  kFreezeDry = 573,
+  kDisarmingVoice = 574,
+  kPartingShot = 575,
+  kTopsyTurvy = 576,
+  kDrainingKiss = 577,
+  kCraftyShield = 578,
+  kFlowerShield = 579,
+  kGrassyTerrain = 580,
+  kMistyTerrain = 581,
+  kElectrify = 582,
+  kPlayRough = 583,
+  kFairyWind = 584,
+  kMoonblast = 585,
+  kBoomburst = 586,
+  kFairyLock = 587,
+  kKingsShield = 588,
+  kPlayNice = 589,
+  kConfide = 590,
+  kDiamondStorm = 591,
+  kSteamEruption = 592,
+  kHyperspaceHole = 593,
+  kWaterShuriken = 594,
+  kMysticalFire = 595,
+  kSpikyShield = 596,
+  kAromaticMist = 597,
+  kErieImpulse = 598,
+  kVenomDrench = 599,
+  kPowder = 600,
+  kGeomancy = 601,
+  kMagneticFlux = 602,
+  kHappyHour = 603,
+  kElectricTerrain = 604,
+  kDazzlingGleam = 605,
+  kCelebrate = 606,
+  kHoldHands = 607,
+  kBabyDollEyes = 608,
+  kNuzzle = 609,
+  kHoldBack = 610,
+  kInfestation = 611,
+  kPowerUpPunch = 612,
+  kOblivionWing = 613,
+  kThousandArrows = 614,
+  kThousandWaves = 615,
+  kLandsWrath = 616,
+  kLightOfRuin = 617,
+  kOriginPulse = 618,
+  kPrecipiceBlades = 619,
+  kDragonAscent = 620,
+  kHyperspaceFury = 621,
+  kCount = 622,
+
+  kXxx = 1000,
+};

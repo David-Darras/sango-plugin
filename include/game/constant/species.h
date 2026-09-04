@@ -17,728 +17,731 @@
 
 #pragma once
 
-#define SPECIES_NONE (0)
-#define SPECIES_BULBASAUR (1)
-#define SPECIES_IVYSAUR (2)
-#define SPECIES_VENUSAUR (3)
-#define SPECIES_CHARMANDER (4)
-#define SPECIES_CHARMELEON (5)
-#define SPECIES_CHARIZARD (6)
-#define SPECIES_SQUIRTLE (7)
-#define SPECIES_WARTORTLE (8)
-#define SPECIES_BLASTOISE (9)
-#define SPECIES_CATERPIE (10)
-#define SPECIES_METAPOD (11)
-#define SPECIES_BUTTERFREE (12)
-#define SPECIES_WEEDLE (13)
-#define SPECIES_KAKUNA (14)
-#define SPECIES_BEEDRILL (15)
-#define SPECIES_PIDGEY (16)
-#define SPECIES_PIDGEOTTO (17)
-#define SPECIES_PIDGEOT (18)
-#define SPECIES_RATTATA (19)
-#define SPECIES_RATICATE (20)
-#define SPECIES_SPEAROW (21)
-#define SPECIES_FEAROW (22)
-#define SPECIES_EKANS (23)
-#define SPECIES_ARBOK (24)
-#define SPECIES_PIKACHU (25)
-#define SPECIES_RAICHU (26)
-#define SPECIES_SANDSHREW (27)
-#define SPECIES_SANDSLASH (28)
-#define SPECIES_NIDORAN_F (29)
-#define SPECIES_NIDORINA (30)
-#define SPECIES_NIDOQUEEN (31)
-#define SPECIES_NIDORAN_M (32)
-#define SPECIES_NIDORINO (33)
-#define SPECIES_NIDOKING (34)
-#define SPECIES_CLEFAIRY (35)
-#define SPECIES_CLEFABLE (36)
-#define SPECIES_VULPIX (37)
-#define SPECIES_NINETALES (38)
-#define SPECIES_JIGGLYPUFF (39)
-#define SPECIES_WIGGLYTUFF (40)
-#define SPECIES_ZUBAT (41)
-#define SPECIES_GOLBAT (42)
-#define SPECIES_ODDISH (43)
-#define SPECIES_GLOOM (44)
-#define SPECIES_VILEPLUME (45)
-#define SPECIES_PARAS (46)
-#define SPECIES_PARASECT (47)
-#define SPECIES_VENONAT (48)
-#define SPECIES_VENOMOTH (49)
-#define SPECIES_DIGLETT (50)
-#define SPECIES_DUGTRIO (51)
-#define SPECIES_MEOWTH (52)
-#define SPECIES_PERSIAN (53)
-#define SPECIES_PSYDUCK (54)
-#define SPECIES_GOLDUCK (55)
-#define SPECIES_MANKEY (56)
-#define SPECIES_PRIMEAPE (57)
-#define SPECIES_GROWLITHE (58)
-#define SPECIES_ARCANINE (59)
-#define SPECIES_POLIWAG (60)
-#define SPECIES_POLIWHIRL (61)
-#define SPECIES_POLIWRATH (62)
-#define SPECIES_ABRA (63)
-#define SPECIES_KADABRA (64)
-#define SPECIES_ALAKAZAM (65)
-#define SPECIES_MACHOP (66)
-#define SPECIES_MACHOKE (67)
-#define SPECIES_MACHAMP (68)
-#define SPECIES_BELLSPROUT (69)
-#define SPECIES_WEEPINBELL (70)
-#define SPECIES_VICTREEBEL (71)
-#define SPECIES_TENTACOOL (72)
-#define SPECIES_TENTACRUEL (73)
-#define SPECIES_GEODUDE (74)
-#define SPECIES_GRAVELER (75)
-#define SPECIES_GOLEM (76)
-#define SPECIES_PONYTA (77)
-#define SPECIES_RAPIDASH (78)
-#define SPECIES_SLOWPOKE (79)
-#define SPECIES_SLOWBRO (80)
-#define SPECIES_MAGNEMITE (81)
-#define SPECIES_MAGNETON (82)
-#define SPECIES_FARFETCHD (83)
-#define SPECIES_DODUO (84)
-#define SPECIES_DODRIO (85)
-#define SPECIES_SEEL (86)
-#define SPECIES_DEWGONG (87)
-#define SPECIES_GRIMER (88)
-#define SPECIES_MUK (89)
-#define SPECIES_SHELLDER (90)
-#define SPECIES_CLOYSTER (91)
-#define SPECIES_GASTLY (92)
-#define SPECIES_HAUNTER (93)
-#define SPECIES_GENGAR (94)
-#define SPECIES_ONIX (95)
-#define SPECIES_DROWZEE (96)
-#define SPECIES_HYPNO (97)
-#define SPECIES_KRABBY (98)
-#define SPECIES_KINGLER (99)
-#define SPECIES_VOLTORB (100)
-#define SPECIES_ELECTRODE (101)
-#define SPECIES_EXEGGCUTE (102)
-#define SPECIES_EXEGGUTOR (103)
-#define SPECIES_CUBONE (104)
-#define SPECIES_MAROWAK (105)
-#define SPECIES_HITMONLEE (106)
-#define SPECIES_HITMONCHAN (107)
-#define SPECIES_LICKITUNG (108)
-#define SPECIES_KOFFING (109)
-#define SPECIES_WEEZING (110)
-#define SPECIES_RHYHORN (111)
-#define SPECIES_RHYDON (112)
-#define SPECIES_CHANSEY (113)
-#define SPECIES_TANGELA (114)
-#define SPECIES_KANGASKHAN (115)
-#define SPECIES_HORSEA (116)
-#define SPECIES_SEADRA (117)
-#define SPECIES_GOLDEEN (118)
-#define SPECIES_SEAKING (119)
-#define SPECIES_STARYU (120)
-#define SPECIES_STARMIE (121)
-#define SPECIES_MR_MIME (122)
-#define SPECIES_SCYTHER (123)
-#define SPECIES_JYNX (124)
-#define SPECIES_ELECTABUZZ (125)
-#define SPECIES_MAGMAR (126)
-#define SPECIES_PINSIR (127)
-#define SPECIES_TAUROS (128)
-#define SPECIES_MAGIKARP (129)
-#define SPECIES_GYARADOS (130)
-#define SPECIES_LAPRAS (131)
-#define SPECIES_DITTO (132)
-#define SPECIES_EEVEE (133)
-#define SPECIES_VAPOREON (134)
-#define SPECIES_JOLTEON (135)
-#define SPECIES_FLAREON (136)
-#define SPECIES_PORYGON (137)
-#define SPECIES_OMANYTE (138)
-#define SPECIES_OMASTAR (139)
-#define SPECIES_KABUTO (140)
-#define SPECIES_KABUTOPS (141)
-#define SPECIES_AERODACTYL (142)
-#define SPECIES_SNORLAX (143)
-#define SPECIES_ARTICUNO (144)
-#define SPECIES_ZAPDOS (145)
-#define SPECIES_MOLTRES (146)
-#define SPECIES_DRATINI (147)
-#define SPECIES_DRAGONAIR (148)
-#define SPECIES_DRAGONITE (149)
-#define SPECIES_MEWTWO (150)
-#define SPECIES_MEW (151)
-#define SPECIES_CHIKORITA (152)
-#define SPECIES_BAYLEEF (153)
-#define SPECIES_MEGANIUM (154)
-#define SPECIES_CYNDAQUIL (155)
-#define SPECIES_QUILAVA (156)
-#define SPECIES_TYPHLOSION (157)
-#define SPECIES_TOTODILE (158)
-#define SPECIES_CROCONAW (159)
-#define SPECIES_FERALIGRATOR (160)
-#define SPECIES_SENTRET (161)
-#define SPECIES_FURRET (162)
-#define SPECIES_HOOTHOOT (163)
-#define SPECIES_NOCTOWL (164)
-#define SPECIES_LEDYBA (165)
-#define SPECIES_LEDIAN (166)
-#define SPECIES_SPINARAK (167)
-#define SPECIES_ARIADOS (168)
-#define SPECIES_CROBAT (169)
-#define SPECIES_CHINCHOU (170)
-#define SPECIES_LANTURN (171)
-#define SPECIES_PICHU (172)
-#define SPECIES_CLEFFA (173)
-#define SPECIES_IGGLYBUFF (174)
-#define SPECIES_TOGEPI (175)
-#define SPECIES_TOGETIC (176)
-#define SPECIES_NATU (177)
-#define SPECIES_XATU (178)
-#define SPECIES_MAREEP (179)
-#define SPECIES_FLAAFFY (180)
-#define SPECIES_AMPHAROS (181)
-#define SPECIES_BELLOSSOM (182)
-#define SPECIES_MARILL (183)
-#define SPECIES_AZUMARILL (184)
-#define SPECIES_SUDOWOODO (185)
-#define SPECIES_POLITOED (186)
-#define SPECIES_HOPPIP (187)
-#define SPECIES_SKIPLOOM (188)
-#define SPECIES_JUMPLUFF (189)
-#define SPECIES_AIPOM (190)
-#define SPECIES_SUNKERN (191)
-#define SPECIES_SUNFLORA (192)
-#define SPECIES_YANMA (193)
-#define SPECIES_WOOPER (194)
-#define SPECIES_QUAGSIRE (195)
-#define SPECIES_ESPEON (196)
-#define SPECIES_UMBREON (197)
-#define SPECIES_MURKROW (198)
-#define SPECIES_SLOWKING (199)
-#define SPECIES_MISDREAVUS (200)
-#define SPECIES_UNOWN (201)
-#define SPECIES_WOBBUFFET (202)
-#define SPECIES_GIRAFARIG (203)
-#define SPECIES_PINECO (204)
-#define SPECIES_FORRETRESS (205)
-#define SPECIES_DUNSPARCE (206)
-#define SPECIES_GLIGAR (207)
-#define SPECIES_STEELIX (208)
-#define SPECIES_SNUBBULL (209)
-#define SPECIES_GRANBULL (210)
-#define SPECIES_QWILFISH (211)
-#define SPECIES_SCIZOR (212)
-#define SPECIES_SHUCKLE (213)
-#define SPECIES_HERACROSS (214)
-#define SPECIES_SNEASEL (215)
-#define SPECIES_TEDDIURSA (216)
-#define SPECIES_URSARING (217)
-#define SPECIES_SLUGMA (218)
-#define SPECIES_MAGCARGO (219)
-#define SPECIES_SWINUB (220)
-#define SPECIES_PILOSWINE (221)
-#define SPECIES_CORSOLA (222)
-#define SPECIES_REMORAID (223)
-#define SPECIES_OCTILLERY (224)
-#define SPECIES_DELIBIRD (225)
-#define SPECIES_MANTINE (226)
-#define SPECIES_SKARMORY (227)
-#define SPECIES_HOUNDOUR (228)
-#define SPECIES_HOUNDOOM (229)
-#define SPECIES_KINGDRA (230)
-#define SPECIES_PHANPY (231)
-#define SPECIES_DONPHAN (232)
-#define SPECIES_PORYGON2 (233)
-#define SPECIES_STANTLER (234)
-#define SPECIES_SMEARGLE (235)
-#define SPECIES_TYROGUE (236)
-#define SPECIES_HITMONTOP (237)
-#define SPECIES_SMOOCHUM (238)
-#define SPECIES_ELEKID (239)
-#define SPECIES_MAGBY (240)
-#define SPECIES_MILTANK (241)
-#define SPECIES_BLISSEY (242)
-#define SPECIES_RAIKOU (243)
-#define SPECIES_ENTEI (244)
-#define SPECIES_SUICUNE (245)
-#define SPECIES_LARVITAR (246)
-#define SPECIES_PUPITAR (247)
-#define SPECIES_TYRANITAR (248)
-#define SPECIES_LUGIA (249)
-#define SPECIES_HO_OH (250)
-#define SPECIES_CELEBI (251)
-#define SPECIES_TREECKO (252)
-#define SPECIES_GROVYLE (253)
-#define SPECIES_SCEPTILE (254)
-#define SPECIES_TORCHIC (255)
-#define SPECIES_COMBUSKEN (256)
-#define SPECIES_BLAZIKEN (257)
-#define SPECIES_MUDKIP (258)
-#define SPECIES_MARSHTOMP (259)
-#define SPECIES_SWAMPERT (260)
-#define SPECIES_POOCHYENA (261)
-#define SPECIES_MIGHTYENA (262)
-#define SPECIES_ZIGZAGOON (263)
-#define SPECIES_LINOONE (264)
-#define SPECIES_WURMPLE (265)
-#define SPECIES_SILCOON (266)
-#define SPECIES_BEAUTIFLY (267)
-#define SPECIES_CASCOON (268)
-#define SPECIES_DUSTOX (269)
-#define SPECIES_LOTAD (270)
-#define SPECIES_LOMBRE (271)
-#define SPECIES_LUDICOLO (272)
-#define SPECIES_SEEDOT (273)
-#define SPECIES_NUZLEAF (274)
-#define SPECIES_SHIFTREE (275)
-#define SPECIES_TAILLOW (276)
-#define SPECIES_SWELLOW (277)
-#define SPECIES_WINGULL (278)
-#define SPECIES_PELIPPER (279)
-#define SPECIES_RALTS (280)
-#define SPECIES_KIRLIA (281)
-#define SPECIES_GARDEVOIR (282)
-#define SPECIES_SURSKIT (283)
-#define SPECIES_MASQUERAIN (284)
-#define SPECIES_SHROOMISH (285)
-#define SPECIES_BRELOOM (286)
-#define SPECIES_SLAKOTH (287)
-#define SPECIES_VIGOROTH (288)
-#define SPECIES_SLAKING (289)
-#define SPECIES_NINCADA (290)
-#define SPECIES_NINJASK (291)
-#define SPECIES_SHEDINJA (292)
-#define SPECIES_WHISMUR (293)
-#define SPECIES_LOUDRED (294)
-#define SPECIES_EXPLOUD (295)
-#define SPECIES_MAKUHITA (296)
-#define SPECIES_HARIYAMA (297)
-#define SPECIES_AZURILL (298)
-#define SPECIES_NOSEPASS (299)
-#define SPECIES_SKITTY (300)
-#define SPECIES_DELCATTY (301)
-#define SPECIES_SABLEYE (302)
-#define SPECIES_MAWILE (303)
-#define SPECIES_ARON (304)
-#define SPECIES_LAIRON (305)
-#define SPECIES_AGGRON (306)
-#define SPECIES_MEDITITE (307)
-#define SPECIES_MEDICHAM (308)
-#define SPECIES_ELECTRIKE (309)
-#define SPECIES_MANECTRIC (310)
-#define SPECIES_PLUSLE (311)
-#define SPECIES_MINUN (312)
-#define SPECIES_VOLBEAT (313)
-#define SPECIES_ILLUMISE (314)
-#define SPECIES_ROSELIA (315)
-#define SPECIES_GULPIN (316)
-#define SPECIES_SWALOT (317)
-#define SPECIES_CARVANHA (318)
-#define SPECIES_SHARPEDO (319)
-#define SPECIES_WAILMER (320)
-#define SPECIES_WAILORD (321)
-#define SPECIES_NUMEL (322)
-#define SPECIES_CAMERUPT (323)
-#define SPECIES_TORKOAL (324)
-#define SPECIES_SPOINK (325)
-#define SPECIES_GRUMPIG (326)
-#define SPECIES_SPINDA (327)
-#define SPECIES_TRAPINCH (328)
-#define SPECIES_VIBRAVA (329)
-#define SPECIES_FLYGON (330)
-#define SPECIES_CACNEA (331)
-#define SPECIES_CACTURNE (332)
-#define SPECIES_SWABLU (333)
-#define SPECIES_ALTARIA (334)
-#define SPECIES_ZANGOOSE (335)
-#define SPECIES_SEVIPER (336)
-#define SPECIES_LUNATONE (337)
-#define SPECIES_SOLROCK (338)
-#define SPECIES_BARBOACH (339)
-#define SPECIES_WHISCASH (340)
-#define SPECIES_CORPHISH (341)
-#define SPECIES_CRAWDAUNT (342)
-#define SPECIES_BALTOY (343)
-#define SPECIES_CLAYDOL (344)
-#define SPECIES_LILEEP (345)
-#define SPECIES_CRADILY (346)
-#define SPECIES_ANORITH (347)
-#define SPECIES_ARMALDO (348)
-#define SPECIES_FEEBAS (349)
-#define SPECIES_MILOTIC (350)
-#define SPECIES_CASTFORM (351)
-#define SPECIES_KECLEON (352)
-#define SPECIES_SHUPPET (353)
-#define SPECIES_BANETTE (354)
-#define SPECIES_DUSKULL (355)
-#define SPECIES_DUSCLOPS (356)
-#define SPECIES_TROPIUS (357)
-#define SPECIES_CHIMECHO (358)
-#define SPECIES_ABSOL (359)
-#define SPECIES_WYNAUT (360)
-#define SPECIES_SNORUNT (361)
-#define SPECIES_GLALIE (362)
-#define SPECIES_SPHEAL (363)
-#define SPECIES_SEALEO (364)
-#define SPECIES_WALREIN (365)
-#define SPECIES_CLAMPERL (366)
-#define SPECIES_HUNTAIL (367)
-#define SPECIES_GOREBYSS (368)
-#define SPECIES_RELICANTH (369)
-#define SPECIES_LUVDISC (370)
-#define SPECIES_BAGON (371)
-#define SPECIES_SHELGON (372)
-#define SPECIES_SALAMENCE (373)
-#define SPECIES_BELDUM (374)
-#define SPECIES_METANG (375)
-#define SPECIES_METAGROSS (376)
-#define SPECIES_REGIROCK (377)
-#define SPECIES_REGICE (378)
-#define SPECIES_REGISTEEL (379)
-#define SPECIES_LATIAS (380)
-#define SPECIES_LATIOS (381)
-#define SPECIES_KYOGRE (382)
-#define SPECIES_GROUDON (383)
-#define SPECIES_RAYQUAZA (384)
-#define SPECIES_JIRACHI (385)
-#define SPECIES_DEOXYS (386)
-#define SPECIES_TURTWIG (387)
-#define SPECIES_GROTLE (388)
-#define SPECIES_TORTERRA (389)
-#define SPECIES_CHIMCHAR (390)
-#define SPECIES_MONFERNO (391)
-#define SPECIES_INFERNAPE (392)
-#define SPECIES_PIPLUP (393)
-#define SPECIES_PRINPLUP (394)
-#define SPECIES_EMPOLEON (395)
-#define SPECIES_STARLY (396)
-#define SPECIES_STARAVIA (397)
-#define SPECIES_STARAPTOR (398)
-#define SPECIES_BIDOOF (399)
-#define SPECIES_BIBAREL (400)
-#define SPECIES_KRICKETOT (401)
-#define SPECIES_KRICKETUNE (402)
-#define SPECIES_SHINX (403)
-#define SPECIES_LUXIO (404)
-#define SPECIES_LUXRAY (405)
-#define SPECIES_BUDEW (406)
-#define SPECIES_ROSERADE (407)
-#define SPECIES_CRANIDOS (408)
-#define SPECIES_RAMPARDOS (409)
-#define SPECIES_SHIELDON (410)
-#define SPECIES_BASTIODON (411)
-#define SPECIES_BURMY (412)
-#define SPECIES_WORMADAM (413)
-#define SPECIES_MOTHIM (414)
-#define SPECIES_COMBEE (415)
-#define SPECIES_VESPIQUEN (416)
-#define SPECIES_PACHIRISU (417)
-#define SPECIES_BUIZEL (418)
-#define SPECIES_FLOATZEL (419)
-#define SPECIES_CHERUBI (420)
-#define SPECIES_CHERRIM (421)
-#define SPECIES_SHELLOS (422)
-#define SPECIES_GASTRODON (423)
-#define SPECIES_AMBIPOM (424)
-#define SPECIES_DRIFLOON (425)
-#define SPECIES_DRIFBLIM (426)
-#define SPECIES_BUNEARY (427)
-#define SPECIES_LOPUNNY (428)
-#define SPECIES_MISMAGIUS (429)
-#define SPECIES_HONCHKROW (430)
-#define SPECIES_GLAMEOW (431)
-#define SPECIES_PURUGLY (432)
-#define SPECIES_CHINGLING (433)
-#define SPECIES_STUNKY (434)
-#define SPECIES_SKUNTANK (435)
-#define SPECIES_BRONZOR (436)
-#define SPECIES_BRONZONG (437)
-#define SPECIES_BONSLY (438)
-#define SPECIES_MIME_JR (439)
-#define SPECIES_HAPPINY (440)
-#define SPECIES_CHATOT (441)
-#define SPECIES_SPIRITOMB (442)
-#define SPECIES_GIBLE (443)
-#define SPECIES_GABITE (444)
-#define SPECIES_GARCHOMP (445)
-#define SPECIES_MUNCHLAX (446)
-#define SPECIES_RIOLU (447)
-#define SPECIES_LUCARIO (448)
-#define SPECIES_HIPPOPOTAS (449)
-#define SPECIES_HIPPOWDON (450)
-#define SPECIES_SKORUPI (451)
-#define SPECIES_DRAPION (452)
-#define SPECIES_CROAGUNK (453)
-#define SPECIES_TOXICROAK (454)
-#define SPECIES_CARNIVINE (455)
-#define SPECIES_FINNEON (456)
-#define SPECIES_LUMINEON (457)
-#define SPECIES_MANTYKE (458)
-#define SPECIES_SNOVER (459)
-#define SPECIES_ABOMASNOW (460)
-#define SPECIES_WEAVILE (461)
-#define SPECIES_MAGNEZONE (462)
-#define SPECIES_LICKILICKY (463)
-#define SPECIES_RHYPERIOR (464)
-#define SPECIES_TANGROWTH (465)
-#define SPECIES_ELECTIVIRE (466)
-#define SPECIES_MAGMORTAR (467)
-#define SPECIES_TOGEKISS (468)
-#define SPECIES_YANMEGA (469)
-#define SPECIES_LEAFEON (470)
-#define SPECIES_GLACEON (471)
-#define SPECIES_GLISCOR (472)
-#define SPECIES_MAMOSWINE (473)
-#define SPECIES_PORYGON_Z (474)
-#define SPECIES_GALLADE (475)
-#define SPECIES_PROBOPASS (476)
-#define SPECIES_DUSKNOIR (477)
-#define SPECIES_FROSLASS (478)
-#define SPECIES_ROTOM (479)
-#define SPECIES_UXIE (480)
-#define SPECIES_MESPRIT (481)
-#define SPECIES_AZELF (482)
-#define SPECIES_DIALGA (483)
-#define SPECIES_PALKIA (484)
-#define SPECIES_HEATRAN (485)
-#define SPECIES_REGIGIGAS (486)
-#define SPECIES_GIRATINA (487)
-#define SPECIES_CRESSELIA (488)
-#define SPECIES_PHIONE (489)
-#define SPECIES_MANAPHY (490)
-#define SPECIES_DARKRAI (491)
-#define SPECIES_SHAYMIN (492)
-#define SPECIES_ARCEUS (493)
-#define SPECIES_VICTINI (494)
-#define SPECIES_SNIVY (495)
-#define SPECIES_SERVINE (496)
-#define SPECIES_SERPERIOR (497)
-#define SPECIES_TEPIG (498)
-#define SPECIES_PIGNITE (499)
-#define SPECIES_EMBOAR (500)
-#define SPECIES_OSHAWOTT (501)
-#define SPECIES_DEWOTT (502)
-#define SPECIES_SAMUROTT (503)
-#define SPECIES_PATRAT (504)
-#define SPECIES_WATCHOG (505)
-#define SPECIES_LILLIPUP (506)
-#define SPECIES_HERDIER (507)
-#define SPECIES_STOUTLAND (508)
-#define SPECIES_PURRLOIN (509)
-#define SPECIES_LIEPARD (510)
-#define SPECIES_PANSAGE (511)
-#define SPECIES_SIMISAGE (512)
-#define SPECIES_PANSEAR (513)
-#define SPECIES_SIMISEAR (514)
-#define SPECIES_PANPOUR (515)
-#define SPECIES_SIMIPOUR (516)
-#define SPECIES_MUNNA (517)
-#define SPECIES_MUSHARNA (518)
-#define SPECIES_PIDOVE (519)
-#define SPECIES_TRANQUILL (520)
-#define SPECIES_UNFEZANT (521)
-#define SPECIES_BLITZLE (522)
-#define SPECIES_ZEBSTRIKA (523)
-#define SPECIES_ROGGENROLA (524)
-#define SPECIES_BOLDORE (525)
-#define SPECIES_GIGALITH (526)
-#define SPECIES_WOOBAT (527)
-#define SPECIES_SWOOBAT (528)
-#define SPECIES_DRILLBUR (529)
-#define SPECIES_EXCADRILL (530)
-#define SPECIES_AUDINO (531)
-#define SPECIES_TIMBURR (532)
-#define SPECIES_GURDURR (533)
-#define SPECIES_CONKELDURR (534)
-#define SPECIES_TYMPOLE (535)
-#define SPECIES_PALPITOAD (536)
-#define SPECIES_SEISMITOAD (537)
-#define SPECIES_THROH (538)
-#define SPECIES_SAWK (539)
-#define SPECIES_SEWADDLE (540)
-#define SPECIES_SWADLOON (541)
-#define SPECIES_LEAVANNY (542)
-#define SPECIES_VENIPEDE (543)
-#define SPECIES_WHIRLIPEDE (544)
-#define SPECIES_SCOLIPEDE (545)
-#define SPECIES_COTTONEE (546)
-#define SPECIES_WHIMSICOTT (547)
-#define SPECIES_PETILIL (548)
-#define SPECIES_LILLIGANT (549)
-#define SPECIES_BASCULIN (550)
-#define SPECIES_SANDILE (551)
-#define SPECIES_KROKOROK (552)
-#define SPECIES_KROOKODILE (553)
-#define SPECIES_DARUMAKA (554)
-#define SPECIES_DARMANITAN (555)
-#define SPECIES_MARACTUS (556)
-#define SPECIES_DWEBBLE (557)
-#define SPECIES_CRUSTLE (558)
-#define SPECIES_SCRAGGY (559)
-#define SPECIES_SCRAFTY (560)
-#define SPECIES_SIGILYPH (561)
-#define SPECIES_YAMASK (562)
-#define SPECIES_COFAGRIGUS (563)
-#define SPECIES_TIRTOUGA (564)
-#define SPECIES_CARRACOSTA (565)
-#define SPECIES_ARCHEN (566)
-#define SPECIES_ARCHEOPS (567)
-#define SPECIES_TRUBBISH (568)
-#define SPECIES_GARBODOR (569)
-#define SPECIES_ZORUA (570)
-#define SPECIES_ZOROARK (571)
-#define SPECIES_MINCCINO (572)
-#define SPECIES_CINCCINO (573)
-#define SPECIES_GOTHITA (574)
-#define SPECIES_GOTHORITA (575)
-#define SPECIES_GOTHITELLE (576)
-#define SPECIES_SOLOSIS (577)
-#define SPECIES_DUOSION (578)
-#define SPECIES_REUNICLUS (579)
-#define SPECIES_DUCKLETT (580)
-#define SPECIES_SWANNA (581)
-#define SPECIES_VANILLITE (582)
-#define SPECIES_VANILLISH (583)
-#define SPECIES_VANILLUXE (584)
-#define SPECIES_DEERLING (585)
-#define SPECIES_SAWSBUCK (586)
-#define SPECIES_EMOLGA (587)
-#define SPECIES_KARRABLAST (588)
-#define SPECIES_ESCAVALIER (589)
-#define SPECIES_FOONGUS (590)
-#define SPECIES_AMOONGUSS (591)
-#define SPECIES_FRILLISH (592)
-#define SPECIES_JELLICENT (593)
-#define SPECIES_ALOMOMOLA (594)
-#define SPECIES_JOLTIK (595)
-#define SPECIES_GALVANTULA (596)
-#define SPECIES_FERROSEED (597)
-#define SPECIES_FERROTHORN (598)
-#define SPECIES_KLINK (599)
-#define SPECIES_KLANG (600)
-#define SPECIES_KLINKLANG (601)
-#define SPECIES_TYNAMO (602)
-#define SPECIES_EELEKTRIK (603)
-#define SPECIES_EELEKTROSS (604)
-#define SPECIES_ELGYEM (605)
-#define SPECIES_BEHEEYEM (606)
-#define SPECIES_LITWICK (607)
-#define SPECIES_LAMPENT (608)
-#define SPECIES_CHANDELURE (609)
-#define SPECIES_AXEW (610)
-#define SPECIES_FRAXURE (611)
-#define SPECIES_HAXORUS (612)
-#define SPECIES_CUBCHOO (613)
-#define SPECIES_BEARTIC (614)
-#define SPECIES_CRYOGONAL (615)
-#define SPECIES_SHELMET (616)
-#define SPECIES_ACCELGOR (617)
-#define SPECIES_STUNFISK (618)
-#define SPECIES_MIENFOO (619)
-#define SPECIES_MIENSHAO (620)
-#define SPECIES_DRUDDIGON (621)
-#define SPECIES_GOLETT (622)
-#define SPECIES_GOLURK (623)
-#define SPECIES_PAWNIARD (624)
-#define SPECIES_BISHARP (625)
-#define SPECIES_BOUFFALANT (626)
-#define SPECIES_RUFFLET (627)
-#define SPECIES_BRAVIARY (628)
-#define SPECIES_VULLABY (629)
-#define SPECIES_MANDIBUZZ (630)
-#define SPECIES_HEATMOR (631)
-#define SPECIES_DURANT (632)
-#define SPECIES_DEINO (633)
-#define SPECIES_ZWEILOUS (634)
-#define SPECIES_HYDREIGON (635)
-#define SPECIES_LARVESTA (636)
-#define SPECIES_VOLCARONA (637)
-#define SPECIES_COBALION (638)
-#define SPECIES_TERRAKION (639)
-#define SPECIES_VIRIZION (640)
-#define SPECIES_TORNADUS (641)
-#define SPECIES_THUNDURUS (642)
-#define SPECIES_RESHIRAM (643)
-#define SPECIES_ZEKROM (644)
-#define SPECIES_LANDORUS (645)
-#define SPECIES_KYUREM (646)
-#define SPECIES_KELDEO (647)
-#define SPECIES_MELOETTA (648)
-#define SPECIES_GENESECT (649)
-#define SPECIES_CHESPIN (650)
-#define SPECIES_QUILLADIN (651)
-#define SPECIES_CHESNAUGHT (652)
-#define SPECIES_FENNEKIN (653)
-#define SPECIES_BRAIXEN (654)
-#define SPECIES_DELPHOX (655)
-#define SPECIES_FROAKIE (656)
-#define SPECIES_FROGADIER (657)
-#define SPECIES_GRENINJA (658)
-#define SPECIES_BUNNELBY (659)
-#define SPECIES_DIGGERSBY (660)
-#define SPECIES_FLETCHLING (661)
-#define SPECIES_FLETCHINDER (662)
-#define SPECIES_TALONFLAME (663)
-#define SPECIES_SCATTERBUG (664)
-#define SPECIES_SPEWPA (665)
-#define SPECIES_VIVILLON (666)
-#define SPECIES_LITLEO (667)
-#define SPECIES_PYROAR (668)
-#define SPECIES_FLABEBE (669)
-#define SPECIES_FLOETTE (670)
-#define SPECIES_FLORGES (671)
-#define SPECIES_SKIDDO (672)
-#define SPECIES_GOGOAT (673)
-#define SPECIES_PANCHAM (674)
-#define SPECIES_PANGORO (675)
-#define SPECIES_FURFROU (676)
-#define SPECIES_ESPURR (677)
-#define SPECIES_MEOWSTIC (678)
-#define SPECIES_HONEDGE (679)
-#define SPECIES_DOUBLADE (680)
-#define SPECIES_AEGISLASH (681)
-#define SPECIES_SPRITZEE (682)
-#define SPECIES_AROMATISSE (683)
-#define SPECIES_SWIRLIX (684)
-#define SPECIES_SLURPUFF (685)
-#define SPECIES_INKAY (686)
-#define SPECIES_MALAMAR (687)
-#define SPECIES_BINACLE (688)
-#define SPECIES_BARBARACLE (689)
-#define SPECIES_SKRELP (690)
-#define SPECIES_DRAGALGE (691)
-#define SPECIES_CLAUNCHER (692)
-#define SPECIES_CLAWITZER (693)
-#define SPECIES_HELIOPTILE (694)
-#define SPECIES_HELIOLISK (695)
-#define SPECIES_TYRUNT (696)
-#define SPECIES_TYRANTRUM (697)
-#define SPECIES_AMAURA (698)
-#define SPECIES_AURORUS (699)
-#define SPECIES_SYLVEON (700)
-#define SPECIES_HAWLUCHA (701)
-#define SPECIES_DEDENNE (702)
-#define SPECIES_CARBINK (703)
-#define SPECIES_GOOMY (704)
-#define SPECIES_SLIGGOO (705)
-#define SPECIES_GOODRA (706)
-#define SPECIES_KLEFKI (707)
-#define SPECIES_PHANTUMP (708)
-#define SPECIES_TREVENANT (709)
-#define SPECIES_PUMPKABOO (710)
-#define SPECIES_GOURGEIST (711)
-#define SPECIES_BERGMITE (712)
-#define SPECIES_AVALUGG (713)
-#define SPECIES_NOIBAT (714)
-#define SPECIES_NOIVERN (715)
-#define SPECIES_XERNEAS (716)
-#define SPECIES_YVELTAL (717)
-#define SPECIES_ZYGARDE (718)
-#define SPECIES_DIANCIE (719)
-#define SPECIES_HOOPA (720)
-#define SPECIES_VOLCANION (721)
-#define SPECIES_EGG (722)
-#define SPECIES_COUNT (723)
-// #define SPECIES_EGG (722)
+#include <types.h>
+
+enum class Species : u16 {
+  kNone = 0,
+  kBulbasaur = 1,
+  kIvysaur = 2,
+  kVenusaur = 3,
+  kCharmander = 4,
+  kCharmeleon = 5,
+  kCharizard = 6,
+  kSquirtle = 7,
+  kWartortle = 8,
+  kBlastoise = 9,
+  kCaterpie = 10,
+  kMetapod = 11,
+  kButterfree = 12,
+  kWeedle = 13,
+  kKakuna = 14,
+  kBeedrill = 15,
+  kPidgey = 16,
+  kPidgeotto = 17,
+  kPidgeot = 18,
+  kRattata = 19,
+  kRaticate = 20,
+  kSpearow = 21,
+  kFearow = 22,
+  kEkans = 23,
+  kArbok = 24,
+  kPikachu = 25,
+  kRaichu = 26,
+  kSandshrew = 27,
+  kSandslash = 28,
+  kNidoranF = 29,
+  kNidorina = 30,
+  kNidoqueen = 31,
+  kNidoranM = 32,
+  kNidorino = 33,
+  kNidoking = 34,
+  kClefairy = 35,
+  kClefable = 36,
+  kVulpix = 37,
+  kNinetales = 38,
+  kJigglypuff = 39,
+  kWigglytuff = 40,
+  kZubat = 41,
+  kGolbat = 42,
+  kOddish = 43,
+  kGloom = 44,
+  kVileplume = 45,
+  kParas = 46,
+  kParasect = 47,
+  kVenonat = 48,
+  kVenomoth = 49,
+  kDiglett = 50,
+  kDugtrio = 51,
+  kMeowth = 52,
+  kPersian = 53,
+  kPsyduck = 54,
+  kGolduck = 55,
+  kMankey = 56,
+  kPrimeape = 57,
+  kGrowlithe = 58,
+  kArcanine = 59,
+  kPoliwag = 60,
+  kPoliwhirl = 61,
+  kPoliwrath = 62,
+  kAbra = 63,
+  kKadabra = 64,
+  kAlakazam = 65,
+  kMachop = 66,
+  kMachoke = 67,
+  kMachamp = 68,
+  kBellsprout = 69,
+  kWeepinbell = 70,
+  kVictreebel = 71,
+  kTentacool = 72,
+  kTentacruel = 73,
+  kGeodude = 74,
+  kGraveler = 75,
+  kGolem = 76,
+  kPonyta = 77,
+  kRapidash = 78,
+  kSlowpoke = 79,
+  kSlowbro = 80,
+  kMagnemite = 81,
+  kMagneton = 82,
+  kFarfetchd = 83,
+  kDoduo = 84,
+  kDodrio = 85,
+  kSeel = 86,
+  kDewgong = 87,
+  kGrimer = 88,
+  kMuk = 89,
+  kShellder = 90,
+  kCloyster = 91,
+  kGastly = 92,
+  kHaunter = 93,
+  kGengar = 94,
+  kOnix = 95,
+  kDrowzee = 96,
+  kHypno = 97,
+  kKrabby = 98,
+  kKingler = 99,
+  kVoltorb = 100,
+  kElectrode = 101,
+  kExeggcute = 102,
+  kExeggutor = 103,
+  kCubone = 104,
+  kMarowak = 105,
+  kHitmonlee = 106,
+  kHitmonchan = 107,
+  kLickitung = 108,
+  kKoffing = 109,
+  kWeezing = 110,
+  kRhyhorn = 111,
+  kRhydon = 112,
+  kChansey = 113,
+  kTangela = 114,
+  kKangaskhan = 115,
+  kHorsea = 116,
+  kSeadra = 117,
+  kGoldeen = 118,
+  kSeaking = 119,
+  kStaryu = 120,
+  kStarmie = 121,
+  kMrMime = 122,
+  kScyther = 123,
+  kJynx = 124,
+  kElectabuzz = 125,
+  kMagmar = 126,
+  kPinsir = 127,
+  kTauros = 128,
+  kMagikarp = 129,
+  kGyarados = 130,
+  kLapras = 131,
+  kDitto = 132,
+  kEevee = 133,
+  kVaporeon = 134,
+  kJolteon = 135,
+  kFlareon = 136,
+  kPorygon = 137,
+  kOmanyte = 138,
+  kOmastar = 139,
+  kKabuto = 140,
+  kKabutops = 141,
+  kAerodactyl = 142,
+  kSnorlax = 143,
+  kArticuno = 144,
+  kZapdos = 145,
+  kMoltres = 146,
+  kDratini = 147,
+  kDragonair = 148,
+  kDragonite = 149,
+  kMewtwo = 150,
+  kMew = 151,
+  kChikorita = 152,
+  kBayleef = 153,
+  kMeganium = 154,
+  kCyndaquil = 155,
+  kQuilava = 156,
+  kTyphlosion = 157,
+  kTotodile = 158,
+  kCroconaw = 159,
+  kFeraligrator = 160,
+  kSentret = 161,
+  kFurret = 162,
+  kHoothoot = 163,
+  kNoctowl = 164,
+  kLedyba = 165,
+  kLedian = 166,
+  kSpinarak = 167,
+  kAriados = 168,
+  kCrobat = 169,
+  kChinchou = 170,
+  kLanturn = 171,
+  kPichu = 172,
+  kCleffa = 173,
+  kIgglybuff = 174,
+  kTogepi = 175,
+  kTogetic = 176,
+  kNatu = 177,
+  kXatu = 178,
+  kMareep = 179,
+  kFlaaffy = 180,
+  kAmpharos = 181,
+  kBellossom = 182,
+  kMarill = 183,
+  kAzumarill = 184,
+  kSudowoodo = 185,
+  kPolitoed = 186,
+  kHoppip = 187,
+  kSkiploom = 188,
+  kJumpluff = 189,
+  kAipom = 190,
+  kSunkern = 191,
+  kSunflora = 192,
+  kYanma = 193,
+  kWooper = 194,
+  kQuagsire = 195,
+  kEspeon = 196,
+  kUmbreon = 197,
+  kMurkrow = 198,
+  kSlowking = 199,
+  kMisdreavus = 200,
+  kUnown = 201,
+  kWobbuffet = 202,
+  kGirafarig = 203,
+  kPineco = 204,
+  kForretress = 205,
+  kDunsparce = 206,
+  kGligar = 207,
+  kSteelix = 208,
+  kSnubbull = 209,
+  kGranbull = 210,
+  kQwilfish = 211,
+  kScizor = 212,
+  kShuckle = 213,
+  kHeracross = 214,
+  kSneasel = 215,
+  kTeddiursa = 216,
+  kUrsaring = 217,
+  kSlugma = 218,
+  kMagcargo = 219,
+  kSwinub = 220,
+  kPiloswine = 221,
+  kCorsola = 222,
+  kRemoraid = 223,
+  kOctillery = 224,
+  kDelibird = 225,
+  kMantine = 226,
+  kSkarmory = 227,
+  kHoundour = 228,
+  kHoundoom = 229,
+  kKingdra = 230,
+  kPhanpy = 231,
+  kDonphan = 232,
+  kPorygon2 = 233,
+  kStantler = 234,
+  kSmeargle = 235,
+  kTyrogue = 236,
+  kHitmontop = 237,
+  kSmoochum = 238,
+  kElekid = 239,
+  kMagby = 240,
+  kMiltank = 241,
+  kBlissey = 242,
+  kRaikou = 243,
+  kEntei = 244,
+  kSuicune = 245,
+  kLarvitar = 246,
+  kPupitar = 247,
+  kTyranitar = 248,
+  kLugia = 249,
+  kHoOh = 250,
+  kCelebi = 251,
+  kTreecko = 252,
+  kGrovyle = 253,
+  kSceptile = 254,
+  kTorchic = 255,
+  kCombusken = 256,
+  kBlaziken = 257,
+  kMudkip = 258,
+  kMarshtomp = 259,
+  kSwampert = 260,
+  kPoochyena = 261,
+  kMightyena = 262,
+  kZigzagoon = 263,
+  kLinoone = 264,
+  kWurmple = 265,
+  kSilcoon = 266,
+  kBeautifly = 267,
+  kCascoon = 268,
+  kDustox = 269,
+  kLotad = 270,
+  kLombre = 271,
+  kLudicolo = 272,
+  kSeedot = 273,
+  kNuzleaf = 274,
+  kShiftree = 275,
+  kTaillow = 276,
+  kSwellow = 277,
+  kWingull = 278,
+  kPelipper = 279,
+  kRalts = 280,
+  kKirlia = 281,
+  kGardevoir = 282,
+  kSurskit = 283,
+  kMasquerain = 284,
+  kShroomish = 285,
+  kBreloom = 286,
+  kSlakoth = 287,
+  kVigoroth = 288,
+  kSlaking = 289,
+  kNincada = 290,
+  kNinjask = 291,
+  kShedinja = 292,
+  kWhismur = 293,
+  kLoudred = 294,
+  kExploud = 295,
+  kMakuhita = 296,
+  kHariyama = 297,
+  kAzurill = 298,
+  kNosepass = 299,
+  kSkitty = 300,
+  kDelcatty = 301,
+  kSableye = 302,
+  kMawile = 303,
+  kAron = 304,
+  kLairon = 305,
+  kAggron = 306,
+  kMeditite = 307,
+  kMedicham = 308,
+  kElectrike = 309,
+  kManectric = 310,
+  kPlusle = 311,
+  kMinun = 312,
+  kVolbeat = 313,
+  kIllumise = 314,
+  kRoselia = 315,
+  kGulpin = 316,
+  kSwalot = 317,
+  kCarvanha = 318,
+  kSharpedo = 319,
+  kWailmer = 320,
+  kWailord = 321,
+  kNumel = 322,
+  kCamerupt = 323,
+  kTorkoal = 324,
+  kSpoink = 325,
+  kGrumpig = 326,
+  kSpinda = 327,
+  kTrapinch = 328,
+  kVibrava = 329,
+  kFlygon = 330,
+  kCacnea = 331,
+  kCacturne = 332,
+  kSwablu = 333,
+  kAltaria = 334,
+  kZangoose = 335,
+  kSeviper = 336,
+  kLunatone = 337,
+  kSolrock = 338,
+  kBarboach = 339,
+  kWhiscash = 340,
+  kCorphish = 341,
+  kCrawdaunt = 342,
+  kBaltoy = 343,
+  kClaydol = 344,
+  kLileep = 345,
+  kCradily = 346,
+  kAnorith = 347,
+  kArmaldo = 348,
+  kFeebas = 349,
+  kMilotic = 350,
+  kCastform = 351,
+  kKecleon = 352,
+  kShuppet = 353,
+  kBanette = 354,
+  kDuskull = 355,
+  kDusclops = 356,
+  kTropius = 357,
+  kChimecho = 358,
+  kAbsol = 359,
+  kWynaut = 360,
+  kSnorunt = 361,
+  kGlalie = 362,
+  kSpheal = 363,
+  kSealeo = 364,
+  kWalrein = 365,
+  kClamperl = 366,
+  kHuntail = 367,
+  kGorebyss = 368,
+  kRelicanth = 369,
+  kLuvdisc = 370,
+  kBagon = 371,
+  kShelgon = 372,
+  kSalamence = 373,
+  kBeldum = 374,
+  kMetang = 375,
+  kMetagross = 376,
+  kRegirock = 377,
+  kRegice = 378,
+  kRegisteel = 379,
+  kLatias = 380,
+  kLatios = 381,
+  kKyogre = 382,
+  kGroudon = 383,
+  kRayquaza = 384,
+  kJirachi = 385,
+  kDeoxys = 386,
+  kTurtwig = 387,
+  kGrotle = 388,
+  kTorterra = 389,
+  kChimchar = 390,
+  kMonferno = 391,
+  kInfernape = 392,
+  kPiplup = 393,
+  kPrinplup = 394,
+  kEmpoleon = 395,
+  kStarly = 396,
+  kStaravia = 397,
+  kStaraptor = 398,
+  kBidoof = 399,
+  kBibarel = 400,
+  kKricketot = 401,
+  kKricketune = 402,
+  kShinx = 403,
+  kLuxio = 404,
+  kLuxray = 405,
+  kBudew = 406,
+  kRoserade = 407,
+  kCranidos = 408,
+  kRampardos = 409,
+  kShieldon = 410,
+  kBastiodon = 411,
+  kBurmy = 412,
+  kWormadam = 413,
+  kMothim = 414,
+  kCombee = 415,
+  kVespiquen = 416,
+  kPachirisu = 417,
+  kBuizel = 418,
+  kFloatzel = 419,
+  kCherubi = 420,
+  kCherrim = 421,
+  kShellos = 422,
+  kGastrodon = 423,
+  kAmbipom = 424,
+  kDrifloon = 425,
+  kDrifblim = 426,
+  kBuneary = 427,
+  kLopunny = 428,
+  kMismagius = 429,
+  kHonchkrow = 430,
+  kGlameow = 431,
+  kPurugly = 432,
+  kChingling = 433,
+  kStunky = 434,
+  kSkuntank = 435,
+  kBronzor = 436,
+  kBronzong = 437,
+  kBonsly = 438,
+  kMimeJr = 439,
+  kHappiny = 440,
+  kChatot = 441,
+  kSpiritomb = 442,
+  kGible = 443,
+  kGabite = 444,
+  kGarchomp = 445,
+  kMunchlax = 446,
+  kRiolu = 447,
+  kLucario = 448,
+  kHippopotas = 449,
+  kHippowdon = 450,
+  kSkorupi = 451,
+  kDrapion = 452,
+  kCroagunk = 453,
+  kToxicroak = 454,
+  kCarnivine = 455,
+  kFinneon = 456,
+  kLumineon = 457,
+  kMantyke = 458,
+  kSnover = 459,
+  kAbomasnow = 460,
+  kWeavile = 461,
+  kMagnezone = 462,
+  kLickilicky = 463,
+  kRhyperior = 464,
+  kTangrowth = 465,
+  kElectivire = 466,
+  kMagmortar = 467,
+  kTogekiss = 468,
+  kYanmega = 469,
+  kLeafeon = 470,
+  kGlaceon = 471,
+  kGliscor = 472,
+  kMamoswine = 473,
+  kPorygonZ = 474,
+  kGallade = 475,
+  kProbopass = 476,
+  kDusknoir = 477,
+  kFroslass = 478,
+  kRotom = 479,
+  kUxie = 480,
+  kMesprit = 481,
+  kAzelf = 482,
+  kDialga = 483,
+  kPalkia = 484,
+  kHeatran = 485,
+  kRegigigas = 486,
+  kGiratina = 487,
+  kCresselia = 488,
+  kPhione = 489,
+  kManaphy = 490,
+  kDarkrai = 491,
+  kShaymin = 492,
+  kArceus = 493,
+  kVictini = 494,
+  kSnivy = 495,
+  kServine = 496,
+  kSerperior = 497,
+  kTepig = 498,
+  kPignite = 499,
+  kEmboar = 500,
+  kOshawott = 501,
+  kDewott = 502,
+  kSamurott = 503,
+  kPatrat = 504,
+  kWatchog = 505,
+  kLillipup = 506,
+  kHerdier = 507,
+  kStoutland = 508,
+  kPurrloin = 509,
+  kLiepard = 510,
+  kPansage = 511,
+  kSimisage = 512,
+  kPansear = 513,
+  kSimisear = 514,
+  kPanpour = 515,
+  kSimipour = 516,
+  kMunna = 517,
+  kMusharna = 518,
+  kPidove = 519,
+  kTranquill = 520,
+  kUnfezant = 521,
+  kBlitzle = 522,
+  kZebstrika = 523,
+  kRoggenrola = 524,
+  kBoldore = 525,
+  kGigalith = 526,
+  kWoobat = 527,
+  kSwoobat = 528,
+  kDrillbur = 529,
+  kExcadrill = 530,
+  kAudino = 531,
+  kTimburr = 532,
+  kGurdurr = 533,
+  kConkeldurr = 534,
+  kTympole = 535,
+  kPalpitoad = 536,
+  kSeismitoad = 537,
+  kThroh = 538,
+  kSawk = 539,
+  kSewaddle = 540,
+  kSwadloon = 541,
+  kLeavanny = 542,
+  kVenipede = 543,
+  kWhirlipede = 544,
+  kScolipede = 545,
+  kCottonee = 546,
+  kWhimsicott = 547,
+  kPetilil = 548,
+  kLilligant = 549,
+  kBasculin = 550,
+  kSandile = 551,
+  kKrokorok = 552,
+  kKrookodile = 553,
+  kDarumaka = 554,
+  kDarmanitan = 555,
+  kMaractus = 556,
+  kDwebble = 557,
+  kCrustle = 558,
+  kScraggy = 559,
+  kScrafty = 560,
+  kSigilyph = 561,
+  kYamask = 562,
+  kCofagrigus = 563,
+  kTirtouga = 564,
+  kCarracosta = 565,
+  kArchen = 566,
+  kArcheops = 567,
+  kTrubbish = 568,
+  kGarbodor = 569,
+  kZorua = 570,
+  kZoroark = 571,
+  kMinccino = 572,
+  kCinccino = 573,
+  kGothita = 574,
+  kGothorita = 575,
+  kGothitelle = 576,
+  kSolosis = 577,
+  kDuosion = 578,
+  kReuniclus = 579,
+  kDucklett = 580,
+  kSwanna = 581,
+  kVanillite = 582,
+  kVanillish = 583,
+  kVanilluxe = 584,
+  kDeerling = 585,
+  kSawsbuck = 586,
+  kEmolga = 587,
+  kKarrablast = 588,
+  kEscavalier = 589,
+  kFoongus = 590,
+  kAmoonguss = 591,
+  kFrillish = 592,
+  kJellicent = 593,
+  kAlomomola = 594,
+  kJoltik = 595,
+  kGalvantula = 596,
+  kFerroseed = 597,
+  kFerrothorn = 598,
+  kKlink = 599,
+  kKlang = 600,
+  kKlinklang = 601,
+  kTynamo = 602,
+  kEelektrik = 603,
+  kEelektross = 604,
+  kElgyem = 605,
+  kBeheeyem = 606,
+  kLitwick = 607,
+  kLampent = 608,
+  kChandelure = 609,
+  kAxew = 610,
+  kFraxure = 611,
+  kHaxorus = 612,
+  kCubchoo = 613,
+  kBeartic = 614,
+  kCryogonal = 615,
+  kShelmet = 616,
+  kAccelgor = 617,
+  kStunfisk = 618,
+  kMienfoo = 619,
+  kMienshao = 620,
+  kDruddigon = 621,
+  kGolett = 622,
+  kGolurk = 623,
+  kPawniard = 624,
+  kBisharp = 625,
+  kBouffalant = 626,
+  kRufflet = 627,
+  kBraviary = 628,
+  kVullaby = 629,
+  kMandibuzz = 630,
+  kHeatmor = 631,
+  kDurant = 632,
+  kDeino = 633,
+  kZweilous = 634,
+  kHydreigon = 635,
+  kLarvesta = 636,
+  kVolcarona = 637,
+  kCobalion = 638,
+  kTerrakion = 639,
+  kVirizion = 640,
+  kTornadus = 641,
+  kThundurus = 642,
+  kReshiram = 643,
+  kZekrom = 644,
+  kLandorus = 645,
+  kKyurem = 646,
+  kKeldeo = 647,
+  kMeloetta = 648,
+  kGenesect = 649,
+  kChespin = 650,
+  kQuilladin = 651,
+  kChesnaught = 652,
+  kFennekin = 653,
+  kBraixen = 654,
+  kDelphox = 655,
+  kFroakie = 656,
+  kFrogadier = 657,
+  kGreninja = 658,
+  kBunnelby = 659,
+  kDiggersby = 660,
+  kFletchling = 661,
+  kFletchinder = 662,
+  kTalonflame = 663,
+  kScatterbug = 664,
+  kSpewpa = 665,
+  kVivillon = 666,
+  kLitleo = 667,
+  kPyroar = 668,
+  kFlabebe = 669,
+  kFloette = 670,
+  kFlorges = 671,
+  kSkiddo = 672,
+  kGogoat = 673,
+  kPancham = 674,
+  kPangoro = 675,
+  kFurfrou = 676,
+  kEspurr = 677,
+  kMeowstic = 678,
+  kHonedge = 679,
+  kDoublade = 680,
+  kAegislash = 681,
+  kSpritzee = 682,
+  kAromatisse = 683,
+  kSwirlix = 684,
+  kSlurpuff = 685,
+  kInkay = 686,
+  kMalamar = 687,
+  kBinacle = 688,
+  kBarbaracle = 689,
+  kSkrelp = 690,
+  kDragalge = 691,
+  kClauncher = 692,
+  kClawitzer = 693,
+  kHelioptile = 694,
+  kHeliolisk = 695,
+  kTyrunt = 696,
+  kTyrantrum = 697,
+  kAmaura = 698,
+  kAurorus = 699,
+  kSylveon = 700,
+  kHawlucha = 701,
+  kDedenne = 702,
+  kCarbink = 703,
+  kGoomy = 704,
+  kSliggoo = 705,
+  kGoodra = 706,
+  kKlefki = 707,
+  kPhantump = 708,
+  kTrevenant = 709,
+  kPumpkaboo = 710,
+  kGourgeist = 711,
+  kBergmite = 712,
+  kAvalugg = 713,
+  kNoibat = 714,
+  kNoivern = 715,
+  kXerneas = 716,
+  kYveltal = 717,
+  kZygarde = 718,
+  kDiancie = 719,
+  kHoopa = 720,
+  kVolcanion = 721,
+  kEgg = 722,
+  kCount = 723,
+};

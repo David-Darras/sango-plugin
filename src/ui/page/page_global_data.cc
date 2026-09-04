@@ -15,7 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "game/time_manager.h"
+#include "game/core/time_manager.h"
 #include "game/global_data/move.h"
 #include "game/global_data/pokemon.h"
 #include "game/global_data/move.inc"
@@ -23,7 +23,7 @@
 
 namespace ui {
 void LoadMovePage(MainApplication& app, void* args) {
-  static u16 move = 0;
+  static MoveID move = MoveID::kNone;
   auto& data = global_data::Move::GetInstance(move);
 
   app.AddMove("Move", move).WithRefresh().AddSeparator();
@@ -80,8 +80,8 @@ void LoadMovePage(MainApplication& app, void* args) {
 }
 
 void LoadPokemonPage(MainApplication& app, void* args) {
-  static u16 species = 0;
-  static u8 form = 0;
+  static Species species = Species::kNone;
+  static Form form = static_cast<Form>(0);
   auto& data = global_data::Pokemon::GetInstance(species, form);
 
   app.AddSpecies("Species", species).WithRefresh()

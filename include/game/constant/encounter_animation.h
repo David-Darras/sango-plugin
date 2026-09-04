@@ -17,69 +17,73 @@
 
 #pragma once
 
-#define ENCOUNTER_ANIMATION_NONE (0)
-#define ENCOUNTER_ANIMATION_WILD (1)
-#define ENCOUNTER_ANIMATION_WILD_GRASS (2)
-#define ENCOUNTER_ANIMATION_WILD_ASHES (3)
-#define ENCOUNTER_ANIMATION_WILD_WATER (4)
-#define ENCOUNTER_ANIMATION_WILD_DIVE (5)
-#define ENCOUNTER_ANIMATION_WILD_CAVE (6)
-#define ENCOUNTER_ANIMATION_WILD_SNOW (7)
-#define ENCOUNTER_ANIMATION_WILD_SAND (8)
-#define ENCOUNTER_ANIMATION_WILD_ICE (9)
-#define ENCOUNTER_ANIMATION_WILD_TALL_GRASS (10)
-#define ENCOUNTER_ANIMATION_WILD_LAND (11)
-#define ENCOUNTER_ANIMATION_WILD_FLYING (12)
-#define ENCOUNTER_ANIMATION_POKEMON_AMIE_GRASS (13)
-#define ENCOUNTER_ANIMATION_POKEMON_AMIE_WATER (14)
-#define ENCOUNTER_ANIMATION_POKEMON_X (15)
-#define ENCOUNTER_ANIMATION_POKEMON_Y (16)
-#define ENCOUNTER_ANIMATION_POKEMON_Z (17)
-#define ENCOUNTER_ANIMATION_SPECIAL_01 (18)
-#define ENCOUNTER_ANIMATION_SPECIAL_02 (19)
-#define ENCOUNTER_ANIMATION_WILD_KYOGRE (20)
-#define ENCOUNTER_ANIMATION_WILD_GROUDON (21)
-#define ENCOUNTER_ANIMATION_WILD_RAYQUAZA (22)
-#define ENCOUNTER_ANIMATION_WILD_HOOPA_RING (23)
-#define ENCOUNTER_ANIMATION_WILD_REGIROCK (24)
-#define ENCOUNTER_ANIMATION_WILD_REGICE (25)
-#define ENCOUNTER_ANIMATION_WILD_REGISTEEL (26)
-#define ENCOUNTER_ANIMATION_WILD_REGIGIGAS (27)
-#define ENCOUNTER_ANIMATION_WILD_DEOXYS (28)
-#define ENCOUNTER_ANIMATION_TRAINER_2D (29)
-#define ENCOUNTER_ANIMATION_TRAINER_3D (30)
-#define ENCOUNTER_ANIMATION_SUPPORT_FEMALE (31)
-#define ENCOUNTER_ANIMATION_SUPPORT_MALE (32)
-#define ENCOUNTER_ANIMATION_RIVAL_EARLY (33)
-#define ENCOUNTER_ANIMATION_RIVAL_LATE (34)
-#define ENCOUNTER_ANIMATION_ZINNIA (35)
-#define ENCOUNTER_ANIMATION_CHAMPION (36)
-#define ENCOUNTER_ANIMATION_TRAINER_MULTI_2D (37)
-#define ENCOUNTER_ANIMATION_TRAINER_MULTI_3D (38)
-#define ENCOUNTER_ANIMATION_GYM_LEADER_ROCK (39)
-#define ENCOUNTER_ANIMATION_GYM_LEADER_FIGHTING (40)
-#define ENCOUNTER_ANIMATION_GYM_LEADER_ELECTRIC (41)
-#define ENCOUNTER_ANIMATION_GYM_LEADER_FIRE (42)
-#define ENCOUNTER_ANIMATION_GYM_LEADER_NORMAL (43)
-#define ENCOUNTER_ANIMATION_GYM_LEADER_FLYING (44)
-#define ENCOUNTER_ANIMATION_GYM_LEADER_PSYCHIC (45)
-#define ENCOUNTER_ANIMATION_GYM_LEADER_WATER (46)
-#define ENCOUNTER_ANIMATION_ELITE_FOUR_DARK (47)
-#define ENCOUNTER_ANIMATION_ELITE_FOUR_ICE (48)
-#define ENCOUNTER_ANIMATION_ELITE_FOUR_GHOST (49)
-#define ENCOUNTER_ANIMATION_ELITE_FOUR_DRAGON (50)
-#define ENCOUNTER_ANIMATION_LINK_BATTLE (51)
-#define ENCOUNTER_ANIMATION_WCS_QUALIFIER (52)
-#define ENCOUNTER_ANIMATION_WCS_FINAL (53)
-#define ENCOUNTER_ANIMATION_KORRINA (54)
-#define ENCOUNTER_ANIMATION_MOCK_BATTLE_3D (55)
-#define ENCOUNTER_ANIMATION_TEAM_MAGMA_GRUNT (56)
-#define ENCOUNTER_ANIMATION_TEAM_MAGMA_MULTI (57)
-#define ENCOUNTER_ANIMATION_TEAM_MAGMA_HORDE (58)
-#define ENCOUNTER_ANIMATION_TEAM_MAGMA_BOSS (59)
-#define ENCOUNTER_ANIMATION_TEAM_AQUA_GRUNT (60)
-#define ENCOUNTER_ANIMATION_TEAM_AQUA_MULTI (61)
-#define ENCOUNTER_ANIMATION_TEAM_AQUA_HORDE (62)
-#define ENCOUNTER_ANIMATION_TEAM_AQUA_BOSS (63)
-#define ENCOUNTER_ANIMATION_BATTLE_HOUSE (64)
-#define ENCOUNTER_ANIMATION_BATTLE_HOUSE_MULTI (65)
+#include <types.h>
+
+enum class EncounterAnimation : u8 {
+  kNone = 0,
+  kWild = 1,
+  kWildGrass = 2,
+  kWildAshes = 3,
+  kWildWater = 4,
+  kWildDive = 5,
+  kWildCave = 6,
+  kWildSnow = 7,
+  kWildSand = 8,
+  kWildIce = 9,
+  kWildTallGrass = 10,
+  kWildLand = 11,
+  kWildFlying = 12,
+  kPokemonAmieGrass = 13,
+  kPokemonAmieWater = 14,
+  kPokemonX = 15,
+  kPokemonY = 16,
+  kPokemonZ = 17,
+  kSpecial01 = 18,
+  kSpecial02 = 19,
+  kWildKyogre = 20,
+  kWildGroudon = 21,
+  kWildRayquaza = 22,
+  kWildHoopaRing = 23,
+  kWildRegirock = 24,
+  kWildRegice = 25,
+  kWildRegisteel = 26,
+  kWildRegigigas = 27,
+  kWildDeoxys = 28,
+  kTrainer2d = 29,
+  kTrainer3d = 30,
+  kSupportFemale = 31,
+  kSupportMale = 32,
+  kRivalEarly = 33,
+  kRivalLate = 34,
+  kZinnia = 35,
+  kChampion = 36,
+  kTrainerMulti2d = 37,
+  kTrainerMulti3d = 38,
+  kGymLeaderRock = 39,
+  kGymLeaderFighting = 40,
+  kGymLeaderElectric = 41,
+  kGymLeaderFire = 42,
+  kGymLeaderNormal = 43,
+  kGymLeaderFlying = 44,
+  kGymLeaderPsychic = 45,
+  kGymLeaderWater = 46,
+  kEliteFourDark = 47,
+  kEliteFourIce = 48,
+  kEliteFourGhost = 49,
+  kEliteFourDragon = 50,
+  kLinkBattle = 51,
+  kWcsQualifier = 52,
+  kWcsFinal = 53,
+  kKorrina = 54,
+  kMockBattle3d = 55,
+  kTeamMagmaGrunt = 56,
+  kTeamMagmaMulti = 57,
+  kTeamMagmaHorde = 58,
+  kTeamMagmaBoss = 59,
+  kTeamAquaGrunt = 60,
+  kTeamAquaMulti = 61,
+  kTeamAquaHorde = 62,
+  kTeamAquaBoss = 63,
+  kBattleHouse = 64,
+  kBattleHouseMulti = 65,
+};

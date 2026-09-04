@@ -20,26 +20,24 @@
 
 namespace kaizo {
 void PatchMoveData() {
-  auto* table = global_data::Move::GetTable();
-
-  table[MOVE_ACUPRESSURE].base_pp = 2;
-  table[MOVE_DRAGON_DANCE].base_pp = 1;
-  table[MOVE_SWORDS_DANCE].base_pp = 1;
-  table[MOVE_NASTY_PLOT].base_pp = 1;
-  table[MOVE_AGILITY].base_pp = 1;
-  table[MOVE_ROCK_POLISH].base_pp = 2;
-  table[MOVE_MINIMIZE].base_pp = 1;
-  table[MOVE_DOUBLE_TEAM].base_pp = 2;
-  table[MOVE_BULK_UP].base_pp = 2;
-  table[MOVE_CALM_MIND].base_pp = 2;
-  table[MOVE_QUIVER_DANCE].base_pp = 1;
-  table[MOVE_AMNESIA].base_pp = 1;
-  table[MOVE_TAIL_GLOW].base_pp = 1;
-  table[MOVE_COTTON_GUARD].base_pp = 1;
-  table[MOVE_ACID_ARMOR].base_pp = 1;
-  table[MOVE_STOCKPILE].base_pp = 2;
-  table[MOVE_CURSE].base_pp = 2;
-  table[MOVE_SUBSTITUTE].base_pp = 2;
-  table[MOVE_PROTECT].base_pp = 2;
+  global_data::Move::GetInstance(MoveID::kAcupressure).base_pp = 2;
+  global_data::Move::GetInstance(MoveID::kDragonDance).base_pp = 1;
+  global_data::Move::GetInstance(MoveID::kSwordsDance).base_pp = 1;
+  global_data::Move::GetInstance(MoveID::kNastyPlot).base_pp = 1;
+  global_data::Move::GetInstance(MoveID::kAgility).base_pp = 1;
+  global_data::Move::GetInstance(MoveID::kRockPolish).base_pp = 2;
+  global_data::Move::GetInstance(MoveID::kMinimize).base_pp = 1;
+  global_data::Move::GetInstance(MoveID::kDoubleTeam).base_pp = 2;
+  global_data::Move::GetInstance(MoveID::kBulkUp).base_pp = 2;
+  global_data::Move::GetInstance(MoveID::kCalmMind).base_pp = 2;
+  global_data::Move::GetInstance(MoveID::kQuiverDance).base_pp = 1;
+  global_data::Move::GetInstance(MoveID::kAmnesia).base_pp = 1;
+  global_data::Move::GetInstance(MoveID::kTailGlow).base_pp = 1;
+  global_data::Move::GetInstance(MoveID::kCottonGuard).base_pp = 1;
+  global_data::Move::GetInstance(MoveID::kAcidArmor).base_pp = 1;
+  global_data::Move::GetInstance(MoveID::kStockpile).base_pp = 2;
+  global_data::Move::GetInstance(MoveID::kCurse).base_pp = 2;
+  global_data::Move::GetInstance(MoveID::kSubstitute).base_pp = 2;
+  global_data::Move::GetInstance(MoveID::kProtect).base_pp = 2;
 }
 } // namespace kaizo

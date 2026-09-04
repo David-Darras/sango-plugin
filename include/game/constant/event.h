@@ -17,16 +17,20 @@
 
 #pragma once
 
-#define EVENT_GAME_FINISHED (2720)
+#include <types.h>
 
-#define EVENT_ROUTE_101_UNLOCKED (2774)
-#define EVENT_ROUTE_102_UNLOCKED (2775)
-#define EVENT_ROUTE_103_UNLOCKED (2776)
+enum class EventID : u16 {
+  kGameFinished = 2720,
+
+  kRoute101Unlocked = 2774,
+  kRoute102Unlocked = 2775,
+  kRoute103Unlocked = 2776,
 
 #ifdef KAIZO
-#define EVENT_ROUTE_101_POKEMON_CAPTURED (66)
-#define EVENT_ROUTE_102_POKEMON_CAPTURED (67)
-#define EVENT_ROUTE_103_POKEMON_CAPTURED (68)
-#define EVENT_ROUTE_104_POKEMON_CAPTURED (69)
-#define EVENT_PETALBURG_WOODS_POKEMON_CAPTURED (70)
+  kRoute101PokemonCaptured = 66,
+  kRoute102PokemonCaptured = 67,
+  kRoute103PokemonCaptured = 68,
+  kRoute104PokemonCaptured = 69,
+  kPetalburgWoodsPokemonCaptured = 70,
 #endif
+};

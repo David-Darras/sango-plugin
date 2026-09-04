@@ -17,7 +17,7 @@
 
 #pragma once
 #include "common.h"
-#include "game/manager.h"
+#include "game/core/manager.h"
 #include "ui/log_application.h"
 
 struct Event {
@@ -30,15 +30,15 @@ public:
   Thread() {
     uptr heap = (uptr)game::Manager::GetInstance().GetSystemHeap();
     u32 stack_size = 0x400;
-    ((void(*)(Thread*, uptr, u32, u8))0x0014E424)(this, heap, stack_size, 0);
+    ((void(*)(Thread*, uptr, u32, u8))ADDRESS_THREAD_INITIALIZE)(this, heap, stack_size, 0);
   }
 
   void Start(u8 priority = 8) {
-    ((void(*)(Thread*, u8))0x00139C5C)(this, priority);
+    ((void(*)(Thread*, u8))ADDRESS_THREAD_START)(this, priority);
   }
 
   virtual ~Thread() {
-    ((void(*)(Thread*))0x003A8174)(this);
+    ((void(*)(Thread*))ADDRESS_THREAD_DESTROY)(this);
   }
 
   virtual void Initialize() {

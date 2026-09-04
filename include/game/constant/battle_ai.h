@@ -17,8 +17,31 @@
 
 #pragma once
 
-#define BATTLE_AI_CASUAL (1<<0)
-#define BATTLE_AI_COMPETITIVE (1<<1)
-#define BATTLE_AI_STRATEGIST (1<<2)
-#define BATTLE_AI_MULTI (1<<7)
-#define BATTLE_AI_HORDE (1<<14)
+#include <types.h>
+
+/// Bitmask of AI behaviours enabled for a trainer (battle::TrainerData::ai_flags).
+enum class BattleAi : u32 {
+  kCasual = 1u << 0,
+  kCompetitive = 1u << 1,
+  kStrategist = 1u << 2,
+  kMulti = 1u << 7,
+  kHorde = 1u << 14,
+};
+
+constexpr BattleAi operator|(BattleAi a, BattleAi b) {
+  return static_cast<BattleAi>(static_cast<u32>(a) | static_cast<u32>(b));
+}
+
+constexpr BattleAi operator&(BattleAi a, BattleAi b) {
+  return static_cast<BattleAi>(static_cast<u32>(a) & static_cast<u32>(b));
+}
+
+inline BattleAi& operator|=(BattleAi& a, BattleAi b) {
+  a = a | b;
+  return a;
+}
+
+inline BattleAi& operator&=(BattleAi& a, BattleAi b) {
+  a = a & b;
+  return a;
+}

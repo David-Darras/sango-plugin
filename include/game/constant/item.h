@@ -15,754 +15,760 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#define ITEM_NONE (0x0000)
-#define ITEM_MASTER_BALL (0x0001)
-#define ITEM_ULTRA_BALL (0x0002)
-#define ITEM_GREAT_BALL (0x0003)
-#define ITEM_POKE_BALL (0x0004)
-#define ITEM_SAFARI_BALL (0x0005)
-#define ITEM_NET_BALL (0x0006)
-#define ITEM_DIVE_BALL (0x0007)
-#define ITEM_NEST_BALL (0x0008)
-#define ITEM_REPEAT_BALL (0x0009)
-#define ITEM_TIMER_BALL (0x000A)
-#define ITEM_LUXURY_BALL (0x000B)
-#define ITEM_PREMIER_BALL (0x000C)
-#define ITEM_DUSK_BALL (0x000D)
-#define ITEM_HEAL_BALL (0x000E)
-#define ITEM_QUICK_BALL (0x000F)
-#define ITEM_CHERISH_BALL (0x0010)
-#define ITEM_POTION (0x0011)
-#define ITEM_ANTIDOTE (0x0012)
-#define ITEM_BURN_HEAL (0x0013)
-#define ITEM_ICE_HEAL (0x0014)
-#define ITEM_AWAKENING (0x0015)
-#define ITEM_PARALYZE_HEAL (0x0016)
-#define ITEM_FULL_RESTORE (0x0017)
-#define ITEM_MAX_POTION (0x0018)
-#define ITEM_HYPER_POTION (0x0019)
-#define ITEM_SUPER_POTION (0x001A)
-#define ITEM_FULL_HEAL (0x001B)
-#define ITEM_REVIVE (0x001C)
-#define ITEM_MAX_REVIVE (0x001D)
-#define ITEM_FRESH_WATER (0x001E)
-#define ITEM_SODA_POP (0x001F)
-#define ITEM_LEMONADE (0x0020)
-#define ITEM_MOOMOO_MILK (0x0021)
-#define ITEM_ENERGY_POWDER (0x0022)
-#define ITEM_ENERGY_ROOT (0x0023)
-#define ITEM_HEAL_POWDER (0x0024)
-#define ITEM_REVIVAL_HERB (0x0025)
-#define ITEM_ETHER (0x0026)
-#define ITEM_MAX_ETHER (0x0027)
-#define ITEM_ELIXIR (0x0028)
-#define ITEM_MAX_ELIXIR (0x0029)
-#define ITEM_LAVA_COOKIE (0x002A)
-#define ITEM_BERRY_JUICE (0x002B)
-#define ITEM_SACRED_ASH (0x002C)
-#define ITEM_HP_UP (0x002D)
-#define ITEM_PROTEIN (0x002E)
-#define ITEM_IRON (0x002F)
-#define ITEM_CARBOS (0x0030)
-#define ITEM_CALCIUM (0x0031)
-#define ITEM_RARE_CANDY (0x0032)
-#define ITEM_PP_UP (0x0033)
-#define ITEM_ZINC (0x0034)
-#define ITEM_PP_MAX (0x0035)
-#define ITEM_OLD_GATEAU (0x0036)
-#define ITEM_GUARD_SPEC (0x0037)
-#define ITEM_DIRE_HIT (0x0038)
-#define ITEM_X_ATTACK (0x0039)
-#define ITEM_X_DEFENSE (0x003A)
-#define ITEM_X_SPEED (0x003B)
-#define ITEM_X_ACCURACY (0x003C)
-#define ITEM_X_SP_ATK (0x003D)
-#define ITEM_X_SP_DEF (0x003E)
-#define ITEM_POKE_DOLL (0x003F)
-#define ITEM_FLUFFY_TAIL (0x0040)
-#define ITEM_BLUE_FLUTE (0x0041)
-#define ITEM_YELLOW_FLUTE (0x0042)
-#define ITEM_RED_FLUTE (0x0043)
-#define ITEM_BLACK_FLUTE (0x0044)
-#define ITEM_WHITE_FLUTE (0x0045)
-#define ITEM_SHOAL_SALT (0x0046)
-#define ITEM_SHOAL_SHELL (0x0047)
-#define ITEM_RED_SHARD (0x0048)
-#define ITEM_BLUE_SHARD (0x0049)
-#define ITEM_YELLOW_SHARD (0x004A)
-#define ITEM_GREEN_SHARD (0x004B)
-#define ITEM_SUPER_REPEL (0x004C)
-#define ITEM_MAX_REPEL (0x004D)
-#define ITEM_ESCAPE_ROPE (0x004E)
-#define ITEM_REPEL (0x004F)
-#define ITEM_SUN_STONE (0x0050)
-#define ITEM_MOON_STONE (0x0051)
-#define ITEM_FIRE_STONE (0x0052)
-#define ITEM_THUNDER_STONE (0x0053)
-#define ITEM_WATER_STONE (0x0054)
-#define ITEM_LEAF_STONE (0x0055)
-#define ITEM_TINY_MUSHROOM (0x0056)
-#define ITEM_BIG_MUSHROOM (0x0057)
-#define ITEM_PEARL (0x0058)
-#define ITEM_BIG_PEARL (0x0059)
-#define ITEM_STARDUST (0x005A)
-#define ITEM_STAR_PIECE (0x005B)
-#define ITEM_NUGGET (0x005C)
-#define ITEM_HEART_SCALE (0x005D)
-#define ITEM_HONEY (0x005E)
-#define ITEM_GROWTH_MULCH (0x005F)
-#define ITEM_DAMP_MULCH (0x0060)
-#define ITEM_STABLE_MULCH (0x0061)
-#define ITEM_GOOEY_MULCH (0x0062)
-#define ITEM_ROOT_FOSSIL (0x0063)
-#define ITEM_CLAW_FOSSIL (0x0064)
-#define ITEM_HELIX_FOSSIL (0x0065)
-#define ITEM_DOME_FOSSIL (0x0066)
-#define ITEM_OLD_AMBER (0x0067)
-#define ITEM_ARMOR_FOSSIL (0x0068)
-#define ITEM_SKULL_FOSSIL (0x0069)
-#define ITEM_RARE_BONE (0x006A)
-#define ITEM_SHINY_STONE (0x006B)
-#define ITEM_DUSK_STONE (0x006C)
-#define ITEM_DAWN_STONE (0x006D)
-#define ITEM_OVAL_STONE (0x006E)
-#define ITEM_ODD_KEYSTONE (0x006F)
-#define ITEM_GRISEOUS_ORB (0x0070)
-#define ITEM_DOUGE_DRIVE (0x0074)
-#define ITEM_SHOCK_DRIVE (0x0075)
-#define ITEM_BURN_DRIVE (0x0076)
-#define ITEM_CHILL_DRIVE (0x0077)
-#define ITEM_SWEET_HEART (0x0086)
-#define ITEM_ADAMANT_ORB (0x0087)
-#define ITEM_LUSTROUS_ORB (0x0088)
-#define ITEM_GREET_MAIL (0x0089)
-#define ITEM_FAVORED_MAIL (0x008A)
-#define ITEM_RSVP_MAIL (0x008B)
-#define ITEM_THANKS_MAIL (0x008C)
-#define ITEM_INQUIRY_MAIL (0x008D)
-#define ITEM_LIKE_MAIL (0x008E)
-#define ITEM_REPLY_MAIL (0x008F)
-#define ITEM_BRIDGE_MAIL_S (0x0090)
-#define ITEM_BRIDGE_MAIL_D (0x0091)
-#define ITEM_BRIDGE_MAIL_T (0x0092)
-#define ITEM_BRIDGE_MAIL_V (0x0093)
-#define ITEM_BRIDGE_MAIL_M (0x0094)
-#define ITEM_CHERI_BERRY (0x0095)
-#define ITEM_CHESTO_BERRY (0x0096)
-#define ITEM_PECHA_BERRY (0x0097)
-#define ITEM_RAWST_BERRY (0x0098)
-#define ITEM_ASPEAR_BERRY (0x0099)
-#define ITEM_LEPPA_BERRY (0x009A)
-#define ITEM_ORAN_BERRY (0x009B)
-#define ITEM_PERSIM_BERRY (0x009C)
-#define ITEM_LUM_BERRY (0x009D)
-#define ITEM_SITRUS_BERRY (0x009E)
-#define ITEM_FIGY_BERRY (0x009F)
-#define ITEM_WIKI_BERRY (0x00A0)
-#define ITEM_MAGO_BERRY (0x00A1)
-#define ITEM_AGUAV_BERRY (0x00A2)
-#define ITEM_IAPAPA_BERRY (0x00A3)
-#define ITEM_RAZZ_BERRY (0x00A4)
-#define ITEM_BLUK_BERRY (0x00A5)
-#define ITEM_NANAB_BERRY (0x00A6)
-#define ITEM_WEPEAR_BERRY (0x00A7)
-#define ITEM_PINAP_BERRY (0x00A8)
-#define ITEM_POMEG_BERRY (0x00A9)
-#define ITEM_KELPSY_BERRY (0x00AA)
-#define ITEM_QUALOT_BERRY (0x00AB)
-#define ITEM_HONDEW_BERRY (0x00AC)
-#define ITEM_GREPA_BERRY (0x00AD)
-#define ITEM_TAMATO_BERRY (0x00AE)
-#define ITEM_CORNN_BERRY (0x00AF)
-#define ITEM_MAGOST_BERRY (0x00B0)
-#define ITEM_RABUTA_BERRY (0x00B1)
-#define ITEM_NOMEL_BERRY (0x00B2)
-#define ITEM_SPELON_BERRY (0x00B3)
-#define ITEM_PAMTRE_BERRY (0x00B4)
-#define ITEM_WATMEL_BERRY (0x00B5)
-#define ITEM_DURIN_BERRY (0x00B6)
-#define ITEM_BELUE_BERRY (0x00B7)
-#define ITEM_OCCA_BERRY (0x00B8)
-#define ITEM_PASSHO_BERRY (0x00B9)
-#define ITEM_WACAN_BERRY (0x00BA)
-#define ITEM_RINDO_BERRY (0x00BB)
-#define ITEM_YACHE_BERRY (0x00BC)
-#define ITEM_CHOPLE_BERRY (0x00BD)
-#define ITEM_KEBIA_BERRY (0x00BE)
-#define ITEM_SHUCA_BERRY (0x00BF)
-#define ITEM_COBA_BERRY (0x00C0)
-#define ITEM_PAYAPA_BERRY (0x00C1)
-#define ITEM_TANGA_BERRY (0x00C2)
-#define ITEM_CHARTI_BERRY (0x00C3)
-#define ITEM_KASIB_BERRY (0x00C4)
-#define ITEM_HABAN_BERRY (0x00C5)
-#define ITEM_COLBUR_BERRY (0x00C6)
-#define ITEM_BABIRI_BERRY (0x00C7)
-#define ITEM_CHILAN_BERRY (0x00C8)
-#define ITEM_LIECHI_BERRY (0x00C9)
-#define ITEM_GANLON_BERRY (0x00CA)
-#define ITEM_SALAC_BERRY (0x00CB)
-#define ITEM_PETAYA_BERRY (0x00CC)
-#define ITEM_APICOT_BERRY (0x00CD)
-#define ITEM_LANSAT_BERRY (0x00CE)
-#define ITEM_STARF_BERRY (0x00CF)
-#define ITEM_ENIGMA_BERRY (0x00D0)
-#define ITEM_MICLE_BERRY (0x00D1)
-#define ITEM_CUSTAP_BERRY (0x00D2)
-#define ITEM_JABOCA_BERRY (0x00D3)
-#define ITEM_ROWAP_BERRY (0x00D4)
-#define ITEM_BRIGHT_POWDER (0x00D5)
-#define ITEM_WHITE_HERB (0x00D6)
-#define ITEM_MACHO_BRACE (0x00D7)
-#define ITEM_EXP_SHARE (0x00D8)
-#define ITEM_QUICK_CLAW (0x00D9)
-#define ITEM_SOOTHE_BELL (0x00DA)
-#define ITEM_MENTAL_HERB (0x00DB)
-#define ITEM_CHOICE_BAND (0x00DC)
-#define ITEM_KINGS_ROCK (0x00DD)
-#define ITEM_SILVER_POWDER (0x00DE)
-#define ITEM_AMULET_COIN (0x00DF)
-#define ITEM_CLEANSE_TAG (0x00E0)
-#define ITEM_SOUL_DEW (0x00E1)
-#define ITEM_DEEP_SEA_TOOTH (0x00E2)
-#define ITEM_DEEP_SEA_SCALE (0x00E3)
-#define ITEM_SMOKE_BALL (0x00E4)
-#define ITEM_EVERSTONE (0x00E5)
-#define ITEM_FOCUS_BAND (0x00E6)
-#define ITEM_LUCKY_EGG (0x00E7)
-#define ITEM_SCOPE_LENS (0x00E8)
-#define ITEM_METAL_COAT (0x00E9)
-#define ITEM_LEFTOVERS (0x00EA)
-#define ITEM_DRAGON_SCALE (0x00EB)
-#define ITEM_LIGHT_BALL (0x00EC)
-#define ITEM_SOFT_SAND (0x00ED)
-#define ITEM_HARD_STONE (0x00EE)
-#define ITEM_MIRACLE_SEED (0x00EF)
-#define ITEM_BLACK_GLASSES (0x00F0)
-#define ITEM_BLACK_BELT (0x00F1)
-#define ITEM_MAGNET (0x00F2)
-#define ITEM_MYSTIC_WATER (0x00F3)
-#define ITEM_SHARP_BEAK (0x00F4)
-#define ITEM_POISON_BARB (0x00F5)
-#define ITEM_NEVER_MELT_ICE (0x00F6)
-#define ITEM_SPELL_TAG (0x00F7)
-#define ITEM_TWISTED_SPOON (0x00F8)
-#define ITEM_CHARCOAL (0x00F9)
-#define ITEM_DRAGON_FANG (0x00FA)
-#define ITEM_SILK_SCARF (0x00FB)
-#define ITEM_UP_GRADE (0x00FC)
-#define ITEM_SHELL_BELL (0x00FD)
-#define ITEM_SEA_INCENSE (0x00FE)
-#define ITEM_LAX_INCENSE (0x00FF)
-#define ITEM_LUCKY_PUNCH (0x0100)
-#define ITEM_METAL_POWDER (0x0101)
-#define ITEM_THICK_CLUB (0x0102)
-#define ITEM_STICK (0x0103)
-#define ITEM_RED_SCARF (0x0104)
-#define ITEM_BLUE_SCARF (0x0105)
-#define ITEM_PINK_SCARF (0x0106)
-#define ITEM_GREEN_SCARF (0x0107)
-#define ITEM_YELLOW_SCARF (0x0108)
-#define ITEM_WIDE_LENS (0x0109)
-#define ITEM_MUSCLE_BAND (0x010A)
-#define ITEM_WISE_GLASSES (0x010B)
-#define ITEM_EXPERT_BELT (0x010C)
-#define ITEM_LIGHT_CLAY (0x010D)
-#define ITEM_LIFE_ORB (0x010E)
-#define ITEM_POWER_HERB (0x010F)
-#define ITEM_TOXIC_ORB (0x0110)
-#define ITEM_FLAME_ORB (0x0111)
-#define ITEM_QUICK_POWDER (0x0112)
-#define ITEM_FOCUS_SASH (0x0113)
-#define ITEM_ZOOM_LENS (0x0114)
-#define ITEM_METRONOME (0x0115)
-#define ITEM_IRON_BALL (0x0116)
-#define ITEM_LAGGING_TAIL (0x0117)
-#define ITEM_DESTINY_KNOT (0x0118)
-#define ITEM_BLACK_SLUDGE (0x0119)
-#define ITEM_ICY_ROCK (0x011A)
-#define ITEM_SMOOTH_ROCK (0x011B)
-#define ITEM_HEAT_ROCK (0x011C)
-#define ITEM_DAMP_ROCK (0x011D)
-#define ITEM_GRIP_CLAW (0x011E)
-#define ITEM_CHOICE_SCARF (0x011F)
-#define ITEM_STICKY_BARB (0x0120)
-#define ITEM_POWER_BRACER (0x0121)
-#define ITEM_POWER_BELT (0x0122)
-#define ITEM_POWER_LENS (0x0123)
-#define ITEM_POWER_BAND (0x0124)
-#define ITEM_POWER_ANKLET (0x0125)
-#define ITEM_POWER_WEIGHT (0x0126)
-#define ITEM_SHED_SHELL (0x0127)
-#define ITEM_BIG_ROOT (0x0128)
-#define ITEM_CHOICE_SPECS (0x0129)
-#define ITEM_FLAME_PLATE (0x012A)
-#define ITEM_SPLASH_PLATE (0x012B)
-#define ITEM_ZAP_PLATE (0x012C)
-#define ITEM_MEADOW_PLATE (0x012D)
-#define ITEM_ICICLE_PLATE (0x012E)
-#define ITEM_FIST_PLATE (0x012F)
-#define ITEM_TOXIC_PLATE (0x0130)
-#define ITEM_EARTH_PLATE (0x0131)
-#define ITEM_SKY_PLATE (0x0132)
-#define ITEM_MIND_PLATE (0x0133)
-#define ITEM_INSECT_PLATE (0x0134)
-#define ITEM_STONE_PLATE (0x0135)
-#define ITEM_SPOOKY_PLATE (0x0136)
-#define ITEM_DRACO_PLATE (0x0137)
-#define ITEM_DREAD_PLATE (0x0138)
-#define ITEM_IRON_PLATE (0x0139)
-#define ITEM_ODD_INCENSE (0x013A)
-#define ITEM_ROCK_INCENSE (0x013B)
-#define ITEM_FULL_INCENSE (0x013C)
-#define ITEM_WAVE_INCENSE (0x013D)
-#define ITEM_ROSE_INCENSE (0x013E)
-#define ITEM_LUCK_INCENSE (0x013F)
-#define ITEM_PURE_INCENSE (0x0140)
-#define ITEM_PROTECTOR (0x0141)
-#define ITEM_ELECTIRIZER (0x0142)
-#define ITEM_MAGMARIZER (0x0143)
-#define ITEM_DUBIOUS_DISC (0x0144)
-#define ITEM_REAPER_CLOTH (0x0145)
-#define ITEM_RAZOR_CLAW (0x0146)
-#define ITEM_RAZOR_FANG (0x0147)
-#define ITEM_TM01 (0x0148)
-#define ITEM_TM02 (0x0149)
-#define ITEM_TM03 (0x014A)
-#define ITEM_TM04 (0x014B)
-#define ITEM_TM05 (0x014C)
-#define ITEM_TM06 (0x014D)
-#define ITEM_TM07 (0x014E)
-#define ITEM_TM08 (0x014F)
-#define ITEM_TM09 (0x0150)
-#define ITEM_TM10 (0x0151)
-#define ITEM_TM11 (0x0152)
-#define ITEM_TM12 (0x0153)
-#define ITEM_TM13 (0x0154)
-#define ITEM_TM14 (0x0155)
-#define ITEM_TM15 (0x0156)
-#define ITEM_TM16 (0x0157)
-#define ITEM_TM17 (0x0158)
-#define ITEM_TM18 (0x0159)
-#define ITEM_TM19 (0x015A)
-#define ITEM_TM20 (0x015B)
-#define ITEM_TM21 (0x015C)
-#define ITEM_TM22 (0x015D)
-#define ITEM_TM23 (0x015E)
-#define ITEM_TM24 (0x015F)
-#define ITEM_TM25 (0x0160)
-#define ITEM_TM26 (0x0161)
-#define ITEM_TM27 (0x0162)
-#define ITEM_TM28 (0x0163)
-#define ITEM_TM29 (0x0164)
-#define ITEM_TM30 (0x0165)
-#define ITEM_TM31 (0x0166)
-#define ITEM_TM32 (0x0167)
-#define ITEM_TM33 (0x0168)
-#define ITEM_TM34 (0x0169)
-#define ITEM_TM35 (0x016A)
-#define ITEM_TM36 (0x016B)
-#define ITEM_TM37 (0x016C)
-#define ITEM_TM38 (0x016D)
-#define ITEM_TM39 (0x016E)
-#define ITEM_TM40 (0x016F)
-#define ITEM_TM41 (0x0170)
-#define ITEM_TM42 (0x0171)
-#define ITEM_TM43 (0x0172)
-#define ITEM_TM44 (0x0173)
-#define ITEM_TM45 (0x0174)
-#define ITEM_TM46 (0x0175)
-#define ITEM_TM47 (0x0176)
-#define ITEM_TM48 (0x0177)
-#define ITEM_TM49 (0x0178)
-#define ITEM_TM50 (0x0179)
-#define ITEM_TM51 (0x017A)
-#define ITEM_TM52 (0x017B)
-#define ITEM_TM53 (0x017C)
-#define ITEM_TM54 (0x017D)
-#define ITEM_TM55 (0x017E)
-#define ITEM_TM56 (0x017F)
-#define ITEM_TM57 (0x0180)
-#define ITEM_TM58 (0x0181)
-#define ITEM_TM59 (0x0182)
-#define ITEM_TM60 (0x0183)
-#define ITEM_TM61 (0x0184)
-#define ITEM_TM62 (0x0185)
-#define ITEM_TM63 (0x0186)
-#define ITEM_TM64 (0x0187)
-#define ITEM_TM65 (0x0188)
-#define ITEM_TM66 (0x0189)
-#define ITEM_TM67 (0x018A)
-#define ITEM_TM68 (0x018B)
-#define ITEM_TM69 (0x018C)
-#define ITEM_TM70 (0x018D)
-#define ITEM_TM71 (0x018E)
-#define ITEM_TM72 (0x018F)
-#define ITEM_TM73 (0x0190)
-#define ITEM_TM74 (0x0191)
-#define ITEM_TM75 (0x0192)
-#define ITEM_TM76 (0x0193)
-#define ITEM_TM77 (0x0194)
-#define ITEM_TM78 (0x0195)
-#define ITEM_TM79 (0x0196)
-#define ITEM_TM80 (0x0197)
-#define ITEM_TM81 (0x0198)
-#define ITEM_TM82 (0x0199)
-#define ITEM_TM83 (0x019A)
-#define ITEM_TM84 (0x019B)
-#define ITEM_TM85 (0x019C)
-#define ITEM_TM86 (0x019D)
-#define ITEM_TM87 (0x019E)
-#define ITEM_TM88 (0x019F)
-#define ITEM_TM89 (0x01A0)
-#define ITEM_TM90 (0x01A1)
-#define ITEM_TM91 (0x01A2)
-#define ITEM_TM92 (0x01A3)
-#define ITEM_HM01 (0x01A4)
-#define ITEM_HM02 (0x01A5)
-#define ITEM_HM03 (0x01A6)
-#define ITEM_HM04 (0x01A7)
-#define ITEM_HM05 (0x01A8)
-#define ITEM_HM06 (0x01A9)
-#define ITEM_EXPLORER_KIT (0x01AC)
-#define ITEM_LOOT_SACK (0x01AD)
-#define ITEM_RULE_BOOK (0x01AE)
-#define ITEM_POKE_RADAR (0x01AF)
-#define ITEM_POINT_CARD (0x01B0)
-#define ITEM_JOURNAL (0x01B1)
-#define ITEM_SEAL_CASE (0x01B2)
-#define ITEM_FASHION_CASE (0x01B3)
-#define ITEM_SEAL_BAG (0x01B4)
-#define ITEM_PAL_PAD (0x01B5)
-#define ITEM_WORKS_KEY (0x01B6)
-#define ITEM_OLD_CHARM (0x01B7)
-#define ITEM_GALACTIC_KEY (0x01B8)
-#define ITEM_RED_CHAIN (0x01B9)
-#define ITEM_TOWN_MAP (0x01BA)
-#define ITEM_VS_SEEKER (0x01BB)
-#define ITEM_COIN_CASE (0x01BC)
-#define ITEM_OLD_ROD (0x01BD)
-#define ITEM_GOOD_ROD (0x01BE)
-#define ITEM_SUPER_ROD (0x01BF)
-#define ITEM_SPRAYDUCK (0x01C0)
-#define ITEM_POFFIN_CASE (0x01C1)
-#define ITEM_BICYCLE (0x01C2)
-#define ITEM_SUITE_KEY (0x01C3)
-#define ITEM_OAKS_LETTER (0x01C4)
-#define ITEM_LUNAR_WING (0x01C5)
-#define ITEM_MEMBER_CARD (0x01C6)
-#define ITEM_AZURE_FLUTE (0x01C7)
-#define ITEM_SS_TICKET (0x01C8)
-#define ITEM_CONTEST_PASS (0x01C9)
-#define ITEM_MAGMA_STONE (0x01CA)
-#define ITEM_PARCEL (0x01CB)
-#define ITEM_COUPON_1 (0x01CC)
-#define ITEM_COUPON_2 (0x01CD)
-#define ITEM_COUPON_3 (0x01CE)
-#define ITEM_STORAGE_KEY (0x01CF)
-#define ITEM_SECRET_POTION (0x01D0)
-#define ITEM_VS_RECORDER (0x01D1)
-#define ITEM_GRACIDEA (0x01D2)
-#define ITEM_SECRET_KEY (0x01D3)
-#define ITEM_APRICORN_BOX (0x01D4)
-#define ITEM_UNOWN_REPORT (0x01D5)
-#define ITEM_BERRY_POTS (0x01D6)
-#define ITEM_DOWSING_MACHINE (0x01D7)
-#define ITEM_BLUE_CARD (0x01D8)
-#define ITEM_SLOWPOKE_TAIL (0x01D9)
-#define ITEM_CLEAR_BELL (0x01DA)
-#define ITEM_CARD_KEY (0x01DB)
-#define ITEM_BASEMENT_KEY (0x01DC)
-#define ITEM_SQUIRT_BOTTLE (0x01DD)
-#define ITEM_RED_SCALE (0x01DE)
-#define ITEM_LOST_ITEM (0x01DF)
-#define ITEM_PASS (0x01E0)
-#define ITEM_MACHINE_PART (0x01E1)
-#define ITEM_SILVER_WING (0x01E2)
-#define ITEM_RAINBOW_WING (0x01E3)
-#define ITEM_MYSTERY_EGG (0x01E4)
-#define ITEM_RED_APRICORN (0x01E5)
-#define ITEM_BLUE_APRICORN (0x01E6)
-#define ITEM_YELLOW_APRICORN (0x01E7)
-#define ITEM_GREEN_APRICORN (0x01E8)
-#define ITEM_PINK_APRICORN (0x01E9)
-#define ITEM_WHITE_APRICORN (0x01EA)
-#define ITEM_BLACK_APRICORN (0x01EB)
-#define ITEM_FAST_BALL (0x01EC)
-#define ITEM_LEVEL_BALL (0x01ED)
-#define ITEM_LURE_BALL (0x01EE)
-#define ITEM_HEAVY_BALL (0x01EF)
-#define ITEM_LOVE_BALL (0x01F0)
-#define ITEM_FRIEND_BALL (0x01F1)
-#define ITEM_MOON_BALL (0x01F2)
-#define ITEM_SPORT_BALL (0x01F3)
-#define ITEM_PARK_BALL (0x01F4)
-#define ITEM_PHOTO_ALBUM (0x01F5)
-#define ITEM_GB_SOUNDS (0x01F6)
-#define ITEM_TIDAL_BELL (0x01F7)
-#define ITEM_RAGE_CANDY_BAR (0x01F8)
-#define ITEM_DATA_CARD_01 (0x01F9)
-#define ITEM_DATA_CARD_02 (0x01FA)
-#define ITEM_DATA_CARD_03 (0x01FB)
-#define ITEM_DATA_CARD_04 (0x01FC)
-#define ITEM_DATA_CARD_05 (0x01FD)
-#define ITEM_DATA_CARD_06 (0x01FE)
-#define ITEM_DATA_CARD_07 (0x01FF)
-#define ITEM_DATA_CARD_08 (0x0200)
-#define ITEM_DATA_CARD_09 (0x0201)
-#define ITEM_DATA_CARD_10 (0x0202)
-#define ITEM_DATA_CARD_11 (0x0203)
-#define ITEM_DATA_CARD_12 (0x0204)
-#define ITEM_DATA_CARD_13 (0x0205)
-#define ITEM_DATA_CARD_14 (0x0206)
-#define ITEM_DATA_CARD_15 (0x0207)
-#define ITEM_DATA_CARD_16 (0x0208)
-#define ITEM_DATA_CARD_17 (0x0209)
-#define ITEM_DATA_CARD_18 (0x020A)
-#define ITEM_DATA_CARD_19 (0x020B)
-#define ITEM_DATA_CARD_20 (0x020C)
-#define ITEM_DATA_CARD_21 (0x020D)
-#define ITEM_DATA_CARD_22 (0x020E)
-#define ITEM_DATA_CARD_23 (0x020F)
-#define ITEM_DATA_CARD_24 (0x0210)
-#define ITEM_DATA_CARD_25 (0x0211)
-#define ITEM_DATA_CARD_26 (0x0212)
-#define ITEM_DATA_CARD_27 (0x0213)
-#define ITEM_JADE_ORB (0x0214)
-#define ITEM_LOCK_CAPSULE (0x0215)
-#define ITEM_RED_ORB (0x0216)
-#define ITEM_BLUE_ORB (0x0217)
-#define ITEM_ENIGMA_STONE (0x0218)
-#define ITEM_PRISM_SCALE (0x0219)
-#define ITEM_EVIOLITE (0x021A)
-#define ITEM_FLOAT_STONE (0x021B)
-#define ITEM_ROCKY_HELMET (0x021C)
-#define ITEM_AIR_BALLOON (0x021D)
-#define ITEM_RED_CARD (0x021E)
-#define ITEM_RING_TARGET (0x021F)
-#define ITEM_BINDING_BAND (0x0220)
-#define ITEM_ABSORB_BULB (0x0221)
-#define ITEM_CELL_BATTERY (0x0222)
-#define ITEM_EJECT_BUTTON (0x0223)
-#define ITEM_FIRE_GEM (0x0224)
-#define ITEM_WATER_GEM (0x0225)
-#define ITEM_ELECTRIC_GEM (0x0226)
-#define ITEM_GRASS_GEM (0x0227)
-#define ITEM_ICE_GEM (0x0228)
-#define ITEM_FIGHTING_GEM (0x0229)
-#define ITEM_POISON_GEM (0x022A)
-#define ITEM_GROUND_GEM (0x022B)
-#define ITEM_FLYING_GEM (0x022C)
-#define ITEM_PSYCHIC_GEM (0x022D)
-#define ITEM_BUG_GEM (0x022E)
-#define ITEM_ROCK_GEM (0x022F)
-#define ITEM_GHOST_GEM (0x0230)
-#define ITEM_DRAGON_GEM (0x0231)
-#define ITEM_DARK_GEM (0x0232)
-#define ITEM_STEEL_GEM (0x0233)
-#define ITEM_NORMAL_GEM (0x0234)
-#define ITEM_HEALTH_WING (0x0235)
-#define ITEM_MUSCLE_WING (0x0236)
-#define ITEM_RESIST_WING (0x0237)
-#define ITEM_GENIUS_WING (0x0238)
-#define ITEM_CLEVER_WING (0x0239)
-#define ITEM_SWIFT_WING (0x023A)
-#define ITEM_PRETTY_WING (0x023B)
-#define ITEM_COVER_FOSSIL (0x023C)
-#define ITEM_PLUME_FOSSIL (0x023D)
-#define ITEM_LIBERTY_PASS (0x023E)
-#define ITEM_PASS_ORB (0x023F)
-#define ITEM_DREAM_BALL (0x0240)
-#define ITEM_POKE_TOY (0x0241)
-#define ITEM_PROP_CASE (0x0242)
-#define ITEM_DRAGON_SKULL (0x0243)
-#define ITEM_BALM_MUSHROOM (0x0244)
-#define ITEM_BIG_NUGGET (0x0245)
-#define ITEM_PEARL_STRING (0x0246)
-#define ITEM_COMET_SHARD (0x0247)
-#define ITEM_RELIC_COPPER (0x0248)
-#define ITEM_RELIC_SILVER (0x0249)
-#define ITEM_RELIC_GOLD (0x024A)
-#define ITEM_RELIC_VASE (0x024B)
-#define ITEM_RELIC_BAND (0x024C)
-#define ITEM_RELIC_STATUE (0x024D)
-#define ITEM_RELIC_CROWN (0x024E)
-#define ITEM_CASTELIACONE (0x024F)
-#define ITEM_DIRE_HIT_2 (0x0250)
-#define ITEM_X_SPEED_2 (0x0251)
-#define ITEM_X_SP_ATK_2 (0x0252)
-#define ITEM_X_SP_DEF_2 (0x0253)
-#define ITEM_X_DEFENSE_2 (0x0254)
-#define ITEM_X_ATTACK_2 (0x0255)
-#define ITEM_X_ACCURACY_2 (0x0256)
-#define ITEM_X_SPEED_3 (0x0257)
-#define ITEM_X_SP_ATK_3 (0x0258)
-#define ITEM_X_SP_DEF_3 (0x0259)
-#define ITEM_X_DEFENSE_3 (0x025A)
-#define ITEM_X_ATTACK_3 (0x025B)
-#define ITEM_X_ACCURACY_3 (0x025C)
-#define ITEM_X_SPEED_6 (0x025D)
-#define ITEM_X_SP_ATK_6 (0x025E)
-#define ITEM_X_SP_DEF_6 (0x025F)
-#define ITEM_X_DEFENSE_6 (0x0260)
-#define ITEM_X_ATTACK_6 (0x0261)
-#define ITEM_X_ACCURACY_6 (0x0262)
-#define ITEM_ABILITY_URGE (0x0263)
-#define ITEM_ITEM_DROP (0x0264)
-#define ITEM_ITEM_URGE (0x0265)
-#define ITEM_RESET_URGE (0x0266)
-#define ITEM_DIRE_HIT_3 (0x0267)
-#define ITEM_LIGHT_STONE (0x0268)
-#define ITEM_DARK_STONE (0x0269)
-#define ITEM_TM93 (0x026A)
-#define ITEM_TM94 (0x026B)
-#define ITEM_TM95 (0x026C)
-#define ITEM_XTRANSCEIVER (0x026D)
-#define ITEM_GOD_STONE (0x026E)
-#define ITEM_GRAM_1 (0x026F)
-#define ITEM_GRAM_2 (0x0270)
-#define ITEM_GRAM_3 (0x0271)
-#define ITEM_MEDAL_BOX (0x0273)
-#define ITEM_DNA_SPLICERS (0x0274)
-#define ITEM_PERMIT (0x0276)
-#define ITEM_OVAL_CHARM (0x0277)
-#define ITEM_SHINY_CHARM (0x0278)
-#define ITEM_PLASMA_CARD (0x0279)
-#define ITEM_GRUBBY_HANKY (0x027A)
-#define ITEM_COLRESS_MACHINE (0x027B)
-#define ITEM_DROPPED_ITEM (0x027C)
-#define ITEM_REVEAL_GLASS (0x027E)
-#define ITEM_WEAKNESS_POLICY (0x027F)
-#define ITEM_ASSAULT_VEST (0x0280)
-#define ITEM_HOLO_CASTER (0x0281)
-#define ITEM_PROFS_LETTER (0x0282)
-#define ITEM_ROLLER_SKATES (0x0283)
-#define ITEM_PIXIE_PLATE (0x0284)
-#define ITEM_ABILITY_CAPSULE (0x0285)
-#define ITEM_WHIPPED_DREAM (0x0286)
-#define ITEM_SACHET (0x0287)
-#define ITEM_LUMINOUS_MOSS (0x0288)
-#define ITEM_SNOWBALL (0x0289)
-#define ITEM_SAFETY_GOGGLES (0x028A)
-#define ITEM_POKE_FLUTE (0x028B)
-#define ITEM_RICH_MULCH (0x028C)
-#define ITEM_SURPRISE_MULCH (0x028D)
-#define ITEM_BOOST_MULCH (0x028E)
-#define ITEM_AMAZE_MULCH (0x028F)
-#define ITEM_GENGARITE (0x0290)
-#define ITEM_GARDEVOIRITE (0x0291)
-#define ITEM_AMPHAROSITE (0x0292)
-#define ITEM_VENUSAURITE (0x0293)
-#define ITEM_CHARIZARDITE_X (0x0294)
-#define ITEM_BLASTOISINITE (0x0295)
-#define ITEM_MEWTWONITE_X (0x0296)
-#define ITEM_MEWTWONITE_Y (0x0297)
-#define ITEM_BLAZIKENITE (0x0298)
-#define ITEM_MEDICHAMITE (0x0299)
-#define ITEM_HOUNDOOMINITE (0x029A)
-#define ITEM_AGGRONITE (0x029B)
-#define ITEM_BANETTITE (0x029C)
-#define ITEM_TYRANITARITE (0x029D)
-#define ITEM_SCIZORITE (0x029E)
-#define ITEM_PINSIRITE (0x029F)
-#define ITEM_AERODACTYLITE (0x02A0)
-#define ITEM_LUCARIONITE (0x02A1)
-#define ITEM_ABOMASITE (0x02A2)
-#define ITEM_KANGASKHANITE (0x02A3)
-#define ITEM_GYARADOSITE (0x02A4)
-#define ITEM_ABSOLITE (0x02A5)
-#define ITEM_CHARIZARDITE_Y (0x02A6)
-#define ITEM_ALAKAZITE (0x02A7)
-#define ITEM_HERACRONITE (0x02A8)
-#define ITEM_MAWILITE (0x02A9)
-#define ITEM_MANECTITE (0x02AA)
-#define ITEM_GARCHOMPITE (0x02AB)
-#define ITEM_LATIASITE (0x02AC)
-#define ITEM_LATIOSITE (0x02AD)
-#define ITEM_ROSELL_BERRY (0x02AE)
-#define ITEM_KEE_BERRY (0x02AF)
-#define ITEM_MARANGA_BERRY (0x02B0)
-#define ITEM_SPRINKLOTAD (0x02B1)
-#define ITEM_TM96 (0x02B2)
-#define ITEM_TM97 (0x02B3)
-#define ITEM_TM98 (0x02B4)
-#define ITEM_TM99 (0x02B5)
-#define ITEM_TM100 (0x02B6)
-#define ITEM_POWER_PLANT_PASS (0x02B7)
-#define ITEM_MEGA_RING (0x02B8)
-#define ITEM_INTRIGUING_STONE (0x02B9)
-#define ITEM_COMMON_STONE (0x02BA)
-#define ITEM_DISCOUNT_COUPON (0x02BB)
-#define ITEM_ELEVATOR_KEY (0x02BC)
-#define ITEM_TMV_PASS (0x02BD)
-#define ITEM_HONOR_OF_KALOS (0x02BE)
-#define ITEM_ADVENTURE_RULES (0x02BF)
-#define ITEM_STRANGE_SOUVENIR (0x02C0)
-#define ITEM_LENS_CASE (0x02C1)
-#define ITEM_TRAVEL_TRUNK (0x02C2)
-#define ITEM_LUMIOSE_GALETTE (0x02C4)
-#define ITEM_SHALOUR_SABLE (0x02C5)
-#define ITEM_JAW_FOSSIL (0x02C6)
-#define ITEM_SAIL_FOSSIL (0x02C7)
-#define ITEM_LOOKER_TICKET (0x02C8)
-#define ITEM_FAIRY_GEM (0x02CB)
-#define ITEM_MEGA_CHARM (0x02CC)
-#define ITEM_MEGA_GLOVE (0x02CD)
-#define ITEM_MACH_BIKE (0x02CE)
-#define ITEM_ACRO_BIKE (0x02CF)
-#define ITEM_WAILMER_PAIL (0x02D0)
-#define ITEM_DEVON_PARTS (0x02D1)
-#define ITEM_SOOT_SACK (0x02D2)
-#define ITEM_BASEMENT_KEY_III (0x02D3)
-#define ITEM_POKEBLOCK_KIT (0x02D4)
-#define ITEM_LETTER (0x02D5)
-#define ITEM_EON_TICKET (0x02D6)
-#define ITEM_SCANNER (0x02D7)
-#define ITEM_GO_GOGGLES (0x02D8)
-#define ITEM_METEORITE (0x02D9)
-#define ITEM_KEY_TO_ROOM_1 (0x02DA)
-#define ITEM_KEY_TO_ROOM_2 (0x02DB)
-#define ITEM_KEY_TO_ROOM_4 (0x02DC)
-#define ITEM_KEY_TO_ROOM_6 (0x02DD)
-#define ITEM_STORAGE_KEY_III (0x02DE)
-#define ITEM_DEVON_SCOPE (0x02DF)
-#define ITEM_SS_TICKET_III (0x02E0)
-#define ITEM_HM07 (0x02E1)
-#define ITEM_DEVON_SCUBA_GEAR (0x02E2)
-#define ITEM_CONTEST_COSTUME (0x02E3)
-#define ITEM_MAGMA_SUIT (0x02E5)
-#define ITEM_AQUA_SUIT (0x02E6)
-#define ITEM_PAIR_OF_TICKETS (0x02E7)
-#define ITEM_MEGA_BRACELET (0x02E8)
-#define ITEM_MEGA_PENDANT (0x02E9)
-#define ITEM_MEGA_GLASSES (0x02EA)
-#define ITEM_MEGA_ANCHOR (0x02EB)
-#define ITEM_MEGA_STICKPIN (0x02EC)
-#define ITEM_MEGA_TIARA (0x02ED)
-#define ITEM_MEGA_ANKLET (0x02EE)
-#define ITEM_METEORITE_2 (0x02EF)
-#define ITEM_SWAMPERTITE (0x02F0)
-#define ITEM_SCEPTILITE (0x02F1)
-#define ITEM_SABLENITE (0x02F2)
-#define ITEM_ALTARIANITE (0x02F3)
-#define ITEM_GALLADITE (0x02F4)
-#define ITEM_AUDINITE (0x02F5)
-#define ITEM_METAGROSSITE (0x02F6)
-#define ITEM_SHARPEDONITE (0x02F7)
-#define ITEM_SLOWBRONITE (0x02F8)
-#define ITEM_STEELIXITE (0x02F9)
-#define ITEM_PIDGEOTITE (0x02FA)
-#define ITEM_GLALITITE (0x02FB)
-#define ITEM_DIANCITE (0x02FC)
-#define ITEM_PRISON_BOTTLE (0x02FD)
-#define ITEM_MEGA_CUFF (0x02FE)
-#define ITEM_CAMERUPTITE (0x02FF)
-#define ITEM_LOPUNNITE (0x0300)
-#define ITEM_SALAMENCITE (0x0301)
-#define ITEM_BEEDRILLITE (0x0302)
-#define ITEM_METEORITE_3 (0x0303)
-#define ITEM_METEORITE_4 (0x0304)
-#define ITEM_KEY_STONE (0x0305)
-#define ITEM_METEORITE_SHARD (0x0306)
-#define ITEM_EON_FLUTE (0x0307)
-#define ITEM_COUNT (0x0308)
+#pragma once
+
+#include <types.h>
+
+enum class ItemID : u16 {
+  kNone = 0x0000,
+  kMasterBall = 0x0001,
+  kUltraBall = 0x0002,
+  kGreatBall = 0x0003,
+  kPokeBall = 0x0004,
+  kSafariBall = 0x0005,
+  kNetBall = 0x0006,
+  kDiveBall = 0x0007,
+  kNestBall = 0x0008,
+  kRepeatBall = 0x0009,
+  kTimerBall = 0x000A,
+  kLuxuryBall = 0x000B,
+  kPremierBall = 0x000C,
+  kDuskBall = 0x000D,
+  kHealBall = 0x000E,
+  kQuickBall = 0x000F,
+  kCherishBall = 0x0010,
+  kPotion = 0x0011,
+  kAntidote = 0x0012,
+  kBurnHeal = 0x0013,
+  kIceHeal = 0x0014,
+  kAwakening = 0x0015,
+  kParalyzeHeal = 0x0016,
+  kFullRestore = 0x0017,
+  kMaxPotion = 0x0018,
+  kHyperPotion = 0x0019,
+  kSuperPotion = 0x001A,
+  kFullHeal = 0x001B,
+  kRevive = 0x001C,
+  kMaxRevive = 0x001D,
+  kFreshWater = 0x001E,
+  kSodaPop = 0x001F,
+  kLemonade = 0x0020,
+  kMoomooMilk = 0x0021,
+  kEnergyPowder = 0x0022,
+  kEnergyRoot = 0x0023,
+  kHealPowder = 0x0024,
+  kRevivalHerb = 0x0025,
+  kEther = 0x0026,
+  kMaxEther = 0x0027,
+  kElixir = 0x0028,
+  kMaxElixir = 0x0029,
+  kLavaCookie = 0x002A,
+  kBerryJuice = 0x002B,
+  kSacredAsh = 0x002C,
+  kHpUp = 0x002D,
+  kProtein = 0x002E,
+  kIron = 0x002F,
+  kCarbos = 0x0030,
+  kCalcium = 0x0031,
+  kRareCandy = 0x0032,
+  kPpUp = 0x0033,
+  kZinc = 0x0034,
+  kPpMax = 0x0035,
+  kOldGateau = 0x0036,
+  kGuardSpec = 0x0037,
+  kDireHit = 0x0038,
+  kXAttack = 0x0039,
+  kXDefense = 0x003A,
+  kXSpeed = 0x003B,
+  kXAccuracy = 0x003C,
+  kXSpAtk = 0x003D,
+  kXSpDef = 0x003E,
+  kPokeDoll = 0x003F,
+  kFluffyTail = 0x0040,
+  kBlueFlute = 0x0041,
+  kYellowFlute = 0x0042,
+  kRedFlute = 0x0043,
+  kBlackFlute = 0x0044,
+  kWhiteFlute = 0x0045,
+  kShoalSalt = 0x0046,
+  kShoalShell = 0x0047,
+  kRedShard = 0x0048,
+  kBlueShard = 0x0049,
+  kYellowShard = 0x004A,
+  kGreenShard = 0x004B,
+  kSuperRepel = 0x004C,
+  kMaxRepel = 0x004D,
+  kEscapeRope = 0x004E,
+  kRepel = 0x004F,
+  kSunStone = 0x0050,
+  kMoonStone = 0x0051,
+  kFireStone = 0x0052,
+  kThunderStone = 0x0053,
+  kWaterStone = 0x0054,
+  kLeafStone = 0x0055,
+  kTinyMushroom = 0x0056,
+  kBigMushroom = 0x0057,
+  kPearl = 0x0058,
+  kBigPearl = 0x0059,
+  kStardust = 0x005A,
+  kStarPiece = 0x005B,
+  kNugget = 0x005C,
+  kHeartScale = 0x005D,
+  kHoney = 0x005E,
+  kGrowthMulch = 0x005F,
+  kDampMulch = 0x0060,
+  kStableMulch = 0x0061,
+  kGooeyMulch = 0x0062,
+  kRootFossil = 0x0063,
+  kClawFossil = 0x0064,
+  kHelixFossil = 0x0065,
+  kDomeFossil = 0x0066,
+  kOldAmber = 0x0067,
+  kArmorFossil = 0x0068,
+  kSkullFossil = 0x0069,
+  kRareBone = 0x006A,
+  kShinyStone = 0x006B,
+  kDuskStone = 0x006C,
+  kDawnStone = 0x006D,
+  kOvalStone = 0x006E,
+  kOddKeystone = 0x006F,
+  kGriseousOrb = 0x0070,
+  kDougeDrive = 0x0074,
+  kShockDrive = 0x0075,
+  kBurnDrive = 0x0076,
+  kChillDrive = 0x0077,
+  kSweetHeart = 0x0086,
+  kAdamantOrb = 0x0087,
+  kLustrousOrb = 0x0088,
+  kGreetMail = 0x0089,
+  kFavoredMail = 0x008A,
+  kRsvpMail = 0x008B,
+  kThanksMail = 0x008C,
+  kInquiryMail = 0x008D,
+  kLikeMail = 0x008E,
+  kReplyMail = 0x008F,
+  kBridgeMailS = 0x0090,
+  kBridgeMailD = 0x0091,
+  kBridgeMailT = 0x0092,
+  kBridgeMailV = 0x0093,
+  kBridgeMailM = 0x0094,
+  kCheriBerry = 0x0095,
+  kChestoBerry = 0x0096,
+  kPechaBerry = 0x0097,
+  kRawstBerry = 0x0098,
+  kAspearBerry = 0x0099,
+  kLeppaBerry = 0x009A,
+  kOranBerry = 0x009B,
+  kPersimBerry = 0x009C,
+  kLumBerry = 0x009D,
+  kSitrusBerry = 0x009E,
+  kFigyBerry = 0x009F,
+  kWikiBerry = 0x00A0,
+  kMagoBerry = 0x00A1,
+  kAguavBerry = 0x00A2,
+  kIapapaBerry = 0x00A3,
+  kRazzBerry = 0x00A4,
+  kBlukBerry = 0x00A5,
+  kNanabBerry = 0x00A6,
+  kWepearBerry = 0x00A7,
+  kPinapBerry = 0x00A8,
+  kPomegBerry = 0x00A9,
+  kKelpsyBerry = 0x00AA,
+  kQualotBerry = 0x00AB,
+  kHondewBerry = 0x00AC,
+  kGrepaBerry = 0x00AD,
+  kTamatoBerry = 0x00AE,
+  kCornnBerry = 0x00AF,
+  kMagostBerry = 0x00B0,
+  kRabutaBerry = 0x00B1,
+  kNomelBerry = 0x00B2,
+  kSpelonBerry = 0x00B3,
+  kPamtreBerry = 0x00B4,
+  kWatmelBerry = 0x00B5,
+  kDurinBerry = 0x00B6,
+  kBelueBerry = 0x00B7,
+  kOccaBerry = 0x00B8,
+  kPasshoBerry = 0x00B9,
+  kWacanBerry = 0x00BA,
+  kRindoBerry = 0x00BB,
+  kYacheBerry = 0x00BC,
+  kChopleBerry = 0x00BD,
+  kKebiaBerry = 0x00BE,
+  kShucaBerry = 0x00BF,
+  kCobaBerry = 0x00C0,
+  kPayapaBerry = 0x00C1,
+  kTangaBerry = 0x00C2,
+  kChartiBerry = 0x00C3,
+  kKasibBerry = 0x00C4,
+  kHabanBerry = 0x00C5,
+  kColburBerry = 0x00C6,
+  kBabiriBerry = 0x00C7,
+  kChilanBerry = 0x00C8,
+  kLiechiBerry = 0x00C9,
+  kGanlonBerry = 0x00CA,
+  kSalacBerry = 0x00CB,
+  kPetayaBerry = 0x00CC,
+  kApicotBerry = 0x00CD,
+  kLansatBerry = 0x00CE,
+  kStarfBerry = 0x00CF,
+  kEnigmaBerry = 0x00D0,
+  kMicleBerry = 0x00D1,
+  kCustapBerry = 0x00D2,
+  kJabocaBerry = 0x00D3,
+  kRowapBerry = 0x00D4,
+  kBrightPowder = 0x00D5,
+  kWhiteHerb = 0x00D6,
+  kMachoBrace = 0x00D7,
+  kExpShare = 0x00D8,
+  kQuickClaw = 0x00D9,
+  kSootheBell = 0x00DA,
+  kMentalHerb = 0x00DB,
+  kChoiceBand = 0x00DC,
+  kKingsRock = 0x00DD,
+  kSilverPowder = 0x00DE,
+  kAmuletCoin = 0x00DF,
+  kCleanseTag = 0x00E0,
+  kSoulDew = 0x00E1,
+  kDeepSeaTooth = 0x00E2,
+  kDeepSeaScale = 0x00E3,
+  kSmokeBall = 0x00E4,
+  kEverstone = 0x00E5,
+  kFocusBand = 0x00E6,
+  kLuckyEgg = 0x00E7,
+  kScopeLens = 0x00E8,
+  kMetalCoat = 0x00E9,
+  kLeftovers = 0x00EA,
+  kDragonScale = 0x00EB,
+  kLightBall = 0x00EC,
+  kSoftSand = 0x00ED,
+  kHardStone = 0x00EE,
+  kMiracleSeed = 0x00EF,
+  kBlackGlasses = 0x00F0,
+  kBlackBelt = 0x00F1,
+  kMagnet = 0x00F2,
+  kMysticWater = 0x00F3,
+  kSharpBeak = 0x00F4,
+  kPoisonBarb = 0x00F5,
+  kNeverMeltIce = 0x00F6,
+  kSpellTag = 0x00F7,
+  kTwistedSpoon = 0x00F8,
+  kCharcoal = 0x00F9,
+  kDragonFang = 0x00FA,
+  kSilkScarf = 0x00FB,
+  kUpGrade = 0x00FC,
+  kShellBell = 0x00FD,
+  kSeaIncense = 0x00FE,
+  kLaxIncense = 0x00FF,
+  kLuckyPunch = 0x0100,
+  kMetalPowder = 0x0101,
+  kThickClub = 0x0102,
+  kStick = 0x0103,
+  kRedScarf = 0x0104,
+  kBlueScarf = 0x0105,
+  kPinkScarf = 0x0106,
+  kGreenScarf = 0x0107,
+  kYellowScarf = 0x0108,
+  kWideLens = 0x0109,
+  kMuscleBand = 0x010A,
+  kWiseGlasses = 0x010B,
+  kExpertBelt = 0x010C,
+  kLightClay = 0x010D,
+  kLifeOrb = 0x010E,
+  kPowerHerb = 0x010F,
+  kToxicOrb = 0x0110,
+  kFlameOrb = 0x0111,
+  kQuickPowder = 0x0112,
+  kFocusSash = 0x0113,
+  kZoomLens = 0x0114,
+  kMetronome = 0x0115,
+  kIronBall = 0x0116,
+  kLaggingTail = 0x0117,
+  kDestinyKnot = 0x0118,
+  kBlackSludge = 0x0119,
+  kIcyRock = 0x011A,
+  kSmoothRock = 0x011B,
+  kHeatRock = 0x011C,
+  kDampRock = 0x011D,
+  kGripClaw = 0x011E,
+  kChoiceScarf = 0x011F,
+  kStickyBarb = 0x0120,
+  kPowerBracer = 0x0121,
+  kPowerBelt = 0x0122,
+  kPowerLens = 0x0123,
+  kPowerBand = 0x0124,
+  kPowerAnklet = 0x0125,
+  kPowerWeight = 0x0126,
+  kShedShell = 0x0127,
+  kBigRoot = 0x0128,
+  kChoiceSpecs = 0x0129,
+  kFlamePlate = 0x012A,
+  kSplashPlate = 0x012B,
+  kZapPlate = 0x012C,
+  kMeadowPlate = 0x012D,
+  kIciclePlate = 0x012E,
+  kFistPlate = 0x012F,
+  kToxicPlate = 0x0130,
+  kEarthPlate = 0x0131,
+  kSkyPlate = 0x0132,
+  kMindPlate = 0x0133,
+  kInsectPlate = 0x0134,
+  kStonePlate = 0x0135,
+  kSpookyPlate = 0x0136,
+  kDracoPlate = 0x0137,
+  kDreadPlate = 0x0138,
+  kIronPlate = 0x0139,
+  kOddIncense = 0x013A,
+  kRockIncense = 0x013B,
+  kFullIncense = 0x013C,
+  kWaveIncense = 0x013D,
+  kRoseIncense = 0x013E,
+  kLuckIncense = 0x013F,
+  kPureIncense = 0x0140,
+  kProtector = 0x0141,
+  kElectirizer = 0x0142,
+  kMagmarizer = 0x0143,
+  kDubiousDisc = 0x0144,
+  kReaperCloth = 0x0145,
+  kRazorClaw = 0x0146,
+  kRazorFang = 0x0147,
+  kTm01 = 0x0148,
+  kTm02 = 0x0149,
+  kTm03 = 0x014A,
+  kTm04 = 0x014B,
+  kTm05 = 0x014C,
+  kTm06 = 0x014D,
+  kTm07 = 0x014E,
+  kTm08 = 0x014F,
+  kTm09 = 0x0150,
+  kTm10 = 0x0151,
+  kTm11 = 0x0152,
+  kTm12 = 0x0153,
+  kTm13 = 0x0154,
+  kTm14 = 0x0155,
+  kTm15 = 0x0156,
+  kTm16 = 0x0157,
+  kTm17 = 0x0158,
+  kTm18 = 0x0159,
+  kTm19 = 0x015A,
+  kTm20 = 0x015B,
+  kTm21 = 0x015C,
+  kTm22 = 0x015D,
+  kTm23 = 0x015E,
+  kTm24 = 0x015F,
+  kTm25 = 0x0160,
+  kTm26 = 0x0161,
+  kTm27 = 0x0162,
+  kTm28 = 0x0163,
+  kTm29 = 0x0164,
+  kTm30 = 0x0165,
+  kTm31 = 0x0166,
+  kTm32 = 0x0167,
+  kTm33 = 0x0168,
+  kTm34 = 0x0169,
+  kTm35 = 0x016A,
+  kTm36 = 0x016B,
+  kTm37 = 0x016C,
+  kTm38 = 0x016D,
+  kTm39 = 0x016E,
+  kTm40 = 0x016F,
+  kTm41 = 0x0170,
+  kTm42 = 0x0171,
+  kTm43 = 0x0172,
+  kTm44 = 0x0173,
+  kTm45 = 0x0174,
+  kTm46 = 0x0175,
+  kTm47 = 0x0176,
+  kTm48 = 0x0177,
+  kTm49 = 0x0178,
+  kTm50 = 0x0179,
+  kTm51 = 0x017A,
+  kTm52 = 0x017B,
+  kTm53 = 0x017C,
+  kTm54 = 0x017D,
+  kTm55 = 0x017E,
+  kTm56 = 0x017F,
+  kTm57 = 0x0180,
+  kTm58 = 0x0181,
+  kTm59 = 0x0182,
+  kTm60 = 0x0183,
+  kTm61 = 0x0184,
+  kTm62 = 0x0185,
+  kTm63 = 0x0186,
+  kTm64 = 0x0187,
+  kTm65 = 0x0188,
+  kTm66 = 0x0189,
+  kTm67 = 0x018A,
+  kTm68 = 0x018B,
+  kTm69 = 0x018C,
+  kTm70 = 0x018D,
+  kTm71 = 0x018E,
+  kTm72 = 0x018F,
+  kTm73 = 0x0190,
+  kTm74 = 0x0191,
+  kTm75 = 0x0192,
+  kTm76 = 0x0193,
+  kTm77 = 0x0194,
+  kTm78 = 0x0195,
+  kTm79 = 0x0196,
+  kTm80 = 0x0197,
+  kTm81 = 0x0198,
+  kTm82 = 0x0199,
+  kTm83 = 0x019A,
+  kTm84 = 0x019B,
+  kTm85 = 0x019C,
+  kTm86 = 0x019D,
+  kTm87 = 0x019E,
+  kTm88 = 0x019F,
+  kTm89 = 0x01A0,
+  kTm90 = 0x01A1,
+  kTm91 = 0x01A2,
+  kTm92 = 0x01A3,
+  kHm01 = 0x01A4,
+  kHm02 = 0x01A5,
+  kHm03 = 0x01A6,
+  kHm04 = 0x01A7,
+  kHm05 = 0x01A8,
+  kHm06 = 0x01A9,
+  kExplorerKit = 0x01AC,
+  kLootSack = 0x01AD,
+  kRuleBook = 0x01AE,
+  kPokeRadar = 0x01AF,
+  kPointCard = 0x01B0,
+  kJournal = 0x01B1,
+  kSealCase = 0x01B2,
+  kFashionCase = 0x01B3,
+  kSealBag = 0x01B4,
+  kPalPad = 0x01B5,
+  kWorksKey = 0x01B6,
+  kOldCharm = 0x01B7,
+  kGalacticKey = 0x01B8,
+  kRedChain = 0x01B9,
+  kTownMap = 0x01BA,
+  kVsSeeker = 0x01BB,
+  kCoinCase = 0x01BC,
+  kOldRod = 0x01BD,
+  kGoodRod = 0x01BE,
+  kSuperRod = 0x01BF,
+  kSprayduck = 0x01C0,
+  kPoffinCase = 0x01C1,
+  kBicycle = 0x01C2,
+  kSuiteKey = 0x01C3,
+  kOaksLetter = 0x01C4,
+  kLunarWing = 0x01C5,
+  kMemberCard = 0x01C6,
+  kAzureFlute = 0x01C7,
+  kSsTicket = 0x01C8,
+  kContestPass = 0x01C9,
+  kMagmaStone = 0x01CA,
+  kParcel = 0x01CB,
+  kCoupon1 = 0x01CC,
+  kCoupon2 = 0x01CD,
+  kCoupon3 = 0x01CE,
+  kStorageKey = 0x01CF,
+  kSecretPotion = 0x01D0,
+  kVsRecorder = 0x01D1,
+  kGracidea = 0x01D2,
+  kSecretKey = 0x01D3,
+  kApricornBox = 0x01D4,
+  kUnownReport = 0x01D5,
+  kBerryPots = 0x01D6,
+  kDowsingMachine = 0x01D7,
+  kBlueCard = 0x01D8,
+  kSlowpokeTail = 0x01D9,
+  kClearBell = 0x01DA,
+  kCardKey = 0x01DB,
+  kBasementKey = 0x01DC,
+  kSquirtBottle = 0x01DD,
+  kRedScale = 0x01DE,
+  kLostItem = 0x01DF,
+  kPass = 0x01E0,
+  kMachinePart = 0x01E1,
+  kSilverWing = 0x01E2,
+  kRainbowWing = 0x01E3,
+  kMysteryEgg = 0x01E4,
+  kRedApricorn = 0x01E5,
+  kBlueApricorn = 0x01E6,
+  kYellowApricorn = 0x01E7,
+  kGreenApricorn = 0x01E8,
+  kPinkApricorn = 0x01E9,
+  kWhiteApricorn = 0x01EA,
+  kBlackApricorn = 0x01EB,
+  kFastBall = 0x01EC,
+  kLevelBall = 0x01ED,
+  kLureBall = 0x01EE,
+  kHeavyBall = 0x01EF,
+  kLoveBall = 0x01F0,
+  kFriendBall = 0x01F1,
+  kMoonBall = 0x01F2,
+  kSportBall = 0x01F3,
+  kParkBall = 0x01F4,
+  kPhotoAlbum = 0x01F5,
+  kGbSounds = 0x01F6,
+  kTidalBell = 0x01F7,
+  kRageCandyBar = 0x01F8,
+  kDataCard01 = 0x01F9,
+  kDataCard02 = 0x01FA,
+  kDataCard03 = 0x01FB,
+  kDataCard04 = 0x01FC,
+  kDataCard05 = 0x01FD,
+  kDataCard06 = 0x01FE,
+  kDataCard07 = 0x01FF,
+  kDataCard08 = 0x0200,
+  kDataCard09 = 0x0201,
+  kDataCard10 = 0x0202,
+  kDataCard11 = 0x0203,
+  kDataCard12 = 0x0204,
+  kDataCard13 = 0x0205,
+  kDataCard14 = 0x0206,
+  kDataCard15 = 0x0207,
+  kDataCard16 = 0x0208,
+  kDataCard17 = 0x0209,
+  kDataCard18 = 0x020A,
+  kDataCard19 = 0x020B,
+  kDataCard20 = 0x020C,
+  kDataCard21 = 0x020D,
+  kDataCard22 = 0x020E,
+  kDataCard23 = 0x020F,
+  kDataCard24 = 0x0210,
+  kDataCard25 = 0x0211,
+  kDataCard26 = 0x0212,
+  kDataCard27 = 0x0213,
+  kJadeOrb = 0x0214,
+  kLockCapsule = 0x0215,
+  kRedOrb = 0x0216,
+  kBlueOrb = 0x0217,
+  kEnigmaStone = 0x0218,
+  kPrismScale = 0x0219,
+  kEviolite = 0x021A,
+  kFloatStone = 0x021B,
+  kRockyHelmet = 0x021C,
+  kAirBalloon = 0x021D,
+  kRedCard = 0x021E,
+  kRingTarget = 0x021F,
+  kBindingBand = 0x0220,
+  kAbsorbBulb = 0x0221,
+  kCellBattery = 0x0222,
+  kEjectButton = 0x0223,
+  kFireGem = 0x0224,
+  kWaterGem = 0x0225,
+  kElectricGem = 0x0226,
+  kGrassGem = 0x0227,
+  kIceGem = 0x0228,
+  kFightingGem = 0x0229,
+  kPoisonGem = 0x022A,
+  kGroundGem = 0x022B,
+  kFlyingGem = 0x022C,
+  kPsychicGem = 0x022D,
+  kBugGem = 0x022E,
+  kRockGem = 0x022F,
+  kGhostGem = 0x0230,
+  kDragonGem = 0x0231,
+  kDarkGem = 0x0232,
+  kSteelGem = 0x0233,
+  kNormalGem = 0x0234,
+  kHealthWing = 0x0235,
+  kMuscleWing = 0x0236,
+  kResistWing = 0x0237,
+  kGeniusWing = 0x0238,
+  kCleverWing = 0x0239,
+  kSwiftWing = 0x023A,
+  kPrettyWing = 0x023B,
+  kCoverFossil = 0x023C,
+  kPlumeFossil = 0x023D,
+  kLibertyPass = 0x023E,
+  kPassOrb = 0x023F,
+  kDreamBall = 0x0240,
+  kPokeToy = 0x0241,
+  kPropCase = 0x0242,
+  kDragonSkull = 0x0243,
+  kBalmMushroom = 0x0244,
+  kBigNugget = 0x0245,
+  kPearlString = 0x0246,
+  kCometShard = 0x0247,
+  kRelicCopper = 0x0248,
+  kRelicSilver = 0x0249,
+  kRelicGold = 0x024A,
+  kRelicVase = 0x024B,
+  kRelicBand = 0x024C,
+  kRelicStatue = 0x024D,
+  kRelicCrown = 0x024E,
+  kCasteliacone = 0x024F,
+  kDireHit2 = 0x0250,
+  kXSpeed2 = 0x0251,
+  kXSpAtk2 = 0x0252,
+  kXSpDef2 = 0x0253,
+  kXDefense2 = 0x0254,
+  kXAttack2 = 0x0255,
+  kXAccuracy2 = 0x0256,
+  kXSpeed3 = 0x0257,
+  kXSpAtk3 = 0x0258,
+  kXSpDef3 = 0x0259,
+  kXDefense3 = 0x025A,
+  kXAttack3 = 0x025B,
+  kXAccuracy3 = 0x025C,
+  kXSpeed6 = 0x025D,
+  kXSpAtk6 = 0x025E,
+  kXSpDef6 = 0x025F,
+  kXDefense6 = 0x0260,
+  kXAttack6 = 0x0261,
+  kXAccuracy6 = 0x0262,
+  kAbilityUrge = 0x0263,
+  kItemDrop = 0x0264,
+  kItemUrge = 0x0265,
+  kResetUrge = 0x0266,
+  kDireHit3 = 0x0267,
+  kLightStone = 0x0268,
+  kDarkStone = 0x0269,
+  kTm93 = 0x026A,
+  kTm94 = 0x026B,
+  kTm95 = 0x026C,
+  kXtransceiver = 0x026D,
+  kGodStone = 0x026E,
+  kGram1 = 0x026F,
+  kGram2 = 0x0270,
+  kGram3 = 0x0271,
+  kMedalBox = 0x0273,
+  kDnaSplicers = 0x0274,
+  kPermit = 0x0276,
+  kOvalCharm = 0x0277,
+  kShinyCharm = 0x0278,
+  kPlasmaCard = 0x0279,
+  kGrubbyHanky = 0x027A,
+  kColressMachine = 0x027B,
+  kDroppedItem = 0x027C,
+  kRevealGlass = 0x027E,
+  kWeaknessPolicy = 0x027F,
+  kAssaultVest = 0x0280,
+  kHoloCaster = 0x0281,
+  kProfsLetter = 0x0282,
+  kRollerSkates = 0x0283,
+  kPixiePlate = 0x0284,
+  kAbilityCapsule = 0x0285,
+  kWhippedDream = 0x0286,
+  kSachet = 0x0287,
+  kLuminousMoss = 0x0288,
+  kSnowball = 0x0289,
+  kSafetyGoggles = 0x028A,
+  kPokeFlute = 0x028B,
+  kRichMulch = 0x028C,
+  kSurpriseMulch = 0x028D,
+  kBoostMulch = 0x028E,
+  kAmazeMulch = 0x028F,
+  kGengarite = 0x0290,
+  kGardevoirite = 0x0291,
+  kAmpharosite = 0x0292,
+  kVenusaurite = 0x0293,
+  kCharizarditeX = 0x0294,
+  kBlastoisinite = 0x0295,
+  kMewtwoniteX = 0x0296,
+  kMewtwoniteY = 0x0297,
+  kBlazikenite = 0x0298,
+  kMedichamite = 0x0299,
+  kHoundoominite = 0x029A,
+  kAggronite = 0x029B,
+  kBanettite = 0x029C,
+  kTyranitarite = 0x029D,
+  kScizorite = 0x029E,
+  kPinsirite = 0x029F,
+  kAerodactylite = 0x02A0,
+  kLucarionite = 0x02A1,
+  kAbomasite = 0x02A2,
+  kKangaskhanite = 0x02A3,
+  kGyaradosite = 0x02A4,
+  kAbsolite = 0x02A5,
+  kCharizarditeY = 0x02A6,
+  kAlakazite = 0x02A7,
+  kHeracronite = 0x02A8,
+  kMawilite = 0x02A9,
+  kManectite = 0x02AA,
+  kGarchompite = 0x02AB,
+  kLatiasite = 0x02AC,
+  kLatiosite = 0x02AD,
+  kRosellBerry = 0x02AE,
+  kKeeBerry = 0x02AF,
+  kMarangaBerry = 0x02B0,
+  kSprinklotad = 0x02B1,
+  kTm96 = 0x02B2,
+  kTm97 = 0x02B3,
+  kTm98 = 0x02B4,
+  kTm99 = 0x02B5,
+  kTm100 = 0x02B6,
+  kPowerPlantPass = 0x02B7,
+  kMegaRing = 0x02B8,
+  kIntriguingStone = 0x02B9,
+  kCommonStone = 0x02BA,
+  kDiscountCoupon = 0x02BB,
+  kElevatorKey = 0x02BC,
+  kTmvPass = 0x02BD,
+  kHonorOfKalos = 0x02BE,
+  kAdventureRules = 0x02BF,
+  kStrangeSouvenir = 0x02C0,
+  kLensCase = 0x02C1,
+  kTravelTrunk = 0x02C2,
+  kLumioseGalette = 0x02C4,
+  kShalourSable = 0x02C5,
+  kJawFossil = 0x02C6,
+  kSailFossil = 0x02C7,
+  kLookerTicket = 0x02C8,
+  kFairyGem = 0x02CB,
+  kMegaCharm = 0x02CC,
+  kMegaGlove = 0x02CD,
+  kMachBike = 0x02CE,
+  kAcroBike = 0x02CF,
+  kWailmerPail = 0x02D0,
+  kDevonParts = 0x02D1,
+  kSootSack = 0x02D2,
+  kBasementKeyIii = 0x02D3,
+  kPokeblockKit = 0x02D4,
+  kLetter = 0x02D5,
+  kEonTicket = 0x02D6,
+  kScanner = 0x02D7,
+  kGoGoggles = 0x02D8,
+  kMeteorite = 0x02D9,
+  kKeyToRoom1 = 0x02DA,
+  kKeyToRoom2 = 0x02DB,
+  kKeyToRoom4 = 0x02DC,
+  kKeyToRoom6 = 0x02DD,
+  kStorageKeyIii = 0x02DE,
+  kDevonScope = 0x02DF,
+  kSsTicketIii = 0x02E0,
+  kHm07 = 0x02E1,
+  kDevonScubaGear = 0x02E2,
+  kContestCostume = 0x02E3,
+  kMagmaSuit = 0x02E5,
+  kAquaSuit = 0x02E6,
+  kPairOfTickets = 0x02E7,
+  kMegaBracelet = 0x02E8,
+  kMegaPendant = 0x02E9,
+  kMegaGlasses = 0x02EA,
+  kMegaAnchor = 0x02EB,
+  kMegaStickpin = 0x02EC,
+  kMegaTiara = 0x02ED,
+  kMegaAnklet = 0x02EE,
+  kMeteorite2 = 0x02EF,
+  kSwampertite = 0x02F0,
+  kSceptilite = 0x02F1,
+  kSablenite = 0x02F2,
+  kAltarianite = 0x02F3,
+  kGalladite = 0x02F4,
+  kAudinite = 0x02F5,
+  kMetagrossite = 0x02F6,
+  kSharpedonite = 0x02F7,
+  kSlowbronite = 0x02F8,
+  kSteelixite = 0x02F9,
+  kPidgeotite = 0x02FA,
+  kGlalitite = 0x02FB,
+  kDiancite = 0x02FC,
+  kPrisonBottle = 0x02FD,
+  kMegaCuff = 0x02FE,
+  kCameruptite = 0x02FF,
+  kLopunnite = 0x0300,
+  kSalamencite = 0x0301,
+  kBeedrillite = 0x0302,
+  kMeteorite3 = 0x0303,
+  kMeteorite4 = 0x0304,
+  kKeyStone = 0x0305,
+  kMeteoriteShard = 0x0306,
+  kEonFlute = 0x0307,
+  kCount = 0x0308,
+};

@@ -18,12 +18,13 @@
 #pragma once
 
 #include "common.h"
-#include "game/manager.h"
+#include "game/constant/item.h"
+#include "game/core/manager.h"
 
 namespace global_data {
 struct Item {
-  INLINE Item(const u16 id) {
-    ((void(*)(Item*, u16, void*))ADDRESS_GLOBAL_DATA_ITEM_INITIALIZE)
+  INLINE Item(const ItemID id) {
+    ((void(*)(Item*, ItemID, void*))ADDRESS_GLOBAL_DATA_ITEM_INITIALIZE)
         (this, id, game::Manager::GetInstance().GetSystemHeap());
   }
 

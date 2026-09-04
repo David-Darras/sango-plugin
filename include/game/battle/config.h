@@ -18,6 +18,12 @@
 #pragma once
 
 #include "common.h"
+#include "game/constant/battle_background.h"
+#include "game/constant/item.h"
+#include "game/constant/battle_encounter_animation.h"
+#include "game/constant/battle_format.h"
+#include "game/constant/battle_ground.h"
+#include "game/constant/battle_platform.h"
 #include "game/constant/weather.h"
 #include "game/savedata/pokemon_team.h"
 
@@ -52,7 +58,7 @@ struct TrainerData {
   u8 trainer_type_grammar;
 
   u8 money_calculation_coefficient;
-  u16 items[4];
+  ItemID items[4];
 
   u32 message_archive_id;
   u16 win_string_id;
@@ -98,16 +104,17 @@ struct Config {
   bool is_capture_forced;
   bool no_money;
 
-  void Set(u8 count, u8 format, u8 background, u8 ground, u8 platform, u8 anim,
-           u8 weather) {
+  void Set(u8 count, BattleFormat format, BattleBackground background,
+           BattleGround ground, BattlePlatform platform,
+           BattleEncounterAnimation anim, BattleWeather weather) {
     this->pokemon_teams[1]->count = count;
-    this->battle_format = format;
-    this->background = background;
-    this->ground = ground;
-    this->platform = platform;
-    this->encounter_animation = anim;
-    if (weather != WEATHER_BATTLE_INVALID)
-      this->weather = weather;
+    this->battle_format = static_cast<u8>(format);
+    this->background = static_cast<u8>(background);
+    this->ground = static_cast<u8>(ground);
+    this->platform = static_cast<u8>(platform);
+    this->encounter_animation = static_cast<u32>(anim);
+    if (weather != BattleWeather::kInvalid)
+      this->weather = static_cast<u8>(weather);
   }
 
   void InverseTeams() {

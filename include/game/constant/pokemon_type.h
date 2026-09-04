@@ -17,22 +17,26 @@
 
 #pragma once
 
-#define POKEMON_TYPE_NORMAL 0
-#define POKEMON_TYPE_FIGHTING 1
-#define POKEMON_TYPE_FLYING 2
-#define POKEMON_TYPE_POISON 3
-#define POKEMON_TYPE_GROUND 4
-#define POKEMON_TYPE_ROCK 5
-#define POKEMON_TYPE_BUG 6
-#define POKEMON_TYPE_GHOST 7
-#define POKEMON_TYPE_STEEL 8
-#define POKEMON_TYPE_FIRE 9
-#define POKEMON_TYPE_WATER 10
-#define POKEMON_TYPE_GRASS 11
-#define POKEMON_TYPE_ELECTRIC 12
-#define POKEMON_TYPE_PSYCHIC 13
-#define POKEMON_TYPE_ICE 14
-#define POKEMON_TYPE_DRAGON 15
-#define POKEMON_TYPE_DARK 16
-#define POKEMON_TYPE_FAIRY 17
-#define POKEMON_TYPE_COUNT 18
+#include <types.h>
+
+enum class PokemonType : u8 {
+  kNormal = 0,
+  kFighting = 1,
+  kFlying = 2,
+  kPoison = 3,
+  kGround = 4,
+  kRock = 5,
+  kBug = 6,
+  kGhost = 7,
+  kSteel = 8,
+  kFire = 9,
+  kWater = 10,
+  kGrass = 11,
+  kElectric = 12,
+  kPsychic = 13,
+  kIce = 14,
+  kDragon = 15,
+  kDark = 16,
+  kFairy = 17,
+  kCount = 18,
+};

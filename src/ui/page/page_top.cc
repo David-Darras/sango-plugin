@@ -15,13 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "feature/feature_engine.h"
+#include "feature/core/feature_engine.h"
 #include "game/overworld/weather_manager.h"
 #include "ui/main_application.h"
 #include "ui/page/page_top.h"
 
 #include "config_manager.h"
-#include "feature/feature_shiny.h"
+#include "feature/pokemon/feature_shiny.h"
 
 namespace ui {
 void LoadShinyPage(MainApplication& app, void* args) {

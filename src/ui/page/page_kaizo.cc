@@ -15,11 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "feature/feature_app.h"
-#include "feature/feature_battle_config.h"
-#include "feature/feature_engine.h"
-#include "feature/feature_field_move.h"
-#include "feature/feature_overworld.h"
+#include "feature/core/feature_app.h"
+#include "feature/battle/feature_battle_config.h"
+#include "feature/core/feature_engine.h"
+#include "feature/overworld/feature_field_move.h"
+#include "feature/overworld/feature_overworld.h"
 #include "game/overworld/encounter.h"
 #include "game/savedata/event_table.h"
 #include "game/savedata/savedata.h"

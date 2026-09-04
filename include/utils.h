@@ -48,7 +48,8 @@ public:
 
   static const c8* GetClassNameFromVTable(void* vtable) {
     u32 addr = (uptr)vtable;
-    if (addr < 0x00100000 || addr > 0x00900000)return "";
+    if (addr < ADDRESS_PROCESS_MEMORY_START || addr > ADDRESS_PROCESS_MEMORY_END)
+      return "";
     addr = READ32(addr - 4);
     if (addr == 0) return "";
     addr = READ32(addr + 4);

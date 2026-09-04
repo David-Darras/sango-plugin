@@ -18,7 +18,7 @@
 #include "ui/main_application.h"
 #include "ui/page/page_top.h"
 
-#include "feature/feature_title_screen.h"
+#include "feature/ui/feature_title_screen.h"
 
 namespace ui {
 const char* VIDEO_NAMES[] = {

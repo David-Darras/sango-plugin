@@ -16,7 +16,7 @@
  */
 
 #pragma once
-#include "game/manager.h"
+#include "game/core/manager.h"
 
 namespace game {
 class Manager;

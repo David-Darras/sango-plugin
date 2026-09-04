@@ -20,8 +20,8 @@
 #include <cstring>
 
 #include "game/battle/manager.h"
-#include "feature/feature_battle_config.h"
-#include "feature/feature_camera.h"
+#include "feature/battle/feature_battle_config.h"
+#include "feature/overworld/feature_camera.h"
 #include "ui/main_application.h"
 
 namespace ui {

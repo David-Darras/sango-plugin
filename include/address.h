@@ -17,11 +17,6 @@
 
 #pragma once
 
-// This header used to be one flat list of ~200 #define'd memory addresses.
-// It's now a facade that pulls in the same macros from topic-specific
-// headers below (include/address/address_*.h), so `#include "address.h"`
-// still works exactly as before for every existing caller.
-
 #include "address/address_hid.h"
 #include "address/address_graphics.h"
 #include "address/address_sound.h"

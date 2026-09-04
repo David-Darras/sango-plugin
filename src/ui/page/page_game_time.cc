@@ -15,7 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "game/time_manager.h"
+#include "game/core/time_manager.h"
 #include "ui/main_application.h"
 
 namespace ui {

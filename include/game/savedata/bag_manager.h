@@ -18,6 +18,7 @@
 #pragma once
 
 #include "common.h"
+#include "game/constant/item.h"
 #include "game/savedata/savedata.h"
 
 namespace savedata {
@@ -51,10 +52,10 @@ struct BagManager {
   u16 pocket_order[kMaxPockets];
 
   /** @brief Item IDs assigned to the quick-access registered buttons. */
-  u16 registered_items[kMaxRegisteredItems];
+  ItemID registered_items[kMaxRegisteredItems];
   u16 padding;
 
   /** @brief List of recently used item IDs for quick access in the UI. */
-  u16 last_items_used[kMaxUsageHistory];
+  ItemID last_items_used[kMaxUsageHistory];
 };
 } // namespace savedata

@@ -18,7 +18,7 @@
 #pragma once
 
 #include "common.h"
-#include "feature/hook_manager.h"
+#include "feature/core/hook_manager.h"
 #include "game/renderer/h3d_shader_model.h"
 
 namespace renderer {

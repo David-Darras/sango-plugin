@@ -15,7 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "feature/feature_battle.h"
+#include "feature/battle/feature_battle.h"
 #include "game/constant/event.h"
 #include "game/overworld/map_data.h"
 #include "game/savedata/event_table.h"
@@ -44,10 +44,10 @@ void ApplyLevelCaps(battle::Team* team,
 
   if (count == 0) {
     auto& event = savedata::EventTable::GetInstance();
-    if (event.Check(EVENT_ROUTE_103_UNLOCKED)) {
+    if (event.Check(EventID::kRoute103Unlocked)) {
       max_level = 8;
     }
-    if (event.Check(EVENT_ROUTE_102_UNLOCKED)) {
+    if (event.Check(EventID::kRoute102Unlocked)) {
       max_level = 11;
     }
   }
@@ -61,7 +61,7 @@ void ApplyLevelCaps(battle::Team* team,
     data[i].ev_special_defense = 0;
 
     // Game finished => Max Level = 100
-    if (!savedata::EventTable::GetInstance().Check(EVENT_GAME_FINISHED)) {
+    if (!savedata::EventTable::GetInstance().Check(EventID::kGameFinished)) {
       u8 new_level = PokemonUtils::GetLevelFromExperience(
           team->pokemon[i]->species,
           team->pokemon[i]->form,

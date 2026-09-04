@@ -17,14 +17,14 @@
 
 #include "ui/main_application.h"
 
-#include "game/event_manager.h"
-#include "game/process_manager.h"
+#include "game/core/event_manager.h"
+#include "game/core/process_manager.h"
 #include "system/device.h"
 #include "system/graphics.h"
 #include "system/sound.h"
 #include "utils.h"
-#include "feature/feature_device.h"
-#include "feature/feature_process_patch.h"
+#include "feature/core/feature_device.h"
+#include "feature/core/feature_process_patch.h"
 #include "ui/theme.h"
 #include <cxxabi.h>
 #include <cstdlib>

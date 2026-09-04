@@ -17,8 +17,10 @@
 
 #pragma once
 
-#include "feature/cheat_code.h"
-#include "feature/cheat_code_manager.h"
+#include <type_traits>
+
+#include "feature/core/cheat_code.h"
+#include "feature/core/cheat_code_manager.h"
 #include "ui/page_item.h"
 #include "ui/painter.h"
 #include "ui/theme.h"
@@ -350,6 +352,46 @@ public:
   ADD(f64, F64)
 
 #undef ADD
+
+  /**
+  * @brief Binds an `enum class` field directly, aliasing it to the raw
+  * integer widget of its underlying type (same size/representation).
+  */
+  // NB: spelled with the C++11 `typename ...::type` forms on purpose - the
+  // plugin is built with -std=gnu++11, where the `_t` alias templates
+  // (std::enable_if_t, std::underlying_type_t) are not yet available.
+  template <typename Enum,
+            typename = typename std::enable_if<std::is_enum<Enum>::value>::type>
+  MainApplication& Add(const c8* name, Enum& var) {
+    return Add(
+        name,
+        reinterpret_cast<typename std::underlying_type<Enum>::type&>(var));
+  }
+
+  /**
+  * @brief Same aliasing trick for the semantic widgets below.
+  *
+  * Each of them is shared by several distinct `enum class` families that
+  * happen to have the same underlying width (e.g. `AddType` serves both
+  * `MoveType` and `PokemonType`), so a single template per widget replaces
+  * what would otherwise be one hand-written overload per enum.
+  */
+#define ADD_ENUM_ALIAS(method, raw)                                       \
+  template <typename Enum, typename =                                     \
+            typename std::enable_if<std::is_enum<Enum>::value>::type>     \
+  MainApplication& method(const c8* name, Enum& var) {                    \
+    static_assert(sizeof(Enum) == sizeof(raw),                            \
+                  #method " requires an enum of the same width as " #raw);\
+    return method(name, reinterpret_cast<raw&>(var));                     \
+  }
+
+  ADD_ENUM_ALIAS(AddSpecies, u16)
+  ADD_ENUM_ALIAS(AddType, u8)
+  ADD_ENUM_ALIAS(AddAbility, u8)
+  ADD_ENUM_ALIAS(AddMove, u16)
+  ADD_ENUM_ALIAS(AddItem, u16)
+
+#undef ADD_ENUM_ALIAS
 
 private:
   /**

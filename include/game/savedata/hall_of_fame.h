@@ -18,6 +18,9 @@
 #pragma once
 
 #include "game/savedata/savedata.h"
+#include "game/constant/item.h"
+#include "game/constant/move.h"
+#include "game/constant/species.h"
 
 namespace savedata {
 struct HallOfFame {
@@ -27,9 +30,9 @@ struct HallOfFame {
   }
 
   struct Pokemon {
-    u16 species;
-    u16 item;
-    u16 moves[4];
+    Species species;
+    ItemID item;
+    MoveID moves[4];
     u32 id0;
     u32 id1;
 

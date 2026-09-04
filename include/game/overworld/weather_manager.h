@@ -17,7 +17,7 @@
 
 #pragma once
 
-#include "game/manager.h"
+#include "game/core/manager.h"
 
 namespace overworld {
 class WeatherManager {

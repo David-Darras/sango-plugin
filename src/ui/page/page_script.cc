@@ -15,7 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "feature/feature_script.h"
+#include "feature/core/feature_script.h"
 #include "ui/main_application.h"
 
 namespace ui {

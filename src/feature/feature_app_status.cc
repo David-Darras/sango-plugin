@@ -15,9 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "feature/feature_app_status.h"
+#include "feature/ui/feature_app_status.h"
 
-#include "game/process_manager.h"
+#include <type_traits>
+
+#include "game/core/process_manager.h"
 #include "game/renderer/app_layout_manager.h"
 #include "game/constant/ability.h"
 #include "game/constant/form.h"
@@ -30,11 +32,21 @@
 #include "game/global_data/pokemon.h"
 #include "game/renderer/text_box.h"
 
-#include "nature.inc"
-#include "form.inc"
+#include "game/constant/nature.inc"
+#include "game/constant/form.inc"
 
-#define NEXT(x, val, max) x = ((x) + (val)) % (max)
-#define PREV(x, val, max) x = ((x) - (val) + (max)) % (max)
+// Cycle a Pokemon field forward/backward within [0, max).
+//
+// The arithmetic is always done on u32 and the result is cast back to
+// the field's declared type, so the same macro works for plain
+// integers, for `enum class` fields, and for bit-fields (which cannot
+// be bound to a reference, hence a macro rather than a template).
+#define NEXT(x, val, max) \
+  x = static_cast<std::remove_reference<decltype(x)>::type>( \
+      (static_cast<u32>(x) + (val)) % (max))
+#define PREV(x, val, max) \
+  x = static_cast<std::remove_reference<decltype(x)>::type>( \
+      (static_cast<u32>(x) - (val) + (max)) % (max))
 #define ENUM_NEXT(type, x, val) x = static_cast<type>(( static_cast<u32>(x) + 1) % static_cast<u32>(type::kMax))
 #define ENUM_PREV(type, x, val) x = static_cast<type>(( static_cast<u32>(x) - 1 + static_cast<u32>(type::kMax)) % static_cast<u32>(type::kMax))
 // Maximum sum of a Pokemon's 6 EVs allowed by the games' mechanics.
@@ -176,12 +188,12 @@ private:
   bool is_enabled_ = true;
 };
 
-DEFINE_PANE(false, 0, 0xFF, move_0, moves[0], MOVE_COUNT)
-DEFINE_PANE(false, 18, 0xFF, move_1, moves[1], MOVE_COUNT)
-DEFINE_PANE(false, 34, 0xFF, move_2, moves[2], MOVE_COUNT)
-DEFINE_PANE(false, 50, 0xFF, move_3, moves[3], MOVE_COUNT)
+DEFINE_PANE(false, 0, 0xFF, move_0, moves[0], static_cast<u16>(MoveID::kCount))
+DEFINE_PANE(false, 18, 0xFF, move_1, moves[1], static_cast<u16>(MoveID::kCount))
+DEFINE_PANE(false, 34, 0xFF, move_2, moves[2], static_cast<u16>(MoveID::kCount))
+DEFINE_PANE(false, 50, 0xFF, move_3, moves[3], static_cast<u16>(MoveID::kCount))
 DEFINE_PANE(false, 2, 0xFF, gender, gender, 3)
-DEFINE_PANE(true, 8, 0xFF, item, item, ITEM_COUNT)
+DEFINE_PANE(true, 8, 0xFF, item, item, static_cast<u16>(ItemID::kCount))
 DEFINE_PANE(false, 0xFF, 0xFF, contest_cool, contest.cool, 256)
 DEFINE_PANE(false, 0xFF, 0xFF, contest_beautiful, contest.beautiful, 256)
 DEFINE_PANE(false, 0xFF, 0xFF, contest_cute, contest.cute, 256)
@@ -239,15 +251,16 @@ static Pane pane_level
 
 static Pane pane_species
     (true, 58, 60, 1, [](PokemonCoreData& core, u32 value) {
-       PREV(core.species, value, SPECIES_COUNT);
-       core.form = 0;
+       PREV(core.species, value, static_cast<u16>(Species::kCount));
+       core.form = static_cast<Form>(0);
      }, [](PokemonCoreData& core, u32 value) {
-       NEXT(core.species, value, SPECIES_COUNT);
-       core.form = 0;
+       NEXT(core.species, value, static_cast<u16>(Species::kCount));
+       core.form = static_cast<Form>(0);
      }, [](Pane* pane, AppLayoutManager& manager,
            PokemonDataAccessor& accessor) {
        auto& core = *accessor.GetCoreData();
-       pane->SetIntegerValue(manager, accessor.GetCoreData()->species, 3);
+       pane->SetIntegerValue(
+           manager, static_cast<u32>(accessor.GetCoreData()->species), 3);
      });
 
 static Pane pane_item_ball
@@ -256,19 +269,19 @@ static Pane pane_item_ball
        auto& ctx = AppStatus::GetInstance();
        if (ctx.item_page_ ==
            AppStatus::ItemPage::kHeldItem) {
-         PREV(core.item, value, ITEM_COUNT);
+         PREV(core.item, value, static_cast<u16>(ItemID::kCount));
        } else if (
          ctx.item_page_ == AppStatus::ItemPage::kBall) {
-         PREV(core.ball, value, BALL_COUNT);
+         PREV(core.ball, value, static_cast<u8>(Ball::kCount));
        }
      }, [](PokemonCoreData& core, u32 value) {
        auto& ctx = AppStatus::GetInstance();
        if (ctx.item_page_ ==
            AppStatus::ItemPage::kHeldItem) {
-         NEXT(core.item, value, ITEM_COUNT);
+         NEXT(core.item, value, static_cast<u16>(ItemID::kCount));
        } else if (
          ctx.item_page_ == AppStatus::ItemPage::kBall) {
-         NEXT(core.ball, value, BALL_COUNT);
+         NEXT(core.ball, value, static_cast<u8>(Ball::kCount));
        }
      }, [](Pane* pane, AppLayoutManager& manager,
            PokemonDataAccessor& accessor) {
@@ -279,9 +292,8 @@ static Pane pane_item_ball
          /* CHANGE NOTHING */
        } else if (
          ctx.item_page_ == AppStatus::ItemPage::kBall) {
-         u16 item_id =
-             PokemonUtils::ConvertBallIdToItemId(
-                 core.ball);
+         const ItemID item_id =
+             PokemonUtils::ConvertBallIdToItemId(core.ball);
          global_data::Item item(item_id);
          item.GetName(String::GetTmpStr());
          pane->SetStringValue0(manager, String::GetTmpBuf());
@@ -294,7 +306,7 @@ static Pane pane_nature_form
        auto& ctx = AppStatus::GetInstance();
        if (ctx.item_page_ ==
            AppStatus::ItemPage::kNature) {
-         PREV(core.nature, value, NATURE_COUNT);
+         PREV(core.nature, value, static_cast<u8>(Nature::kCount));
        } else if (
          ctx.item_page_ == AppStatus::ItemPage::kForm) {
          PREV(core.form, value,
@@ -304,7 +316,7 @@ static Pane pane_nature_form
        auto& ctx = AppStatus::GetInstance();
        if (ctx.item_page_ ==
            AppStatus::ItemPage::kNature) {
-         NEXT(core.nature, value, NATURE_COUNT);
+         NEXT(core.nature, value, static_cast<u8>(Nature::kCount));
        } else if (
          ctx.item_page_ == AppStatus::ItemPage::kForm) {
          NEXT(core.form, value,
@@ -318,7 +330,7 @@ static Pane pane_nature_form
            AppStatus::ItemPage::kNature) {
          pane->SetStringValue0(manager, u"Nature");
          pane->SetStringValue1(manager, u"%s",
-                               NATURE_NAMES[core.nature]);
+                               NATURE_NAMES[static_cast<u8>(core.nature)]);
        } else if (
          ctx.item_page_ == AppStatus::ItemPage::kForm) {
          pane->SetStringValue0(manager, u"Form");
@@ -337,7 +349,7 @@ static Pane pane_ability
        PREV(ability_index, 1, 3);
        core.ability = pkm.ability[ability_index];
 #else
-       PREV(core.ability, value, ABILITY_COUNT);
+       PREV(core.ability, value, static_cast<u8>(Ability::kCount));
 #endif
      }, [](PokemonCoreData& core, u32 value) {
 #ifdef KAIZO
@@ -345,7 +357,7 @@ static Pane pane_ability
        NEXT(ability_index, 1, 3);
        core.ability = pkm.ability[ability_index];
 #else
-       NEXT(core.ability, value, ABILITY_COUNT);
+       NEXT(core.ability, value, static_cast<u8>(Ability::kCount));
 #endif
      }, nullptr);
 
@@ -739,7 +751,7 @@ void AppStatus::PatchUpdate() {
 }
 
 void AppStatus::PatchLoad() {
-  MEMORY_SCOPE(0x0070B000, 0x10000);
+  MEMORY_SCOPE(ADDRESS_MEMORY_REGION_APP_STATUS, 0x10000);
   HookManager::ForceEnable(HookID::kAppStatusSetupGraphicsParams);
   HookManager::ForceEnable(HookID::kAppStatusSetupGraphicsMoves);
   HookManager::ForceEnable(HookID::kAppStatusSetupGraphicsContest);

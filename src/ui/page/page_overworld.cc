@@ -15,12 +15,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "feature/feature_app.h"
-#include "feature/feature_camera.h"
-#include "feature/feature_day_care.h"
-#include "feature/feature_field_move.h"
-#include "feature/feature_map_tile.h"
-#include "feature/feature_overworld_model.h"
+#include "feature/core/feature_app.h"
+#include "feature/overworld/feature_camera.h"
+#include "feature/overworld/feature_day_care.h"
+#include "feature/overworld/feature_field_move.h"
+#include "feature/overworld/feature_map_tile.h"
+#include "feature/overworld/feature_overworld_model.h"
 #include "game/constant/map.h"
 #include "ui/main_application.h"
 #include "game/overworld/encounter.h"
@@ -264,7 +264,7 @@ void LoadDayCarePage(MainApplication& app, void* args) {
      .WithCallback(feature::DayCare::ApplyMaxExp);
 }
 
-// static u16 map_id = MAP_INSIDE_OF_TRUCK;
+// static u16 map_id = MapID::kInsideOfTruck;
 //
 // void Teleport(void*) {
 //   static const u32 PARAMS[] = {

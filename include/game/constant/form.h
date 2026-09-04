@@ -17,441 +17,445 @@
 
 #pragma once
 
-#define FORM_VENUSAUR_NORMAL (0)
-#define FORM_VENUSAUR_MEGA (1)
-#define FORM_VENUSAUR_COUNT (2)
-
-#define FORM_CHARIZARD_NORMAL (0)
-#define FORM_CHARIZARD_MEGAX (1)
-#define FORM_CHARIZARD_MEGAY (2)
-#define FORM_CHARIZARD_COUNT (3)
-
-#define FORM_BLASTOISE_NORMAL (0)
-#define FORM_BLASTOISE_MEGA (1)
-#define FORM_BLASTOISE_COUNT (2)
-
-#define FORM_BEEDRILL_NORMAL (0)
-#define FORM_BEEDRILL_MEGA (1)
-#define FORM_BEEDRILL_COUNT (2)
-
-#define FORM_PIDGEOT_NORMAL (0)
-#define FORM_PIDGEOT_MEGA (1)
-#define FORM_PIDGEOT_COUNT (2)
-
-#define FORM_PIKACHU_NORMAL (0)
-#define FORM_PIKACHU_STYLE (1)
-#define FORM_PIKACHU_BEAUTIFUL (2)
-#define FORM_PIKACHU_CUTE (3)
-#define FORM_PIKACHU_CLEVER (4)
-#define FORM_PIKACHU_STRONG (5)
-#define FORM_PIKACHU_CONTEST (6)
-#define FORM_PIKACHU_COUNT (7)
-
-#define FORM_ALAKAZAM_NORMAL (0)
-#define FORM_ALAKAZAM_MEGA (1)
-#define FORM_ALAKAZAM_COUNT (2)
-
-#define FORM_SLOWBRO_NORMAL (0)
-#define FORM_SLOWBRO_MEGA (1)
-#define FORM_SLOWBRO_COUNT (2)
-
-#define FORM_GENGAR_NORMAL (0)
-#define FORM_GENGAR_MEGA (1)
-#define FORM_GENGAR_COUNT (2)
-
-#define FORM_KANGASKHAN_NORMAL (0)
-#define FORM_KANGASKHAN_MEGA (1)
-#define FORM_KANGASKHAN_COUNT (2)
-
-#define FORM_PINSIR_NORMAL (0)
-#define FORM_PINSIR_MEGA (1)
-#define FORM_PINSIR_COUNT (2)
-
-#define FORM_GYARADOS_NORMAL (0)
-#define FORM_GYARADOS_MEGA (1)
-#define FORM_GYARADOS_COUNT (2)
-
-#define FORM_AERODACTYL_NORMAL (0)
-#define FORM_AERODACTYL_MEGA (1)
-#define FORM_AERODACTYL_COUNT (2)
-
-#define FORM_MEWTWO_NORMAL (0)
-#define FORM_MEWTWO_MEGAX (1)
-#define FORM_MEWTWO_MEGAY (2)
-#define FORM_MEWTWO_COUNT (3)
-
-#define FORM_AMPHAROS_NORMAL (0)
-#define FORM_AMPHAROS_MEGA (1)
-#define FORM_AMPHAROS_COUNT (2)
-
-#define FORM_UNOWN_A (0)
-#define FORM_UNOWN_B (1)
-#define FORM_UNOWN_C (2)
-#define FORM_UNOWN_D (3)
-#define FORM_UNOWN_E (4)
-#define FORM_UNOWN_F (5)
-#define FORM_UNOWN_G (6)
-#define FORM_UNOWN_H (7)
-#define FORM_UNOWN_I (8)
-#define FORM_UNOWN_J (9)
-#define FORM_UNOWN_K (10)
-#define FORM_UNOWN_L (11)
-#define FORM_UNOWN_M (12)
-#define FORM_UNOWN_N (13)
-#define FORM_UNOWN_O (14)
-#define FORM_UNOWN_P (15)
-#define FORM_UNOWN_Q (16)
-#define FORM_UNOWN_R (17)
-#define FORM_UNOWN_S (18)
-#define FORM_UNOWN_T (19)
-#define FORM_UNOWN_U (20)
-#define FORM_UNOWN_V (21)
-#define FORM_UNOWN_W (22)
-#define FORM_UNOWN_X (23)
-#define FORM_UNOWN_Y (24)
-#define FORM_UNOWN_Z (25)
-#define FORM_UNOWN_EXCLAMATION (26)
-#define FORM_UNOWN_QUESTION (27)
-#define FORM_UNOWN_COUNT (28)
-
-#define FORM_STEELIX_NORMAL (0)
-#define FORM_STEELIX_MEGA (1)
-#define FORM_STEELIX_COUNT (2)
-
-#define FORM_SCIZOR_NORMAL (0)
-#define FORM_SCIZOR_MEGA (1)
-#define FORM_SCIZOR_COUNT (2)
-
-#define FORM_HERACROSS_NORMAL (0)
-#define FORM_HERACROSS_MEGA (1)
-#define FORM_HERACROSS_COUNT (2)
-
-#define FORM_HOUNDOOM_NORMAL (0)
-#define FORM_HOUNDOOM_MEGA (1)
-#define FORM_HOUNDOOM_COUNT (2)
-
-#define FORM_TYRANITAR_NORMAL (0)
-#define FORM_TYRANITAR_MEGA (1)
-#define FORM_TYRANITAR_COUNT (2)
-
-#define FORM_SCEPTILE_NORMAL (0)
-#define FORM_SCEPTILE_MEGA (1)
-#define FORM_SCEPTILE_COUNT (2)
-
-#define FORM_BLAZIKEN_NORMAL (0)
-#define FORM_BLAZIKEN_MEGA (1)
-#define FORM_BLAZIKEN_COUNT (2)
-
-#define FORM_SWAMPERT_NORMAL (0)
-#define FORM_SWAMPERT_MEGA (1)
-#define FORM_SWAMPERT_COUNT (2)
-
-#define FORM_GARDEVOIR_NORMAL (0)
-#define FORM_GARDEVOIR_MEGA (1)
-#define FORM_GARDEVOIR_COUNT (2)
-
-#define FORM_SABLEYE_NORMAL (0)
-#define FORM_SABLEYE_MEGA (1)
-#define FORM_SABLEYE_COUNT (2)
-
-#define FORM_MAWILE_NORMAL (0)
-#define FORM_MAWILE_MEGA (1)
-#define FORM_MAWILE_COUNT (2)
-
-#define FORM_AGGRON_NORMAL (0)
-#define FORM_AGGRON_MEGA (1)
-#define FORM_AGGRON_COUNT (2)
-
-#define FORM_MEDICHAM_NORMAL (0)
-#define FORM_MEDICHAM_MEGA (1)
-#define FORM_MEDICHAM_COUNT (2)
-
-#define FORM_MANECTRIC_NORMAL (0)
-#define FORM_MANECTRIC_MEGA (1)
-#define FORM_MANECTRIC_COUNT (2)
-
-#define FORM_SHARPEDO_NORMAL (0)
-#define FORM_SHARPEDO_MEGA (1)
-#define FORM_SHARPEDO_COUNT (2)
-
-#define FORM_CAMERUPT_NORMAL (0)
-#define FORM_CAMERUPT_MEGA (1)
-#define FORM_CAMERUPT_COUNT (2)
-
-#define FORM_ALTARIA_NORMAL (0)
-#define FORM_ALTARIA_MEGA (1)
-#define FORM_ALTARIA_COUNT (2)
-
-#define FORM_CASTFORM_NORMAL (0)
-#define FORM_CASTFORM_SUN (1)
-#define FORM_CASTFORM_RAIN (2)
-#define FORM_CASTFORM_SNOW (3)
-#define FORM_CASTFORM_COUNT (4)
-
-#define FORM_BANETTE_NORMAL (0)
-#define FORM_BANETTE_MEGA (1)
-#define FORM_BANETTE_COUNT (2)
-
-#define FORM_ABSOL_NORMAL (0)
-#define FORM_ABSOL_MEGA (1)
-#define FORM_ABSOL_COUNT (2)
-
-#define FORM_GLALIE_NORMAL (0)
-#define FORM_GLALIE_MEGA (1)
-#define FORM_GLALIE_COUNT (2)
-
-#define FORM_SALAMENCE_NORMAL (0)
-#define FORM_SALAMENCE_MEGA (1)
-#define FORM_SALAMENCE_COUNT (2)
-
-#define FORM_METAGROSS_NORMAL (0)
-#define FORM_METAGROSS_MEGA (1)
-#define FORM_METAGROSS_COUNT (2)
-
-#define FORM_LATIAS_NORMAL (0)
-#define FORM_LATIAS_MEGA (1)
-#define FORM_LATIAS_COUNT (2)
-
-#define FORM_LATIOS_NORMAL (0)
-#define FORM_LATIOS_MEGA (1)
-#define FORM_LATIOS_COUNT (2)
-
-#define FORM_KYOGRE_NORMAL (0)
-#define FORM_KYOGRE_ALPHA (1)
-#define FORM_KYOGRE_COUNT (2)
-
-#define FORM_GROUDON_NORMAL (0)
-#define FORM_GROUDON_OMEGA (1)
-#define FORM_GROUDON_COUNT (2)
-
-#define FORM_RAYQUAZA_NORMAL (0)
-#define FORM_RAYQUAZA_DELTA (1)
-#define FORM_RAYQUAZA_COUNT (2)
-
-#define FORM_DEOXYS_NORMAL (0)
-#define FORM_DEOXYS_ATTACK (1)
-#define FORM_DEOXYS_DEFENCE (2)
-#define FORM_DEOXYS_SPEED (3)
-#define FORM_DEOXYS_COUNT (4)
-
-#define FORM_BURMY_PLANT (0)
-#define FORM_BURMY_SAND (1)
-#define FORM_BURMY_TRASH (2)
-#define FORM_BURMY_COUNT (3)
-
-#define FORM_WORMADAM_PLANT (0)
-#define FORM_WORMADAM_GROUND (1)
-#define FORM_WORMADAM_STEEL (2)
-#define FORM_WORMADAM_COUNT (3)
-
-#define FORM_CHERRIM_OVERCAST (0)
-#define FORM_CHERRIM_SUNSHINE (1)
-#define FORM_CHERRIM_COUNT (2)
-
-#define FORM_SHELLOS_WEST (0)
-#define FORM_SHELLOS_EAST (1)
-#define FORM_SHELLOS_COUNT (2)
-
-#define FORM_GASTRODON_WEST (0)
-#define FORM_GASTRODON_EAST (1)
-#define FORM_GASTRODON_COUNT (2)
-
-#define FORM_LOPUNNY_NORMAL (0)
-#define FORM_LOPUNNY_MEGA (1)
-#define FORM_LOPUNNY_COUNT (2)
-
-#define FORM_GARCHOMP_NORMAL (0)
-#define FORM_GARCHOMP_MEGA (1)
-#define FORM_GARCHOMP_COUNT (2)
-
-#define FORM_LUCARIO_NORMAL (0)
-#define FORM_LUCARIO_MEGA (1)
-#define FORM_LUCARIO_COUNT (2)
-
-#define FORM_ABOMASNOW_NORMAL (0)
-#define FORM_ABOMASNOW_MEGA (1)
-#define FORM_ABOMASNOW_COUNT (2)
-
-#define FORM_GALLADE_NORMAL (0)
-#define FORM_GALLADE_MEGA (1)
-#define FORM_GALLADE_COUNT (2)
-
-#define FORM_ROTOM_NORMAL (0)
-#define FORM_ROTOM_HEAT (1)
-#define FORM_ROTOM_WASH (2)
-#define FORM_ROTOM_FROST (3)
-#define FORM_ROTOM_FAN (4)
-#define FORM_ROTOM_MOW (5)
-#define FORM_ROTOM_COUNT (6)
-
-#define FORM_GIRATINA_ALTERED (0)
-#define FORM_GIRATINA_ORIGIN (1)
-#define FORM_GIRATINA_COUNT (2)
-
-#define FORM_SHAYMIN_LAND (0)
-#define FORM_SHAYMIN_SKY (1)
-#define FORM_SHAYMIN_COUNT (2)
-
-#define FORM_ARCEUS_NORMAL (0)
-#define FORM_ARCEUS_FIGHTING (1)
-#define FORM_ARCEUS_FLYING (2)
-#define FORM_ARCEUS_POISON (3)
-#define FORM_ARCEUS_GROUND (4)
-#define FORM_ARCEUS_ROCK (5)
-#define FORM_ARCEUS_BUG (6)
-#define FORM_ARCEUS_GHOST (7)
-#define FORM_ARCEUS_STEEL (8)
-#define FORM_ARCEUS_FIRE (9)
-#define FORM_ARCEUS_WATER (10)
-#define FORM_ARCEUS_GRASS (11)
-#define FORM_ARCEUS_ELECTRIC (12)
-#define FORM_ARCEUS_PSYCHIC (13)
-#define FORM_ARCEUS_ICE (14)
-#define FORM_ARCEUS_DRAGON (15)
-#define FORM_ARCEUS_DARK (16)
-#define FORM_ARCEUS_FAIRY (17)
-#define FORM_ARCEUS_COUNT (18)
-
-#define FORM_AUDINO_NORMAL (0)
-#define FORM_AUDINO_MEGA (1)
-#define FORM_AUDINO_COUNT (2)
-
-#define FORM_BASCULIN_BLACK (0)
-#define FORM_BASCULIN_WHITE (1)
-#define FORM_BASCULIN_COUNT (2)
-
-#define FORM_DARMANITAN_STANDARD (0)
-#define FORM_DARMANITAN_ZEN (1)
-#define FORM_DARMANITAN_COUNT (2)
-
-#define FORM_DEERLING_SPRING (0)
-#define FORM_DEERLING_SUMMER (1)
-#define FORM_DEERLING_AUTUMN (2)
-#define FORM_DEERLING_WINTER (3)
-#define FORM_DEERLING_COUNT (4)
-
-#define FORM_SAWSBUCK_SPRING (0)
-#define FORM_SAWSBUCK_SUMMER (1)
-#define FORM_SAWSBUCK_AUTUMN (2)
-#define FORM_SAWSBUCK_WINTER (3)
-#define FORM_SAWSBUCK_COUNT (4)
-
-#define FORM_TORNADUS_INCARNATE (0)
-#define FORM_TORNADUS_THERIAN (1)
-#define FORM_TORNADUS_COUNT (2)
-
-#define FORM_THUNDURUS_INCARNATE (0)
-#define FORM_THUNDURUS_THERIAN (1)
-#define FORM_THUNDURUS_COUNT (2)
-
-#define FORM_LANDORUS_INCARNATE (0)
-#define FORM_LANDORUS_THERIAN (1)
-#define FORM_LANDORUS_COUNT (2)
-
-#define FORM_KYUREM_NORMAL (0)
-#define FORM_KYUREM_WHITE (1)
-#define FORM_KYUREM_BLACK (2)
-#define FORM_KYUREM_COUNT (3)
-
-#define FORM_KELDEO_ORDINARY (0)
-#define FORM_KELDEO_RESOLUTE (1)
-#define FORM_KELDEO_COUNT (2)
-
-#define FORM_MELOETTA_ARIA (0)
-#define FORM_MELOETTA_PIROUETTE (1)
-#define FORM_MELOETTA_COUNT (2)
-
-#define FORM_GENESECT_NORMAL (0)
-#define FORM_GENESECT_AQUA (1)
-#define FORM_GENESECT_SHOCK (2)
-#define FORM_GENESECT_BLAZE (3)
-#define FORM_GENESECT_FREEZE (4)
-#define FORM_GENESECT_COUNT (5)
-
-#define FORM_VIVILLON_AREA1 (0)
-#define FORM_VIVILLON_AREA2 (1)
-#define FORM_VIVILLON_AREA3 (2)
-#define FORM_VIVILLON_AREA4 (3)
-#define FORM_VIVILLON_AREA5 (4)
-#define FORM_VIVILLON_AREA6 (5)
-#define FORM_VIVILLON_AREA7 (6)
-#define FORM_VIVILLON_AREA8 (7)
-#define FORM_VIVILLON_AREA9 (8)
-#define FORM_VIVILLON_AREA10 (9)
-#define FORM_VIVILLON_AREA11 (10)
-#define FORM_VIVILLON_AREA12 (11)
-#define FORM_VIVILLON_AREA13 (12)
-#define FORM_VIVILLON_AREA14 (13)
-#define FORM_VIVILLON_AREA15 (14)
-#define FORM_VIVILLON_AREA16 (15)
-#define FORM_VIVILLON_AREA17 (16)
-#define FORM_VIVILLON_AREA18 (17)
-#define FORM_VIVILLON_AREA19 (18)
-#define FORM_VIVILLON_AREA20 (19)
-#define FORM_VIVILLON_COUNT (20)
-
-#define FORM_FLABEBE_RED (0)
-#define FORM_FLABEBE_YELLOW (1)
-#define FORM_FLABEBE_ORANGE (2)
-#define FORM_FLABEBE_BLUE (3)
-#define FORM_FLABEBE_WHITE (4)
-#define FORM_FLABEBE_COUNT (5)
-
-#define FORM_FLOETTE_RED (0)
-#define FORM_FLOETTE_YELLOW (1)
-#define FORM_FLOETTE_ORANGE (2)
-#define FORM_FLOETTE_BLUE (3)
-#define FORM_FLOETTE_WHITE (4)
-#define FORM_FLOETTE_ETERNAL (5)
-#define FORM_FLOETTE_COUNT (6)
-
-#define FORM_FLORGES_RED (0)
-#define FORM_FLORGES_YELLOW (1)
-#define FORM_FLORGES_ORANGE (2)
-#define FORM_FLORGES_BLUE (3)
-#define FORM_FLORGES_WHITE (4)
-#define FORM_FLORGES_COUNT (5)
-
-#define FORM_FURFROU_NORMAL (0)
-#define FORM_FURFROU_HEART (1)
-#define FORM_FURFROU_STAR (2)
-#define FORM_FURFROU_DIAMOND (3)
-#define FORM_FURFROU_DEBUTANTE (4)
-#define FORM_FURFROU_MATRON (5)
-#define FORM_FURFROU_DANDY (6)
-#define FORM_FURFROU_LA_REINE (7)
-#define FORM_FURFROU_KABUKI (8)
-#define FORM_FURFROU_PHARAOH (9)
-#define FORM_FURFROU_COUNT (10)
-
-#define FORM_MEOWSTIC_MALE (0)
-#define FORM_MEOWSTIC_FEMALE (1)
-#define FORM_MEOWSTIC_COUNT (2)
-
-#define FORM_AEGISLASH_SHIELD (0)
-#define FORM_AEGISLASH_BLADE (1)
-#define FORM_AEGISLASH_COUNT (2)
-
-#define FORM_PUMPKABOO_NORMAL (0)
-#define FORM_PUMPKABOO_SMALL (1)
-#define FORM_PUMPKABOO_LARGE (2)
-#define FORM_PUMPKABOO_SUPER (3)
-#define FORM_PUMPKABOO_COUNT (4)
-
-#define FORM_GOURGEIST_NORMAL (0)
-#define FORM_GOURGEIST_SMALL (1)
-#define FORM_GOURGEIST_LARGE (2)
-#define FORM_GOURGEIST_SUPER (3)
-#define FORM_GOURGEIST_COUNT (4)
-
-#define FORM_XERNEAS_NORMAL (0)
-#define FORM_XERNEAS_ACTIVE (1)
-#define FORM_XERNEAS_COUNT (2)
-
-#define FORM_DIANCIE_NORMAL (0)
-#define FORM_DIANCIE_MEGA (1)
-#define FORM_DIANCIE_COUNT (2)
-
-#define FORM_HOOPA_CONFINED (0)
-#define FORM_HOOPA_UNBOUND (1)
-#define FORM_HOOPA_COUNT (2)
+#include <types.h>
+
+enum class Form : u8 {
+  kVenusaurNormal = 0,
+  kVenusaurMega = 1,
+  kVenusaurCount = 2,
+
+  kCharizardNormal = 0,
+  kCharizardMegax = 1,
+  kCharizardMegay = 2,
+  kCharizardCount = 3,
+
+  kBlastoiseNormal = 0,
+  kBlastoiseMega = 1,
+  kBlastoiseCount = 2,
+
+  kBeedrillNormal = 0,
+  kBeedrillMega = 1,
+  kBeedrillCount = 2,
+
+  kPidgeotNormal = 0,
+  kPidgeotMega = 1,
+  kPidgeotCount = 2,
+
+  kPikachuNormal = 0,
+  kPikachuStyle = 1,
+  kPikachuBeautiful = 2,
+  kPikachuCute = 3,
+  kPikachuClever = 4,
+  kPikachuStrong = 5,
+  kPikachuContest = 6,
+  kPikachuCount = 7,
+
+  kAlakazamNormal = 0,
+  kAlakazamMega = 1,
+  kAlakazamCount = 2,
+
+  kSlowbroNormal = 0,
+  kSlowbroMega = 1,
+  kSlowbroCount = 2,
+
+  kGengarNormal = 0,
+  kGengarMega = 1,
+  kGengarCount = 2,
+
+  kKangaskhanNormal = 0,
+  kKangaskhanMega = 1,
+  kKangaskhanCount = 2,
+
+  kPinsirNormal = 0,
+  kPinsirMega = 1,
+  kPinsirCount = 2,
+
+  kGyaradosNormal = 0,
+  kGyaradosMega = 1,
+  kGyaradosCount = 2,
+
+  kAerodactylNormal = 0,
+  kAerodactylMega = 1,
+  kAerodactylCount = 2,
+
+  kMewtwoNormal = 0,
+  kMewtwoMegax = 1,
+  kMewtwoMegay = 2,
+  kMewtwoCount = 3,
+
+  kAmpharosNormal = 0,
+  kAmpharosMega = 1,
+  kAmpharosCount = 2,
+
+  kUnownA = 0,
+  kUnownB = 1,
+  kUnownC = 2,
+  kUnownD = 3,
+  kUnownE = 4,
+  kUnownF = 5,
+  kUnownG = 6,
+  kUnownH = 7,
+  kUnownI = 8,
+  kUnownJ = 9,
+  kUnownK = 10,
+  kUnownL = 11,
+  kUnownM = 12,
+  kUnownN = 13,
+  kUnownO = 14,
+  kUnownP = 15,
+  kUnownQ = 16,
+  kUnownR = 17,
+  kUnownS = 18,
+  kUnownT = 19,
+  kUnownU = 20,
+  kUnownV = 21,
+  kUnownW = 22,
+  kUnownX = 23,
+  kUnownY = 24,
+  kUnownZ = 25,
+  kUnownExclamation = 26,
+  kUnownQuestion = 27,
+  kUnownCount = 28,
+
+  kSteelixNormal = 0,
+  kSteelixMega = 1,
+  kSteelixCount = 2,
+
+  kScizorNormal = 0,
+  kScizorMega = 1,
+  kScizorCount = 2,
+
+  kHeracrossNormal = 0,
+  kHeracrossMega = 1,
+  kHeracrossCount = 2,
+
+  kHoundoomNormal = 0,
+  kHoundoomMega = 1,
+  kHoundoomCount = 2,
+
+  kTyranitarNormal = 0,
+  kTyranitarMega = 1,
+  kTyranitarCount = 2,
+
+  kSceptileNormal = 0,
+  kSceptileMega = 1,
+  kSceptileCount = 2,
+
+  kBlazikenNormal = 0,
+  kBlazikenMega = 1,
+  kBlazikenCount = 2,
+
+  kSwampertNormal = 0,
+  kSwampertMega = 1,
+  kSwampertCount = 2,
+
+  kGardevoirNormal = 0,
+  kGardevoirMega = 1,
+  kGardevoirCount = 2,
+
+  kSableyeNormal = 0,
+  kSableyeMega = 1,
+  kSableyeCount = 2,
+
+  kMawileNormal = 0,
+  kMawileMega = 1,
+  kMawileCount = 2,
+
+  kAggronNormal = 0,
+  kAggronMega = 1,
+  kAggronCount = 2,
+
+  kMedichamNormal = 0,
+  kMedichamMega = 1,
+  kMedichamCount = 2,
+
+  kManectricNormal = 0,
+  kManectricMega = 1,
+  kManectricCount = 2,
+
+  kSharpedoNormal = 0,
+  kSharpedoMega = 1,
+  kSharpedoCount = 2,
+
+  kCameruptNormal = 0,
+  kCameruptMega = 1,
+  kCameruptCount = 2,
+
+  kAltariaNormal = 0,
+  kAltariaMega = 1,
+  kAltariaCount = 2,
+
+  kCastformNormal = 0,
+  kCastformSun = 1,
+  kCastformRain = 2,
+  kCastformSnow = 3,
+  kCastformCount = 4,
+
+  kBanetteNormal = 0,
+  kBanetteMega = 1,
+  kBanetteCount = 2,
+
+  kAbsolNormal = 0,
+  kAbsolMega = 1,
+  kAbsolCount = 2,
+
+  kGlalieNormal = 0,
+  kGlalieMega = 1,
+  kGlalieCount = 2,
+
+  kSalamenceNormal = 0,
+  kSalamenceMega = 1,
+  kSalamenceCount = 2,
+
+  kMetagrossNormal = 0,
+  kMetagrossMega = 1,
+  kMetagrossCount = 2,
+
+  kLatiasNormal = 0,
+  kLatiasMega = 1,
+  kLatiasCount = 2,
+
+  kLatiosNormal = 0,
+  kLatiosMega = 1,
+  kLatiosCount = 2,
+
+  kKyogreNormal = 0,
+  kKyogreAlpha = 1,
+  kKyogreCount = 2,
+
+  kGroudonNormal = 0,
+  kGroudonOmega = 1,
+  kGroudonCount = 2,
+
+  kRayquazaNormal = 0,
+  kRayquazaDelta = 1,
+  kRayquazaCount = 2,
+
+  kDeoxysNormal = 0,
+  kDeoxysAttack = 1,
+  kDeoxysDefence = 2,
+  kDeoxysSpeed = 3,
+  kDeoxysCount = 4,
+
+  kBurmyPlant = 0,
+  kBurmySand = 1,
+  kBurmyTrash = 2,
+  kBurmyCount = 3,
+
+  kWormadamPlant = 0,
+  kWormadamGround = 1,
+  kWormadamSteel = 2,
+  kWormadamCount = 3,
+
+  kCherrimOvercast = 0,
+  kCherrimSunshine = 1,
+  kCherrimCount = 2,
+
+  kShellosWest = 0,
+  kShellosEast = 1,
+  kShellosCount = 2,
+
+  kGastrodonWest = 0,
+  kGastrodonEast = 1,
+  kGastrodonCount = 2,
+
+  kLopunnyNormal = 0,
+  kLopunnyMega = 1,
+  kLopunnyCount = 2,
+
+  kGarchompNormal = 0,
+  kGarchompMega = 1,
+  kGarchompCount = 2,
+
+  kLucarioNormal = 0,
+  kLucarioMega = 1,
+  kLucarioCount = 2,
+
+  kAbomasnowNormal = 0,
+  kAbomasnowMega = 1,
+  kAbomasnowCount = 2,
+
+  kGalladeNormal = 0,
+  kGalladeMega = 1,
+  kGalladeCount = 2,
+
+  kRotomNormal = 0,
+  kRotomHeat = 1,
+  kRotomWash = 2,
+  kRotomFrost = 3,
+  kRotomFan = 4,
+  kRotomMow = 5,
+  kRotomCount = 6,
+
+  kGiratinaAltered = 0,
+  kGiratinaOrigin = 1,
+  kGiratinaCount = 2,
+
+  kShayminLand = 0,
+  kShayminSky = 1,
+  kShayminCount = 2,
+
+  kArceusNormal = 0,
+  kArceusFighting = 1,
+  kArceusFlying = 2,
+  kArceusPoison = 3,
+  kArceusGround = 4,
+  kArceusRock = 5,
+  kArceusBug = 6,
+  kArceusGhost = 7,
+  kArceusSteel = 8,
+  kArceusFire = 9,
+  kArceusWater = 10,
+  kArceusGrass = 11,
+  kArceusElectric = 12,
+  kArceusPsychic = 13,
+  kArceusIce = 14,
+  kArceusDragon = 15,
+  kArceusDark = 16,
+  kArceusFairy = 17,
+  kArceusCount = 18,
+
+  kAudinoNormal = 0,
+  kAudinoMega = 1,
+  kAudinoCount = 2,
+
+  kBasculinBlack = 0,
+  kBasculinWhite = 1,
+  kBasculinCount = 2,
+
+  kDarmanitanStandard = 0,
+  kDarmanitanZen = 1,
+  kDarmanitanCount = 2,
+
+  kDeerlingSpring = 0,
+  kDeerlingSummer = 1,
+  kDeerlingAutumn = 2,
+  kDeerlingWinter = 3,
+  kDeerlingCount = 4,
+
+  kSawsbuckSpring = 0,
+  kSawsbuckSummer = 1,
+  kSawsbuckAutumn = 2,
+  kSawsbuckWinter = 3,
+  kSawsbuckCount = 4,
+
+  kTornadusIncarnate = 0,
+  kTornadusTherian = 1,
+  kTornadusCount = 2,
+
+  kThundurusIncarnate = 0,
+  kThundurusTherian = 1,
+  kThundurusCount = 2,
+
+  kLandorusIncarnate = 0,
+  kLandorusTherian = 1,
+  kLandorusCount = 2,
+
+  kKyuremNormal = 0,
+  kKyuremWhite = 1,
+  kKyuremBlack = 2,
+  kKyuremCount = 3,
+
+  kKeldeoOrdinary = 0,
+  kKeldeoResolute = 1,
+  kKeldeoCount = 2,
+
+  kMeloettaAria = 0,
+  kMeloettaPirouette = 1,
+  kMeloettaCount = 2,
+
+  kGenesectNormal = 0,
+  kGenesectAqua = 1,
+  kGenesectShock = 2,
+  kGenesectBlaze = 3,
+  kGenesectFreeze = 4,
+  kGenesectCount = 5,
+
+  kVivillonArea1 = 0,
+  kVivillonArea2 = 1,
+  kVivillonArea3 = 2,
+  kVivillonArea4 = 3,
+  kVivillonArea5 = 4,
+  kVivillonArea6 = 5,
+  kVivillonArea7 = 6,
+  kVivillonArea8 = 7,
+  kVivillonArea9 = 8,
+  kVivillonArea10 = 9,
+  kVivillonArea11 = 10,
+  kVivillonArea12 = 11,
+  kVivillonArea13 = 12,
+  kVivillonArea14 = 13,
+  kVivillonArea15 = 14,
+  kVivillonArea16 = 15,
+  kVivillonArea17 = 16,
+  kVivillonArea18 = 17,
+  kVivillonArea19 = 18,
+  kVivillonArea20 = 19,
+  kVivillonCount = 20,
+
+  kFlabebeRed = 0,
+  kFlabebeYellow = 1,
+  kFlabebeOrange = 2,
+  kFlabebeBlue = 3,
+  kFlabebeWhite = 4,
+  kFlabebeCount = 5,
+
+  kFloetteRed = 0,
+  kFloetteYellow = 1,
+  kFloetteOrange = 2,
+  kFloetteBlue = 3,
+  kFloetteWhite = 4,
+  kFloetteEternal = 5,
+  kFloetteCount = 6,
+
+  kFlorgesRed = 0,
+  kFlorgesYellow = 1,
+  kFlorgesOrange = 2,
+  kFlorgesBlue = 3,
+  kFlorgesWhite = 4,
+  kFlorgesCount = 5,
+
+  kFurfrouNormal = 0,
+  kFurfrouHeart = 1,
+  kFurfrouStar = 2,
+  kFurfrouDiamond = 3,
+  kFurfrouDebutante = 4,
+  kFurfrouMatron = 5,
+  kFurfrouDandy = 6,
+  kFurfrouLaReine = 7,
+  kFurfrouKabuki = 8,
+  kFurfrouPharaoh = 9,
+  kFurfrouCount = 10,
+
+  kMeowsticMale = 0,
+  kMeowsticFemale = 1,
+  kMeowsticCount = 2,
+
+  kAegislashShield = 0,
+  kAegislashBlade = 1,
+  kAegislashCount = 2,
+
+  kPumpkabooNormal = 0,
+  kPumpkabooSmall = 1,
+  kPumpkabooLarge = 2,
+  kPumpkabooSuper = 3,
+  kPumpkabooCount = 4,
+
+  kGourgeistNormal = 0,
+  kGourgeistSmall = 1,
+  kGourgeistLarge = 2,
+  kGourgeistSuper = 3,
+  kGourgeistCount = 4,
+
+  kXerneasNormal = 0,
+  kXerneasActive = 1,
+  kXerneasCount = 2,
+
+  kDiancieNormal = 0,
+  kDiancieMega = 1,
+  kDiancieCount = 2,
+
+  kHoopaConfined = 0,
+  kHoopaUnbound = 1,
+  kHoopaCount = 2,
+};

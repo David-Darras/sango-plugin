@@ -17,96 +17,100 @@
 
 #pragma once
 
-#define BACKGROUND_NONE (0)
-#define BACKGROUND_GRASS (1)
-#define BACKGROUND_FACTORY (2)
-#define BACKGROUND_CAVE (3)
-#define BACKGROUND_FOREST (4)
-#define BACKGROUND_SHORE (5)
-#define BACKGROUND_MOUNTAIN (6)
-#define BACKGROUND_ROOM (7)
-#define BACKGROUND_CITY (8)
-#define BACKGROUND_TOWN (9)
-#define BACKGROUND_PALACE (10)
-#define BACKGROUND_COMM_ROOM (11)
-#define BACKGROUND_POND_WATER (12)
-#define BACKGROUND_OCEAN_SURFACE (13)
-#define BACKGROUND_FROST_CAVE (14)
-#define BACKGROUND_REFLECTION_CAVE (15)
-#define BACKGROUND_GYM_ROCK_TRAINER (16)
-#define BACKGROUND_GYM_FIGHTING_TRAINER (17)
-#define BACKGROUND_GYM_ELECTRIC_TRAINER (18)
-#define BACKGROUND_GYM_FIRE_TRAINER (19)
-#define BACKGROUND_GYM_NORMAL_TRAINER (20)
-#define BACKGROUND_GYM_FLYING_TRAINER (21)
-#define BACKGROUND_GYM_PSYCHIC_TRAINER (22)
-#define BACKGROUND_GYM_WATER_TRAINER (23)
-#define BACKGROUND_ELITE_FOUR_SIDNEY (24)
-#define BACKGROUND_ELITE_FOUR_PHOEBE (25)
-#define BACKGROUND_ELITE_FOUR_GLACIA (26)
-#define BACKGROUND_ELITE_FOUR_DRAKE (27)
-#define BACKGROUND_CHAMPION_STEVEN (28)
-#define BACKGROUND_DARK_ROOM (29)
-#define BACKGROUND_WCS_POKEMON_LEAGUE (30)
-#define BACKGROUND_WCS_POKEMON_LEAGUE_ALT (31)
-#define BACKGROUND_GYM_ROXANNE (32)
-#define BACKGROUND_GYM_BRAWLY (33)
-#define BACKGROUND_GYM_WATTSON (34)
-#define BACKGROUND_GYM_FLANNERY (35)
-#define BACKGROUND_GYM_NORMAN (36)
-#define BACKGROUND_GYM_WINONA (37)
-#define BACKGROUND_GYM_TATE_LIZA (38)
-#define BACKGROUND_GYM_WALLACE (39)
-#define BACKGROUND_SKY_BATTLE (40)
-#define BACKGROUND_WATER_CAVE (41)
-#define BACKGROUND_GREY (42)
-#define BACKGROUND_DESERT (43)
-#define BACKGROUND_VOLCANIC_ASH (44)
-#define BACKGROUND_BEACH_SIDE (45)
-#define BACKGROUND_SHALLOW_WATER (46)
-#define BACKGROUND_SHALLOW_WATER_CITY (47)
-#define BACKGROUND_UNDERWATER_SEABED (48)
-#define BACKGROUND_GRANITE_CAVE (49)
-#define BACKGROUND_METEOR_FALLS (50)
-#define BACKGROUND_SEAFLOOR_CAVE (51)
-#define BACKGROUND_WATERFALL (52)
-#define BACKGROUND_TEAM_AQUA_HIDEOUT (53)
-#define BACKGROUND_CYCLING_ROAD (54)
-#define BACKGROUND_S_S_CACTUS (55)
-#define BACKGROUND_MT_PYRE_CEMETERY (56)
-#define BACKGROUND_SKY_PILLAR (57)
-#define BACKGROUND_GROUDON_PRIMAL (58)
-#define BACKGROUND_KYOGRE_PRIMAL (59)
-#define BACKGROUND_RAYQUAZA_MEGA (60)
-#define BACKGROUND_LEGENDARY_RING (61)
-#define BACKGROUND_CONTEST_NORMAL_COOL (62)
-#define BACKGROUND_CONTEST_NORMAL_BEAUTIFUL (63)
-#define BACKGROUND_CONTEST_NORMAL_CUTE (64)
-#define BACKGROUND_CONTEST_NORMAL_CLEVER (65)
-#define BACKGROUND_CONTEST_NORMAL_TOUGH (66)
-#define BACKGROUND_CONTEST_SUPER_COOL (67)
-#define BACKGROUND_CONTEST_SUPER_BEAUTIFUL (68)
-#define BACKGROUND_CONTEST_SUPER_CUTE (69)
-#define BACKGROUND_CONTEST_SUPER_CLEVER (70)
-#define BACKGROUND_CONTEST_SUPER_TOUGH (71)
-#define BACKGROUND_CONTEST_HYPER_COOL (72)
-#define BACKGROUND_CONTEST_HYPER_BEAUTIFUL (73)
-#define BACKGROUND_CONTEST_HYPER_CUTE (74)
-#define BACKGROUND_CONTEST_HYPER_CLEVER (75)
-#define BACKGROUND_CONTEST_HYPER_TOUGH (76)
-#define BACKGROUND_CONTEST_MASTER_COOL (77)
-#define BACKGROUND_CONTEST_MASTER_BEAUTIFUL (78)
-#define BACKGROUND_CONTEST_MASTER_CUTE (79)
-#define BACKGROUND_CONTEST_MASTER_CLEVER (80)
-#define BACKGROUND_CONTEST_MASTER_TOUGH (81)
-#define BACKGROUND_CONTEST_INTRO (82)
-#define BACKGROUND_CONTEST_RESULTS (83)
-#define BACKGROUND_ARCHIE_BOSS (84)
-#define BACKGROUND_MAXIE_BOSS (85)
-#define BACKGROUND_SKY_PILLAR_TOP (86)
-#define BACKGROUND_DEOXYS_DNA (87)
-#define BACKGROUND_FIERY_PATH (88)
-#define BACKGROUND_WALLY_VICTORY_ROAD (89)
-#define BACKGROUND_ZINNIA_LAST_BATTLE (90)
-#define BACKGROUND_TEAM_MAGMA_HIDEOUT (91)
-#define BACKGROUND_SEA MAUVE_WRECK (92)
+#include <types.h>
+
+enum class Background : u8 {
+  kNone = 0,
+  kGrass = 1,
+  kFactory = 2,
+  kCave = 3,
+  kForest = 4,
+  kShore = 5,
+  kMountain = 6,
+  kRoom = 7,
+  kCity = 8,
+  kTown = 9,
+  kPalace = 10,
+  kCommRoom = 11,
+  kPondWater = 12,
+  kOceanSurface = 13,
+  kFrostCave = 14,
+  kReflectionCave = 15,
+  kGymRockTrainer = 16,
+  kGymFightingTrainer = 17,
+  kGymElectricTrainer = 18,
+  kGymFireTrainer = 19,
+  kGymNormalTrainer = 20,
+  kGymFlyingTrainer = 21,
+  kGymPsychicTrainer = 22,
+  kGymWaterTrainer = 23,
+  kEliteFourSidney = 24,
+  kEliteFourPhoebe = 25,
+  kEliteFourGlacia = 26,
+  kEliteFourDrake = 27,
+  kChampionSteven = 28,
+  kDarkRoom = 29,
+  kWcsPokemonLeague = 30,
+  kWcsPokemonLeagueAlt = 31,
+  kGymRoxanne = 32,
+  kGymBrawly = 33,
+  kGymWattson = 34,
+  kGymFlannery = 35,
+  kGymNorman = 36,
+  kGymWinona = 37,
+  kGymTateLiza = 38,
+  kGymWallace = 39,
+  kSkyBattle = 40,
+  kWaterCave = 41,
+  kGrey = 42,
+  kDesert = 43,
+  kVolcanicAsh = 44,
+  kBeachSide = 45,
+  kShallowWater = 46,
+  kShallowWaterCity = 47,
+  kUnderwaterSeabed = 48,
+  kGraniteCave = 49,
+  kMeteorFalls = 50,
+  kSeafloorCave = 51,
+  kWaterfall = 52,
+  kTeamAquaHideout = 53,
+  kCyclingRoad = 54,
+  kSSCactus = 55,
+  kMtPyreCemetery = 56,
+  kSkyPillar = 57,
+  kGroudonPrimal = 58,
+  kKyogrePrimal = 59,
+  kRayquazaMega = 60,
+  kLegendaryRing = 61,
+  kContestNormalCool = 62,
+  kContestNormalBeautiful = 63,
+  kContestNormalCute = 64,
+  kContestNormalClever = 65,
+  kContestNormalTough = 66,
+  kContestSuperCool = 67,
+  kContestSuperBeautiful = 68,
+  kContestSuperCute = 69,
+  kContestSuperClever = 70,
+  kContestSuperTough = 71,
+  kContestHyperCool = 72,
+  kContestHyperBeautiful = 73,
+  kContestHyperCute = 74,
+  kContestHyperClever = 75,
+  kContestHyperTough = 76,
+  kContestMasterCool = 77,
+  kContestMasterBeautiful = 78,
+  kContestMasterCute = 79,
+  kContestMasterClever = 80,
+  kContestMasterTough = 81,
+  kContestIntro = 82,
+  kContestResults = 83,
+  kArchieBoss = 84,
+  kMaxieBoss = 85,
+  kSkyPillarTop = 86,
+  kDeoxysDna = 87,
+  kFieryPath = 88,
+  kWallyVictoryRoad = 89,
+  kZinniaLastBattle = 90,
+  kTeamMagmaHideout = 91,
+  kSeaMauveWreck = 92,
+};

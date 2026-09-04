@@ -18,7 +18,7 @@
 #pragma once
 
 #include "pss.h"
-#include "game/data_manager.h"
+#include "game/core/data_manager.h"
 
 namespace savedata {
 class Footer;

@@ -15,7 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include "common.h"
-#include "feature/hook_manager.h"
+#include "feature/core/hook_manager.h"
 #include "game/constant/form.h"
 #include "game/constant/model.h"
 #include "game/constant/species.h"
@@ -23,55 +23,55 @@
 namespace kaizo {
 u32 PatchOverworldModels(u32 model, bool is_real_overworld) {
   if (!is_real_overworld) {
-    switch (model) {
-      case MODEL_ZIGZAGOON:
-        return MODEL_GROUDON;
-      case MODEL_SKITTY:
-        return MODEL_KYOGRE;
+    switch (static_cast<ModelID>(model)) {
+      case ModelID::kZigzagoon:
+        return static_cast<u32>(ModelID::kGroudon);
+      case ModelID::kSkitty:
+        return static_cast<u32>(ModelID::kKyogre);
     }
   }
-  switch (model) {
-    case MODEL_BRENDAN:
-      return MODEL_STEVEN_STONE;
-    case MODEL_SUPPORT_MAY:
-      return MODEL_ZINNIA;
-    case MODEL_MOM_ORAS:
-      return MODEL_MR_STONE;
-    case MODEL_SNORLAX_DOLL:
-      return MODEL_HOOPAS_RING;
+  switch (static_cast<ModelID>(model)) {
+    case ModelID::kBrendan:
+      return static_cast<u32>(ModelID::kStevenStone);
+    case ModelID::kSupportMay:
+      return static_cast<u32>(ModelID::kZinnia);
+    case ModelID::kMomOras:
+      return static_cast<u32>(ModelID::kMrStone);
+    case ModelID::kSnorlaxDoll:
+      return static_cast<u32>(ModelID::kHoopasRing);
   }
   return model;
 }
 
 void PatchPokemonModels(PokeInfo* poke_info) {
   switch (poke_info->species) {
-    case SPECIES_LATIOS:
-    case SPECIES_LATIAS:
+    case Species::kLatios:
+    case Species::kLatias:
       poke_info->is_shiny = true;
-      poke_info->species = SPECIES_BELDUM;
+      poke_info->species = Species::kBeldum;
       break;
-    case SPECIES_KYOGRE:
+    case Species::kKyogre:
       poke_info->is_shiny = true;
-      poke_info->form = FORM_KYOGRE_ALPHA;
+      poke_info->form = Form::kKyogreAlpha;
       break;
-    case SPECIES_GROUDON:
+    case Species::kGroudon:
       poke_info->is_shiny = true;
-      poke_info->form = FORM_GROUDON_OMEGA;
+      poke_info->form = Form::kGroudonOmega;
       break;
-    case SPECIES_SHROOMISH:
+    case Species::kShroomish:
       static u32 count = 0;
       if (count == 0) {
-        poke_info->species = SPECIES_FURFROU;
-        poke_info->form = FORM_FURFROU_HEART;
+        poke_info->species = Species::kFurfrou;
+        poke_info->form = Form::kFurfrouHeart;
         poke_info->is_shiny = true;
       } else {
-        poke_info->species = SPECIES_PIKACHU;
-        poke_info->form = FORM_PIKACHU_CLEVER;
+        poke_info->species = Species::kPikachu;
+        poke_info->form = Form::kPikachuClever;
         poke_info->is_shiny = true;
       }
       count++;
       break;
-    case SPECIES_AZURILL: {
+    case Species::kAzurill: {
       // Skip the mandatory nickname-entry prompt that normally follows
       // catching/receiving this species.
       constexpr uptr kAddressSkipNameInput = 0x0071E05C;
@@ -80,29 +80,29 @@ void PatchPokemonModels(PokeInfo* poke_info) {
       constexpr uptr kAddressForceLevel = 0x00719D60;
       constexpr u32 kForcedLevel = 25;
       WRITE32(kAddressForceLevel, 0xE3A00000 | kForcedLevel);
-      poke_info->species = SPECIES_KELDEO;
-      poke_info->form = FORM_KELDEO_RESOLUTE;
+      poke_info->species = Species::kKeldeo;
+      poke_info->form = Form::kKeldeoResolute;
       poke_info->is_shiny = false;
       break;
     }
-    case SPECIES_LAIRON:
+    case Species::kLairon:
       poke_info->is_shiny = true;
       break;
-    case SPECIES_ARON:
-      poke_info->species = SPECIES_MAWILE;
-      poke_info->form = FORM_MAWILE_MEGA;
+    case Species::kAron:
+      poke_info->species = Species::kMawile;
+      poke_info->form = Form::kMawileMega;
       poke_info->is_shiny = false;
       break;
-    case SPECIES_POOCHYENA:
-      poke_info->species = SPECIES_KADABRA;
-      poke_info->form = 0;
+    case Species::kPoochyena:
+      poke_info->species = Species::kKadabra;
+      poke_info->form = static_cast<Form>(0);
       poke_info->is_shiny = false;
       break;
-    case SPECIES_TROPIUS:
+    case Species::kTropius:
       poke_info->is_shiny = true;
       break;
-    case SPECIES_TAILLOW:
-      poke_info->species = SPECIES_BELDUM;
+    case Species::kTaillow:
+      poke_info->species = Species::kBeldum;
       poke_info->is_shiny = true;
       break;
   }

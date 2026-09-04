@@ -22,111 +22,111 @@
 #include "game/constant/map.h"
 #include "game/constant/species.h"
 #include "game/overworld/map_data.h"
-#include "kaizo.h"
+#include "kaizo/kaizo.h"
 #include "game/overworld/map_manager.h"
 #include "game/savedata/pokemon_team.h"
 #include "ui/log_application.h"
 
 namespace kaizo {
-static const u16 ROUTE_101[] = {
-    SPECIES_GROWLITHE,
-    SPECIES_POOCHYENA,
-    SPECIES_RIOLU,
-    SPECIES_FURFROU,
-    SPECIES_HOUNDOUR,
-    SPECIES_SNUBBULL,
-    SPECIES_ELECTRIKE,
-    SPECIES_LILLIPUP,
+static const Species ROUTE_101[] = {
+    Species::kGrowlithe,
+    Species::kPoochyena,
+    Species::kRiolu,
+    Species::kFurfrou,
+    Species::kHoundour,
+    Species::kSnubbull,
+    Species::kElectrike,
+    Species::kLillipup,
 };
 
-static const u16 ROUTE_102[] = {
-    SPECIES_MEOWTH,
-    SPECIES_ESPURR,
-    SPECIES_PURRLOIN,
-    SPECIES_GLAMEOW,
-    SPECIES_SKITTY,
-    SPECIES_SHINX,
-    SPECIES_SNEASEL,
-    SPECIES_EEVEE,
+static const Species ROUTE_102[] = {
+    Species::kMeowth,
+    Species::kEspurr,
+    Species::kPurrloin,
+    Species::kGlameow,
+    Species::kSkitty,
+    Species::kShinx,
+    Species::kSneasel,
+    Species::kEevee,
 };
 
-static const u16 ROUTE_103[] = {
-    SPECIES_DEDENNE,
-    SPECIES_RATTATA,
-    SPECIES_PICHU,
-    SPECIES_AZURILL,
-    SPECIES_PLUSLE,
-    SPECIES_MINUN,
+static const Species ROUTE_103[] = {
+    Species::kDedenne,
+    Species::kRattata,
+    Species::kPichu,
+    Species::kAzurill,
+    Species::kPlusle,
+    Species::kMinun,
 };
 
-static const u16 ROUTE_104_SOUTH[] = {
-    SPECIES_PIDGEY,
-    SPECIES_NATU,
-    SPECIES_TAILLOW,
-    SPECIES_WINGULL,
-    SPECIES_STARLY,
-    SPECIES_PIDOVE,
-    SPECIES_VULLABY,
-    SPECIES_FLETCHLING,
+static const Species ROUTE_104_SOUTH[] = {
+    Species::kPidgey,
+    Species::kNatu,
+    Species::kTaillow,
+    Species::kWingull,
+    Species::kStarly,
+    Species::kPidove,
+    Species::kVullaby,
+    Species::kFletchling,
 };
 
-static const u16 PETALBURG_WOODS[] = {
-    SPECIES_CATERPIE,
-    SPECIES_WEEDLE,
-    SPECIES_WURMPLE,
-    SPECIES_BURMY,
-    SPECIES_SEWADDLE,
-    SPECIES_VENIPEDE,
-    SPECIES_SCATTERBUG,
+static const Species PETALBURG_WOODS[] = {
+    Species::kCaterpie,
+    Species::kWeedle,
+    Species::kWurmple,
+    Species::kBurmy,
+    Species::kSewaddle,
+    Species::kVenipede,
+    Species::kScatterbug,
 };
 
-static const u16 ROUTE_104_NORTH[] = {
-    SPECIES_SPEAROW,
-    SPECIES_FARFETCHD,
-    SPECIES_HOOTHOOT,
-    SPECIES_MURKROW,
-    SPECIES_SKARMORY,
-    SPECIES_CHATOT,
-    SPECIES_DUCKLETT,
-    SPECIES_RUFFLET,
-    SPECIES_HAWLUCHA
+static const Species ROUTE_104_NORTH[] = {
+    Species::kSpearow,
+    Species::kFarfetchd,
+    Species::kHoothoot,
+    Species::kMurkrow,
+    Species::kSkarmory,
+    Species::kChatot,
+    Species::kDucklett,
+    Species::kRufflet,
+    Species::kHawlucha
 };
 
-static const u16 PETALBURG_CITY[] = {
-    SPECIES_UNOWN
+static const Species PETALBURG_CITY[] = {
+    Species::kUnown
 };
 
-static const u16 ROUTE_116[] = {
-    SPECIES_MANKEY,
-    SPECIES_AIPOM,
-    SPECIES_SLAKOTH,
-    SPECIES_CHIMCHAR,
-    SPECIES_PANSAGE,
-    SPECIES_PANSEAR,
-    SPECIES_PANPOUR,
-    SPECIES_DARUMAKA,
+static const Species ROUTE_116[] = {
+    Species::kMankey,
+    Species::kAipom,
+    Species::kSlakoth,
+    Species::kChimchar,
+    Species::kPansage,
+    Species::kPansear,
+    Species::kPanpour,
+    Species::kDarumaka,
 };
 
-static const u16 RUSTURF_TUNNEL[] = {
-    SPECIES_ZUBAT,
-    SPECIES_GLIGAR,
-    SPECIES_WOOBAT,
-    SPECIES_NOIBAT
+static const Species RUSTURF_TUNNEL[] = {
+    Species::kZubat,
+    Species::kGligar,
+    Species::kWoobat,
+    Species::kNoibat
 };
 
 static const EncounterEntry s_table[] = {
-    {MAP_ROUTE_101, SIZE(ROUTE_101), ROUTE_101},
-    {MAP_ROUTE_102, SIZE(ROUTE_102), ROUTE_102},
-    {MAP_ROUTE_103, SIZE(ROUTE_103), ROUTE_103},
-    {MAP_PETALBURG_CITY, SIZE(PETALBURG_CITY), PETALBURG_CITY},
-    {MAP_ROUTE_104_SOUTH, SIZE(ROUTE_104_SOUTH), ROUTE_104_SOUTH},
-    {MAP_PETALBURG_WOODS, SIZE(PETALBURG_WOODS), PETALBURG_WOODS},
-    {MAP_ROUTE_104_NORTH, SIZE(ROUTE_104_NORTH), ROUTE_104_NORTH},
+    {MapID::kRoute101, SIZE(ROUTE_101), ROUTE_101},
+    {MapID::kRoute102, SIZE(ROUTE_102), ROUTE_102},
+    {MapID::kRoute103, SIZE(ROUTE_103), ROUTE_103},
+    {MapID::kPetalburgCity, SIZE(PETALBURG_CITY), PETALBURG_CITY},
+    {MapID::kRoute104South, SIZE(ROUTE_104_SOUTH), ROUTE_104_SOUTH},
+    {MapID::kPetalburgWoods, SIZE(PETALBURG_WOODS), PETALBURG_WOODS},
+    {MapID::kRoute104North, SIZE(ROUTE_104_NORTH), ROUTE_104_NORTH},
 };
 static const u32 s_table_size = SIZE(s_table);
 
 
-const EncounterEntry* GetEncounterEntry(u16 map_id) {
+const EncounterEntry* GetEncounterEntry(MapID map_id) {
   for (u16 i = 0; i < s_table_size; ++i) {
     if (s_table[i].map_id == map_id) {
       return &s_table[i];
@@ -137,13 +137,13 @@ const EncounterEntry* GetEncounterEntry(u16 map_id) {
 
 void PatchEncounterTable(overworld::EncounterData* data) {
   auto& map_id = overworld::MapManager::GetInstance().GetMapId();
-  const EncounterEntry* entry = GetEncounterEntry(map_id);
+  const EncounterEntry* entry = GetEncounterEntry(static_cast<MapID>(map_id));
   if (entry == nullptr) return;
 
   u32 offset = 0;
   for (u16 i = 0; i < 61; ++i) {
     if (data->poke_info[i].species == 0) continue;
-    data->poke_info[i].species = entry->species[offset];
+    data->poke_info[i].species = static_cast<u16>(entry->species[offset]);
     data->poke_info[i].form = 0;
     offset = (offset + 1) % 5;
   }

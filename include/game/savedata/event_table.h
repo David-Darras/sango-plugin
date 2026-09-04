@@ -17,6 +17,7 @@
 
 #pragma once
 #include "common.h"
+#include "game/constant/event.h"
 #include "game/savedata/savedata.h"
 
 namespace savedata {
@@ -31,17 +32,19 @@ struct EventTable {
     return SaveData::GetInstance().GetEventTable();
   }
 
-  INLINE bool Check(u16 flag_id) {
-    return ((bool(*)(EventTable*, u16))ADDRESS_EVENT_TABLE_CHECK_FLAG)(
+  INLINE bool Check(EventID flag_id) {
+    return ((bool(*)(EventTable*, EventID))ADDRESS_EVENT_TABLE_CHECK_FLAG)(
         this, flag_id);
   }
 
-  INLINE void Reset(u16 flag_id) {
-    ((void(*)(EventTable*, u16))ADDRESS_EVENT_TABLE_RESET_FLAG)(this, flag_id);
+  INLINE void Reset(EventID flag_id) {
+    ((void(*)(EventTable*, EventID))ADDRESS_EVENT_TABLE_RESET_FLAG)(
+        this, flag_id);
   }
 
-  INLINE void Set(u16 flag_id) {
-    ((void(*)(EventTable*, u16))ADDRESS_EVENT_TABLE_SET_FLAG)(this, flag_id);
+  INLINE void Set(EventID flag_id) {
+    ((void(*)(EventTable*, EventID))ADDRESS_EVENT_TABLE_SET_FLAG)(
+        this, flag_id);
   }
 };
 } // namespace savedata

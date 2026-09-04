@@ -180,7 +180,7 @@ struct PokeModelTable {
       index = (species_metadata->flags & SpeciesMetadata::kHasFemale) != 0
                 ? form + 1u
                 : form;
-    } else if (gender == GENDER_FEMALE &&
+    } else if (gender == static_cast<u8>(Gender::kFemale) &&
                (species_metadata->flags & SpeciesMetadata::kHasFemale) != 0) {
       index = 1;
     }

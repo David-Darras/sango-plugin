@@ -88,7 +88,7 @@ void LoadSaveDataPokemonPage(MainApplication& app, void* args) {
 
   PokemonCoreData* pkm = ctx.accessor.GetCoreData();
 
-  if (pkm->species == 0) {
+  if (pkm->species == Species::kNone) {
     app.Add("No pokemon");
     return;
   }
@@ -725,7 +725,7 @@ void LoadSaveDataDayCarePage(MainApplication& app, void* args) {
 void LoadSaveDataHallOfFamePokemonPage(MainApplication& app, void* args) {
   auto* pkm = (savedata::HallOfFame::Pokemon*)args;
 
-  if (pkm->species == 0) {
+  if (pkm->species == Species::kNone) {
     app.Add("No pokemon");
     return;
   }

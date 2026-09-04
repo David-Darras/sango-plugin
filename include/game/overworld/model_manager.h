@@ -18,7 +18,7 @@
 #pragma once
 
 #include "common.h"
-#include "game/data_manager.h"
+#include "game/core/data_manager.h"
 #include "game/renderer/h3d_resource.h"
 
 namespace overworld {
@@ -41,7 +41,7 @@ struct Model {
   static constexpr u32 kSize = 0xAB0;
 
   INLINE DrawModel& GetDrawModel() {
-    return *((DrawModel * (*)(Model*))0x004E3F90)(this);
+    return *((DrawModel * (*)(Model*))ADDRESS_OVERWORLD_GET_DRAW_MODEL)(this);
   }
 
   INLINE bool IsUsed() const { return (flags[0] & 1) == 1; }

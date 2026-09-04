@@ -17,7 +17,11 @@
 
 #pragma once
 
-#define GENDER_MALE (0)
-#define GENDER_FEMALE (1)
-#define GENDER_UNKNOWN (2)
-#define GENDER_COUNT (3)
+#include <types.h>
+
+enum class Gender : u8 {
+  kMale = 0,
+  kFemale = 1,
+  kUnknown = 2,
+  kCount = 3,
+};

@@ -26,6 +26,9 @@
 #include <types.h>
 #include <functional>
 #include "address.h"
+#include "game/constant/form.h"
+#include "game/constant/gender.h"
+#include "game/constant/species.h"
 #include <CTRPluginFramework/System/Process.hpp>
 
 #define TYPEDEF_FLOAT(n, t) \
@@ -361,9 +364,9 @@ struct ResourcePack {
 };
 
 struct PokeInfo {
-  u16 species;
-  u8 form;
-  u8 gender;
+  Species species;
+  Form form;
+  Gender gender;
   bool is_shiny;
   bool is_egg;
   u32 _0;

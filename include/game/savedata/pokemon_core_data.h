@@ -18,6 +18,14 @@
 #pragma once
 #include "common.h"
 #include "pokemon_utils.h"
+#include "game/constant/ability.h"
+#include "game/constant/ball.h"
+#include "game/constant/form.h"
+#include "game/constant/gender.h"
+#include "game/constant/item.h"
+#include "game/constant/move.h"
+#include "game/constant/nature.h"
+#include "game/constant/species.h"
 
 struct PokemonCoreData {
   // HEADER [0x08 bytes]
@@ -26,27 +34,27 @@ struct PokemonCoreData {
   u16 checksum; // 08
 
   // BLOCK 1 [0x38 bytes]
-  u16 species; // 02
-  u16 item; // 04
+  Species species; // 02
+  ItemID item; // 04
 
   u32 id; // 08
 
   u32 experience; // 0C
 
-  u8 ability; // 0D
+  Ability ability; // 0D
   u8 ability_flags; // 0E
   u8 super_training_bag_hit_count; // 0F
   u8 super_training_bag_type; // 10
 
   u32 shiny_id; // 14
 
-  u8 nature; // 15
+  Nature nature; // 15
   union {
     u8 event_gender_form_flags; // 16
     struct {
       u8 event : 1;
-      u8 gender : 2;
-      u8 form : 5;
+      Gender gender : 2;
+      Form form : 5;
     };
   };
 
@@ -82,7 +90,7 @@ struct PokemonCoreData {
 
   // BLOCK 2  [0x38 bytes]
   c16 nickname[13]; // 1A
-  u16 moves[4]; // 22
+  MoveID moves[4]; // 22
   u8 pp[4]; // 26
   u8 pp_up_count[4]; // 2A
   u16 egg_moves[4]; // 32
@@ -134,7 +142,7 @@ struct PokemonCoreData {
 
   u16 egg_location; // 2A
   u16 met_location; // 2C
-  u8 ball; // 2D
+  Ball ball; // 2D
   u8 captured_level_owner_gender_flags; // 2E
 
   u8 _5; // 2F
@@ -165,7 +173,7 @@ struct PokemonCoreData {
 
   void ResetNickname() {
     c16 buffer[13];
-    ((void(*)(c16*, u16))0x00139E40)(buffer, species);
+    ((void(*)(c16*, Species))ADDRESS_GET_DEFAULT_NICKNAME)(buffer, species);
     SetNickname(buffer);
     use_nickname = false;
   }
@@ -200,7 +208,8 @@ struct PokemonCoreData {
     contest.tough = 255;
   }
 
-  void Set(u16 species, u16 item, u16 ability, u8 nature, bool is_shiny) {
+  void Set(Species species, ItemID item, Ability ability, Nature nature,
+           bool is_shiny) {
     this->species = species;
     this->item = item;
     this->ability = ability;
@@ -219,7 +228,7 @@ struct PokemonCoreData {
     ev_speed = spd;
   }
 
-  void SetMoves(u16 move1, u16 move2, u16 move3, u16 move4) {
+  void SetMoves(MoveID move1, MoveID move2, MoveID move3, MoveID move4) {
     moves[0] = move1;
     moves[1] = move2;
     moves[2] = move3;

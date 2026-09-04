@@ -24,33 +24,42 @@ namespace kaizo {
 void PatchPokemonData() {
   {
     auto& pkm = global_data::Pokemon::GetInstance(
-        SPECIES_GENGAR, FORM_GENGAR_MEGA);
-    pkm.ability[0] = pkm.ability[1] = pkm.ability[2] = ABILITY_INFILTRATOR;
+        Species::kGengar,
+        Form::kGengarMega);
+    pkm.ability[0] = pkm.ability[1] = pkm.ability[2] =
+        Ability::kInfiltrator;
   }
   {
     auto& pkm = global_data::Pokemon::GetInstance(
-        SPECIES_BLAZIKEN, FORM_BLAZIKEN_NORMAL);
-    pkm.ability[0] = pkm.ability[1] = pkm.ability[2] = ABILITY_BLAZE;
+        Species::kBlaziken,
+        Form::kBlazikenNormal);
+    pkm.ability[0] = pkm.ability[1] = pkm.ability[2] =
+        Ability::kBlaze;
   }
   {
     auto& pkm = global_data::Pokemon::GetInstance(
-        SPECIES_BLAZIKEN, FORM_BLAZIKEN_MEGA);
-    pkm.ability[0] = pkm.ability[1] = pkm.ability[2] = ABILITY_QUICK_FEET;
+        Species::kBlaziken,
+        Form::kBlazikenMega);
+    pkm.ability[0] = pkm.ability[1] = pkm.ability[2] =
+        Ability::kQuickFeet;
   }
   {
     auto& pkm = global_data::Pokemon::GetInstance(
-        SPECIES_KANGASKHAN, FORM_KANGASKHAN_NORMAL);
+        Species::kKangaskhan,
+        Form::kKangaskhanNormal);
     pkm.base_attack = 100;
   }
   {
     auto& pkm = global_data::Pokemon::GetInstance(
-        SPECIES_LUCARIO, FORM_LUCARIO_MEGA);
+        Species::kLucario,
+        Form::kLucarioMega);
     pkm.base_attack = 145;
     pkm.base_special_attack = 140;
   }
   {
     auto& pkm = global_data::Pokemon::GetInstance(
-        SPECIES_MAWILE, FORM_MAWILE_MEGA);
+        Species::kMawile,
+        Form::kMawileMega);
     pkm.base_attack = 85;
   }
 }

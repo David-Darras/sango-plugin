@@ -17,49 +17,53 @@
 
 #pragma once
 
-#define MAP_LITTLEROOT_TOWN (6)
-#define MAP_BRENDAN_HOUSE_GROUND_FLOOR (223)
-#define MAP_BRENDAN_HOUSE_FIRST_FLOOR (224)
-#define MAP_MAY_HOUSE_GROUND_FLOOR (225)
-#define MAP_MAY_HOUSE_FIRST_FLOOR (226)
-#define MAP_BIRCH_LABORATORY (227)
-#define MAP_INSIDE_OF_TRUCK (399)
+#include <types.h>
 
-#define MAP_ROUTE_101 (23)
+enum class MapID : u16 {
+  kLittlerootTown = 6,
+  kBrendanHouseGroundFloor = 223,
+  kBrendanHouseFirstFloor = 224,
+  kMayHouseGroundFloor = 225,
+  kMayHouseFirstFloor = 226,
+  kBirchLaboratory = 227,
+  kInsideOfTruck = 399,
 
-#define MAP_OLDALE_TOWN (7)
-#define MAP_OLDALE_POKE_CENTER (228)
-#define MAP_OLDALE_POKE_MART (229)
-#define MAP_OLDALE_NORTH_HOUSE (230)
-#define MAP_OLDALE_SOUTH_HOUSE (231)
+  kRoute101 = 23,
 
-#define MAP_ROUTE_103 (25)
+  kOldaleTown = 7,
+  kOldalePokeCenter = 228,
+  kOldalePokeMart = 229,
+  kOldaleNorthHouse = 230,
+  kOldaleSouthHouse = 231,
 
-#define MAP_ROUTE_102 (24)
+  kRoute103 = 25,
 
-#define MAP_PETALBURG_CITY (13)
+  kRoute102 = 24,
 
-#define MAP_PETALBURG_POKE_CENTER (95)
-#define MAP_PETALBURG_POKE_MART (260)
-#define MAP_PETALBURG_HOUSE_CENTER (263)
-#define MAP_PETALBURG_HOUSE_SOUTH (264)
-#define MAP_PETALBURG_GYM_ENTER (431)
-#define MAP_PETALBURG_GYM_ROOM_1 (432)
-#define MAP_PETALBURG_GYM_ROOM_2 (433)
-#define MAP_PETALBURG_GYM_ROOM_3 (434)
-#define MAP_PETALBURG_GYM_ROOM_4 (435)
-#define MAP_PETALBURG_GYM_ROOM_5 (436)
-#define MAP_PETALBURG_GYM_ROOM_6 (437)
-#define MAP_PETALBURG_GYM_ROOM_7 (438)
-#define MAP_PETALBURG_GYM_FINAL_ROOM (439)
+  kPetalburgCity = 13,
 
-#define MAP_WALLY_HOUSE_GROUND_FLOOR (261)
-#define MAP_WALLY_HOUSE_FIRST_FLOOR (262)
+  kPetalburgPokeCenter = 95,
+  kPetalburgPokeMart = 260,
+  kPetalburgHouseCenter = 263,
+  kPetalburgHouseSouth = 264,
+  kPetalburgGymEnter = 431,
+  kPetalburgGymRoom1 = 432,
+  kPetalburgGymRoom2 = 433,
+  kPetalburgGymRoom3 = 434,
+  kPetalburgGymRoom4 = 435,
+  kPetalburgGymRoom5 = 436,
+  kPetalburgGymRoom6 = 437,
+  kPetalburgGymRoom7 = 438,
+  kPetalburgGymFinalRoom = 439,
 
-#define MAP_ROUTE_104_SOUTH (27)
-#define MAP_PETALBURG_WOODS (82)
-#define MAP_ROUTE_104_NORTH (26)
+  kWallyHouseGroundFloor = 261,
+  kWallyHouseFirstFloor = 262,
 
-#define MAP_RUSTBORO_CITY (16)
-#define MAP_ROUTE_115 (42) // NO POKEMON
-#define MAP_ROUTE_116 (43)
+  kRoute104South = 27,
+  kPetalburgWoods = 82,
+  kRoute104North = 26,
+
+  kRustboroCity = 16,
+  kRoute115 = 42, // NO POKEMON
+  kRoute116 = 43,
+};

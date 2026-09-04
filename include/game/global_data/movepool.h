@@ -18,13 +18,15 @@
 #pragma once
 
 #include "common.h"
+#include "game/constant/form.h"
+#include "game/constant/species.h"
 
 namespace global_data {
 class Movepool {
   SINGLETON(Movepool)
-  STATIC_INLINE Movepool& GetInstance(u16 species, u8 form) {
-    ((void(*)(u16, u8))0x0014EB80)(species, form);
-    return *(Movepool*)0x8029330;
+  STATIC_INLINE Movepool& GetInstance(Species species, Form form) {
+    ((void(*)(Species, Form))ADDRESS_GLOBAL_DATA_LOAD_MOVEPOOL)(species, form);
+    return *(Movepool*)ADDRESS_GLOBAL_DATA_MOVEPOOL;
   }
 
   INLINE bool contains(u16 move) {

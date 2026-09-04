@@ -18,6 +18,7 @@
 #pragma once
 
 #include "common.h"
+#include "game/constant/item.h"
 #include "game/savedata/savedata.h"
 
 namespace savedata {
@@ -29,7 +30,7 @@ struct ItemManager {
 
   /** @brief Represents a single item stack in the bag. */
   struct ItemSlot {
-    u16 id; ///< Item ID.
+    ItemID id; ///< Item ID.
     u16 count; ///< Quantity held (max 999).
   };
 

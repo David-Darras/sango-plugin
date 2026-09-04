@@ -17,7 +17,7 @@
 
 #include "common.h"
 #include "utils.h"
-#include "feature/hook_manager.h"
+#include "feature/core/hook_manager.h"
 #include "game/constant/species.h"
 #include "game/savedata/pokemon_team.h"
 
@@ -30,11 +30,11 @@ struct PokemonStarterView {
 void PatchStarterView() {
   PokemonStarterView* data = (PokemonStarterView*)(ADDRESS_STARTER);
   data[0].info.is_egg = true;
-  data[0].info.species = 0;
+  data[0].info.species = Species::kNone;
   data[1].info.is_egg = true;
-  data[1].info.species = 0;
+  data[1].info.species = Species::kNone;
   data[2].info.is_egg = true;
-  data[2].info.species = 0;
+  data[2].info.species = Species::kNone;
 }
 
 void PatchStarter(uptr pkm) {
@@ -45,22 +45,22 @@ void PatchStarter(uptr pkm) {
     u8 level;
   }& pokemon = *(Pokemon*)pkm;
 
-  static const u16 GRASS_STARTERS[] = {
-      SPECIES_BULBASAUR, SPECIES_CHIKORITA,
-      SPECIES_TREECKO, SPECIES_TURTWIG,
-      SPECIES_SNIVY, SPECIES_CHESPIN
+  static const Species GRASS_STARTERS[] = {
+      Species::kBulbasaur, Species::kChikorita,
+      Species::kTreecko, Species::kTurtwig,
+      Species::kSnivy, Species::kChespin
   };
 
   u16 rand = Utils::GetRandomValue(SIZE(GRASS_STARTERS));
-  switch (pokemon.species) {
-    case SPECIES_TREECKO:
-      pokemon.species = GRASS_STARTERS[rand] + 0;
+  switch (static_cast<Species>(pokemon.species)) {
+    case Species::kTreecko:
+      pokemon.species = static_cast<u16>(GRASS_STARTERS[rand]) + 0;
       break;
-    case SPECIES_TORCHIC:
-      pokemon.species = GRASS_STARTERS[rand] + 3;
+    case Species::kTorchic:
+      pokemon.species = static_cast<u16>(GRASS_STARTERS[rand]) + 3;
       break;
-    case SPECIES_MUDKIP:
-      pokemon.species = GRASS_STARTERS[rand] + 6;
+    case Species::kMudkip:
+      pokemon.species = static_cast<u16>(GRASS_STARTERS[rand]) + 6;
       break;
   }
 }

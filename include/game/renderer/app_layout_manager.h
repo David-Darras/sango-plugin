@@ -43,17 +43,17 @@ public:
 
   INLINE renderer::TextBox* GetTextBox(u32 layout_id, u32 pane_id) {
     return ((renderer::TextBox*(*)(uptr, u32))
-      0x004C8CE0)(GetToken(layout_id), pane_id);
+      ADDRESS_APP_LAYOUT_MANAGER_GET_TEXT_BOX)(GetToken(layout_id), pane_id);
   }
 
   INLINE renderer::Picture* GetPicture(u32 layout_id, u32 pane_id) {
     return ((renderer::Picture*(*)(uptr, u32))
-      0x4C8C88)(GetToken(layout_id), pane_id);
+      ADDRESS_APP_LAYOUT_MANAGER_GET_PICTURE)(GetToken(layout_id), pane_id);
   }
 
   INLINE renderer::Pane* GetPane(u32 layout_id, u32 pane_id) {
     return ((renderer::Pane*(*)(u32, u32))
-      0x4C9140)(READ32(GetToken(layout_id) + 4), pane_id);
+      ADDRESS_APP_LAYOUT_MANAGER_GET_PANE)(READ32(GetToken(layout_id) + 4), pane_id);
   } // or 0x4C8C30 ?
 
   void
@@ -64,7 +64,8 @@ public:
         String::GetTmpBuf(), BUFFER_SIZE, str, args);
     va_end(args);
 
-    ((void(*)(renderer::TextBox*, String*))0x4195F4)(
+    ((void(*)(renderer::TextBox*, String*))
+      ADDRESS_APP_LAYOUT_MANAGER_SET_TEXT_BOX_STRING)(
         GetTextBox(layout_id, pane_id), String::GetTmpStr());
   }
 

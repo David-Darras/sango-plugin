@@ -16,40 +16,43 @@
  */
 #pragma once
 
-#define BATTLE_TRAINER_NONE (0)
+#include <types.h>
 
-// ROUTE 103
-#define BATTLE_TRAINER_ROUTE_103_BRENDAN_1 (1)
-#define BATTLE_TRAINER_ROUTE_103_BRENDAN_2 (2)
-#define BATTLE_TRAINER_ROUTE_103_BRENDAN_3 (3)
-#define BATTLE_TRAINER_ROUTE_103_MAY_1 (4)
-#define BATTLE_TRAINER_ROUTE_103_MAY_2 (5)
-#define BATTLE_TRAINER_ROUTE_103_MAY_3 (6)
+enum class BattleTrainer : u16 {
+  kNone = 0,
 
-// ROUTE 102
-#define BATTLE_TRAINER_ROUTE_102_KID_1 (7)
-#define BATTLE_TRAINER_ROUTE_102_KID_2 (8)
-#define BATTLE_TRAINER_ROUTE_102_KID_3 (301)
-#define BATTLE_TRAINER_ROUTE_102_GIRL (10)
+  // ROUTE 103
+  kRoute103Brendan1 = 1,
+  kRoute103Brendan2 = 2,
+  kRoute103Brendan3 = 3,
+  kRoute103May1 = 4,
+  kRoute103May2 = 5,
+  kRoute103May3 = 6,
 
-// ROUTE 104 DOWN
-#define BATTLE_TRAINER_ROUTE_104_YOUNGSTER_BILLY (16)
-#define BATTLE_TRAINER_ROUTE_104_RICH_BOY_WINSTON (639)
+  // ROUTE 102
+  kRoute102Kid1 = 7,
+  kRoute102Kid2 = 8,
+  kRoute102Kid3 = 301,
+  kRoute102Girl = 10,
 
-// PETALBURG WOODS
-#define BATTLE_TRAINER_PETALBURG_WOODS_BUG_CATCHER_LYLE (9)
-#define BATTLE_TRAINER_PETALBURG_WOODS_TEAM_AQUA_GRUNT (20)
-#define BATTLE_TRAINER_PETALBURG_WOODS_BUG_CATCHER_JAMES (302)
+  // ROUTE 104 DOWN
+  kRoute104YoungsterBilly = 16,
+  kRoute104RichBoyWinston = 639,
 
-// BATTLE ROUTE 104 UP
-#define BATTLE_TRAINER_ROUTE_104_LADY_CINDY (640)
-#define BATTLE_TRAINER_ROUTE_104_LASS_HALEY (17)
-#define BATTLE_TRAINER_ROUTE_104_TWINS_GINA_AND_MIA (275)
-#define BATTLE_TRAINER_ROUTE_104_FISHERMAN_IVAN (14)
+  // PETALBURG WOODS
+  kPetalburgWoodsBugCatcherLyle = 9,
+  kPetalburgWoodsTeamAquaGrunt = 20,
+  kPetalburgWoodsBugCatcherJames = 302,
 
-// RUSTBORO CITY
-#define BATTLE_TRAINER_RUSTBORO_CITY_YOUNGSTER_JOSH (562)
-#define BATTLE_TRAINER_RUSTBORO_CITY_YOUNGSTER_TOMMY (22)
-#define BATTLE_TRAINER_RUSTBORO_CITY_SCHOOLKID_GEORGIA (667)
-#define BATTLE_TRAINER_RUSTBORO_CITY_LEADER_ROXANNE (561)
+  // BATTLE ROUTE 104 UP
+  kRoute104LadyCindy = 640,
+  kRoute104LassHaley = 17,
+  kRoute104TwinsGinaAndMia = 275,
+  kRoute104FishermanIvan = 14,
 
+  // RUSTBORO CITY
+  kRustboroCityYoungsterJosh = 562,
+  kRustboroCityYoungsterTommy = 22,
+  kRustboroCitySchoolkidGeorgia = 667,
+  kRustboroCityLeaderRoxanne = 561,
+};

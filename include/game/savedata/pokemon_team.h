@@ -50,8 +50,8 @@ struct PokemonTeam {
     u8 max_level = 1;
     for (u32 i = 0; i < count; i++) {
       pokemons[i]->accessor->Decrypt();
-      u16 species = pokemons[i]->core->species;
-      u8 form = pokemons[i]->core->form;
+      Species species = pokemons[i]->core->species;
+      Form form = pokemons[i]->core->form;
       u32 experience = pokemons[i]->core->experience;
       pokemons[i]->accessor->Encrypt();
       u8 level =

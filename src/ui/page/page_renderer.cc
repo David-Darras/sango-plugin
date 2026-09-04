@@ -15,10 +15,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "feature/feature_light.h"
-#include "feature/feature_picture.h"
-#include "feature/feature_h3d_model.h"
-#include "feature/feature_text_box.h"
+#include "feature/rendering/feature_light.h"
+#include "feature/rendering/feature_picture.h"
+#include "feature/rendering/feature_h3d_model.h"
+#include "feature/rendering/feature_text_box.h"
 #include "ui/main_application.h"
 #include "ui/page/page_common.h"
 

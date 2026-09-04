@@ -17,41 +17,45 @@
 
 #pragma once
 
-#define STATUS_CONDITION_NONE (0)
-#define STATUS_CONDITION_PARALYSIS (1)
-#define STATUS_CONDITION_SLEEP (2)
-#define STATUS_CONDITION_FREEZE (3)
-#define STATUS_CONDITION_BURN (4)
-#define STATUS_CONDITION_POISON (5)
-#define STATUS_CONDITION_CONFUSION (6)
-#define STATUS_CONDITION_INFATUATION (7)
-#define STATUS_CONDITION_BIND (8)
-#define STATUS_CONDITION_NIGHTMARE (9)
-#define STATUS_CONDITION_CURSE (10)
-#define STATUS_CONDITION_TAUNT (11)
-#define STATUS_CONDITION_TORMENT (12)
-#define STATUS_CONDITION_DISABLE (13)
-#define STATUS_CONDITION_YAWN (14)
-#define STATUS_CONDITION_HEAL_BLOCK (15)
-#define STATUS_CONDITION_GASTRO_ACID (16)
-#define STATUS_CONDITION_ODOR_SLEUTH (17)
-#define STATUS_CONDITION_LEECH_SEED (18)
-#define STATUS_CONDITION_EMBARGO (19)
-#define STATUS_CONDITION_PERISH_SONG (20)
-#define STATUS_CONDITION_INGRAIN (21)
-#define STATUS_CONDITION_BLOCK (22)
-#define STATUS_CONDITION_ENCORE (23)
-#define STATUS_CONDITION_ROOST (24)
-#define STATUS_CONDITION_MOVE_LOCK (25)
-#define STATUS_CONDITION_CHARGE_LOCK (26)
-#define STATUS_CONDITION_CHOICE (27)
-#define STATUS_CONDITION_MUST_HIT (28)
-#define STATUS_CONDITION_MUST_HIT_TARGET (29)
-#define STATUS_CONDITION_MAGNET_RISE (30)
-#define STATUS_CONDITION_MAGNET_RISE_CANCEL (31)
-#define STATUS_CONDITION_TELEKINESIS (32)
-#define STATUS_CONDITION_FREE_FALL (33)
-#define STATUS_CONDITION_ACCURACY_UP (34)
-#define STATUS_CONDITION_AQUA_RING (35)
-#define STATUS_CONDITION_FORCE_MOVE_TYPE (36)
-#define STATUS_CONDITION_POWDER (37)
+#include <types.h>
+
+enum class StatusCondition : u16 {
+  kNone = 0,
+  kParalysis = 1,
+  kSleep = 2,
+  kFreeze = 3,
+  kBurn = 4,
+  kPoison = 5,
+  kConfusion = 6,
+  kInfatuation = 7,
+  kBind = 8,
+  kNightmare = 9,
+  kCurse = 10,
+  kTaunt = 11,
+  kTorment = 12,
+  kDisable = 13,
+  kYawn = 14,
+  kHealBlock = 15,
+  kGastroAcid = 16,
+  kOdorSleuth = 17,
+  kLeechSeed = 18,
+  kEmbargo = 19,
+  kPerishSong = 20,
+  kIngrain = 21,
+  kBlock = 22,
+  kEncore = 23,
+  kRoost = 24,
+  kMoveLock = 25,
+  kChargeLock = 26,
+  kChoice = 27,
+  kMustHit = 28,
+  kMustHitTarget = 29,
+  kMagnetRise = 30,
+  kMagnetRiseCancel = 31,
+  kTelekinesis = 32,
+  kFreeFall = 33,
+  kAccuracyUp = 34,
+  kAquaRing = 35,
+  kForceMoveType = 36,
+  kPowder = 37,
+};

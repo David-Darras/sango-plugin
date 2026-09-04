@@ -18,17 +18,25 @@
 #pragma once
 
 #include "common.h"
+#include "game/constant/ability.h"
+#include "game/constant/form.h"
+#include "game/constant/item.h"
+#include "game/constant/pokemon_type.h"
+#include "game/constant/species.h"
 
 namespace global_data {
 struct Pokemon {
-  STATIC_INLINE Pokemon& GetInstance(const u16 species, const u8 form = 0) {
+  STATIC_INLINE Pokemon& GetInstance(const Species species,
+                                     const Form form = static_cast<Form>(0)) {
     Pokemon* table = (Pokemon*)READ32(ADDRESS_GLOBAL_DATA_POKEMON_TABLE);
 
     // cf. 0x0014EAA0
-    u32 index = species;
-    if (form != 0 && table[species].form_index != 0 && form < table[species].
-        form_count) {
-      index = table[species].form_index + form - 1;
+    const u32 species_index = static_cast<u16>(species);
+    const u32 form_index = static_cast<u8>(form);
+    u32 index = species_index;
+    if (form_index != 0 && table[species_index].form_index != 0
+        && form_index < table[species_index].form_count) {
+      index = table[species_index].form_index + form_index - 1;
     }
 
     return table[index];
@@ -40,17 +48,17 @@ struct Pokemon {
   u8 base_speed;
   u8 base_special_attack;
   u8 base_special_defense;
-  u8 type[2];
+  PokemonType type[2];
   u8 capture_rate;
   u8 _0;
   u16 give_effort_values;
-  u16 give_item[3];
-  u8 gender;
+  ItemID give_item[3];
+  u8 gender; // gender *ratio* (0-254 threshold), not a Gender id
   u8 egg_hatch_steps;
   u8 base_friendship;
   u8 _1;
   u8 egg_group[2];
-  u8 ability[3];
+  Ability ability[3];
   u8 escape_rate;
   u16 form_index;
   u16 form_index_2;
