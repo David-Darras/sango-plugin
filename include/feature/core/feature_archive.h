@@ -19,8 +19,8 @@
 #include "archive.h"
 #include "common.h"
 #include "feature/core/hook_manager.h"
+#include "game/archive/bclim.h"
 #include "kaizo/kaizo.h"
-#include "ui/log_application.h"
 
 namespace feature {
 class ArchivePatch {
@@ -33,9 +33,29 @@ public:
     HookManager::Initialize(HookID::kReadFileAsync2,
                             ADDRESS_ARCHIVE_READ_FILE_ASYNC_2,
                             (uptr)ReadFileAsync2);
+    HookManager::Initialize(HookID::kReadFileAsync2,
+                            ADDRESS_ARCHIVE_READ_FILE_ASYNC_2,
+                            (uptr)ReadFileAsync2);
+    HookManager::Initialize(HookID::kArchiveLoadData,
+                            ADDRESS_ARCHIVE_LOAD_DATA,
+                            (uptr)LoadDataHook);
     // HookManager::Initialize(HookID::kReadMapFile,
     //                         0x003A0C44,
     //                         (uptr)ReadMapFile);
+  }
+
+  static void LoadDataHook(uptr self, u32 id, uptr heap, uptr buffer,
+                           uptr buffer_size, u32* size) {
+    HookManager::Call<void>(HookID::kArchiveLoadData, self, id,
+                            heap, buffer, buffer_size, size);
+    auto* footer = (BclimFooter*)(buffer + buffer_size);
+    footer--;
+    if (footer->signature != 0x4D494C43) return;
+
+    u8* p = (u8*)buffer;
+    for (u32 i = 0; i < footer->pixel_data_size; i++) {
+      p[i] = 0xFF;
+    }
   }
 
   struct Input {

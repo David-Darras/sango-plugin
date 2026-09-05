@@ -92,6 +92,7 @@ enum class HookID : u32 {
   kReplacePokemonModel,
   kReadFileAsync,
   kReadFileAsync2,
+  kArchiveLoadData,
   kMainProcessLoop,
   kUpdateBattleView,
   kGlobalDataLoadMegaEvolutionTable,

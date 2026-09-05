@@ -28,9 +28,9 @@
 ///   auto* footer = (const BclimFooter*)(file + size - sizeof(BclimFooter));
 struct BclimFooter {
   u32 signature; // Identifies the block: 'CLIM'
-  u16 byte_order;
+  u16 byte_order; // little-endian : 0xFEFF
   u16 header_size;
-  u32 version;
+  u32 version; // 0x02020000
   u32 file_size; // Size of the whole .bclim file (pixel data + this footer)
   u16 block_count; // Always 1 (the "imag" block below)
   u16 _0; // Padding

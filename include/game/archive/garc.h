@@ -98,7 +98,7 @@ struct Fimb {
 struct Garc {
   u32 signature; // Identifies the block: 'GARC'
   u32 block_size; // Size of this block only, NOT the whole archive
-  u16 byte_order;
+  u16 byte_order; // little-endian : 0xFEFF
   u16 version;
   u16 block_count; // Number of blocks after this header
   u16 _0; // Padding
