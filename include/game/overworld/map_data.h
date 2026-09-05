@@ -76,7 +76,7 @@ struct MapData {
   }
 
   INLINE EncounterData& GetEncounterData() {
-    return *(EncounterData*)resource_pack[choice]->GetResource(3);
+    return *(EncounterData*)bundle[choice]->GetResource(3);
   }
 
   u32 _0;
@@ -86,7 +86,7 @@ struct MapData {
   u16 next_map_id;
 
   u8 buffer[2][0x4A58];
-  ResourcePack* resource_pack[2];
+  Bundle* bundle[2];
   u8 buffer2[0x4A58];
   u8 choice;
 

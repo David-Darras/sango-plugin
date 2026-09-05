@@ -34,10 +34,10 @@ struct CommonResource {
   }
 
   void* graphics_buffer;
-  ResourcePack* graphics_pack;
+  Bundle* graphics_pack;
 
   void* navi_dex_buffer;
-  ResourcePack* navi_dex_pack;
+  Bundle* navi_dex_pack;
 
   // other data
 };

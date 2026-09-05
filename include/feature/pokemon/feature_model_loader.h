@@ -59,7 +59,7 @@ public:
       return false;
     }
 
-    out->model_pack = ReadFile(ARCHIVE_OVERWORLD_MODEL, model_id, true);
+    out->model_pack = ReadFile(ArchiveID::kOverworldModel, model_id, true);
     out->model_resource = AttachPackEntry(out->model_pack, 0);
     if (out->model_resource == nullptr) return false;
 
@@ -101,10 +101,10 @@ public:
           : POKEMON_FILE_SECTION_TEXTURE_NORMAL;
 
     out->model_pack =
-        ReadFile(ARCHIVE_POKEMON_MODEL, pack_top + POKEMON_FILE_SECTION_COMMON,
-                 true);
+        ReadFile(ArchiveID::kPokemonModel,
+                 pack_top + POKEMON_FILE_SECTION_COMMON, true);
     out->texture_pack =
-        ReadFile(ARCHIVE_POKEMON_MODEL, pack_top + texture_slot, true);
+        ReadFile(ArchiveID::kPokemonModel, pack_top + texture_slot, true);
 
     out->model_resource = AttachPackEntry(out->model_pack, 0);
     out->texture_resource = AttachPackEntry(out->texture_pack, 0);
@@ -183,10 +183,11 @@ private:
     return nullptr;
   }
 
-  static void* OpenArchive(u32 archive_id) {
+  static void* OpenArchive(ArchiveID archive_id) {
     static void* archives[256] = {};
-    if (archive_id >= 256) return nullptr;
-    if (archives[archive_id] != nullptr) return archives[archive_id];
+    const u32 index = static_cast<u32>(archive_id);
+    if (index >= 256) return nullptr;
+    if (archives[index] != nullptr) return archives[index];
 
     void* heap = DeviceHeap();
     if (heap == nullptr) return nullptr;
@@ -197,12 +198,12 @@ private:
         heap, kSizeOfArcFile, 4);
     if (archive == nullptr) return nullptr;
     ((void (*)(void*, void*, u32, u32))ADDRESS_ARCHIVE_INITIALIZE)(
-        archive, heap, archive_id, kOpen);
-    archives[archive_id] = archive;
+        archive, heap, index, kOpen);
+    archives[index] = archive;
     return archive;
   }
 
-  static void* ReadFile(u32 archive_id, u32 file_id, bool compressed,
+  static void* ReadFile(ArchiveID archive_id, u32 file_id, bool compressed,
                         u32* out_size = nullptr) {
     void* archive = OpenArchive(archive_id);
     if (archive == nullptr) return nullptr;
@@ -232,12 +233,12 @@ private:
 
   static renderer::H3dResource* AttachPackEntry(void* pack, u32 index) {
     if (pack == nullptr) return nullptr;
-    auto* resource_pack = (ResourcePack*)pack;
-    if (index >= resource_pack->file_count) return nullptr;
+    auto* bundle = (Bundle*)pack;
+    if (index >= bundle->resource_count) return nullptr;
 
     auto* resource = renderer::H3dResource::Create(DeviceHeap());
     if (resource == nullptr) return nullptr;
-    resource->SetData((void*)resource_pack->GetResource(index));
+    resource->SetData((void*)bundle->GetResource(index));
     return resource;
   }
 
@@ -245,7 +246,7 @@ private:
     auto& context = GetInstance();
     if (context.pokemon_table_ == nullptr) {
       context.pokemon_table_ =
-          ReadFile(ARCHIVE_POKEMON_MODEL, POKEMON_FILE_SPECIES_TABLE, false);
+          ReadFile(ArchiveID::kPokemonModel, POKEMON_FILE_SPECIES_TABLE, false);
     }
     return context.pokemon_table_;
   }
@@ -257,13 +258,13 @@ private:
 
     if (context.pokemon_common_count_ == 0) {
       void* pack =
-          ReadFile(ARCHIVE_POKEMON_MODEL, POKEMON_FILE_COMMON_SHADER, false);
+          ReadFile(ArchiveID::kPokemonModel, POKEMON_FILE_COMMON_SHADER, false);
       if (pack == nullptr) return;
-      auto* resource_pack = (ResourcePack*)pack;
-      const u32 count = resource_pack->file_count;
+      auto* bundle = (Bundle*)pack;
+      const u32 count = bundle->resource_count;
       for (u32 i = 0; i < count; ++i) {
         if (context.pokemon_common_count_ >= 8) break;
-        auto* entry = (u32*)resource_pack->GetResource(i);
+        auto* entry = (u32*)bundle->GetResource(i);
         if ((entry[0] & 0xFFFFFF) != 0x484342) continue;
         auto* resource = renderer::H3dResource::Create(DeviceHeap());
         if (resource == nullptr) break;

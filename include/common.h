@@ -386,19 +386,22 @@ struct Message {
   }
 };
 
-struct ResourcePack {
+/// A lightweight container bundling several related sub-resources (e.g. a
+/// Pokémon's model + texture + face animation) into one blob, addressed
+/// by index through an offset table.
+struct Bundle {
   u16 signature; // "PC"
-  u16 file_count;
-  u32 file_offset[];
+  u16 resource_count;
+  u32 resource_offset[];
 
-  u32 GetSize(u32 idx) const {
-    u32 safe_idx = (idx >= file_count) ? 0 : idx;
-    return file_offset[safe_idx + 1] - file_offset[safe_idx];
+  u32 GetResourceSize(u32 idx) const {
+    u32 safe_idx = (idx >= resource_count) ? 0 : idx;
+    return resource_offset[safe_idx + 1] - resource_offset[safe_idx];
   }
 
   uptr GetResource(u32 idx) {
-    u32 safe_idx = (idx >= file_count) ? 0 : idx;
-    return ((uptr)this + file_offset[safe_idx]);
+    u32 safe_idx = (idx >= resource_count) ? 0 : idx;
+    return ((uptr)this + resource_offset[safe_idx]);
   }
 };
 

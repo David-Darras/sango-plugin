@@ -248,8 +248,8 @@ public:
   BaseModel* trainer_model[4];
   Environnement* environnement;
   u32 _1;
-  ResourcePack* platform_pack_0;
-  ResourcePack* platform_pack_1;
+  Bundle* platform_pack_0;
+  Bundle* platform_pack_1;
   void* platform_resource[7];
   BaseModel* platform_model[6];
   void* big_platform_resource[2];

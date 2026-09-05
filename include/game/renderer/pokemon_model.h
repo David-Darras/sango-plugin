@@ -19,24 +19,9 @@
 
 #include "archive.h"
 #include "common.h"
+#include "game/archive/bch.h"
 #include "game/constant/gender.h"
-
-enum TextureFormat {
-  rgba8 = 0,
-  rgb8 = 1,
-  rgba5551 = 2,
-  rgb565 = 3,
-  rgba4 = 4,
-  la8 = 5,
-  hilo8 = 6,
-  l8 = 7,
-  a8 = 8,
-  la4 = 9,
-  l4 = 10,
-  a4 = 11,
-  etc1 = 12,
-  etc1a4 = 13
-};
+#include "game/constant/texture_format.h"
 
 struct RadixNode {
   u32 bit_index;
@@ -70,58 +55,34 @@ struct Content {
   RadixMap fog_animations;
 };
 
-struct Section {
-  u32 content;
-  u32 string;
-  u32 command;
-  u32 data;
-  u32 data_ex;
-  u32 relocate;
-};
+// Content lives in Bch::kModelData, but the layout of that section is
+// specific to Pokémon models, so it's kept here rather than in the
+// generic archive/bch.h.
+INLINE Content& GetModelData(Bch& bch) {
+  return *(Content*)bch.GetSection(Bch::kModelData);
+}
 
-struct Resource {
-  u32 signature; // "BCH\0" (0x484342)
-
-  u8 backward_compatibility;
-  u8 forward_compatibility;
-  u16 version;
-
-  Section offset;
-  Section size;
-
-  u16 _0;
-  u16 count;
-
-  INLINE bool IsValid() const {
-    return signature == 0x484342;
-  }
-
-  INLINE Content& GetContent() {
-    return *(Content*)((uptr)this + offset.content);
-  }
-
-  INLINE u32* GetGpuCommands(u32 tex_idx, u32& cmd_count) {
-    u32* elements = (u32*)GetContent().textures.elements;
-    u32* cmd = (u32*)elements[tex_idx];
-    cmd_count = cmd[1];
-    return (u32*)cmd[0];
-  }
-};
+INLINE u32* GetGpuCommands(Bch& bch, u32 tex_idx, u32& cmd_count) {
+  u32* elements = (u32*)GetModelData(bch).textures.elements;
+  u32* cmd = (u32*)elements[tex_idx];
+  cmd_count = cmd[1];
+  return (u32*)cmd[0];
+}
 
 struct PokemonModel {
-  INLINE Resource& GetModel() const {
-    return *(Resource*)model->GetResource(0);
+  INLINE Bch& GetModel() const {
+    return *(Bch*)model->GetResource(0);
   }
 
-  INLINE Resource& GetTexture() const {
-    return *(Resource*)texture->GetResource(0);
+  INLINE Bch& GetTexture() const {
+    return *(Bch*)texture->GetResource(0);
   }
 
   void* vtable;
   u32 _0[123];
-  ResourcePack* model;
-  ResourcePack* face_animation;
-  ResourcePack* texture;
+  Bundle* model;
+  Bundle* face_animation;
+  Bundle* texture;
 };
 
 struct SpeciesMetadata {

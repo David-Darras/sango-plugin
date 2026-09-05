@@ -17,19 +17,21 @@
 
 #pragma once
 
-#include "game/constant/archive_id.h"
+#include <types.h>
 
-#define POKEMON_FILE_SPECIES_TABLE (0)
-#define POKEMON_FILE_COMMON_SHADER (1)
-
-#define POKEMON_FILE_SECTION_COMMON (0)
-#define POKEMON_FILE_SECTION_FACE_ANIMATION (1)
-#define POKEMON_FILE_SECTION_TEXTURE_NORMAL (2)
-#define POKEMON_FILE_SECTION_TEXTURE_SHINY (3)
-#define POKEMON_FILE_SECTION_XXX (4)
-#define POKEMON_FILE_SECTION_BATTLE_ANIMATION (5)
-#define POKEMON_FILE_SECTION_POKEMON_AMIE_ANIMATION (6)
-#define POKEMON_FILE_SECTION_OTHER (7)
-#define POKEMON_FILE_SECTION_COUNT (8)
-
-#define POKEMON_PACK_FIRST_FILE (3)
+enum class TextureFormat : u8 {
+  kRgba8 = 0,
+  kRgb8 = 1,
+  kRgba5551 = 2,
+  kRgb565 = 3,
+  kRgba4 = 4,
+  kLa8 = 5,
+  kHilo8 = 6,
+  kL8 = 7,
+  kA8 = 8,
+  kLa4 = 9,
+  kL4 = 10,
+  kA4 = 11,
+  kEtc1 = 12,
+  kEtc1a4 = 13,
+};

@@ -40,7 +40,7 @@ public:
 
   struct Input {
     u8 priority;
-    u32 archive_id;
+    ArchiveID archive_id;
     u32 file_id;
     bool is_compressed;
     uptr heap[4];
@@ -54,12 +54,13 @@ public:
   //                                  x, y);
   // }
 
-  STATIC_INLINE bool IsArchive(const u32* archive_data, const u32 archive_id) {
+  STATIC_INLINE bool IsArchive(const u32* archive_data,
+                               const ArchiveID archive_id) {
     u32* archive_table = (u32*)ADDRESS_ARCHIVE_FILENAME_TABLE;
-    return archive_data[12] == archive_table[archive_id];
+    return archive_data[12] == archive_table[static_cast<u32>(archive_id)];
   }
 
-  STATIC_INLINE bool IsArchive(const Input* input, const u32 archive_id) {
+  STATIC_INLINE bool IsArchive(const Input* input, const ArchiveID archive_id) {
     return input->archive_id == archive_id;
   }
 
@@ -67,7 +68,7 @@ public:
                              void* buffer,
                              u32 p4, u32 p5, u32 p6) {
 #ifdef KAIZO
-    if (IsArchive(archive, ARCHIVE_OVERWORLD_MODEL)) {
+    if (IsArchive(archive, ArchiveID::kOverworldModel)) {
       file_id = kaizo::PatchOverworldModels(file_id, true);
     }
 #endif
@@ -78,10 +79,10 @@ public:
 
   static bool ReadFileAsync(void* file_manager, Input* input) {
 #ifdef KAIZO
-    if (IsArchive(input, ARCHIVE_OVERWORLD_MODEL)) {
+    if (IsArchive(input, ArchiveID::kOverworldModel)) {
       input->file_id = kaizo::PatchOverworldModels(input->file_id, false);
     }
-    if (IsArchive(input, ARCHIVE_PLAYER_ICON)) {
+    if (IsArchive(input, ArchiveID::kPlayerIcon)) {
       input->file_id = 72; // STEVEN
     }
 #endif
