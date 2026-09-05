@@ -18,13 +18,23 @@
 #pragma once
 
 #include "common.h"
+#include "game/constant/evolution_method.h"
+#include "game/constant/species.h"
 
 namespace global_data {
-struct Evolve {
+struct EvolutionData {
   struct {
-    u16 method;
+    EvolutionMethod method;
+    u8 _0;
     u16 arg;
-    u16 species;
+    Species species;
   } data[8];
+};
+
+struct EvolutionTable {
+  uptr vtable;
+  Species species;
+  u16 _0;
+  EvolutionData* data;
 };
 } // namespace global_data

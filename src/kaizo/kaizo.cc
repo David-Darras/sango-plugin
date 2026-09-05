@@ -19,6 +19,7 @@
 
 #include "feature/battle/feature_battle.h"
 #include "feature/battle/feature_battle_config.h"
+#include "feature/pokemon/feature_evolution.h"
 #include "feature/pokemon/feature_item.h"
 #include "feature/rendering/feature_light.h"
 #include "feature/overworld/feature_map_data_loader.h"
@@ -39,7 +40,6 @@ void Initialize() {
   PatchBattle();
   PatchTrainerModels();
   InitializeOverworldWeather();
-  InitializeEvolveHook();
   InitializeGiftHook();
   InitializeModelHook();
   InitializeStarterHook();

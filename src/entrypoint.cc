@@ -40,6 +40,7 @@
 #include "feature/overworld/feature_overworld.h"
 #include "feature/core/feature_process_patch.h"
 #include "feature/core/feature_script.h"
+#include "feature/pokemon/feature_evolution.h"
 #include "feature/pokemon/feature_mega_evolution.h"
 #include "feature/pokemon/feature_shiny.h"
 #include "ui/main_application.h"
@@ -85,6 +86,7 @@ void Initialize() {
   feature::Shiny::Initialize();
   feature::GameExtension::Initialize();
   feature::MegaEvolution::Initialize();
+  feature::Evolution::Initialize();
 
 #ifdef KAIZO
   kaizo::Initialize();

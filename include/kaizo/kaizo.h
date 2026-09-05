@@ -84,7 +84,6 @@ extern void InitializeOverworldWeather();
 extern void UpdateOverworldWeather();
 extern void InitializeStarterHook();
 extern void InitializeGiftHook();
-extern void InitializeEvolveHook();
 extern void PatchEncounterTable(overworld::EncounterData* data);
 extern const EncounterEntry* GetEncounterEntry(MapID map_id);
 extern void PatchTrainerData(battle::Config& config, u16& trainer_id);
