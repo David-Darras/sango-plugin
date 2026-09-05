@@ -160,6 +160,7 @@ typedef std::function<void()> cheat_code_callback_t;
 #define WRITEF(address, value) *(vf32*)(address) = (value)
 #define WRITEB(address, value) *(volatile bool*)(address) = (value)
 
+#define READ(type, address) *(type*)(address)
 #define READ64(address) *(vu64*)(address)
 #define READ32(address) *(vu32*)(address)
 #define READ16(address) *(vu16*)(address)

@@ -84,10 +84,12 @@ public:
     ui::LogApplication::Print(u"Anim(%u, %u)", id, is_move);
     if (is_move) {
       if (id == static_cast<u32>(kMoveAbsoluteZero)) {
-        id = static_cast<u32>(MoveID::kIcePunch);
+        id = 19;
+        is_move = false;
       }
       if (id == static_cast<u32>(kMoveSolarFlare)) {
-        id = static_cast<u32>(MoveID::kFirePunch);
+        id = 18;
+        is_move = false;
       }
     }
     HookManager::Call<void>(HookID::kBattleLoadAnimation, self, id, is_move);
@@ -104,7 +106,7 @@ public:
       auto& move = *(global_data::Move*)(READ32(self + 8));
       move.power = 0;
       move.accuracy = 100;
-      move.base_pp = 5;
+      move.base_pp = 50;
       move.type = MoveType::kIce;
       move.effect_id = static_cast<u16>(StatusCondition::kFreeze);
       move.effect_rate = 100;
@@ -118,7 +120,7 @@ public:
       auto& move = *(global_data::Move*)(READ32(self + 8));
       move.power = 0;
       move.accuracy = 100;
-      move.base_pp = 5;
+      move.base_pp = 50;
       move.type = MoveType::kFire;
       move.effect_id = static_cast<u16>(StatusCondition::kBurn);
       move.effect_rate = 100;
@@ -148,7 +150,7 @@ public:
     switch (move) {
       case kMoveAbsoluteZero:
         output->Set(
-            u"Instantly freezes the target solid.");
+            u"Summons a hailstorm\nand instantly freezes the target solid.");
         return true;
       case kMoveSolarFlare:
         output->Set(
@@ -211,6 +213,11 @@ public:
                   true);
   }
 
+  static void handler_hail(uptr a, uptr manager, u32 uid, uptr c) {
+    UpdateWeather(manager, uid, BattleWeather::kHail, ItemID::kNone,
+                  true);
+  }
+
   static uptr GetBattleAbilityHandlerHook(battle::Pokemon* pkm) {
     static struct {
       u32 event;
@@ -232,16 +239,25 @@ public:
 
   static uptr GetBattleMoveHandlerHook(battle::Pokemon* pkm, MoveID move,
                                        u32 x) {
-    ui::LogApplication::Print(u"Move Handler %u", static_cast<u16>(move));
-    static struct {
-      u32 event;
-      uptr handler;
-    } table[] = {
-        {39, (uptr)handler_sun}
-    };
-    if (move == kMoveSolarFlare || move == kMoveAbsoluteZero) {
-      // Same address as GetBattleAbilityHandlerHook above: 0 selects the move
-      // handler table, so this call site's id slot is a `MoveID`.
+    if (move == kMoveAbsoluteZero) {
+      static struct {
+        u32 event;
+        uptr handler;
+      } table[] = {
+          {216, (uptr)handler_hail}
+      };
+      return ((uptr(*)(u32, MoveID, u32, u32, u32, u32, u32))
+        ADDRESS_BATTLE_GET_EVENT_HANDLER)(
+          0, move, 0, x, pkm->uid, (uptr)table,
+          SIZE(table));
+    }
+    if (move == kMoveSolarFlare) {
+      static struct {
+        u32 event;
+        uptr handler;
+      } table[] = {
+          {216, (uptr)handler_sun}
+      };
       return ((uptr(*)(u32, MoveID, u32, u32, u32, u32, u32))
         ADDRESS_BATTLE_GET_EVENT_HANDLER)(
           0, move, 0, x, pkm->uid, (uptr)table,

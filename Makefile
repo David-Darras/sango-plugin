@@ -40,7 +40,7 @@ CFLAGS	:=	-mword-relocations \
  			-ffunction-sections -fdata-sections -fno-strict-aliasing \
 			$(ARCH) $(BUILD_FLAGS) $(G) \
 		   -DPLUGIN_CREATOR=\"$(PLUGIN_CREATOR)\" -DPLUGIN_VERSION=\"$(PLUGIN_VERSION)\" \
-		   -DUSE_SANGO_PLUGIN # -DUSE_DEFAULT_CTRPF # -DKAIZO
+		   -DUSE_SANGO_PLUGIN # -DUSE_DEFAULT_CTRPF -DKAIZO
 
 CFLAGS		+=	$(INCLUDE) -D__3DS__ $(DEFINES)
 

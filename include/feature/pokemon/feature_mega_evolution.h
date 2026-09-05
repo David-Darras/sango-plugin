@@ -19,10 +19,11 @@
 #include "common.h"
 #include "feature/core/hook_manager.h"
 #include "game/constant/item.h"
-#include "game/global_data/item.h"
 #include "game/global_data/mega_evolution.h"
 
 #include "kaizo/kaizo.h"
+
+extern s32 mega_step;
 
 namespace feature {
 class MegaEvolution {
@@ -41,19 +42,11 @@ class MegaEvolution {
     auto& mega_evolve_table = *(global_data::MegaEvolutionTable*)
         READ32(ADDRESS_GLOBAL_DATA_MEGA_EVOLUTION_TABLE);
     auto& table = *mega_evolve_table.data;
-    if (species == Species::kWailord) {
-      table.entry[0].form = Form::kMega;
+    if (species == Species::kMimeJr) {
+      table.entry[0].form = static_cast<Form>(10);
       table.entry[0].method = MegaEvolutionMethod::kItem;
-      table.entry[0].item = ItemID::kMeteorite3;
-      ui::LogApplication::Print(u"Mega-Wailord");
+      table.entry[0].item = ItemID::kLifeOrb;
     }
-    if (species == Species::kVenusaur) {
-      table.entry[0].form = Form::kVenusaurNormal;
-      table.entry[0].method = MegaEvolutionMethod::kNone;
-      table.entry[0].item = ItemID::kNone;
-    }
-    ui::LogApplication::Print(u"%u %u %u %u", species, table.entry[0].form,
-                              table.entry[0].method, table.entry[0].item);
   }
 };
 }

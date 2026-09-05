@@ -21,7 +21,11 @@
 #include "ui/page/page_top.h"
 
 #include "config_manager.h"
+#include "feature/battle/feature_game_extension.h"
 #include "feature/pokemon/feature_shiny.h"
+#include "game/savedata/pokemon_team.h"
+#include "game/savedata/settings.h"
+#include "game/savedata/trainer_status.h"
 
 namespace ui {
 void LoadShinyPage(MainApplication& app, void* args) {
@@ -38,8 +42,23 @@ void LoadShinyPage(MainApplication& app, void* args) {
      .WithBounds(0, SIZE(SHINY_RATES) - 1);
 }
 
+void Test(void*) {
+  auto& team = savedata::PokemonTeam::GetInstance();
+  team.pokemons[0]->accessor->Decrypt();
+  team.pokemons[0]->core->moves[0] = kMoveAbsoluteZero;
+  team.pokemons[0]->core->moves[1] = kMoveSolarFlare;
+  team.pokemons[0]->accessor->Encrypt();
+  team.HealAllPokemons();
+
+  savedata::Settings::GetInstance().language_id = 2;
+  Core::GetInstance().GetLanguageId() = 2;
+  WRITE32(ADDRESS_LANGUAGE_ID, 2);
+  savedata::TrainerStatus::GetInstance().language = 2;
+}
+
 void LoadTopPage(MainApplication& app, void* args) {
-  app.Add("Game Speed", feature::Engine::GetInstance().game_speed)
+  app.Add("Test", Test)
+     .Add("Game Speed", feature::Engine::GetInstance().game_speed)
      .Add("Repel", CheatCodeId::kNoEncounter)
      .Add("Overworld", LoadOverworldPage)
      .Add("Save Data", LoadSaveDataPage)

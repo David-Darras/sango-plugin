@@ -16,6 +16,7 @@
  */
 #include "common.h"
 #include "feature/core/hook_manager.h"
+#include "feature/pokemon/feature_mega_evolution.h"
 #include "game/constant/form.h"
 #include "game/constant/model.h"
 #include "game/constant/species.h"
@@ -119,6 +120,27 @@ static void ReplacePokemonModelHook(void* model, PokeInfo* poke_info,
                                     void* p1, void* p2, void* p3) {
   if (is_enabled) {
     PatchPokemonModels(poke_info);
+  }
+  if (poke_info->species == Species::kMimeJr
+      && poke_info->form == static_cast<Form>(10)) {
+    mega_step++;
+    if (mega_step == 1) {
+      poke_info->species = Species::kSmoochum;
+      poke_info->is_shiny = false;
+      poke_info->form = Form::kNormal;
+    } else if (mega_step == 2) {
+      poke_info->species = Species::kJynx;
+      poke_info->is_shiny = false;
+      poke_info->form = Form::kNormal;
+    } else if (mega_step == 3) {
+      poke_info->species = Species::kGardevoir;
+      poke_info->is_shiny = false;
+      poke_info->form = Form::kNormal;
+    } else if (mega_step == 4) {
+      poke_info->species = Species::kGarchomp;
+      poke_info->is_shiny = true;
+      poke_info->form = Form::kGarchompMega;
+    }
   }
   HookManager::Call<void>(HookID::kReplacePokemonModel, model, poke_info, p0,
                           p1, p2, p3);

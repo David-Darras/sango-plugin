@@ -36,9 +36,9 @@ public:
     HookManager::Initialize(HookID::kReadFileAsync2,
                             ADDRESS_ARCHIVE_READ_FILE_ASYNC_2,
                             (uptr)ReadFileAsync2);
-    HookManager::Initialize(HookID::kArchiveLoadData,
-                            ADDRESS_ARCHIVE_LOAD_DATA,
-                            (uptr)LoadDataHook);
+    // HookManager::Initialize(HookID::kArchiveLoadData,
+    //                         ADDRESS_ARCHIVE_LOAD_DATA,
+    //                         (uptr)LoadDataHook);
     // HookManager::Initialize(HookID::kReadMapFile,
     //                         0x003A0C44,
     //                         (uptr)ReadMapFile);

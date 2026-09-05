@@ -47,7 +47,7 @@ public:
   bool inverse_stats = false;
   bool metronome_only = false;
 
-  bool mega_restriction = true;
+  bool mega_restriction = false;
 
   struct LevelUpData {
     u32 exp;
@@ -127,6 +127,10 @@ public:
       }
     }
 
+    if (!feat.mega_restriction) {
+      battle::Manager::GetInstance().ResetMegaEvolutions();
+    }
+
     if (feat.sync_team_hp) {
       bool kill_all = false;
       auto& server_team = battle::Manager::GetTeam(true, 0);
@@ -187,6 +191,12 @@ public:
     if (!feat.mega_restriction) {
       ARM_NOP(ADDRESS_BATTLE_MEGA_RESTRICTION_CHECK);
       ARM_NOP(ADDRESS_BATTLE_MEGA_RESTRICTION_CHECK_2);
+
+#ifndef KAIZO
+      // A pokemon can always mega evolve
+      WRITE32(0x004D2970, 0xE3A00001);
+      ARM_RET(0x004D2974);
+#endif
     }
   }
 
@@ -247,7 +257,8 @@ public:
 
   static void UpdateGauge(uptr gauge, u16 max_hp, u32 new_hp) {
     HookManager::Call<void>(HookID::kBattleUpdateGauge, gauge, max_hp, new_hp);
-    uptr res = ((uptr(*)(uptr))ADDRESS_BATTLE_HP_GAUGE_GET_PANE)(READ32(gauge + 48));
+    uptr res = ((uptr(*)(uptr))ADDRESS_BATTLE_HP_GAUGE_GET_PANE)(
+        READ32(gauge + 48));
 
     f32 ratio = (max_hp > 0) ? (f32)new_hp / (f32)max_hp : 0.0f;
     Color8 color = GetHpGaugeColor(ratio);
@@ -269,7 +280,8 @@ public:
 
   static void PatchPokemonSize() {
     for (u32 i = 0; i < 6; i++) {
-      u32 pkmMdl = READ32(ADDRESS_BATTLE_POKEMON_MODEL_TABLE + 4 * i); // Base address of the 3D model
+      u32 pkmMdl = READ32(ADDRESS_BATTLE_POKEMON_MODEL_TABLE + 4 * i);
+      // Base address of the 3D model
       if (pkmMdl == 0)
         continue;
 

@@ -38,7 +38,7 @@ SECTIONS
 		KEEP( *(.fini) )
 		. = ALIGN(4);
 	} : code
-	__text_end__ = .;
+	__text_end__ = .; 
 
 	/* =========== RODATA section =========== */
 

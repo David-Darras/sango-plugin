@@ -8,7 +8,7 @@ sango_plugin.txt
 /release
 *.3gx
 *.elf
-*.idb
+*.idb 
 *.id0
 *.id1
 *.id2

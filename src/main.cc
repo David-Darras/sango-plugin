@@ -24,6 +24,7 @@ int main() {
 #ifdef USE_SANGO_PLUGIN
   Initialize();
 #endif
+
 #ifdef USE_DEFAULT_CTRPF
   PluginMenu menu;
   menu.SynchronizeWithFrame(true);

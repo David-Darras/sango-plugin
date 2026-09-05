@@ -43,6 +43,7 @@
 #include "feature/pokemon/feature_evolution.h"
 #include "feature/pokemon/feature_mega_evolution.h"
 #include "feature/pokemon/feature_shiny.h"
+#include "game/savedata/settings.h"
 #include "ui/main_application.h"
 #include "system/device.h"
 #include "system/file.h"
@@ -50,8 +51,14 @@
 #include "ui/application_manager.h"
 #include "ui/root_application.h"
 
+namespace kaizo {
+extern void InitializeModelHook();
+}
+
 String String::s_tmp;
 c16 String::s_buffer[128];
+
+s32 mega_step = 0;
 
 extern void UpdateOverworldWeather();
 extern void InitOverworldWeather();
@@ -90,8 +97,9 @@ void Initialize() {
 
 #ifdef KAIZO
   kaizo::Initialize();
+#else
+  kaizo::InitializeModelHook();
 #endif
-
   ConfigManager::Load();
 
   auto& application_manager = ui::ApplicationManager::GetInstance();

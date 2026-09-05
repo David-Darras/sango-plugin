@@ -169,6 +169,10 @@ public:
     return (GetInstance().client_.teams[team_idx]);
   }
 
+  INLINE void ResetMegaEvolutions() {
+    *(u32*)has_mega_evolved_ = 0;
+  }
+
 private:
   void* heaps_[4];
   Config* config_;
