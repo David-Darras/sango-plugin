@@ -20,8 +20,6 @@
 #include "feature/core/hook_manager.h"
 #include "game/constant/item.h"
 #include "game/global_data/item.h"
-#include "ui/log_application.h"
-#include <CTRPluginFramework/System/Hook.hpp>
 
 #include "kaizo/kaizo.h"
 

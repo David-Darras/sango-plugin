@@ -76,9 +76,48 @@ public:
 
 class MemoryManager {
   MAKE_SINGLETON(MemoryManager);
-  static bool ToggleProtection(u32 address, bool on);
-  static bool Unprotect(u32 address, u32 size);
-  static bool Protect(u32 address, u32 size);
+
+  static bool ToggleProtection(u32 address, bool on) {
+    u32 pID;
+    if (R_FAILED(svcGetProcessId(&pID, CUR_PROCESS_HANDLE))) {
+      return false;
+    }
+
+    Handle processHandle;
+    if (R_FAILED(svcOpenProcess(&processHandle, pID))) {
+      return false;
+    }
+
+    MemInfo mInfo;
+    PageInfo pInfo;
+    if (R_FAILED(svcQueryMemory(&mInfo, &pInfo, address))) {
+      svcCloseHandle(processHandle);
+      return false;
+    }
+
+    MemPerm perm = on
+                     ? MemPerm(MEMPERM_READ | MEMPERM_EXECUTE | MEMPERM_WRITE)
+                     : MemPerm(MEMPERM_READ | MEMPERM_EXECUTE);
+
+    Result res = svcControlProcessMemory(processHandle, mInfo.base_addr, 0,
+                                         mInfo.size, MemOp(MEMOP_PROT), perm);
+
+    // ui::LogApplication::Print(u"%s %X, %X, %X",
+    //                           on ? "Unprotect" : "Protect",
+    //                           mInfo.base_addr,
+    //                           mInfo.size, processHandle);
+
+    svcCloseHandle(processHandle);
+    return R_SUCCEEDED(res);
+  }
+
+  static bool Unprotect(u32 address, u32 size) {
+    return ToggleProtection(address, true);
+  }
+
+  static bool Protect(u32 address, u32 size) {
+    return ToggleProtection(address, false);
+  }
 };
 
 class MemoryRange {

@@ -20,6 +20,9 @@
 #include <types.h>
 
 enum class Form : u8 {
+  kNormal = 0,
+  kMega = 1,
+
   kVenusaurNormal = 0,
   kVenusaurMega = 1,
   kVenusaurCount = 2,

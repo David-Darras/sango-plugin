@@ -34,7 +34,7 @@ struct Table {
 };
 
 void PatchEvolve(Species species) {
-  Table* table = (Table*)READ32(ADDRESS_GLOBAL_DATA_EVOLVE_TABLE + 0x34);
+  Table* table = (Table*)READ32(ADDRESS_GLOBAL_DATA_EVOLVE_TABLE);
   auto& evolve = *table->evolve;
   switch (species) {
     case Species::kMachoke:

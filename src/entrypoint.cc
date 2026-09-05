@@ -40,6 +40,7 @@
 #include "feature/overworld/feature_overworld.h"
 #include "feature/core/feature_process_patch.h"
 #include "feature/core/feature_script.h"
+#include "feature/pokemon/feature_mega_evolution.h"
 #include "feature/pokemon/feature_shiny.h"
 #include "ui/main_application.h"
 #include "system/device.h"
@@ -83,12 +84,12 @@ void Initialize() {
   feature::AppStatus::Initialize();
   feature::Shiny::Initialize();
   feature::GameExtension::Initialize();
+  feature::MegaEvolution::Initialize();
 
 #ifdef KAIZO
   kaizo::Initialize();
 #endif
 
-  // Loaded last so the saved config overrides the defaults set above.
   ConfigManager::Load();
 
   auto& application_manager = ui::ApplicationManager::GetInstance();
@@ -122,7 +123,7 @@ void Entrypoint() {
   kaizo::UpdateOverworldWeather();
 #endif
 
-  // UpdateFollowingPokemon();
+  UpdateFollowingPokemon();
 
   void* top_buffer = graphics.GetFramebuffer(Screen::kTop);
   if (graphics.BindFramebuffer(top_buffer)) {
@@ -140,46 +141,4 @@ void Entrypoint() {
     application->DrawBottom(graphics);
     Graphics::DisableScissor();
   }
-}
-
-bool MemoryManager::Unprotect(u32 address, u32 size) {
-  return ToggleProtection(address, true);
-}
-
-bool MemoryManager::Protect(u32 address, u32 size) {
-  return ToggleProtection(address, false);
-}
-
-bool MemoryManager::ToggleProtection(u32 address, bool on) {
-  u32 pID;
-  if (R_FAILED(svcGetProcessId(&pID, CUR_PROCESS_HANDLE))) {
-    return false;
-  }
-
-  Handle processHandle;
-  if (R_FAILED(svcOpenProcess(&processHandle, pID))) {
-    return false;
-  }
-
-  MemInfo mInfo;
-  PageInfo pInfo;
-  if (R_FAILED(svcQueryMemory(&mInfo, &pInfo, address))) {
-    svcCloseHandle(processHandle);
-    return false;
-  }
-
-  MemPerm perm = on
-                   ? MemPerm(MEMPERM_READ | MEMPERM_EXECUTE | MEMPERM_WRITE)
-                   : MemPerm(MEMPERM_READ | MEMPERM_EXECUTE);
-
-  Result res = svcControlProcessMemory(processHandle, mInfo.base_addr, 0,
-                                       mInfo.size, MemOp(MEMOP_PROT), perm);
-
-  // ui::LogApplication::Print(u"%s %X, %X, %X",
-  //                           on ? "Unprotect" : "Protect",
-  //                           mInfo.base_addr,
-  //                           mInfo.size, processHandle);
-
-  svcCloseHandle(processHandle);
-  return R_SUCCEEDED(res);
 }

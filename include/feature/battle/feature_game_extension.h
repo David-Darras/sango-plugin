@@ -81,6 +81,7 @@ public:
   // `id` is polymorphic here (a move id only when `is_move` is set,
   // something else otherwise), so it stays a raw u32.
   static void BattleLoadAnimationHook(uptr self, u32 id, bool is_move) {
+    ui::LogApplication::Print(u"Anim(%u, %u)", id, is_move);
     if (is_move) {
       if (id == static_cast<u32>(kMoveAbsoluteZero)) {
         id = static_cast<u32>(MoveID::kIcePunch);

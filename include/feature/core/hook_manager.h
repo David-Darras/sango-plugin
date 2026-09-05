@@ -94,6 +94,7 @@ enum class HookID : u32 {
   kReadFileAsync2,
   kMainProcessLoop,
   kUpdateBattleView,
+  kGlobalDataLoadMegaEvolutionTable,
   kMax
 };
 

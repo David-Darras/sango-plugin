@@ -34,7 +34,7 @@
 static const c16* kConfigFilename =
     u"sdmc:/luma/plugins/000400000011C500/sango.cfg";
 
-static const u32 kConfigVersion = 7; // bumped: BattleConfig layout changed (enum class fields)
+static const u32 kConfigVersion = 7;
 
 bool ConfigManager::Load() {
   auto& theme = ui::Theme::GetInstance();
