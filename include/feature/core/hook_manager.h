@@ -67,6 +67,7 @@ enum class HookID : u32 {
   kBattleGetAbilityHandler,
   kBattleGetMoveHandler,
   kBattleLoadAnimation,
+  kBattleAddTerrain,
   kSetAbilityName,
   kSetMoveName,
   kGetAbilityDescription,
@@ -96,6 +97,8 @@ enum class HookID : u32 {
   kMainProcessLoop,
   kUpdateBattleView,
   kGlobalDataLoadMegaEvolutionTable,
+  kParticleCreate,
+  kResourceAttachBufferAndSetup,
   kMax
 };
 

@@ -27,6 +27,7 @@
 #include "feature/core/feature_script.h"
 #include "feature/pokemon/feature_shiny.h"
 #include "feature/rendering/feature_text_box.h"
+#include "feature/weather_manager.h"
 #include "feature/ui/feature_title_screen.h"
 #include "system/file.h"
 #include "ui/theme.h"
@@ -34,7 +35,7 @@
 static const c16* kConfigFilename =
     u"sdmc:/luma/plugins/000400000011C500/sango.cfg";
 
-static const u32 kConfigVersion = 7;
+static const u32 kConfigVersion = 10;
 
 bool ConfigManager::Load() {
   auto& theme = ui::Theme::GetInstance();
@@ -51,6 +52,7 @@ bool ConfigManager::Load() {
   auto& shiny = feature::Shiny::GetInstance();
   auto& text_box = feature::TextBox::GetInstance();
   auto& title_screen = feature::TitleScreen::GetInstance();
+  auto& weather_manager = feature::WeatherManager::GetInstance();
 
 #define FILE_READ(x) size = file.Read(&x, sizeof(x)); if(size < sizeof(x)) return false;
 
@@ -76,6 +78,7 @@ bool ConfigManager::Load() {
   FILE_READ(text_box);
   FILE_READ(title_screen);
   FILE_READ(shiny);
+  FILE_READ(weather_manager);
 
 #undef FILE_READ
 
@@ -97,6 +100,7 @@ void ConfigManager::Save(void*) {
   auto& shiny = feature::Shiny::GetInstance();
   auto& text_box = feature::TextBox::GetInstance();
   auto& title_screen = feature::TitleScreen::GetInstance();
+  auto& weather_manager = feature::WeatherManager::GetInstance();
 
 #define FILE_WRITE(x) file.Write(&x, sizeof(x))
 
@@ -117,6 +121,7 @@ void ConfigManager::Save(void*) {
   FILE_WRITE(text_box);
   FILE_WRITE(title_screen);
   FILE_WRITE(shiny);
+  FILE_WRITE(weather_manager);
 
 #undef FILE_WRITE
 }

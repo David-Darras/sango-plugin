@@ -217,6 +217,18 @@ struct H3dModel {
                          SCALE_1);
   }
 
+  INLINE void ApplyTintPink() {
+    this->SetConstant(5, 0, 255, 20, 200);
+    this->ConfigureStage(5, MODULATE, PREVIOUS, COLOR, CONSTANT, COLOR,
+                         SCALE_1);
+  }
+
+  INLINE void ApplyTintPurple() {
+    this->SetConstant(5, 0, 150, 20, 220);
+    this->ConfigureStage(5, MODULATE, PREVIOUS, COLOR, CONSTANT, COLOR,
+                         SCALE_1);
+  }
+
   INLINE void ApplyNightVision() {
     this->SetConstant(4, 0, 40, 255, 40);
     this->ConfigureStage(4, MODULATE, PREVIOUS, COLOR, CONSTANT, COLOR,
@@ -309,6 +321,25 @@ struct H3dModel {
     }
     this->SetConstant(5, 0, 255, 255, 255, 128);
     this->ConfigureAlphaStage(5, MODULATE, PREVIOUS, 0, CONSTANT, 0);
+  }
+};
+
+struct Particle {
+  uptr vtable;
+
+  INLINE s32 GetModelCount() {
+    return ((s32(*)(Particle*))
+      ADDRESS_PARTICLE_GET_MODEL_COUNT)(this);
+  }
+
+  INLINE H3dModel* GetModel(s32 index) {
+    return ((H3dModel*(*)(Particle*, s32))
+      ADDRESS_PARTICLE_GET_MODEL)(this, index);
+  }
+
+  INLINE void SetScale(f32 x, f32 y, f32 z) {
+    return ((void(*)(Particle*, f32, f32, f32))
+      ADDRESS_PARTICLE_SET_SCALE)(this, x, y, z);
   }
 };
 } // namespace renderer

@@ -18,6 +18,7 @@
 #pragma once
 #include "common.h"
 #include "feature/core/hook_manager.h"
+#include "feature/weather_manager.h"
 #include "game/battle/manager.h"
 #include "game/constant/ability.h"
 #include "game/constant/item.h"
@@ -30,7 +31,9 @@
 // Plugin-defined extensions to the game's ability / move ID spaces. They are
 // not part of the vanilla tables in game/constant, so they are declared here
 // as typed constants rather than added to the enums themselves.
-constexpr Ability kAbilityRandom = static_cast<Ability>(255);
+constexpr Ability kAbilityToxicDrizzle = static_cast<Ability>(255);
+constexpr Ability kAbilityRadioactiveDrizzle = static_cast<Ability>(254);
+constexpr Ability kAbilityRealityWarp = static_cast<Ability>(253);
 constexpr MoveID kMoveAbsoluteZero = static_cast<MoveID>(863);
 constexpr MoveID kMoveSolarFlare = static_cast<MoveID>(864);
 
@@ -73,15 +76,25 @@ public:
                             ADDRESS_BATTLE_LOAD_ANIMATION,
                             (uptr)BattleLoadAnimationHook,
                             false);
+    HookManager::Initialize(HookID::kBattleAddTerrain,
+                            0x00718B10,
+                            (uptr)BattleAddTerrainHook,
+                            false);
     HookManager::Initialize(HookID::kLoadMoveData,
                             ADDRESS_LOAD_MOVE_DATA,
                             (uptr)LoadMoveData);
   }
 
+  static u32 BattleAddTerrainHook(u32 a, u32 b) {
+    u32 res = HookManager::Call<u32>(HookID::kBattleAddTerrain, a, b);
+    ui::LogApplication::Print(u"res=%u", res);
+    return res;
+  }
+
   // `id` is polymorphic here (a move id only when `is_move` is set,
   // something else otherwise), so it stays a raw u32.
   static void BattleLoadAnimationHook(uptr self, u32 id, bool is_move) {
-    ui::LogApplication::Print(u"Anim(%u, %u)", id, is_move);
+    // ui::LogApplication::Print(u"Anim(%u, %u)", id, is_move);
     if (is_move) {
       if (id == static_cast<u32>(kMoveAbsoluteZero)) {
         id = 19;
@@ -163,8 +176,14 @@ public:
 
   static bool PatchAbilityName(Ability ability, String* output) {
     switch (ability) {
-      case kAbilityRandom:
-        output->Set(u"Random");
+      case kAbilityToxicDrizzle:
+        output->Set(u"Toxic Drizzle");
+        return true;
+      case kAbilityRadioactiveDrizzle:
+        output->Set(u"Radioactive Drizzle");
+        return true;
+      case kAbilityRealityWarp:
+        output->Set(u"Reality Warp");
         return true;
       default:
         return false;
@@ -173,8 +192,16 @@ public:
 
   static bool PatchAbilityDescription(Ability ability, String* output) {
     switch (ability) {
-      case kAbilityRandom:
-        output->Set(u"???");
+      case kAbilityToxicDrizzle:
+        output->Set(u"Summons acid rain that\npoisons all Pokémon on entry.");
+        return true;
+      case kAbilityRadioactiveDrizzle:
+        output->Set(
+            u"Summons a radioactive rain\nthat triggers Imposter on entry.");
+        return true;
+      case kAbilityRealityWarp:
+        output->Set(
+            u"???");
         return true;
       default:
         return false;
@@ -185,6 +212,7 @@ public:
     HookManager::ForceEnable(HookID::kBattleGetAbilityHandler);
     HookManager::ForceEnable(HookID::kBattleGetMoveHandler);
     HookManager::ForceEnable(HookID::kBattleLoadAnimation);
+    HookManager::ForceEnable(HookID::kBattleAddTerrain);
   }
 
   static u32 GetValue(u32 var) {
@@ -197,15 +225,92 @@ public:
       ADDRESS_BATTLE_UPDATE_WEATHER)(manager, uid, weather, item, infinite);
   }
 
-  static void handler_random(uptr a, uptr manager, u32 uid, uptr c) {
-    static u8 weather = 0;
-    weather++;
-    if (weather == 6) weather = 0;
-    UpdateWeather(manager, uid, static_cast<BattleWeather>(1 + weather),
-                  ItemID::kNone, true);
+  static void handler_toxic(uptr a, uptr manager, u32 uid, uptr c) {
+    feature::WeatherManager::GetInstance().mode = feature::WeatherMode::kToxic;
+    UpdateWeather(manager, uid, BattleWeather::kRain, ItemID::kNone, true);
+
+    {
+      uptr p = ((uptr(*)(uptr, u32, u32))0x00762CC0)(manager, 11, 12);
+      WRITE8(p + 4, 5);
+      WRITE32(p + 8, 1);
+      WRITE32(p + 12, 0);
+      WRITE8(p + 15, 12);
+      ((void(*)(uptr, uptr))0x0076088C)(manager, p);
+    }
+  }
+
+  static void handler_radioactive(uptr a, uptr manager, u32 uid, uptr c) {
+    WeatherManager::GetInstance().mode = WeatherMode::kRadioactive;
+    UpdateWeather(manager, uid, BattleWeather::kRain, ItemID::kNone, true);
+
+    struct HP {
+      u32 _0;
+      u8 count;
+      u8 _1, _2;
+      u8 uid[10];
+      s32 amount[10];
+    };
+
+    {
+      auto* pkm1 = ((battle::Pokemon*(*)(uptr, u32))0x0074BC4C)(manager, uid);
+      auto* pkm2 = ((battle::Pokemon*(*)(uptr, u32))0x0074BC4C)(manager, 12);
+
+      HP* p = ((HP*(*)(uptr, u32, u32))0x00762CC0)(manager, 7, uid);
+      p->count = 2;
+      p->uid[0] = pkm1->uid;
+      p->amount[0] = -(pkm1->hp - 1);
+      p->uid[1] = pkm2->uid;
+      p->amount[1] = -(pkm2->hp - 1);
+      ((void(*)(uptr, HP*))0x0076088C)(manager, p);
+    }
+
+    struct FORM {
+      u32 _0;
+      u8 id;
+      Form form;
+    };
+
+    {
+      FORM* p = ((FORM*(*)(uptr, u32, u32))0x00762CC0)(manager, 58, uid);
+      p->id = uid;
+      p->form = Form::kRotomFan;
+      ((void(*)(uptr, FORM*))0x0076088C)(manager, p);
+    }
 
     // imposter
     // ((void(*)(uptr, uptr, u32, uptr))0x7B9568)(a, manager, uid, c);
+  }
+
+  static void attack(uptr manager, u32 uid, MoveID move_id) {
+    auto* attacker = ((battle::Pokemon*(*)(uptr, u32))0x0074BC4C)(manager, uid);
+
+    struct {
+      u32 kind : 4;
+      u32 target : 4;
+      u32 move_id : 16;
+      u32 _0 : 3;
+      u32 _1 : 1;
+      u32 mega_evolution : 1;
+      u32 _2 : 3;
+    } action;
+
+    action.kind = 1;
+    action.target = 0;
+    action.move_id = static_cast<u16>(move_id);
+
+    ((void(*)(uptr, uptr, uptr, u32, s32))0x0070EC48)(
+        manager, (uptr)attacker, (uptr)&action, 0, 0);
+  }
+
+  static void handler_reality_warp(uptr a, uptr manager, u32 uid, uptr c) {
+    u32 id = ((u32(*)(u32))0x00764668)(2);
+    if (id != uid) return;
+    attack(manager, uid, MoveID::kTrickRoom);
+    attack(manager, uid, MoveID::kWonderRoom);
+    attack(manager, uid, MoveID::kMagicRoom);
+    attack(manager, uid, MoveID::kGravity);
+    attack(manager, uid, MoveID::kGrassyTerrain);
+    attack(manager, uid, MoveID::kStealthRock);
   }
 
   static void handler_sun(uptr a, uptr manager, u32 uid, uptr c) {
@@ -222,17 +327,38 @@ public:
     static struct {
       u32 event;
       uptr handler;
-    } table[] = {
-        {94, (uptr)handler_random}
+    } toxic_table[] = {
+        {94, (uptr)handler_toxic}
     };
-    if (pkm->ability == kAbilityRandom) {
-      // Same game entry point as GetBattleMoveHandlerHook below, but the id
-      // slot is dispatched by the first argument: 4 selects the ability
-      // handler table, so type this call site's slot as `Ability`.
+    static struct {
+      u32 event;
+      uptr handler;
+    } radioactive_table[] = {
+        {94, (uptr)handler_radioactive}
+    };
+    static struct {
+      u32 event;
+      uptr handler;
+    } reality_warp_table[] = {
+        {94, (uptr)handler_reality_warp}
+    };
+    if (pkm->ability == kAbilityToxicDrizzle) {
       return ((uptr(*)(u32, Ability, u32, u32, u32, u32, u32))
         ADDRESS_BATTLE_GET_EVENT_HANDLER)(
-          4, pkm->ability, 0, 1000, pkm->uid, (uptr)table,
-          SIZE(table));
+          4, pkm->ability, 0, 1000, pkm->uid, (uptr)toxic_table,
+          SIZE(toxic_table));
+    }
+    if (pkm->ability == kAbilityRadioactiveDrizzle) {
+      return ((uptr(*)(u32, Ability, u32, u32, u32, u32, u32))
+        ADDRESS_BATTLE_GET_EVENT_HANDLER)(
+          4, pkm->ability, 0, 1000, pkm->uid, (uptr)radioactive_table,
+          SIZE(radioactive_table));
+    }
+    if (pkm->ability == kAbilityRealityWarp) {
+      return ((uptr(*)(u32, Ability, u32, u32, u32, u32, u32))
+        ADDRESS_BATTLE_GET_EVENT_HANDLER)(
+          4, pkm->ability, 0, 1000, pkm->uid, (uptr)reality_warp_table,
+          SIZE(reality_warp_table));
     }
     return HookManager::Call<uptr>(HookID::kBattleGetAbilityHandler, pkm);
   }

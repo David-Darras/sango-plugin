@@ -47,6 +47,7 @@ void Test(void*) {
   team.pokemons[0]->accessor->Decrypt();
   team.pokemons[0]->core->moves[0] = kMoveAbsoluteZero;
   team.pokemons[0]->core->moves[1] = kMoveSolarFlare;
+  team.pokemons[0]->core->ability = kAbilityRealityWarp;
   team.pokemons[0]->accessor->Encrypt();
   team.HealAllPokemons();
 
