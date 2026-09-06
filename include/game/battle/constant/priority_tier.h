@@ -17,26 +17,22 @@
 
 #pragma once
 
-#include "common.h"
-#include "game/constant/item.h"
-#include "game/constant/mega_evolution_method.h"
+#include <types.h>
 
-namespace global_data {
-struct MegaEvolutionData {
-  struct {
-    Form form;
-    u8 _0;
-    MegaEvolutionMethod method;
-    u8 _1;
-    ItemId item;
-    u16 _2;
-  } entry[3];
-};
+namespace battle {
+enum class PriorityTier : u8 {
+  kActiveMoveDefault, ///< Default tier for move listeners
+  kFieldPositionDefault, ///< Default tier for field-position listeners
+  kTeamSideDefault, ///< Default tier for team-side listeners
+  kFieldDefault, ///< Default tier for whole-field listeners
 
-struct MegaEvolutionTable {
-  uptr vtable;
-  Species species;
-  u16 _0;
-  MegaEvolutionData* data;
+  kAbilityPoisonTouch,
+  ///< Poison Touch's own tier (inflicts poison on a contact hit)
+  kAbilityDefault, ///< Default tier for ability listeners
+
+  kHeldItemDefault, ///< Default tier for held-item listeners
+  kAbilityStall, ///< Stall's own tier (always resolves last, even after items)
+
+  kCount,
 };
-} // namespace global_data
+}

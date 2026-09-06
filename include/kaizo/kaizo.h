@@ -38,7 +38,7 @@ struct EncounterData;
 
 namespace kaizo {
 struct EncounterEntry {
-  const MapID map_id;
+  const MapId map_id;
   const u16 size;
   const Species* species;
 };
@@ -46,7 +46,7 @@ struct EncounterEntry {
 struct CapturedEvent {
   STATIC_INLINE bool Check() {
     // u32 id = overworld::MapManager::last_map_id;
-    u32 id = static_cast<u32>(MapID::kRoute101);
+    u32 id = static_cast<u32>(MapId::kRoute101);
     auto& data = savedata::PssPhoto::GetInstance();
     u8* bits = &data.photo[0];
     u32 index = id / 8;
@@ -56,7 +56,7 @@ struct CapturedEvent {
 
   STATIC_INLINE void Set() {
     // u32 id = overworld::MapManager::last_map_id;
-    u32 id = static_cast<u32>(MapID::kRoute101);
+    u32 id = static_cast<u32>(MapId::kRoute101);
     auto& data = savedata::PssPhoto::GetInstance();
     u8* bits = &data.photo[0];
     u32 index = id / 8;
@@ -85,7 +85,7 @@ extern void UpdateOverworldWeather();
 extern void InitializeStarterHook();
 extern void InitializeGiftHook();
 extern void PatchEncounterTable(overworld::EncounterData* data);
-extern const EncounterEntry* GetEncounterEntry(MapID map_id);
+extern const EncounterEntry* GetEncounterEntry(MapId map_id);
 extern void PatchTrainerData(battle::Config& config, u16& trainer_id);
 extern u32 PatchOverworldModels(u32 model, bool is_real_overworld);
 extern void ApplyLevelCaps(battle::Team* team, void* data);

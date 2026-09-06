@@ -16,27 +16,16 @@
  */
 
 #pragma once
+#include <types.h>
 
-#include "common.h"
-#include "game/constant/item.h"
-#include "game/constant/mega_evolution_method.h"
+namespace battle {
+enum class ItemReactionKind : u8 {
+  kHpChanged = 1 << 0,
+  kPpChanged = 1 << 1,
+  kStatusChanged = 1 << 2,
+  kItemChanged = 1 << 3,
 
-namespace global_data {
-struct MegaEvolutionData {
-  struct {
-    Form form;
-    u8 _0;
-    MegaEvolutionMethod method;
-    u8 _1;
-    ItemId item;
-    u16 _2;
-  } entry[3];
+  kGeneral = kHpChanged | kPpChanged | kStatusChanged,
+  kAll = kGeneral | kItemChanged,
 };
-
-struct MegaEvolutionTable {
-  uptr vtable;
-  Species species;
-  u16 _0;
-  MegaEvolutionData* data;
-};
-} // namespace global_data
+}

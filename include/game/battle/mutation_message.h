@@ -16,27 +16,19 @@
  */
 
 #pragma once
+#include <types.h>
 
-#include "common.h"
-#include "game/constant/item.h"
-#include "game/constant/mega_evolution_method.h"
-
-namespace global_data {
-struct MegaEvolutionData {
-  struct {
-    Form form;
-    u8 _0;
-    MegaEvolutionMethod method;
-    u8 _1;
-    ItemId item;
-    u16 _2;
-  } entry[3];
+namespace battle {
+enum class MutationMessageId : u16 {
+  kCount
 };
 
-struct MegaEvolutionTable {
-  uptr vtable;
-  Species species;
-  u16 _0;
-  MegaEvolutionData* data;
+struct MutationMessage {
+  MutationMessageId id;
+  u16 category : 7; ///< Which message table this id is looked up in
+  u16 slot_count : 7;
+  u16 append_sound_effect : 1; ///< Store a sound-effect id as the last argument
+  u16 is_failure_message : 1;
+  s32 slots[8];
 };
-} // namespace global_data
+}

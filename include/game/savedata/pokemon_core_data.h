@@ -35,7 +35,7 @@ struct PokemonCoreData {
 
   // BLOCK 1 [0x38 bytes]
   Species species; // 02
-  ItemID item; // 04
+  ItemId item; // 04
 
   u32 id; // 08
 
@@ -90,7 +90,7 @@ struct PokemonCoreData {
 
   // BLOCK 2  [0x38 bytes]
   c16 nickname[13]; // 1A
-  MoveID moves[4]; // 22
+  MoveId moves[4]; // 22
   u8 pp[4]; // 26
   u8 pp_up_count[4]; // 2A
   u16 egg_moves[4]; // 32
@@ -208,7 +208,7 @@ struct PokemonCoreData {
     contest.tough = 255;
   }
 
-  void Set(Species species, ItemID item, Ability ability, Nature nature,
+  void Set(Species species, ItemId item, Ability ability, Nature nature,
            bool is_shiny) {
     this->species = species;
     this->item = item;
@@ -228,7 +228,7 @@ struct PokemonCoreData {
     ev_speed = spd;
   }
 
-  void SetMoves(MoveID move1, MoveID move2, MoveID move3, MoveID move4) {
+  void SetMoves(MoveId move1, MoveId move2, MoveId move3, MoveId move4) {
     moves[0] = move1;
     moves[1] = move2;
     moves[2] = move3;

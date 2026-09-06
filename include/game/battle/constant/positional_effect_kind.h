@@ -16,27 +16,16 @@
  */
 
 #pragma once
+#include <types.h>
 
-#include "common.h"
-#include "game/constant/item.h"
-#include "game/constant/mega_evolution_method.h"
+namespace battle {
+enum class PositionalEffectKind : u8 {
+  kWish, ///< Heals whoever occupies this position one turn later
+  kLunarDance, ///< Fully heals and restores PP for the next Pokémon sent to this position
+  kHealingWish, ///< Same as Lunar Dance, without the PP restoration
+  kDelayedAttack, ///< Future Sight/Doom Desire-style delayed damage
+  kBatonTouchPending, ///< Stat stages waiting to be handed off to the next Pokémon sent here
 
-namespace global_data {
-struct MegaEvolutionData {
-  struct {
-    Form form;
-    u8 _0;
-    MegaEvolutionMethod method;
-    u8 _1;
-    ItemId item;
-    u16 _2;
-  } entry[3];
+  kCount,
 };
-
-struct MegaEvolutionTable {
-  uptr vtable;
-  Species species;
-  u16 _0;
-  MegaEvolutionData* data;
-};
-} // namespace global_data
+}

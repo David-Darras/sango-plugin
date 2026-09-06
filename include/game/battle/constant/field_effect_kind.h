@@ -16,27 +16,22 @@
  */
 
 #pragma once
+#include <types.h>
 
-#include "common.h"
-#include "game/constant/item.h"
-#include "game/constant/mega_evolution_method.h"
+namespace battle {
+enum class FieldEffectKind : u8 {
+  kWeather, ///< The field is currently under a weather effect
+  kTrickRoom,
+  kGravity,
+  kImprison, ///< Blocks the caster's opponents from using any move the caster itself knows
+  kWaterSport,
+  kMudSport,
+  kWonderRoom,
+  kMagicRoom,
+  kIonDeluge, ///< Makes Normal-type moves become Electric-type
+  kFairyLock,
+  kGround, ///< A terrain (Grassy/Misty/Electric/...) is active - see GroundKind
 
-namespace global_data {
-struct MegaEvolutionData {
-  struct {
-    Form form;
-    u8 _0;
-    MegaEvolutionMethod method;
-    u8 _1;
-    ItemId item;
-    u16 _2;
-  } entry[3];
+  kCount,
 };
-
-struct MegaEvolutionTable {
-  uptr vtable;
-  Species species;
-  u16 _0;
-  MegaEvolutionData* data;
-};
-} // namespace global_data
+}

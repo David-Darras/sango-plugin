@@ -188,12 +188,12 @@ private:
   bool is_enabled_ = true;
 };
 
-DEFINE_PANE(false, 0, 0xFF, move_0, moves[0], static_cast<u16>(MoveID::kCount))
-DEFINE_PANE(false, 18, 0xFF, move_1, moves[1], static_cast<u16>(MoveID::kCount))
-DEFINE_PANE(false, 34, 0xFF, move_2, moves[2], static_cast<u16>(MoveID::kCount))
-DEFINE_PANE(false, 50, 0xFF, move_3, moves[3], static_cast<u16>(MoveID::kCount))
+DEFINE_PANE(false, 0, 0xFF, move_0, moves[0], static_cast<u16>(MoveId::kCount))
+DEFINE_PANE(false, 18, 0xFF, move_1, moves[1], static_cast<u16>(MoveId::kCount))
+DEFINE_PANE(false, 34, 0xFF, move_2, moves[2], static_cast<u16>(MoveId::kCount))
+DEFINE_PANE(false, 50, 0xFF, move_3, moves[3], static_cast<u16>(MoveId::kCount))
 DEFINE_PANE(false, 2, 0xFF, gender, gender, 3)
-DEFINE_PANE(true, 8, 0xFF, item, item, static_cast<u16>(ItemID::kCount))
+DEFINE_PANE(true, 8, 0xFF, item, item, static_cast<u16>(ItemId::kCount))
 DEFINE_PANE(false, 0xFF, 0xFF, contest_cool, contest.cool, 256)
 DEFINE_PANE(false, 0xFF, 0xFF, contest_beautiful, contest.beautiful, 256)
 DEFINE_PANE(false, 0xFF, 0xFF, contest_cute, contest.cute, 256)
@@ -269,7 +269,7 @@ static Pane pane_item_ball
        auto& ctx = AppStatus::GetInstance();
        if (ctx.item_page_ ==
            AppStatus::ItemPage::kHeldItem) {
-         PREV(core.item, value, static_cast<u16>(ItemID::kCount));
+         PREV(core.item, value, static_cast<u16>(ItemId::kCount));
        } else if (
          ctx.item_page_ == AppStatus::ItemPage::kBall) {
          PREV(core.ball, value, static_cast<u8>(Ball::kCount));
@@ -278,7 +278,7 @@ static Pane pane_item_ball
        auto& ctx = AppStatus::GetInstance();
        if (ctx.item_page_ ==
            AppStatus::ItemPage::kHeldItem) {
-         NEXT(core.item, value, static_cast<u16>(ItemID::kCount));
+         NEXT(core.item, value, static_cast<u16>(ItemId::kCount));
        } else if (
          ctx.item_page_ == AppStatus::ItemPage::kBall) {
          NEXT(core.ball, value, static_cast<u8>(Ball::kCount));
@@ -292,7 +292,7 @@ static Pane pane_item_ball
          /* CHANGE NOTHING */
        } else if (
          ctx.item_page_ == AppStatus::ItemPage::kBall) {
-         const ItemID item_id =
+         const ItemId item_id =
              PokemonUtils::ConvertBallIdToItemId(core.ball);
          global_data::Item item(item_id);
          item.GetName(String::GetTmpStr());

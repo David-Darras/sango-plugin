@@ -16,27 +16,13 @@
  */
 
 #pragma once
+#include <types.h>
 
-#include "common.h"
-#include "game/constant/item.h"
-#include "game/constant/mega_evolution_method.h"
+namespace battle {
+enum class FieldSide : u8 {
+  kFirst, ///< The player's side in single-player, the server's side in online play
+  kSecond,
 
-namespace global_data {
-struct MegaEvolutionData {
-  struct {
-    Form form;
-    u8 _0;
-    MegaEvolutionMethod method;
-    u8 _1;
-    ItemId item;
-    u16 _2;
-  } entry[3];
+  kCount,
 };
-
-struct MegaEvolutionTable {
-  uptr vtable;
-  Species species;
-  u16 _0;
-  MegaEvolutionData* data;
-};
-} // namespace global_data
+}

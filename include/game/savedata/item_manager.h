@@ -30,7 +30,7 @@ struct ItemManager {
 
   /** @brief Represents a single item stack in the bag. */
   struct ItemSlot {
-    ItemID id; ///< Item ID.
+    ItemId id; ///< Item ID.
     u16 count; ///< Quantity held (max 999).
   };
 

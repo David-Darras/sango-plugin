@@ -45,7 +45,7 @@ class MegaEvolution {
     if (species == Species::kMimeJr) {
       table.entry[0].form = static_cast<Form>(10);
       table.entry[0].method = MegaEvolutionMethod::kItem;
-      table.entry[0].item = ItemID::kLifeOrb;
+      table.entry[0].item = ItemId::kLifeOrb;
     }
   }
 };

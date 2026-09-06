@@ -76,12 +76,12 @@ struct Encounter {
 
   struct PokemonData {
     Species species;
-    ItemID item;
+    ItemId item;
     u8 level;
     Form form;
     bool is_shiny;
     Ability ability;
-    MoveID moves[4];
+    MoveId moves[4];
     Gender gender;
     u8 ivs;
   };
@@ -94,7 +94,7 @@ struct Encounter {
         ADDRESS_OVERWORLD_VTABLE))
       return result;
     u32& map_id = overworld::MapManager::GetInstance().GetMapId();
-    const kaizo::EncounterEntry* entry = kaizo::GetEncounterEntry(static_cast<MapID>(map_id));
+    const kaizo::EncounterEntry* entry = kaizo::GetEncounterEntry(static_cast<MapId>(map_id));
     if (entry == nullptr) {
       return result;
     }

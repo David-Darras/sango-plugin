@@ -57,8 +57,8 @@ public:
         ((u32 (*)(u32, u32))ADDRESS_POKEMON_UTILS_TO_NORMAL)(id, *shiny_id);
   }
 
-  STATIC_INLINE ItemID ConvertBallIdToItemId(Ball ball_id) {
-    return ((ItemID (*)(Ball))
+  STATIC_INLINE ItemId ConvertBallIdToItemId(Ball ball_id) {
+    return ((ItemId (*)(Ball))
       ADDRESS_POKEMON_UTILS_FROM_BALL_ID_TO_ITEM_ID)(ball_id);
   }
 };

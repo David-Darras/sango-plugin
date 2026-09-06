@@ -16,27 +16,27 @@
  */
 
 #pragma once
+#include <types.h>
 
-#include "common.h"
-#include "game/constant/item.h"
-#include "game/constant/mega_evolution_method.h"
+namespace battle {
+// The exact slot a Pokémon occupies on the field - distinct from UID (which
+// Pokémon), needed for anything that depends on physical position: spread
+// moves, targeting in Double/Triple Battles, adjacency checks. These ids are
+// used as raw array indices elsewhere, so don't reorder them.
+// Slots 3-4 only exist in Triple Battles.
+enum class FieldPosition : u8 {
+  kFirstSideSlot0, ///< The player's side in single-player, the server's side in online play
+  kSecondSideSlot0,
+  kFirstSideSlot1,
+  kSecondSideSlot1,
+  kFirstSideSlot2,
+  kSecondSideSlot2,
+  kFirstSideSlot3,
+  kSecondSideSlot3,
+  kFirstSideSlot4,
+  kSecondSideSlot4,
 
-namespace global_data {
-struct MegaEvolutionData {
-  struct {
-    Form form;
-    u8 _0;
-    MegaEvolutionMethod method;
-    u8 _1;
-    ItemId item;
-    u16 _2;
-  } entry[3];
+  kCount,
+  kNone = kCount,
 };
-
-struct MegaEvolutionTable {
-  uptr vtable;
-  Species species;
-  u16 _0;
-  MegaEvolutionData* data;
-};
-} // namespace global_data
+}

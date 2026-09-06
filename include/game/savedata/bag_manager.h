@@ -52,10 +52,10 @@ struct BagManager {
   u16 pocket_order[kMaxPockets];
 
   /** @brief Item IDs assigned to the quick-access registered buttons. */
-  ItemID registered_items[kMaxRegisteredItems];
+  ItemId registered_items[kMaxRegisteredItems];
   u16 padding;
 
   /** @brief List of recently used item IDs for quick access in the UI. */
-  ItemID last_items_used[kMaxUsageHistory];
+  ItemId last_items_used[kMaxUsageHistory];
 };
 } // namespace savedata

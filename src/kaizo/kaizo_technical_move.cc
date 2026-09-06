@@ -23,35 +23,35 @@
 #include "game/global_data/technical_machine.h"
 
 namespace kaizo {
-static const MoveID TM_MOVES[100] =
+static const MoveId TM_MOVES[100] =
 {
-    MoveID::kStealthRock, MoveID::kToxicSpikes, MoveID::kStickyWeb,
-    MoveID::kRapidSpin, MoveID::kDefog, MoveID::kTrickRoom, MoveID::kTailwind,
-    MoveID::kToxic, MoveID::kWillOWisp, MoveID::kThunderWave, MoveID::kTaunt,
-    MoveID::kEncore,
-    MoveID::kLeechSeed, MoveID::kWhirlwind,
-    MoveID::kHaze, MoveID::kRecover, MoveID::kRoost, MoveID::kSynthesis,
-    MoveID::kMoonlight, MoveID::kSlackOff, MoveID::kWish,
-    MoveID::kRest, MoveID::kSwordsDance, MoveID::kNastyPlot,
-    MoveID::kCalmMind, MoveID::kDragonDance, MoveID::kBulkUp, MoveID::kCoil,
-    MoveID::kShellSmash, MoveID::kQuiverDance, MoveID::kAgility,
-    MoveID::kAutotomize, MoveID::kProtect,
-    MoveID::kSubstitute, MoveID::kBatonPass, MoveID::kExtremeSpeed, MoveID::kSuckerPunch,
-    MoveID::kBulletPunch, MoveID::kMachPunch, MoveID::kIceShard, MoveID::kAquaJet,
-    MoveID::kShadowSneak, MoveID::kFakeOut, MoveID::kVacuumWave, MoveID::kUTurn,
-    MoveID::kVoltSwitch, MoveID::kEarthquake,
-    MoveID::kCloseCombat, MoveID::kSuperpower, MoveID::kKnockOff, MoveID::kFacade,
-    MoveID::kBodySlam, MoveID::kReturn, MoveID::kDrainPunch, MoveID::kCrunch,
-    MoveID::kNightSlash, MoveID::kIronHead, MoveID::kMeteorMash, MoveID::kStoneEdge,
-    MoveID::kRockSlide, MoveID::kRockBlast, MoveID::kBraveBird, MoveID::kAcrobatics,
-    MoveID::kWaterfall, MoveID::kIronTail, MoveID::kPoisonJab, MoveID::kGunkShot,
-    MoveID::kCrossPoison, MoveID::kSeedBomb, MoveID::kPowerWhip, MoveID::kWoodHammer,
-    MoveID::kBulletSeed, MoveID::kFlareBlitz, MoveID::kOutrage, MoveID::kIceBeam,
-    MoveID::kThunderbolt, MoveID::kFlamethrower, MoveID::kFireBlast, MoveID::kOverheat,
-    MoveID::kSurf, MoveID::kScald, MoveID::kHydroPump, MoveID::kDracoMeteor,
-    MoveID::kDragonPulse, MoveID::kEarthPower, MoveID::kFlashCannon, MoveID::kGigaDrain,
-    MoveID::kHurricane, MoveID::kPlayRough, MoveID::kMoonblast, MoveID::kPsychic,
-    MoveID::kDarkPulse
+    MoveId::kStealthRock, MoveId::kToxicSpikes, MoveId::kStickyWeb,
+    MoveId::kRapidSpin, MoveId::kDefog, MoveId::kTrickRoom, MoveId::kTailwind,
+    MoveId::kToxic, MoveId::kWillOWisp, MoveId::kThunderWave, MoveId::kTaunt,
+    MoveId::kEncore,
+    MoveId::kLeechSeed, MoveId::kWhirlwind,
+    MoveId::kHaze, MoveId::kRecover, MoveId::kRoost, MoveId::kSynthesis,
+    MoveId::kMoonlight, MoveId::kSlackOff, MoveId::kWish,
+    MoveId::kRest, MoveId::kSwordsDance, MoveId::kNastyPlot,
+    MoveId::kCalmMind, MoveId::kDragonDance, MoveId::kBulkUp, MoveId::kCoil,
+    MoveId::kShellSmash, MoveId::kQuiverDance, MoveId::kAgility,
+    MoveId::kAutotomize, MoveId::kProtect,
+    MoveId::kSubstitute, MoveId::kBatonPass, MoveId::kExtremeSpeed, MoveId::kSuckerPunch,
+    MoveId::kBulletPunch, MoveId::kMachPunch, MoveId::kIceShard, MoveId::kAquaJet,
+    MoveId::kShadowSneak, MoveId::kFakeOut, MoveId::kVacuumWave, MoveId::kUTurn,
+    MoveId::kVoltSwitch, MoveId::kEarthquake,
+    MoveId::kCloseCombat, MoveId::kSuperpower, MoveId::kKnockOff, MoveId::kFacade,
+    MoveId::kBodySlam, MoveId::kReturn, MoveId::kDrainPunch, MoveId::kCrunch,
+    MoveId::kNightSlash, MoveId::kIronHead, MoveId::kMeteorMash, MoveId::kStoneEdge,
+    MoveId::kRockSlide, MoveId::kRockBlast, MoveId::kBraveBird, MoveId::kAcrobatics,
+    MoveId::kWaterfall, MoveId::kIronTail, MoveId::kPoisonJab, MoveId::kGunkShot,
+    MoveId::kCrossPoison, MoveId::kSeedBomb, MoveId::kPowerWhip, MoveId::kWoodHammer,
+    MoveId::kBulletSeed, MoveId::kFlareBlitz, MoveId::kOutrage, MoveId::kIceBeam,
+    MoveId::kThunderbolt, MoveId::kFlamethrower, MoveId::kFireBlast, MoveId::kOverheat,
+    MoveId::kSurf, MoveId::kScald, MoveId::kHydroPump, MoveId::kDracoMeteor,
+    MoveId::kDragonPulse, MoveId::kEarthPower, MoveId::kFlashCannon, MoveId::kGigaDrain,
+    MoveId::kHurricane, MoveId::kPlayRough, MoveId::kMoonblast, MoveId::kPsychic,
+    MoveId::kDarkPulse
 };
 
 void PatchTechnicalMoves() {

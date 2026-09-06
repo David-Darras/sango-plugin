@@ -115,18 +115,18 @@ static const Species RUSTURF_TUNNEL[] = {
 };
 
 static const EncounterEntry s_table[] = {
-    {MapID::kRoute101, SIZE(ROUTE_101), ROUTE_101},
-    {MapID::kRoute102, SIZE(ROUTE_102), ROUTE_102},
-    {MapID::kRoute103, SIZE(ROUTE_103), ROUTE_103},
-    {MapID::kPetalburgCity, SIZE(PETALBURG_CITY), PETALBURG_CITY},
-    {MapID::kRoute104South, SIZE(ROUTE_104_SOUTH), ROUTE_104_SOUTH},
-    {MapID::kPetalburgWoods, SIZE(PETALBURG_WOODS), PETALBURG_WOODS},
-    {MapID::kRoute104North, SIZE(ROUTE_104_NORTH), ROUTE_104_NORTH},
+    {MapId::kRoute101, SIZE(ROUTE_101), ROUTE_101},
+    {MapId::kRoute102, SIZE(ROUTE_102), ROUTE_102},
+    {MapId::kRoute103, SIZE(ROUTE_103), ROUTE_103},
+    {MapId::kPetalburgCity, SIZE(PETALBURG_CITY), PETALBURG_CITY},
+    {MapId::kRoute104South, SIZE(ROUTE_104_SOUTH), ROUTE_104_SOUTH},
+    {MapId::kPetalburgWoods, SIZE(PETALBURG_WOODS), PETALBURG_WOODS},
+    {MapId::kRoute104North, SIZE(ROUTE_104_NORTH), ROUTE_104_NORTH},
 };
 static const u32 s_table_size = SIZE(s_table);
 
 
-const EncounterEntry* GetEncounterEntry(MapID map_id) {
+const EncounterEntry* GetEncounterEntry(MapId map_id) {
   for (u16 i = 0; i < s_table_size; ++i) {
     if (s_table[i].map_id == map_id) {
       return &s_table[i];
@@ -137,7 +137,7 @@ const EncounterEntry* GetEncounterEntry(MapID map_id) {
 
 void PatchEncounterTable(overworld::EncounterData* data) {
   auto& map_id = overworld::MapManager::GetInstance().GetMapId();
-  const EncounterEntry* entry = GetEncounterEntry(static_cast<MapID>(map_id));
+  const EncounterEntry* entry = GetEncounterEntry(static_cast<MapId>(map_id));
   if (entry == nullptr) return;
 
   u32 offset = 0;

@@ -31,8 +31,8 @@ struct HallOfFame {
 
   struct Pokemon {
     Species species;
-    ItemID item;
-    MoveID moves[4];
+    ItemId item;
+    MoveId moves[4];
     u32 id0;
     u32 id1;
 

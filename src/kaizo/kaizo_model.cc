@@ -24,22 +24,22 @@
 namespace kaizo {
 u32 PatchOverworldModels(u32 model, bool is_real_overworld) {
   if (!is_real_overworld) {
-    switch (static_cast<ModelID>(model)) {
-      case ModelID::kZigzagoon:
-        return static_cast<u32>(ModelID::kGroudon);
-      case ModelID::kSkitty:
-        return static_cast<u32>(ModelID::kKyogre);
+    switch (static_cast<ModelId>(model)) {
+      case ModelId::kZigzagoon:
+        return static_cast<u32>(ModelId::kGroudon);
+      case ModelId::kSkitty:
+        return static_cast<u32>(ModelId::kKyogre);
     }
   }
-  switch (static_cast<ModelID>(model)) {
-    case ModelID::kBrendan:
-      return static_cast<u32>(ModelID::kStevenStone);
-    case ModelID::kSupportMay:
-      return static_cast<u32>(ModelID::kZinnia);
-    case ModelID::kMomOras:
-      return static_cast<u32>(ModelID::kMrStone);
-    case ModelID::kSnorlaxDoll:
-      return static_cast<u32>(ModelID::kHoopasRing);
+  switch (static_cast<ModelId>(model)) {
+    case ModelId::kBrendan:
+      return static_cast<u32>(ModelId::kStevenStone);
+    case ModelId::kSupportMay:
+      return static_cast<u32>(ModelId::kZinnia);
+    case ModelId::kMomOras:
+      return static_cast<u32>(ModelId::kMrStone);
+    case ModelId::kSnorlaxDoll:
+      return static_cast<u32>(ModelId::kHoopasRing);
   }
   return model;
 }

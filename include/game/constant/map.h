@@ -19,7 +19,7 @@
 
 #include <types.h>
 
-enum class MapID : u16 {
+enum class MapId : u16 {
   kLittlerootTown = 6,
   kBrendanHouseGroundFloor = 223,
   kBrendanHouseFirstFloor = 224,

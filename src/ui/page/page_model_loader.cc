@@ -30,7 +30,7 @@ feature::LoadedModel g_my_1st_pokemon;
 
 namespace {
 struct Settings {
-  ModelID model_id = ModelID::kStevenStone;
+  ModelId model_id = ModelId::kStevenStone;
   Species species = static_cast<Species>(317);
   Form form = static_cast<Form>(0);
   bool is_shiny = true;
@@ -64,7 +64,7 @@ void SpawnOverworldModel(void*) {
     ui::LogApplication::Print(u"already spawned, clear first");
     return;
   }
-  const ModelID model_id = GetSettings().model_id;
+  const ModelId model_id = GetSettings().model_id;
   if (feature::ModelLoader::LoadOverworldModel(
           &g_overworld_model, static_cast<u16>(model_id), SpawnPosition())) {
     ApplyScale(g_overworld_model, GetSettings().scale);

@@ -58,7 +58,7 @@ struct TrainerData {
   u8 trainer_type_grammar;
 
   u8 money_calculation_coefficient;
-  ItemID items[4];
+  ItemId items[4];
 
   u32 message_archive_id;
   u16 win_string_id;

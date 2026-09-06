@@ -16,27 +16,26 @@
  */
 
 #pragma once
-
 #include "common.h"
-#include "game/constant/item.h"
-#include "game/constant/mega_evolution_method.h"
+#include "constant/situation_key.h"
 
-namespace global_data {
-struct MegaEvolutionData {
-  struct {
-    Form form;
-    u8 _0;
-    MegaEvolutionMethod method;
-    u8 _1;
-    ItemId item;
-    u16 _2;
-  } entry[3];
-};
+namespace battle {
+class Situation {
+public:
+  STATIC_INLINE void Begin() {
+    ((void(*)())0x007648D0)();
+  }
 
-struct MegaEvolutionTable {
-  uptr vtable;
-  Species species;
-  u16 _0;
-  MegaEvolutionData* data;
+  STATIC_INLINE void End() {
+    ((void(*)())0x007645CC)();
+  }
+
+  STATIC_INLINE void Set(SituationKey key, s32 value) {
+    ((void(*)(SituationKey, s32))0x0076426C)(key, value);
+  }
+
+  STATIC_INLINE s32 Get(SituationKey key) {
+    return ((s32(*)(SituationKey))0x00764668)(key);
+  }
 };
-} // namespace global_data
+}

@@ -27,7 +27,7 @@ struct Move {
     return (Move*)READ32(ADDRESS_GLOBAL_DATA_MOVE_TABLE);
   }
 
-  STATIC_INLINE Move& GetInstance(const MoveID move) {
+  STATIC_INLINE Move& GetInstance(const MoveId move) {
     return GetTable()[static_cast<u16>(move)];
   }
 

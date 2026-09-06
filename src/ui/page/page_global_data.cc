@@ -23,7 +23,7 @@
 
 namespace ui {
 void LoadMovePage(MainApplication& app, void* args) {
-  static MoveID move = MoveID::kNone;
+  static MoveId move = MoveId::kNone;
   auto& data = global_data::Move::GetInstance(move);
 
   app.AddMove("Move", move).WithRefresh().AddSeparator();

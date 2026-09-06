@@ -35,7 +35,7 @@ class Item {
     // WRITE32(0x0046DED8, 0xE35000FF);
 
     if (feat.remove_limit) {
-      // No limit to 100 for EVs with ItemID::kHpUp, ItemID::kProtein, ItemID::kIron, etc.
+      // No limit to 100 for EVs with ItemId::kHpUp, ItemId::kProtein, ItemId::kIron, etc.
       WRITE32(ADDRESS_ITEM_EV_TOTAL_LIMIT_CHECK, 0xE35000FF);
       WRITE32(ADDRESS_ITEM_EV_TOTAL_LIMIT_CHECK_2, 0xE35000FF);
       WRITE32(ADDRESS_ITEM_EV_TOTAL_LIMIT_CLAMP, 0x03A000FF);

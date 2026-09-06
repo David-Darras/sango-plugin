@@ -22,38 +22,38 @@
 
 // Curated item sets handed out in the kaizo starting bag (kaizo_bag.cc).
 namespace kaizo {
-static constexpr ItemID kStrategicItems[] = {
-    ItemID::kChoiceBand, ItemID::kChoiceScarf,
-    ItemID::kChoiceSpecs, ItemID::kLifeOrb,
-    ItemID::kLeftovers, ItemID::kFocusSash,
-    ItemID::kAirBalloon, ItemID::kAssaultVest,
-    ItemID::kRockyHelmet, ItemID::kSitrusBerry,
-    ItemID::kPowerHerb, ItemID::kFlameOrb,
-    ItemID::kEjectButton, ItemID::kScopeLens,
-    ItemID::kToxicOrb, ItemID::kGripClaw
+static constexpr ItemId kStrategicItems[] = {
+    ItemId::kChoiceBand, ItemId::kChoiceScarf,
+    ItemId::kChoiceSpecs, ItemId::kLifeOrb,
+    ItemId::kLeftovers, ItemId::kFocusSash,
+    ItemId::kAirBalloon, ItemId::kAssaultVest,
+    ItemId::kRockyHelmet, ItemId::kSitrusBerry,
+    ItemId::kPowerHerb, ItemId::kFlameOrb,
+    ItemId::kEjectButton, ItemId::kScopeLens,
+    ItemId::kToxicOrb, ItemId::kGripClaw
 };
 
-static constexpr ItemID kEvolutionStones[] = {
-    ItemID::kSunStone, ItemID::kMoonStone,
-    ItemID::kFireStone, ItemID::kThunderStone,
-    ItemID::kWaterStone, ItemID::kLeafStone,
-    ItemID::kShinyStone, ItemID::kDuskStone,
-    ItemID::kDawnStone, ItemID::kOvalStone,
+static constexpr ItemId kEvolutionStones[] = {
+    ItemId::kSunStone, ItemId::kMoonStone,
+    ItemId::kFireStone, ItemId::kThunderStone,
+    ItemId::kWaterStone, ItemId::kLeafStone,
+    ItemId::kShinyStone, ItemId::kDuskStone,
+    ItemId::kDawnStone, ItemId::kOvalStone,
 };
 
-static constexpr ItemID kBalls[] = {
-    ItemID::kMasterBall, ItemID::kUltraBall,
-    ItemID::kGreatBall, ItemID::kPokeBall,
-    ItemID::kSafariBall, ItemID::kNetBall,
-    ItemID::kDiveBall, ItemID::kNestBall,
-    ItemID::kRepeatBall, ItemID::kTimerBall,
-    ItemID::kLuxuryBall, ItemID::kPremierBall,
-    ItemID::kDuskBall, ItemID::kHealBall,
-    ItemID::kQuickBall, ItemID::kCherishBall,
-    ItemID::kFastBall, ItemID::kLevelBall,
-    ItemID::kLureBall, ItemID::kHeavyBall,
-    ItemID::kLoveBall, ItemID::kFriendBall,
-    ItemID::kMoonBall, ItemID::kSportBall,
-    ItemID::kParkBall, ItemID::kDreamBall,
+static constexpr ItemId kBalls[] = {
+    ItemId::kMasterBall, ItemId::kUltraBall,
+    ItemId::kGreatBall, ItemId::kPokeBall,
+    ItemId::kSafariBall, ItemId::kNetBall,
+    ItemId::kDiveBall, ItemId::kNestBall,
+    ItemId::kRepeatBall, ItemId::kTimerBall,
+    ItemId::kLuxuryBall, ItemId::kPremierBall,
+    ItemId::kDuskBall, ItemId::kHealBall,
+    ItemId::kQuickBall, ItemId::kCherishBall,
+    ItemId::kFastBall, ItemId::kLevelBall,
+    ItemId::kLureBall, ItemId::kHeavyBall,
+    ItemId::kLoveBall, ItemId::kFriendBall,
+    ItemId::kMoonBall, ItemId::kSportBall,
+    ItemId::kParkBall, ItemId::kDreamBall,
 };
 } // namespace kaizo

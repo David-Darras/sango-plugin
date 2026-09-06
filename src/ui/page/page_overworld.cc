@@ -264,7 +264,7 @@ void LoadDayCarePage(MainApplication& app, void* args) {
      .WithCallback(feature::DayCare::ApplyMaxExp);
 }
 
-// static u16 map_id = MapID::kInsideOfTruck;
+// static u16 map_id = MapId::kInsideOfTruck;
 //
 // void Teleport(void*) {
 //   static const u32 PARAMS[] = {

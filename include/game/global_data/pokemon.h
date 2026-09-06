@@ -52,7 +52,7 @@ struct Pokemon {
   u8 capture_rate;
   u8 _0;
   u16 give_effort_values;
-  ItemID give_item[3];
+  ItemId give_item[3];
   u8 gender; // gender *ratio* (0-254 threshold), not a Gender id
   u8 egg_hatch_steps;
   u8 base_friendship;

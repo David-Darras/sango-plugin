@@ -19,7 +19,7 @@
 
 #include <types.h>
 
-enum class MoveID : u16 {
+enum class MoveId : u16 {
   kNone = 0,
   kPound = 1,
   kKarateChop = 2,

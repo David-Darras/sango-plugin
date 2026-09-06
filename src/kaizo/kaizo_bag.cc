@@ -26,20 +26,20 @@ void PatchBag() {
     auto* slot = manager.GetTMsHMs();
     for (u32 i = 0; i < savedata::ItemManager::kMaxTMsHMs - 16; i++) {
       slot->count = 1;
-      slot->id = static_cast<ItemID>(static_cast<u16>(ItemID::kTm01) + i);
+      slot->id = static_cast<ItemId>(static_cast<u16>(ItemId::kTm01) + i);
       slot++;
     }
     for (u32 i = savedata::ItemManager::kMaxTMsHMs - 16;
          i < savedata::ItemManager::kMaxTMsHMs; i++) {
       slot->count = 0;
-      slot->id = ItemID::kNone;
+      slot->id = ItemId::kNone;
     }
   }
   {
     auto* slot = manager.GetMedicine();
     for (u32 i = 0; i < savedata::ItemManager::kMaxMedicine; i++) {
       slot->count = 0;
-      slot->id = ItemID::kNone;
+      slot->id = ItemId::kNone;
       slot++;
     }
   }

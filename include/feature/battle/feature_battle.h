@@ -22,6 +22,7 @@
 #include "feature/overworld/feature_overworld.h"
 #include "feature/core/hook_manager.h"
 #include "game/battle/manager.h"
+#include "game/battle/pokemon.h"
 #include "kaizo/kaizo.h"
 #include "game/constant/move.h"
 #include "game/renderer/app_layout_manager.h"

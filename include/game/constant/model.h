@@ -19,7 +19,7 @@
 
 #include <types.h>
 
-enum class ModelID : u16 {
+enum class ModelId : u16 {
   /* ---------------------------------------------------------
   CHARACTER MODELS (X/Y base engine)
   --------------------------------------------------------- */

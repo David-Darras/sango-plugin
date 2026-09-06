@@ -253,7 +253,7 @@ void PageItem::GetDefaultDisplayValue(c16* buffer) const {
       break;
 
     case kTypeItem: {
-      global_data::Item item(static_cast<ItemID>(*(u16*)address_));
+      global_data::Item item(static_cast<ItemId>(*(u16*)address_));
       item.GetName(String::GetTmpStr());
       Utils::Format(buffer, u"%ls%s : %ls", prefix, name_, String::GetTmpBuf());
     }

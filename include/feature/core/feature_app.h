@@ -115,7 +115,7 @@ public:
     auto* input = (MoveInput*)data[1];
     if (input->delete_move) {
       input->pokemon->accessor->Decrypt();
-      input->pokemon->core->moves[input->move_index] = MoveID::kNone;
+      input->pokemon->core->moves[input->move_index] = MoveId::kNone;
       input->pokemon->accessor->Encrypt();
     }
   }
@@ -125,7 +125,7 @@ public:
     input->pokemon->accessor->Decrypt();
     // `move_id` is a raw field of the game's own MoveInput struct.
     input->pokemon->core->moves[input->move_index] =
-        static_cast<MoveID>(input->move_id);
+        static_cast<MoveId>(input->move_id);
     input->pokemon->accessor->Encrypt();
   }
 

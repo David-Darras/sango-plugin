@@ -20,38 +20,38 @@
 
 namespace kaizo {
 void PatchItemData(global_data::Item* item) {
-  switch (static_cast<ItemID>(item->id)) {
-    case ItemID::kHpUp:
+  switch (static_cast<ItemId>(item->id)) {
+    case ItemId::kHpUp:
       item->hp_ev_value = 63;
       break;
-    case ItemID::kProtein:
+    case ItemId::kProtein:
       item->attack_ev_value = 63;
       break;
-    case ItemID::kIron:
+    case ItemId::kIron:
       item->defense_ev_value = 63;
       break;
-    case ItemID::kCarbos:
+    case ItemId::kCarbos:
       item->speed_ev_value = 63;
       break;
-    case ItemID::kCalcium:
+    case ItemId::kCalcium:
       item->sp_atk_ev_value = 63;
       break;
-    case ItemID::kZinc:
+    case ItemId::kZinc:
       item->sp_def_ev_value = 63;
       break;
-    case ItemID::kMetalCoat:
-    case ItemID::kDragonScale:
-    case ItemID::kUpGrade:
-    case ItemID::kDubiousDisc:
-    case ItemID::kDeepSeaTooth:
-    case ItemID::kDeepSeaScale:
-    case ItemID::kProtector:
-    case ItemID::kElectirizer:
-    case ItemID::kMagmarizer:
-    case ItemID::kReaperCloth:
-    case ItemID::kPrismScale:
-    case ItemID::kSachet:
-    case ItemID::kWhippedDream:
+    case ItemId::kMetalCoat:
+    case ItemId::kDragonScale:
+    case ItemId::kUpGrade:
+    case ItemId::kDubiousDisc:
+    case ItemId::kDeepSeaTooth:
+    case ItemId::kDeepSeaScale:
+    case ItemId::kProtector:
+    case ItemId::kElectirizer:
+    case ItemId::kMagmarizer:
+    case ItemId::kReaperCloth:
+    case ItemId::kPrismScale:
+    case ItemId::kSachet:
+    case ItemId::kWhippedDream:
       item->evolve = 1;
       item->use_on_pokemon = true;
       item->field_function = 1;

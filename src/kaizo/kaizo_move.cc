@@ -20,24 +20,24 @@
 
 namespace kaizo {
 void PatchMoveData() {
-  global_data::Move::GetInstance(MoveID::kAcupressure).base_pp = 2;
-  global_data::Move::GetInstance(MoveID::kDragonDance).base_pp = 1;
-  global_data::Move::GetInstance(MoveID::kSwordsDance).base_pp = 1;
-  global_data::Move::GetInstance(MoveID::kNastyPlot).base_pp = 1;
-  global_data::Move::GetInstance(MoveID::kAgility).base_pp = 1;
-  global_data::Move::GetInstance(MoveID::kRockPolish).base_pp = 2;
-  global_data::Move::GetInstance(MoveID::kMinimize).base_pp = 1;
-  global_data::Move::GetInstance(MoveID::kDoubleTeam).base_pp = 2;
-  global_data::Move::GetInstance(MoveID::kBulkUp).base_pp = 2;
-  global_data::Move::GetInstance(MoveID::kCalmMind).base_pp = 2;
-  global_data::Move::GetInstance(MoveID::kQuiverDance).base_pp = 1;
-  global_data::Move::GetInstance(MoveID::kAmnesia).base_pp = 1;
-  global_data::Move::GetInstance(MoveID::kTailGlow).base_pp = 1;
-  global_data::Move::GetInstance(MoveID::kCottonGuard).base_pp = 1;
-  global_data::Move::GetInstance(MoveID::kAcidArmor).base_pp = 1;
-  global_data::Move::GetInstance(MoveID::kStockpile).base_pp = 2;
-  global_data::Move::GetInstance(MoveID::kCurse).base_pp = 2;
-  global_data::Move::GetInstance(MoveID::kSubstitute).base_pp = 2;
-  global_data::Move::GetInstance(MoveID::kProtect).base_pp = 2;
+  global_data::Move::GetInstance(MoveId::kAcupressure).base_pp = 2;
+  global_data::Move::GetInstance(MoveId::kDragonDance).base_pp = 1;
+  global_data::Move::GetInstance(MoveId::kSwordsDance).base_pp = 1;
+  global_data::Move::GetInstance(MoveId::kNastyPlot).base_pp = 1;
+  global_data::Move::GetInstance(MoveId::kAgility).base_pp = 1;
+  global_data::Move::GetInstance(MoveId::kRockPolish).base_pp = 2;
+  global_data::Move::GetInstance(MoveId::kMinimize).base_pp = 1;
+  global_data::Move::GetInstance(MoveId::kDoubleTeam).base_pp = 2;
+  global_data::Move::GetInstance(MoveId::kBulkUp).base_pp = 2;
+  global_data::Move::GetInstance(MoveId::kCalmMind).base_pp = 2;
+  global_data::Move::GetInstance(MoveId::kQuiverDance).base_pp = 1;
+  global_data::Move::GetInstance(MoveId::kAmnesia).base_pp = 1;
+  global_data::Move::GetInstance(MoveId::kTailGlow).base_pp = 1;
+  global_data::Move::GetInstance(MoveId::kCottonGuard).base_pp = 1;
+  global_data::Move::GetInstance(MoveId::kAcidArmor).base_pp = 1;
+  global_data::Move::GetInstance(MoveId::kStockpile).base_pp = 2;
+  global_data::Move::GetInstance(MoveId::kCurse).base_pp = 2;
+  global_data::Move::GetInstance(MoveId::kSubstitute).base_pp = 2;
+  global_data::Move::GetInstance(MoveId::kProtect).base_pp = 2;
 }
 } // namespace kaizo

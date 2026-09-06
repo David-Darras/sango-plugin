@@ -97,8 +97,7 @@ struct H3dModel {
 
   static void PatchWeatherParticleColor(uptr raw) {
     auto& ctx = feature::WeatherManager::GetInstance();
-    if (ctx.mode != WeatherMode::kToxic && ctx.mode !=
-        WeatherMode::kRadioactive)
+    if (ctx.mode == WeatherMode::kNormal)
       return;
 
     u32 file_size = READ32(raw + 12);
@@ -142,9 +141,12 @@ struct H3dModel {
     s32 texel_count = tex_w * tex_h;
     if (!in_bounds(pixels, texel_count * 2u)) return;
 
-    u16 color565 = ctx.mode == WeatherMode::kToxic
-                     ? 0x90BBu
-                     : 0x97E0u;
+    u16 color565;
+    switch (ctx.mode) {
+      case WeatherMode::kToxic: color565 = 0x90BBu; break; // violet
+      case WeatherMode::kRadioactive: color565 = 0x97E0u; break; // green
+      default: return;
+    }
 
     WRITE32(texture_ptr + 52, 3u); // RGB565
     for (s32 i = 0; i < texel_count; i++) {

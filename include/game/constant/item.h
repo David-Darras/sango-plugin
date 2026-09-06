@@ -19,7 +19,7 @@
 
 #include <types.h>
 
-enum class ItemID : u16 {
+enum class ItemId : u16 {
   kNone = 0x0000,
   kMasterBall = 0x0001,
   kUltraBall = 0x0002,

@@ -16,27 +16,12 @@
  */
 
 #pragma once
+#include <types.h>
 
-#include "common.h"
-#include "game/constant/item.h"
-#include "game/constant/mega_evolution_method.h"
-
-namespace global_data {
-struct MegaEvolutionData {
-  struct {
-    Form form;
-    u8 _0;
-    MegaEvolutionMethod method;
-    u8 _1;
-    ItemId item;
-    u16 _2;
-  } entry[3];
+namespace battle {
+enum class StatusOverwriteMode : u8 {
+  kNone, ///< Can't overwrite an existing status at all
+  kOverwriteBasicStatus, ///< Ignores and replaces another basic status condition
+  kForceOverwrite, ///< Overwrites absolutely anything
 };
-
-struct MegaEvolutionTable {
-  uptr vtable;
-  Species species;
-  u16 _0;
-  MegaEvolutionData* data;
-};
-} // namespace global_data
+}

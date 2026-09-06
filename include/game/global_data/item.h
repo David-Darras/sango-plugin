@@ -23,8 +23,8 @@
 
 namespace global_data {
 struct Item {
-  INLINE Item(const ItemID id) {
-    ((void(*)(Item*, ItemID, void*))ADDRESS_GLOBAL_DATA_ITEM_INITIALIZE)
+  INLINE Item(const ItemId id) {
+    ((void(*)(Item*, ItemId, void*))ADDRESS_GLOBAL_DATA_ITEM_INITIALIZE)
         (this, id, game::Manager::GetInstance().GetSystemHeap());
   }
 

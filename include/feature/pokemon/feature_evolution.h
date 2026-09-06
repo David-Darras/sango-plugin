@@ -55,63 +55,63 @@ class Evolution {
         break;
       case Species::kSlowpoke:
       case Species::kPoliwhirl:
-        table.data[0].arg = static_cast<u16>(ItemID::kKingsRock);
+        table.data[0].arg = static_cast<u16>(ItemId::kKingsRock);
         table.data[0].method = EvolutionMethod::kItem;
         break;
       case Species::kScyther:
       case Species::kOnix:
-        table.data[0].arg = static_cast<u16>(ItemID::kMetalCoat);
+        table.data[0].arg = static_cast<u16>(ItemId::kMetalCoat);
         table.data[0].method = EvolutionMethod::kItem;
         break;
       case Species::kSeadra:
-        table.data[0].arg = static_cast<u16>(ItemID::kDragonScale);
+        table.data[0].arg = static_cast<u16>(ItemId::kDragonScale);
         table.data[0].method = EvolutionMethod::kItem;
         break;
       case Species::kPorygon:
-        table.data[0].arg = static_cast<u16>(ItemID::kUpGrade);
+        table.data[0].arg = static_cast<u16>(ItemId::kUpGrade);
         table.data[0].method = EvolutionMethod::kItem;
         break;
       case Species::kPorygon2:
-        table.data[0].arg = static_cast<u16>(ItemID::kDubiousDisc);
+        table.data[0].arg = static_cast<u16>(ItemId::kDubiousDisc);
         table.data[0].method = EvolutionMethod::kItem;
         break;
       case Species::kClamperl:
-        table.data[0].arg = static_cast<u16>(ItemID::kDeepSeaTooth);
+        table.data[0].arg = static_cast<u16>(ItemId::kDeepSeaTooth);
         table.data[0].method = EvolutionMethod::kItem;
-        table.data[1].arg = static_cast<u16>(ItemID::kDeepSeaScale);
+        table.data[1].arg = static_cast<u16>(ItemId::kDeepSeaScale);
         table.data[1].method = EvolutionMethod::kItem;
         break;
       case Species::kRhydon:
-        table.data[0].arg = static_cast<u16>(ItemID::kProtector);
+        table.data[0].arg = static_cast<u16>(ItemId::kProtector);
         table.data[0].method = EvolutionMethod::kItem;
         break;
       case Species::kElectabuzz:
-        table.data[0].arg = static_cast<u16>(ItemID::kElectirizer);
+        table.data[0].arg = static_cast<u16>(ItemId::kElectirizer);
         table.data[0].method = EvolutionMethod::kItem;
         break;
       case Species::kMagmar:
-        table.data[0].arg = static_cast<u16>(ItemID::kMagmarizer);
+        table.data[0].arg = static_cast<u16>(ItemId::kMagmarizer);
         table.data[0].method = EvolutionMethod::kItem;
         break;
       case Species::kDusclops:
-        table.data[0].arg = static_cast<u16>(ItemID::kReaperCloth);
+        table.data[0].arg = static_cast<u16>(ItemId::kReaperCloth);
         table.data[0].method = EvolutionMethod::kItem;
         break;
       case Species::kFeebas:
-        table.data[0].arg = static_cast<u16>(ItemID::kPrismScale);
+        table.data[0].arg = static_cast<u16>(ItemId::kPrismScale);
         table.data[0].method = EvolutionMethod::kItem;
         break;
       case Species::kSpritzee:
-        table.data[0].arg = static_cast<u16>(ItemID::kSachet);
+        table.data[0].arg = static_cast<u16>(ItemId::kSachet);
         table.data[0].method = EvolutionMethod::kItem;
         break;
       case Species::kSwirlix:
-        table.data[0].arg = static_cast<u16>(ItemID::kWhippedDream);
+        table.data[0].arg = static_cast<u16>(ItemId::kWhippedDream);
         table.data[0].method = EvolutionMethod::kItem;
         break;
       case Species::kPhantump:
       case Species::kPumpkaboo:
-        table.data[0].arg = static_cast<u16>(ItemID::kLeafStone);
+        table.data[0].arg = static_cast<u16>(ItemId::kLeafStone);
         table.data[0].method = EvolutionMethod::kItem;
         break;
       default:
