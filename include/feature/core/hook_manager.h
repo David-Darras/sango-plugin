@@ -99,6 +99,7 @@ enum class HookID : u32 {
   kGlobalDataLoadMegaEvolutionTable,
   kParticleCreate,
   kResourceAttachBufferAndSetup,
+  kScriptAddPokemonToTeam,
   kMax
 };
 

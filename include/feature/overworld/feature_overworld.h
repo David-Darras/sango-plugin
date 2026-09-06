@@ -19,6 +19,7 @@
 #include "common.h"
 #include "feature/overworld/feature_camera.h"
 #include "feature/overworld/feature_day_care.h"
+#include "feature/overworld/feature_gift_pokemon.h"
 #include "feature/overworld/feature_overworld_model.h"
 #include "kaizo/kaizo.h"
 #include "feature/core/hook_manager.h"
@@ -61,6 +62,7 @@ struct Overworld {
 #endif
 
     DayCare::PatchLoad();
+    GiftPokemon::PatchLoad();
 
     HookManager::Enable(HookID::kGetEncounterPokemon);
     HookManager::ForceEnable(HookID::kCheckAppRequest);

@@ -18,32 +18,37 @@
 #pragma once
 
 #include "common.h"
+#include "game/constant/form.h"
+#include "game/constant/move.h"
 
 namespace global_data {
 struct GiftPokemon {
   STATIC_INLINE GiftPokemon& GetInstance(u32 idx) {
-    if (idx >= 37) idx = 0;
-    GiftPokemon* table = (GiftPokemon*)ADDRESS_GIFT_POKEMON_TABLE;
-    return table[idx];
+    return *(GiftPokemon*)(
+      ADDRESS_GIFT_POKEMON_TABLE + sizeof(GiftPokemon) * idx);
   }
 
+  enum class Shiny : u8 { kRandom, kForceShiny, kForceNotShiny };
+
+  enum class GenderRoll : u8 { kRandom, kMale, kFemale };
+
+  static constexpr u16 kNotAnEgg = 0xFFFF;
+  static constexpr s8 kRandomAbility = -1;
+  static constexpr s8 kRandomNature = -1;
+  static constexpr s32 kRandomItem = -1;
+  static constexpr s8 kRandomIv = -1;
+
   u32 species;
-  u8 form;
+  Form form;
   u8 level;
-  u8 shiny;
-  u8 ability;
-  u8 nature;
-  u32 item;
-  u8 gender;
-  u16 is_egg;
-  u16 move;
-
-  struct {
-    u8 hp, attack, defense, special_attack, special_defense, speed;
-  } iv;
-
-  struct {
-    u8 cool, beautiful, cute, smart, tough, sheen;
-  } contest;
+  Shiny shiny;
+  s8 ability_slot;
+  s8 nature;
+  s32 item;
+  GenderRoll gender;
+  u16 egg_place;
+  MoveId move;
+  s8 iv[6];
+  u8 contest[6];
 };
 }

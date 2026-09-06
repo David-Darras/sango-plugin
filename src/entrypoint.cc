@@ -94,6 +94,7 @@ void Initialize() {
   feature::GameExtension::Initialize();
   feature::MegaEvolution::Initialize();
   feature::Evolution::Initialize();
+  feature::GiftPokemon::Initialize();
 
 #ifdef KAIZO
   kaizo::Initialize();
