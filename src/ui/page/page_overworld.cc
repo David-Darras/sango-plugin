@@ -32,6 +32,30 @@
 namespace ui {
 #include "game/overworld/tile.inc"
 
+static void RefreshMap(void*) {
+  auto& main_app = ui::MainApplication::GetInstance();
+  if (main_app.CheckProcess(ADDRESS_OVERWORLD_VTABLE)) return;
+
+  auto& map_manager = overworld::MapManager::GetInstance();
+
+  auto* game_manager = &game::Manager::GetInstance();
+  u16 map_id = map_manager.GetMapId();
+  overworld::Position pos = overworld::ModelManager::GetInstance().
+                            GetPlayer().world_pos;
+  u8 direction = 0; // UP
+  bool same_background_music = true;
+  bool show_map_name = false;
+
+  ((int(*)(void*, u16, const overworld::Position*, int, char, char, int, int,
+           char,
+           char))
+    0x003D6258)(
+      game_manager, map_id, &pos, direction, 0, 1, same_background_music,
+      1, 1, 1, show_map_name);
+
+  main_app.ForceClose();
+}
+
 void LoadOverworldMapTilePage(MainApplication& app, void* args) {
   if (app.CheckProcess(ADDRESS_OVERWORLD_VTABLE)) return;
 
@@ -152,7 +176,13 @@ void LoadOverworldModelPage(MainApplication& app, void* args) {
   auto& rsrc = man.GetResource(ctx.model_idx);
   auto& draw_model = man.GetPlayer().GetDrawModel();
 
-  app.Add("Scale X", draw_model.scale.x)
+  app.WithNoBackground()
+     .Add("Model", rsrc.model_id)
+     .WithCallback(RefreshMap)
+     .Add("Animation", ctx.model_animation)
+     .WithCallback(feature::OverworldModel::PlayAnimation)
+     .AddSeparator()
+     .Add("Scale X", draw_model.scale.x)
      .WithFactor(0.2f)
      .Add("Scale Y", draw_model.scale.y)
      .WithFactor(0.2f)
@@ -170,10 +200,7 @@ void LoadOverworldModelPage(MainApplication& app, void* args) {
      .AddSeparator()
      .Add("Model Index", ctx.model_idx)
      .WithBounds(0, overworld::ModelManager::kMaxModels - 1)
-     .WithRefresh()
-     .Add("Model", rsrc.model_id)
-     .Add("Animation", ctx.model_animation)
-     .WithCallback(feature::OverworldModel::PlayAnimation);
+     .WithRefresh();
 }
 
 void LoadPropModelPage(MainApplication& app, void* args) {
@@ -285,21 +312,21 @@ void LoadOverworldPage(MainApplication& app, void* args) {
 
   auto& weather_manager = overworld::WeatherManager::GetInstance();
   auto& man = overworld::MapManager::GetInstance();
-  app
-      // .WithNoBackground()
-      // .Add("Teleport", map_id)
-      // .WithCallback(Teleport)
-      .Add("Weather", weather_manager.GetRequestedWeather())
-      .WithArray(WEATHERS, SIZE(WEATHERS))
-      .Add("Field Move", LoadOverworldFieldMovePage)
-      .Add("App", LoadAppPage)
-      .Add("Camera", LoadOverworldCameraPage)
-      .Add("Model Loader (Unstable)", LoadModelLoaderPage)
-      .Add("Prop", LoadPropModelPage)
-      .Add("Player", LoadOverworldModelPage)
-      .Add("Encounter", LoadOverworldEncounterPage)
-      .Add("Map Tile", LoadOverworldMapTilePage)
-      .Add("Day Care", LoadDayCarePage)
-      .Add("Map Id", man.GetMapId());
+  app.Add("Refresh", RefreshMap)
+     // .WithNoBackground()
+     // .Add("Teleport", map_id)
+     // .WithCallback(Teleport)
+     .Add("Weather", weather_manager.GetRequestedWeather())
+     .WithArray(WEATHERS, SIZE(WEATHERS))
+     .Add("Field Move", LoadOverworldFieldMovePage)
+     .Add("App", LoadAppPage)
+     .Add("Camera", LoadOverworldCameraPage)
+     .Add("Model Loader (Unstable)", LoadModelLoaderPage)
+     .Add("Prop", LoadPropModelPage)
+     .Add("Player", LoadOverworldModelPage)
+     .Add("Encounter", LoadOverworldEncounterPage)
+     .Add("Map Tile", LoadOverworldMapTilePage)
+     .Add("Day Care", LoadDayCarePage)
+     .Add("Map Id", man.GetMapId());
 }
 } // namespace ui

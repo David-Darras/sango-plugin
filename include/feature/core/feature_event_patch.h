@@ -18,7 +18,6 @@
 #pragma once
 
 #include "feature/battle/feature_battle.h"
-#include "feature/core/feature_transition_logger.h"
 #include "feature/overworld/feature_overworld.h"
 #include "game/core/event_manager.h"
 
