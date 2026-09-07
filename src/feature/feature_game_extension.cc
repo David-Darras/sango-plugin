@@ -18,7 +18,7 @@
 #include "feature/battle/feature_game_extension.h"
 
 #include "feature/core/hook_manager.h"
-#include "feature/weather_manager.h"
+#include "feature/battle/feature_weather_manager.h"
 #include "game/battle/broadcaster.h"
 #include "game/battle/controller.h"
 #include "game/battle/mutation.h"

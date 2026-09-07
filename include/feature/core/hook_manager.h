@@ -95,11 +95,13 @@ enum class HookID : u32 {
   kReadFileAsync2,
   kArchiveLoadData,
   kMainProcessLoop,
+  kMainEventLoop,
   kUpdateBattleView,
   kGlobalDataLoadMegaEvolutionTable,
   kParticleCreate,
   kResourceAttachBufferAndSetup,
   kScriptAddPokemonToTeam,
+  kCallStaticEncounter,
   kMax
 };
 

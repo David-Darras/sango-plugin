@@ -16,7 +16,6 @@
  */
 
 #include "feature/core/feature_engine.h"
-#include "game/overworld/weather_manager.h"
 #include "ui/main_application.h"
 #include "ui/page/page_top.h"
 

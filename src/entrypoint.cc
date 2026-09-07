@@ -31,6 +31,8 @@
 #include "feature/ui/feature_app_status.h"
 #include "feature/core/feature_archive.h"
 #include "feature/battle/feature_battle.h"
+#include "feature/core/feature_event_patch.h"
+#include "feature/core/feature_process_patch.h"
 #include "feature/overworld/feature_encounter.h"
 #include "feature/overworld/feature_field_move.h"
 #include "feature/rendering/feature_h3d_model.h"
@@ -38,12 +40,12 @@
 #include "feature/overworld/feature_map_data_loader.h"
 #include "feature/overworld/feature_map_tile.h"
 #include "feature/overworld/feature_overworld.h"
-#include "feature/core/feature_process_patch.h"
 #include "feature/core/feature_script.h"
+#include "feature/overworld/feature_static_encounter.h"
 #include "feature/pokemon/feature_evolution.h"
 #include "feature/pokemon/feature_mega_evolution.h"
 #include "feature/pokemon/feature_shiny.h"
-#include "game/savedata/settings.h"
+#include "feature/ui/feature_keyboard.h"
 #include "ui/main_application.h"
 #include "system/device.h"
 #include "system/file.h"
@@ -87,6 +89,7 @@ void Initialize() {
   feature::Battle::Initialize();
   feature::OverworldModel::Initialize();
   feature::ProcessPatch::Initialize();
+  feature::EventPatch::Initialize();
   feature::Keyboard::Initialize();
   feature::GameApp::Initialize();
   feature::AppStatus::Initialize();
@@ -95,6 +98,7 @@ void Initialize() {
   feature::MegaEvolution::Initialize();
   feature::Evolution::Initialize();
   feature::GiftPokemon::Initialize();
+  feature::StaticEncounter::Initialize();
 
 #ifdef KAIZO
   kaizo::Initialize();

@@ -26,33 +26,6 @@
 #include "feature/core/feature_device.h"
 #include "feature/core/feature_process_patch.h"
 #include "ui/theme.h"
-#include <cxxabi.h>
-#include <cstdlib>
-#include <cstring>
-
-
-static const char* Unmangle(const char* mangled_name) {
-  static char buffer[BUFFER_SIZE];
-
-  if (!mangled_name) {
-    return "";
-  }
-
-  int status = -1;
-  char* demangled =
-      abi::__cxa_demangle(mangled_name, nullptr, nullptr, &status);
-
-  if (status == 0 && demangled != nullptr) {
-    strncpy(buffer, demangled, BUFFER_SIZE - 1);
-    buffer[BUFFER_SIZE - 1] = '\0';
-    std::free(demangled);
-  } else {
-    strncpy(buffer, mangled_name, BUFFER_SIZE - 1);
-    buffer[BUFFER_SIZE - 1] = '\0';
-  }
-
-  return buffer;
-}
 
 namespace ui {
 MainApplication MainApplication::instance_ = MainApplication();
@@ -118,15 +91,15 @@ void MainApplication::DrawBottom(Graphics& graphics) {
   uptr vtable = 0;
   c16 buffer[BUFFER_SIZE];
   auto& game_manager = game::ProcessManager::GetInstance();
-  const char* process_name = Unmangle(
+  const char* process_name = Utils::Unmangle(
       game_manager.GetCurrentProcessName(vtable));
 
-  Utils::Format(buffer, u"Process[%s]", process_name);
+  Utils::Format(buffer, u"Process[%08X][%s]", vtable, process_name);
   Graphics::DrawText(5, 150, buffer, theme_.unselected_text_color);
 
-  const char* event_name = Unmangle(
+  const char* event_name = Utils::Unmangle(
       game::EventManager::GetInstance().GetCurrentEventName(vtable));
-  Utils::Format(buffer, u"Event[%s]", event_name);
+  Utils::Format(buffer, u"Event[%08X][%s]", vtable, event_name);
   Graphics::DrawText(5, 170, buffer, theme_.unselected_text_color);
 
   Graphics::SetTextScale(0.5, 0.5);

@@ -27,7 +27,7 @@
 #include "feature/core/feature_script.h"
 #include "feature/pokemon/feature_shiny.h"
 #include "feature/rendering/feature_text_box.h"
-#include "feature/weather_manager.h"
+#include "feature/battle/feature_weather_manager.h"
 #include "feature/ui/feature_title_screen.h"
 #include "system/file.h"
 #include "ui/theme.h"
@@ -35,7 +35,7 @@
 static const c16* kConfigFilename =
     u"sdmc:/luma/plugins/000400000011C500/sango.cfg";
 
-static const u32 kConfigVersion = 10;
+static constexpr u32 kConfigVersion = 10;
 
 bool ConfigManager::Load() {
   auto& theme = ui::Theme::GetInstance();

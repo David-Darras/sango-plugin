@@ -19,6 +19,7 @@
 #define SANGO_PLUGIN_FEATURE_PROCESS_H
 
 #include "feature/core/feature_app.h"
+#include "feature/core/feature_transition_logger.h"
 #include "feature/ui/feature_app_status.h"
 #include "feature/battle/feature_battle.h"
 #include "feature/ui/feature_keyboard.h"

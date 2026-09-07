@@ -19,14 +19,21 @@
 
 #include "utils.h"
 #include "game/core/manager.h"
+#include "ui/log_application.h"
 
 namespace game {
+enum class EventState : u32 {
+  kLoading,
+  kRunning,
+  kStopped,
+};
+
 struct GameEvent {
   void* vtable;
   GameEvent* parent;
   u32 sequence;
   void* heap;
-  u32 state;
+  EventState state;
   void* ro;
 };
 
@@ -46,6 +53,16 @@ public:
       return "";
     vtable = (uptr)current_game_event_->vtable;
     return Utils::GetClassNameFromVTable(current_game_event_->vtable);
+  }
+
+  INLINE void Patch(void (*on_load)(uptr), void (*on_update)(uptr)) {
+    if (current_game_event_ == nullptr) return;
+    uptr vtable = (uptr)current_game_event_->vtable;
+    if (current_game_event_->sequence == 0) {
+      on_load(vtable);
+    } else {
+      on_update(vtable);
+    }
   }
 
   GameEvent* current_game_event_;

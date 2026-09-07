@@ -18,8 +18,11 @@
 #pragma once
 
 #include <cstdarg>
+#include <cstring>
 
 #include "common.h"
+#include <cxxabi.h>
+
 
 class Utils {
 public:
@@ -72,5 +75,28 @@ public:
 
   STATIC_INLINE s32 ConvertTimeToSeconds(s64* time) {
     return ((s32(*)(s64*))ADDRESS_CONVERT_TIME_TO_SECONDS)(time);
+  }
+
+  static const char* Unmangle(const char* mangled_name) {
+    static char buffer[BUFFER_SIZE];
+
+    if (!mangled_name) {
+      return "";
+    }
+
+    int status = -1;
+    char* demangled =
+        abi::__cxa_demangle(mangled_name, nullptr, nullptr, &status);
+
+    if (status == 0 && demangled != nullptr) {
+      strncpy(buffer, demangled, BUFFER_SIZE - 1);
+      buffer[BUFFER_SIZE - 1] = '\0';
+      std::free(demangled);
+    } else {
+      strncpy(buffer, mangled_name, BUFFER_SIZE - 1);
+      buffer[BUFFER_SIZE - 1] = '\0';
+    }
+
+    return buffer;
   }
 };

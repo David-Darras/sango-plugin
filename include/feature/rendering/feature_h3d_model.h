@@ -18,7 +18,7 @@
 #pragma once
 
 #include "feature/core/hook_manager.h"
-#include "feature/weather_manager.h"
+#include "feature/battle/feature_weather_manager.h"
 #include "game/battle/config.h"
 #include "game/battle/manager.h"
 #include "game/renderer/h3d_model.h"

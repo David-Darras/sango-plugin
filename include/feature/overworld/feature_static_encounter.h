@@ -21,32 +21,36 @@
 #include "feature/core/hook_manager.h"
 #include "game/constant/form.h"
 #include "game/constant/species.h"
-#include "game/global_data/gift_pokemon.h"
+#include "game/core/manager.h"
+#include "game/overworld/static_encounter.h"
 
 namespace feature {
-class GiftPokemon {
-  MAKE_SINGLETON(GiftPokemon)
+class StaticEncounter {
+  MAKE_SINGLETON(StaticEncounter)
 public:
   STATIC_INLINE void Initialize() {
-    HookManager::Initialize(HookID::kScriptAddPokemonToTeam, 0x0073F474,
-                            (uptr)ScriptAddPokemonToTeamHook, false);
+    HookManager::Initialize(HookID::kCallStaticEncounter, 0x0077D0C4,
+                            (uptr)CallStaticEncounterHook, false);
   }
 
   STATIC_INLINE void PatchLoad() {
-    HookManager::ForceEnable(HookID::kScriptAddPokemonToTeam);
+    HookManager::ForceEnable(HookID::kCallStaticEncounter);
   }
 
 private:
-  static void RandomizeSpecies(u32 idx) {
-    auto& entry = global_data::GiftPokemon::GetInstance(idx);
-    entry.species = 1 + Utils::GetRandomValue(static_cast<u32>(Species::kCount) - 1);
+  static void RandomizeSpecies(u32 index) {
+    auto& entry = overworld::StaticEncounter::GetInstance(index);
+    entry.species = static_cast<Species>
+        (1 + Utils::GetRandomValue(static_cast<u32>(Species::kCount) - 1));
     entry.form = Form::kNormal;
-    ui::LogApplication::Print(u"gift[%u]=%u", idx, entry.species);
+    ui::LogApplication::Print(u"static[%u]=%u", index, entry.species);
   }
 
-  static s32 ScriptAddPokemonToTeamHook(u32* a1, u32* a2) {
-    RandomizeSpecies(a2[1]);
-    return HookManager::Call<s32>(HookID::kScriptAddPokemonToTeam, a1, a2);
+  static s32 CallStaticEncounterHook(game::Manager* man, u32 index, u32 p3,
+                                     u32 p4) {
+    RandomizeSpecies(index);
+    return HookManager::Call<s32>(HookID::kCallStaticEncounter, man, index,
+                                  p3, p4);
   }
 };
 } // namespace feature
