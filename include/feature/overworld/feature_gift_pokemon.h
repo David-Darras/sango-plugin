@@ -28,7 +28,8 @@ class GiftPokemon {
   MAKE_SINGLETON(GiftPokemon)
 public:
   STATIC_INLINE void Initialize() {
-    HookManager::Initialize(HookID::kScriptAddPokemonToTeam, 0x0073F474,
+    HookManager::Initialize(HookID::kScriptAddPokemonToTeam,
+                            ADDRESS_SCRIPT_ADD_POKEMON_TO_TEAM,
                             (uptr)ScriptAddPokemonToTeamHook, false);
   }
 

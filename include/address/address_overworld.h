@@ -36,6 +36,13 @@
 #define ADDRESS_OVERWORLD_CREATE_MODELS (0x003F8358)
 /** @} */
 
+/** * @name Map Character Placement Addresses
+ * @{ */
+#define ADDRESS_OVERWORLD_LOAD_MAP_CHARACTERS (0x003DBB4C)
+#define ADDRESS_OVERWORLD_COMPLETE_REGION_MODEL_LIST (0x003F7640)
+#define ADDRESS_OVERWORLD_GET_MODEL_ARCHIVE_INDEX (0x0019C678)
+/** @} */
+
 /** * @name Overworld Code Patch Addresses
  * @{ */
 #define ADDRESS_OVERWORLD_GET_DRAW_MODEL (0x004E3F90)

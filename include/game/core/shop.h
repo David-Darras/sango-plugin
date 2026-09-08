@@ -18,15 +18,36 @@
 
 #include "common.h"
 
+/** @brief Kind of counter the shop event is running (app::shop::ShopType). */
+enum class ShopType : u32 {
+  kNormal, ///< Regular mart, pays with money.
+  kBattlePoint, ///< Battle Point counter.
+  kBattlePointMove, ///< Battle Point move tutor counter.
+  kMileagePoint, ///< Mileage Point counter.
+  kSecretBaseGoods, ///< Secret base goods counter.
+};
+
 struct ShopItem {
   u32 id;
   u32 price;
 };
 
+/**
+ * @brief The item list a shop counter is currently selling
+ * (app::shop::ItemContainer).
+ */
 struct ShopData {
+  static constexpr u32 kMaxItems = 60;
+
   void* heap;
-  ShopItem items[60];
-  u32 type;
-  u32 count;
-  void* _0[7];
+  ShopItem items[kMaxItems];
+  u32 type; ///< ShopType.
+  u32 count; ///< Number of entries filled in items.
+  void* item_manager;
+  String* name_buffer; ///< Buffer returned by the name getter.
+  String* info_buffer; ///< Buffer returned by the description getter.
+  Message* move_name_message;
+  Message* move_info_message;
+  Message* goods_name_message;
+  Message* goods_info_message;
 };

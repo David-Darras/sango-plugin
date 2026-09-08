@@ -53,6 +53,12 @@ enum class HookID : u32 {
   kSceneRegister0,
   kCallApp,
   kLoadShopItems,
+  kUnloadShopItems,
+  kShopGetItemName,
+  kShopGetItemDescription,
+  kShopDisplayItemDescription,
+  kShopPurchaseItem,
+  kBagAddItem,
   kUpdateExp,
   kCheckAppRequest,
   kAppStatusSetupGraphicsParams,
@@ -103,6 +109,8 @@ enum class HookID : u32 {
   kScriptAddPokemonToTeam,
   kCallStaticEncounter,
   kTradePokemon,
+  kLoadMapCharacters,
+  kCompleteRegionModelList,
   kMax
 };
 

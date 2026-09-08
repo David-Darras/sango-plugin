@@ -16,6 +16,7 @@
  */
 
 #include "feature/battle/feature_game_extension.h"
+#include "feature/pokemon/feature_shop.h"
 
 #include "feature/core/hook_manager.h"
 #include "feature/battle/feature_weather_manager.h"
@@ -377,6 +378,10 @@ void GameExtension::MessageGetStringHook(Message* self, u32 str_id,
       break;
     case 37:
       PatchAbilityName(static_cast<Ability>(str_id), output);
+      break;
+    case 113: // itemname_wordset, used to build the shop sentences
+    case 116: // itemname
+      Shop::PatchItemName(str_id, output);
       break;
     default:
       break;

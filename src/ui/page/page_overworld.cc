@@ -317,6 +317,7 @@ void LoadOverworldPage(MainApplication& app, void* args) {
 
   auto& weather_manager = overworld::WeatherManager::GetInstance();
   auto& man = overworld::MapManager::GetInstance();
+  auto& player = overworld::ModelManager::GetInstance().GetPlayer();
   app.Add("Wonder Trade", WonderTrade)
      .Add("Refresh", RefreshMap)
      // .WithNoBackground()
@@ -333,6 +334,8 @@ void LoadOverworldPage(MainApplication& app, void* args) {
      .Add("Encounter", LoadOverworldEncounterPage)
      .Add("Map Tile", LoadOverworldMapTilePage)
      .Add("Day Care", LoadDayCarePage)
-     .Add("Map Id", man.GetMapId());
+     .Add("Map Id", man.GetMapId())
+     .Add("Player Tile X", player.map_pos.coords.x)
+     .Add("Player Tile Z", player.map_pos.coords.z);
 }
 } // namespace ui

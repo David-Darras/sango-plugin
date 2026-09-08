@@ -42,10 +42,12 @@
 #include "feature/overworld/feature_overworld.h"
 #include "feature/core/feature_script.h"
 #include "feature/overworld/feature_static_encounter.h"
+#include "feature/overworld/feature_map_character.h"
 #include "feature/overworld/feature_trade.h"
 #include "feature/pokemon/feature_evolution.h"
 #include "feature/pokemon/feature_mega_evolution.h"
 #include "feature/pokemon/feature_shiny.h"
+#include "feature/pokemon/feature_shop.h"
 #include "feature/ui/feature_keyboard.h"
 #include "ui/main_application.h"
 #include "system/device.h"
@@ -101,6 +103,17 @@ void Initialize() {
   feature::GiftPokemon::Initialize();
   feature::StaticEncounter::Initialize();
   feature::Trade::Initialize();
+  feature::MapCharacter::Initialize();
+  {
+    feature::MapCharacterRequest test_character;
+    test_character.map_id = 279;
+    test_character.model_id = 180;
+    test_character.script_id = 10117;
+    test_character.tile_x = 15;
+    test_character.tile_z = 22;
+    feature::MapCharacter::Add(test_character);
+  }
+  feature::Shop::Initialize();
 
 #ifdef KAIZO
   kaizo::Initialize();
