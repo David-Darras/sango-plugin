@@ -18,6 +18,7 @@
 #pragma once
 #include "common.h"
 #include "feature_static_encounter.h"
+#include "feature_trade.h"
 #include "feature/overworld/feature_camera.h"
 #include "feature/overworld/feature_day_care.h"
 #include "feature/overworld/feature_gift_pokemon.h"
@@ -65,6 +66,7 @@ struct Overworld {
     DayCare::PatchLoad();
     GiftPokemon::PatchLoad();
     StaticEncounter::PatchLoad();
+    Trade::PatchLoad();
 
     HookManager::Enable(HookID::kGetEncounterPokemon);
     HookManager::ForceEnable(HookID::kCheckAppRequest);

@@ -299,6 +299,12 @@ void LoadDayCarePage(MainApplication& app, void* args) {
 //   ((void(*)(uptr, const u32*))0x00747B4C)(0, PARAMS);
 // }
 
+static void WonderTrade(void*) {
+  static u32 input[] = {0, /*index*/0, /*team*/0xFE, /*team_index*/0};
+  ((void(*)(uptr, u32*))0x0074AC64)(0, input);
+
+  MainApplication::GetInstance().ForceClose();
+}
 
 void LoadOverworldPage(MainApplication& app, void* args) {
   if (app.CheckProcess(ADDRESS_OVERWORLD_VTABLE)) return;
@@ -311,7 +317,8 @@ void LoadOverworldPage(MainApplication& app, void* args) {
 
   auto& weather_manager = overworld::WeatherManager::GetInstance();
   auto& man = overworld::MapManager::GetInstance();
-  app.Add("Refresh", RefreshMap)
+  app.Add("Wonder Trade", WonderTrade)
+     .Add("Refresh", RefreshMap)
      // .WithNoBackground()
      // .Add("Teleport", map_id)
      // .WithCallback(Teleport)

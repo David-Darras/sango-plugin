@@ -102,6 +102,7 @@ enum class HookID : u32 {
   kResourceAttachBufferAndSetup,
   kScriptAddPokemonToTeam,
   kCallStaticEncounter,
+  kTradePokemon,
   kMax
 };
 

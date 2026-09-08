@@ -42,6 +42,7 @@
 #include "feature/overworld/feature_overworld.h"
 #include "feature/core/feature_script.h"
 #include "feature/overworld/feature_static_encounter.h"
+#include "feature/overworld/feature_trade.h"
 #include "feature/pokemon/feature_evolution.h"
 #include "feature/pokemon/feature_mega_evolution.h"
 #include "feature/pokemon/feature_shiny.h"
@@ -99,6 +100,7 @@ void Initialize() {
   feature::Evolution::Initialize();
   feature::GiftPokemon::Initialize();
   feature::StaticEncounter::Initialize();
+  feature::Trade::Initialize();
 
 #ifdef KAIZO
   kaizo::Initialize();
