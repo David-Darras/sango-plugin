@@ -241,6 +241,7 @@ typedef std::function<void()> cheat_code_callback_t;
 } while(0)
 
 #define ARM_NOP(address) *(vu32*)(address) = 0xE1A00000
+#define ARM_RETURN_TRUE(address) *(vu32*)(address) = 0xE3A00001; *(vu32*)(address+4) = 0xE12FFF1E;
 #define SAFE_ARM_NOP(address) SAFE_WRITE32(address, 0xE1A00000)
 #define ARM_RET(address) *(vu32*)(address) = 0xE12FFF1E // bx lr
 #define ARM_NO_COND(address) *(vu32*)(address) = (*(vu32*)(address) & 0x0FFFFFFF) | 0xE0000000

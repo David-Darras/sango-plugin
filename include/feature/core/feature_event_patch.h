@@ -17,6 +17,7 @@
 
 #pragma once
 
+#include "feature_script.h"
 #include "feature/battle/feature_battle.h"
 #include "feature/overworld/feature_overworld.h"
 #include "game/core/event_manager.h"
@@ -42,6 +43,7 @@ class EventPatch {
       case ADDRESS_OVERWORLD_CALL_SCRIPT_VTABLE:
         GiftPokemon::PatchLoad();
         StaticEncounter::PatchLoad();
+        Script::PatchLoad();
         break;
     }
   }

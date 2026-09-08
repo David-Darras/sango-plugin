@@ -36,6 +36,9 @@ public:
   u32 dumped_count = 0;
   u32 injected_count = 0;
 
+  bool no_key_press = true;
+  bool no_cutscene = true;
+
   STATIC_INLINE void Initialize() {
     File::CreateDirectory(u"sdmc:/pkpawn");
     File::CreateDirectory(u"sdmc:/pkpawn/dump");
@@ -43,6 +46,19 @@ public:
     HookManager::Initialize(HookID::kLoadScript,
                             ADDRESS_SCRIPT_PAWN_BASE_LOAD,
                             (uptr)LoadHook);
+  }
+
+  STATIC_INLINE void PatchLoad() {
+    auto& ctx = GetInstance();
+    if (ctx.no_key_press) {
+      ARM_RETURN_TRUE(0x0073E86C);
+      ARM_RETURN_TRUE(0x007449E0);
+      ARM_RETURN_TRUE(0x00419984);
+      ARM_RETURN_TRUE(0x00419898);
+    }
+    if (ctx.no_cutscene) {
+      ARM_RETURN_TRUE(0x0074BE5C);
+    }
   }
 
   static void LoadHook(void* self, const void* buffer, u32 size,
@@ -63,7 +79,6 @@ public:
   }
 
 private:
-
   static u32 ComputeId(const void* data, u32 size) {
     static const u32 kTable[16] = {
         0x00000000, 0x1DB71064, 0x3B6E20C8, 0x26D930AC,
