@@ -18,6 +18,7 @@
 #pragma once
 
 #include "common.h"
+#include "feature_type_chart.h"
 #include "feature/battle/feature_game_extension.h"
 #include "feature/overworld/feature_overworld.h"
 #include "feature/core/hook_manager.h"
@@ -164,6 +165,7 @@ public:
     HookManager::ForceEnable(HookID::kBattleUpdateGauge);
     HookManager::ForceEnable(HookID::kBattleUpdateView);
     GameExtension::PatchBattleLoad();
+    TypeChart::PatchLoad();
 
     auto& feat = GetInstance();
     if (!feat.can_use_item) {

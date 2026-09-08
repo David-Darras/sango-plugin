@@ -46,11 +46,10 @@ static void RefreshMap(void*) {
   bool same_background_music = true;
   bool show_map_name = false;
 
-  ((int(*)(void*, u16, const overworld::Position*, int, char, char, int, int,
-           char,
-           char))
-    0x003D6258)(
-      game_manager, map_id, &pos, direction, 0, 1, same_background_music,
+  ((void(*)(game::Manager*, u16, const overworld::Position*, u8, u8, bool, s32,
+            s32,
+            s32, bool))0x003D6258)(
+      game_manager, map_id, &pos, direction, 0, same_background_music,
       1, 1, 1, show_map_name);
 
   main_app.ForceClose();
