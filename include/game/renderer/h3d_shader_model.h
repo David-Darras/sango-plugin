@@ -26,6 +26,7 @@ struct H3dShaderModel {
   u8 _0[0xE8];
   Vec3 scale;
   Vec3 rotation;
+  u8 _1[0x30];
   Vec3 position;
 
   static constexpr u32 kSize = 380;

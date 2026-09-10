@@ -19,6 +19,7 @@
 
 #include "utils.h"
 #include "feature/battle/feature_battle.h"
+#include "feature/battle/feature_trainer_team.h"
 #include "game/battle/config.h"
 #include "game/constant/battle_format.h"
 #include "game/constant/battle_trainer.h"
@@ -40,6 +41,10 @@
 #include "ui/log_application.h"
 
 namespace kaizo {
+using TrainerOpponentSpec = feature::TrainerOpponent;
+using TrainerSpec = feature::TrainerTeam;
+using TrainerEntry = feature::TrainerTeamEntry;
+
 static u8 s_count = 0;
 static PokemonCoreData s_backup[6];
 
@@ -66,114 +71,10 @@ void RestoreTeamAfterBattle() {
 // ----------------------------------------------------------------------
 // Trainer data tables.
 //
-// Every hand-picked trainer battle used to be a `PatchTrainer_Xxx()`
-// function that imperatively called `.Set()` / `.SetStats()` /
-// `.SetMoves()` on each opponent slot: ~550 lines that were really just
-// data (species/item/ability/nature/EVs/moves per opponent) written as
-// code. This is now a table of `TrainerSpec` values consumed by a single
-// `ApplyTrainerSpec()` function, so adding/rebalancing a trainer is a
-// one-line data change instead of copy-pasting a whole function.
+// Adding or rebalancing a trainer is a one-line data change. The types and
+// the lookup live in feature::TrainerTeams so a team can also be set without
+// kaizo mode.
 // ----------------------------------------------------------------------
-
-/**
-* @brief One opponent slot's data: mirrors, in order, the arguments
-* originally passed to PokemonCoreData::Set(), ::SetStats() and
-* ::SetMoves(), plus the optional form/nickname/level overrides some
-* opponents used.
-*/
-struct TrainerOpponentSpec {
-  Species species;
-  ItemId item;
-  Ability ability;
-  Nature nature;
-  bool is_shiny;
-
-  u8 ev_hp, ev_attack, ev_defense, ev_sp_attack, ev_sp_defense, ev_speed;
-
-  MoveId move1, move2, move3, move4;
-
-  u8 form; // 0 = leave the species' default form untouched
-  const c16* nickname; // nullptr = keep the species' default name
-  u8 forced_level; // 0 = don't force a level (PatchTrainer_Level decides)
-
-  TrainerOpponentSpec()
-    : species(Species::kNone), item(ItemId::kNone), ability(Ability::kNone),
-      nature(Nature::kHardy), is_shiny(false), ev_hp(0),
-      ev_attack(0), ev_defense(0), ev_sp_attack(0), ev_sp_defense(0),
-      ev_speed(0), move1(MoveId::kNone), move2(MoveId::kNone),
-      move3(MoveId::kNone), move4(MoveId::kNone), form(0),
-      nickname(nullptr), forced_level(0) {
-  }
-
-  TrainerOpponentSpec(Species species, ItemId item, Ability ability,
-                      Nature nature,
-                      bool is_shiny, u8 ev_hp, u8 ev_attack, u8 ev_defense,
-                      u8 ev_sp_attack, u8 ev_sp_defense, u8 ev_speed,
-                      MoveId move1, MoveId move2, MoveId move3, MoveId move4,
-                      u8 form = 0, const c16* nickname = nullptr,
-                      u8 forced_level = 0)
-    : species(species), item(item), ability(ability), nature(nature),
-      is_shiny(is_shiny), ev_hp(ev_hp), ev_attack(ev_attack),
-      ev_defense(ev_defense), ev_sp_attack(ev_sp_attack),
-      ev_sp_defense(ev_sp_defense), ev_speed(ev_speed), move1(move1),
-      move2(move2), move3(move3), move4(move4), form(form),
-      nickname(nickname), forced_level(forced_level) {
-  }
-
-  void ApplyTo(PokemonCoreData& pkm) const {
-    pkm.Set(species, item, ability, nature, is_shiny);
-    // `form` is a sentinel-carrying raw value here (0 = keep the default).
-    if (form != 0) pkm.form = static_cast<Form>(form);
-    pkm.SetStats(ev_hp, ev_attack, ev_defense, ev_sp_attack, ev_sp_defense,
-                ev_speed);
-    pkm.SetMoves(move1, move2, move3, move4);
-    if (nickname != nullptr) pkm.SetNickname(nickname);
-    if (forced_level != 0) pkm.SetLevel(forced_level);
-  }
-};
-
-/**
-* @brief A whole trainer battle: mirrors the arguments originally passed
-* to battle::Config::Set(), plus the list of opponents and the one-off
-* `config.battle_type = 0;` override that Georgia used.
-*/
-struct TrainerSpec {
-  u8 opponent_count;
-  BattleFormat format;
-  BattleBackground background;
-  BattleGround ground;
-  BattlePlatform platform;
-  BattleEncounterAnimation encounter_animation;
-  BattleWeather weather;
-  bool force_wild_battle_type;
-  TrainerOpponentSpec opponents[6];
-
-  TrainerSpec(u8 opponent_count, BattleFormat format,
-             BattleBackground background, BattleGround ground,
-             BattlePlatform platform,
-             BattleEncounterAnimation encounter_animation,
-             BattleWeather weather,
-             std::initializer_list<TrainerOpponentSpec> opponent_list,
-             bool force_wild_battle_type = false)
-    : opponent_count(opponent_count), format(format), background(background),
-      ground(ground), platform(platform),
-      encounter_animation(encounter_animation), weather(weather),
-      force_wild_battle_type(force_wild_battle_type) {
-    u32 i = 0;
-    for (const auto& opponent : opponent_list) {
-      opponents[i++] = opponent;
-    }
-  }
-};
-
-void ApplyTrainerSpec(battle::Config& config, const TrainerSpec& spec) {
-  if (spec.force_wild_battle_type) config.battle_type = 0;
-  config.Set(spec.opponent_count, spec.format, spec.background, spec.ground,
-             spec.platform, spec.encounter_animation, spec.weather);
-  for (u32 i = 0; i < spec.opponent_count; i++) {
-    spec.opponents[i].ApplyTo(config.GetOpponent(i));
-  }
-}
 
 static const TrainerSpec kMaySpec(
     5, BattleFormat::kHorde, BattleBackground::kSkyPillarTop,
@@ -463,11 +364,6 @@ static const TrainerSpec kRustboroCityLeaderRoxanneSpec(
          MoveId::kAerialAce, MoveId::kEarthquake, MoveId::kPursuit},
     });
 
-struct TrainerEntry {
-  BattleTrainer id;
-  const TrainerSpec* spec;
-};
-
 static const TrainerEntry TRAINERS[] = {
     {BattleTrainer::kRoute103May1, &kMaySpec},
     {BattleTrainer::kRoute103May2, &kMaySpec},
@@ -653,11 +549,11 @@ void PatchTrainerData(battle::Config& config, u16& trainer_id) {
     config.pokemon_teams[1]->pokemons[i]->core->experience = 0xFFFFFFFF;
   }
 
-  for (u32 i = 0; i < SIZE(TRAINERS); i++) {
-    if (TRAINERS[i].id == static_cast<BattleTrainer>(trainer_id)) {
-      ApplyTrainerSpec(config, *TRAINERS[i].spec);
-      break;
-    }
+  const feature::TrainerTeam* team =
+      feature::TrainerTeams::Find(static_cast<BattleTrainer>(trainer_id));
+  if (team != nullptr) {
+    ui::LogApplication::Print(u"Not found");
+    team->ApplyTo(config);
   }
 
   PatchTrainer_Level(config);
@@ -693,5 +589,9 @@ void PatchTrainerData(battle::Config& config, u16& trainer_id) {
     default:
       break;
   }
+}
+
+void InitializeTrainerTeams() {
+  feature::TrainerTeams::SetTable(TRAINERS, SIZE(TRAINERS));
 }
 }

@@ -16,6 +16,7 @@
  */
 
 #include "config_manager.h"
+#include "game/constant/event.h"
 #include "kaizo/kaizo.h"
 #include "feature/battle/feature_game_extension.h"
 #include "feature/battle/feature_battle_config.h"
@@ -31,6 +32,8 @@
 #include "feature/ui/feature_app_status.h"
 #include "feature/core/feature_archive.h"
 #include "feature/battle/feature_battle.h"
+#include "feature/battle/feature_trainer_team.h"
+#include "feature/battle/feature_type_helper.h"
 #include "feature/core/feature_event_patch.h"
 #include "feature/core/feature_process_patch.h"
 #include "feature/overworld/feature_encounter.h"
@@ -41,14 +44,19 @@
 #include "feature/overworld/feature_map_tile.h"
 #include "feature/overworld/feature_overworld.h"
 #include "feature/core/feature_script.h"
+#include "feature/core/feature_native_script.h"
 #include "feature/overworld/feature_static_encounter.h"
 #include "feature/overworld/feature_map_character.h"
+#include "feature/overworld/feature_map_graft.h"
+#include "feature/overworld/feature_tile_editor.h"
 #include "feature/overworld/feature_trade.h"
 #include "feature/pokemon/feature_evolution.h"
 #include "feature/pokemon/feature_mega_evolution.h"
 #include "feature/pokemon/feature_shiny.h"
 #include "feature/pokemon/feature_shop.h"
 #include "feature/ui/feature_keyboard.h"
+#include "game/savedata/settings.h"
+#include "script/scripts.h"
 #include "ui/main_application.h"
 #include "system/device.h"
 #include "system/file.h"
@@ -70,6 +78,17 @@ extern void InitOverworldWeather();
 extern void Entrypoint();
 extern void UpdateFollowingPokemon();
 
+static const feature::TrainerTeam kRayquazaTeam(
+    1, BattleFormat::kSingle, BattleBackground::kTown,
+    BattleGround::kTown, BattlePlatform::kPlain,
+    BattleEncounterAnimation::kRayquaza, BattleWeather::kStrongWinds,
+    {
+        {Species::kRayquaza, ItemId::kLifeOrb, Ability::kAirLock,
+         Nature::kAdamant, true, 4, 0, 0, 0, 0, 0, MoveId::kDragonAscent,
+         MoveId::kExtremeSpeed, MoveId::kEarthquake, MoveId::kDragonDance, 0,
+         nullptr, 100},
+    });
+
 void Initialize() {
   File::MountSdmc();
 
@@ -87,6 +106,7 @@ void Initialize() {
   feature::Encounter::Initialize();
   feature::ArchivePatch::Initiliaze();
   feature::Script::Initialize();
+  feature::NativeScript::Initialize();
   feature::BattleConfig::Initialize();
   feature::H3dModel::Initialize();
   feature::Battle::Initialize();
@@ -104,14 +124,41 @@ void Initialize() {
   feature::StaticEncounter::Initialize();
   feature::Trade::Initialize();
   feature::MapCharacter::Initialize();
+  // {
+  //   savedata::Settings::GetInstance().show_battle_animations = 0;
+  //   const u16 trainer = static_cast<u16>(BattleTrainer::kZinnia);
+  //   feature::MapCharacterRequest test_character;
+  //   test_character.map_id = 6;
+  //   test_character.model_id = static_cast<ModelId>(0x101F);
+  //   test_character.script_id = static_cast<ScriptId>(3000 + trainer);
+  //   test_character.hide_when_flag_set =
+  //       static_cast<u16>(EventID::kFirstTrainerDefeated) + trainer;
+  //   test_character.tile_x = 100;
+  //   test_character.tile_z = 163;
+  //   feature::MapCharacter::Add(test_character);
+  //   feature::TrainerTeams::Add(BattleTrainer::kZinnia, &kRayquazaTeam);
+  // }
+  feature::MapGraft::Initialize();
+  feature::TileEditor::Initialize();
+  script::Install();
   {
-    feature::MapCharacterRequest test_character;
-    test_character.map_id = 279;
-    test_character.model_id = 180;
-    test_character.script_id = 10117;
-    test_character.tile_x = 15;
-    test_character.tile_z = 22;
-    feature::MapCharacter::Add(test_character);
+    feature::MapGraft::Attach(MapId::kLittlerootTown, feature::Side::kUp,
+                              MapId::kOldaleTown);
+
+    feature::MapGraft::Link(MapId::kOldaleTown, feature::Side::kUp,
+                            MapId::kRustboroCity, 125, 238);
+    feature::MapGraft::Link(MapId::kRustboroCity, feature::Side::kDown,
+                            MapId::kOldaleTown, 100, 121);
+
+    feature::MapGraft::Link(MapId::kRustboroCity, feature::Side::kRight,
+                            MapId::kPetalburgCity, 80, 126);
+    feature::MapGraft::Link(MapId::kPetalburgCity, feature::Side::kLeft,
+                            MapId::kRustboroCity, 159, 173);
+
+    feature::MapGraft::Link(MapId::kPetalburgCity, feature::Side::kRight,
+                            MapId::kFallarborTown, 160, 102);
+    feature::MapGraft::Link(MapId::kFallarborTown, feature::Side::kLeft,
+                            MapId::kVerdanturfTown, 119, 102);
   }
   feature::Shop::Initialize();
 
@@ -154,6 +201,9 @@ void Entrypoint() {
 #endif
 
   UpdateFollowingPokemon();
+  feature::MapCharacter::Update();
+  feature::MapGraft::Update();
+  feature::TileEditor::Update();
 
   void* top_buffer = graphics.GetFramebuffer(Screen::kTop);
   if (graphics.BindFramebuffer(top_buffer)) {
@@ -161,6 +211,7 @@ void Entrypoint() {
     Graphics::BeginRender(top_buffer);
     application->DrawTop(graphics);
     feature::Keyboard::DrawTop();
+    feature::TypeHelper::DrawTop();
     Graphics::DisableScissor();
   }
 

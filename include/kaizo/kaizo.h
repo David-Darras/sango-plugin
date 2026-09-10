@@ -87,6 +87,7 @@ extern void InitializeGiftHook();
 extern void PatchEncounterTable(overworld::EncounterData* data);
 extern const EncounterEntry* GetEncounterEntry(MapId map_id);
 extern void PatchTrainerData(battle::Config& config, u16& trainer_id);
+extern void InitializeTrainerTeams();
 extern u32 PatchOverworldModels(u32 model, bool is_real_overworld);
 extern void ApplyLevelCaps(battle::Team* team, void* data);
 extern void PatchItemData(global_data::Item* item);

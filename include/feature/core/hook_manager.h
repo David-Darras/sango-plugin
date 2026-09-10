@@ -111,6 +111,8 @@ enum class HookID : u32 {
   kTradePokemon,
   kLoadMapCharacters,
   kCompleteRegionModelList,
+  kLoadWorldLayout,
+  kScriptDescriptorSetup, ///< Hook for the script descriptor setup
   kMax
 };
 

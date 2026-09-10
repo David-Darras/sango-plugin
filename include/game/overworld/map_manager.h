@@ -25,6 +25,7 @@ class Manager;
 namespace overworld {
 class Renderer;
 class PropModelManager;
+struct WorldLayout;
 
 class MapManager {
   SINGLETON(MapManager)
@@ -51,11 +52,10 @@ public:
     return device_heap_allocator_;
   }
 
-  /// field::Mapper, holding the terrain blocks: each block owns one H3D model
-  /// and its resource, so the current map is not a single mesh.
   INLINE void* GetMapper() const { return mapper_; }
 
   INLINE PropModelManager& GetPropModelManager() const { return *prop_model_manager_; }
+  INLINE WorldLayout& GetWorldLayout() const { return *world_layout_; }
 
 private:
   void* __0; // 0x00
@@ -76,13 +76,14 @@ private:
   void* _0[8]; // 0x3C
   u32 _1; // 0x5C
   game::Manager* game_manager_; // 0x60
-  void* _2[35]; // 0x64
+  WorldLayout* world_layout_; // 0x64
+  void* _2[34]; // 0x68
 
   u32 current_map_id; // 0xF0
   void* map_data_; // 0xF4
 
   u32 next_map_id; // 0xF8
-  u32 next_0; // 0xFC
+  u32 next_map_step; // 0xFC 0 loading, 1 swapping models, 2 setting up
 
   Renderer* renderer_; // 0x100
   void* encounter_manager_; // 0x104

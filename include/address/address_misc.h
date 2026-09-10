@@ -25,20 +25,51 @@
 #define ADDRESS_EVENT_TABLE_RESET_FLAG (0x0011FB38)
 #define ADDRESS_EVENT_TABLE_SET_FLAG (0x00406E94)
 #define ADDRESS_ALLOC (0x001235A8)
-#define ADDRESS_SCRIPT_FUNC_TABLE (0x007EA58C)
 #define ADDRESS_DO_FIELD_MOVE (0x003D40EC)
 #define ADDRESS_RECORD_MAX_VALUE_TABLE (0x0058DE14) // 999999999, 9999999, etc.
 #define ADDRESS_RECORD_MAX_VALUE_INDEX_TABLE (0x0058DD4A) // 0, 0, 0, 1, 1, etc.
 #define ADDRESS_IS_SHINY (0x00168F48)
 #define ADDRESS_TRAINER_MODEL_TABLE (0x00586B8A)
-#define ADDRESS_SCRIPT_INITIALIZE_VIRTUAL_MACHINE (0x00505DB4)
-#define ADDRESS_SCRIPT_PAWN_BASE_LOAD (0x003AB0C8)
 #define ADDRESS_CHECK_REGULATION (0x006F4F80) // app poke list static work
 // 0x8072520, 0x807251C, 0x8072510
 #define ADDRESS_LOAD_CRO_FILE (0x00110E2C)
 #define ADDRESS_START_BACKUP_THREAD (0x0045D6BC)
 #define ADDRESS_ON_UPDATE_FRAME (0x0011EEA4)
 #define ADDRESS_KEYBOARD_UPDATE_KEYS (0x00744540)
+/** @} */
+
+/** * @name Field Script (Pawn) Addresses
+ * The script engine (script::Engine) drives every field script;
+ * gfl::pawn::PawnBase wraps the AMX virtual machine underneath it.
+ * @{ */
+/// script::Engine* — the engine singleton, null outside of the field
+#define ADDRESS_SCRIPT_ENGINE_INSTANCE (0x005F46FC)
+/// Fills a script::ScriptDescriptor (this, zone_id, script_id, zone_data)
+#define ADDRESS_SCRIPT_DESCRIPTOR_SETUP (0x003FB594)
+/// gfl::pawn::PawnBase::Load(buffer, size, amx_name)
+#define ADDRESS_SCRIPT_PAWN_BASE_LOAD (0x003AB0C8)
+/// amx_Init(amx, program)
+#define ADDRESS_SCRIPT_INITIALIZE_VIRTUAL_MACHINE (0x00505DB4)
+/// amx_RaiseError(amx, error)
+#define ADDRESS_SCRIPT_RAISE_ERROR (0x0050630C)
+/// Native tables: {name, function} pairs, {0, 0} ends each one. Named after
+/// what they contain.
+/// keys, sound, text, talking, movement, camera, battle and app calls
+#define ADDRESS_SCRIPT_NATIVES_FIELD (0x007EA58C)
+/// flags, variables, NPC placement, items, time, party, dex, player, records
+#define ADDRESS_SCRIPT_NATIVES_STATE (0x007EB234)
+/// interactive NPC events
+#define ADDRESS_SCRIPT_NATIVES_INTERACTIVE (0x007EB99C)
+/// Pokémon Center: healing machine balls, icons, trainer card
+#define ADDRESS_SCRIPT_NATIVES_POKEMON_CENTER (0x007EB9FC)
+/// gym puzzles, pop-up messages, League and Hall of Fame effects
+#define ADDRESS_SCRIPT_NATIVES_MAP_EFFECTS (0x007EBAAC)
+/// Battle Maison / battle facilities
+#define ADDRESS_SCRIPT_NATIVES_BATTLE_FACILITY (0x007EBB44)
+/// saving, photos, day care, secret bases, berries, trainer eyes, races
+#define ADDRESS_SCRIPT_NATIVES_FIELD_SERVICES (0x007EBCDC)
+/// NPC AI
+#define ADDRESS_SCRIPT_NATIVES_NPC_AI (0x007EBFBC)
 /** @} */
 
 /** * @name Shop Addresses

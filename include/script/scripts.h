@@ -17,17 +17,6 @@
 
 #pragma once
 
-#include <types.h>
-
-enum class Direction : u8 {
-  kUp = 0,
-  kDown = 1,
-  kLeft = 2,
-  kRight = 3,
-  kUpLeft = 4,
-  kUpRight = 5,
-  kDownLeft = 6,
-  kDownRight = 7,
-  kCount = 8,
-  kInvalid = 9,
-};
+namespace script {
+void Install();
+} // namespace script

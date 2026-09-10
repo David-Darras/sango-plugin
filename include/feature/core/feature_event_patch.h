@@ -41,8 +41,9 @@ class EventPatch {
   static void OnLoad(uptr vtable) {
     switch (vtable) {
       case ADDRESS_OVERWORLD_CALL_SCRIPT_VTABLE:
-        GiftPokemon::PatchLoad();
-        StaticEncounter::PatchLoad();
+        // Game is lagging with those codes
+        // GiftPokemon::PatchLoad();
+        // StaticEncounter::PatchLoad();
         Script::PatchLoad();
         break;
     }

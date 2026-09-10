@@ -55,4 +55,6 @@ enum class BattleTrainer : u16 {
   kRustboroCityYoungsterTommy = 22,
   kRustboroCitySchoolkidGeorgia = 667,
   kRustboroCityLeaderRoxanne = 561,
+
+  kZinnia = 898,
 };

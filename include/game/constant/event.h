@@ -22,6 +22,8 @@
 enum class EventID : u16 {
   kGameFinished = 2720,
 
+  kFirstTrainerDefeated = 1740,
+
   kRoute101Unlocked = 2774,
   kRoute102Unlocked = 2775,
   kRoute103Unlocked = 2776,

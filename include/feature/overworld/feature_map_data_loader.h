@@ -20,9 +20,8 @@
 #include "common.h"
 #include "feature/pokemon/feature_model_loader.h"
 #include "feature/core/hook_manager.h"
+#include "feature/overworld/feature_map_graft.h"
 #include "game/overworld/map_data.h"
-#include "game/overworld/map_manager.h"
-#include "ui/log_application.h"
 
 namespace ui {
 class LogApplication;
@@ -40,7 +39,18 @@ class MapDataLoader {
 
   static bool LoadMapData(overworld::MapData* map_data) {
     bool result = HookManager::Call<bool>(HookID::kLoadMapData, map_data);
-    if (result && !GetInstance().is_contact_enabled) {
+    if (!result) return result;
+
+    const u16 loaded_map_id = map_data->next_map_id != 0xFFFF
+                                  ? map_data->next_map_id
+                                  : map_data->map_id;
+    s32 dx = 0;
+    s32 dz = 0;
+    if (MapGraft::GetTileOffset(static_cast<MapId>(loaded_map_id), dx, dz)) {
+      MapGraft::OffsetSettings(map_data->GetSettings(), dx, dz);
+    }
+
+    if (!GetInstance().is_contact_enabled) {
       auto& data = map_data->GetEncounterData();
       for (u32 i = 0; i < 14; i++) {
         data.rate[i] = 0;

@@ -22,6 +22,7 @@
 #include "ui/log_application.h"
 #include "game/script/amx.h"
 #include "game/overworld/map_manager.h"
+#include "feature/core/feature_native_script.h"
 
 namespace feature {
 class Script {
@@ -30,14 +31,14 @@ class Script {
 public:
   static constexpr u32 kMaxScriptBytes = 64 * 1024;
   static constexpr u32 kDumpHistorySize = 128;
-  bool dump_scripts = true;
-  bool inject_scripts = true;
-  bool log_activity = true;
+  bool dump_scripts = false;
+  bool inject_scripts = false;
+  bool log_activity = false;
   u32 dumped_count = 0;
   u32 injected_count = 0;
 
-  bool no_key_press = true;
-  bool no_cutscene = true;
+  bool no_key_press = false;
+  bool no_cutscene = false;
 
   STATIC_INLINE void Initialize() {
     File::CreateDirectory(u"sdmc:/pkpawn");
@@ -74,6 +75,9 @@ public:
       size = replacement_size;
       ctx.ReportInjected(id, replacement_size);
     }
+
+    // Scripts written in C++ take precedence over everything on the SD card.
+    NativeScript::OnLoad(self, buffer, size);
 
     HookManager::Call<void>(HookID::kLoadScript, self, buffer, size, amxname);
   }

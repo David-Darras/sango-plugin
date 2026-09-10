@@ -19,7 +19,9 @@
 #include "feature/overworld/feature_camera.h"
 #include "feature/overworld/feature_day_care.h"
 #include "feature/overworld/feature_field_move.h"
+#include "feature/overworld/feature_map_graft.h"
 #include "feature/overworld/feature_map_tile.h"
+#include "feature/overworld/feature_tile_editor.h"
 #include "feature/overworld/feature_overworld_model.h"
 #include "game/constant/map.h"
 #include "ui/main_application.h"
@@ -28,6 +30,7 @@
 #include "game/overworld/weather_manager.h"
 #include "game/renderer/h3d_shader_model.h"
 #include "ui/page/page_top.h"
+#include "ui/tile_editor_application.h"
 
 namespace ui {
 #include "game/overworld/tile.inc"
@@ -306,6 +309,66 @@ static void WonderTrade(void*) {
   MainApplication::GetInstance().ForceClose();
 }
 
+void LoadWorldLayoutPage(MainApplication& app, void* args) {
+  using overworld::WorldLayout;
+  if (app.CheckProcess(ADDRESS_OVERWORLD_VTABLE)) return;
+
+  static const c8* SIDES[] = {"Up", "Down", "Left", "Right"};
+  static const c8* GRAFT_NAMES[feature::MapGraft::kMaxRequests] = {
+      "Graft 0", "Graft 1", "Graft 2", "Graft 3",
+      "Graft 4", "Graft 5", "Graft 6", "Graft 7"
+  };
+  static const c8* LINK_NAMES[feature::MapGraft::kMaxLinks] = {
+      "Link 0", "Link 1", "Link 2", "Link 3",
+      "Link 4", "Link 5", "Link 6", "Link 7"
+  };
+
+  auto& layout = WorldLayout::GetInstance();
+  auto& graft = feature::MapGraft::GetInstance();
+
+  app.Add("Layout Id", layout.id)
+     .Add("Graft Enabled", graft.is_enabled)
+     .Add("Graft Logging", graft.is_logging_enabled)
+     .Add("Apply Grafts (Reload Map)", RefreshMap);
+
+  app.AddSeparator()
+     .Add("Tile Editor", [](void*) { TileEditorApplication::Open(); })
+     .Add("Tile Edits Enabled", feature::TileEditor::GetInstance().is_enabled)
+     .Add("Save Tile Edits", [](void*) { feature::TileEditor::Save(); })
+     .Add("Clear Tile Edits", [](void*) { feature::TileEditor::ClearEdits(); });
+
+  for (u32 i = 0; i < feature::MapGraft::GetCount(); i++) {
+    auto& request = feature::MapGraft::GetRequest(i);
+    auto& result = feature::MapGraft::GetResult(i);
+    app.AddSeparator()
+       .Add(GRAFT_NAMES[i], result.is_applied)
+       .Add("Anchor Map", request.anchor)
+       .Add("Side", request.side)
+       .WithArray(SIDES, SIZE(SIDES))
+       .Add("Grafted Map", request.map)
+       .Add("Shift (blocks)", request.shift)
+       .WithMin(-31)
+       .WithMax(31)
+       .Add("Offset X (blocks)", result.offset_x)
+       .Add("Offset Z (blocks)", result.offset_z);
+  }
+
+  for (u32 i = 0; i < feature::MapGraft::GetLinkCount(); i++) {
+    auto& link = feature::MapGraft::GetLink(i);
+    app.AddSeparator()
+       .Add(LINK_NAMES[i])
+       .Add("Leaving Map", link.from)
+       .Add("Through Side", link.side)
+       .WithArray(SIDES, SIZE(SIDES))
+       .Add("Lands On Map", link.to)
+       .Add("Tile X", link.tile_x)
+       .WithBounds(0, WorldLayout::kMaxWidth * WorldLayout::kTilesPerBlockSide)
+       .Add("Tile Z", link.tile_z)
+       .WithBounds(
+           0, WorldLayout::kMaxHeight * WorldLayout::kTilesPerBlockSide);
+  }
+}
+
 void LoadOverworldPage(MainApplication& app, void* args) {
   if (app.CheckProcess(ADDRESS_OVERWORLD_VTABLE)) return;
 
@@ -318,6 +381,7 @@ void LoadOverworldPage(MainApplication& app, void* args) {
   auto& weather_manager = overworld::WeatherManager::GetInstance();
   auto& man = overworld::MapManager::GetInstance();
   auto& player = overworld::ModelManager::GetInstance().GetPlayer();
+  app.Add("World Layout", LoadWorldLayoutPage);
   app.Add("Wonder Trade", WonderTrade)
      .Add("Refresh", RefreshMap)
      // .WithNoBackground()

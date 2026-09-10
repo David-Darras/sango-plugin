@@ -49,7 +49,7 @@ public:
   bool inverse_stats = false;
   bool metronome_only = false;
 
-  bool mega_restriction = false;
+  bool mega_restriction = true;
 
   struct LevelUpData {
     u32 exp;

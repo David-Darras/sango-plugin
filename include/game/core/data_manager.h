@@ -30,6 +30,7 @@ class ModelManager;
 struct Encounter;
 struct MapData;
 struct CommonResource;
+struct WorldLayout;
 } // namespace overworld
 
 namespace game {
@@ -55,6 +56,10 @@ public:
 
   INLINE overworld::MapData& GetMapData() const { return *map_data_; }
 
+  INLINE overworld::WorldLayout& GetWorldLayout() const {
+    return *world_layout_;
+  }
+
   INLINE overworld::CommonResource& GetCommonResource() const {
     return *common_resource_;
   }
@@ -66,7 +71,7 @@ private:
   overworld::CommonResource* common_resource_;
   void* country_name_buffer;
 
-  void* map_block;
+  overworld::WorldLayout* world_layout_;
 
   savedata::PokemonTeam* pokemon_team_;
   savedata::PlayTime* play_time_;

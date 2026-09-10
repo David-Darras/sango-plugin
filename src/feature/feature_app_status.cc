@@ -509,14 +509,20 @@ void AppStatus::Update(savedata::PokemonParam& pokemon,
     constexpr uptr kOffsetToUpdatePokemonFlag = 284;
     game::BaseProcess* process = game::ProcessManager::GetInstance().
         GetCurrentProcess();
-    bool update_pokemon = READB(READ32((uptr)process + kOffsetToRenderContext) + kOffsetToUpdatePokemonFlag);
+    bool update_pokemon = READB(
+        READ32((uptr)process + kOffsetToRenderContext) +
+        kOffsetToUpdatePokemonFlag);
     if (!new_model) {
-      WRITEB(READ32((uptr)process + kOffsetToRenderContext) + kOffsetToUpdatePokemonFlag, false);
+      WRITEB(
+          READ32((uptr)process + kOffsetToRenderContext) +
+          kOffsetToUpdatePokemonFlag, false);
     }
     ((void(*)(void*, u32, bool))ADDRESS_APP_STATUS_UPDATE_POKEMON)(process,
       GetSlot(), false);
     if (!new_model) {
-      WRITEB(READ32((uptr)process + kOffsetToRenderContext) + kOffsetToUpdatePokemonFlag, true);
+      WRITEB(
+          READ32((uptr)process + kOffsetToRenderContext) +
+          kOffsetToUpdatePokemonFlag, true);
     }
   }
 }

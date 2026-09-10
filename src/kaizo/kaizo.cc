@@ -43,6 +43,7 @@ void Initialize() {
   InitializeGiftHook();
   InitializeModelHook();
   InitializeStarterHook();
+  InitializeTrainerTeams();
 
   // Shiny
   {

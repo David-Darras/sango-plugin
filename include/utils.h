@@ -23,6 +23,8 @@
 #include "common.h"
 #include <cxxabi.h>
 
+#include "game/constant/item.h"
+
 
 class Utils {
 public:
@@ -47,11 +49,14 @@ public:
     return ((u32 (*)(const c16*))ADDRESS_STD_WCSLEN)(pIn);
   }
 
-  STATIC_INLINE u32 GetSize(const c16* pIn) { return (GetLength(pIn)) * sizeof(*pIn); }
+  STATIC_INLINE u32 GetSize(const c16* pIn) {
+    return (GetLength(pIn)) * sizeof(*pIn);
+  }
 
   static const c8* GetClassNameFromVTable(void* vtable) {
     u32 addr = (uptr)vtable;
-    if (addr < ADDRESS_PROCESS_MEMORY_START || addr > ADDRESS_PROCESS_MEMORY_END)
+    if (addr < ADDRESS_PROCESS_MEMORY_START || addr >
+        ADDRESS_PROCESS_MEMORY_END)
       return "";
     addr = READ32(addr - 4);
     if (addr == 0) return "";
@@ -98,5 +103,19 @@ public:
     }
 
     return buffer;
+  }
+
+  static ItemId GetRandomItemId() {
+    const u16 max = static_cast<u16>(ItemId::kCount);
+    const u16 min = 1;
+    const u16 rand = min + GetRandomValue(max);
+    return static_cast<ItemId>(rand);
+  }
+
+  static Species GetRandomSpecies() {
+    const u16 max = static_cast<u16>(Species::kCount);
+    const u16 min = 1;
+    const u16 rand = min + GetRandomValue(max);
+    return static_cast<Species>(rand);
   }
 };

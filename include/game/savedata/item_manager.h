@@ -27,7 +27,6 @@ namespace savedata {
 */
 struct ItemManager {
   SINGLETON(ItemManager)
-
   /** @brief Represents a single item stack in the bag. */
   struct ItemSlot {
     ItemId id; ///< Item ID.
@@ -69,6 +68,13 @@ struct ItemManager {
 
   ItemSlot* GetBerries() {
     return &items[kMaxNormalItems + kMaxKeyItems + kMaxTMsHMs + kMaxMedicine];
+  }
+
+  void ClearAll() {
+    for (u32 i = 0; i < kTotalSlots; ++i) {
+      items[i].count = 0;
+      items[i].id = ItemId::kNone;
+    }
   }
 };
 } // namespace savedata

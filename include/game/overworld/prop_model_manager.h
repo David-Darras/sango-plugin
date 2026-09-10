@@ -41,8 +41,10 @@ struct PropModel {
   renderer::H3dShaderModel* shader;
   u32 _4[38];
   bool is_visible;
-  bool _5[3];
-  Vec3 _6, _7;
+  bool needs_bounds_update;
+  bool _5[2];
+  Vec3 bounds_min;
+  Vec3 bounds_max;
 };
 
 struct PropModelManager {

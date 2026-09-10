@@ -69,10 +69,41 @@ struct EncounterData {
   }
 };
 
+struct MapSettings {
+  u8 terrain_kind;
+  u8 model_set_id;
+  u16 area_id;
+  u16 layout_id;
+  u16 message_id;
+  u32 background_music_id[4];
+  u16 event_data_id;
+  u16 group_id;
+  u16 place_name_bits;
+  u16 weather_bits;
+  u16 map_change_bits;
+  u16 _0;
+  u16 camera_area_id;
+  u16 unique_sequence_id;
+  u32 flag_bits;
+  s16 fly_x;
+  s16 fly_y;
+  s16 fly_z;
+  s16 start_x;
+  s16 start_y;
+  s16 start_z;
+};
+
+static_assert(sizeof(MapSettings) == 56,
+              "MapSettings must match the game's ZONEDATA layout");
+
 struct MapData {
   SINGLETON(MapData)
   STATIC_INLINE MapData& GetInstance() {
     return game::DataManager::GetInstance().GetMapData();
+  }
+
+  INLINE MapSettings& GetSettings() {
+    return *(MapSettings*)bundle[choice]->GetResource(0);
   }
 
   INLINE EncounterData& GetEncounterData() {

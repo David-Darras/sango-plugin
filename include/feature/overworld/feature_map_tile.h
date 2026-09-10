@@ -18,6 +18,7 @@
 #pragma once
 #include "common.h"
 #include "feature/core/hook_manager.h"
+#include "feature/overworld/feature_tile_editor.h"
 #include "game/overworld/tile.h"
 
 namespace feature {
@@ -47,6 +48,7 @@ struct MapTile {
 
   static overworld::Tile GetMapTileHook(void* data, Vec3* pos) {
     auto& ctx = GetInstance();
+    TileEditor::OnAttrQuery(data, pos);
 
     overworld::Tile tile = HookManager::GetInstance().Get(HookID::kGetMapTile)->
         CallOriginal<

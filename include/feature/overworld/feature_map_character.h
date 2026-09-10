@@ -19,7 +19,14 @@
 #define SANGO_PLUGIN_FEATURE_MAP_CHARACTER_H
 #include "common.h"
 #include "feature/core/hook_manager.h"
+#include "feature/overworld/feature_map_graft.h"
+#include "game/constant/model.h"
+#include "game/constant/script.h"
+#include "game/core/manager.h"
+#include "game/core/process_manager.h"
 #include "game/overworld/character_placement.h"
+#include "game/overworld/map_manager.h"
+#include "game/overworld/model_manager.h"
 #include "ui/log_application.h"
 
 namespace ui {
@@ -30,8 +37,8 @@ namespace feature {
 
 struct MapCharacterRequest {
   u16 map_id = 0;
-  u16 model_id = 0;
-  u16 script_id = 0;
+  ModelId model_id = ModelId::kNone;
+  ScriptId script_id = ScriptId::kNone;
   u16 tile_x = 0;
   u16 tile_z = 0;
   f32 height = 0.0f;
@@ -45,7 +52,7 @@ class MapCharacter {
 
 public:
   static constexpr u32 kMaxRequests = 16;
-  bool is_logging_enabled = true;
+  bool is_logging_enabled = false;
 
   STATIC_INLINE void Initialize() {
     HookManager::Initialize(HookID::kLoadMapCharacters,
@@ -66,14 +73,77 @@ public:
   static void Clear() { GetInstance().request_count_ = 0; }
   static u32 GetCount() { return GetInstance().request_count_; }
 
+  static void ReloadMapAfterBattleWith(u16 trainer_id) {
+    auto& ctx = GetInstance();
+    for (u32 i = 0; i < ctx.request_count_; i++) {
+      const MapCharacterRequest& request = ctx.requests_[i];
+      if (request.hide_when_flag_set == 0) continue;
+      if (static_cast<u16>(request.script_id) != kFirstTrainerScript +
+          trainer_id) {
+        continue;
+      }
+      ctx.is_reload_armed_ = true;
+      ctx.has_resting_spot_ = false;
+      return;
+    }
+  }
+
+  static void Update() {
+    auto& ctx = GetInstance();
+    if (!ctx.is_reload_armed_) return;
+
+    if (!game::ProcessManager::GetInstance().IsCurrentProcess(
+        ADDRESS_OVERWORLD_VTABLE)) {
+      ctx.has_resting_spot_ = false;
+      return;
+    }
+
+    const Vec3& stood_at = overworld::ModelManager::GetInstance().GetPlayer().
+                           map_pos.coords;
+    if (!ctx.has_resting_spot_) {
+      ctx.resting_x_ = stood_at.x;
+      ctx.resting_z_ = stood_at.z;
+      ctx.has_resting_spot_ = true;
+      return;
+    }
+    if (stood_at.x == ctx.resting_x_ && stood_at.z == ctx.resting_z_) return;
+
+    ctx.is_reload_armed_ = false;
+    ctx.has_resting_spot_ = false;
+    ReloadCurrentMap();
+  }
+
 private:
+  static constexpr u16 kFirstTrainerScript = 3000;
+
+  static void ReloadCurrentMap() {
+    overworld::Position position = overworld::ModelManager::GetInstance().
+                                   GetPlayer().world_pos;
+    u16 map_id = (u16)overworld::MapManager::GetInstance().GetMapId();
+
+    ((void (*)(game::Manager*, u16, const overworld::Position*, u8, u8, bool,
+               s32, s32, s32, bool))ADDRESS_CHANGE_MAP)(
+        &game::Manager::GetInstance(), map_id, &position, 0, 0, true, 1, 1, 1,
+        false);
+  }
+
   static u32 LoadMapCharacters(uptr event_data, u32 buffer_id) {
     u32 result = HookManager::Call<u32>(HookID::kLoadMapCharacters, event_data,
                                         buffer_id);
     auto& ctx = GetInstance();
     if (ctx.is_logging_enabled) ctx.LogShippedCharacters(event_data);
+    ctx.MoveGraftedEvents(event_data);
     ctx.PlaceCharacters(event_data);
     return result;
+  }
+
+  static void MoveGraftedEvents(uptr event_data) {
+    using namespace overworld;
+    const u16 map_id = READ16(event_data + map_event_offsets::kMapId);
+    s32 dx = 0;
+    s32 dz = 0;
+    if (!MapGraft::GetTileOffset(static_cast<MapId>(map_id), dx, dz)) return;
+    MapGraft::OffsetEvents(event_data, dx, dz);
   }
 
   static void CompleteRegionModelList(uptr manager, u32 player_sex,
@@ -117,10 +187,18 @@ private:
     if (shipped == nullptr) return;
     if (shipped_count > kMaxCharactersPerMap) return;
 
+    s32 graft_dx = 0;
+    s32 graft_dz = 0;
+    const bool is_grafted = MapGraft::GetTileOffset(
+        static_cast<MapId>(map_id), graft_dx, graft_dz);
+
     u32 count = 0;
     u16 next_local_id = 0;
     for (; count < shipped_count; count++) {
       placements_[count] = shipped[count];
+      if (is_grafted) {
+        MapGraft::OffsetPlacement(&placements_[count], graft_dx, graft_dz);
+      }
       if (shipped[count].local_id >= next_local_id) {
         next_local_id = shipped[count].local_id + 1;
       }
@@ -134,7 +212,7 @@ private:
       added++;
     }
 
-    if (added == 0) return;
+    if (added == 0 && !is_grafted) return;
 
     WRITE32(event_data + map_event_offsets::kCharacters, (u32)placements_);
     WRITE16(event_data + map_event_offsets::kCharacterCount, count);
@@ -177,7 +255,7 @@ private:
 
     for (u32 i = 0; i < placement_count; i++) {
       if (count + 1 >= kMaxModelsPerRegion) break;
-      u16 model_id = placements[i].model_id;
+      ModelId model_id = placements[i].model_id;
       if (Contains(models, count, model_id)) continue;
       if (!LoadAppearance(manager, model_id, &models[count])) {
         if (is_logging_enabled) {
@@ -198,16 +276,16 @@ private:
   }
 
   static bool Contains(const overworld::ModelAppearance* models, u32 count,
-                       u16 model_id) {
+                       ModelId model_id) {
     for (u32 i = 0; i < count; i++) {
       if (models[i].model_id == model_id) return true;
     }
     return false;
   }
 
-  static bool LoadAppearance(uptr manager, u16 model_id,
+  static bool LoadAppearance(uptr manager, ModelId model_id,
                              overworld::ModelAppearance* out) {
-    s32 index = ((s32 (*)(u16))ADDRESS_OVERWORLD_GET_MODEL_ARCHIVE_INDEX)(
+    s32 index = ((s32 (*)(ModelId))ADDRESS_OVERWORLD_GET_MODEL_ARCHIVE_INDEX)(
         model_id);
     if (index < 0) return false;
 
@@ -223,6 +301,10 @@ private:
 
   MapCharacterRequest requests_[kMaxRequests];
   u32 request_count_ = 0;
+  bool is_reload_armed_ = false;
+  bool has_resting_spot_ = false;
+  f32 resting_x_ = 0.0f;
+  f32 resting_z_ = 0.0f;
   overworld::CharacterPlacement placements_[overworld::kMaxCharactersPerMap];
 };
 } // namespace feature

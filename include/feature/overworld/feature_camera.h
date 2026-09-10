@@ -24,7 +24,7 @@
 #include "game/overworld/model_manager.h"
 #include "game/overworld/renderer.h"
 #include "game/battle/manager.h"
-#include "game/constant/direction.h"
+#include "game/overworld/character_placement.h"
 
 namespace overworld {
 class StereoCamera;
@@ -89,8 +89,8 @@ struct Camera {
   Vec3 pos;
   Vec3 up;
   Vec3 target;
-  f32 radius = 200.0f;
-  f32 height = 100.0f;
+  f32 radius = 2000.0f;
+  f32 height = 800.0f;
   f32 theta = 0.0f;
   f32 theta_speed = 0.005f;
   bool is_updating_camera = false;
@@ -167,26 +167,26 @@ struct Camera {
       }
     }
 
-    if (*dir == static_cast<u8>(Direction::kUp)) {
+    if (*dir == static_cast<u8>(overworld::Facing::kUp)) {
       if (player.facing_direction.x > 0.0f) {
-        *dir = static_cast<u8>(Direction::kRight);
+        *dir = static_cast<u8>(overworld::Facing::kRight);
         dir_vec->x = 1.0f;
         dir_vec->z = 0.0f;
       } else if (player.facing_direction.x < 0.0f) {
-        *dir = static_cast<u8>(Direction::kLeft);
+        *dir = static_cast<u8>(overworld::Facing::kLeft);
         dir_vec->x = -1.0f;
         dir_vec->z = 0.0f;
       } else if (player.facing_direction.z > 0.0f) {
-        *dir = static_cast<u8>(Direction::kDown);
+        *dir = static_cast<u8>(overworld::Facing::kDown);
         dir_vec->x = 0.0f;
         dir_vec->z = -1.0f;
       } else if (player.facing_direction.z < 0.0f) {
-        *dir = static_cast<u8>(Direction::kUp);
+        *dir = static_cast<u8>(overworld::Facing::kUp);
         dir_vec->x = 0.0f;
         dir_vec->z = 1.0f;
       }
     } else {
-      *dir = static_cast<u8>(Direction::kInvalid);
+      *dir = static_cast<u8>(overworld::Facing::kInvalid);
       dir_vec->x = 0.0f;
       dir_vec->z = 0.0f;
     }

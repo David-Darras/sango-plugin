@@ -20,6 +20,8 @@
 #include <types.h>
 
 enum class MapId : u16 {
+  kNone = 0xFFFF,
+
   kLittlerootTown = 6,
   kBrendanHouseGroundFloor = 223,
   kBrendanHouseFirstFloor = 224,
@@ -66,4 +68,8 @@ enum class MapId : u16 {
   kRustboroCity = 16,
   kRoute115 = 42, // NO POKEMON
   kRoute116 = 43,
+
+  kMauvilleCity = 15,
+  kFallarborTown = 10,
+  kVerdanturfTown = 11,
 };

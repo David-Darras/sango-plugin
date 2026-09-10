@@ -207,8 +207,8 @@ enum class ModelId : u16 {
   kBrendanMagmaSuit = 0xb1,
   kBrendanAquaSuit = 0xb2,
   kProfessorBirch = 0xb3,
-  kRivalOras = 0xb4, /* Brendan/May, opposite gender */
-  kRivalOrasWithBag = 0xb5,
+  kWally = 0xb4,
+  kWallyWithBag = 0xb5,
   kStevenStone = 0xb6,
   kSidney = 0xb7, /* Elite Four - Dark */
   kPhoebe = 0xb8, /* Elite Four - Ghost */
@@ -308,7 +308,7 @@ enum class ModelId : u16 {
   kDiverMale = 0x116,
   kDiverFemale = 0x117,
   kMomOras = 0x118,
-  kWally = 0x119,
+  kMax = 0x119,
   kMrStone = 0x11a, /* Steven's father */
   kOldManHagi = 0x11b,
   kToddlerBoyOras = 0x11c,

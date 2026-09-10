@@ -15,23 +15,21 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "feature/core/feature_script.h"
 #include "feature/core/feature_native_script.h"
-#include "ui/main_application.h"
 
-namespace ui {
-void LoadScriptPage(MainApplication& app, void* args) {
-  auto& ctx = feature::Script::GetInstance();
-  auto& native = feature::NativeScript::GetInstance();
+Coroutine* Coroutine::self_ = nullptr;
 
-  app.Add("Dump Scripts", ctx.dump_scripts)
-     .Add("Load Edited Scripts", ctx.inject_scripts)
-     .Add("Log To Screen", ctx.log_activity)
-     .AddSeparator()
-     .Add("Scripts Dumped", ctx.dumped_count)
-     .Add("Scripts Replaced", ctx.injected_count)
-     .AddSeparator()
-     .Add("Log C++ Scripts", native.log_activity)
-     .Add("C++ Scripts Run", native.run_count);
-}
-} // namespace ui
+asm(R"(
+  .text
+  .align 2
+  .global CoroutineSwitch
+  .type CoroutineSwitch, %function
+CoroutineSwitch:
+  push  {r4-r11, lr}
+  vpush {d8-d15}
+  str   sp, [r0]
+  mov   sp, r1
+  vpop  {d8-d15}
+  pop   {r4-r11, pc}
+  .size CoroutineSwitch, .-CoroutineSwitch
+)");
