@@ -1,0 +1,405 @@
+/*
+ * Copyright (C) 2026  David Darras
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+#include "feature/core/feature_app.h"
+#include "feature/overworld/feature_camera.h"
+#include "feature/overworld/feature_day_care.h"
+#include "feature/overworld/feature_field_move.h"
+#include "feature/overworld/feature_map_graft.h"
+#include "feature/overworld/feature_map_tile.h"
+#include "feature/overworld/feature_tile_editor.h"
+#include "feature/overworld/feature_overworld_model.h"
+#include "game/constant/map.h"
+#include "ui/main_application.h"
+#include "game/overworld/encounter.h"
+#include "game/overworld/prop_model_manager.h"
+#include "game/overworld/weather_manager.h"
+#include "game/renderer/h3d_shader_model.h"
+#include "ui/page/pages.h"
+#include "ui/tile_editor_application.h"
+
+namespace ui {
+#include "game/overworld/tile.inc"
+
+static void RefreshMap(void*) {
+  auto& main_app = ui::MainApplication::GetInstance();
+  if (main_app.CheckProcess(ADDRESS_OVERWORLD_VTABLE)) return;
+
+  auto& map_manager = overworld::MapManager::GetInstance();
+
+  auto* game_manager = &game::Manager::GetInstance();
+  u16 map_id = map_manager.GetMapId();
+  overworld::Position pos = overworld::ModelManager::GetInstance().
+                            GetPlayer().world_pos;
+  u8 direction = 0; // UP
+  bool same_background_music = true;
+  bool show_map_name = false;
+
+  ((void(*)(game::Manager*, u16, const overworld::Position*, u8, u8, bool, s32,
+            s32,
+            s32, bool))0x003D6258)(
+      game_manager, map_id, &pos, direction, 0, same_background_music,
+      1, 1, 1, show_map_name);
+
+  main_app.ForceClose();
+}
+
+void LoadOverworldMapTilePage(MainApplication& app, void* args) {
+  if (app.CheckProcess(ADDRESS_OVERWORLD_VTABLE)) return;
+
+  auto& ctx = feature::MapTile::GetInstance();
+
+  app.Add("Is Enabled", ctx.is_enabled)
+     .AddSeparator()
+     .Add("Is Impassable", ctx.is_impassable)
+     .Add("Is Water", ctx.is_water)
+     .Add("Permits Encounters", ctx.permits_encounters)
+     .Add("Allows Diagonal Movement", ctx.allows_diagonal_movement)
+     .Add("Has Shadow", ctx.has_shadow)
+     .Add("Blocks Trainer Movement", ctx.blocks_trainer_movement)
+     .Add("Can Place Decorations", ctx.can_place_decorations)
+     .Add("Can Move Decoration Cursor", ctx.can_move_decoration_cursor)
+     .AddSeparator()
+     .Add("Reflection 0", ctx.has_reflection_0)
+     .Add("Reflection 1", ctx.has_reflection_1)
+     .Add("Reflection 2", ctx.has_reflection_2)
+     .Add("Reflection 3", ctx.has_reflection_3)
+     .AddSeparator()
+     .Add("Footstep Sound Type", ctx.foot_step_id)
+     .WithArray(FOOT_STEPS, SIZE(FOOT_STEPS))
+     .Add("Battle Background Type", ctx.battle_background_id)
+     .Add("Ground Type", ctx.ground_id)
+     .WithArray(GROUNDS, SIZE(GROUNDS));
+}
+
+void LoadOverworldEncounterPage(MainApplication& app, void* args) {
+  if (app.CheckProcess(ADDRESS_OVERWORLD_VTABLE)) return;
+
+  auto& data = overworld::Encounter::GetInstance();
+
+  app.Add("Walk Count", data.walk_count)
+     .Add("Encounter Rate", data.encounter_rate)
+     .Add("Fishing Chain", data.fishing_chain_count);
+}
+
+void LoadOverworldFieldMovePage(MainApplication& app, void* args) {
+  if (app.CheckProcess(ADDRESS_OVERWORLD_VTABLE)) return;
+
+  app.Add("Cut", [](void*) {
+    feature::FieldMove::Execute(0);
+  });
+  app.Add("Rock Smash", [](void*) {
+    feature::FieldMove::Execute(4);
+  });
+  app.Add("Strength", [](void*) {
+    feature::FieldMove::Execute(3);
+  });
+  app.Add("Fly", [](void*) {
+    feature::GameApp::DoFly();
+  });
+  app.Add("Surf", [](void*) {
+    feature::FieldMove::Execute(1);
+  });
+  app.Add("Dive", [](void*) {
+    feature::FieldMove::Execute(10);
+  });
+  app.Add("Waterfall", [](void*) {
+    feature::FieldMove::Execute(2);
+  });
+  app.Add("Sweet Scent", [](void*) {
+    feature::FieldMove::Execute(9);
+  });
+  app.Add("Flash", [](void*) {
+    feature::FieldMove::Execute(6);
+  });
+  app.Add("Teleport", [](void*) {
+    feature::FieldMove::Execute(7);
+  });
+  app.Add("Dig", [](void*) {
+    feature::FieldMove::Execute(8);
+  });
+  app.Add("Secret Power", [](void*) {
+    feature::FieldMove::Execute(11);
+  });
+}
+
+void LoadOverworldCameraPage(MainApplication& app, void* args) {
+  if (app.CheckProcess(ADDRESS_OVERWORLD_VTABLE)) return;
+
+  static const c8* STATES[] = {"Idle", "Tps", "Rotate", "Top", "Fps", "Free"};
+  auto& ctx = feature::Camera::GetInstance();
+
+  app.WithNoBackground()
+     .Add("State", ctx.overworld_state)
+     .WithArray(STATES, SIZE(STATES))
+     .AddSeparator()
+     .Add("Free Pos X (Left/Right)", ctx.pos.x)
+     .WithFactor(5.0f)
+     .Add("Free Pos Y (Up/Down)", ctx.pos.y)
+     .WithFactor(5.0f)
+     .Add("Free Pos Z (Forward/Back)", ctx.pos.z)
+     .WithFactor(5.0f)
+     .Add("Free Yaw (Turn)", ctx.rot.y)
+     .WithFactor(0.05f)
+     .Add("Free Pitch (Look)", ctx.rot.x)
+     .WithFactor(0.05f)
+     .AddSeparator()
+     .Add("TPS Distance", ctx.tps_dist)
+     .Add("TPS Height", ctx.tps_height)
+     .Add("TPS Shoulder Offset", ctx.tps_offset)
+     .AddSeparator()
+     .Add("Radius", ctx.radius)
+     .WithFactor(3.0f)
+     .Add("Height", ctx.height)
+     .WithFactor(3.0f)
+     .Add("Orbit Rot Speed", ctx.theta_speed)
+     .WithFactor(0.01f);
+}
+
+void LoadOverworldModelPage(MainApplication& app, void* args) {
+  if (app.CheckProcess(ADDRESS_OVERWORLD_VTABLE)) return;
+
+  auto& ctx = feature::OverworldModel::GetInstance();
+  auto& man = overworld::ModelManager::GetInstance();
+  auto& rsrc = man.GetResource(ctx.model_idx);
+  auto& draw_model = man.GetPlayer().GetDrawModel();
+
+  app.WithNoBackground()
+     .Add("Model", rsrc.model_id)
+     .WithCallback(RefreshMap)
+     .Add("Animation", ctx.model_animation)
+     .WithCallback(feature::OverworldModel::PlayAnimation)
+     .AddSeparator()
+     .Add("Scale X", draw_model.scale.x)
+     .WithFactor(0.2f)
+     .Add("Scale Y", draw_model.scale.y)
+     .WithFactor(0.2f)
+     .Add("Scale Z", draw_model.scale.z)
+     .WithFactor(0.2f)
+     .AddSeparator()
+     .Add("Noclip", CheatCodeId::kNoclip)
+     .Add("Speed-X", ctx.speed.x)
+     .Add("Speed-Y", ctx.speed.y)
+     .Add("Speed-Z", ctx.speed.z)
+     .AddSeparator()
+     .Add("Swarm Mod", CheatCodeId::kSwarmMod)
+     .Add("Circle Radius", ctx.radius)
+     .Add("Rotation Speed", ctx.theta_speed)
+     .AddSeparator()
+     .Add("Model Index", ctx.model_idx)
+     .WithBounds(0, overworld::ModelManager::kMaxModels - 1)
+     .WithRefresh();
+}
+
+void LoadPropModelPage(MainApplication& app, void* args) {
+  if (app.CheckProcess(ADDRESS_OVERWORLD_VTABLE)) return;
+  auto& manager = overworld::PropModelManager::GetInstance();
+  if (manager.count == 0) {
+    app.Add("There is no prop here...");
+    return;
+  }
+
+  static const char* PROP_SOUND_EFFECTS[] = {
+      "None",
+      "Normal Door",
+      "Push Door",
+      "Double Door",
+      "Automatic Door",
+      "Pokemon Center",
+      "Big Double Door",
+      "Temple Door",
+      "Metal Door",
+      "Elite Four Door"
+  };
+
+  static u32 choice = 0;
+  ui::LogApplication::Print(u"man=%p", &manager);
+
+  app.Add("Choice", choice)
+     .WithBounds(0, manager.count - 1)
+     .WithRefresh();
+
+  auto& prop = manager.prop_models[choice];
+  if (!prop.is_initialized) return;
+
+  auto* shader = manager.prop_models[choice].shader;
+
+  app.AddSeparator()
+     .Add("Is Visible", shader->_0[0xE4])
+     .Add("Sound Effect", prop.sound_effect)
+     .WithArray(PROP_SOUND_EFFECTS, SIZE(PROP_SOUND_EFFECTS))
+     .AddSeparator()
+     .Add("Scale X", shader->scale.x)
+     .WithFactor(0.2f)
+     .Add("Scale Y", shader->scale.y)
+     .WithFactor(0.2f)
+     .Add("Scale Z", shader->scale.z)
+     .WithFactor(0.2f)
+     .AddSeparator()
+     .Add("Rotation X", shader->rotation.x)
+     .WithFactor(M_PI / 12.0f)
+     .Add("Rotation Y", shader->rotation.y)
+     .WithFactor(M_PI / 12.0f)
+     .Add("Rotation Z", shader->rotation.z)
+     .WithFactor(M_PI / 12.0f)
+     .AddSeparator()
+     .Add("Position X", shader->position.x)
+     .Add("Position Y", shader->position.y)
+     .Add("Position Z", shader->position.z)
+     .AddSeparator();
+}
+
+void LoadAppPage(MainApplication& app, void* args) {
+  if (app.CheckProcess(ADDRESS_OVERWORLD_VTABLE)) return;
+
+  auto& ctx = feature::GameApp::GetInstance();
+
+  const std::pair<const char*, u32> apps[] = {
+      // {"Tutor", 7},
+      {"PC", 17},
+      {"Remind", 9},
+      {"Delete", 8}
+  };
+
+  for (const auto& app_pair : apps) {
+    app.Add(app_pair.first, [&ctx, app_pair](void*) {
+      ctx.TriggerApp(app_pair.second);
+    });
+  }
+}
+
+void LoadDayCarePage(MainApplication& app, void* args) {
+  if (app.CheckProcess(ADDRESS_OVERWORLD_VTABLE)) return;
+
+  auto& day_care = feature::DayCare::GetInstance();
+
+  app.Add("Instant Egg Hatch", day_care.instant_egg_hatch)
+     .WithCallback(feature::DayCare::ApplyEggHatch)
+     .Add("Instant Max Exp", day_care.instant_max_exp)
+     .WithCallback(feature::DayCare::ApplyMaxExp);
+}
+
+// static u16 map_id = MapId::kInsideOfTruck;
+//
+// void Teleport(void*) {
+//   static const u32 PARAMS[] = {
+//       40, map_id, 0, 0, 0, 0, 0, 1, 0, 1
+//   };
+//   ((void(*)(uptr, const u32*))0x00747B4C)(0, PARAMS);
+// }
+
+static void WonderTrade(void*) {
+  static u32 input[] = {0, /*index*/0, /*team*/0xFE, /*team_index*/0};
+  ((void(*)(uptr, u32*))0x0074AC64)(0, input);
+
+  MainApplication::GetInstance().ForceClose();
+}
+
+void LoadWorldLayoutPage(MainApplication& app, void* args) {
+  using overworld::WorldLayout;
+  if (app.CheckProcess(ADDRESS_OVERWORLD_VTABLE)) return;
+
+  static const c8* SIDES[] = {"Up", "Down", "Left", "Right"};
+  static const c8* GRAFT_NAMES[feature::MapGraft::kMaxRequests] = {
+      "Graft 0", "Graft 1", "Graft 2", "Graft 3",
+      "Graft 4", "Graft 5", "Graft 6", "Graft 7"
+  };
+  static const c8* LINK_NAMES[feature::MapGraft::kMaxLinks] = {
+      "Link 0", "Link 1", "Link 2", "Link 3",
+      "Link 4", "Link 5", "Link 6", "Link 7"
+  };
+
+  auto& layout = WorldLayout::GetInstance();
+  auto& graft = feature::MapGraft::GetInstance();
+
+  app.Add("Layout Id", layout.id)
+     .Add("Graft Enabled", graft.is_enabled)
+     .Add("Graft Logging", graft.is_logging_enabled)
+     .Add("Apply Grafts (Reload Map)", RefreshMap);
+
+  app.AddSeparator()
+     .Add("Tile Editor", [](void*) { TileEditorApplication::Open(); })
+     .Add("Tile Edits Enabled", feature::TileEditor::GetInstance().is_enabled)
+     .Add("Save Tile Edits", [](void*) { feature::TileEditor::Save(); })
+     .Add("Clear Tile Edits", [](void*) { feature::TileEditor::ClearEdits(); });
+
+  for (u32 i = 0; i < feature::MapGraft::GetCount(); i++) {
+    auto& request = feature::MapGraft::GetRequest(i);
+    auto& result = feature::MapGraft::GetResult(i);
+    app.AddSeparator()
+       .Add(GRAFT_NAMES[i], result.is_applied)
+       .Add("Anchor Map", request.anchor)
+       .Add("Side", request.side)
+       .WithArray(SIDES, SIZE(SIDES))
+       .Add("Grafted Map", request.map)
+       .Add("Shift (blocks)", request.shift)
+       .WithMin(-31)
+       .WithMax(31)
+       .Add("Offset X (blocks)", result.offset_x)
+       .Add("Offset Z (blocks)", result.offset_z);
+  }
+
+  for (u32 i = 0; i < feature::MapGraft::GetLinkCount(); i++) {
+    auto& link = feature::MapGraft::GetLink(i);
+    app.AddSeparator()
+       .Add(LINK_NAMES[i])
+       .Add("Leaving Map", link.from)
+       .Add("Through Side", link.side)
+       .WithArray(SIDES, SIZE(SIDES))
+       .Add("Lands On Map", link.to)
+       .Add("Tile X", link.tile_x)
+       .WithBounds(0, WorldLayout::kMaxWidth * WorldLayout::kTilesPerBlockSide)
+       .Add("Tile Z", link.tile_z)
+       .WithBounds(
+           0, WorldLayout::kMaxHeight * WorldLayout::kTilesPerBlockSide);
+  }
+}
+
+void LoadOverworldPage(MainApplication& app, void* args) {
+  if (app.CheckProcess(ADDRESS_OVERWORLD_VTABLE)) return;
+
+  static const c8* WEATHERS[] = {
+      "Sunny", "Rainy", "Thunderstorm",
+      "Misty", "Ash", "Sandstorm",
+      "Cloudy", "Stormy", "Dry"
+  };
+
+  auto& weather_manager = overworld::WeatherManager::GetInstance();
+  auto& man = overworld::MapManager::GetInstance();
+  auto& player = overworld::ModelManager::GetInstance().GetPlayer();
+  app.Add("World Layout", LoadWorldLayoutPage);
+  app.Add("Wonder Trade", WonderTrade)
+     .Add("Refresh", RefreshMap)
+     // .WithNoBackground()
+     // .Add("Teleport", map_id)
+     // .WithCallback(Teleport)
+     .Add("Weather", weather_manager.GetRequestedWeather())
+     .WithArray(WEATHERS, SIZE(WEATHERS))
+     .Add("Field Move", LoadOverworldFieldMovePage)
+     .Add("App", LoadAppPage)
+     .Add("Camera", LoadOverworldCameraPage)
+     .Add("Model Loader (Unstable)", LoadModelLoaderPage)
+     .Add("Prop", LoadPropModelPage)
+     .Add("Player", LoadOverworldModelPage)
+     .Add("Encounter", LoadOverworldEncounterPage)
+     .Add("Map Tile", LoadOverworldMapTilePage)
+     .Add("Day Care", LoadDayCarePage)
+     .Add("Map Id", man.GetMapId())
+     .Add("Player Tile X", player.map_pos.coords.x)
+     .Add("Player Tile Z", player.map_pos.coords.z);
+}
+} // namespace ui

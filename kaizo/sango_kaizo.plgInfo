@@ -1,0 +1,25 @@
+Author: ZettaD
+
+Version: # Plugin version
+    Major: 4
+    Minor: 1
+    Revision: 0
+
+Targets: # Low TitleId of games which are compatibles with this plugin (0 for all)
+    #- 0x0011C400
+    #- 0x0011C500
+
+
+Title: sango-kaizo
+
+Summary: Pokémon Sango Kaizo
+
+Description: |
+  Pokémon Alpha Sapphire, the hard way: Nuzlocke rules, level caps,
+  competitive trainers and a new story, all patched in at runtime.
+
+Compatibility: Any
+
+MemorySize: 5MiB
+
+UsePrivateMemory: false

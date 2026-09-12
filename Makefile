@@ -18,19 +18,31 @@ GAME_PATH := "C:/Users/David/Desktop/ctr/cia/sango.3ds"
 
 CTRPFLIB	?=	$(DEVKITPRO)/libctrpf
 
-TARGET		:= 	$(notdir $(CURDIR))
-INCLUDES	:= 	include \
+#---------------------------------------------------------------------------------
+# One library, several plugins built on it. `make` builds them all,
+# `make overlay` / `make kaizo` just one; each gets its own build directory.
+#---------------------------------------------------------------------------------
+PRODUCTS	:=	overlay kaizo
+
+LIB_SOURCES	:=	lib/src \
+				lib/src/ui \
+				lib/src/ui/widget \
+				lib/src/ui/page \
+				lib/src/feature
+LIB_INCLUDES	:=	lib/include \
 				../Library/include
 
-SOURCES 	:= 	src \
-				src/ui \
-				src/ui/widget \
-				src/ui/page \
-				src/kaizo \
-				src/feature \
-				src/script
+# sango_plugin.3gx: every page of the library under one menu
+overlay_TARGET	:=	sango_plugin
+overlay_SOURCES	:=	$(LIB_SOURCES) overlay/src
+overlay_INCLUDES	:=	$(LIB_INCLUDES) overlay/include
+overlay_PSF		:=	overlay/sango_plugin.plgInfo
 
-PSF 		:= 	$(notdir $(TOPDIR)).plgInfo
+# sango_kaizo.3gx: the ROM hack
+kaizo_TARGET	:=	sango_kaizo
+kaizo_SOURCES	:=	$(LIB_SOURCES) kaizo/src
+kaizo_INCLUDES	:=	$(LIB_INCLUDES) kaizo/include
+kaizo_PSF		:=	kaizo/sango_kaizo.plgInfo
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -41,7 +53,7 @@ CFLAGS	:=	-mword-relocations \
  			-ffunction-sections -fdata-sections -fno-strict-aliasing \
 			$(ARCH) $(BUILD_FLAGS) $(G) \
 		   -DPLUGIN_CREATOR=\"$(PLUGIN_CREATOR)\" -DPLUGIN_VERSION=\"$(PLUGIN_VERSION)\" \
-		   -DUSE_SANGO_PLUGIN # -DUSE_DEFAULT_CTRPF -DKAIZO
+		   -DUSE_SANGO_PLUGIN # -DUSE_DEFAULT_CTRPF
 
 CFLAGS		+=	$(INCLUDE) -D__3DS__ $(DEFINES)
 
@@ -56,11 +68,40 @@ LIBS 		:=  $(BUILD_LIBS) -lm
 LIBDIRS		:= 	$(CTRPFLIB) $(CTRULIB) $(PORTLIBS)
 
 #---------------------------------------------------------------------------------
-# no real need to edit anything past this point unless you need to add additional
-# rules for different file extensions
+ifeq ($(strip $(PRODUCT)),)
 #---------------------------------------------------------------------------------
-ifneq ($(BUILD),$(notdir $(CURDIR)))
+# top level: one recursive make per product
 #---------------------------------------------------------------------------------
+.PHONY: all clean re relink $(PRODUCTS)
+
+all: $(PRODUCTS)
+
+$(PRODUCTS):
+	@$(MAKE) --no-print-directory PRODUCT=$@
+
+clean:
+	@echo clean ...
+	@rm -fr $(foreach p,$(PRODUCTS),release-$(p) debug-$(p)) release debug *.elf *.3gx
+
+re: clean all
+
+# builds, installs and launches the overlay in the emulator
+relink:
+	@rm -f *.elf *.3gx
+	@$(MAKE) --no-print-directory overlay
+	@cp $(overlay_TARGET)-release.3gx "$(DEST)/$(overlay_TARGET).3gx"
+	@$(EMULATOR) $(GAME_PATH)
+
+#---------------------------------------------------------------------------------
+else ifneq ($(BUILD),$(notdir $(CURDIR)))
+#---------------------------------------------------------------------------------
+# product level: resolve the product's sources, then build in its own directory
+#---------------------------------------------------------------------------------
+TARGET		:=	$($(PRODUCT)_TARGET)
+SOURCES		:=	$($(PRODUCT)_SOURCES)
+INCLUDES	:=	$($(PRODUCT)_INCLUDES)
+PSF			:=	$($(PRODUCT)_PSF)
+
 export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
 					$(foreach dir,$(DATA),$(CURDIR)/$(dir))
 
@@ -80,45 +121,29 @@ export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L $(dir)/lib)
 
-.PHONY: $(BUILD) clean re relink all
+export PSF
+
+.PHONY: all release-$(PRODUCT) debug-$(PRODUCT)
 
 #---------------------------------------------------------------------------------
 all: $(TARGET)-release.3gx
 
-release:
+release-$(PRODUCT) debug-$(PRODUCT):
 	@[ -d $@ ] || mkdir -p $@
 
-debug:
-	@[ -d $@ ] || mkdir -p $@
+$(TARGET)-release.3gx : release-$(PRODUCT)
+	@$(MAKE) BUILD=release-$(PRODUCT) OUTPUT=$(CURDIR)/$@ BUILD_LIBS="-lctrpf -lctru" WL=--strip-discarded,--strip-debug, \
+	BUILD_CFLAGS="-DNDEBUG=1 -O2 -fomit-frame-pointer" DEPSDIR=$(CURDIR)/release-$(PRODUCT) \
+	--no-print-directory -C release-$(PRODUCT) -f $(CURDIR)/Makefile
 
-$(TARGET)-release.3gx : release
-	@$(MAKE) BUILD=release OUTPUT=$(CURDIR)/$@ BUILD_LIBS="-lctrpf -lctru" WL=--strip-discarded,--strip-debug, \
-	BUILD_CFLAGS="-DNDEBUG=1 -O2 -fomit-frame-pointer" DEPSDIR=$(CURDIR)/release \
-	--no-print-directory -C release	-f $(CURDIR)/Makefile
-
-$(TARGET)-debug.3gx : debug
-	@$(MAKE) BUILD=debug OUTPUT=$(CURDIR)/$@ BUILD_LIBS="-lctrpfd -lctrud" BUILD_CFLAGS="-DDEBUG=1 -Og" G=-g \
-	DEPSDIR=$(CURDIR)/debug --no-print-directory -C debug -f $(CURDIR)/Makefile
+$(TARGET)-debug.3gx : debug-$(PRODUCT)
+	@$(MAKE) BUILD=debug-$(PRODUCT) OUTPUT=$(CURDIR)/$@ BUILD_LIBS="-lctrpfd -lctrud" BUILD_CFLAGS="-DDEBUG=1 -Og" G=-g \
+	DEPSDIR=$(CURDIR)/debug-$(PRODUCT) --no-print-directory -C debug-$(PRODUCT) -f $(CURDIR)/Makefile
 
 #---------------------------------------------------------------------------------
-clean:
-	@echo clean ...
-	@rm -fr release debug *.elf *.3gx
-
-re: clean all
-
-relink:
-	@rm -f *.elf *.3gx
-	@$(MAKE)
-	@cp $(TARGET)-release.3gx "$(DEST)/$(TARGET).3gx"
-	@$(EMULATOR) $(GAME_PATH)
-
-#---------------------------------------------------------------------------------
-
 else
-
 #---------------------------------------------------------------------------------
-# main targets
+# build directory level: compile and link
 #---------------------------------------------------------------------------------
 
 DEPENDS	:=	$(OFILES:.o=.d)

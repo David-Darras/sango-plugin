@@ -47,14 +47,22 @@ You will need **devkitPro**, as well as the following resources provided by the 
 * **[3gxtool](https://gitlab.com/thepixellizeross/3gxtool/-/releases/v1.2)**
 
 **To use:**
-Put the `sango_plugin.3gx` file in the `luma/plugins/000400000011C500` folder.
+Put the `.3gx` you built (`sango_plugin.3gx` or `sango_kaizo.3gx`) in the `luma/plugins/000400000011C500` folder, renamed to `sango_plugin.3gx`.
 
 ---
 
 ## Repository Structure
 
-* `include/`: Header files (Memory addresses, data structures, and game classes).
-* `src/`: Menu implementation and hooks.
+One library, several plugins built on it — `make` builds them all,
+`make overlay` or `make kaizo` just one.
+
+* `lib/`: the engine every plugin shares — memory addresses, game structures,
+  features (hooks), the menu framework and its pages, C++ field scripts. It
+  never decides anything on its own: a plugin enables features and installs
+  callbacks (`plugin.h`).
+* `overlay/`: `sango_plugin.3gx`, every page of the library under one menu, for
+  exploring and editing the game while it runs.
+* `kaizo/`: `sango_kaizo.3gx`, the ROM hack.
 
 ---
 
