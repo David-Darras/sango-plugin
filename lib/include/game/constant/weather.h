@@ -41,4 +41,5 @@ enum class OverworldWeather : u8 {
   kCloudy = 6,
   kStormy = 7,
   kDry = 8,
+  kNone = 9,
 };

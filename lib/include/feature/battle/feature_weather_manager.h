@@ -18,6 +18,9 @@
 #pragma once
 
 #include "common.h"
+#include "feature/core/hook_manager.h"
+#include "game/constant/weather.h"
+#include "game/overworld/weather_manager.h"
 
 namespace feature {
 enum class WeatherMode : u8 {
@@ -30,5 +33,38 @@ struct WeatherManager {
   MAKE_SINGLETON(WeatherManager)
   WeatherMode mode = WeatherMode::kNormal;
   bool enlarge_drops = true;
+  bool keep_weather_indoors = true;
+  bool ignore_zone_weather = false;
+
+  STATIC_INLINE void Initialize() {
+    HookManager::Initialize(HookID::kUpdateZoneWeather,
+                            ADDRESS_UPDATE_ZONE_WEATHER,
+                            (uptr)UpdateZoneWeatherHook);
+    HookManager::Initialize(HookID::kUpdateAreaWeather,
+                            ADDRESS_UPDATE_AREA_WEATHER,
+                            (uptr)UpdateAreaWeatherHook);
+  }
+
+private:
+  static u8 PickWeather(overworld::WeatherManager* manager, u8 weather) {
+    auto& feat = GetInstance();
+    const bool indoors = weather == static_cast<u8>(OverworldWeather::kNone);
+    if (feat.ignore_zone_weather || (indoors && feat.keep_weather_indoors)) {
+      return manager->GetRequestedWeather();
+    }
+    return weather;
+  }
+
+  static void UpdateZoneWeatherHook(overworld::WeatherManager* self,
+                                    u16 zone_id, u8 weather) {
+    HookManager::Call<void>(HookID::kUpdateZoneWeather, self, zone_id,
+                            PickWeather(self, weather));
+  }
+
+  static void UpdateAreaWeatherHook(overworld::WeatherManager* self,
+                                    u16 zone_id, u8 weather) {
+    HookManager::Call<void>(HookID::kUpdateAreaWeather, self, zone_id,
+                            PickWeather(self, weather));
+  }
 };
 } // namespace feature

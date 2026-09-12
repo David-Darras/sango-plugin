@@ -71,9 +71,9 @@ struct ItemManager {
   }
 
   void ClearAll() {
-    for (u32 i = 0; i < kTotalSlots; ++i) {
-      items[i].count = 0;
-      items[i].id = ItemId::kNone;
+    for (auto& item : items) {
+      item.count = 0;
+      item.id = ItemId::kNone;
     }
   }
 };

@@ -22,6 +22,7 @@
 #include "feature/battle/feature_battle_config.h"
 #include "feature/battle/feature_game_extension.h"
 #include "feature/battle/feature_type_helper.h"
+#include "feature/battle/feature_weather_manager.h"
 #include "feature/core/feature_app.h"
 #include "feature/core/feature_archive.h"
 #include "feature/core/feature_device.h"
@@ -102,6 +103,7 @@ void InitializeEngine() {
   feature::MapGraft::Initialize();
   feature::TileEditor::Initialize();
   feature::Shop::Initialize();
+  feature::WeatherManager::Initialize();
 }
 
 void LoadConfiguration() {

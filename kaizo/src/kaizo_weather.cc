@@ -17,6 +17,7 @@
 
 #include "utils.h"
 #include "feature/overworld/feature_overworld_model.h"
+#include "feature/battle/feature_weather_manager.h"
 #include "game/constant/weather.h"
 #include "game/overworld/weather_manager.h"
 
@@ -146,9 +147,8 @@ static OverworldWeather PickNextWeather(OverworldWeather currentWeather) {
 }
 
 void InitializeOverworldWeather() {
-  // Don't update weather with in game functions
-  ARM_NOP(ADDRESS_UPDATE_AREA_WEATHER + 0xC);
-  ARM_NOP(ADDRESS_UPDATE_ZONE_WEATHER + 0x4);
+  // The weather below drives the game, zones never do.
+  feature::WeatherManager::GetInstance().ignore_zone_weather = true;
 
   sCurrentOverworldWeather = OverworldWeather::kSunny;
   Utils::GetElapsedTime(&sWeatherStartTime);

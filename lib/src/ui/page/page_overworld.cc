@@ -15,6 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "feature/battle/feature_weather_manager.h"
 #include "feature/core/feature_app.h"
 #include "feature/overworld/feature_camera.h"
 #include "feature/overworld/feature_day_care.h"
@@ -389,6 +390,8 @@ void LoadOverworldPage(MainApplication& app, void* args) {
      // .WithCallback(Teleport)
      .Add("Weather", weather_manager.GetRequestedWeather())
      .WithArray(WEATHERS, SIZE(WEATHERS))
+     .Add("Keep Weather Indoors",
+          feature::WeatherManager::GetInstance().keep_weather_indoors)
      .Add("Field Move", LoadOverworldFieldMovePage)
      .Add("App", LoadAppPage)
      .Add("Camera", LoadOverworldCameraPage)

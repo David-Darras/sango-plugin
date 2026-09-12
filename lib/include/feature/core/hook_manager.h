@@ -25,14 +25,14 @@
  */
 enum class HookID : u32 {
   kEntrypoint,
-  kIsKeyPressed, ///< Hook for Controller::IsKeyPressed
-  kIsKeyReleased, ///< Hook for Controller::IsKeyReleased
-  kIsKeyDown, ///< Hook for Controller::IsKeyDown
-  kIsKeyRepeated, ///< Hook for Controller::IsKeyRepeated
-  kIsDPadDown, ///< Hook for DPad::IsDown
-  kIsDPadRepeated, ///< Hook for DPad::IsRepeated
-  kIsTouchDown, ///< Hook for TouchScreen::IsDown
-  kIsTouchReleased, ///< Hook for TouchScreen::IsReleased
+  kIsKeyPressed,
+  kIsKeyReleased,
+  kIsKeyDown,
+  kIsKeyRepeated,
+  kIsDPadDown,
+  kIsDPadRepeated,
+  kIsTouchDown,
+  kIsTouchReleased,
   kGetRepeatedKey,
   kUpdateMatrices,
   kUpdateLookAt,
@@ -112,7 +112,9 @@ enum class HookID : u32 {
   kLoadMapCharacters,
   kCompleteRegionModelList,
   kLoadWorldLayout,
-  kScriptDescriptorSetup, ///< Hook for the script descriptor setup
+  kScriptDescriptorSetup,
+  kUpdateZoneWeather,
+  kUpdateAreaWeather,
   kMax
 };
 
