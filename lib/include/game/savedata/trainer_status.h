@@ -45,7 +45,7 @@ struct TrainerStatus {
   u16 trainer_id; ///< Visible Trainer ID (TID) shown on the Trainer Card
   u16 secret_id; ///< Secret Trainer ID (SID) used for Shiny calculations
   u8 game_version; ///< Game version ID (e.g., 24: X, 25: Y, 26: AS, 27: OR)
-  u8 gender; ///< Player gender (0: Male, 1: Female)
+  Gender gender;
   u8 unknow0;
   u8 pss_icon; ///< Active PSS avatar icon index
   ///@}

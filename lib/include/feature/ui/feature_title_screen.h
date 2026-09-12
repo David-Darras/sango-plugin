@@ -34,12 +34,21 @@ class TitleScreen {
   Video bottom_video = Video::kPrimoGroudon;
   Species pokemon_cry_species = Species::kGroudon;
   f32 pokemon_cry_volume = 0.8f;
+  u32 skip_to_frame = 0;
+
+  STATIC_INLINE void Initialize() {
+    HookManager::Initialize(HookID::kTitleSequenceSync,
+                            ADDRESS_TITLE_SCREEN_SEQUENCE_SYNC,
+                            (uptr)SequenceSyncHook, false);
+  }
 
   STATIC_INLINE void PatchLoad() {
     auto& title = GetInstance();
     if (!title.is_enabled) return;
 
     MEMORY_SCOPE(ADDRESS_MEMORY_REGION_TITLE_SCREEN, 0x1E000);
+    title.skipped_ = false;
+    HookManager::ForceEnable(HookID::kTitleSequenceSync);
     WRITE32(ADDRESS_TITLE_SCREEN_TOP_VIDEO_ID,
             0xE3A02000 | static_cast<u8>(title.top_video));
     WRITE32(ADDRESS_TITLE_SCREEN_BOTTOM_VIDEO_ID,
@@ -52,5 +61,24 @@ class TitleScreen {
     if (title.no_shadow)
       ARM_NOP(ADDRESS_TITLE_SCREEN_SHADOW);
   }
+
+private:
+  static constexpr u32 kTopFrameOffset = 0x98;
+  static constexpr u32 kBottomFrameOffset = 0x9C;
+
+  static void SequenceSyncHook(uptr display) {
+    auto& title = GetInstance();
+    if (title.skip_to_frame != 0 && !title.skipped_ &&
+        READ32(display + kTopFrameOffset) > 0) {
+      title.skipped_ = true;
+      WRITE32(display + kTopFrameOffset,
+              READ32(display + kTopFrameOffset) + title.skip_to_frame);
+      WRITE32(display + kBottomFrameOffset,
+              READ32(display + kBottomFrameOffset) + title.skip_to_frame);
+    }
+    HookManager::Call<void>(HookID::kTitleSequenceSync, display);
+  }
+
+  bool skipped_ = false;
 };
 } // namespace feature

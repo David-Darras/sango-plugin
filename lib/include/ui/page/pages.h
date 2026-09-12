@@ -36,6 +36,8 @@ void LoadScriptPage(MainApplication& app, void* args);
 void LoadSoundPage(MainApplication& app, void* args);
 void LoadAppPage(MainApplication& app, void* args);
 void LoadTitleScreenPage(MainApplication& app, void* args);
+void LoadShinyPage(MainApplication& app, void* args);
+void LoadTopPage(MainApplication& app, void* args);
 } // namespace ui
 
 /// Keeps the model spawned by the model loader page next to the player.

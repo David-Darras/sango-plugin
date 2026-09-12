@@ -115,6 +115,10 @@ enum class HookID : u32 {
   kScriptDescriptorSetup,
   kUpdateZoneWeather,
   kUpdateAreaWeather,
+  kOverworldSetDefaultPosition,
+  kModelPlayAnimation,
+  kModelUpdateMotion,
+  kTitleSequenceSync,
   kMax
 };
 

@@ -63,6 +63,7 @@ public:
   INLINE overworld::CommonResource& GetCommonResource() const {
     return *common_resource_;
   }
+  INLINE u16& GetPlayerDirection() { return player_direction_; }
 
 private:
   savedata::SaveData* savedata_;
@@ -79,8 +80,13 @@ private:
   overworld::ModelManager* overworld_model_manager_;
   void* _4;
   overworld::MapData* map_data_;
-
-  u8 _2[388 - 36 - 8];
+  void* area_data_;
+  u32 season_;
+  void* _5[3];
+  u8 locations_[4 * 56];
+  u16 player_zone_id_;
+  u16 player_direction_;
+  u8 _2[388 - 0x124];
 
   overworld::Encounter* encounter_;
 

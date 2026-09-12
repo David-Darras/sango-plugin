@@ -17,10 +17,8 @@
 
 #pragma once
 
-#include "ui/page/pages.h"
+#include "common.h"
 
-/// The overlay's own pages: the root of the menu tree.
-namespace ui {
-void LoadShinyPage(MainApplication& app, void* args);
-void LoadTopPage(MainApplication& app, void* args);
-} // namespace ui
+namespace undertow {
+void InstallScripts();
+}

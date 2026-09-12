@@ -22,9 +22,9 @@
 
 #include "feature/overworld/feature_map_graft.h"
 #include "game/constant/map.h"
-#include "overlay/pages.h"
 #include "overlay/scripts.h"
 #include "plugin.h"
+#include "ui/page/pages.h"
 #include "ui/painter.h"
 
 static void EveryFrame() {

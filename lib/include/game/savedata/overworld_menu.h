@@ -21,9 +21,17 @@
 namespace savedata {
 struct OverworldMenu {
   SINGLETON(OverworldMenu)
-
   STATIC_INLINE OverworldMenu& GetInstance() {
     return SaveData::GetInstance().GetOverworldMenu();
+  }
+
+  INLINE void DisableAll() {
+    is_pokemon_list_visible = false;
+    is_pokedex_visible = false;
+    is_bag_visible = false;
+    is_trainer_card_visible = false;
+    is_save_visible = false;
+    is_options_visible = false;
   }
 
   void* vtable;
@@ -31,21 +39,23 @@ struct OverworldMenu {
   union {
     u32 flags;
 
-    u32 is_pokemon_list_visible : 1;
-    u32 is_pokedex_visible : 1;
-    u32 is_bag_visible : 1;
-    u32 is_trainer_card_visible : 1;
-    u32 is_save_visible : 1;
-    u32 is_options_visible : 1;
+    struct {
+      u32 is_pokemon_list_visible : 1;
+      u32 is_pokedex_visible : 1;
+      u32 is_bag_visible : 1;
+      u32 is_trainer_card_visible : 1;
+      u32 is_save_visible : 1;
+      u32 is_options_visible : 1;
 
-    u32 pokemon_list_position : 3;
-    u32 pokedex_position : 3;
-    u32 bag_position : 3;
-    u32 trainer_card_position : 3;
-    u32 save_position : 3;
-    u32 options_position : 3;
+      u32 pokemon_list_position : 3;
+      u32 pokedex_position : 3;
+      u32 bag_position : 3;
+      u32 trainer_card_position : 3;
+      u32 save_position : 3;
+      u32 options_position : 3;
 
-    u32  : 8;
+      u32 : 8;
+    };
   };
 };
 } // namespace savedata

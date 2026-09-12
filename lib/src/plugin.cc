@@ -52,8 +52,11 @@
 #include "feature/rendering/feature_light.h"
 #include "feature/rendering/feature_picture.h"
 #include "feature/rendering/feature_text_box.h"
+#include "feature/overworld/feature_run_animation.h"
+#include "feature/pokemon/feature_pokemon_model.h"
 #include "feature/ui/feature_app_status.h"
 #include "feature/ui/feature_keyboard.h"
+#include "feature/ui/feature_new_game.h"
 #include "system/device.h"
 #include "system/file.h"
 #include "system/graphics.h"
@@ -104,6 +107,10 @@ void InitializeEngine() {
   feature::TileEditor::Initialize();
   feature::Shop::Initialize();
   feature::WeatherManager::Initialize();
+  feature::NewGame::Initialize();
+  feature::RunAnimation::Initialize();
+  feature::PokemonModel::Initialize();
+  feature::TitleScreen::Initialize();
 }
 
 void LoadConfiguration() {

@@ -23,6 +23,8 @@
 #include "feature/battle/feature_battle.h"
 #include "feature/ui/feature_keyboard.h"
 #include "feature/overworld/feature_overworld.h"
+#include "feature/ui/feature_new_game.h"
+#include "feature/ui/feature_starter_choice.h"
 #include "feature/ui/feature_title_screen.h"
 #include "game/core/process_manager.h"
 
@@ -45,6 +47,7 @@ class ProcessPatch {
   }
 
   static void OnUpdate(uptr vtable) {
+    NewGame::OnProcessUpdate(vtable);
     switch (vtable) {
       case ADDRESS_APP_STATUS_VTABLE:
         AppStatus::PatchUpdate();
@@ -60,6 +63,7 @@ class ProcessPatch {
   static void OnLoad(uptr vtable) {
     auto& feat = GetInstance();
     if (feat.on_process_load != nullptr) feat.on_process_load(vtable);
+    NewGame::OnProcessLoad(vtable);
 
     if (vtable != ADDRESS_OVERWORLD_VTABLE) {
       HookManager::Clear(HookID::kGetEncounterPokemon);
@@ -83,6 +87,9 @@ class ProcessPatch {
         break;
       case ADDRESS_KEYBOARD_VTABLE:
         Keyboard::PatchLoad();
+        break;
+      case ADDRESS_SELECT_STARTER_VTABLE:
+        StarterChoice::PatchLoad();
         break;
       default:
         break;

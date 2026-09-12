@@ -70,7 +70,17 @@ public:
     return true;
   }
 
-  static void Clear() { GetInstance().request_count_ = 0; }
+  static void Clear() {
+    GetInstance().request_count_ = 0;
+    GetInstance().emptied_count_ = 0;
+  }
+
+  static bool Empty(u16 map_id) {
+    auto& ctx = GetInstance();
+    if (ctx.emptied_count_ >= kMaxEmptiedMaps) return false;
+    ctx.emptied_maps_[ctx.emptied_count_++] = map_id;
+    return true;
+  }
   static u32 GetCount() { return GetInstance().request_count_; }
 
   static void ReloadMapAfterBattleWith(u16 trainer_id) {
@@ -192,6 +202,8 @@ private:
     const bool is_grafted = MapGraft::GetTileOffset(
         static_cast<MapId>(map_id), graft_dx, graft_dz);
 
+    if (IsEmptied(map_id)) shipped_count = 0;
+
     u32 count = 0;
     u16 next_local_id = 0;
     for (; count < shipped_count; count++) {
@@ -212,7 +224,7 @@ private:
       added++;
     }
 
-    if (added == 0 && !is_grafted) return;
+    if (added == 0 && !is_grafted && !IsEmptied(map_id)) return;
 
     WRITE32(event_data + map_event_offsets::kCharacters, (u32)placements_);
     WRITE16(event_data + map_event_offsets::kCharacterCount, count);
@@ -221,6 +233,13 @@ private:
     if (is_logging_enabled) {
       ui::LogApplication::Print(u"placed %u -> chars=%u", added, count);
     }
+  }
+
+  bool IsEmptied(u16 map_id) const {
+    for (u32 i = 0; i < emptied_count_; i++) {
+      if (emptied_maps_[i] == map_id) return true;
+    }
+    return false;
   }
 
   static void BuildPlacement(const MapCharacterRequest& request, u16 local_id,
@@ -306,6 +325,9 @@ private:
   f32 resting_x_ = 0.0f;
   f32 resting_z_ = 0.0f;
   overworld::CharacterPlacement placements_[overworld::kMaxCharactersPerMap];
+  static constexpr u32 kMaxEmptiedMaps = 8;
+  u16 emptied_maps_[kMaxEmptiedMaps];
+  u32 emptied_count_ = 0;
 };
 } // namespace feature
 

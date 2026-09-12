@@ -37,6 +37,7 @@ public:
         ADDRESS_SCRIPT_NATIVES_BATTLE_FACILITY,
         ADDRESS_SCRIPT_NATIVES_FIELD_SERVICES,
         ADDRESS_SCRIPT_NATIVES_NPC_AI,
+        ADDRESS_SCRIPT_NATIVES_PROGRAM,
     };
     for (u32 i = 0; i < SIZE(kTables); i++) {
       NativeFunction function = FindIn((const PawnNativeBinding*)kTables[i],
@@ -112,6 +113,11 @@ struct Natives {
   NativeFunction MEIsFinished; // (sound_item_id) -> bool
   NativeFunction MEReturnBGM; // () brings the map music back after a jingle
   NativeFunction GlobalCall; // (script_id) runs a child script
+  NativeFunction PokePartyGetCount;
+  NativeFunction PokePartyAdd;
+  NativeFunction _FieldClose;
+  NativeFunction _FieldOpen;
+  NativeFunction _CallPoke3Select;
 
   bool Resolve() {
     struct Entry {
@@ -157,6 +163,11 @@ struct Natives {
         {"MEIsFinished", &MEIsFinished},
         {"MEReturnBGM", &MEReturnBGM},
         {"GlobalCall", &GlobalCall},
+        {"PokePartyGetCount", &PokePartyGetCount},
+        {"PokePartyAdd", &PokePartyAdd},
+        {"_FieldClose", &_FieldClose},
+        {"_FieldOpen", &_FieldOpen},
+        {"_CallPoke3Select", &_CallPoke3Select},
     };
     bool complete = true;
     for (u32 i = 0; i < SIZE(entries); i++) {

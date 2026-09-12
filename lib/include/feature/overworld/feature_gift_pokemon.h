@@ -27,6 +27,8 @@ namespace feature {
 class GiftPokemon {
   MAKE_SINGLETON(GiftPokemon)
 public:
+  bool randomize_species = false;
+
   STATIC_INLINE void Initialize() {
     HookManager::Initialize(HookID::kScriptAddPokemonToTeam,
                             ADDRESS_SCRIPT_ADD_POKEMON_TO_TEAM,
@@ -46,7 +48,7 @@ private:
   }
 
   static s32 ScriptAddPokemonToTeamHook(u32* a1, u32* a2) {
-    RandomizeSpecies(a2[1]);
+    if (GetInstance().randomize_species) RandomizeSpecies(a2[1]);
     return HookManager::Call<s32>(HookID::kScriptAddPokemonToTeam, a1, a2);
   }
 };

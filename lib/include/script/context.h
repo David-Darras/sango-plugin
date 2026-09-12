@@ -142,6 +142,9 @@ constexpr u32 kJinglePokemon = (5 << 16) + 4;
 
 class Context {
 public:
+  static constexpr u32 kStarterChoiceFirst = 0;
+  static constexpr u16 kStarterChoiceResult = 0x4030;
+
   Context(const Natives& natives, Coroutine& coroutine, c16* message_buffer,
           u32 message_capacity)
     : natives_(natives), coroutine_(coroutine),
@@ -161,6 +164,22 @@ public:
   void CallScript(ScriptId id) {
     Call(natives_.GlobalCall, (s32)id);
     Yield();
+  }
+
+  u32 GetPartyCount() { return (u32)Call(natives_.PokePartyGetCount); }
+
+  bool GivePokemon(u32 gift_table_id, bool add_front = false) {
+    return Call(natives_.PokePartyAdd, gift_table_id, add_front) != 0;
+  }
+
+  u32 ChooseStarter() {
+    Call(natives_._FieldClose, true, true);
+    Yield();
+    Call(natives_._CallPoke3Select, kStarterChoiceFirst);
+    Yield();
+    Call(natives_._FieldOpen, true);
+    Yield();
+    return GetVariable(kStarterChoiceResult);
   }
 
   template <typename... Args>
@@ -183,6 +202,9 @@ public:
   bool GetFlag(u16 flag_no) { return Call(natives_.FlagGet, flag_no) != 0; }
   void SetFlag(u16 flag_no) { Call(natives_.FlagSet, flag_no); }
   void ResetFlag(u16 flag_no) { Call(natives_.FlagReset, flag_no); }
+  bool GetFlag(EventFlag f) { return GetFlag((u16)f); }
+  void SetFlag(EventFlag f) { SetFlag((u16)f); }
+  void ResetFlag(EventFlag f) { ResetFlag((u16)f); }
 
   s32 GetTalkTarget() { return (s16)GetVariable(ScriptVariable::kTalkTarget); }
 

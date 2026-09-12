@@ -24,6 +24,7 @@
 #include "feature/core/feature_archive.h"
 #include "feature/core/feature_process_patch.h"
 #include "feature/overworld/feature_encounter.h"
+#include "feature/overworld/feature_gift_pokemon.h"
 #include "feature/overworld/feature_overworld.h"
 #include "feature/pokemon/feature_item.h"
 #include "feature/ui/feature_title_screen.h"
@@ -102,6 +103,8 @@ void InstallCallbacks() {
 
   feature::BattleConfig::GetInstance().on_trainer_battle =
       kaizo::PatchTrainerData;
+
+  feature::GiftPokemon::GetInstance().randomize_species = true;
 
   auto& archive = feature::ArchivePatch::GetInstance();
   archive.on_stream_file = OnStreamFile;

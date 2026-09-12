@@ -17,6 +17,7 @@
 #include "common.h"
 #include "feature/core/hook_manager.h"
 #include "feature/pokemon/feature_mega_evolution.h"
+#include "feature/pokemon/feature_pokemon_model.h"
 #include "game/constant/form.h"
 #include "game/constant/model.h"
 #include "game/constant/species.h"
@@ -117,9 +118,7 @@ void ShouldReplacePokemonModel(bool no_yes) {
   is_enabled = no_yes;
 }
 
-static void ReplacePokemonModelHook(void* model, PokeInfo* poke_info,
-                                    void* p0,
-                                    void* p1, void* p2, void* p3) {
+static void OnPokemonModel(PokeInfo* poke_info) {
   if (is_enabled) {
     PatchPokemonModels(poke_info);
   }
@@ -144,13 +143,9 @@ static void ReplacePokemonModelHook(void* model, PokeInfo* poke_info,
       poke_info->form = Form::kGarchompMega;
     }
   }
-  HookManager::Call<void>(HookID::kReplacePokemonModel, model, poke_info, p0,
-                          p1, p2, p3);
 }
 
 void InitializeModelHook() {
-  HookManager::Initialize(HookID::kReplacePokemonModel,
-                          ADDRESS_REPLACE_POKEMON_MODEL,
-                          (uptr)ReplacePokemonModelHook);
+  feature::PokemonModel::GetInstance().on_create = OnPokemonModel;
 }
 }

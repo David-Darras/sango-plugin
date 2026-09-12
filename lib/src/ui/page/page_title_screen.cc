@@ -15,6 +15,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "feature/ui/feature_new_game.h"
 #include "ui/main_application.h"
 #include "ui/page/pages.h"
 
@@ -114,6 +115,7 @@ const char* VIDEO_NAMES[] = {
 void LoadTitleScreenPage(MainApplication& app, void* args) {
   auto& title_screen = feature::TitleScreen::GetInstance();
 
+  auto& new_game = feature::NewGame::GetInstance();
   app.Add("Is Enabled", title_screen.is_enabled)
      .Add("No delay", title_screen.no_delay)
      .Add("No shadow", title_screen.no_shadow)
@@ -122,6 +124,11 @@ void LoadTitleScreenPage(MainApplication& app, void* args) {
      .Add("Bottom Video", title_screen.bottom_video)
      .WithArray(VIDEO_NAMES, SIZE(VIDEO_NAMES))
      .AddSpecies("Pokemon Cry", title_screen.pokemon_cry_species)
-     .Add("Pokemon Cry Volume", title_screen.pokemon_cry_volume);
+     .Add("Pokemon Cry Volume", title_screen.pokemon_cry_volume)
+     .AddSeparator()
+     .Add("Skip Intro", new_game.skip_intro)
+     .Add("Player Gender", new_game.player_gender)
+     .WithBounds(0, 1)
+     .Add("Start Zone", new_game.start_zone);
 }
 } // namespace ui

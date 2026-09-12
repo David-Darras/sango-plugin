@@ -46,6 +46,12 @@ enum class ScriptVariable : u16 {
   kSmallMessageTail = 0x8016,
 };
 
+enum class EventFlag : u16 {
+  kFirstFree = 3026,
+  kLastFree = 3039,
+  kStarterGiven = kFirstFree,
+};
+
 struct ScriptDescriptor {
   ScriptKind kind; // 0x00
   u8 _0[3];

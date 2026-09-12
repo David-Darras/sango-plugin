@@ -47,14 +47,14 @@ You will need **devkitPro**, as well as the following resources provided by the 
 * **[3gxtool](https://gitlab.com/thepixellizeross/3gxtool/-/releases/v1.2)**
 
 **To use:**
-Put the `.3gx` you built (`sango_plugin.3gx` or `sango_kaizo.3gx`) in the `luma/plugins/000400000011C500` folder, renamed to `sango_plugin.3gx`.
+Put the `.3gx` you built (`sango_plugin.3gx`, `sango_kaizo.3gx` or `sango_undertow.3gx`) in the `luma/plugins/000400000011C500` folder, renamed to `sango_plugin.3gx`.
 
 ---
 
 ## Repository Structure
 
 One library, several plugins built on it — `make` builds them all,
-`make overlay` or `make kaizo` just one.
+`make overlay`, `make kaizo` or `make undertow` just one.
 
 * `lib/`: the engine every plugin shares — memory addresses, game structures,
   features (hooks), the menu framework and its pages, C++ field scripts. It
@@ -63,6 +63,8 @@ One library, several plugins built on it — `make` builds them all,
 * `overlay/`: `sango_plugin.3gx`, every page of the library under one menu, for
   exploring and editing the game while it runs.
 * `kaizo/`: `sango_kaizo.3gx`, the ROM hack.
+* `undertow/`: `sango_undertow.3gx`, Pokémon Undertow: the game played from
+  Team Aqua's side, as a grunt.
 
 ---
 

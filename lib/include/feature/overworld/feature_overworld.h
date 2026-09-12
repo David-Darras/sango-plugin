@@ -23,6 +23,7 @@
 #include "feature/overworld/feature_day_care.h"
 #include "feature/overworld/feature_gift_pokemon.h"
 #include "feature/overworld/feature_overworld_model.h"
+#include "feature/overworld/feature_run_animation.h"
 #include "feature/core/hook_manager.h"
 
 namespace feature {
@@ -72,6 +73,7 @@ struct Overworld {
     HookManager::ForceEnable(HookID::kCheckAppRequest);
     HookManager::ForceEnable(HookID::kOverworldUpdateZone);
     HookManager::ForceEnable(HookID::kGetPlayerMovement);
+    RunAnimation::PatchLoad();
 
     // Simulate a button press
     WRITE32(ADDRESS_OVERWORLD_SIMULATE_BUTTON_PRESS, 0xE1A00000);

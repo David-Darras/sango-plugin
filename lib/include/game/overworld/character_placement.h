@@ -152,7 +152,7 @@ struct ModelAppearance {
 static_assert(sizeof(ModelAppearance) == 24,
               "ModelAppearance must match the game's model list layout");
 
-constexpr u32 kMaxCharactersPerMap = 26;
+constexpr u32 kMaxCharactersPerMap = 32;
 constexpr u32 kMaxModelsPerRegion = 33;
 
 namespace map_event_offsets {

@@ -22,7 +22,7 @@ CTRPFLIB	?=	$(DEVKITPRO)/libctrpf
 # One library, several plugins built on it. `make` builds them all,
 # `make overlay` / `make kaizo` just one; each gets its own build directory.
 #---------------------------------------------------------------------------------
-PRODUCTS	:=	overlay kaizo
+PRODUCTS	:=	overlay kaizo undertow
 
 LIB_SOURCES	:=	lib/src \
 				lib/src/ui \
@@ -43,6 +43,12 @@ kaizo_TARGET	:=	sango_kaizo
 kaizo_SOURCES	:=	$(LIB_SOURCES) kaizo/src
 kaizo_INCLUDES	:=	$(LIB_INCLUDES) kaizo/include
 kaizo_PSF		:=	kaizo/sango_kaizo.plgInfo
+
+# sango_undertow.3gx: the ROM hack where you play a Team Aqua grunt
+undertow_TARGET	:=	sango_undertow
+undertow_SOURCES	:=	$(LIB_SOURCES) undertow/src
+undertow_INCLUDES	:=	$(LIB_INCLUDES) undertow/include
+undertow_PSF		:=	undertow/sango_undertow.plgInfo
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -72,7 +78,7 @@ ifeq ($(strip $(PRODUCT)),)
 #---------------------------------------------------------------------------------
 # top level: one recursive make per product
 #---------------------------------------------------------------------------------
-.PHONY: all clean re relink $(PRODUCTS)
+.PHONY: all clean re $(PRODUCTS)
 
 all: $(PRODUCTS)
 
@@ -85,11 +91,17 @@ clean:
 
 re: clean all
 
-# builds, installs and launches the overlay in the emulator
-relink:
+# `make run-<product>` builds one product, installs it as the plugin the
+# emulator loads (always sango_plugin.3gx, so products never pile up) and
+# launches the game. `make relink` is `make run-overlay`.
+.PHONY: relink $(addprefix run-,$(PRODUCTS))
+
+relink: run-overlay
+
+$(addprefix run-,$(PRODUCTS)): run-%:
 	@rm -f *.elf *.3gx
-	@$(MAKE) --no-print-directory overlay
-	@cp $(overlay_TARGET)-release.3gx "$(DEST)/$(overlay_TARGET).3gx"
+	@$(MAKE) --no-print-directory $*
+	@cp $($*_TARGET)-release.3gx "$(DEST)/sango_plugin.3gx"
 	@$(EMULATOR) $(GAME_PATH)
 
 #---------------------------------------------------------------------------------

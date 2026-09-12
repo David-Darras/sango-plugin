@@ -27,63 +27,20 @@
 
 namespace script {
 namespace {
-
 void LittlerootGreeter(Context& s) {
-  {
-    s.TalkStart();
-    s.Talk(u"Hi! You just arrived in Littleroot Town?\n"
-        u"This script is written in C++, not in Pawn!");
-    s.ShowMessage(u"Do you want a random item for 1000 Pokédollars?");
-    const bool wants_item = s.AskYesNo();
-    const u32 amount = 1000;
-    if (wants_item) {
-      if (s.GetMoney() < amount) {
-        s.Talk(u"You don't have enough money!");
-      } else {
-        ItemId item = Utils::GetRandomItemId();
-        if (s.CanGiveItem(item)) {
-          s.SubMoney(amount);
-          s.GiveItem(item);
-          s.PlayJingle(kJingleItem);
-          s.Talk(u"Here, take good care of it!");
-        } else {
-          s.Talk(u"Oh, your bag is full...");
-        }
-      }
-    } else {
-      s.Talk(u"Suit yourself!");
-    }
-
-    s.Face(kTalkTarget, overworld::Facing::kLeft);
-    s.Wait(10);
-    s.Face(kTalkTarget, overworld::Facing::kRight);
-    s.Wait(10);
-    s.Face(kTalkTarget, (overworld::Facing)s.Call(s.GetNatives().PlayerGetReturnDir));
-
-    s.Talk(u"See ya!");
-    s.TalkEnd();
-  }
-
-  static bool first_time = true;
-
   s.TalkStart();
-
-  if (first_time) {
-    s.Talk(u"Hi! You just arrived in Littleroot Town?\n"
-        u"This script is written in C++, not in Pawn!");
-  }
-
+  s.Talk(u"Hi! You just arrived in Littleroot Town?\n"
+      u"This script is written in C++, not in Pawn!");
   s.ShowMessage(u"Do you want a random item for 1000 Pokédollars?");
   const bool wants_item = s.AskYesNo();
-  s.CloseMessage();
-
+  const u32 amount = 1000;
   if (wants_item) {
-    if (s.GetMoney() < 1000) {
+    if (s.GetMoney() < amount) {
       s.Talk(u"You don't have enough money!");
     } else {
-      auto item = Utils::GetRandomItemId();
+      ItemId item = Utils::GetRandomItemId();
       if (s.CanGiveItem(item)) {
-        s.SubMoney(1000);
+        s.SubMoney(amount);
         s.GiveItem(item);
         s.PlayJingle(kJingleItem);
         s.Talk(u"Here, take good care of it!");
@@ -95,18 +52,17 @@ void LittlerootGreeter(Context& s) {
     s.Talk(u"Suit yourself!");
   }
 
-  if (first_time) {
-    s.Face(kTalkTarget, overworld::Facing::kLeft);
-    s.Wait(10);
-    s.Face(kTalkTarget, overworld::Facing::kRight);
-    s.Wait(10);
-    s.Face(kTalkTarget, (overworld::Facing)s.Call(s.GetNatives().PlayerGetReturnDir));
-    first_time = false;
-  }
+  s.Face(kTalkTarget, overworld::Facing::kLeft);
+  s.Wait(10);
+  s.Face(kTalkTarget, overworld::Facing::kRight);
+  s.Wait(10);
+  s.Face(kTalkTarget,
+         (overworld::Facing)s.Call(s.GetNatives().PlayerGetReturnDir));
 
   s.Talk(u"See ya!");
   s.TalkEnd();
 }
+
 } // namespace
 
 void Install() {

@@ -20,6 +20,7 @@
 #include "feature/overworld/feature_camera.h"
 #include "feature/overworld/feature_day_care.h"
 #include "feature/overworld/feature_field_move.h"
+#include "feature/overworld/feature_map_character.h"
 #include "feature/overworld/feature_map_graft.h"
 #include "feature/overworld/feature_map_tile.h"
 #include "feature/overworld/feature_tile_editor.h"
@@ -330,6 +331,8 @@ void LoadWorldLayoutPage(MainApplication& app, void* args) {
   app.Add("Layout Id", layout.id)
      .Add("Graft Enabled", graft.is_enabled)
      .Add("Graft Logging", graft.is_logging_enabled)
+     .Add("Character Logging",
+          feature::MapCharacter::GetInstance().is_logging_enabled)
      .Add("Apply Grafts (Reload Map)", RefreshMap);
 
   app.AddSeparator()
@@ -403,6 +406,7 @@ void LoadOverworldPage(MainApplication& app, void* args) {
      .Add("Day Care", LoadDayCarePage)
      .Add("Map Id", man.GetMapId())
      .Add("Player Tile X", player.map_pos.coords.x)
+     .Add("Player Tile Y", player.map_pos.coords.y)
      .Add("Player Tile Z", player.map_pos.coords.z);
 }
 } // namespace ui
