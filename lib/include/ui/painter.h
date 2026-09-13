@@ -18,7 +18,9 @@
 #pragma once
 #include "common.h"
 
+namespace sys {
 class Graphics;
+}
 
 namespace ui {
 class MainApplication;
@@ -32,7 +34,7 @@ public:
   virtual void DrawPageItems(MainApplication& app) = 0;
   virtual bool ShowBottom() { return false; }
   /// Drawn on the bottom screen before the menu, whether it is open or not.
-  virtual void DrawBottomOverlay(Graphics& graphics) {}
+  virtual void DrawBottomOverlay(sys::Graphics& graphics) {}
 
 protected:
   /// What a painter needs to lay the current page out.

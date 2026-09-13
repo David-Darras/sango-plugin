@@ -23,7 +23,7 @@ namespace ui {
 /**
 * @brief Enumeration of supported data types for a menu entry.
 */
-enum PageItemType {
+enum PageItemType : u8 {
   kTypeU8,
   kTypeU16,
   kTypeU32,

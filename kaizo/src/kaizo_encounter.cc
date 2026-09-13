@@ -18,100 +18,100 @@
 #include <cmath>
 
 #include "common.h"
-#include "utils.h"
-#include "game/constant/map.h"
-#include "game/constant/species.h"
-#include "game/overworld/map_data.h"
+#include "core/utils.h"
+#include "overworld/constant/map.h"
+#include "pokemon/constant/species.h"
+#include "overworld/native/map_data.h"
 #include "kaizo/kaizo.h"
-#include "game/overworld/map_manager.h"
-#include "game/savedata/pokemon_team.h"
+#include "overworld/native/map_manager.h"
+#include "savedata/native/pokemon_team.h"
 #include "ui/log_application.h"
 
 namespace kaizo {
-static const Species ROUTE_101[] = {
-    Species::kGrowlithe,
-    Species::kPoochyena,
-    Species::kRiolu,
-    Species::kFurfrou,
-    Species::kHoundour,
-    Species::kSnubbull,
-    Species::kElectrike,
-    Species::kLillipup,
+static const SpeciesId ROUTE_101[] = {
+    SpeciesId::kGrowlithe,
+    SpeciesId::kPoochyena,
+    SpeciesId::kRiolu,
+    SpeciesId::kFurfrou,
+    SpeciesId::kHoundour,
+    SpeciesId::kSnubbull,
+    SpeciesId::kElectrike,
+    SpeciesId::kLillipup,
 };
 
-static const Species ROUTE_102[] = {
-    Species::kMeowth,
-    Species::kEspurr,
-    Species::kPurrloin,
-    Species::kGlameow,
-    Species::kSkitty,
-    Species::kShinx,
-    Species::kSneasel,
-    Species::kEevee,
+static const SpeciesId ROUTE_102[] = {
+    SpeciesId::kMeowth,
+    SpeciesId::kEspurr,
+    SpeciesId::kPurrloin,
+    SpeciesId::kGlameow,
+    SpeciesId::kSkitty,
+    SpeciesId::kShinx,
+    SpeciesId::kSneasel,
+    SpeciesId::kEevee,
 };
 
-static const Species ROUTE_103[] = {
-    Species::kDedenne,
-    Species::kRattata,
-    Species::kPichu,
-    Species::kAzurill,
-    Species::kPlusle,
-    Species::kMinun,
+static const SpeciesId ROUTE_103[] = {
+    SpeciesId::kDedenne,
+    SpeciesId::kRattata,
+    SpeciesId::kPichu,
+    SpeciesId::kAzurill,
+    SpeciesId::kPlusle,
+    SpeciesId::kMinun,
 };
 
-static const Species ROUTE_104_SOUTH[] = {
-    Species::kPidgey,
-    Species::kNatu,
-    Species::kTaillow,
-    Species::kWingull,
-    Species::kStarly,
-    Species::kPidove,
-    Species::kVullaby,
-    Species::kFletchling,
+static const SpeciesId ROUTE_104_SOUTH[] = {
+    SpeciesId::kPidgey,
+    SpeciesId::kNatu,
+    SpeciesId::kTaillow,
+    SpeciesId::kWingull,
+    SpeciesId::kStarly,
+    SpeciesId::kPidove,
+    SpeciesId::kVullaby,
+    SpeciesId::kFletchling,
 };
 
-static const Species PETALBURG_WOODS[] = {
-    Species::kCaterpie,
-    Species::kWeedle,
-    Species::kWurmple,
-    Species::kBurmy,
-    Species::kSewaddle,
-    Species::kVenipede,
-    Species::kScatterbug,
+static const SpeciesId PETALBURG_WOODS[] = {
+    SpeciesId::kCaterpie,
+    SpeciesId::kWeedle,
+    SpeciesId::kWurmple,
+    SpeciesId::kBurmy,
+    SpeciesId::kSewaddle,
+    SpeciesId::kVenipede,
+    SpeciesId::kScatterbug,
 };
 
-static const Species ROUTE_104_NORTH[] = {
-    Species::kSpearow,
-    Species::kFarfetchd,
-    Species::kHoothoot,
-    Species::kMurkrow,
-    Species::kSkarmory,
-    Species::kChatot,
-    Species::kDucklett,
-    Species::kRufflet,
-    Species::kHawlucha
+static const SpeciesId ROUTE_104_NORTH[] = {
+    SpeciesId::kSpearow,
+    SpeciesId::kFarfetchd,
+    SpeciesId::kHoothoot,
+    SpeciesId::kMurkrow,
+    SpeciesId::kSkarmory,
+    SpeciesId::kChatot,
+    SpeciesId::kDucklett,
+    SpeciesId::kRufflet,
+    SpeciesId::kHawlucha
 };
 
-static const Species PETALBURG_CITY[] = {
-    Species::kUnown
+static const SpeciesId PETALBURG_CITY[] = {
+    SpeciesId::kUnown
 };
 
-static const Species ROUTE_116[] = {
-    Species::kMankey,
-    Species::kAipom,
-    Species::kSlakoth,
-    Species::kChimchar,
-    Species::kPansage,
-    Species::kPansear,
-    Species::kPanpour,
-    Species::kDarumaka,
+static const SpeciesId ROUTE_116[] = {
+    SpeciesId::kMankey,
+    SpeciesId::kAipom,
+    SpeciesId::kSlakoth,
+    SpeciesId::kChimchar,
+    SpeciesId::kPansage,
+    SpeciesId::kPansear,
+    SpeciesId::kPanpour,
+    SpeciesId::kDarumaka,
 };
 
-static const Species RUSTURF_TUNNEL[] = {
-    Species::kZubat,
-    Species::kGligar,
-    Species::kWoobat,
-    Species::kNoibat
+static const SpeciesId RUSTURF_TUNNEL[] = {
+    SpeciesId::kZubat,
+    SpeciesId::kGligar,
+    SpeciesId::kWoobat,
+    SpeciesId::kNoibat
 };
 
 static const EncounterEntry s_table[] = {
@@ -136,15 +136,15 @@ const EncounterEntry* GetEncounterEntry(MapId map_id) {
 }
 
 void PatchEncounterTable(overworld::EncounterData* data) {
-  auto& map_id = overworld::MapManager::GetInstance().GetMapId();
-  const EncounterEntry* entry = GetEncounterEntry(static_cast<MapId>(map_id));
+  const EncounterEntry* entry =
+      GetEncounterEntry(overworld::MapManager::GetInstance().GetMap());
   if (entry == nullptr) return;
 
   u32 offset = 0;
-  for (u16 i = 0; i < 61; ++i) {
-    if (data->poke_info[i].species == 0) continue;
-    data->poke_info[i].species = static_cast<u16>(entry->species[offset]);
-    data->poke_info[i].form = 0;
+  for (overworld::PokeInfoOnAction& info : data->poke_info) {
+    if (info.species == SpeciesId::kNone) continue;
+    info.species = entry->species[offset];
+    info.form = Form::kNormal;
     offset = (offset + 1) % 5;
   }
 }
@@ -171,7 +171,7 @@ u8 GetEncounterLevel() {
   sd = sd < 1.0f ? 1.0f : sd;
 
   s32 spread = static_cast<s32>(sd);
-  s32 level = static_cast<s32>(mean) - spread + Utils::GetRandomValue(
+  s32 level = static_cast<s32>(mean) - spread + core::Utils::GetRandomValue(
                   2 * spread + 1);
 
   level = level < 1 ? 1 : (level > 100 ? 100 : level);

@@ -15,13 +15,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "feature/battle/feature_battle.h"
-#include "game/constant/event.h"
-#include "game/overworld/map_data.h"
-#include "game/savedata/event_table.h"
-#include "game/savedata/misc.h"
-#include "game/savedata/pokemon_utils.h"
-#include "game/savedata/settings.h"
+#include "battle/patch/battle.h"
+#include "core/constant/event_flag.h"
+#include "overworld/native/map_data.h"
+#include "savedata/native/event_table.h"
+#include "savedata/native/misc.h"
+#include "pokemon/native/utils.h"
+#include "savedata/native/settings.h"
+#include "core/utils.h"
 
 namespace kaizo {
 static const u8 LEVEL_CAPS[] = {
@@ -38,16 +39,16 @@ static const u8 LEVEL_CAPS[] = {
 
 void ApplyLevelCaps(battle::Team* team,
                     void* raw_data) {
-  auto* data = (feature::Battle::LevelUpData*)raw_data;
+  auto* data = (battle::Battle::LevelUpData*)raw_data;
   u32 count = savedata::Misc::GetInstance().GetBadgesCount();
   u32 max_level = LEVEL_CAPS[count];
 
   if (count == 0) {
     auto& event = savedata::EventTable::GetInstance();
-    if (event.Check(EventID::kRoute103Unlocked)) {
+    if (event.Check(EventFlag::kRoute103Unlocked)) {
       max_level = 8;
     }
-    if (event.Check(EventID::kRoute102Unlocked)) {
+    if (event.Check(EventFlag::kRoute102Unlocked)) {
       max_level = 11;
     }
   }
@@ -61,8 +62,8 @@ void ApplyLevelCaps(battle::Team* team,
     data[i].ev_special_defense = 0;
 
     // Game finished => Max Level = 100
-    if (!savedata::EventTable::GetInstance().Check(EventID::kGameFinished)) {
-      u8 new_level = PokemonUtils::GetLevelFromExperience(
+    if (!savedata::EventTable::GetInstance().Check(EventFlag::kGameFinished)) {
+      u8 new_level = pokemon::Utils::GetLevelFromExperience(
           team->pokemon[i]->species,
           team->pokemon[i]->form,
           team->pokemon[i]->experience + data[i].exp);
@@ -74,7 +75,7 @@ void ApplyLevelCaps(battle::Team* team,
 }
 
 void PatchBattle() {
-  auto& battle = feature::Battle::GetInstance();
+  auto& battle = battle::Battle::GetInstance();
   battle.can_use_item = false;
   battle.fix_pokemon_size = true;
   battle.no_shader = false;
@@ -90,6 +91,6 @@ void PatchBattle() {
   battle.sync_overworld_music = true;
 
   savedata::Settings::GetInstance().battle_background_id =
-      Utils::GetRandomValue(15);
+      core::Utils::GetRandomValue(15);
 }
 }

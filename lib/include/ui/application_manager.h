@@ -16,7 +16,7 @@
  */
 
 #pragma once
-#include "application.h"
+#include "ui/application.h"
 #include "common.h"
 
 namespace ui {

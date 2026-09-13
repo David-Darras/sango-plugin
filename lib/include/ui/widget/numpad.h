@@ -58,7 +58,7 @@ private:
   /**
 * @brief Internal button identifiers for array mapping.
 */
-  enum ButtonId {
+  enum ButtonId : u8 {
     kButton0 = 0, ///< Number 0
     kButton1, ///< Number 1
     kButton2, ///< Number 2

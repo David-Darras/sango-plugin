@@ -19,7 +19,7 @@
 
 #include <string.h>
 
-#include "system/sound.h"
+#include "system/native/sound.h"
 
 namespace ui {
 Numpad::Numpad() : cursor_(0) {
@@ -78,19 +78,19 @@ void Numpad::Update() {
   // Check digits
   for (u32 i = 0; i <= 9; ++i) {
     if (buttons_[kButton0 + i].IsReleased()) {
-      Sound::PlaySoundEffect(4);
+      sys::Sound::PlaySoundEffect(4);
       AddDigit(i);
     }
   }
 
   // Check controls
   if (buttons_[kButtonDelete].IsReleased()) {
-    Sound::PlaySoundEffect(4);
+    sys::Sound::PlaySoundEffect(4);
     RemoveLastDigit();
   }
 
   if (buttons_[kButtonCancel].IsReleased()) {
-    Sound::PlaySoundEffect(4);
+    sys::Sound::PlaySoundEffect(4);
     cursor_ = 0;
     memset(input_, 0, sizeof(input_));
   }

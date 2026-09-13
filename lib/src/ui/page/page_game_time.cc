@@ -15,14 +15,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "game/core/time_manager.h"
+#include "core/native/time_manager.h"
 #include "ui/main_application.h"
 
 namespace ui {
 void LoadGameTimePage(MainApplication& app, void* args) {
-  auto& data = game::TimeManager::GetInstance();
+  auto& data = core::TimeManager::GetInstance();
 
-  app.Add("Date Time (ms)", *(s64*)ADDRESS_DATE_TIME)
+  app.Add("Date Time (ms)", *(s64*)sys::address::kDateTime)
       .AddSeparator()
       .Add("Is Game Time Enabled", data.is_enabled)
       .Add("Last Tick", data.last_tick)

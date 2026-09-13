@@ -20,11 +20,11 @@
  * editing the game while it runs.
  */
 
-#include "feature/overworld/feature_map_graft.h"
-#include "game/constant/map.h"
+#include "overworld/patch/map_graft.h"
+#include "overworld/constant/map.h"
 #include "overlay/scripts.h"
 #include "plugin.h"
-#include "feature/core/feature_archive.h"
+#include "core/patch/archive.h"
 #include "ui/page/pages.h"
 #include "ui/painter.h"
 
@@ -38,19 +38,19 @@ void Initialize() {
   plugin::InitializeEngine();
 
   // Work in progress: stitching Hoenn towns together.
-  // feature::MapGraft::Attach(MapId::kLittlerootTown, feature::Side::kUp,
+  // overworld::MapGraft::Attach(MapId::kLittlerootTown, overworld::Facing::kUp,
   //                           MapId::kOldaleTown);
-  // feature::MapGraft::Link(MapId::kOldaleTown, feature::Side::kUp,
+  // overworld::MapGraft::Link(MapId::kOldaleTown, overworld::Facing::kUp,
   //                         MapId::kRustboroCity, 125, 238);
-  // feature::MapGraft::Link(MapId::kRustboroCity, feature::Side::kDown,
+  // overworld::MapGraft::Link(MapId::kRustboroCity, overworld::Facing::kDown,
   //                         MapId::kOldaleTown, 100, 121);
-  // feature::MapGraft::Link(MapId::kRustboroCity, feature::Side::kRight,
+  // overworld::MapGraft::Link(MapId::kRustboroCity, overworld::Facing::kRight,
   //                         MapId::kPetalburgCity, 80, 126);
-  // feature::MapGraft::Link(MapId::kPetalburgCity, feature::Side::kLeft,
+  // overworld::MapGraft::Link(MapId::kPetalburgCity, overworld::Facing::kLeft,
   //                         MapId::kRustboroCity, 159, 173);
-  // feature::MapGraft::Link(MapId::kPetalburgCity, feature::Side::kRight,
+  // overworld::MapGraft::Link(MapId::kPetalburgCity, overworld::Facing::kRight,
   //                         MapId::kFallarborTown, 160, 102);
-  // feature::MapGraft::Link(MapId::kFallarborTown, feature::Side::kLeft,
+  // overworld::MapGraft::Link(MapId::kFallarborTown, overworld::Facing::kLeft,
   //                         MapId::kVerdanturfTown, 119, 102);
 
   script::Install();

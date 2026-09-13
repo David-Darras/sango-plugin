@@ -17,25 +17,25 @@
 
 #include "ui/main_application.h"
 
-#include "game/core/event_manager.h"
-#include "game/core/process_manager.h"
-#include "system/device.h"
-#include "system/graphics.h"
-#include "system/sound.h"
-#include "utils.h"
-#include "feature/core/feature_device.h"
-#include "feature/core/feature_process_patch.h"
+#include "core/native/event_manager.h"
+#include "core/native/process_manager.h"
+#include "system/native/device.h"
+#include "system/native/graphics.h"
+#include "system/native/sound.h"
+#include "core/utils.h"
+#include "core/patch/device_patch.h"
+#include "core/patch/process_patch.h"
 #include "ui/theme.h"
 
 namespace ui {
 MainApplication MainApplication::instance_ = MainApplication();
 
-void MainApplication::DrawTop(Graphics& graphics) {
+void MainApplication::DrawTop(sys::Graphics& graphics) {
   if (!IsOpened()) return;
 
   painter_->DrawPageBackground(*this);
-  Graphics::SetTextScale(1.0f, 1.0f);
-  Graphics::DrawText(390, 220, u"『さんご』",
+  sys::Graphics::SetTextScale(1.0f, 1.0f);
+  sys::Graphics::DrawText(390, 220, u"『さんご』",
                      Theme::GetInstance().selected_text_color);
   painter_->DrawPageItems(*this);
 }
@@ -48,13 +48,13 @@ void MainApplication::DrawTop(Graphics& graphics) {
 #define BUFFER_SIZE 1024
 #endif
 
-void MainApplication::DrawBottom(Graphics& graphics) {
+void MainApplication::DrawBottom(sys::Graphics& graphics) {
   painter_->DrawBottomOverlay(graphics);
 
   if (!IsOpened() || !painter_->ShowBottom()) return;
 
-  Graphics::FillScreen(theme_.background_color);
-  Graphics::DrawRectStroke(0, 0, 320, 240, 1,
+  sys::Graphics::FillScreen(theme_.background_color);
+  sys::Graphics::DrawRectStroke(0, 0, 320, 240, 1,
                            theme_.selected_text_color);
 
   if (GetSelectedEntry().GetType() == kTypeUnicode) {
@@ -65,44 +65,44 @@ void MainApplication::DrawBottom(Graphics& graphics) {
 
   uptr vtable = 0;
   c16 buffer[BUFFER_SIZE];
-  auto& game_manager = game::ProcessManager::GetInstance();
-  const char* process_name = Utils::Unmangle(
+  auto& game_manager = core::ProcessManager::GetInstance();
+  const char* process_name = core::Utils::Unmangle(
       game_manager.GetCurrentProcessName(vtable));
 
-  Utils::Format(buffer, u"Process[%08X][%s]", vtable, process_name);
-  Graphics::DrawText(5, 150, buffer, theme_.unselected_text_color);
+  core::Utils::Format(buffer, u"Process[%08X][%s]", vtable, process_name);
+  sys::Graphics::DrawText(5, 150, buffer, theme_.unselected_text_color);
 
-  const char* event_name = Utils::Unmangle(
-      game::EventManager::GetInstance().GetCurrentEventName(vtable));
-  Utils::Format(buffer, u"Event[%08X][%s]", vtable, event_name);
-  Graphics::DrawText(5, 170, buffer, theme_.unselected_text_color);
+  const char* event_name = core::Utils::Unmangle(
+      core::EventManager::GetInstance().GetCurrentEventName(vtable));
+  core::Utils::Format(buffer, u"Event[%08X][%s]", vtable, event_name);
+  sys::Graphics::DrawText(5, 170, buffer, theme_.unselected_text_color);
 
-  Graphics::SetTextScale(0.5, 0.5);
-  Utils::Format(buffer, u"Sango Plugin | Created by %s",
+  sys::Graphics::SetTextScale(0.5, 0.5);
+  core::Utils::Format(buffer, u"Sango Plugin | Created by %s",
                 PLUGIN_CREATOR);
-  Graphics::DrawText(5, 200, buffer, theme_.selected_text_color);
-  Utils::Format(buffer, u"Build: %s %s", PLUGIN_VERSION, __DATE__,
+  sys::Graphics::DrawText(5, 200, buffer, theme_.selected_text_color);
+  core::Utils::Format(buffer, u"Build: %s %s", PLUGIN_VERSION, __DATE__,
                 __TIME__);
-  Graphics::DrawText(5, 216, buffer, theme_.selected_text_color);
+  sys::Graphics::DrawText(5, 216, buffer, theme_.selected_text_color);
 }
 
 void MainApplication::ForceClose() {
-  Sound::PlaySoundEffect(IsOpened() ? theme_.close_sound : theme_.open_sound);
+  sys::Sound::PlaySoundEffect(IsOpened() ? theme_.close_sound : theme_.open_sound);
   is_opened_ = false;
-  feature::DeviceState::GetInstance().use_redirection = is_opened_;
+  core::DevicePatch::GetInstance().use_redirection = is_opened_;
 }
 
-void MainApplication::Update(Controller& controller) {
+void MainApplication::Update(sys::Controller& controller) {
   if (AreKeysReleased(controller)) {
-    Sound::PlaySoundEffect(IsOpened() ? theme_.close_sound : theme_.open_sound);
+    sys::Sound::PlaySoundEffect(IsOpened() ? theme_.close_sound : theme_.open_sound);
     is_opened_ ^= 1;
-    feature::DeviceState::GetInstance().use_redirection = is_opened_;
+    core::DevicePatch::GetInstance().use_redirection = is_opened_;
     return;
   }
 
   if (!IsOpened()) return;
 
-  if (process_vtable_ != 0 && !game::ProcessManager::GetInstance().
+  if (process_vtable_ != 0 && !core::ProcessManager::GetInstance().
       IsCurrentProcess(process_vtable_)) {
     Close();
     return;
@@ -126,12 +126,12 @@ void MainApplication::Update(Controller& controller) {
   } else if (controller.IsKeyReleased(Key::kB)) {
     Close();
   } else if (controller.IsKeyReleased(Key::kA)) {
-    Sound::PlaySoundEffect(theme_.confirm_sound);
+    sys::Sound::PlaySoundEffect(theme_.confirm_sound);
     entry.Execute(*this);
   } else if (controller.IsKeyReleased(Key::kX) || numpad_.IsButtonOkReleased()
              ||
              keyboard_.IsButtonOkReleased()) {
-    Sound::PlaySoundEffect(theme_.confirm_sound);
+    sys::Sound::PlaySoundEffect(theme_.confirm_sound);
 
     switch (entry.GetType()) {
       case kTypeUnicode:
@@ -148,7 +148,7 @@ void MainApplication::Update(Controller& controller) {
           Key::kRight) ||
       controller.IsKeyRepeated(Key::kDown) || controller.
       IsKeyRepeated(Key::kUp)) {
-    Sound::PlaySoundEffect(theme_.next_sound);
+    sys::Sound::PlaySoundEffect(theme_.next_sound);
   }
 
   u8& offset = ctx.offset;
@@ -212,18 +212,18 @@ void MainApplication::Refresh() {
 }
 
 bool MainApplication::CheckProcess(uptr vtable) {
-  if (!game::ProcessManager::GetInstance().IsCurrentProcess(vtable)) {
+  if (!core::ProcessManager::GetInstance().IsCurrentProcess(vtable)) {
     while (contexts_count_ > 1) {
       Close();
     }
-    Sound::PlaySoundEffect(theme_.error_sound);
+    sys::Sound::PlaySoundEffect(theme_.error_sound);
     return true;
   }
   process_vtable_ = vtable;
   return false;
 }
 
-bool MainApplication::AreKeysReleased(Controller& controller) {
+bool MainApplication::AreKeysReleased(sys::Controller& controller) {
   if (theme_.keys[0] == 0) {
     return controller.IsKeyReleased(Key::kStart);
   }
@@ -250,23 +250,23 @@ PageItem& Painter::GetEntry(MainApplication& app, u32 index) {
 
 void MainAppPainter::DrawPageBackground(MainApplication& app) {
   if (!app.no_background_) {
-    Graphics::FillScreen(app.theme_.background_color);
+    sys::Graphics::FillScreen(app.theme_.background_color);
   }
-  Graphics::DrawRectStroke(0, 0, 400, 240, 1,
+  sys::Graphics::DrawRectStroke(0, 0, 400, 240, 1,
                            Theme::GetInstance().selected_text_color);
 }
 
 void MainAppPainter::DrawPageItems(MainApplication& app) {
   MainApplication::MenuContext& ctx = app.GetContext();
 
-  Graphics::SetTextScale(0.6, 0.6);
-  Graphics::DrawText(5, 6 + ctx.cursor * MainApplication::kLineHeight,
+  sys::Graphics::SetTextScale(0.6, 0.6);
+  sys::Graphics::DrawText(5, 6 + ctx.cursor * MainApplication::kLineHeight,
                      u"\uE077", app.theme_.selected_text_color);
 
   c16 buffer[BUFFER_SIZE];
   for (u32 i = 0; i < ctx.display_count; i++) {
     app.entries_[i + ctx.offset].GetDisplayValue(buffer);
-    Graphics::DrawText(25, 5 + i * MainApplication::kLineHeight, buffer,
+    sys::Graphics::DrawText(25, 5 + i * MainApplication::kLineHeight, buffer,
                        ctx.cursor == i
                          ? app.theme_.selected_text_color
                          : app.theme_.unselected_text_color);

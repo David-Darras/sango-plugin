@@ -15,12 +15,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "game/constant/item.h"
-#include "game/global_data/item.h"
+#include "pokemon/constant/item.h"
+#include "pokemon/native/global_data/item.h"
 
 namespace kaizo {
 void PatchItemData(global_data::Item* item) {
-  switch (static_cast<ItemId>(item->id)) {
+  switch (item->id) {
     case ItemId::kHpUp:
       item->hp_ev_value = 63;
       break;

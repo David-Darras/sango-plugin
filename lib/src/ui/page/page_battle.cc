@@ -19,17 +19,18 @@
 
 #include <cstring>
 
-#include "game/battle/manager.h"
-#include "feature/battle/feature_battle_config.h"
-#include "feature/overworld/feature_camera.h"
+#include "battle/native/manager.h"
+#include "core/native/data_manager.h"
+#include "battle/patch/setup.h"
+#include "overworld/patch/camera.h"
 #include "ui/main_application.h"
 
 namespace ui {
-#include "game/battle/config.inc"
+#include "battle/data/config.inc"
 
 void LoadBattleConfigPage(MainApplication& app, void* args) {
-  auto& ctx = feature::BattleConfig::GetInstance();
-  auto& game_data = game::DataManager::GetInstance();
+  auto& ctx = battle::Setup::GetInstance();
+  auto& game_data = core::DataManager::GetInstance();
 
   app.Add("Inverse Teams", ctx.inverse_teams)
      .AddSeparator()
@@ -43,7 +44,7 @@ void LoadBattleConfigPage(MainApplication& app, void* args) {
      .Add("Encounter Animation", ctx.encounter_animation)
      .WithArray(ENCOUNTER_ANIMATIONS, SIZE(ENCOUNTER_ANIMATIONS))
      .AddSeparator()
-     .Add("Battle Format", ctx.battle_format)
+     .Add("Battle Format", ctx.format)
      .WithArray(FORMATS, SIZE(FORMATS))
      .Add("Use Skybox", ctx.use_skybox)
      .Add("Long animation", &ctx.flags, 16, 1)
@@ -68,7 +69,7 @@ static void SavePokemon(void*) {
 }
 
 void LoadBattlePokemonDataPage(MainApplication& app, void* args) {
-  if (app.CheckProcess(ADDRESS_BATTLE_VTABLE)) return;
+  if (app.CheckProcess(battle::address::kVtable)) return;
 
   auto& pkm = *pkm_server;
 
@@ -133,7 +134,7 @@ void LoadBattlePokemonDataPage(MainApplication& app, void* args) {
 }
 
 void LoadBattlePokemonModelPage(MainApplication& app, void* args) {
-  if (app.CheckProcess(ADDRESS_BATTLE_VTABLE)) return;
+  if (app.CheckProcess(battle::address::kVtable)) return;
 
   auto& model =
       battle::Manager::GetInstance().GetGraphics().GetPokemonModel(
@@ -178,10 +179,10 @@ void LoadBattlePokemonModelPage(MainApplication& app, void* args) {
 }
 
 void LoadBattleCameraPage(MainApplication& app, void* args) {
-  if (app.CheckProcess(ADDRESS_BATTLE_VTABLE)) return;
+  if (app.CheckProcess(battle::address::kVtable)) return;
 
   static const c8* STATES[] = {"Idle", "Tps", "Rotate", "Top", "Fpv", "Free"};
-  auto& ctx = feature::Camera::GetInstance();
+  auto& ctx = overworld::Camera::GetInstance();
 
   app.WithNoBackground()
      .Add("State", ctx.battle_state)
@@ -213,7 +214,7 @@ void LoadBattleCameraPage(MainApplication& app, void* args) {
 }
 
 void LoadBattlePage(MainApplication& app, void* args) {
-  if (app.CheckProcess(ADDRESS_BATTLE_VTABLE)) return;
+  if (app.CheckProcess(battle::address::kVtable)) return;
 
   pkm_server = battle::Manager::GetPokemon(true, team_idx, pokemon_idx);
   pkm_client = battle::Manager::GetPokemon(false, team_idx, pokemon_idx);

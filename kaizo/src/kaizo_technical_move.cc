@@ -16,11 +16,11 @@
  */
 
 #include "common.h"
-#include "game/constant/move.h"
-#include "game/constant/species.h"
-#include "game/global_data/movepool.h"
-#include "game/global_data/pokemon.h"
-#include "game/global_data/technical_machine.h"
+#include "pokemon/constant/move.h"
+#include "pokemon/constant/species.h"
+#include "pokemon/native/global_data/movepool.h"
+#include "pokemon/native/global_data/pokemon.h"
+#include "pokemon/native/global_data/technical_machine.h"
 
 namespace kaizo {
 static const MoveId TM_MOVES[100] =
@@ -57,20 +57,20 @@ static const MoveId TM_MOVES[100] =
 void PatchTechnicalMoves() {
   auto* table = global_data::TechnicalMachine::GetTable();
   for (u32 i = 0; i < SIZE(TM_MOVES); i++) {
-    table[i] = static_cast<u16>(TM_MOVES[i]);
+    table[i] = TM_MOVES[i];
   }
-  for (u32 species_id = static_cast<u16>(Species::kBulbasaur);
-       species_id <= static_cast<u16>(Species::kVolcanion);
+  for (u32 species_id = static_cast<u16>(SpeciesId::kBulbasaur);
+       species_id <= static_cast<u16>(SpeciesId::kVolcanion);
        species_id++) {
-    const auto species = static_cast<Species>(species_id);
-    const auto form = static_cast<Form>(0);
+    const auto species = static_cast<SpeciesId>(species_id);
+    const Form form = Form::kNormal;
     auto& movepool = global_data::Movepool::GetInstance(species, form);
     auto& pokemon = global_data::Pokemon::GetInstance(species, form);
     for (u32 tm_index = 0; tm_index < SIZE(TM_MOVES); tm_index++) {
       u32* tm_bits = &pokemon.technical_moves[0];
       u32 array_index = tm_index / 32;
       u32 bit_shift = tm_index % 32;
-      if (movepool.contains(static_cast<u16>(TM_MOVES[tm_index]))) {
+      if (movepool.Contains(TM_MOVES[tm_index])) {
         tm_bits[array_index] |= (1U << bit_shift);
       } else {
         tm_bits[array_index] &= ~(1U << bit_shift);

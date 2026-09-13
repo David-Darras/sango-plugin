@@ -15,8 +15,8 @@
  * along with this program.  If not, see <https:
  */
 
-#include "game/global_data/move.h"
-#include "game/constant/move.h"
+#include "pokemon/native/global_data/move.h"
+#include "pokemon/constant/move.h"
 
 namespace kaizo {
 void PatchMoveData() {

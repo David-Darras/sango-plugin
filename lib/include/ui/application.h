@@ -19,16 +19,18 @@
 
 #include "common.h"
 
+namespace sys {
 class Controller;
 class Graphics;
+}
 
 namespace ui {
 class Application {
 public:
   virtual ~Application() = default;
-  virtual void Update(Controller& controller) = 0;
-  virtual void DrawTop(Graphics& graphics) = 0;
-  virtual void DrawBottom(Graphics& graphics) = 0;
+  virtual void Update(sys::Controller& controller) = 0;
+  virtual void DrawTop(sys::Graphics& graphics) = 0;
+  virtual void DrawBottom(sys::Graphics& graphics) = 0;
 
   INLINE void SetParent(Application* parent) {
     parent_ = parent;

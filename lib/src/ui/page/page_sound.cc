@@ -16,38 +16,39 @@
  */
 
 #include "ui/main_application.h"
-#include "system/sound.h"
+#include "system/native/sound.h"
 
 namespace ui {
 static f32 pokemon_cry_volume = 1.0f;
-static u16 pokemon_cry_id = 0;
-static u16 sound_effec_id = 0;
-static u16 background_music_id = 0;
+static SpeciesId pokemon_cry_species = SpeciesId::kNone;
+static u16 sound_effect_id = 0;
+static BackgroundMusicId background_music = BackgroundMusicId::kPokemonTheme;
 
 void ChangePokemonCryVolume(void*) {
-  Sound::ChangePokemonCryVolume(pokemon_cry_volume);
+  sys::Sound::ChangePokemonCryVolume(pokemon_cry_volume);
 }
 
 void PlayPokemonCry(void*) {
-  Sound::PlayPokemonCry(pokemon_cry_id);
+  sys::Sound::PlayPokemonCry(pokemon_cry_species);
 }
 
 void PlaySoundEffect(void*) {
-  Sound::PlaySoundEffect(sound_effec_id);
+  sys::Sound::PlaySoundEffect(sound_effect_id);
 }
 
 void PlayBackgroundMusic(void*) {
-  Sound::PlayBackgroundMusic(background_music_id);
+  sys::Sound::PlayBackgroundMusic(background_music);
 }
 
 void LoadSoundPage(MainApplication& app, void* args) {
   app.Add("Pokemon Cry Volume", pokemon_cry_volume)
       .WithCallback(ChangePokemonCryVolume)
-      .Add("Pokemon Cry Id", pokemon_cry_id)
+      .AddSpecies("Pokemon Cry", pokemon_cry_species)
       .WithCallback(PlayPokemonCry)
-      .Add("Sound Effect Id", sound_effec_id)
+      .Add("Sound Effect Id", sound_effect_id)
       .WithCallback(PlaySoundEffect)
-      .Add("Background Music Id", background_music_id)
+      .Add("Background Music Id", background_music)
+      .WithBounds(0, static_cast<u32>(BackgroundMusicId::kCount) - 1)
       .WithCallback(PlayBackgroundMusic);
 }
-}
+} // namespace ui

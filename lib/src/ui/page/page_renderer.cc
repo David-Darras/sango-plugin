@@ -15,10 +15,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "feature/rendering/feature_light.h"
-#include "feature/rendering/feature_picture.h"
-#include "feature/rendering/feature_h3d_model.h"
-#include "feature/rendering/feature_text_box.h"
+#include "renderer/patch/lighting.h"
+#include "renderer/patch/picture_filter.h"
+#include "renderer/patch/model_filter.h"
+#include "renderer/patch/text_box_filter.h"
 #include "ui/main_application.h"
 #include "ui/page/page_common.h"
 
@@ -50,7 +50,7 @@ void LoadPokemonTexturePage(MainApplication& app, void* args) {
       "Ghost", // 21
   };
 
-  auto& ctx = feature::H3dModel::GetInstance();
+  auto& ctx = renderer::ModelFilter::GetInstance();
 
   app.Add("Filter", ctx.filter)
      .WithArray(FILTERS, SIZE(FILTERS))
@@ -58,7 +58,7 @@ void LoadPokemonTexturePage(MainApplication& app, void* args) {
 }
 
 void LoadLightPage(MainApplication& app, void* args) {
-  auto& ctx = feature::Light::GetInstance();
+  auto& ctx = renderer::Lighting::GetInstance();
 
   app.Add("Use Outline", ctx.use_outline)
      .Add("Outline Scale", ctx.outline_scale)
@@ -72,7 +72,7 @@ void LoadLightPage(MainApplication& app, void* args) {
 }
 
 void LoadLayoutTextBoxPage(MainApplication& app, void* args) {
-  auto& ctx = feature::TextBox::GetInstance();
+  auto& ctx = renderer::TextBoxFilter::GetInstance();
 
   app.Add("Is Enabled", ctx.is_enabled)
      .AddSeparator()
@@ -86,7 +86,7 @@ void LoadLayoutTextBoxPage(MainApplication& app, void* args) {
 }
 
 void LoadLayoutPicturePage(MainApplication& app, void* args) {
-  auto& ctx = feature::Picture::GetInstance();
+  auto& ctx = renderer::PictureFilter::GetInstance();
 
   app.Add("Is Enabled", ctx.is_enabled)
      .AddSeparator()

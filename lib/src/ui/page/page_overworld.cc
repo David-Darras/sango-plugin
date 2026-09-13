@@ -15,55 +15,52 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "feature/battle/feature_weather_manager.h"
-#include "feature/core/feature_app.h"
-#include "feature/overworld/feature_camera.h"
-#include "feature/overworld/feature_day_care.h"
-#include "feature/overworld/feature_field_move.h"
-#include "feature/overworld/feature_map_character.h"
-#include "feature/overworld/feature_map_graft.h"
-#include "feature/overworld/feature_map_tile.h"
-#include "feature/overworld/feature_tile_editor.h"
-#include "feature/overworld/feature_overworld_model.h"
-#include "game/constant/map.h"
+#include <cmath>
+
+#include "ui/log_application.h"
+#include "core/patch/app_launcher.h"
+#include "overworld/patch/camera.h"
+#include "overworld/patch/day_care.h"
+#include "overworld/patch/field_move.h"
+#include "overworld/patch/map_character.h"
+#include "overworld/patch/map_graft.h"
+#include "overworld/native/model_manager.h"
+#include "overworld/native/world_layout.h"
+#include "overworld/patch/map_tile.h"
+#include "overworld/patch/tile_editor.h"
+#include "overworld/patch/player_cheats.h"
+#include "overworld/constant/map.h"
 #include "ui/main_application.h"
-#include "game/overworld/encounter.h"
-#include "game/overworld/prop_model_manager.h"
-#include "game/overworld/weather_manager.h"
-#include "game/renderer/h3d_shader_model.h"
+#include "overworld/native/encounter_state.h"
+#include "overworld/native/prop_model_manager.h"
+#include "overworld/native/weather_manager.h"
+#include "overworld/patch/weather_override.h"
+#include "renderer/native/h3d_shader_model.h"
 #include "ui/page/pages.h"
 #include "ui/tile_editor_application.h"
 
 namespace ui {
-#include "game/overworld/tile.inc"
+#include "overworld/data/tile.inc"
 
 static void RefreshMap(void*) {
-  auto& main_app = ui::MainApplication::GetInstance();
-  if (main_app.CheckProcess(ADDRESS_OVERWORLD_VTABLE)) return;
+  auto& main_app = MainApplication::GetInstance();
+  if (main_app.CheckProcess(overworld::address::kVtable)) return;
 
-  auto& map_manager = overworld::MapManager::GetInstance();
-
-  auto* game_manager = &game::Manager::GetInstance();
-  u16 map_id = map_manager.GetMapId();
-  overworld::Position pos = overworld::ModelManager::GetInstance().
-                            GetPlayer().world_pos;
-  u8 direction = 0; // UP
-  bool same_background_music = true;
-  bool show_map_name = false;
-
-  ((void(*)(game::Manager*, u16, const overworld::Position*, u8, u8, bool, s32,
-            s32,
-            s32, bool))0x003D6258)(
-      game_manager, map_id, &pos, direction, 0, same_background_music,
-      1, 1, 1, show_map_name);
+  const overworld::Position& pos =
+      overworld::ModelManager::GetInstance().GetPlayer().world_pos;
+  const bool same_background_music = true;
+  const bool show_map_name = false;
+  overworld::MapManager::ChangeMap(overworld::MapManager::GetInstance().GetMap(),
+                                   pos, overworld::Facing::kUp,
+                                   same_background_music, show_map_name);
 
   main_app.ForceClose();
 }
 
 void LoadOverworldMapTilePage(MainApplication& app, void* args) {
-  if (app.CheckProcess(ADDRESS_OVERWORLD_VTABLE)) return;
+  if (app.CheckProcess(overworld::address::kVtable)) return;
 
-  auto& ctx = feature::MapTile::GetInstance();
+  auto& ctx = overworld::MapTile::GetInstance();
 
   app.Add("Is Enabled", ctx.is_enabled)
      .AddSeparator()
@@ -89,9 +86,9 @@ void LoadOverworldMapTilePage(MainApplication& app, void* args) {
 }
 
 void LoadOverworldEncounterPage(MainApplication& app, void* args) {
-  if (app.CheckProcess(ADDRESS_OVERWORLD_VTABLE)) return;
+  if (app.CheckProcess(overworld::address::kVtable)) return;
 
-  auto& data = overworld::Encounter::GetInstance();
+  auto& data = overworld::EncounterState::GetInstance();
 
   app.Add("Walk Count", data.walk_count)
      .Add("Encounter Rate", data.encounter_rate)
@@ -99,51 +96,51 @@ void LoadOverworldEncounterPage(MainApplication& app, void* args) {
 }
 
 void LoadOverworldFieldMovePage(MainApplication& app, void* args) {
-  if (app.CheckProcess(ADDRESS_OVERWORLD_VTABLE)) return;
+  if (app.CheckProcess(overworld::address::kVtable)) return;
 
   app.Add("Cut", [](void*) {
-    feature::FieldMove::Execute(0);
+    overworld::FieldMove::Execute(FieldMoveId::kCut);
   });
   app.Add("Rock Smash", [](void*) {
-    feature::FieldMove::Execute(4);
+    overworld::FieldMove::Execute(FieldMoveId::kRockSmash);
   });
   app.Add("Strength", [](void*) {
-    feature::FieldMove::Execute(3);
+    overworld::FieldMove::Execute(FieldMoveId::kStrength);
   });
   app.Add("Fly", [](void*) {
-    feature::GameApp::DoFly();
+    core::AppLauncher::DoFly();
   });
   app.Add("Surf", [](void*) {
-    feature::FieldMove::Execute(1);
+    overworld::FieldMove::Execute(FieldMoveId::kSurf);
   });
   app.Add("Dive", [](void*) {
-    feature::FieldMove::Execute(10);
+    overworld::FieldMove::Execute(FieldMoveId::kDive);
   });
   app.Add("Waterfall", [](void*) {
-    feature::FieldMove::Execute(2);
+    overworld::FieldMove::Execute(FieldMoveId::kWaterfall);
   });
   app.Add("Sweet Scent", [](void*) {
-    feature::FieldMove::Execute(9);
+    overworld::FieldMove::Execute(FieldMoveId::kSweetScent);
   });
   app.Add("Flash", [](void*) {
-    feature::FieldMove::Execute(6);
+    overworld::FieldMove::Execute(FieldMoveId::kFlash);
   });
   app.Add("Teleport", [](void*) {
-    feature::FieldMove::Execute(7);
+    overworld::FieldMove::Execute(FieldMoveId::kTeleport);
   });
   app.Add("Dig", [](void*) {
-    feature::FieldMove::Execute(8);
+    overworld::FieldMove::Execute(FieldMoveId::kDig);
   });
   app.Add("Secret Power", [](void*) {
-    feature::FieldMove::Execute(11);
+    overworld::FieldMove::Execute(FieldMoveId::kSecretPower);
   });
 }
 
 void LoadOverworldCameraPage(MainApplication& app, void* args) {
-  if (app.CheckProcess(ADDRESS_OVERWORLD_VTABLE)) return;
+  if (app.CheckProcess(overworld::address::kVtable)) return;
 
   static const c8* STATES[] = {"Idle", "Tps", "Rotate", "Top", "Fps", "Free"};
-  auto& ctx = feature::Camera::GetInstance();
+  auto& ctx = overworld::Camera::GetInstance();
 
   app.WithNoBackground()
      .Add("State", ctx.overworld_state)
@@ -173,9 +170,9 @@ void LoadOverworldCameraPage(MainApplication& app, void* args) {
 }
 
 void LoadOverworldModelPage(MainApplication& app, void* args) {
-  if (app.CheckProcess(ADDRESS_OVERWORLD_VTABLE)) return;
+  if (app.CheckProcess(overworld::address::kVtable)) return;
 
-  auto& ctx = feature::OverworldModel::GetInstance();
+  auto& ctx = overworld::PlayerCheats::GetInstance();
   auto& man = overworld::ModelManager::GetInstance();
   auto& rsrc = man.GetResource(ctx.model_idx);
   auto& draw_model = man.GetPlayer().GetDrawModel();
@@ -184,7 +181,7 @@ void LoadOverworldModelPage(MainApplication& app, void* args) {
      .Add("Model", rsrc.model_id)
      .WithCallback(RefreshMap)
      .Add("Animation", ctx.model_animation)
-     .WithCallback(feature::OverworldModel::PlayAnimation)
+     .WithCallback(overworld::PlayerCheats::PlayAnimation)
      .AddSeparator()
      .Add("Scale X", draw_model.scale.x)
      .WithFactor(0.2f)
@@ -208,7 +205,7 @@ void LoadOverworldModelPage(MainApplication& app, void* args) {
 }
 
 void LoadPropModelPage(MainApplication& app, void* args) {
-  if (app.CheckProcess(ADDRESS_OVERWORLD_VTABLE)) return;
+  if (app.CheckProcess(overworld::address::kVtable)) return;
   auto& manager = overworld::PropModelManager::GetInstance();
   if (manager.count == 0) {
     app.Add("There is no prop here...");
@@ -229,7 +226,7 @@ void LoadPropModelPage(MainApplication& app, void* args) {
   };
 
   static u32 choice = 0;
-  ui::LogApplication::Print(u"man=%p", &manager);
+  LogApplication::Print(u"man=%p", &manager);
 
   app.Add("Choice", choice)
      .WithBounds(0, manager.count - 1)
@@ -266,15 +263,15 @@ void LoadPropModelPage(MainApplication& app, void* args) {
 }
 
 void LoadAppPage(MainApplication& app, void* args) {
-  if (app.CheckProcess(ADDRESS_OVERWORLD_VTABLE)) return;
+  if (app.CheckProcess(overworld::address::kVtable)) return;
 
-  auto& ctx = feature::GameApp::GetInstance();
+  auto& ctx = core::AppLauncher::GetInstance();
 
-  const std::pair<const char*, u32> apps[] = {
-      // {"Tutor", 7},
-      {"PC", 17},
-      {"Remind", 9},
-      {"Delete", 8}
+  const std::pair<const char*, AppId> apps[] = {
+      // {"Tutor", AppId::kMoveTutor},
+      {"PC", AppId::kBox},
+      {"Remind", AppId::kMoveReminder},
+      {"Delete", AppId::kMoveDeleter}
   };
 
   for (const auto& app_pair : apps) {
@@ -285,65 +282,56 @@ void LoadAppPage(MainApplication& app, void* args) {
 }
 
 void LoadDayCarePage(MainApplication& app, void* args) {
-  if (app.CheckProcess(ADDRESS_OVERWORLD_VTABLE)) return;
+  if (app.CheckProcess(overworld::address::kVtable)) return;
 
-  auto& day_care = feature::DayCare::GetInstance();
+  auto& day_care = overworld::DayCare::GetInstance();
 
   app.Add("Instant Egg Hatch", day_care.instant_egg_hatch)
-     .WithCallback(feature::DayCare::ApplyEggHatch)
+     .WithCallback(overworld::DayCare::ApplyEggHatch)
      .Add("Instant Max Exp", day_care.instant_max_exp)
-     .WithCallback(feature::DayCare::ApplyMaxExp);
+     .WithCallback(overworld::DayCare::ApplyMaxExp);
 }
-
-// static u16 map_id = MapId::kInsideOfTruck;
-//
-// void Teleport(void*) {
-//   static const u32 PARAMS[] = {
-//       40, map_id, 0, 0, 0, 0, 0, 1, 0, 1
-//   };
-//   ((void(*)(uptr, const u32*))0x00747B4C)(0, PARAMS);
-// }
 
 static void WonderTrade(void*) {
   static u32 input[] = {0, /*index*/0, /*team*/0xFE, /*team_index*/0};
-  ((void(*)(uptr, u32*))0x0074AC64)(0, input);
+  ((void(*)(uptr, u32*))overworld::address::kTradePokemon)(0, input);
 
   MainApplication::GetInstance().ForceClose();
 }
 
 void LoadWorldLayoutPage(MainApplication& app, void* args) {
   using overworld::WorldLayout;
-  if (app.CheckProcess(ADDRESS_OVERWORLD_VTABLE)) return;
+  if (app.CheckProcess(overworld::address::kVtable)) return;
 
   static const c8* SIDES[] = {"Up", "Down", "Left", "Right"};
-  static const c8* GRAFT_NAMES[feature::MapGraft::kMaxRequests] = {
+  static const c8* GRAFT_NAMES[overworld::MapGraft::kMaxRequests] = {
       "Graft 0", "Graft 1", "Graft 2", "Graft 3",
       "Graft 4", "Graft 5", "Graft 6", "Graft 7"
   };
-  static const c8* LINK_NAMES[feature::MapGraft::kMaxLinks] = {
+  static const c8* LINK_NAMES[overworld::MapGraft::kMaxLinks] = {
       "Link 0", "Link 1", "Link 2", "Link 3",
       "Link 4", "Link 5", "Link 6", "Link 7"
   };
 
   auto& layout = WorldLayout::GetInstance();
-  auto& graft = feature::MapGraft::GetInstance();
+  auto& graft = overworld::MapGraft::GetInstance();
 
   app.Add("Layout Id", layout.id)
      .Add("Graft Enabled", graft.is_enabled)
      .Add("Graft Logging", graft.is_logging_enabled)
      .Add("Character Logging",
-          feature::MapCharacter::GetInstance().is_logging_enabled)
+          overworld::MapCharacter::GetInstance().is_logging_enabled)
      .Add("Apply Grafts (Reload Map)", RefreshMap);
 
   app.AddSeparator()
      .Add("Tile Editor", [](void*) { TileEditorApplication::Open(); })
-     .Add("Tile Edits Enabled", feature::TileEditor::GetInstance().is_enabled)
-     .Add("Save Tile Edits", [](void*) { feature::TileEditor::Save(); })
-     .Add("Clear Tile Edits", [](void*) { feature::TileEditor::ClearEdits(); });
+     .Add("Tile Edits Enabled", overworld::TileEditor::GetInstance().is_enabled)
+     .Add("Save Tile Edits", [](void*) { overworld::TileEditor::Save(); })
+     .Add("Clear Tile Edits", [](void*) { overworld::TileEditor::ClearEdits(); });
 
-  for (u32 i = 0; i < feature::MapGraft::GetCount(); i++) {
-    auto& request = feature::MapGraft::GetRequest(i);
-    auto& result = feature::MapGraft::GetResult(i);
+  for (u32 i = 0; i < overworld::MapGraft::GetCount(); i++) {
+    auto& request = overworld::MapGraft::GetRequest(i);
+    auto& result = overworld::MapGraft::GetResult(i);
     app.AddSeparator()
        .Add(GRAFT_NAMES[i], result.is_applied)
        .Add("Anchor Map", request.anchor)
@@ -357,8 +345,8 @@ void LoadWorldLayoutPage(MainApplication& app, void* args) {
        .Add("Offset Z (blocks)", result.offset_z);
   }
 
-  for (u32 i = 0; i < feature::MapGraft::GetLinkCount(); i++) {
-    auto& link = feature::MapGraft::GetLink(i);
+  for (u32 i = 0; i < overworld::MapGraft::GetLinkCount(); i++) {
+    auto& link = overworld::MapGraft::GetLink(i);
     app.AddSeparator()
        .Add(LINK_NAMES[i])
        .Add("Leaving Map", link.from)
@@ -374,7 +362,7 @@ void LoadWorldLayoutPage(MainApplication& app, void* args) {
 }
 
 void LoadOverworldPage(MainApplication& app, void* args) {
-  if (app.CheckProcess(ADDRESS_OVERWORLD_VTABLE)) return;
+  if (app.CheckProcess(overworld::address::kVtable)) return;
 
   static const c8* WEATHERS[] = {
       "Sunny", "Rainy", "Thunderstorm",
@@ -388,13 +376,10 @@ void LoadOverworldPage(MainApplication& app, void* args) {
   app.Add("World Layout", LoadWorldLayoutPage);
   app.Add("Wonder Trade", WonderTrade)
      .Add("Refresh", RefreshMap)
-     // .WithNoBackground()
-     // .Add("Teleport", map_id)
-     // .WithCallback(Teleport)
      .Add("Weather", weather_manager.GetRequestedWeather())
      .WithArray(WEATHERS, SIZE(WEATHERS))
      .Add("Keep Weather Indoors",
-          feature::WeatherManager::GetInstance().keep_weather_indoors)
+          overworld::WeatherOverride::GetInstance().keep_weather_indoors)
      .Add("Field Move", LoadOverworldFieldMovePage)
      .Add("App", LoadAppPage)
      .Add("Camera", LoadOverworldCameraPage)

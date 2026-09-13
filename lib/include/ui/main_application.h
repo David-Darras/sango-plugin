@@ -19,8 +19,8 @@
 
 #include <type_traits>
 
-#include "feature/core/cheat_code.h"
-#include "feature/core/cheat_code_manager.h"
+#include "core/cheat_code.h"
+#include "core/cheat_code_manager.h"
 #include "ui/page_item.h"
 #include "ui/painter.h"
 #include "ui/theme.h"
@@ -28,7 +28,9 @@
 #include "ui/widget/keyboard.h"
 #include "ui/widget/numpad.h"
 
+namespace sys {
 class Controller;
+}
 
 namespace ui {
 struct Theme;
@@ -52,19 +54,19 @@ public:
   /**
 * @brief Draws the top section of the menu with menu entries.
 */
-  void DrawTop(Graphics& graphics) override;
+  void DrawTop(sys::Graphics& graphics) override;
 
   /**
 * @brief Draws the bottom section of the menu (numpad or keyboard).
 */
-  void DrawBottom(Graphics& graphics) override;
+  void DrawBottom(sys::Graphics& graphics) override;
 
 
   /**
 * @brief Updates the menu state and input handling.
 * Must be called once per frame.
 */
-  void Update(Controller& controller) override;
+  void Update(sys::Controller& controller) override;
 
   /**
 * @brief Checks if the menu is currently opened.
@@ -180,7 +182,7 @@ public:
   MainApplication& Add(const c8* name, CheatCodeId id) {
     if (entries_count_ < kMaxEntries) {
       entries_[entries_count_].Initialize(
-          name, CheatCodeManager::GetInstance().Get(id), kTypeCheatCode);
+          name, core::CheatCodeManager::GetInstance().Get(id), kTypeCheatCode);
       entries_count_++;
     }
     return *this;
@@ -372,7 +374,7 @@ public:
   *
   * Each of them is shared by several distinct `enum class` families that
   * happen to have the same underlying width (e.g. `AddType` serves both
-  * `MoveType` and `PokemonType`), so a single template per widget replaces
+  * `MoveType` and `TypeId`), so a single template per widget replaces
   * what would otherwise be one hand-written overload per enum.
   */
 #define ADD_ENUM_ALIAS(method, raw)                                       \
@@ -456,7 +458,7 @@ private:
     return entries_[ctx.cursor + ctx.offset];
   }
 
-  bool AreKeysReleased(Controller& ctrl);
+  bool AreKeysReleased(sys::Controller& ctrl);
 
   static constexpr u32 kMaxEntries = 64;
   static constexpr u32 kMaxContexts = 8;

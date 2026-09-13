@@ -19,314 +19,36 @@
 
 #ifdef __CLION_IDE__
 #define USE_SANGO_PLUGIN
-// #define USE_DEFAULT_CTRPF
 #endif
 
-#include <types.h>
+// Modular Core includes
+#include "core/types.h"
+#include "core/singleton.h"
+#include "core/bitmask.h"
+#include "core/math.h"
+#include "core/color.h"
+#include "core/memory.h"
+#include "core/option.h"
+
 #include <functional>
-#include "address.h"
-#include "game/constant/form.h"
-#include "game/constant/gender.h"
-#include "game/constant/species.h"
 #include <CTRPluginFramework/System/Process.hpp>
 
-#define TYPEDEF_FLOAT(n, t) \
-typedef t f##n;           \
-typedef volatile t vf##n;
+// Address definitions
+#include "address.h"
 
-TYPEDEF_FLOAT(32, float)
-TYPEDEF_FLOAT(64, double)
-
-typedef char16_t c16;
-typedef char c8;
-
-typedef uintptr_t uptr;
-
-#define INLINE inline __attribute__((always_inline))
-#define STATIC_INLINE static inline __attribute__((always_inline))
-#define WEAK __attribute__((weak))
-
-// #define INLINE inline __attribute__((always_inline))
-// #define STATIC_INLINE STATIC_INLINE __attribute__((always_inline))
-
-#define SINGLETON(ClassName)\
-public:\
-ClassName(const ClassName&)            = delete;\
-ClassName& operator=(const ClassName&) = delete;\
-ClassName(ClassName&&)                 = delete;\
-ClassName& operator=(ClassName&&)      = delete;\
-private:\
-ClassName() = default; \
-public:
-
-#define MAKE_SINGLETON(ClassName)\
-public:\
-ClassName(const ClassName&)            = delete;\
-ClassName& operator=(const ClassName&) = delete;\
-ClassName(ClassName&&)                 = delete;\
-ClassName& operator=(ClassName&&)      = delete;\
-static inline __attribute__((always_inline)) ClassName& GetInstance() {\
-static ClassName instance;\
-return instance;\
-}\
-private:\
-ClassName() = default;\
-public:
-
-class MemoryManager {
-  MAKE_SINGLETON(MemoryManager);
-
-  static bool ToggleProtection(u32 address, bool on) {
-    u32 pID;
-    if (R_FAILED(svcGetProcessId(&pID, CUR_PROCESS_HANDLE))) {
-      return false;
-    }
-
-    Handle processHandle;
-    if (R_FAILED(svcOpenProcess(&processHandle, pID))) {
-      return false;
-    }
-
-    MemInfo mInfo;
-    PageInfo pInfo;
-    if (R_FAILED(svcQueryMemory(&mInfo, &pInfo, address))) {
-      svcCloseHandle(processHandle);
-      return false;
-    }
-
-    MemPerm perm = on
-                     ? MemPerm(MEMPERM_READ | MEMPERM_EXECUTE | MEMPERM_WRITE)
-                     : MemPerm(MEMPERM_READ | MEMPERM_EXECUTE);
-
-    Result res = svcControlProcessMemory(processHandle, mInfo.base_addr, 0,
-                                         mInfo.size, MemOp(MEMOP_PROT), perm);
-
-    // ui::LogApplication::Print(u"%s %X, %X, %X",
-    //                           on ? "Unprotect" : "Protect",
-    //                           mInfo.base_addr,
-    //                           mInfo.size, processHandle);
-
-    svcCloseHandle(processHandle);
-    return R_SUCCEEDED(res);
-  }
-
-  static bool Unprotect(u32 address, u32 size) {
-    return ToggleProtection(address, true);
-  }
-
-  static bool Protect(u32 address, u32 size) {
-    return ToggleProtection(address, false);
-  }
-};
-
-class MemoryRange {
-public:
-  MemoryRange(u32 address, u32 size) : address_(address), size_(size) {
-    MemoryManager::Unprotect(address, size);
-  }
-
-  ~MemoryRange() {
-    MemoryManager::Protect(address_, size_);
-  }
-
-  MemoryRange(const MemoryRange&) = delete;
-  MemoryRange& operator=(const MemoryRange&) = delete;
-
-private:
-  u32 address_;
-  u32 size_;
-};
-
-#define CONCAT_IMPL(x, y) x##y
-#define CONCAT(x, y) CONCAT_IMPL(x, y)
-#define MEMORY_SCOPE(addr, size) MemoryRange CONCAT(mem_scope_, __COUNTER__)(addr, size)
+// Game constants
+#include "pokemon/constant/form.h"
+#include "pokemon/constant/gender.h"
+#include "pokemon/constant/species.h"
+#include "system/constant/language.h"
 
 namespace ui {
 class MainApplication;
 }
 
 typedef void (*menu_callback_t)(ui::MainApplication& app, void* args);
-// typedef void (*callback_t)(void* args);
 typedef std::function<void(void*)> callback_t;
 typedef std::function<void()> cheat_code_callback_t;
-#define UNPROTECT(address) MemoryManager::ToggleProtection((address), true)
-#define PROTECT(address)  MemoryManager::ToggleProtection((address), false)
-
-#define WRITE64(address, value) *(vu64*)(address) = (value)
-#define WRITE32(address, value) *(vu32*)(address) = (value)
-#define WRITE16(address, value) *(vu16*)(address) = (value)
-#define WRITE8(address, value) *(vu8*)(address) = (value)
-#define WRITEF(address, value) *(vf32*)(address) = (value)
-#define WRITEB(address, value) *(volatile bool*)(address) = (value)
-
-#define READ(type, address) *(type*)(address)
-#define READ64(address) *(vu64*)(address)
-#define READ32(address) *(vu32*)(address)
-#define READ16(address) *(vu16*)(address)
-#define READ8(address) *(vu8*)(address)
-#define READF(address) *(vf32*)(address)
-#define READB(address) *(volatile bool*)(address)
-
-#define SAFE_WRITE64(address, value) do {\
-  MemoryManager::ToggleProtection((address), true);\
-  *(vu64*)(address) = (value);\
-  MemoryManager::ToggleProtection((address), false);\
-} while(0)
-
-#define SAFE_WRITE32(address, value) do {\
-  MemoryManager::ToggleProtection((address), true);\
-  *(vu32*)(address) = (value);\
-  MemoryManager::ToggleProtection((address), false);\
-} while(0)
-
-#define SAFE_WRITE16(address, value) do {\
-  MemoryManager::ToggleProtection((address), true);\
-  *(vu16*)(address) = (value);\
-  MemoryManager::ToggleProtection((address), false);\
-} while(0)
-
-#define SAFE_WRITE8(address, value) do {\
-  MemoryManager::ToggleProtection((address), true);\
-  *(vu8*)(address) = (value);\
-  MemoryManager::ToggleProtection((address), false);\
-} while(0)
-
-#define SAFE_WRITEF(address, value) do {\
-  MemoryManager::ToggleProtection((address), true);\
-  *(vf32*)(address) = (value);\
-  MemoryManager::ToggleProtection((address), false);\
-} while(0)
-
-#define SAFE_WRITEB(address, value) do {\
-  MemoryManager::ToggleProtection((address), true);\
-  *(volatile bool*)(address) = (value);\
-  MemoryManager::ToggleProtection((address), false);\
-} while(0)
-
-#define SAFE_READ64(address, result) do {\
-  MemoryManager::ToggleProtection((address), true);\
-  (result) = *(vu64*)(address);\
-  MemoryManager::ToggleProtection((address), false);\
-} while(0)
-
-#define SAFE_READ32(address, result) do {\
-  MemoryManager::ToggleProtection((address), true);\
-  (result) = *(vu32*)(address);\
-  MemoryManager::ToggleProtection((address), false);\
-} while(0)
-
-#define SAFE_READ16(address, result) do {\
-  MemoryManager::ToggleProtection((address), true);\
-  (result) = *(vu16*)(address);\
-  MemoryManager::ToggleProtection((address), false);\
-} while(0)
-
-#define SAFE_READ8(address, result) do {\
-  MemoryManager::ToggleProtection((address), true);\
-  (result) = *(vu8*)(address);\
-  MemoryManager::ToggleProtection((address), false);\
-} while(0)
-
-#define SAFE_READF(address, result) do {\
-  MemoryManager::ToggleProtection((address), true);\
-  (result) = *(vf32*)(address);\
-  MemoryManager::ToggleProtection((address), false);\
-} while(0)
-
-#define SAFE_READB(address, result) do {\
-  MemoryManager::ToggleProtection((address), true);\
-  (result) = *(volatile bool*)(address);\
-  MemoryManager::ToggleProtection((address), false);\
-} while(0)
-
-#define ARM_NOP(address) *(vu32*)(address) = 0xE1A00000
-#define ARM_RETURN_TRUE(address) *(vu32*)(address) = 0xE3A00001; *(vu32*)(address+4) = 0xE12FFF1E;
-#define SAFE_ARM_NOP(address) SAFE_WRITE32(address, 0xE1A00000)
-#define ARM_RET(address) *(vu32*)(address) = 0xE12FFF1E // bx lr
-#define ARM_NO_COND(address) *(vu32*)(address) = (*(vu32*)(address) & 0x0FFFFFFF) | 0xE0000000
-
-#define SET_BITS(b, p, n, v) \
-  ((b) = ((b) & ~(((1u << (n)) - 1) << (p))) | ((v) << (p)))
-#define GET_BITS(b, p, n) (((b) >> (p)) & ((1u << (n)) - 1))
-
-#define SIZE(x) ((sizeof(x)) / (sizeof(x[0])))
-
-extern "C" s32 svcInvalidateEntireInstructionCache();
-
-struct Vec2 {
-  f32 x, y;
-
-  Vec2() : x(0), y(0) {
-  }
-
-  Vec2(f32 x0, f32 y0) : x(x0), y(y0) {
-  }
-};
-
-struct Vec3 {
-  f32 x, y, z;
-
-  Vec3() : x(0), y(0), z(0) {
-  }
-
-  Vec3(f32 x0, f32 y0, f32 z0) : x(x0), y(y0), z(z0) {
-  }
-
-  static float Dot(const Vec3& a, const Vec3& b) {
-    return (a.x * b.x) + (a.y * b.y) + (a.z * b.z);
-  }
-};
-
-struct Vec4 {
-  f32 x, y, z, w;
-
-  Vec4() : x(0), y(0), z(0), w(0) {
-  }
-
-  Vec4(f32 x0, f32 y0, f32 z0, f32 w0) : x(x0), y(y0), z(z0), w(w0) {
-  }
-};
-
-struct Color {
-  f32 r, g, b, a;
-
-  Color() : r(1), g(1), b(1), a(1) {
-  }
-
-  Color(f32 r0, f32 g0, f32 b0, f32 a0) : r(r0), g(g0), b(b0), a(a0) {
-  }
-};
-
-struct Color8 {
-  u8 r, g, b, a;
-
-  Color8() : r(255), g(255), b(255), a(255) {
-  }
-
-  Color8(u8 r0, u8 g0, u8 b0, u8 a0) : r(r0), g(g0), b(b0), a(a0) {
-  }
-
-  u32 GetRaw() {
-    return READ32((uptr)this);
-  }
-};
-
-struct Mtx33 {
-  f32 m[3][3];
-};
-
-struct Mtx34 {
-  f32 m[3][4];
-};
-
-struct Mtx44 {
-  f32 m[4][4];
-};
-
-struct Aabb {
-  Vec4 min;
-  Vec4 max;
-};
 
 struct String {
   static String s_tmp;
@@ -336,7 +58,7 @@ struct String {
   static c16* GetTmpBuf() { return s_buffer; }
 
   String() {
-    vtable = (void*)ADDRESS_STRING_VTABLE;
+    vtable = (void*)sys::address::kStringVtable;
     buffer = s_buffer;
     capacity = 128;
     size = 0;
@@ -378,12 +100,13 @@ struct Message {
   u32* archive;
   u8 kind; // 0 -> one, 1 -> all
   u32 file_id;
-  u32 language;
+  Language language;
+  u8 padding[3];
   uptr _0, _1, _2;
 
   INLINE void GetString(u32 str_id, String* output) {
     return ((void(*)(Message*, u32, String*))
-      ADDRESS_MESSAGE_GET_STRING)(this, str_id, output);
+      sys::address::kMessageGetString)(this, str_id, output);
   }
 };
 
@@ -404,132 +127,10 @@ struct Bundle {
 };
 
 struct PokeInfo {
-  Species species;
+  SpeciesId species;
   Form form;
   Gender gender;
   bool is_shiny;
   bool is_egg;
   u32 _0;
 };
-
-#include <iostream>
-#include <utility>
-#include <type_traits>
-#include <stdexcept>
-
-template <typename T>
-class Option {
-private:
-  bool has_value;
-  typename std::aligned_storage<sizeof(T), alignof(T)>::type storage;
-
-  T* ptr() {
-    return reinterpret_cast<T*>(&storage);
-  }
-
-  const T* ptr() const {
-    return reinterpret_cast<const T*>(&storage);
-  }
-
-public:
-  Option() : has_value(false) {
-  }
-
-  Option(const T& value) : has_value(true) {
-    new(ptr()) T(value);
-  }
-
-  Option(T&& value) noexcept : has_value(true) {
-    new(ptr()) T(std::move(value));
-  }
-
-  Option(const Option& other) : has_value(other.has_value) {
-    if (other.has_value) {
-      new(ptr()) T(*other.ptr());
-    }
-  }
-
-  Option(Option&& other) noexcept : has_value(other.has_value) {
-    if (other.has_value) {
-      new(ptr()) T(std::move(*other.ptr()));
-      other.reset();
-    }
-  }
-
-  ~Option() {
-    reset();
-  }
-
-  Option& operator=(const Option& other) {
-    if (this != &other) {
-      reset();
-      has_value = other.has_value;
-      if (has_value) {
-        new(ptr()) T(*other.ptr());
-      }
-    }
-    return *this;
-  }
-
-  Option& operator=(Option&& other) noexcept {
-    if (this != &other) {
-      reset();
-      has_value = other.has_value;
-      if (has_value) {
-        new(ptr()) T(std::move(*other.ptr()));
-        other.reset();
-      }
-    }
-    return *this;
-  }
-
-  void reset() {
-    if (has_value) {
-      ptr()->~T();
-      has_value = false;
-    }
-  }
-
-  bool is_some() const { return has_value; }
-  bool is_none() const { return !has_value; }
-
-  explicit operator bool() const { return has_value; }
-
-  T& operator*() {
-    return *ptr();
-  }
-
-  const T& operator*() const {
-    return *ptr();
-  }
-
-  T* operator->() {
-    return ptr();
-  }
-
-  const T* operator->() const {
-    return ptr();
-  }
-
-  T value_or(const T& default_value) const {
-    if (has_value) {
-      return *ptr();
-    }
-    return default_value;
-  }
-};
-
-struct None_t {
-};
-
-const None_t None{};
-
-template <typename T>
-bool operator==(const Option<T>& opt, None_t) {
-  return opt.is_none();
-}
-
-template <typename T>
-bool operator==(None_t, const Option<T>& opt) {
-  return opt.is_none();
-}

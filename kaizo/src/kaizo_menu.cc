@@ -15,15 +15,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "feature/core/feature_app.h"
-#include "feature/battle/feature_battle_config.h"
-#include "feature/core/feature_engine.h"
-#include "feature/overworld/feature_field_move.h"
-#include "feature/overworld/feature_overworld.h"
-#include "game/overworld/encounter.h"
-#include "game/savedata/event_table.h"
-#include "game/savedata/savedata.h"
-#include "system/sound.h"
+#include "core/patch/app_launcher.h"
+#include "battle/patch/setup.h"
+#include "core/patch/game_speed.h"
+#include "overworld/patch/camera.h"
+#include "overworld/patch/field_move.h"
+#include "overworld/patch/field.h"
+#include "overworld/native/encounter_state.h"
+#include "savedata/native/event_table.h"
+#include "savedata/native/misc.h"
+#include "savedata/native/savedata.h"
+#include "system/native/sound.h"
 #include "ui/main_application.h"
 #include "ui/page/pages.h"
 #include "kaizo/kaizo.h"
@@ -40,30 +42,30 @@ static void LoadHmPage(MainApplication& app, void* args) {
   }
   if (badge_count >= 1)
     app.Add("Cut", [&](void*) {
-      feature::FieldMove::Execute(0);
+      overworld::FieldMove::Execute(FieldMoveId::kCut);
     });
   if (badge_count >= 2)
     app.Add("Rock Smash", [&](void*) {
-      feature::FieldMove::Execute(4);
+      overworld::FieldMove::Execute(FieldMoveId::kRockSmash);
     });
   if (badge_count >= 3)
     app.Add("Strength", [&](void*) {
-      feature::FieldMove::Execute(3);
+      overworld::FieldMove::Execute(FieldMoveId::kStrength);
     });
   if (badge_count >= 4)
     app.Add(
-        "Fly", [&](void*) { feature::GameApp::DoFly(); });
+        "Fly", [&](void*) { core::AppLauncher::DoFly(); });
   if (badge_count >= 5)
     app.Add("Surf", [&](void*) {
-      feature::FieldMove::Execute(1);
+      overworld::FieldMove::Execute(FieldMoveId::kSurf);
     });
   if (badge_count >= 6)
     app.Add("Dive", [&](void*) {
-      feature::FieldMove::Execute(10);
+      overworld::FieldMove::Execute(FieldMoveId::kDive);
     });
   if (badge_count >= 7)
     app.Add("Waterfall", [&](void*) {
-      feature::FieldMove::Execute(2);
+      overworld::FieldMove::Execute(FieldMoveId::kWaterfall);
     });
 }
 
@@ -75,17 +77,17 @@ void LoadMenuPage(MainApplication& app, void* args) {
       "Idle", "Tps", "Rotate", "Top", "Fpv", "Free"
   };
 
-  auto& bgm = feature::Overworld::GetInstance().background_music;
-  auto& camera = feature::Camera::GetInstance();
-  auto& speed = feature::Engine::GetInstance().game_speed;
+  auto& bgm = overworld::Field::GetInstance().background_music;
+  auto& camera = overworld::Camera::GetInstance();
+  auto& speed = core::GameSpeed::GetInstance().game_speed;
 
   app.Add("Camera", camera.overworld_state)
      .WithArray(CAMERA_STATES, SIZE(CAMERA_STATES))
      .Add("Speed", speed)
      .WithBounds(1, 2)
      .Add("Radio", bgm)
-     .WithCallback([&](void*) { Sound::PlayBackgroundMusic(bgm); })
-     .WithBounds(0, 250)
+     .WithCallback([&](void*) { sys::Sound::PlayBackgroundMusic(bgm); })
+     .WithBounds(0, static_cast<u32>(BackgroundMusicId::kCount) - 1)
      .Add("HM", LoadHmPage)
      .Add("App", ui::LoadAppPage)
      .Add("Repel", CheatCodeId::kNoEncounter);

@@ -19,20 +19,20 @@
  * Pokémon Sango Kaizo: the ROM hack, built on the library.
  */
 
-#include "feature/battle/feature_battle.h"
-#include "feature/battle/feature_battle_config.h"
-#include "feature/core/feature_archive.h"
-#include "feature/core/feature_process_patch.h"
-#include "feature/overworld/feature_encounter.h"
-#include "feature/overworld/feature_gift_pokemon.h"
-#include "feature/overworld/feature_overworld.h"
-#include "feature/pokemon/feature_item.h"
-#include "feature/ui/feature_title_screen.h"
-#include "feature/ui/feature_app_status.h"
+#include "battle/patch/battle.h"
+#include "battle/patch/setup.h"
+#include "core/patch/archive.h"
+#include "core/patch/process_patch.h"
+#include "overworld/patch/wild_encounter.h"
+#include "overworld/patch/gift_pokemon.h"
+#include "overworld/patch/field.h"
+#include "pokemon/patch/item_customizer.h"
+#include "ui/patch/title_screen.h"
+#include "ui/patch/app_status.h"
 #include "kaizo/kaizo.h"
 #include "kaizo/kaizo_painter.h"
 #include "plugin.h"
-#include "utils.h"
+#include "core/utils.h"
 
 namespace {
 /* ---------------------------------------------------------
@@ -44,17 +44,19 @@ bool IsCaptureAllowed() { return !kaizo::CapturedEvent::Check(); }
 void OnCaptured() { kaizo::CapturedEvent::Set(); }
 
 u32 OnStreamFile(const u32* archive, u32 file_id) {
-  if (feature::ArchivePatch::IsArchive(archive, ArchiveId::kOverworldModel)) {
-    return kaizo::PatchOverworldModels(file_id, true);
+  if (core::Archive::IsArchive(archive, ArchiveId::kOverworldModel)) {
+    return static_cast<u32>(kaizo::PatchOverworldModels(
+        static_cast<ModelId>(file_id), true));
   }
   return file_id;
 }
 
-void OnReadFile(feature::ArchivePatch::Input* input) {
-  if (feature::ArchivePatch::IsArchive(input, ArchiveId::kOverworldModel)) {
-    input->file_id = kaizo::PatchOverworldModels(input->file_id, false);
+void OnReadFile(core::Archive::Input* input) {
+  if (core::Archive::IsArchive(input, ArchiveId::kOverworldModel)) {
+    input->file_id = static_cast<u32>(kaizo::PatchOverworldModels(
+        static_cast<ModelId>(input->file_id), false));
   }
-  if (feature::ArchivePatch::IsArchive(input, ArchiveId::kPlayerIcon)) {
+  if (core::Archive::IsArchive(input, ArchiveId::kPlayerIcon)) {
     input->file_id = 72; // Steven
   }
 }
@@ -62,16 +64,16 @@ void OnReadFile(feature::ArchivePatch::Input* input) {
 void OnProcessLoad(uptr vtable) {
   kaizo::ShouldReplacePokemonModel(false);
   switch (vtable) {
-    case ADDRESS_INTRODUCTION_VTABLE:
-    case ADDRESS_CINEMATIC_VTABLE:
+    case core::address::kIntroductionVtable:
+    case core::address::kCinematicVtable:
       kaizo::ShouldReplacePokemonModel(true);
       break;
-    case ADDRESS_TITLE_SCREEN_VTABLE:
-      if (feature::TitleScreen::GetInstance().is_enabled) {
+    case core::address::kTitleScreenVtable:
+      if (ui::TitleScreen::GetInstance().is_enabled) {
         kaizo::ShouldReplacePokemonModel(true);
       }
       break;
-    case ADDRESS_SELECT_STARTER_VTABLE:
+    case core::address::kSelectStarterVtable:
       kaizo::PatchStarterView();
       break;
     default:
@@ -79,13 +81,13 @@ void OnProcessLoad(uptr vtable) {
   }
 }
 
-void OnWildPokemon(MapId map_id, feature::Encounter::PokemonData* pokemons,
+void OnWildPokemon(MapId map_id, overworld::WildEncounter::PokemonData* pokemons,
                    u32 count) {
   const kaizo::EncounterEntry* entry = kaizo::GetEncounterEntry(map_id);
   if (entry == nullptr) return;
   for (u32 i = 0; i < count; i++) {
     pokemons[i].level = kaizo::GetEncounterLevel();
-    pokemons[i].species = entry->species[Utils::GetRandomValue(entry->size)];
+    pokemons[i].species = entry->species[core::Utils::GetRandomValue(entry->size)];
   }
 }
 
@@ -96,29 +98,29 @@ void OnFieldLoad() {
 }
 
 void InstallCallbacks() {
-  auto& battle = feature::Battle::GetInstance();
+  auto& battle = battle::Battle::GetInstance();
   battle.unlimited_mega_evolution = false;
   battle.is_capture_allowed = IsCaptureAllowed;
   battle.on_captured = OnCaptured;
 
-  feature::BattleConfig::GetInstance().on_trainer_battle =
+  battle::Setup::GetInstance().on_trainer_battle =
       kaizo::PatchTrainerData;
 
-  feature::GiftPokemon::GetInstance().randomize_species = true;
+  overworld::GiftPokemon::GetInstance().randomize_species = true;
 
-  auto& archive = feature::ArchivePatch::GetInstance();
+  auto& archive = core::Archive::GetInstance();
   archive.on_stream_file = OnStreamFile;
   archive.on_read_file = OnReadFile;
 
-  feature::ProcessPatch::GetInstance().on_process_load = OnProcessLoad;
+  core::ProcessPatch::GetInstance().on_process_load = OnProcessLoad;
 
-  auto& encounter = feature::Encounter::GetInstance();
+  auto& encounter = overworld::WildEncounter::GetInstance();
   encounter.on_encounter_table = kaizo::PatchEncounterTable;
   encounter.on_wild_pokemon = OnWildPokemon;
 
-  feature::Overworld::GetInstance().on_field_load = OnFieldLoad;
-  feature::Item::GetInstance().on_item_data = kaizo::PatchItemData;
-  feature::AppStatus::GetInstance().is_restricted = true;
+  overworld::Field::GetInstance().on_field_load = OnFieldLoad;
+  pokemon::ItemCustomizer::GetInstance().on_item_data = kaizo::PatchItemData;
+  ui::AppStatus::GetInstance().is_restricted = true;
 }
 
 void EveryFrame() {

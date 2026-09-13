@@ -17,13 +17,13 @@
 
 #include "overlay/scripts.h"
 
-#include "feature/core/feature_native_script.h"
-#include "feature/overworld/feature_map_character.h"
-#include "game/constant/item.h"
-#include "game/constant/map.h"
-#include "game/constant/model.h"
-#include "game/constant/script.h"
-#include "script/context.h"
+#include "script/patch/native_script.h"
+#include "overworld/patch/map_character.h"
+#include "pokemon/constant/item.h"
+#include "core/utils.h"
+#include "overworld/constant/map.h"
+#include "overworld/constant/model.h"
+#include "script/constant/script.h"
 
 namespace script {
 namespace {
@@ -38,7 +38,7 @@ void LittlerootGreeter(Context& s) {
     if (s.GetMoney() < amount) {
       s.Talk(u"You don't have enough money!");
     } else {
-      ItemId item = Utils::GetRandomItemId();
+      ItemId item = core::Utils::GetRandomEnum<ItemId>();
       if (s.CanGiveItem(item)) {
         s.SubMoney(amount);
         s.GiveItem(item);
@@ -66,16 +66,16 @@ void LittlerootGreeter(Context& s) {
 } // namespace
 
 void Install() {
-  feature::NativeScript::Register(ScriptId::kLittlerootGreeter,
-                                  LittlerootGreeter);
+  NativeScript::Register(ScriptId::kLittlerootGreeter,
+                         LittlerootGreeter);
 
-  feature::MapCharacterRequest greeter;
-  greeter.map_id = static_cast<u16>(MapId::kLittlerootTown);
+  overworld::MapCharacterRequest greeter;
+  greeter.map_id = MapId::kLittlerootTown;
   greeter.model_id = ModelId::kYoungster;
   greeter.script_id = ScriptId::kLittlerootGreeter;
   greeter.tile_x = 100;
   greeter.tile_z = 163;
   greeter.facing = overworld::Facing::kDown;
-  feature::MapCharacter::Add(greeter);
+  overworld::MapCharacter::Add(greeter);
 }
 } // namespace script

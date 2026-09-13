@@ -15,24 +15,26 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "feature/pokemon/feature_model_loader.h"
-#include "game/core/data_manager.h"
-#include "game/core/data_manager.h"
-#include "game/constant/form.h"
-#include "game/constant/model.h"
-#include "game/constant/species.h"
-#include "game/overworld/model_manager.h"
+#include "pokemon/patch/model_loader.h"
+#include "core/native/data_manager.h"
+#include "core/native/process_manager.h"
+#include "pokemon/constant/form.h"
+#include "overworld/constant/model.h"
+#include "pokemon/constant/species.h"
+#include "overworld/native/model_manager.h"
+#include "renderer/native/h3d_shader_model.h"
+#include "savedata/native/pokemon_team.h"
+#include "ui/log_application.h"
 #include "ui/main_application.h"
 #include "ui/page/pages.h"
-#include "game/savedata/pokemon_team.h"
 
-feature::LoadedModel g_my_1st_pokemon;
+pokemon::LoadedModel g_my_1st_pokemon;
 
 namespace {
 struct Settings {
   ModelId model_id = ModelId::kStevenStone;
-  Species species = static_cast<Species>(317);
-  Form form = static_cast<Form>(0);
+  SpeciesId species = SpeciesId::kSwalot;
+  Form form = Form::kNormal;
   bool is_shiny = true;
   f32 scale = 1.0f;
   f32 distance = 0.0f;
@@ -43,8 +45,8 @@ Settings& GetSettings() {
   return settings;
 }
 
-feature::LoadedModel g_overworld_model;
-feature::LoadedModel g_pokemon_model;
+pokemon::LoadedModel g_overworld_model;
+pokemon::LoadedModel g_pokemon_model;
 
 
 Vec3 SpawnPosition() {
@@ -54,7 +56,7 @@ Vec3 SpawnPosition() {
   return position;
 }
 
-void ApplyScale(const feature::LoadedModel& loaded, f32 scale) {
+void ApplyScale(const pokemon::LoadedModel& loaded, f32 scale) {
   if (loaded.model == nullptr || scale == 1.0f) return;
   loaded.model->SetScale(scale, scale, scale);
 }
@@ -65,10 +67,10 @@ void SpawnOverworldModel(void*) {
     return;
   }
   const ModelId model_id = GetSettings().model_id;
-  if (feature::ModelLoader::LoadOverworldModel(
-          &g_overworld_model, static_cast<u16>(model_id), SpawnPosition())) {
+  if (pokemon::ModelLoader::LoadOverworldModel(&g_overworld_model, model_id,
+                                               SpawnPosition())) {
     ApplyScale(g_overworld_model, GetSettings().scale);
-    ui::LogApplication::Print(u"model %d spawned", static_cast<u16>(model_id));
+    ui::LogApplication::Print(u"model %d spawned", model_id);
   }
 }
 
@@ -78,12 +80,11 @@ void SpawnPokemon(void*) {
     return;
   }
   const Settings& settings = GetSettings();
-  if (feature::ModelLoader::LoadPokemon(&g_pokemon_model, settings.species,
+  if (pokemon::ModelLoader::LoadPokemon(&g_pokemon_model, settings.species,
                                         settings.form, settings.is_shiny,
                                         SpawnPosition())) {
     ApplyScale(g_pokemon_model, GetSettings().scale);
-    ui::LogApplication::Print(u"species %d spawned",
-                              static_cast<u16>(settings.species));
+    ui::LogApplication::Print(u"species %d spawned", settings.species);
   }
 }
 
@@ -91,17 +92,17 @@ void Spawn1stPokemon(void*) {
   auto& team = savedata::PokemonTeam::GetInstance();
   auto& pkm = *team.pokemons[0];
   pkm.accessor->Decrypt();
-  Species species = pkm.core->species;
+  SpeciesId species = pkm.core->species;
   Form form = pkm.core->form;
-  bool is_shiny = PokemonUtils::IsShiny(pkm.core->id, pkm.core->shiny_id);
-  if (feature::ModelLoader::LoadPokemon(&g_my_1st_pokemon, species,
+  bool is_shiny = pokemon::Utils::IsShiny(pkm.core->id, pkm.core->shiny_id);
+  if (pokemon::ModelLoader::LoadPokemon(&g_my_1st_pokemon, species,
                                         form, is_shiny,
                                         SpawnPosition())) {
     ApplyScale(g_my_1st_pokemon, 0.25f);
   }
 }
 
-void ClearModels(void*) { feature::ModelLoader::DropAll(); }
+void ClearModels(void*) { pokemon::ModelLoader::DropAll(); }
 } // namespace
 
 namespace ui {
@@ -115,7 +116,7 @@ void LoadModelLoaderPage(MainApplication& app, void* args) {
      .AddSeparator()
      .Add("Spawn Pokemon", SpawnPokemon)
      .AddSpecies("Species", settings.species)
-     .WithBounds(1, static_cast<u16>(Species::kVolcanion))
+     .WithBounds(1, static_cast<u32>(SpeciesId::kVolcanion))
      .Add("Form", settings.form)
      .WithBounds(0, 30)
      .Add("Shiny", settings.is_shiny)
@@ -131,8 +132,8 @@ void LoadModelLoaderPage(MainApplication& app, void* args) {
 
 void UpdateFollowingPokemon() {
   if (g_my_1st_pokemon.model != nullptr &&
-      game::ProcessManager::GetInstance().IsCurrentProcess(
-          ADDRESS_OVERWORLD_VTABLE)) {
+      core::ProcessManager::GetInstance().IsCurrentProcess(
+          overworld::address::kVtable)) {
     auto& player = overworld::ModelManager::GetInstance().GetPlayer();
     auto& model = player.GetDrawModel();
     Vec3 pos = model.position;

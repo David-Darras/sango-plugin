@@ -20,5 +20,6 @@
 #include "common.h"
 
 namespace undertow {
+/// Registers the hack's C++ field scripts and the NPCs that run them.
 void InstallScripts();
-}
+} // namespace undertow

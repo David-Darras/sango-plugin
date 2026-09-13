@@ -75,7 +75,7 @@ private:
   /**
 * @brief Button ID mapping for the internal button array.
 */
-  enum {
+  enum ButtonId : u8 {
     kButtonInput = 0, ///< The text display bar.
     kButtonPrev10, ///< Jump back 10 pages.
     kButtonPrev, ///< Previous page.

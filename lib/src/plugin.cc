@@ -18,48 +18,50 @@
 #include "plugin.h"
 
 #include "config_manager.h"
-#include "feature/battle/feature_battle.h"
-#include "feature/battle/feature_battle_config.h"
-#include "feature/battle/feature_game_extension.h"
-#include "feature/battle/feature_type_helper.h"
-#include "feature/battle/feature_weather_manager.h"
-#include "feature/core/feature_app.h"
-#include "feature/core/feature_archive.h"
-#include "feature/core/feature_device.h"
-#include "feature/core/feature_engine.h"
-#include "feature/core/feature_event_patch.h"
-#include "feature/core/feature_native_script.h"
-#include "feature/core/feature_process_patch.h"
-#include "feature/core/feature_script.h"
-#include "feature/overworld/feature_camera.h"
-#include "feature/overworld/feature_encounter.h"
-#include "feature/overworld/feature_field_move.h"
-#include "feature/overworld/feature_map_character.h"
-#include "feature/overworld/feature_map_data_loader.h"
-#include "feature/overworld/feature_map_graft.h"
-#include "feature/overworld/feature_map_tile.h"
-#include "feature/overworld/feature_overworld.h"
-#include "feature/overworld/feature_overworld_model.h"
-#include "feature/overworld/feature_static_encounter.h"
-#include "feature/overworld/feature_tile_editor.h"
-#include "feature/overworld/feature_trade.h"
-#include "feature/pokemon/feature_evolution.h"
-#include "feature/pokemon/feature_item.h"
-#include "feature/pokemon/feature_mega_evolution.h"
-#include "feature/pokemon/feature_shiny.h"
-#include "feature/pokemon/feature_shop.h"
-#include "feature/rendering/feature_h3d_model.h"
-#include "feature/rendering/feature_light.h"
-#include "feature/rendering/feature_picture.h"
-#include "feature/rendering/feature_text_box.h"
-#include "feature/overworld/feature_run_animation.h"
-#include "feature/pokemon/feature_pokemon_model.h"
-#include "feature/ui/feature_app_status.h"
-#include "feature/ui/feature_keyboard.h"
-#include "feature/ui/feature_new_game.h"
-#include "system/device.h"
-#include "system/file.h"
-#include "system/graphics.h"
+#include "battle/patch/battle.h"
+#include "battle/patch/setup.h"
+#include "battle/patch/game_extension.h"
+#include "battle/patch/type_helper.h"
+#include "core/patch/app_launcher.h"
+#include "core/patch/archive.h"
+#include "core/patch/device_patch.h"
+#include "core/patch/game_speed.h"
+#include "core/patch/event_patch.h"
+#include "script/patch/native_script.h"
+#include "core/patch/process_patch.h"
+#include "core/patch/script_loader.h"
+#include "overworld/patch/camera.h"
+#include "overworld/patch/wild_encounter.h"
+#include "overworld/patch/field_move.h"
+#include "overworld/patch/gift_pokemon.h"
+#include "overworld/patch/map_character.h"
+#include "overworld/patch/map_data_loader.h"
+#include "overworld/patch/map_graft.h"
+#include "overworld/patch/map_tile.h"
+#include "overworld/patch/field.h"
+#include "overworld/patch/player_cheats.h"
+#include "overworld/patch/static_randomizer.h"
+#include "overworld/patch/tile_editor.h"
+#include "overworld/patch/trade.h"
+#include "overworld/patch/weather_override.h"
+#include "ui/patch/title_screen.h"
+#include "pokemon/patch/evolution.h"
+#include "pokemon/patch/item_customizer.h"
+#include "pokemon/patch/mega_evolution.h"
+#include "pokemon/patch/shiny.h"
+#include "pokemon/patch/custom_shop.h"
+#include "renderer/patch/model_filter.h"
+#include "renderer/patch/lighting.h"
+#include "renderer/patch/picture_filter.h"
+#include "renderer/patch/text_box_filter.h"
+#include "overworld/patch/run_animation.h"
+#include "pokemon/patch/model_replacement.h"
+#include "ui/patch/app_status.h"
+#include "ui/patch/keyboard_patch.h"
+#include "ui/patch/new_game.h"
+#include "system/native/device.h"
+#include "system/native/file.h"
+#include "system/native/graphics.h"
 #include "ui/application_manager.h"
 #include "ui/main_application.h"
 #include "ui/root_application.h"
@@ -69,48 +71,48 @@ c16 String::s_buffer[128];
 
 namespace plugin {
 void InitializeEngine() {
-  File::MountSdmc();
+  sys::File::MountSdmc();
 
-  feature::DeviceState::Initialize();
-  feature::Engine::Initialize();
-  feature::Light::Initialize();
-  feature::TextBox::Initialize();
-  feature::Picture::Initialize();
-  feature::MapTile::Initialize();
-  feature::Camera::Initialize();
-  feature::FieldMove::Initialize();
-  feature::Item::Initialize();
-  feature::Overworld::Initialize();
-  feature::MapDataLoader::Initialize();
-  feature::Encounter::Initialize();
-  feature::ArchivePatch::Initiliaze();
-  feature::Script::Initialize();
-  feature::NativeScript::Initialize();
-  feature::BattleConfig::Initialize();
-  feature::H3dModel::Initialize();
-  feature::Battle::Initialize();
-  feature::OverworldModel::Initialize();
-  feature::ProcessPatch::Initialize();
-  feature::EventPatch::Initialize();
-  feature::Keyboard::Initialize();
-  feature::GameApp::Initialize();
-  feature::AppStatus::Initialize();
-  feature::Shiny::Initialize();
-  feature::GameExtension::Initialize();
-  feature::MegaEvolution::Initialize();
-  feature::Evolution::Initialize();
-  feature::GiftPokemon::Initialize();
-  feature::StaticEncounter::Initialize();
-  feature::Trade::Initialize();
-  feature::MapCharacter::Initialize();
-  feature::MapGraft::Initialize();
-  feature::TileEditor::Initialize();
-  feature::Shop::Initialize();
-  feature::WeatherManager::Initialize();
-  feature::NewGame::Initialize();
-  feature::RunAnimation::Initialize();
-  feature::PokemonModel::Initialize();
-  feature::TitleScreen::Initialize();
+  core::DevicePatch::Initialize();
+  core::GameSpeed::Initialize();
+  renderer::Lighting::Initialize();
+  renderer::TextBoxFilter::Initialize();
+  renderer::PictureFilter::Initialize();
+  overworld::MapTile::Initialize();
+  overworld::Camera::Initialize();
+  overworld::FieldMove::Initialize();
+  pokemon::ItemCustomizer::Initialize();
+  overworld::Field::Initialize();
+  overworld::MapDataLoader::Initialize();
+  overworld::WildEncounter::Initialize();
+  core::Archive::Initialize();
+  core::ScriptLoader::Initialize();
+  script::NativeScript::Initialize();
+  battle::Setup::Initialize();
+  renderer::ModelFilter::Initialize();
+  battle::Battle::Initialize();
+  overworld::PlayerCheats::Initialize();
+  core::ProcessPatch::Initialize();
+  core::EventPatch::Initialize();
+  ui::KeyboardPatch::Initialize();
+  core::AppLauncher::Initialize();
+  ui::AppStatus::Initialize();
+  pokemon::Shiny::Initialize();
+  battle::GameExtension::Initialize();
+  pokemon::MegaEvolution::Initialize();
+  pokemon::Evolution::Initialize();
+  overworld::GiftPokemon::Initialize();
+  overworld::StaticRandomizer::Initialize();
+  overworld::Trade::Initialize();
+  overworld::MapCharacter::Initialize();
+  overworld::MapGraft::Initialize();
+  overworld::TileEditor::Initialize();
+  pokemon::CustomShop::Initialize();
+  overworld::WeatherOverride::Initialize();
+  ui::NewGame::Initialize();
+  overworld::RunAnimation::Initialize();
+  pokemon::ModelReplacement::Initialize();
+  ui::TitleScreen::Initialize();
 }
 
 void LoadConfiguration() {
@@ -125,42 +127,42 @@ void OpenMenu(ui::Painter& painter, PageLoader root_page) {
 }
 
 void Start(void (*every_frame)()) {
-  HookManager::Initialize(HookID::kEntrypoint, ADDRESS_ENTRYPOINT,
+  core::HookManager::Initialize(HookId::kEntrypoint, sys::address::kEntrypoint,
                           (uptr)every_frame);
 }
 
 void UpdateFrame() {
-  auto& controller = Controller::GetInstance();
+  auto& controller = sys::Controller::GetInstance();
   auto* application = ui::ApplicationManager::GetInstance().GetCurrentApplication();
 
   application->Update(controller);
-  CheatCodeManager::GetInstance().Update();
+  core::CheatCodeManager::GetInstance().Update();
 
-  feature::MapCharacter::Update();
-  feature::MapGraft::Update();
-  feature::TileEditor::Update();
+  overworld::MapCharacter::Update();
+  overworld::MapGraft::Update();
+  overworld::TileEditor::Update();
 }
 
 void DrawFrame() {
-  auto& graphics = Graphics::GetInstance();
+  auto& graphics = sys::Graphics::GetInstance();
   auto* application = ui::ApplicationManager::GetInstance().GetCurrentApplication();
 
   void* top_buffer = graphics.GetFramebuffer(Screen::kTop);
   if (graphics.BindFramebuffer(top_buffer)) {
-    Graphics::EnableScissor(0, 0, 400, 240);
-    Graphics::BeginRender(top_buffer);
+    sys::Graphics::EnableScissor(0, 0, 400, 240);
+    sys::Graphics::BeginRender(top_buffer);
     application->DrawTop(graphics);
-    feature::Keyboard::DrawTop();
-    feature::TypeHelper::DrawTop();
-    Graphics::DisableScissor();
+    ui::KeyboardPatch::DrawTop();
+    battle::TypeHelper::DrawTop();
+    sys::Graphics::DisableScissor();
   }
 
   void* bottom_buffer = graphics.GetFramebuffer(Screen::kBottom);
   if (graphics.BindFramebuffer(bottom_buffer)) {
-    Graphics::EnableScissor(0, 0, 320, 240);
-    Graphics::BeginRender(bottom_buffer);
+    sys::Graphics::EnableScissor(0, 0, 320, 240);
+    sys::Graphics::BeginRender(bottom_buffer);
     application->DrawBottom(graphics);
-    Graphics::DisableScissor();
+    sys::Graphics::DisableScissor();
   }
 }
 } // namespace plugin

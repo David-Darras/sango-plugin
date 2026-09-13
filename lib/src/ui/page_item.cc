@@ -17,10 +17,10 @@
 
 #include "ui/page_item.h"
 
-#include "feature/core/cheat_code.h"
+#include "core/cheat_code.h"
 #include "ui/main_application.h"
-#include "utils.h"
-#include "game/global_data/item.h"
+#include "core/utils.h"
+#include "pokemon/native/global_data/item.h"
 
 namespace ui {
 /**
@@ -159,62 +159,62 @@ void PageItem::GetDefaultDisplayValue(c16* buffer) const {
 
   switch (type_) {
     case kTypeU8:
-      Utils::Format(buffer, u"%ls%s : %u", prefix, name_, *(u8*)address_);
+      core::Utils::Format(buffer, u"%ls%s : %u", prefix, name_, *(u8*)address_);
       break;
 
     case kTypeS8:
-      Utils::Format(buffer, u"%ls%s : %d", prefix, name_, *(s8*)address_);
+      core::Utils::Format(buffer, u"%ls%s : %d", prefix, name_, *(s8*)address_);
       break;
 
     case kTypeU16:
-      Utils::Format(buffer, u"%ls%s : %u", prefix, name_, *(u16*)address_);
+      core::Utils::Format(buffer, u"%ls%s : %u", prefix, name_, *(u16*)address_);
       break;
 
     case kTypeS16:
-      Utils::Format(buffer, u"%ls%s : %d", prefix, name_, *(s16*)address_);
+      core::Utils::Format(buffer, u"%ls%s : %d", prefix, name_, *(s16*)address_);
       break;
 
     case kTypePointer:
-      Utils::Format(buffer, u"%ls%s : 0x%08X", prefix, name_, address_);
+      core::Utils::Format(buffer, u"%ls%s : 0x%08X", prefix, name_, address_);
       break;
 
     case kTypeU32:
-      Utils::Format(buffer, u"%ls%s : %u", prefix, name_, *(u32*)address_);
+      core::Utils::Format(buffer, u"%ls%s : %u", prefix, name_, *(u32*)address_);
       break;
 
     case kTypeS32:
-      Utils::Format(buffer, u"%ls%s : %d", prefix, name_, *(s32*)address_);
+      core::Utils::Format(buffer, u"%ls%s : %d", prefix, name_, *(s32*)address_);
       break;
 
     case kTypeU64:
-      Utils::Format(buffer, u"%ls%s : %llu", prefix, name_, *(u64*)address_);
+      core::Utils::Format(buffer, u"%ls%s : %llu", prefix, name_, *(u64*)address_);
       break;
 
     case kTypeS64:
-      Utils::Format(buffer, u"%ls%s : %lld", prefix, name_, *(s64*)address_);
+      core::Utils::Format(buffer, u"%ls%s : %lld", prefix, name_, *(s64*)address_);
       break;
 
     case kTypeF32:
-      Utils::Format(buffer, u"%ls%s : %.2f", prefix, name_, *(f32*)address_);
+      core::Utils::Format(buffer, u"%ls%s : %.2f", prefix, name_, *(f32*)address_);
       break;
 
     case kTypeF64:
-      Utils::Format(buffer, u"%ls%s : %.2f", prefix, name_, *(f64*)address_);
+      core::Utils::Format(buffer, u"%ls%s : %.2f", prefix, name_, *(f64*)address_);
       break;
 
     case kTypeBits:
-      Utils::Format(buffer, u"%ls%s : %u", prefix, name_,
+      core::Utils::Format(buffer, u"%ls%s : %u", prefix, name_,
                     GET_BITS(*(u32*)address_, bit_offset_, bit_size_));
       break;
 
     case kTypeBoolean:
-      Utils::Format(buffer, u"%ls%s : %s", prefix, name_,
+      core::Utils::Format(buffer, u"%ls%s : %s", prefix, name_,
                     *(bool*)address_ ? "On" : "Off");
       break;
 
     case kTypeCheatCode:
-      Utils::Format(buffer, u"%ls%s : %s", prefix, name_,
-                    ((CheatCode*)address_)->IsEnabled() ? "On" : "Off");
+      core::Utils::Format(buffer, u"%ls%s : %s", prefix, name_,
+                    ((core::CheatCode*)address_)->IsEnabled() ? "On" : "Off");
       break;
 
     case kTypeUnicode: {
@@ -224,38 +224,38 @@ void PageItem::GetDefaultDisplayValue(c16* buffer) const {
         temp_buf[i] = ((c16*)address_)[i];
       }
       temp_buf[max_len] = 0;
-      Utils::Format(buffer, u"%ls%s : \"%ls\"", prefix, name_, temp_buf);
+      core::Utils::Format(buffer, u"%ls%s : \"%ls\"", prefix, name_, temp_buf);
       break;
     }
 
     case kTypeIdle:
-      Utils::Format(buffer, u"%ls%s", prefix, name_);
+      core::Utils::Format(buffer, u"%ls%s", prefix, name_);
       break;
 
     case kTypeAbility:
-      ((void (*)(String*, u8))ADDRESS_GET_ABILITY_NAME)(String::GetTmpStr(),
+      ((void (*)(String*, u8))pokemon::address::kGetAbilityName)(String::GetTmpStr(),
         *(u8*)address_);
-      Utils::Format(buffer, u"%ls%s : %ls", prefix, name_, String::GetTmpBuf());
+      core::Utils::Format(buffer, u"%ls%s : %ls", prefix, name_, String::GetTmpBuf());
       break;
 
     case kTypeSpecies:
-      ((void (*)(String*, u16))ADDRESS_GET_SPECIES_NAME)(String::GetTmpStr(),
+      ((void (*)(String*, u16))pokemon::address::kGetSpeciesName)(String::GetTmpStr(),
         *(u16*)address_);
-      Utils::Format(buffer, u"%ls%s : N°%03d %ls", prefix, name_,
+      core::Utils::Format(buffer, u"%ls%s : N°%03d %ls", prefix, name_,
                     *(u16*)address_,
                     String::GetTmpBuf());
       break;
 
     case kTypeMove:
-      ((void (*)(u16, String*))ADDRESS_GET_MOVE_NAME)(*(u16*)address_,
+      ((void (*)(u16, String*))pokemon::address::kGetMoveName)(*(u16*)address_,
         String::GetTmpStr());
-      Utils::Format(buffer, u"%ls%s : %ls", prefix, name_, String::GetTmpBuf());
+      core::Utils::Format(buffer, u"%ls%s : %ls", prefix, name_, String::GetTmpBuf());
       break;
 
     case kTypeItem: {
-      global_data::Item item(static_cast<ItemId>(*(u16*)address_));
+      global_data::Item item(*(ItemId*)address_);
       item.GetName(String::GetTmpStr());
-      Utils::Format(buffer, u"%ls%s : %ls", prefix, name_, String::GetTmpBuf());
+      core::Utils::Format(buffer, u"%ls%s : %ls", prefix, name_, String::GetTmpBuf());
     }
     break;
 
@@ -269,7 +269,7 @@ void PageItem::GetDefaultDisplayValue(c16* buffer) const {
     break;
 
     default:
-      Utils::Format(buffer, u"%ls%s : ???", prefix, name_);
+      core::Utils::Format(buffer, u"%ls%s : ???", prefix, name_);
       break;
   }
 }
@@ -317,19 +317,19 @@ void PageItem::GetArrayDisplayValue(c16* buffer) const {
       index = *(bool*)address_;
       break;
     default:
-      Utils::Format(buffer, u"%ls%s : ???", prefix, name_);
+      core::Utils::Format(buffer, u"%ls%s : ???", prefix, name_);
       return;
   }
 
   index %= array_size_;
-  Utils::Format(buffer, u"%ls%s : <%s> [%d/%d]", prefix, name_, array_[index],
+  core::Utils::Format(buffer, u"%ls%s : <%s> [%d/%d]", prefix, name_, array_[index],
                 index + 1,
                 array_size_);
 }
 
 void PageItem::GetDisplayValue(c16* buffer) const {
   if (type_ == kTypeMenu) {
-    Utils::Format(buffer, u"[%s]", name_);
+    core::Utils::Format(buffer, u"[%s]", name_);
     return;
   }
   if (array_size_ != 0) {
@@ -398,8 +398,8 @@ void PageItem::Increment(u32 count) {
       break;
 
     case kTypeCheatCode:
-      ((CheatCode*)address_)->Toggle();
-      ((CheatCode*)address_)->Execute();
+      ((core::CheatCode*)address_)->Toggle();
+      ((core::CheatCode*)address_)->Execute();
       break;
 
     default:
@@ -462,8 +462,8 @@ void PageItem::Decrement(u32 count) {
       break;
 
     case kTypeCheatCode:
-      ((CheatCode*)address_)->Toggle();
-      ((CheatCode*)address_)->Execute();
+      ((core::CheatCode*)address_)->Toggle();
+      ((core::CheatCode*)address_)->Execute();
       break;
 
     default:
@@ -535,8 +535,8 @@ void PageItem::Edit(const void* value) {
       break;
 
     case kTypeCheatCode:
-      ((CheatCode*)address_)->Toggle();
-      ((CheatCode*)address_)->Execute();
+      ((core::CheatCode*)address_)->Toggle();
+      ((core::CheatCode*)address_)->Execute();
       break;
 
     default:

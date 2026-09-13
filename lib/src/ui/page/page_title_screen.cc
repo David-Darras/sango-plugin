@@ -15,11 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "feature/ui/feature_new_game.h"
+#include "ui/patch/new_game.h"
 #include "ui/main_application.h"
 #include "ui/page/pages.h"
 
-#include "feature/ui/feature_title_screen.h"
+#include "ui/patch/title_screen.h"
 
 namespace ui {
 const char* VIDEO_NAMES[] = {
@@ -113,9 +113,9 @@ const char* VIDEO_NAMES[] = {
 };
 
 void LoadTitleScreenPage(MainApplication& app, void* args) {
-  auto& title_screen = feature::TitleScreen::GetInstance();
+  auto& title_screen = TitleScreen::GetInstance();
 
-  auto& new_game = feature::NewGame::GetInstance();
+  auto& new_game = NewGame::GetInstance();
   app.Add("Is Enabled", title_screen.is_enabled)
      .Add("No delay", title_screen.no_delay)
      .Add("No shadow", title_screen.no_shadow)

@@ -25,11 +25,19 @@ CTRPFLIB	?=	$(DEVKITPRO)/libctrpf
 PRODUCTS	:=	overlay kaizo undertow
 
 LIB_SOURCES	:=	lib/src \
+				lib/src/core \
+				lib/src/system \
+				lib/src/battle \
+				lib/src/overworld \
+				lib/src/pokemon \
+				lib/src/savedata \
+				lib/src/renderer \
+				lib/src/script \
 				lib/src/ui \
 				lib/src/ui/widget \
-				lib/src/ui/page \
-				lib/src/feature
+				lib/src/ui/page
 LIB_INCLUDES	:=	lib/include \
+				lib/src \
 				../Library/include
 
 # sango_plugin.3gx: every page of the library under one menu
@@ -59,7 +67,7 @@ CFLAGS	:=	-mword-relocations \
  			-ffunction-sections -fdata-sections -fno-strict-aliasing \
 			$(ARCH) $(BUILD_FLAGS) $(G) \
 		   -DPLUGIN_CREATOR=\"$(PLUGIN_CREATOR)\" -DPLUGIN_VERSION=\"$(PLUGIN_VERSION)\" \
-		   -DUSE_SANGO_PLUGIN # -DUSE_DEFAULT_CTRPF
+		   -DUSE_SANGO_PLUGIN -DGAME_ORAS # -DUSE_DEFAULT_CTRPF -DGAME_XY
 
 CFLAGS		+=	$(INCLUDE) -D__3DS__ $(DEFINES)
 

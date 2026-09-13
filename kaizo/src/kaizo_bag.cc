@@ -15,8 +15,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "game/constant/item.h"
-#include "game/savedata/item_manager.h"
+#include "pokemon/constant/item.h"
+#include "savedata/native/item_manager.h"
 #include "kaizo/kaizo_item_catalog.h"
 
 namespace kaizo {

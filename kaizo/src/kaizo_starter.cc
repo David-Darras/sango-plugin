@@ -16,10 +16,10 @@
  */
 
 #include "common.h"
-#include "utils.h"
-#include "feature/core/hook_manager.h"
-#include "game/constant/species.h"
-#include "game/savedata/pokemon_team.h"
+#include "core/utils.h"
+#include "core/hook_manager.h"
+#include "pokemon/constant/species.h"
+#include "savedata/native/pokemon_team.h"
 
 namespace kaizo {
 struct PokemonStarterView {
@@ -28,13 +28,13 @@ struct PokemonStarterView {
 };
 
 void PatchStarterView() {
-  PokemonStarterView* data = (PokemonStarterView*)(ADDRESS_STARTER);
+  PokemonStarterView* data = (PokemonStarterView*)(core::address::kStarter);
   data[0].info.is_egg = true;
-  data[0].info.species = Species::kNone;
+  data[0].info.species = SpeciesId::kNone;
   data[1].info.is_egg = true;
-  data[1].info.species = Species::kNone;
+  data[1].info.species = SpeciesId::kNone;
   data[2].info.is_egg = true;
-  data[2].info.species = Species::kNone;
+  data[2].info.species = SpeciesId::kNone;
 }
 
 void PatchStarter(uptr pkm) {
@@ -45,21 +45,21 @@ void PatchStarter(uptr pkm) {
     u8 level;
   }& pokemon = *(Pokemon*)pkm;
 
-  static const Species GRASS_STARTERS[] = {
-      Species::kBulbasaur, Species::kChikorita,
-      Species::kTreecko, Species::kTurtwig,
-      Species::kSnivy, Species::kChespin
+  static const SpeciesId GRASS_STARTERS[] = {
+      SpeciesId::kBulbasaur, SpeciesId::kChikorita,
+      SpeciesId::kTreecko, SpeciesId::kTurtwig,
+      SpeciesId::kSnivy, SpeciesId::kChespin
   };
 
-  u16 rand = Utils::GetRandomValue(SIZE(GRASS_STARTERS));
-  switch (static_cast<Species>(pokemon.species)) {
-    case Species::kTreecko:
+  u16 rand = core::Utils::GetRandomValue(SIZE(GRASS_STARTERS));
+  switch (static_cast<SpeciesId>(pokemon.species)) {
+    case SpeciesId::kTreecko:
       pokemon.species = static_cast<u16>(GRASS_STARTERS[rand]) + 0;
       break;
-    case Species::kTorchic:
+    case SpeciesId::kTorchic:
       pokemon.species = static_cast<u16>(GRASS_STARTERS[rand]) + 3;
       break;
-    case Species::kMudkip:
+    case SpeciesId::kMudkip:
       pokemon.species = static_cast<u16>(GRASS_STARTERS[rand]) + 6;
       break;
   }
@@ -68,12 +68,12 @@ void PatchStarter(uptr pkm) {
 static u32 InitializePokemonHook(savedata::PokemonParam* param, u32 heap,
                                  uptr pkm) {
   PatchStarter(pkm);
-  return HookManager::Call<u32>(HookID::kInitializePokemon, param, heap, pkm);
+  return core::HookManager::Call<u32>(HookId::kInitializePokemon, param, heap, pkm);
 }
 
 void InitializeStarterHook() {
-  HookManager::Initialize(HookID::kInitializePokemon,
-                          ADDRESS_INITIALIZE_POKEMON,
+  core::HookManager::Initialize(HookId::kInitializePokemon,
+                          pokemon::address::kInitializePokemon,
                           (uptr)InitializePokemonHook);
 }
 } // namespace kaizo

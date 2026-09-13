@@ -15,14 +15,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "feature/core/feature_script.h"
-#include "feature/core/feature_native_script.h"
+#include "core/patch/script_loader.h"
+#include "script/patch/native_script.h"
 #include "ui/main_application.h"
 
 namespace ui {
 void LoadScriptPage(MainApplication& app, void* args) {
-  auto& ctx = feature::Script::GetInstance();
-  auto& native = feature::NativeScript::GetInstance();
+  auto& ctx = core::ScriptLoader::GetInstance();
+  auto& native = script::NativeScript::GetInstance();
 
   app.Add("Dump Scripts", ctx.dump_scripts)
      .Add("Load Edited Scripts", ctx.inject_scripts)

@@ -1,0 +1,48 @@
+/*
+ * Copyright (C) 2026  David Darras
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+#pragma once
+
+#include <types.h>
+
+
+namespace pokemon {
+
+enum class TypeId : u8 {
+  kNormal = 0,
+  kFighting = 1,
+  kFlying = 2,
+  kPoison = 3,
+  kGround = 4,
+  kRock = 5,
+  kBug = 6,
+  kGhost = 7,
+  kSteel = 8,
+  kFire = 9,
+  kWater = 10,
+  kGrass = 11,
+  kElectric = 12,
+  kPsychic = 13,
+  kIce = 14,
+  kDragon = 15,
+  kDark = 16,
+  kFairy = 17,
+  kCount = 18,
+};
+} // namespace pokemon
+
+using pokemon::TypeId;

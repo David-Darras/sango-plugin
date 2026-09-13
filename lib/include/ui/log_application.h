@@ -20,17 +20,17 @@
 #include <cstdarg>
 #include <cstring>
 
-#include "application.h"
+#include "ui/application.h"
 #include "common.h"
-#include "system/device.h"
-#include "system/graphics.h"
+#include "system/native/device.h"
+#include "system/native/graphics.h"
 
 namespace ui {
 class LogApplication : public Application {
   MAKE_SINGLETON(LogApplication)
 public:
-  void DrawTop(Graphics& graphics) override {
-    Graphics::FillScreen(0, 0, 1, 0.6f);
+  void DrawTop(sys::Graphics& graphics) override {
+    sys::Graphics::FillScreen(0, 0, 1, 0.6f);
 
     Color text_color{1, 1, 1, 1};
 
@@ -40,29 +40,29 @@ public:
       int x = 5;
       int y = 5 + i * kLineHeight;
 
-      Graphics::DrawText(x, y, log_entries_[i], text_color);
+      sys::Graphics::DrawText(x, y, log_entries_[i], text_color);
     }
   }
 
-  void DrawBottom(Graphics& graphics) override {
-    Graphics::FillScreen(0, 0, 1, 0.6f);
+  void DrawBottom(sys::Graphics& graphics) override {
+    sys::Graphics::FillScreen(0, 0, 1, 0.6f);
 
     Color text_color{1, 1, 1, 1};
-    Graphics::DrawText(10, 10, u"[DEBUG VIEW]", text_color);
+    sys::Graphics::DrawText(10, 10, u"[DEBUG VIEW]", text_color);
   }
 
-  void Update(Controller& controller) override {
+  void Update(sys::Controller& controller) override {
   }
 
   void Add(const c16* message, ...) {
     if (!message) return;
 
-    c16 buffer[BUFFER_SIZE];
+    c16 buffer[sys::address::kBufferSize];
 
     va_list args;
     va_start(args, message);
-    ((void (*)(c16*, u32, const c16*, va_list))ADDRESS_STD_VSWPRINTF)(
-        buffer, BUFFER_SIZE, message, args);
+    ((void (*)(c16*, u32, const c16*, va_list))sys::address::kStdVswprintf)(
+        buffer, sys::address::kBufferSize, message, args);
     va_end(args);
 
     for (u32 i = 0; i < kMaxEntries - 1; i++) {
@@ -85,7 +85,7 @@ public:
     va_list args;
     va_start(args, message);
 
-    ((void (*)(c16*, u32, const c16*, va_list))ADDRESS_STD_VSWPRINTF)(
+    ((void (*)(c16*, u32, const c16*, va_list))sys::address::kStdVswprintf)(
         buffer, kMaxEntryLength, message, args);
 
     va_end(args);

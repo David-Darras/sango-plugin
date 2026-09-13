@@ -18,8 +18,8 @@
 #include "ui/widget/button.h"
 
 #include "ui/theme.h"
-#include "system/device.h"
-#include "system/graphics.h"
+#include "system/native/device.h"
+#include "system/native/graphics.h"
 
 namespace ui {
 Button::Button() : x_(0), width_(0), y_(0), state_(kIdle), height_(0) {
@@ -34,15 +34,15 @@ void Button::Initialize(u32 x, u32 y, u32 width, u32 height) {
 }
 
 void Button::Draw(const c16* label, u32 offset_x, u32 offset_y) const {
-  auto& theme = ui::Theme::GetInstance();
+  auto& theme = Theme::GetInstance();
   Color foreground_color = theme.unselected_text_color;
   if (IsDown()) foreground_color = theme.selected_text_color;
 
-  Graphics::DrawText(x_ + offset_x, y_ + offset_y, label, foreground_color);
+  sys::Graphics::DrawText(x_ + offset_x, y_ + offset_y, label, foreground_color);
 }
 
 bool Button::IsDown() const {
-  TouchScreen& touch_screen = TouchScreen::GetInstance();
+  sys::TouchScreen& touch_screen = sys::TouchScreen::GetInstance();
 
   if (!touch_screen.IsDown()) return false;
 
@@ -55,7 +55,7 @@ bool Button::IsDown() const {
 bool Button::IsReleased() const { return state_ == kReleased; }
 
 void Button::Update() {
-  TouchScreen& ts = TouchScreen::GetInstance();
+  sys::TouchScreen& ts = sys::TouchScreen::GetInstance();
   const s32 x = ts.GetX();
   const s32 y = ts.GetY();
   const bool is_down = ts.IsDown();

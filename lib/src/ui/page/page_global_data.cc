@@ -15,10 +15,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "game/core/time_manager.h"
-#include "game/global_data/move.h"
-#include "game/global_data/pokemon.h"
-#include "game/global_data/move.inc"
+#include "core/native/time_manager.h"
+#include "pokemon/native/global_data/move.h"
+#include "pokemon/native/global_data/pokemon.h"
+#include "pokemon/data/move.inc"
 #include "ui/main_application.h"
 
 namespace ui {
@@ -80,8 +80,8 @@ void LoadMovePage(MainApplication& app, void* args) {
 }
 
 void LoadPokemonPage(MainApplication& app, void* args) {
-  static Species species = Species::kNone;
-  static Form form = static_cast<Form>(0);
+  static SpeciesId species = SpeciesId::kNone;
+  static Form form = Form::kNormal;
   auto& data = global_data::Pokemon::GetInstance(species, form);
 
   app.AddSpecies("Species", species).WithRefresh()
@@ -131,4 +131,4 @@ void LoadGlobalDataPage(MainApplication& app, void* args) {
   app.Add("Global Pokemon Data", LoadPokemonPage)
      .Add("Global Move Data", LoadMovePage);
 }
-} // namespace global_data
+} // namespace ui

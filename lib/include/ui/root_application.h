@@ -15,18 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_ROOT_APPLICATION_H
-#define SANGO_PLUGIN_ROOT_APPLICATION_H
-#include "application.h"
-#include "log_application.h"
-#include "main_application.h"
-#include "system/device.h"
+#pragma once
+
+#include "ui/application.h"
+#include "ui/log_application.h"
+#include "ui/main_application.h"
+#include "system/native/device.h"
 
 namespace ui {
 class RootApplication : public Application {
   MAKE_SINGLETON(RootApplication)
 public:
-  void DrawTop(Graphics& graphics) override {
+  void DrawTop(sys::Graphics& graphics) override {
     switch (choice) {
       case AppChoice::kMainApp:
         main_app_.DrawTop(graphics);
@@ -37,7 +37,7 @@ public:
     }
   }
 
-  void DrawBottom(Graphics& graphics) override {
+  void DrawBottom(sys::Graphics& graphics) override {
     switch (choice) {
       case AppChoice::kMainApp:
         main_app_.DrawBottom(graphics);
@@ -48,7 +48,7 @@ public:
     }
   }
 
-  void Update(Controller& controller) override {
+  void Update(sys::Controller& controller) override {
     old_state = current_state;
     current_state = controller.IsKeyDown(Key::kR) && controller.
                     IsKeyDown(Key::kL);
@@ -90,4 +90,3 @@ private:
 };
 } // namespace ui
 
-#endif //SANGO_PLUGIN_ROOT_APPLICATION_H

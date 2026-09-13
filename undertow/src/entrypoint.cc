@@ -15,60 +15,60 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "feature/core/feature_archive.h"
-#include "feature/overworld/feature_run_animation.h"
-#include "feature/pokemon/feature_pokemon_model.h"
-#include "feature/ui/feature_new_game.h"
-#include "feature/ui/feature_title_screen.h"
-#include "game/constant/map.h"
-#include "game/constant/form.h"
-#include "game/constant/model.h"
-#include "game/constant/species.h"
-#include "game/core/process_manager.h"
+#include "core/patch/archive.h"
+#include "overworld/patch/run_animation.h"
+#include "pokemon/patch/model_replacement.h"
+#include "ui/patch/new_game.h"
+#include "ui/patch/title_screen.h"
+#include "overworld/constant/map.h"
+#include "pokemon/constant/form.h"
+#include "overworld/constant/model.h"
+#include "pokemon/constant/species.h"
+#include "core/native/process_manager.h"
 #include "plugin.h"
-#include "game/savedata/overworld_menu.h"
+#include "savedata/native/overworld_menu.h"
 #include "ui/main_application.h"
 #include "ui/page/pages.h"
 #include "ui/painter.h"
 #include "undertow/undertow.h"
 
 namespace {
-constexpr MapId kAquaHideout = static_cast<MapId>(93);
+ModelId PlayerAsAquaGrunt(ModelId model) {
+  if (model == ModelId::kBrendan) return ModelId::kTeamAquaGruntMale;
+  return model;
+}
 
 u32 PlayerAsAquaGrunt(u32 file_id) {
-  if (file_id == static_cast<u32>(ModelId::kBrendan)) {
-    return static_cast<u32>(ModelId::kTeamAquaGruntMale);
-  }
-  return file_id;
+  return static_cast<u32>(PlayerAsAquaGrunt(static_cast<ModelId>(file_id)));
 }
 
 u32 OnStreamFile(const u32* archive, u32 file_id) {
-  if (feature::ArchivePatch::IsArchive(archive, ArchiveId::kOverworldModel)) {
+  if (core::Archive::IsArchive(archive, ArchiveId::kOverworldModel)) {
     return PlayerAsAquaGrunt(file_id);
   }
   return file_id;
 }
 
-void OnReadFile(feature::ArchivePatch::Input* input) {
-  if (feature::ArchivePatch::IsArchive(input, ArchiveId::kOverworldModel)) {
+void OnReadFile(core::Archive::Input* input) {
+  if (core::Archive::IsArchive(input, ArchiveId::kOverworldModel)) {
     input->file_id = PlayerAsAquaGrunt(input->file_id);
   }
 }
 
 void OnPokemonModel(PokeInfo* info) {
-  if (!game::ProcessManager::GetInstance().IsCurrentProcess(
-      ADDRESS_TITLE_SCREEN_VTABLE)) {
+  if (!core::ProcessManager::GetInstance().IsCurrentProcess(
+      core::address::kTitleScreenVtable)) {
     return;
   }
   if (info->form != Form::kNormal) return;
   switch (info->species) {
-    case Species::kGroudon:
-      info->species = Species::kCamerupt;
+    case SpeciesId::kGroudon:
+      info->species = SpeciesId::kCamerupt;
       info->form = Form::kCameruptMega;
       info->is_shiny = true;
       break;
-    case Species::kKyogre:
-      info->species = Species::kSharpedo;
+    case SpeciesId::kKyogre:
+      info->species = SpeciesId::kSharpedo;
       info->form = Form::kSharpedoMega;
       info->is_shiny = false;
       break;
@@ -90,11 +90,11 @@ static void MainPage(ui::MainApplication& app, void* args) {
 void Initialize() {
   plugin::InitializeEngine();
 
-  auto& new_game = feature::NewGame::GetInstance();
+  auto& new_game = ui::NewGame::GetInstance();
   new_game.skip_intro = true;
   new_game.player_name = u"Aqua Grunt";
   new_game.player_gender = Gender::kMale;
-  new_game.start_zone = kAquaHideout;
+  new_game.start_zone = MapId::kAquaHideout;
   new_game.start_tile_x = 8;
   new_game.start_tile_z = 24;
   new_game.start_facing = overworld::Facing::kUp;
@@ -102,19 +102,19 @@ void Initialize() {
     savedata::OverworldMenu::GetInstance().DisableAll();
   };
 
-  auto& title = feature::TitleScreen::GetInstance();
+  auto& title = ui::TitleScreen::GetInstance();
   title.is_enabled = true;
-  title.top_video = Video::kPrimoGroudon;
-  title.bottom_video = Video::kPrimoKyogre;
-  title.pokemon_cry_species = Species::kSharpedo;
+  title.top_video = VideoId::kPrimoGroudon;
+  title.bottom_video = VideoId::kPrimoKyogre;
+  title.pokemon_cry_species = SpeciesId::kSharpedo;
   title.skip_to_frame = 800;
   title.no_shadow = true;
-  feature::PokemonModel::GetInstance().on_create = OnPokemonModel;
+  pokemon::ModelReplacement::GetInstance().on_create = OnPokemonModel;
 
-  auto& archive = feature::ArchivePatch::GetInstance();
+  auto& archive = core::Archive::GetInstance();
   archive.on_stream_file = OnStreamFile;
   archive.on_read_file = OnReadFile;
-  feature::RunAnimation::GetInstance().enabled = true;
+  overworld::RunAnimation::GetInstance().enabled = true;
 
   undertow::InstallScripts();
 

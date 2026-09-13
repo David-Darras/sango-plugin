@@ -24,38 +24,12 @@ class Painter;
 class MainApplication;
 }
 
-/**
- * What every product built on the library does the same way. A product's
- * `Initialize()` (called from main) typically is:
- *
- *   plugin::InitializeEngine();      // hooks every feature
- *   ... configure features, install callbacks, register content ...
- *   plugin::OpenMenu(painter, root); // the in-game menu
- *   plugin::Start(EveryFrame);       // hook the game loop
- *
- * and its `EveryFrame()` calls plugin::UpdateFrame() and plugin::DrawFrame()
- * around whatever it needs to do itself.
- */
 namespace plugin {
 typedef void (*PageLoader)(ui::MainApplication& app, void* args);
-
-/// Mounts the SD card and installs every feature of the library. Features
-/// stay passive until a product configures them.
 void InitializeEngine();
-
-/// Loads the saved configuration (feature settings and theme) from the SD.
 void LoadConfiguration();
-
-/// Sets the menu up with the product's look and root page.
 void OpenMenu(ui::Painter& painter, PageLoader root_page);
-
-/// Hooks the game loop; `every_frame` runs once per frame from then on.
 void Start(void (*every_frame)());
-
-/// The per-frame work shared by every product: menu input, cheat codes and
-/// the features that poll the field. Call before drawing.
 void UpdateFrame();
-
-/// Draws the menu and the overlays on both screens.
 void DrawFrame();
 } // namespace plugin

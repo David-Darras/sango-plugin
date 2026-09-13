@@ -18,7 +18,7 @@
 #pragma once
 
 #include "common.h"
-#include "game/constant/item.h"
+#include "pokemon/constant/item.h"
 
 // Curated item sets handed out in the kaizo starting bag (kaizo_bag.cc).
 namespace kaizo {

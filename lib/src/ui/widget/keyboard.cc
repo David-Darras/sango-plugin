@@ -19,9 +19,9 @@
 
 #include <cstring>
 
-#include "system/graphics.h"
-#include "system/sound.h"
-#include "utils.h"
+#include "system/native/graphics.h"
+#include "system/native/sound.h"
+#include "core/utils.h"
 
 namespace ui {
 Keyboard::Keyboard() : page_index_(0), cursor_(0) {
@@ -93,10 +93,10 @@ void Keyboard::Draw() const {
   buttons_[kButtonNext10].Draw(u">>", 6, 4);
 
   // Draw the page num
-  c16 page[BUFFER_SIZE];
-  Utils::Format(page, u"[u%04X] %d/%d", page_index_ * kPageSize, page_index_,
+  c16 page[sys::address::kBufferSize];
+  core::Utils::Format(page, u"[u%04X] %d/%d", page_index_ * kPageSize, page_index_,
                 0x10000 / kPageSize);
-  Graphics::DrawText(5, 240 - 20, page);
+  sys::Graphics::DrawText(5, 240 - 20, page);
 }
 
 void Keyboard::Update() {
@@ -107,39 +107,39 @@ void Keyboard::Update() {
   u32 ch = page_index_ * kPageSize;
   for (u32 i = 0; i < kPageSize; i++) {
     if (buttons_[kButtonGridStart + i].IsReleased()) {
-      Sound::PlaySoundEffect(4);
+      sys::Sound::PlaySoundEffect(4);
       AddChar(ch + i);
     }
   }
 
   // Navigation logic
   if (buttons_[kButtonPrev].IsReleased()) {
-    Sound::PlaySoundEffect(4);
+    sys::Sound::PlaySoundEffect(4);
     if (page_index_ > 0) page_index_--;
   }
   if (buttons_[kButtonNext].IsReleased()) {
-    Sound::PlaySoundEffect(4);
+    sys::Sound::PlaySoundEffect(4);
     page_index_++;
   }
   if (buttons_[kButtonPrev10].IsReleased()) {
-    Sound::PlaySoundEffect(4);
+    sys::Sound::PlaySoundEffect(4);
     if (page_index_ >= 10)
       page_index_ -= 10;
     else
       page_index_ = 0;
   }
   if (buttons_[kButtonNext10].IsReleased()) {
-    Sound::PlaySoundEffect(4);
+    sys::Sound::PlaySoundEffect(4);
     page_index_ += 10;
   }
 
   // Edit actions
   if (buttons_[kButtonDelete].IsReleased()) {
-    Sound::PlaySoundEffect(4);
+    sys::Sound::PlaySoundEffect(4);
     RemoveLastChar();
   }
   if (buttons_[kButtonCancel].IsReleased()) {
-    Sound::PlaySoundEffect(4);
+    sys::Sound::PlaySoundEffect(4);
     cursor_ = 0;
     memset(input_, 0, sizeof(input_));
   }

@@ -18,52 +18,52 @@
 #include <cstring>
 
 #include "ui/main_application.h"
-#include "game/savedata/bag_manager.h"
-#include "game/savedata/battle_box.h"
-#include "game/savedata/box_manager.h"
-#include "game/savedata/day_care.h"
-#include "game/savedata/fusion.h"
-#include "game/savedata/hall_of_fame.h"
-#include "game/savedata/item_manager.h"
-#include "game/savedata/minigame.h"
-#include "game/savedata/misc.h"
-#include "game/savedata/opower_manager.h"
-#include "game/savedata/overworld_menu.h"
-#include "game/savedata/play_time.h"
-#include "game/savedata/pokedex.h"
-#include "game/savedata/pokemon_amie.h"
-#include "game/savedata/pokemon_box.h"
-#include "game/savedata/pokemon_core_data.h"
-#include "game/savedata/pokemon_data_accessor.h"
-#include "game/savedata/pokemon_team.h"
-#include "game/savedata/pokemon_utils.h"
-#include "game/savedata/pss.h"
-#include "game/savedata/record_manager.h"
-#include "game/savedata/savedata_encounter.h"
-#include "game/savedata/settings.h"
-#include "game/savedata/trainer_status.h"
+#include "savedata/native/bag_manager.h"
+#include "savedata/native/battle_box.h"
+#include "savedata/native/box_manager.h"
+#include "savedata/native/day_care.h"
+#include "savedata/native/fusion.h"
+#include "savedata/native/hall_of_fame.h"
+#include "savedata/native/item_manager.h"
+#include "savedata/native/minigame.h"
+#include "savedata/native/misc.h"
+#include "savedata/native/opower_manager.h"
+#include "savedata/native/overworld_menu.h"
+#include "savedata/native/play_time.h"
+#include "savedata/native/pokedex.h"
+#include "savedata/native/pokemon_amie.h"
+#include "savedata/native/pokemon_box.h"
+#include "pokemon/native/core_data.h"
+#include "pokemon/native/data_accessor.h"
+#include "savedata/native/pokemon_team.h"
+#include "pokemon/native/utils.h"
+#include "savedata/native/pss.h"
+#include "savedata/native/record_manager.h"
+#include "savedata/native/repel.h"
+#include "savedata/native/settings.h"
+#include "savedata/native/trainer_status.h"
 
-#include "system/core.h"
+#include "system/native/core.h"
 #include "ui/log_application.h"
 
 namespace ui {
 static struct {
   u8 level;
   bool is_shiny;
-  PokemonDataAccessor accessor;
-  PokemonCoreData backup_core_data;
-  PokemonCoreData* core_data;
+  pokemon::DataAccessor accessor;
+  pokemon::CoreData backup_core_data;
+  pokemon::CoreData* core_data;
 } ctx;
 
 static void SavePokemon(void*) {
-  PokemonCoreData* pkm = ctx.accessor.GetCoreData();
+  pokemon::CoreData* pkm = ctx.accessor.GetCoreData();
 
   pkm->experience =
-      PokemonUtils::GetExperienceFromLevel(pkm->species, pkm->form, ctx.level);
+      pokemon::Utils::GetExperienceFromLevel(pkm->species, pkm->form, ctx.level);
   if (ctx.is_shiny) {
-    PokemonUtils::ConvertToShiny(pkm->id, &pkm->shiny_id);
+    pokemon::Utils::ConvertToShiny(pkm->id, &pkm->shiny_id);
   } else {
-    PokemonUtils::ConvertToNormal(pkm->id, &pkm->shiny_id);
+    pokemon::Utils::ConvertToNormal(pkm->id, &pkm->shiny_id);
   }
 
   ctx.accessor.Encrypt();
@@ -79,23 +79,23 @@ static void SavePokemon(void*) {
 }
 
 void LoadSaveDataPokemonPage(MainApplication& app, void* args) {
-  ctx.core_data = (PokemonCoreData*)args;
+  ctx.core_data = (pokemon::CoreData*)args;
   std::memcpy(&ctx.backup_core_data, ctx.core_data,
               sizeof(ctx.backup_core_data));
 
   ctx.accessor.Initialize(&ctx.backup_core_data, nullptr);
   ctx.accessor.Decrypt();
 
-  PokemonCoreData* pkm = ctx.accessor.GetCoreData();
+  pokemon::CoreData* pkm = ctx.accessor.GetCoreData();
 
-  if (pkm->species == Species::kNone) {
+  if (pkm->species == SpeciesId::kNone) {
     app.Add("No pokemon");
     return;
   }
 
-  ctx.level = PokemonUtils::GetLevelFromExperience(pkm->species, pkm->form,
+  ctx.level = pokemon::Utils::GetLevelFromExperience(pkm->species, pkm->form,
                                                    pkm->experience);
-  ctx.is_shiny = PokemonUtils::IsShiny(pkm->id, pkm->shiny_id);
+  ctx.is_shiny = pokemon::Utils::IsShiny(pkm->id, pkm->shiny_id);
 
   app.Add("Save", SavePokemon)
      .AddSeparator()
@@ -267,7 +267,7 @@ void LoadSaveDataBagItemsPage(MainApplication& app, void* args) {
      .WithBounds(0, savedata::ItemManager::kMaxItemCount);
 }
 
-#include "game/savedata/records.inc"
+#include "savedata/data/records.inc"
 
 void LoadSaveDataRecordsPage(MainApplication& app, void* args) {
   static u32 record_0_idx = 0;
@@ -478,7 +478,7 @@ void LoadSaveDataBagMetadataPage(MainApplication& app, void* args) {
      .AddItem("Last Item Used", data.last_items_used[history_idx]);
 }
 
-#include "game/savedata/pokedex_form.inc"
+#include "savedata/data/pokedex_form.inc"
 
 void LoadSaveDataPokedexPage(MainApplication& app, void* args) {
   static u16 species = 1;
@@ -556,7 +556,7 @@ void LoadSaveDataPokedexPage(MainApplication& app, void* args) {
           &data.displayed_gender_flags[3][array_idx], bit_pos, 1);
 }
 
-#include "game/savedata/opower.inc"
+#include "savedata/data/opower.inc"
 
 void LoadSaveDataOPowerPage(MainApplication& app, void* args) {
   static u32 learned_opower_idx = 0;
@@ -596,9 +596,10 @@ void LoadSaveDataPlayTimePage(MainApplication& app, void* args) {
 
 void OnUpdateLanguage(void*) {
   auto& settings = savedata::Settings::GetInstance();
-  Core::GetInstance().GetLanguageId() = settings.language_id;
-  WRITE32(ADDRESS_LANGUAGE_ID, settings.language_id);
-  savedata::TrainerStatus::GetInstance().language = settings.language_id;
+  auto language = static_cast<Language>(settings.language);
+  sys::Core::GetInstance().GetLanguage() = language;
+  *(Language*)(ui::address::kLanguageId) = language;
+  savedata::TrainerStatus::GetInstance().language = language;
 }
 
 void LoadSaveDataSettingsPage(MainApplication& app, void* args) {
@@ -649,13 +650,13 @@ void LoadSaveDataSettingsPage(MainApplication& app, void* args) {
 }
 
 void LoadSaveDataEncounterPage(MainApplication& app, void* args) {
-  auto& data = savedata::Encounter::GetInstance();
+  auto& data = savedata::Repel::GetInstance();
 
   app.AddItem("Spray Type", data.spray_id)
      .Add("Spray Count", data.spray_count);
 }
 
-#include "game/savedata/pss.inc"
+#include "savedata/data/pss.inc"
 
 void LoadSaveDataPssProfilePage(MainApplication& app, void* args) {
   auto& profile = *(savedata::PssProfilePayload*)args;
@@ -708,7 +709,7 @@ void LoadSaveDataDayCarePage(MainApplication& app, void* args) {
   static u32 idx = 0;
 
   auto& day_care = savedata::DayCare::GetInstance();
-  PokemonCoreData* data = &day_care.location[loc].pokemon[idx].data;
+  pokemon::CoreData* data = &day_care.location[loc].pokemon[idx].data;
 
   app.Add("Location", loc)
      .WithBounds(0, 1)
@@ -725,7 +726,7 @@ void LoadSaveDataDayCarePage(MainApplication& app, void* args) {
 void LoadSaveDataHallOfFamePokemonPage(MainApplication& app, void* args) {
   auto* pkm = (savedata::HallOfFame::Pokemon*)args;
 
-  if (pkm->species == Species::kNone) {
+  if (pkm->species == SpeciesId::kNone) {
     app.Add("No pokemon");
     return;
   }

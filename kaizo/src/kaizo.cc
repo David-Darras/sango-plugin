@@ -17,19 +17,20 @@
 
 #include "kaizo/kaizo.h"
 
-#include "feature/battle/feature_battle.h"
-#include "feature/battle/feature_battle_config.h"
-#include "feature/pokemon/feature_evolution.h"
-#include "feature/pokemon/feature_item.h"
-#include "feature/rendering/feature_light.h"
-#include "feature/overworld/feature_map_data_loader.h"
-#include "feature/overworld/feature_overworld.h"
-#include "feature/pokemon/feature_shiny.h"
-#include "feature/ui/feature_title_screen.h"
-#include "game/global_data/trainer_model_manager.h"
-#include "game/savedata/pokemon_team.h"
-#include "game/savedata/settings.h"
-#include "game/savedata/trainer_status.h"
+#include "battle/patch/battle.h"
+#include "battle/patch/setup.h"
+#include "pokemon/patch/evolution.h"
+#include "pokemon/patch/item_customizer.h"
+#include "renderer/patch/lighting.h"
+#include "overworld/patch/camera.h"
+#include "overworld/patch/map_data_loader.h"
+#include "overworld/patch/field.h"
+#include "pokemon/patch/shiny.h"
+#include "ui/patch/title_screen.h"
+#include "battle/native/trainer_model_manager.h"
+#include "savedata/native/pokemon_team.h"
+#include "savedata/native/settings.h"
+#include "savedata/native/trainer_status.h"
 
 namespace kaizo {
 void Initialize() {
@@ -47,49 +48,49 @@ void Initialize() {
 
   // Shiny
   {
-    feature::Shiny::GetInstance().rate = feature::Shiny::k1_8;
+    pokemon::Shiny::GetInstance().rate = pokemon::ShinyRate::k1_8;
   }
   // Map Data
   {
-    feature::MapDataLoader::GetInstance().is_contact_enabled = false;
+    overworld::MapDataLoader::GetInstance().is_contact_enabled = false;
   }
   // Item (useless just use in-game pokémon editor)
   // {
-  //   feature::Item::GetInstance().remove_limit = true;
+  //   pokemon::ItemCustomizer::GetInstance().remove_limit = true;
   // }
   // Music
   {
-    feature::Overworld::GetInstance().freeze_background_music = true;
-    feature::Overworld::GetInstance().background_music = 31;
+    overworld::Field::GetInstance().freeze_background_music = true;
+    overworld::Field::GetInstance().background_music = BackgroundMusicId::kCinema;
   }
   // Title Screen
   {
-    auto& title = feature::TitleScreen::GetInstance();
+    auto& title = ui::TitleScreen::GetInstance();
     title.is_enabled = true;
     title.no_shadow = true;
     title.no_delay = true;
-    title.top_video = Video::kPrimoKyogre;
-    title.bottom_video = Video::kPrimoGroudon;
-    title.pokemon_cry_species = Species::kBeldum;
+    title.top_video = VideoId::kPrimoKyogre;
+    title.bottom_video = VideoId::kPrimoGroudon;
+    title.pokemon_cry_species = SpeciesId::kBeldum;
     title.pokemon_cry_volume = 1.0f;
   }
   // Camera
   {
-    auto& camera = feature::Camera::GetInstance();
-    camera.overworld_state = feature::Camera::kTps;
+    auto& camera = overworld::Camera::GetInstance();
+    camera.overworld_state = overworld::CameraState::kTps;
   }
 }
 
 void PatchOutline() {
-  auto& light = feature::Light::GetInstance();
+  auto& light = renderer::Lighting::GetInstance();
   light.use_outline = true;
   light.outline_scale = 0.0f;
 }
 
 void PatchTrainerModels() {
-  auto& manager = TrainerModelManager::GetInstance();
-  manager.Replace(TrainerModel::kBrendan, TrainerModel::kSteven);
-  manager.Replace(TrainerModel::kMay, TrainerModel::kZinnia);
+  auto& manager = battle::TrainerModelManager::GetInstance();
+  manager.Replace(TrainerModelId::kBrendan, TrainerModelId::kSteven);
+  manager.Replace(TrainerModelId::kMay, TrainerModelId::kZinnia);
 }
 
 void PatchOverworld() {

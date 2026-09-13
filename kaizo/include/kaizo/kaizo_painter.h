@@ -28,6 +28,6 @@ class Painter : public ui::Painter {
 public:
   void DrawPageBackground(ui::MainApplication& app) override;
   void DrawPageItems(ui::MainApplication& app) override;
-  void DrawBottomOverlay(Graphics& graphics) override;
+  void DrawBottomOverlay(sys::Graphics& graphics) override;
 };
 } // namespace kaizo

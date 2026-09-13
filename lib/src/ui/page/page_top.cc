@@ -15,17 +15,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "feature/core/feature_engine.h"
+#include "core/patch/game_speed.h"
 #include "ui/main_application.h"
 #include "ui/page/pages.h"
 
 #include "config_manager.h"
-#include "feature/battle/feature_game_extension.h"
-#include "feature/pokemon/feature_shiny.h"
-#include "game/savedata/item_manager.h"
-#include "game/savedata/pokemon_team.h"
-#include "game/savedata/settings.h"
-#include "game/savedata/trainer_status.h"
+#include "battle/patch/game_extension.h"
+#include "pokemon/patch/shiny.h"
+#include "savedata/native/item_manager.h"
+#include "savedata/native/pokemon_team.h"
+#include "savedata/native/settings.h"
+#include "savedata/native/trainer_status.h"
 
 namespace ui {
 void LoadShinyPage(MainApplication& app, void* args) {
@@ -35,7 +35,7 @@ void LoadShinyPage(MainApplication& app, void* args) {
                                     "1/16384", "1/32768", "1/65536", "1/131072",
                                     "1/262144", "1/524288", "1/1048576"};
 
-  auto& shiny = feature::Shiny::GetInstance();
+  auto& shiny = pokemon::Shiny::GetInstance();
 
   app.Add("Shiny Rate", shiny.rate)
      .WithArray(SHINY_RATES, SIZE(SHINY_RATES))
@@ -52,16 +52,11 @@ void Test(void*) {
   // team.pokemons[0]->core->ability = kAbilityRealityWarp;
   // team.pokemons[0]->accessor->Encrypt();
   // team.HealAllPokemons();
-
-  savedata::Settings::GetInstance().language_id = 2;
-  Core::GetInstance().GetLanguageId() = 2;
-  WRITE32(ADDRESS_LANGUAGE_ID, 2);
-  savedata::TrainerStatus::GetInstance().language = 2;
 }
 
 void LoadTopPage(MainApplication& app, void* args) {
   app.Add("Test", Test)
-     .Add("Game Speed", feature::Engine::GetInstance().game_speed)
+     .Add("Game Speed", core::GameSpeed::GetInstance().game_speed)
      .Add("Repel", CheatCodeId::kNoEncounter)
      .Add("Overworld", LoadOverworldPage)
      .Add("Save Data", LoadSaveDataPage)

@@ -15,14 +15,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SANGO_PLUGIN_TILE_EDITOR_APPLICATION_H
-#define SANGO_PLUGIN_TILE_EDITOR_APPLICATION_H
-#include "application.h"
-#include "common.h"
-#include "feature/overworld/feature_tile_editor.h"
+#pragma once
 
+#include "ui/application.h"
+#include "common.h"
+#include "overworld/patch/tile_editor.h"
+
+namespace sys {
 class Controller;
 class Graphics;
+}
 
 namespace ui {
 class TileEditorApplication : public Application {
@@ -35,9 +37,9 @@ public:
 
   static void Open();
 
-  void Update(Controller& controller) override;
-  void DrawTop(Graphics& graphics) override;
-  void DrawBottom(Graphics& graphics) override;
+  void Update(sys::Controller& controller) override;
+  void DrawTop(sys::Graphics& graphics) override;
+  void DrawBottom(sys::Graphics& graphics) override;
 
 private:
   enum Property : u32 {
@@ -69,4 +71,3 @@ private:
 };
 } // namespace ui
 
-#endif //SANGO_PLUGIN_TILE_EDITOR_APPLICATION_H

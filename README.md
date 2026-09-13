@@ -60,6 +60,30 @@ One library, several plugins built on it — `make` builds them all,
   features (hooks), the menu framework and its pages, C++ field scripts. It
   never decides anything on its own: a plugin enables features and installs
   callbacks (`plugin.h`).
+
+  The library is packaged by domain, one namespace per directory: `core/`
+  (engine, processes, hooks), `system/` (`sys::`: device, files, graphics,
+  sound), `battle/`, `overworld/`, `pokemon/`, `savedata/`, `renderer/`,
+  `script/` and `ui/`. Every domain follows the same layout:
+
+  * `<domain>/address.h`: the game's addresses, each declared for both games
+    as `GAME_ADDRESS(xy, oras)`; the Makefile picks one with `-DGAME_ORAS`
+    (or `-DGAME_XY` - those addresses are still to be found, they read 0).
+  * `<domain>/constant/`: the game's enum classes. Ids of the game's tables
+    end in `Id` (`SpeciesId`, `ItemId`, `MapId`...), closed vocabularies
+    don't (`Nature`, `Gender`, `Format`, `StatusCondition`...).
+  * `<domain>/native/`: the game's own structures, laid out as in memory
+    (`battle::Config`, `core::GameManager`, `savedata::PokemonTeam`...).
+    Every field that is an id uses the matching enum class, so plugin code
+    never juggles raw integers.
+  * `<domain>/patch/`: what the plugin adds on top - hooks, patches and
+    their options (`battle::Battle`, `overworld::Camera`,
+    `pokemon::CustomShop`...). Options that survive a restart live in a
+    `*Settings` base struct that `ConfigManager` saves and loads; pure hooks
+    without options are suffixed `Patch`.
+
+  `ui/` is the plugin's own menu framework, `ui/patch/` the patches of the
+  game's screens.
 * `overlay/`: `sango_plugin.3gx`, every page of the library under one menu, for
   exploring and editing the game while it runs.
 * `kaizo/`: `sango_kaizo.3gx`, the ROM hack.

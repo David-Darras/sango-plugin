@@ -68,7 +68,7 @@ public:
   void Update();
 
 private:
-  enum State {
+  enum State : u8 {
     kIdle,
     kHold,
     kReleased,

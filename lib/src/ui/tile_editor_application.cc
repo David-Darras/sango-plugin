@@ -17,14 +17,15 @@
 
 #include "ui/tile_editor_application.h"
 
-#include "game/overworld/model_manager.h"
-#include "system/device.h"
-#include "system/graphics.h"
+#include "overworld/native/model_manager.h"
+#include "overworld/native/world_layout.h"
+#include "system/native/device.h"
+#include "system/native/graphics.h"
 #include "ui/application_manager.h"
-#include "utils.h"
+#include "core/utils.h"
 
 namespace ui {
-#include "game/overworld/tile.inc"
+#include "overworld/data/tile.inc"
 
 static const c8* PROPERTY_NAMES[] = {
     "Ground", "Footstep", "Battle Background", "Diagonal",
@@ -107,7 +108,7 @@ void TileEditorApplication::Open() {
   ApplicationManager::GetInstance().Push(app);
 }
 
-void TileEditorApplication::Update(Controller& controller) {
+void TileEditorApplication::Update(sys::Controller& controller) {
   if (controller.IsKeyReleased(Key::kB)) {
     ApplicationManager::GetInstance().Pop();
     return;
@@ -152,10 +153,10 @@ void TileEditorApplication::Update(Controller& controller) {
     Adjust(-1);
   }
   if (controller.IsKeyPressed(Key::kY)) {
-    feature::TileEditor::Block blocks[feature::TileEditor::kMaxBlocks];
-    const u32 count = feature::TileEditor::CollectBlocks(
-        blocks, feature::TileEditor::kMaxBlocks);
-    has_brush_ = feature::TileEditor::ReadRaw(blocks, count, cursor_x_,
+    overworld::TileEditor::Block blocks[overworld::TileEditor::kMaxBlocks];
+    const u32 count = overworld::TileEditor::CollectBlocks(
+        blocks, overworld::TileEditor::kMaxBlocks);
+    has_brush_ = overworld::TileEditor::ReadRaw(blocks, count, cursor_x_,
                                               cursor_z_, &brush_);
   }
   if (controller.IsKeyPressed(Key::kStart) ||
@@ -163,16 +164,16 @@ void TileEditorApplication::Update(Controller& controller) {
     Paint();
   }
   if (controller.IsKeyPressed(Key::kSelect)) {
-    saved_ = feature::TileEditor::Save();
+    saved_ = overworld::TileEditor::Save();
   }
 }
 
 void TileEditorApplication::Adjust(s32 delta) {
-  feature::TileEditor::Block blocks[feature::TileEditor::kMaxBlocks];
-  const u32 count = feature::TileEditor::CollectBlocks(
-      blocks, feature::TileEditor::kMaxBlocks);
+  overworld::TileEditor::Block blocks[overworld::TileEditor::kMaxBlocks];
+  const u32 count = overworld::TileEditor::CollectBlocks(
+      blocks, overworld::TileEditor::kMaxBlocks);
   u32 attr = 0;
-  if (!feature::TileEditor::ReadRaw(blocks, count, cursor_x_, cursor_z_,
+  if (!overworld::TileEditor::ReadRaw(blocks, count, cursor_x_, cursor_z_,
                                     &attr)) {
     return;
   }
@@ -182,13 +183,13 @@ void TileEditorApplication::Adjust(s32 delta) {
   if (value < 0) value = max;
   if (value > max) value = 0;
   SetProperty(tile, property_, value);
-  feature::TileEditor::Write(cursor_x_, cursor_z_, ToAttr(tile));
+  overworld::TileEditor::Write(cursor_x_, cursor_z_, ToAttr(tile));
   saved_ = false;
 }
 
 void TileEditorApplication::Paint() {
   if (!has_brush_) return;
-  feature::TileEditor::Write(cursor_x_, cursor_z_, brush_);
+  overworld::TileEditor::Write(cursor_x_, cursor_z_, brush_);
   saved_ = false;
 }
 
@@ -208,10 +209,10 @@ Color TileEditorApplication::ColorOf(const overworld::Tile& tile) const {
   }
 }
 
-void TileEditorApplication::DrawBottom(Graphics& graphics) {
-  feature::TileEditor::Block blocks[feature::TileEditor::kMaxBlocks];
-  const u32 count = feature::TileEditor::CollectBlocks(
-      blocks, feature::TileEditor::kMaxBlocks);
+void TileEditorApplication::DrawBottom(sys::Graphics& graphics) {
+  overworld::TileEditor::Block blocks[overworld::TileEditor::kMaxBlocks];
+  const u32 count = overworld::TileEditor::CollectBlocks(
+      blocks, overworld::TileEditor::kMaxBlocks);
   const s32 origin_x = cursor_x_ - kColumns / 2;
   const s32 origin_z = cursor_z_ - kRows / 2;
   const Color unknown(0.0f, 0.0f, 0.0f, 1.0f);
@@ -223,7 +224,7 @@ void TileEditorApplication::DrawBottom(Graphics& graphics) {
       Color color = unknown;
       if (column < kColumns) {
         overworld::Tile tile;
-        if (feature::TileEditor::Read(blocks, count, origin_x + column,
+        if (overworld::TileEditor::Read(blocks, count, origin_x + column,
                                       origin_z + row, &tile)) {
           color = ColorOf(tile);
         }
@@ -235,7 +236,7 @@ void TileEditorApplication::DrawBottom(Graphics& graphics) {
         continue;
       }
       if (same) continue;
-      Graphics::DrawRect(run_start * kTileSize, row * kTileSize,
+      sys::Graphics::DrawRect(run_start * kTileSize, row * kTileSize,
                          (column - run_start) * kTileSize, kTileSize,
                          run_color);
       run_start = column;
@@ -249,63 +250,63 @@ void TileEditorApplication::DrawBottom(Graphics& graphics) {
   const s32 player_row = static_cast<s32>(player.map_pos.coords.z) - origin_z;
   if (player_column >= 0 && player_column < kColumns && player_row >= 0 &&
       player_row < kRows) {
-    Graphics::DrawRectStroke(player_column * kTileSize, player_row * kTileSize,
+    sys::Graphics::DrawRectStroke(player_column * kTileSize, player_row * kTileSize,
                              kTileSize, kTileSize, 2,
                              Color(1.0f, 0.2f, 0.2f, 1.0f));
   }
-  Graphics::DrawRectStroke((kColumns / 2) * kTileSize, (kRows / 2) * kTileSize,
+  sys::Graphics::DrawRectStroke((kColumns / 2) * kTileSize, (kRows / 2) * kTileSize,
                            kTileSize, kTileSize, 1,
                            Color(1.0f, 1.0f, 1.0f, 1.0f));
 }
 
-void TileEditorApplication::DrawTop(Graphics& graphics) {
-  feature::TileEditor::Block blocks[feature::TileEditor::kMaxBlocks];
-  const u32 count = feature::TileEditor::CollectBlocks(
-      blocks, feature::TileEditor::kMaxBlocks);
+void TileEditorApplication::DrawTop(sys::Graphics& graphics) {
+  overworld::TileEditor::Block blocks[overworld::TileEditor::kMaxBlocks];
+  const u32 count = overworld::TileEditor::CollectBlocks(
+      blocks, overworld::TileEditor::kMaxBlocks);
   u32 attr = 0;
   overworld::Tile seen;
-  const bool known = feature::TileEditor::ReadRaw(blocks, count, cursor_x_,
+  const bool known = overworld::TileEditor::ReadRaw(blocks, count, cursor_x_,
                                                   cursor_z_, &attr) &&
-                     feature::TileEditor::Read(blocks, count, cursor_x_,
+                     overworld::TileEditor::Read(blocks, count, cursor_x_,
                                                cursor_z_, &seen);
   const overworld::Tile raw = ToTile(attr);
 
-  Graphics::DrawRect(0, 0, 400, 240, Color(0.0f, 0.0f, 0.0f, 0.6f));
-  Graphics::SetTextScale(0.6f, 0.6f);
+  sys::Graphics::DrawRect(0, 0, 400, 240, Color(0.0f, 0.0f, 0.0f, 0.6f));
+  sys::Graphics::SetTextScale(0.6f, 0.6f);
   const Color text(1.0f, 1.0f, 1.0f, 1.0f);
   const Color selected(0.0f, 1.0f, 1.0f, 1.0f);
   const Color muted(0.7f, 0.7f, 0.7f, 1.0f);
   c16 line[128];
   s32 y = 5;
 
-  Utils::Format(line, u"Tile %d, %d   layout %u   edits %u%s", cursor_x_,
+  core::Utils::Format(line, u"Tile %d, %d   layout %u   edits %u%s", cursor_x_,
                 cursor_z_, overworld::WorldLayout::GetInstance().id,
-                feature::TileEditor::GetEditCount(),
+                overworld::TileEditor::GetEditCount(),
                 saved_ ? "  (saved)" : "");
-  Graphics::DrawText(5, y, line, text);
+  sys::Graphics::DrawText(5, y, line, text);
   y += 17;
 
-  const auto& report = feature::TileEditor::GetReport();
-  Utils::Format(line,
+  const auto& report = overworld::TileEditor::GetReport();
+  core::Utils::Format(line,
                 u"slots %u  blocks %u  captured %u  offsets %u/%u/%u/%u  %s",
                 report.slots, report.blocks, report.captured,
                 report.slots_offset, report.translate_offset,
                 report.id_offset, report.pack_offset,
                 report.slot_class != nullptr ? report.slot_class : "");
-  Graphics::DrawText(5, 208, line, muted);
+  sys::Graphics::DrawText(5, 208, line, muted);
   if (known) {
-    Utils::Format(line, u"raw %08X  seen %08X", attr,
+    core::Utils::Format(line, u"raw %08X  seen %08X", attr,
                   *(const u32*)&seen);
-    Graphics::DrawText(250, 5, line, muted);
+    sys::Graphics::DrawText(250, 5, line, muted);
   }
   if (!known) {
-    Graphics::DrawText(5, y, u"No terrain under the cursor", muted);
+    sys::Graphics::DrawText(5, y, u"No terrain under the cursor", muted);
   } else {
-    Utils::Format(line, u"Walkable %s   Water %s   Encounters %s",
+    core::Utils::Format(line, u"Walkable %s   Water %s   Encounters %s",
                   seen.is_impassable ? "no" : "yes",
                   seen.is_water ? "yes" : "no",
                   seen.permits_encounters ? "yes" : "no");
-    Graphics::DrawText(5, y, line, muted);
+    sys::Graphics::DrawText(5, y, line, muted);
   }
   y += 22;
 
@@ -316,26 +317,26 @@ void TileEditorApplication::DrawTop(Graphics& graphics) {
     if (i == kFootstep && value < SIZE(FOOT_STEPS)) label = FOOT_STEPS[value];
     if (GetPropertyMax(i) == 1) label = value ? "yes" : "no";
     if (GetPropertyMax(i) == 1) {
-      Utils::Format(line, u"%s %s: %s", i == property_ ? ">" : " ",
+      core::Utils::Format(line, u"%s %s: %s", i == property_ ? ">" : " ",
                     PROPERTY_NAMES[i], label);
     } else {
-      Utils::Format(line, u"%s %s: %u %s", i == property_ ? ">" : " ",
+      core::Utils::Format(line, u"%s %s: %u %s", i == property_ ? ">" : " ",
                     PROPERTY_NAMES[i], value, label);
     }
-    Graphics::DrawText(5, y, line, i == property_ ? selected : text);
+    sys::Graphics::DrawText(5, y, line, i == property_ ? selected : text);
     y += 14;
   }
 
   y += 6;
   if (has_brush_) {
     const overworld::Tile brush = ToTile(brush_);
-    Utils::Format(line, u"Brush: ground %u %s", brush.ground_id,
+    core::Utils::Format(line, u"Brush: ground %u %s", brush.ground_id,
                   brush.ground_id < SIZE(GROUNDS)
                     ? GROUNDS[brush.ground_id]
                     : "");
-    Graphics::DrawText(5, y, line, muted);
+    sys::Graphics::DrawText(5, y, line, muted);
   }
-  Graphics::DrawText(5, 215,
+  sys::Graphics::DrawText(5, 215,
                      u"D-pad move  L/R property  A/X change  Y pick\n"
                      u"START paint B close",
                      muted);

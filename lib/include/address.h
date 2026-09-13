@@ -17,14 +17,10 @@
 
 #pragma once
 
-#include "address/address_hid.h"
-#include "address/address_graphics.h"
-#include "address/address_sound.h"
-#include "address/address_filesystem.h"
-#include "address/address_system.h"
-#include "address/address_pokemon.h"
-#include "address/address_battle.h"
-#include "address/address_overworld.h"
-#include "address/address_ui.h"
-#include "address/address_process.h"
-#include "address/address_misc.h"
+#include "core/address.h"
+#include "system/address.h"
+#include "battle/address.h"
+#include "overworld/address.h"
+#include "pokemon/address.h"
+#include "renderer/address.h"
+#include "ui/address.h"

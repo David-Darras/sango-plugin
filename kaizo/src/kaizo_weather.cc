@@ -15,17 +15,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "utils.h"
-#include "feature/overworld/feature_overworld_model.h"
-#include "feature/battle/feature_weather_manager.h"
-#include "game/constant/weather.h"
-#include "game/overworld/weather_manager.h"
+#include "core/utils.h"
+#include "overworld/patch/player_cheats.h"
+#include "overworld/patch/weather_override.h"
+#include "overworld/constant/weather.h"
+#include "overworld/native/weather_manager.h"
 
 namespace kaizo {
+using overworld::Weather;
+
 #define NUM_OVERWORLD_WEATHERS 9
 
 typedef struct {
-  OverworldWeather weather;
+  Weather weather;
   u8 weight;
 } WeatherTransition;
 
@@ -37,63 +39,63 @@ typedef struct {
 } WeatherStateData;
 
 static const WeatherTransition sTrans_Sunny[] = {
-    {OverworldWeather::kSunny, 50},
-    {OverworldWeather::kCloudy, 35},
-    {OverworldWeather::kDry, 15},
+    {Weather::kSunny, 50},
+    {Weather::kCloudy, 35},
+    {Weather::kDry, 15},
 };
 
 static const WeatherTransition sTrans_Cloudy[] = {
-    {OverworldWeather::kCloudy, 30},
-    {OverworldWeather::kRainy, 25},
-    {OverworldWeather::kSunny, 20},
-    {OverworldWeather::kMisty, 15},
-    {OverworldWeather::kSandstorm, 10},
+    {Weather::kCloudy, 30},
+    {Weather::kRainy, 25},
+    {Weather::kSunny, 20},
+    {Weather::kMisty, 15},
+    {Weather::kSandstorm, 10},
 };
 
 static const WeatherTransition sTrans_Rainy[] = {
-    {OverworldWeather::kRainy, 35},
-    {OverworldWeather::kThunderstorm, 30},
-    {OverworldWeather::kCloudy, 25},
-    {OverworldWeather::kMisty, 10},
+    {Weather::kRainy, 35},
+    {Weather::kThunderstorm, 30},
+    {Weather::kCloudy, 25},
+    {Weather::kMisty, 10},
 };
 
 static const WeatherTransition sTrans_Thunderstorm[] = {
-    {OverworldWeather::kThunderstorm, 30},
-    {OverworldWeather::kStormy, 40},
-    {OverworldWeather::kRainy, 30},
+    {Weather::kThunderstorm, 30},
+    {Weather::kStormy, 40},
+    {Weather::kRainy, 30},
 };
 
 static const WeatherTransition sTrans_Stormy[] = {
-    {OverworldWeather::kStormy, 30},
-    {OverworldWeather::kRainy, 45},
-    {OverworldWeather::kCloudy, 25},
+    {Weather::kStormy, 30},
+    {Weather::kRainy, 45},
+    {Weather::kCloudy, 25},
 };
 
 static const WeatherTransition sTrans_Misty[] = {
-    {OverworldWeather::kMisty, 40},
-    {OverworldWeather::kCloudy, 40},
-    {OverworldWeather::kSunny, 20},
+    {Weather::kMisty, 40},
+    {Weather::kCloudy, 40},
+    {Weather::kSunny, 20},
 };
 
 static const WeatherTransition sTrans_Ash[] = {
-    {OverworldWeather::kAsh, 40},
-    {OverworldWeather::kSandstorm, 30},
-    {OverworldWeather::kDry, 20},
-    {OverworldWeather::kCloudy, 10},
+    {Weather::kAsh, 40},
+    {Weather::kSandstorm, 30},
+    {Weather::kDry, 20},
+    {Weather::kCloudy, 10},
 };
 
 static const WeatherTransition sTrans_Sandstorm[] = {
-    {OverworldWeather::kSandstorm, 35},
-    {OverworldWeather::kDry, 30},
-    {OverworldWeather::kAsh, 20},
-    {OverworldWeather::kCloudy, 15},
+    {Weather::kSandstorm, 35},
+    {Weather::kDry, 30},
+    {Weather::kAsh, 20},
+    {Weather::kCloudy, 15},
 };
 
 static const WeatherTransition sTrans_Dry[] = {
-    {OverworldWeather::kDry, 35},
-    {OverworldWeather::kSunny, 35},
-    {OverworldWeather::kAsh, 15},
-    {OverworldWeather::kSandstorm, 15},
+    {Weather::kDry, 35},
+    {Weather::kSunny, 35},
+    {Weather::kAsh, 15},
+    {Weather::kSandstorm, 15},
 };
 
 #define WEATHER_ENTRY(arr, tmin, tmax) \
@@ -112,20 +114,20 @@ static const WeatherStateData sWeatherStateData[NUM_OVERWORLD_WEATHERS] =
     WEATHER_ENTRY(sTrans_Dry, 200, 600), // 8 DRY
 };
 
-static OverworldWeather sCurrentOverworldWeather;
+static Weather sCurrentOverworldWeather;
 static s64 sWeatherStartTime;
 static u32 sCurrentWeatherDuration;
 
-static u32 RollWeatherDuration(OverworldWeather weather) {
+static u32 RollWeatherDuration(Weather weather) {
   const WeatherStateData* data =
       &sWeatherStateData[static_cast<u8>(weather)];
   u32 range = data->maxDurationSec - data->minDurationSec;
   u32 result = data->minDurationSec + (
-                 range ? Utils::GetRandomValue(range) : 0);
+                 range ? core::Utils::GetRandomValue(range) : 0);
   return result >> 5;
 }
 
-static OverworldWeather PickNextWeather(OverworldWeather currentWeather) {
+static Weather PickNextWeather(Weather currentWeather) {
   const WeatherStateData* data =
       &sWeatherStateData[static_cast<u8>(currentWeather)];
   u32 totalWeight = 0;
@@ -134,7 +136,7 @@ static OverworldWeather PickNextWeather(OverworldWeather currentWeather) {
   for (i = 0; i < data->numTransitions; i++)
     totalWeight += data->transitions[i].weight;
 
-  u32 roll = Utils::GetRandomValue(totalWeight);
+  u32 roll = core::Utils::GetRandomValue(totalWeight);
   u32 cumulative = 0;
 
   for (i = 0; i < data->numTransitions; i++) {
@@ -148,10 +150,10 @@ static OverworldWeather PickNextWeather(OverworldWeather currentWeather) {
 
 void InitializeOverworldWeather() {
   // The weather below drives the game, zones never do.
-  feature::WeatherManager::GetInstance().ignore_zone_weather = true;
+  overworld::WeatherOverride::GetInstance().ignore_zone_weather = true;
 
-  sCurrentOverworldWeather = OverworldWeather::kSunny;
-  Utils::GetElapsedTime(&sWeatherStartTime);
+  sCurrentOverworldWeather = Weather::kSunny;
+  core::Utils::GetElapsedTime(&sWeatherStartTime);
   sCurrentWeatherDuration = RollWeatherDuration(sCurrentOverworldWeather);
 }
 
@@ -162,21 +164,20 @@ void UpdateOverworldWeather() {
   counter = 0;
 
   s64 now;
-  Utils::GetElapsedTime(&now);
+  core::Utils::GetElapsedTime(&now);
   s64 delta = now - sWeatherStartTime;
-  u32 elapsedSec = Utils::ConvertTimeToSeconds(&delta);
+  u32 elapsedSec = core::Utils::ConvertTimeToSeconds(&delta);
 
   if (elapsedSec >= sCurrentWeatherDuration) {
-    OverworldWeather next = PickNextWeather(sCurrentOverworldWeather);
+    Weather next = PickNextWeather(sCurrentOverworldWeather);
 
     sCurrentOverworldWeather = next;
     sWeatherStartTime = now;
     sCurrentWeatherDuration = RollWeatherDuration(next);
 
-    overworld::WeatherManager::GetInstance().SetWeather(static_cast<u8>(next));
+    overworld::WeatherManager::GetInstance().SetWeather(next);
   }
 
-  overworld::WeatherManager::GetInstance().SetWeather(
-      static_cast<u8>(sCurrentOverworldWeather));
+  overworld::WeatherManager::GetInstance().SetWeather(sCurrentOverworldWeather);
 }
 }

@@ -17,11 +17,13 @@
 
 #pragma once
 #include "common.h"
-#include "game/constant/map.h"
-#include "game/constant/species.h"
-#include "game/overworld/map_manager.h"
-#include "game/savedata/pss_photo.h"
-#include "game/savedata/savedata.h"
+#include "battle/constant/trainer.h"
+#include "overworld/constant/map.h"
+#include "overworld/constant/model.h"
+#include "pokemon/constant/species.h"
+#include "overworld/native/map_manager.h"
+#include "savedata/native/pss_photo.h"
+#include "savedata/native/savedata.h"
 
 namespace global_data {
 struct Item;
@@ -53,7 +55,7 @@ enum class EventFlag : u16 {
 struct EncounterEntry {
   const MapId map_id;
   const u16 size;
-  const Species* species;
+  const SpeciesId* species;
 };
 
 struct CapturedEvent {
@@ -99,9 +101,9 @@ extern void InitializeStarterHook();
 extern void InitializeGiftHook();
 extern void PatchEncounterTable(overworld::EncounterData* data);
 extern const EncounterEntry* GetEncounterEntry(MapId map_id);
-extern void PatchTrainerData(battle::Config& config, u16& trainer_id);
+extern void PatchTrainerData(battle::Config& config, TrainerId& trainer_id);
 extern void InitializeTrainerTeams();
-extern u32 PatchOverworldModels(u32 model, bool is_real_overworld);
+extern ModelId PatchOverworldModels(ModelId model, bool is_real_overworld);
 extern void ApplyLevelCaps(battle::Team* team, void* data);
 extern void PatchItemData(global_data::Item* item);
 extern void InitializeModelHook();
