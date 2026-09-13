@@ -89,9 +89,101 @@ void InstallScripts() {
   boss.model_id = ModelId::kArchie;
   boss.script_id = ScriptId::kAquaBossWelcome;
   boss.tile_x = 29;
-  boss.tile_z = 11;
+  boss.tile_z = 10;
   boss.height = 4;
   boss.facing = overworld::Facing::kDown;
   feature::MapCharacter::Add(boss);
+
+  feature::MapCharacterRequest shelly;
+  shelly.map_id = kAquaHideout;
+  shelly.model_id = ModelId::kShelly;
+  shelly.script_id = ScriptId::kAquaBossWelcome;
+  shelly.tile_x = 28;
+  shelly.tile_z = 11;
+  shelly.height = 4;
+  shelly.facing = overworld::Facing::kDown;
+  feature::MapCharacter::Add(shelly);
+
+  feature::MapCharacterRequest matt;
+  matt.map_id = kAquaHideout;
+  matt.model_id = ModelId::kMatt;
+  matt.script_id = ScriptId::kAquaBossWelcome;
+  matt.tile_x = 30;
+  matt.tile_z = 11;
+  matt.height = 4;
+  matt.facing = overworld::Facing::kDown;
+  feature::MapCharacter::Add(matt);
+
+  {
+    feature::MapCharacterRequest grunt;
+    grunt.map_id = kAquaHideout;
+    grunt.model_id = ModelId::kTeamAquaGruntFemale;
+    grunt.script_id = ScriptId::kAquaBossWelcome;
+    grunt.tile_x = 27;
+    grunt.tile_z = 12;
+    grunt.height = 3;
+    grunt.facing = overworld::Facing::kDown;
+    feature::MapCharacter::Add(grunt);
+  }
+
+  {
+    feature::MapCharacterRequest grunt;
+    grunt.map_id = kAquaHideout;
+    grunt.model_id = ModelId::kTeamAquaGruntMale;
+    grunt.script_id = ScriptId::kAquaBossWelcome;
+    grunt.tile_x = 26;
+    grunt.tile_z = 13;
+    grunt.height = 3;
+    grunt.facing = overworld::Facing::kDown;
+    feature::MapCharacter::Add(grunt);
+  }
+
+  {
+    feature::MapCharacterRequest grunt;
+    grunt.map_id = kAquaHideout;
+    grunt.model_id = ModelId::kTeamAquaGruntFemale;
+    grunt.script_id = ScriptId::kAquaBossWelcome;
+    grunt.tile_x = 25;
+    grunt.tile_z = 12;
+    grunt.height = 3;
+    grunt.facing = overworld::Facing::kDown;
+    feature::MapCharacter::Add(grunt);
+  }
+
+  {
+    feature::MapCharacterRequest grunt;
+    grunt.map_id = kAquaHideout;
+    grunt.model_id = ModelId::kTeamAquaGruntMale;
+    grunt.script_id = ScriptId::kAquaBossWelcome;
+    grunt.tile_x = 31;
+    grunt.tile_z = 12;
+    grunt.height = 3;
+    grunt.facing = overworld::Facing::kDown;
+    feature::MapCharacter::Add(grunt);
+  }
+
+  {
+    feature::MapCharacterRequest grunt;
+    grunt.map_id = kAquaHideout;
+    grunt.model_id = ModelId::kTeamAquaGruntFemale;
+    grunt.script_id = ScriptId::kAquaBossWelcome;
+    grunt.tile_x = 32;
+    grunt.tile_z = 13;
+    grunt.height = 3;
+    grunt.facing = overworld::Facing::kDown;
+    feature::MapCharacter::Add(grunt);
+  }
+
+  {
+    feature::MapCharacterRequest grunt;
+    grunt.map_id = kAquaHideout;
+    grunt.model_id = ModelId::kTeamAquaGruntMale;
+    grunt.script_id = ScriptId::kAquaBossWelcome;
+    grunt.tile_x = 33;
+    grunt.tile_z = 12;
+    grunt.height = 3;
+    grunt.facing = overworld::Facing::kDown;
+    feature::MapCharacter::Add(grunt);
+  }
 }
 }

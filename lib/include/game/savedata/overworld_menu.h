@@ -26,7 +26,8 @@ struct OverworldMenu {
   }
 
   INLINE void DisableAll() {
-    is_pokemon_list_visible = false;
+    is_pokemon_list_visible = true;
+    pokemon_list_position = 0;
     is_pokedex_visible = false;
     is_bag_visible = false;
     is_trainer_card_visible = false;
@@ -54,7 +55,7 @@ struct OverworldMenu {
       u32 save_position : 3;
       u32 options_position : 3;
 
-      u32 : 8;
+      u32  : 8;
     };
   };
 };

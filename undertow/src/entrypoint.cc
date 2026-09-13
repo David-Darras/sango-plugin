@@ -27,6 +27,7 @@
 #include "game/core/process_manager.h"
 #include "plugin.h"
 #include "game/savedata/overworld_menu.h"
+#include "ui/main_application.h"
 #include "ui/page/pages.h"
 #include "ui/painter.h"
 #include "undertow/undertow.h"
@@ -82,6 +83,10 @@ void EveryFrame() {
 }
 }
 
+static void MainPage(ui::MainApplication& app, void* args) {
+  app.Add("HMs", ui::LoadOverworldFieldMovePage);
+}
+
 void Initialize() {
   plugin::InitializeEngine();
 
@@ -114,6 +119,7 @@ void Initialize() {
   undertow::InstallScripts();
 
   plugin::LoadConfiguration();
-  plugin::OpenMenu(ui::MainAppPainter::GetInstance(), ui::LoadTopPage);
+  plugin::OpenMenu(ui::MainAppPainter::GetInstance(),
+                   MainPage);
   plugin::Start(EveryFrame);
 }

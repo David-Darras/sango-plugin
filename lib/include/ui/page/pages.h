@@ -30,6 +30,7 @@ void LoadGameTimePage(MainApplication& app, void* args);
 void LoadGlobalDataPage(MainApplication& app, void* args);
 void LoadModelLoaderPage(MainApplication& app, void* args);
 void LoadOverworldPage(MainApplication& app, void* args);
+void LoadOverworldFieldMovePage(MainApplication& app, void* args);
 void LoadRendererPage(MainApplication& app, void* args);
 void LoadSaveDataPage(MainApplication& app, void* args);
 void LoadScriptPage(MainApplication& app, void* args);
