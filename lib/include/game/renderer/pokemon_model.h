@@ -17,11 +17,12 @@
 
 #pragma once
 
-#include "archive.h"
 #include "common.h"
 #include "game/archive/bch.h"
 #include "game/constant/gender.h"
-#include "game/constant/texture_format.h"
+
+#define POKEMON_FILE_SECTION_COUNT (8)
+#define POKEMON_PACK_FIRST_FILE (3)
 
 struct RadixNode {
   u32 bit_index;

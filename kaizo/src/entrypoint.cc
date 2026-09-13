@@ -44,17 +44,17 @@ bool IsCaptureAllowed() { return !kaizo::CapturedEvent::Check(); }
 void OnCaptured() { kaizo::CapturedEvent::Set(); }
 
 u32 OnStreamFile(const u32* archive, u32 file_id) {
-  if (feature::ArchivePatch::IsArchive(archive, ArchiveID::kOverworldModel)) {
+  if (feature::ArchivePatch::IsArchive(archive, ArchiveId::kOverworldModel)) {
     return kaizo::PatchOverworldModels(file_id, true);
   }
   return file_id;
 }
 
 void OnReadFile(feature::ArchivePatch::Input* input) {
-  if (feature::ArchivePatch::IsArchive(input, ArchiveID::kOverworldModel)) {
+  if (feature::ArchivePatch::IsArchive(input, ArchiveId::kOverworldModel)) {
     input->file_id = kaizo::PatchOverworldModels(input->file_id, false);
   }
-  if (feature::ArchivePatch::IsArchive(input, ArchiveID::kPlayerIcon)) {
+  if (feature::ArchivePatch::IsArchive(input, ArchiveId::kPlayerIcon)) {
     input->file_id = 72; // Steven
   }
 }

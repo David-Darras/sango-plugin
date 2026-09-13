@@ -19,7 +19,7 @@
 
 #include <types.h>
 
-enum class ArchiveID : u32 {
+enum class ArchiveId : u32 {
   kStatus = 0, // Pokemon summary layouts
   kStatusModel = 1, // Status screen cameras
   kPokeList = 2, // Party selection layouts

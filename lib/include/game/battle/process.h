@@ -30,9 +30,6 @@ struct Config;
 class Process {
   SINGLETON(Process)
 public:
-  STATIC_INLINE bool IsInBattle() {
-    return READ32(ADDRESS_BATTLE_MAIN_PROCESS) == ADDRESS_BATTLE_VTABLE;
-  }
 
   STATIC_INLINE Process& GetInstance() {
     return *(Process*)(ADDRESS_BATTLE_MAIN_PROCESS);

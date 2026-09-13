@@ -16,10 +16,10 @@
  */
 
 #pragma once
-#include "archive.h"
 #include "common.h"
 #include "feature/core/hook_manager.h"
 #include "game/archive/bclim.h"
+#include "game/constant/archive_id.h"
 
 namespace feature {
 class ArchivePatch {
@@ -68,7 +68,7 @@ public:
 
   struct Input {
     u8 priority;
-    ArchiveID archive_id;
+    ArchiveId archive_id;
     u32 file_id;
     bool is_compressed;
     uptr heap[4];
@@ -83,12 +83,12 @@ public:
   // }
 
   STATIC_INLINE bool IsArchive(const u32* archive_data,
-                               const ArchiveID archive_id) {
+                               const ArchiveId archive_id) {
     u32* archive_table = (u32*)ADDRESS_ARCHIVE_FILENAME_TABLE;
     return archive_data[12] == archive_table[static_cast<u32>(archive_id)];
   }
 
-  STATIC_INLINE bool IsArchive(const Input* input, const ArchiveID archive_id) {
+  STATIC_INLINE bool IsArchive(const Input* input, const ArchiveId archive_id) {
     return input->archive_id == archive_id;
   }
 

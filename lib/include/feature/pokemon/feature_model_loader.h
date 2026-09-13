@@ -17,8 +17,8 @@
 
 #pragma once
 
-#include "archive.h"
 #include "common.h"
+#include "game/constant/archive_id.h"
 #include "game/constant/form.h"
 #include "game/constant/gender.h"
 #include "game/constant/species.h"
@@ -30,6 +30,18 @@
 #include "game/renderer/pokemon_model.h"
 #include "game/renderer/scene.h"
 #include "ui/log_application.h"
+
+#define POKEMON_FILE_SPECIES_TABLE (0)
+#define POKEMON_FILE_COMMON_SHADER (1)
+
+#define POKEMON_FILE_SECTION_COMMON (0)
+#define POKEMON_FILE_SECTION_FACE_ANIMATION (1)
+#define POKEMON_FILE_SECTION_TEXTURE_NORMAL (2)
+#define POKEMON_FILE_SECTION_TEXTURE_SHINY (3)
+#define POKEMON_FILE_SECTION_XXX (4)
+#define POKEMON_FILE_SECTION_BATTLE_ANIMATION (5)
+#define POKEMON_FILE_SECTION_POKEMON_AMIE_ANIMATION (6)
+#define POKEMON_FILE_SECTION_OTHER (7)
 
 namespace feature {
 struct LoadedModel {
@@ -59,7 +71,7 @@ public:
       return false;
     }
 
-    out->model_pack = ReadFile(ArchiveID::kOverworldModel, model_id, true);
+    out->model_pack = ReadFile(ArchiveId::kOverworldModel, model_id, true);
     out->model_resource = AttachPackEntry(out->model_pack, 0);
     if (out->model_resource == nullptr) return false;
 
@@ -101,10 +113,10 @@ public:
           : POKEMON_FILE_SECTION_TEXTURE_NORMAL;
 
     out->model_pack =
-        ReadFile(ArchiveID::kPokemonModel,
+        ReadFile(ArchiveId::kPokemonModel,
                  pack_top + POKEMON_FILE_SECTION_COMMON, true);
     out->texture_pack =
-        ReadFile(ArchiveID::kPokemonModel, pack_top + texture_slot, true);
+        ReadFile(ArchiveId::kPokemonModel, pack_top + texture_slot, true);
 
     out->model_resource = AttachPackEntry(out->model_pack, 0);
     out->texture_resource = AttachPackEntry(out->texture_pack, 0);
@@ -183,7 +195,7 @@ private:
     return nullptr;
   }
 
-  static void* OpenArchive(ArchiveID archive_id) {
+  static void* OpenArchive(ArchiveId archive_id) {
     static void* archives[256] = {};
     const u32 index = static_cast<u32>(archive_id);
     if (index >= 256) return nullptr;
@@ -203,7 +215,7 @@ private:
     return archive;
   }
 
-  static void* ReadFile(ArchiveID archive_id, u32 file_id, bool compressed,
+  static void* ReadFile(ArchiveId archive_id, u32 file_id, bool compressed,
                         u32* out_size = nullptr) {
     void* archive = OpenArchive(archive_id);
     if (archive == nullptr) return nullptr;
@@ -246,7 +258,7 @@ private:
     auto& context = GetInstance();
     if (context.pokemon_table_ == nullptr) {
       context.pokemon_table_ =
-          ReadFile(ArchiveID::kPokemonModel, POKEMON_FILE_SPECIES_TABLE, false);
+          ReadFile(ArchiveId::kPokemonModel, POKEMON_FILE_SPECIES_TABLE, false);
     }
     return context.pokemon_table_;
   }
@@ -258,7 +270,7 @@ private:
 
     if (context.pokemon_common_count_ == 0) {
       void* pack =
-          ReadFile(ArchiveID::kPokemonModel, POKEMON_FILE_COMMON_SHADER, false);
+          ReadFile(ArchiveId::kPokemonModel, POKEMON_FILE_COMMON_SHADER, false);
       if (pack == nullptr) return;
       auto* bundle = (Bundle*)pack;
       const u32 count = bundle->resource_count;

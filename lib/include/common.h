@@ -387,9 +387,6 @@ struct Message {
   }
 };
 
-/// A lightweight container bundling several related sub-resources (e.g. a
-/// Pokémon's model + texture + face animation) into one blob, addressed
-/// by index through an offset table.
 struct Bundle {
   u16 signature; // "PC"
   u16 resource_count;
@@ -414,3 +411,125 @@ struct PokeInfo {
   bool is_egg;
   u32 _0;
 };
+
+#include <iostream>
+#include <utility>
+#include <type_traits>
+#include <stdexcept>
+
+template <typename T>
+class Option {
+private:
+  bool has_value;
+  typename std::aligned_storage<sizeof(T), alignof(T)>::type storage;
+
+  T* ptr() {
+    return reinterpret_cast<T*>(&storage);
+  }
+
+  const T* ptr() const {
+    return reinterpret_cast<const T*>(&storage);
+  }
+
+public:
+  Option() : has_value(false) {
+  }
+
+  Option(const T& value) : has_value(true) {
+    new(ptr()) T(value);
+  }
+
+  Option(T&& value) noexcept : has_value(true) {
+    new(ptr()) T(std::move(value));
+  }
+
+  Option(const Option& other) : has_value(other.has_value) {
+    if (other.has_value) {
+      new(ptr()) T(*other.ptr());
+    }
+  }
+
+  Option(Option&& other) noexcept : has_value(other.has_value) {
+    if (other.has_value) {
+      new(ptr()) T(std::move(*other.ptr()));
+      other.reset();
+    }
+  }
+
+  ~Option() {
+    reset();
+  }
+
+  Option& operator=(const Option& other) {
+    if (this != &other) {
+      reset();
+      has_value = other.has_value;
+      if (has_value) {
+        new(ptr()) T(*other.ptr());
+      }
+    }
+    return *this;
+  }
+
+  Option& operator=(Option&& other) noexcept {
+    if (this != &other) {
+      reset();
+      has_value = other.has_value;
+      if (has_value) {
+        new(ptr()) T(std::move(*other.ptr()));
+        other.reset();
+      }
+    }
+    return *this;
+  }
+
+  void reset() {
+    if (has_value) {
+      ptr()->~T();
+      has_value = false;
+    }
+  }
+
+  bool is_some() const { return has_value; }
+  bool is_none() const { return !has_value; }
+
+  explicit operator bool() const { return has_value; }
+
+  T& operator*() {
+    return *ptr();
+  }
+
+  const T& operator*() const {
+    return *ptr();
+  }
+
+  T* operator->() {
+    return ptr();
+  }
+
+  const T* operator->() const {
+    return ptr();
+  }
+
+  T value_or(const T& default_value) const {
+    if (has_value) {
+      return *ptr();
+    }
+    return default_value;
+  }
+};
+
+struct None_t {
+};
+
+const None_t None{};
+
+template <typename T>
+bool operator==(const Option<T>& opt, None_t) {
+  return opt.is_none();
+}
+
+template <typename T>
+bool operator==(None_t, const Option<T>& opt) {
+  return opt.is_none();
+}

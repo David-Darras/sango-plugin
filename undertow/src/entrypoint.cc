@@ -43,14 +43,14 @@ u32 PlayerAsAquaGrunt(u32 file_id) {
 }
 
 u32 OnStreamFile(const u32* archive, u32 file_id) {
-  if (feature::ArchivePatch::IsArchive(archive, ArchiveID::kOverworldModel)) {
+  if (feature::ArchivePatch::IsArchive(archive, ArchiveId::kOverworldModel)) {
     return PlayerAsAquaGrunt(file_id);
   }
   return file_id;
 }
 
 void OnReadFile(feature::ArchivePatch::Input* input) {
-  if (feature::ArchivePatch::IsArchive(input, ArchiveID::kOverworldModel)) {
+  if (feature::ArchivePatch::IsArchive(input, ArchiveId::kOverworldModel)) {
     input->file_id = PlayerAsAquaGrunt(input->file_id);
   }
 }

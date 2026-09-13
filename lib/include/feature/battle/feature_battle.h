@@ -49,74 +49,48 @@ public:
   bool metronome_only = false;
 
   bool mega_restriction = true;
-  /// With the restriction lifted, also let a Pokémon mega evolve as often
-  /// as it wants (the overlay's default; a ROM hack may prefer to keep the
-  /// once-per-battle rule and handle megas its own way).
   bool unlimited_mega_evolution = true;
 
-  /// Returns false to turn the capture attempt into a failure (the battle
-  /// is flagged as a trainer battle for the check).
   typedef bool (*CaptureAllowedCallback)();
-  /// Called once a Pokémon has actually been captured.
   typedef void (*CapturedCallback)();
+
   CaptureAllowedCallback is_capture_allowed = nullptr;
   CapturedCallback on_captured = nullptr;
 
-  struct LevelUpData {
-    u32 exp;
-
-    u16 ev_hp;
-    u16 ev_attack;
-
-    u16 ev_defense;
-    u16 ev_speed;
-
-    u16 ev_special_attack;
-    u16 ev_special_defense;
-
-    bool _0;
-    bool _1;
-    bool use_exp_share;
-    bool _2;
-  };
-
   STATIC_INLINE void Initialize() {
-    HookManager::Initialize(HookID::kUpdateExp, ADDRESS_BATTLE_UPDATE_EXP,
-                            (uptr)UpdateExpHook, false);
-    HookManager::Initialize(HookID::kStartMegaEvolveAnimation,
-                            ADDRESS_BATTLE_START_MEGA_EVOLVE_ANIMATION,
-                            (uptr)StartMegaEvolveAnimation, false);
-    HookManager::Initialize(HookID::kStartBattleAnimation,
-                            ADDRESS_BATTLE_START_BATTLE_ANIMATION,
-                            (uptr)StartBattleAnimation, false);
-    HookManager::Initialize(HookID::kStartBattleBackgroundMusic,
+    HookManager::Initialize(HookID::kBattleLevelUp, ADDRESS_BATTLE_LEVEL_UP,
+                            (uptr)LevelUpHook, false);
+    HookManager::Initialize(HookID::kBattleStartMegaEvolutionAnimation,
+                            ADDRESS_BATTLE_START_MEGA_EVOLUTION_ANIMATION,
+                            (uptr)StartMegaEvolutionAnimationHook, false);
+    HookManager::Initialize(HookID::kBattleStartEntryAnimation,
+                            ADDRESS_BATTLE_START_ENTRY_ANIMATION,
+                            (uptr)StartEntryAnimationHook, false);
+    HookManager::Initialize(HookID::kBattleStartBackgroundMusic,
                             ADDRESS_BATTLE_START_BACKGROUND_MUSIC,
-                            (uptr)StartBattleBackgroundMusicHook);
-    HookManager::Initialize(HookID::kPlayBattleAnimation,
+                            (uptr)StartBackgroundMusicHook);
+    HookManager::Initialize(HookID::kBattlePlayAnimation,
                             ADDRESS_BATTLE_PLAY_ANIMATION,
                             (uptr)PlayAnimationHook, false);
-    HookManager::Initialize(HookID::kUpdateBattleView,
-                            ADDRESS_UPDATE_BATTLE_VIEW,
-                            (uptr)UpdateBattleViewHook, false);
+    HookManager::Initialize(HookID::kBattleUpdateView,
+                            ADDRESS_BATTLE_UPDATE_VIEW,
+                            (uptr)UpdateViewHook, false);
     HookManager::Initialize(HookID::kBattleCheckPokemonCaptured,
                             ADDRESS_BATTLE_CHECK_POKEMON_CAPTURED,
-                            (uptr)CheckPokemonCaptured,
+                            (uptr)CheckPokemonCapturedHook,
                             false);
     HookManager::Initialize(HookID::kBattleUpdateGauge,
                             ADDRESS_BATTLE_UPDATE_GAUGE,
-                            (uptr)UpdateGauge,
-                            false);
-    HookManager::Initialize(HookID::kBattleUpdateView,
-                            ADDRESS_BATTLE_UPDATE_VIEW,
-                            (uptr)UpdateView,
+                            (uptr)UpdateGaugeHook,
                             false);
   }
 
   STATIC_INLINE void PatchUpdate() {
-    static u32 counter = 20;
+    const u32 kMax = 20;
+    static u32 counter = 0;
     counter--;
     if (counter != 0) return;
-    counter = 20;
+    counter = kMax;
 
     auto& feat = GetInstance();
 
@@ -167,14 +141,13 @@ public:
 
   STATIC_INLINE void PatchLoad() {
     MEMORY_SCOPE(ADDRESS_MEMORY_REGION_GAME_CODE, 0xD8000);
-    HookManager::ForceEnable(HookID::kUpdateBattleView);
-    HookManager::ForceEnable(HookID::kUpdateExp);
-    HookManager::ForceEnable(HookID::kStartMegaEvolveAnimation);
-    HookManager::ForceEnable(HookID::kStartBattleAnimation);
-    HookManager::ForceEnable(HookID::kPlayBattleAnimation);
+    HookManager::ForceEnable(HookID::kBattleUpdateView);
+    HookManager::ForceEnable(HookID::kBattleLevelUp);
+    HookManager::ForceEnable(HookID::kBattleStartMegaEvolutionAnimation);
+    HookManager::ForceEnable(HookID::kBattleStartEntryAnimation);
+    HookManager::ForceEnable(HookID::kBattlePlayAnimation);
     HookManager::ForceEnable(HookID::kBattleCheckPokemonCaptured);
     HookManager::ForceEnable(HookID::kBattleUpdateGauge);
-    HookManager::ForceEnable(HookID::kBattleUpdateView);
     GameExtension::PatchBattleLoad();
     TypeChart::PatchLoad();
 
@@ -207,15 +180,15 @@ public:
       ARM_NOP(ADDRESS_BATTLE_MEGA_RESTRICTION_CHECK_2);
 
       if (feat.unlimited_mega_evolution) {
-        // A pokemon can always mega evolve
-        WRITE32(0x004D2970, 0xE3A00001);
-        ARM_RET(0x004D2974);
+        WRITE32(ADDRESS_BATTLE_CAN_MEGA_EVOLVED, 0xE3A00001);
+        ARM_RET(ADDRESS_BATTLE_CAN_MEGA_EVOLVED+4);
       }
     }
   }
 
-  static bool CheckPokemonCaptured(u32 p0, u32 p1, u32 p2, u32 p3, u32 p4,
-                                   u32 p5) {
+private:
+  static bool CheckPokemonCapturedHook(u32 p0, u32 p1, u32 p2, u32 p3, u32 p4,
+                                       u32 p5) {
     auto& feat = GetInstance();
     // wild battle -> trainer battle (disable capture)
     u8* battle_type = (u8*)(READ32(READ32(p1 + 4) + 0x10));
@@ -236,9 +209,9 @@ public:
 
   static Color8 LerpColor(Color8 a, Color8 b, f32 t) {
     Color8 c;
-    c.r = (u8)(a.r + (b.r - a.r) * t);
-    c.g = (u8)(a.g + (b.g - a.g) * t);
-    c.b = (u8)(a.b + (b.b - a.b) * t);
+    c.r = a.r + (u8)((f32)(b.r - a.r) * t);
+    c.g = a.g + (u8)((f32)(b.g - a.g) * t);
+    c.b = a.b + (u8)((f32)(b.b - a.b) * t);
     c.a = 255;
     return c;
   }
@@ -267,7 +240,7 @@ public:
     }
   }
 
-  static void UpdateGauge(uptr gauge, u16 max_hp, u32 new_hp) {
+  static void UpdateGaugeHook(uptr gauge, u16 max_hp, u32 new_hp) {
     HookManager::Call<void>(HookID::kBattleUpdateGauge, gauge, max_hp, new_hp);
     uptr res = ((uptr(*)(uptr))ADDRESS_BATTLE_HP_GAUGE_GET_PANE)(
         READ32(gauge + 48));
@@ -278,7 +251,11 @@ public:
     WRITE32(res + 16, color.GetRaw());
   }
 
-  static void UpdateBattleViewHook(uptr p0) {
+  static void UpdateViewHook(uptr self) {
+    u32* camera = *(u32**)(self + 408);
+    camera[4] = 0; // don't use split view
+    camera[5] = 0x7FFFFFFF; // disable camera animation
+
     if (GetInstance().fix_pokemon_size) {
       static u32 counter = 20;
       if (counter >= 20) {
@@ -287,7 +264,7 @@ public:
       }
       counter++;
     }
-    HookManager::Call<void>(HookID::kUpdateBattleView, p0);
+    HookManager::Call<void>(HookID::kBattleUpdateView, self);
   }
 
   static void PatchPokemonSize() {
@@ -323,34 +300,35 @@ public:
   static void PlayAnimationHook(uptr view_manager, u16 id) {
     // disable shiny effect
     if (id == 621 && !GetInstance().show_shiny_animation) return;
-    return HookManager::Call<void>(HookID::kPlayBattleAnimation, view_manager,
+    return HookManager::Call<void>(HookID::kBattlePlayAnimation, view_manager,
                                    id);
   }
 
   static void
-  StartBattleBackgroundMusicHook(uptr sound_manager, u32 id, u8 p2) {
+  StartBackgroundMusicHook(uptr sound_manager, u32 id, u8 p2) {
     if (GetInstance().sync_overworld_music) {
       id = (1 << 16) + Overworld::GetInstance().background_music;
     }
-    return HookManager::Call<void>(HookID::kStartBattleBackgroundMusic,
+    return HookManager::Call<void>(HookID::kBattleStartBackgroundMusic,
                                    sound_manager, id, p2);
   }
 
-  static void StartBattleAnimation(void* p0, void* p1) {
-    struct BattleAnimationData {
-      u32 view;
-      u32 _0;
-      u32 state;
-      u8 position[5];
-      u32 trainer_model[2];
+  struct BattleAnimationData {
+    u32 view;
+    u32 _0;
+    u32 state;
+    u8 position[5];
+    u32 trainer_model[2];
 
-      bool skip_pokeball_animation;
-      bool is_long_encounter_animation;
-      bool use_trainer_pov;
-      bool show_fade_in;
-      bool show_shiny_animation;
-      bool dont_show_trainer;
-    }* data = (BattleAnimationData*)p1;
+    bool skip_pokeball_animation;
+    bool is_long_encounter_animation;
+    bool use_trainer_pov;
+    bool show_fade_in;
+    bool show_shiny_animation;
+    bool dont_show_trainer;
+  };
+
+  static void StartEntryAnimationHook(void* p0, BattleAnimationData* data) {
     auto& config = GetInstance();
     data->skip_pokeball_animation = !config.show_pokeball_animation;
     data->is_long_encounter_animation = config.is_long_encounter_animation;
@@ -360,25 +338,33 @@ public:
     data->show_shiny_animation = config.show_shiny_animation;
     data->dont_show_trainer = !config.show_trainer_animation;
 
-    HookManager::Call<void>(HookID::kStartBattleAnimation, p0, p1);
+    HookManager::Call<void>(HookID::kBattleStartEntryAnimation, p0, data);
   }
 
-  static void StartMegaEvolveAnimation(void* view, u8 target,
-                                       bool is_long_animation) {
-    HookManager::Call<void>(HookID::kStartMegaEvolveAnimation, view, target,
+  static void StartMegaEvolutionAnimationHook(void* view, u8 target,
+                                              bool is_long_animation) {
+    HookManager::Call<void>(HookID::kBattleStartMegaEvolutionAnimation, view,
+                            target,
                             GetInstance().is_long_mega_evolve_animation);
   }
 
-  static bool UpdateExpHook(void* self, battle::Team* team,
-                            LevelUpData* data) {
-    return HookManager::Call<bool>(HookID::kUpdateExp, self, team, data);
-  }
+  struct LevelUpData {
+    u32 exp;
+    u16 ev_hp;
+    u16 ev_attack;
+    u16 ev_defense;
+    u16 ev_speed;
+    u16 ev_special_attack;
+    u16 ev_special_defense;
+    bool _0;
+    bool _1;
+    bool use_exp_share;
+    bool _2;
+  };
 
-  static void UpdateView(uptr self) {
-    u32* camera = *(u32**)(self + 408);
-    camera[4] = 0; // don't use split view
-    camera[5] = 0x7FFFFFFF; // disable camera animation
-    return HookManager::Call<void>(HookID::kBattleUpdateView, self);
+  static bool LevelUpHook(void* self, battle::Team* team,
+                          LevelUpData* data) {
+    return HookManager::Call<bool>(HookID::kBattleLevelUp, self, team, data);
   }
 };
 } // namespace feature

@@ -42,7 +42,8 @@ struct BattleConfig {
   BattleBackground background = BattleBackground::kAquaBoss;
   BattlePlatform platform = BattlePlatform::kBossAqua;
   BattleEncounterAnimation ground = BattleEncounterAnimation::kAquaTeamBoss;
-  BattleEncounterAnimation encounter_animation = BattleEncounterAnimation::kKyogre;
+  BattleEncounterAnimation encounter_animation =
+      BattleEncounterAnimation::kKyogre;
   Species species = Species::kKyogre;
   Form form = Form::kKyogreAlpha;
   u32 background_music = (1 << 16) + 79;
@@ -57,23 +58,24 @@ struct BattleConfig {
   BattleTrainer trainer_id = BattleTrainer::kNone;
 
   STATIC_INLINE void Initialize() {
-    HookManager::Initialize(HookID::kSetupBattleConfig,
-                            ADDRESS_BATTLE_SETUP_CONFIG,
-                            (uptr)SetupBattleConfigHook);
+    HookManager::Initialize(HookID::kBattleSetupConfigWild,
+                            ADDRESS_BATTLE_SETUP_CONFIG_WILD,
+                            (uptr)BattleSetupConfigWildHook);
 
-    HookManager::Initialize(HookID::kSetupTrainerBattleConfig,
-                            ADDRESS_SETUP_TRAINER_BATTLE_CONFIG,
-                            (uptr)SetupTrainerBattleConfigHook);
+    HookManager::Initialize(HookID::kBattleSetupConfigTrainer,
+                            ADDRESS_BATTLE_SETUP_CONFIG_TRAINER,
+                            (uptr)BattleSetupConfigTrainerHook);
   }
 
-  static void SetupTrainerBattleConfigHook(battle::Config* config,
+private:
+  static void BattleSetupConfigTrainerHook(battle::Config* config,
                                            void* game_manager, u16 trainer_id,
                                            void* p1, u8 battle_format,
                                            void* p2) {
     auto& tid = GetInstance().trainer_id;
     if (tid != BattleTrainer::kNone)
       trainer_id = static_cast<u16>(tid);
-    HookManager::Call<void>(HookID::kSetupTrainerBattleConfig,
+    HookManager::Call<void>(HookID::kBattleSetupConfigTrainer,
                             config, game_manager, trainer_id, p1,
                             battle_format,
                             p2);
@@ -83,11 +85,14 @@ struct BattleConfig {
     }
   }
 
-  static void SetupBattleConfigHook(battle::Config* config, void* game_manager,
-                                    void* opponent_team,
-                                    void* p1, u8 battle_format, u32 effect_id,
-                                    void* p2) {
-    HookManager::Call<void>(HookID::kSetupBattleConfig, config, game_manager,
+  static void BattleSetupConfigWildHook(battle::Config* config,
+                                        void* game_manager,
+                                        void* opponent_team,
+                                        void* p1, u8 battle_format,
+                                        u32 effect_id,
+                                        void* p2) {
+    HookManager::Call<void>(HookID::kBattleSetupConfigWild, config,
+                            game_manager,
                             opponent_team, p1,
                             battle_format, effect_id, p2);
 
