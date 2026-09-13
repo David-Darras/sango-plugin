@@ -56,14 +56,16 @@ public:
   }
 
   INLINE void SetWeather(UID owner, BattleWeather weather, ItemId item,
-                        bool infinite) {
-    ((void(*)(Controller*, UID, BattleWeather, ItemId, bool))0x00741CC0)(
+                         bool infinite) {
+    ((void(*)(Controller*, UID, BattleWeather, ItemId, bool))
+      ADDRESS_BATTLE_CONTROLLER_SET_WEATHER)(
         this, owner, weather, item, infinite);
   }
 
   INLINE void ExecuteMove(Pokemon* attacker, MoveId move, u8 target = 0) {
     union {
       u32 raw;
+
       struct {
         u32 kind : 4;
         u32 target : 4;

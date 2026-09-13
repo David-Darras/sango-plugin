@@ -23,19 +23,19 @@ namespace battle {
 class Situation {
 public:
   STATIC_INLINE void Begin() {
-    ((void(*)())0x007648D0)();
+    ((void(*)())ADDRESS_BATTLE_SITUATION_BEGIN)();
   }
 
   STATIC_INLINE void End() {
-    ((void(*)())0x007645CC)();
+    ((void(*)())ADDRESS_BATTLE_SITUATION_END)();
   }
 
   STATIC_INLINE void Set(SituationKey key, s32 value) {
-    ((void(*)(SituationKey, s32))0x0076426C)(key, value);
+    ((void(*)(SituationKey, s32))ADDRESS_BATTLE_SITUATION_SET)(key, value);
   }
 
   STATIC_INLINE s32 Get(SituationKey key) {
-    return ((s32(*)(SituationKey))0x00764668)(key);
+    return ((s32(*)(SituationKey))ADDRESS_BATTLE_SITUATION_GET)(key);
   }
 };
 }

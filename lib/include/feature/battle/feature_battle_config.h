@@ -20,7 +20,6 @@
 #include "game/battle/config.h"
 #include "common.h"
 #include "game/constant/form.h"
-#include "ui/log_application.h"
 #include "game/constant/battle_background.h"
 #include "game/constant/battle_encounter_animation.h"
 #include "game/constant/battle_platform.h"
@@ -33,7 +32,6 @@
 namespace feature {
 struct BattleConfig {
   MAKE_SINGLETON(BattleConfig)
-  /// Lets a product rewrite a trainer battle (team, rules) as it is set up.
   typedef void (*TrainerBattleCallback)(battle::Config& config,
                                         u16& trainer_id);
   TrainerBattleCallback on_trainer_battle = nullptr;
@@ -58,24 +56,24 @@ struct BattleConfig {
   BattleTrainer trainer_id = BattleTrainer::kNone;
 
   STATIC_INLINE void Initialize() {
-    HookManager::Initialize(HookID::kBattleSetupConfigWild,
-                            ADDRESS_BATTLE_SETUP_CONFIG_WILD,
-                            (uptr)BattleSetupConfigWildHook);
+    HookManager::Initialize(HookID::kBattleConfigSetupWild,
+                            ADDRESS_BATTLE_CONFIG_SETUP_WILD,
+                            (uptr)SetupWildHook);
 
-    HookManager::Initialize(HookID::kBattleSetupConfigTrainer,
-                            ADDRESS_BATTLE_SETUP_CONFIG_TRAINER,
-                            (uptr)BattleSetupConfigTrainerHook);
+    HookManager::Initialize(HookID::kBattleConfigSetupTrainer,
+                            ADDRESS_BATTLE_CONFIG_SETUP_TRAINER,
+                            (uptr)SetupTrainerHook);
   }
 
 private:
-  static void BattleSetupConfigTrainerHook(battle::Config* config,
-                                           void* game_manager, u16 trainer_id,
-                                           void* p1, u8 battle_format,
-                                           void* p2) {
+  static void SetupTrainerHook(battle::Config* config,
+                               void* game_manager, u16 trainer_id,
+                               void* p1, u8 battle_format,
+                               void* p2) {
     auto& tid = GetInstance().trainer_id;
     if (tid != BattleTrainer::kNone)
       trainer_id = static_cast<u16>(tid);
-    HookManager::Call<void>(HookID::kBattleSetupConfigTrainer,
+    HookManager::Call<void>(HookID::kBattleConfigSetupTrainer,
                             config, game_manager, trainer_id, p1,
                             battle_format,
                             p2);
@@ -85,13 +83,13 @@ private:
     }
   }
 
-  static void BattleSetupConfigWildHook(battle::Config* config,
-                                        void* game_manager,
-                                        void* opponent_team,
-                                        void* p1, u8 battle_format,
-                                        u32 effect_id,
-                                        void* p2) {
-    HookManager::Call<void>(HookID::kBattleSetupConfigWild, config,
+  static void SetupWildHook(battle::Config* config,
+                            void* game_manager,
+                            void* opponent_team,
+                            void* p1, u8 battle_format,
+                            u32 effect_id,
+                            void* p2) {
+    HookManager::Call<void>(HookID::kBattleConfigSetupWild, config,
                             game_manager,
                             opponent_team, p1,
                             battle_format, effect_id, p2);

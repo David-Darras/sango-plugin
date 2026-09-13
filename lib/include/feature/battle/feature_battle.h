@@ -57,6 +57,20 @@ public:
   CaptureAllowedCallback is_capture_allowed = nullptr;
   CapturedCallback on_captured = nullptr;
 
+  struct LevelUpData {
+    u32 exp;
+    u16 ev_hp;
+    u16 ev_attack;
+    u16 ev_defense;
+    u16 ev_speed;
+    u16 ev_special_attack;
+    u16 ev_special_defense;
+    bool _0;
+    bool _1;
+    bool use_exp_share;
+    bool _2;
+  };
+
   STATIC_INLINE void Initialize() {
     HookManager::Initialize(HookID::kBattleLevelUp, ADDRESS_BATTLE_LEVEL_UP,
                             (uptr)LevelUpHook, false);
@@ -167,7 +181,7 @@ public:
 
       // same ratio for all balls
       WRITE32(ADDRESS_BATTLE_BALL_CATCH_RATE, 0xE3A00A01); // mov r0, #0x1000
-      ARM_RET(ADDRESS_BATTLE_BALL_CATCH_RATE_RETURN);
+      ARM_RET(ADDRESS_BATTLE_BALL_CATCH_RATE + 4);
     }
 
     if (feat.no_shader) {
@@ -242,7 +256,7 @@ private:
 
   static void UpdateGaugeHook(uptr gauge, u16 max_hp, u32 new_hp) {
     HookManager::Call<void>(HookID::kBattleUpdateGauge, gauge, max_hp, new_hp);
-    uptr res = ((uptr(*)(uptr))ADDRESS_BATTLE_HP_GAUGE_GET_PANE)(
+    uptr res = ((uptr(*)(uptr))ADDRESS_BATTLE_GET_HP_GAUGE_PANE)(
         READ32(gauge + 48));
 
     f32 ratio = (max_hp > 0) ? (f32)new_hp / (f32)max_hp : 0.0f;
@@ -347,20 +361,6 @@ private:
                             target,
                             GetInstance().is_long_mega_evolve_animation);
   }
-
-  struct LevelUpData {
-    u32 exp;
-    u16 ev_hp;
-    u16 ev_attack;
-    u16 ev_defense;
-    u16 ev_speed;
-    u16 ev_special_attack;
-    u16 ev_special_defense;
-    bool _0;
-    bool _1;
-    bool use_exp_share;
-    bool _2;
-  };
 
   static bool LevelUpHook(void* self, battle::Team* team,
                           LevelUpData* data) {

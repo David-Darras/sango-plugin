@@ -231,11 +231,11 @@ void GameExtension::Initialize() {
                           (uptr)SetMoveNameHook);
   HookManager::Initialize(HookID::kMessageGetString, ADDRESS_MESSAGE_GET_STRING,
                           (uptr)MessageGetStringHook);
-  HookManager::Initialize(HookID::kBattleGetAbilityHandler,
-                          ADDRESS_BATTLE_GET_ABILITY_HANDLER,
+  HookManager::Initialize(HookID::kBattleRegisterAbilityListener,
+                          ADDRESS_BATTLE_REGISTER_ABILITY_LISTENER,
                           (uptr)GetBattleAbilityHandlerHook, false);
-  HookManager::Initialize(HookID::kBattleGetMoveHandler,
-                          ADDRESS_BATTLE_GET_MOVE_HANDLER,
+  HookManager::Initialize(HookID::kBattleRegisterMoveListener,
+                          ADDRESS_BATTLE_REGISTER_MOVE_LISTENER,
                           (uptr)GetBattleMoveHandlerHook, false);
   HookManager::Initialize(HookID::kBattleLoadAnimation,
                           ADDRESS_BATTLE_LOAD_ANIMATION,
@@ -247,8 +247,8 @@ void GameExtension::Initialize() {
 }
 
 void GameExtension::PatchBattleLoad() {
-  HookManager::ForceEnable(HookID::kBattleGetAbilityHandler);
-  HookManager::ForceEnable(HookID::kBattleGetMoveHandler);
+  HookManager::ForceEnable(HookID::kBattleRegisterAbilityListener);
+  HookManager::ForceEnable(HookID::kBattleRegisterMoveListener);
   HookManager::ForceEnable(HookID::kBattleLoadAnimation);
   HookManager::ForceEnable(HookID::kBattleAddTerrain);
 }
@@ -345,7 +345,7 @@ uptr GameExtension::GetBattleAbilityHandlerHook(battle::Pokemon* pkm) {
           spec.reaction_count);
     }
   }
-  return HookManager::Call<uptr>(HookID::kBattleGetAbilityHandler, pkm);
+  return HookManager::Call<uptr>(HookID::kBattleRegisterAbilityListener, pkm);
 }
 
 uptr GameExtension::GetBattleMoveHandlerHook(battle::Pokemon* pkm, MoveId move,
@@ -359,7 +359,7 @@ uptr GameExtension::GetBattleMoveHandlerHook(battle::Pokemon* pkm, MoveId move,
           spec.reaction_count);
     }
   }
-  return HookManager::Call<uptr>(HookID::kBattleGetMoveHandler, pkm, move, x);
+  return HookManager::Call<uptr>(HookID::kBattleRegisterMoveListener, pkm, move, x);
 }
 
 void GameExtension::MessageGetStringHook(Message* self, u32 str_id,

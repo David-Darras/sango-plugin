@@ -31,7 +31,8 @@ public:
                                    ReactionTable* reaction_table,
                                    u32 reaction_count) {
     return ((Listener*(*)(ListenerSource, u32, PriorityTier, u32, u8,
-                          ReactionTable*, u32))0x00743EFC)(
+                          ReactionTable*,
+                          u32))ADDRESS_BATTLE_BROADCASTER_REGISTER)(
         source, source_id, base_priority, priority_tiebreak, owner_id.value,
         reaction_table, reaction_count);
   }

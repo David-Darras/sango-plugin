@@ -81,7 +81,7 @@ public:
     y += y_offset*2;
 
     const u16 def_types = ((u16 (*)(const battle::Pokemon*))
-        ADDRESS_BATTLE_GET_POKEMON_TYPE_PAIR)(defender);
+        ADDRESS_BATTLE_GET_POKEMON_TYPES)(defender);
 
     for (int i = 0; i < 4; ++i) {
       MoveId move_id = attacker->moves[i].core.id;
@@ -90,7 +90,7 @@ public:
       GetMoveString(static_cast<u16>(move_id));
       auto& move_data = global_data::Move::GetInstance(move_id);
 
-      u8 result = ((u8 (*)(MoveType, u16))ADDRESS_BATTLE_TYPE_AFFINITY_PAIR)(
+      u8 result = ((u8 (*)(MoveType, u16))ADDRESS_BATTLE_GET_EFFECTIVENESS)(
           move_data.type, def_types);
 
       auto info = GetEffectivenessInfo(result);
