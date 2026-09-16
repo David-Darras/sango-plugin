@@ -20,7 +20,7 @@
 
 namespace battle {
 enum class SituationKey : u8 {
-  kNone = 0, ///< No value set / sentinel
+  kNone = 0,
   kScopeBoundary = 1,
   ///< Internal marker separating nested scopes (written by Situation_Begin, never read directly)
 
@@ -28,13 +28,13 @@ enum class SituationKey : u8 {
   kPokemonId = 2, ///< The Pokémon this handler concerns
   kMoveUserId = 3, ///< The Pokémon performing the move being resolved right now
   kMoveRecipientId = 4, ///< The Pokémon on the receiving end of that move
-  kTargetCount = 5, ///< How many Pokémon are targeted
+  kTargetCount = 5,
   kTargetId1 = 6, kTargetId2 = 7, kTargetId3 = 8,
   kTargetId4 = 9, kTargetId5 = 10, kTargetId6 = 11,
 
   // The chosen action
   kActionKind = 12, ///< Which kind of action was chosen (fight/item/switch...)
-  kFieldPosition = 13, ///< Current field slot
+  kFieldPosition = 13,
   kOriginalFieldPosition = 14, ///< Field slot before this action started
 
   // Ability
@@ -105,7 +105,7 @@ enum class SituationKey : u8 {
   kWeather = 57,
   kSurvivalReason = 58,
   ///< Why the Pokémon didn't faint (Sturdy, Focus Sash, Endure...)
-  kSwapTargetId = 59, ///< Pokémon being swapped with
+  kSwapTargetId = 59,
 
   kVisualEffectId = 60,
   kVisualSwapCount = 61,

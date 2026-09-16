@@ -22,9 +22,6 @@
 
 namespace core {
 
-/**
- * @brief Singleton registry for managing the lifecycle of all plugin hooks.
- */
 class HookManager {
   MAKE_SINGLETON(HookManager)
 

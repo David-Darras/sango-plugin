@@ -19,8 +19,6 @@
 
 #include "common.h"
 #include "core/native/data_manager.h"
-#include "overworld/constant/map.h"
-#include "overworld/constant/model.h"
 #include "overworld/native/model.h"
 #include "overworld/native/model_resource.h"
 #include "renderer/native/h3d_resource.h"

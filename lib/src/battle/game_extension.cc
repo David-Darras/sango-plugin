@@ -31,7 +31,7 @@
 #include "battle/constant/priority_tier.h"
 #include "battle/constant/status_condition.h"
 #include "battle/constant/weather.h"
-#include "pokemon/native/global_data/move.h"
+#include "pokemon/native/move_data.h"
 
 namespace battle {
 // ----------------------------------------------------------------------
@@ -81,7 +81,7 @@ static void RadioactiveDrizzleReaction(Listener* self,
   auto* form = static_cast<ChangeFormMutation*>(
     controller->Create(MutationKind::kChangeForm, owner));
   form->target_id = owner;
-  form->form = Form::kRotomFan;
+  form->form = FormId::kRotomFan;
   controller->Apply(form);
 
   auto* type = static_cast<ChangeTypeMutation*>(
@@ -159,7 +159,7 @@ static void SolarFlareSunReaction(Listener* self,
                          true);
 }
 
-static void PatchAbsoluteZeroData(global_data::Move& move) {
+static void PatchAbsoluteZeroData(pokemon::MoveData& move) {
   move.power = 0;
   move.accuracy = 100;
   move.base_pp = 50;
@@ -172,7 +172,7 @@ static void PatchAbsoluteZeroData(global_data::Move& move) {
   move.damage_category = 1;
 }
 
-static void PatchSolarFlareData(global_data::Move& move) {
+static void PatchSolarFlareData(pokemon::MoveData& move) {
   move.power = 0;
   move.accuracy = 100;
   move.base_pp = 50;
@@ -290,7 +290,7 @@ u32 GameExtension::LoadMoveData(uptr self, MoveId move_id) {
 
   if (spec != nullptr) {
     if (spec->patch_data != nullptr) {
-      auto& move = *(global_data::Move*)(READ32(self + 8));
+      auto& move = *(pokemon::MoveData*)(READ32(self + 8));
       spec->patch_data(move);
     }
     WRITE16(self + 4, static_cast<u16>(move_id));

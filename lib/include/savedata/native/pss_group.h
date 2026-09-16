@@ -17,6 +17,7 @@
 
 #pragma once
 
+#include "common.h"
 #include "core/types.h"
 #include "savedata/native/pss_user_data.h"
 

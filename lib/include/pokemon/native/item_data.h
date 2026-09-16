@@ -21,15 +21,15 @@
 #include "pokemon/constant/item.h"
 #include "core/native/game_manager.h"
 
-namespace global_data {
-struct Item {
-  INLINE Item(const ItemId id) {
-    ((void(*)(Item*, ItemId, void*))pokemon::address::kGlobalDataItemInitialize)
+namespace pokemon {
+struct ItemData {
+  INLINE ItemData(const ItemId id) {
+    ((void(*)(ItemData*, ItemId, void*))address::kItemDataInitialize)
         (this, id, core::GameManager::GetInstance().GetSystemHeap());
   }
 
   INLINE void GetName(String* str) {
-    ((void(*)(Item*, String*, void*))pokemon::address::kGlobalDataItemGetName)
+    ((void(*)(ItemData*, String*, void*))address::kItemDataGetName)
         (this, str, core::GameManager::GetInstance().GetSystemHeap());
   }
 
@@ -119,4 +119,4 @@ struct Item {
   ItemId id;
   u16 _2;
 };
-} // namespace global_data
+} // namespace pokemon

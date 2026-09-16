@@ -16,15 +16,11 @@
  */
 
 #include "core/patch/app_launcher.h"
-#include "battle/patch/setup.h"
 #include "core/patch/game_speed.h"
 #include "overworld/patch/camera.h"
 #include "overworld/patch/field_move.h"
 #include "overworld/patch/field.h"
-#include "overworld/native/encounter_state.h"
-#include "savedata/native/event_table.h"
 #include "savedata/native/misc.h"
-#include "savedata/native/savedata.h"
 #include "system/native/sound.h"
 #include "ui/main_application.h"
 #include "ui/page/pages.h"
@@ -70,9 +66,6 @@ static void LoadHmPage(MainApplication& app, void* args) {
 }
 
 void LoadMenuPage(MainApplication& app, void* args) {
-  // Kaizo mode only exposes this single page (no access to the full
-  // Overworld/Battle menu tree), so it keeps its own direct camera state
-  // control rather than pointing to the dedicated Overworld > Camera page.
   static const c8* CAMERA_STATES[] = {
       "Idle", "Tps", "Rotate", "Top", "Fpv", "Free"
   };

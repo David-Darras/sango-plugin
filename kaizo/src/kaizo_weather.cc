@@ -16,7 +16,6 @@
  */
 
 #include "core/utils.h"
-#include "overworld/patch/player_cheats.h"
 #include "overworld/patch/weather_override.h"
 #include "overworld/constant/weather.h"
 #include "overworld/native/weather_manager.h"

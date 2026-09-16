@@ -18,12 +18,12 @@
 #include "common.h"
 #include "pokemon/constant/move.h"
 #include "pokemon/constant/species.h"
-#include "pokemon/native/global_data/movepool.h"
-#include "pokemon/native/global_data/pokemon.h"
-#include "pokemon/native/global_data/technical_machine.h"
+#include "pokemon/native/movepool.h"
+#include "pokemon/native/species_data.h"
+#include "pokemon/native/technical_machine_table.h"
 
 namespace kaizo {
-static const MoveId TM_MOVES[100] =
+static constexpr MoveId TM_MOVES[100] =
 {
     MoveId::kStealthRock, MoveId::kToxicSpikes, MoveId::kStickyWeb,
     MoveId::kRapidSpin, MoveId::kDefog, MoveId::kTrickRoom, MoveId::kTailwind,
@@ -36,26 +36,37 @@ static const MoveId TM_MOVES[100] =
     MoveId::kCalmMind, MoveId::kDragonDance, MoveId::kBulkUp, MoveId::kCoil,
     MoveId::kShellSmash, MoveId::kQuiverDance, MoveId::kAgility,
     MoveId::kAutotomize, MoveId::kProtect,
-    MoveId::kSubstitute, MoveId::kBatonPass, MoveId::kExtremeSpeed, MoveId::kSuckerPunch,
-    MoveId::kBulletPunch, MoveId::kMachPunch, MoveId::kIceShard, MoveId::kAquaJet,
+    MoveId::kSubstitute, MoveId::kBatonPass, MoveId::kExtremeSpeed,
+    MoveId::kSuckerPunch,
+    MoveId::kBulletPunch, MoveId::kMachPunch, MoveId::kIceShard,
+    MoveId::kAquaJet,
     MoveId::kShadowSneak, MoveId::kFakeOut, MoveId::kVacuumWave, MoveId::kUTurn,
     MoveId::kVoltSwitch, MoveId::kEarthquake,
-    MoveId::kCloseCombat, MoveId::kSuperpower, MoveId::kKnockOff, MoveId::kFacade,
+    MoveId::kCloseCombat, MoveId::kSuperpower, MoveId::kKnockOff,
+    MoveId::kFacade,
     MoveId::kBodySlam, MoveId::kReturn, MoveId::kDrainPunch, MoveId::kCrunch,
-    MoveId::kNightSlash, MoveId::kIronHead, MoveId::kMeteorMash, MoveId::kStoneEdge,
-    MoveId::kRockSlide, MoveId::kRockBlast, MoveId::kBraveBird, MoveId::kAcrobatics,
-    MoveId::kWaterfall, MoveId::kIronTail, MoveId::kPoisonJab, MoveId::kGunkShot,
-    MoveId::kCrossPoison, MoveId::kSeedBomb, MoveId::kPowerWhip, MoveId::kWoodHammer,
-    MoveId::kBulletSeed, MoveId::kFlareBlitz, MoveId::kOutrage, MoveId::kIceBeam,
-    MoveId::kThunderbolt, MoveId::kFlamethrower, MoveId::kFireBlast, MoveId::kOverheat,
+    MoveId::kNightSlash, MoveId::kIronHead, MoveId::kMeteorMash,
+    MoveId::kStoneEdge,
+    MoveId::kRockSlide, MoveId::kRockBlast, MoveId::kBraveBird,
+    MoveId::kAcrobatics,
+    MoveId::kWaterfall, MoveId::kIronTail, MoveId::kPoisonJab,
+    MoveId::kGunkShot,
+    MoveId::kCrossPoison, MoveId::kSeedBomb, MoveId::kPowerWhip,
+    MoveId::kWoodHammer,
+    MoveId::kBulletSeed, MoveId::kFlareBlitz, MoveId::kOutrage,
+    MoveId::kIceBeam,
+    MoveId::kThunderbolt, MoveId::kFlamethrower, MoveId::kFireBlast,
+    MoveId::kOverheat,
     MoveId::kSurf, MoveId::kScald, MoveId::kHydroPump, MoveId::kDracoMeteor,
-    MoveId::kDragonPulse, MoveId::kEarthPower, MoveId::kFlashCannon, MoveId::kGigaDrain,
-    MoveId::kHurricane, MoveId::kPlayRough, MoveId::kMoonblast, MoveId::kPsychic,
+    MoveId::kDragonPulse, MoveId::kEarthPower, MoveId::kFlashCannon,
+    MoveId::kGigaDrain,
+    MoveId::kHurricane, MoveId::kPlayRough, MoveId::kMoonblast,
+    MoveId::kPsychic,
     MoveId::kDarkPulse
 };
 
 void PatchTechnicalMoves() {
-  auto* table = global_data::TechnicalMachine::GetTable();
+  auto* table = pokemon::TechnicalMachineTable::GetTable();
   for (u32 i = 0; i < SIZE(TM_MOVES); i++) {
     table[i] = TM_MOVES[i];
   }
@@ -63,9 +74,9 @@ void PatchTechnicalMoves() {
        species_id <= static_cast<u16>(SpeciesId::kVolcanion);
        species_id++) {
     const auto species = static_cast<SpeciesId>(species_id);
-    const Form form = Form::kNormal;
-    auto& movepool = global_data::Movepool::GetInstance(species, form);
-    auto& pokemon = global_data::Pokemon::GetInstance(species, form);
+    const FormId form = FormId::kNormal;
+    auto& movepool = pokemon::Movepool::GetInstance(species, form);
+    auto& pokemon = pokemon::SpeciesData::GetInstance(species, form);
     for (u32 tm_index = 0; tm_index < SIZE(TM_MOVES); tm_index++) {
       u32* tm_bits = &pokemon.technical_moves[0];
       u32 array_index = tm_index / 32;

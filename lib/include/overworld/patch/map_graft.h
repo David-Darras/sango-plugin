@@ -19,10 +19,9 @@
 
 #include "common.h"
 #include "overworld/constant/map.h"
-#include "overworld/constant/position_kind.h"
 #include "overworld/native/character_placement.h"
-#include "overworld/native/map_data.h"
 #include "overworld/native/map_event_data.h"
+#include "overworld/native/map_settings.h"
 
 namespace overworld {
 struct WorldLayout;
@@ -41,6 +40,23 @@ struct MapLinkRequest {
   u16 tile_x = 0;
   u16 tile_z = 0;
 };
+
+
+// Example :
+// overworld::MapGraft::Attach(MapId::kLittlerootTown, overworld::Facing::kUp,
+//                           MapId::kOldaleTown);
+// overworld::MapGraft::Link(MapId::kOldaleTown, overworld::Facing::kUp,
+//                         MapId::kRustboroCity, 125, 238);
+// overworld::MapGraft::Link(MapId::kRustboroCity, overworld::Facing::kDown,
+//                         MapId::kOldaleTown, 100, 121);
+// overworld::MapGraft::Link(MapId::kRustboroCity, overworld::Facing::kRight,
+//                         MapId::kPetalburgCity, 80, 126);
+// overworld::MapGraft::Link(MapId::kPetalburgCity, overworld::Facing::kLeft,
+//                         MapId::kRustboroCity, 159, 173);
+// overworld::MapGraft::Link(MapId::kPetalburgCity, overworld::Facing::kRight,
+//                         MapId::kFallarborTown, 160, 102);
+// overworld::MapGraft::Link(MapId::kFallarborTown, overworld::Facing::kLeft,
+//                         MapId::kVerdanturfTown, 119, 102);
 
 class MapGraft {
   MAKE_SINGLETON(MapGraft)

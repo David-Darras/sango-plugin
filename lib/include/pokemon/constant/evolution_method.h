@@ -27,8 +27,8 @@ enum class EvolutionMethod : u8 {
   kFriendship = 1, // Level up with high Friendship
   kFriendshipDay = 2, // Level up with high Friendship during the day
   kFriendshipNight = 3, // Level up with high Friendship at night
-  kLevelUp = 4, // Level up
-  kTrade = 5, // Trade
+  kLevelUp = 4,
+  kTrade = 5,
   kTradeItem = 6, // Trade holding a specific item
   kTradeSpecific = 7, // Trade for a specific Pokémon (Karrablast/Shelmet)
   kItem = 8, // Use an item (Evolution Stones)

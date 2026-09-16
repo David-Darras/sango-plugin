@@ -20,7 +20,7 @@
 
 namespace battle {
 enum class FieldEffectKind : u8 {
-  kWeather, ///< The field is currently under a weather effect
+  kWeather,
   kTrickRoom,
   kGravity,
   kImprison, ///< Blocks the caster's opponents from using any move the caster itself knows

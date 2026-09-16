@@ -17,30 +17,35 @@
 
 #pragma once
 
+#include <cstddef>
+
 #include "common.h"
 
 namespace pokemon {
-struct ItemData;
-}
+struct EvolutionTable;
+struct MegaEvolutionTable;
+struct SpeciesData;
 
-namespace pokemon {
+struct Database {
+  STATIC_INLINE Database& GetInstance() {
+    return *(Database*)address::kDatabase;
+  }
 
-class ItemCustomizer {
-  MAKE_SINGLETON(ItemCustomizer)
-
-public:
-  bool remove_limit = false;
-
-  /// Lets a product rewrite an item's data every time the game reads it.
-  typedef void (*ItemDataCallback)(ItemData* item);
-  ItemDataCallback on_item_data = nullptr;
-
-  static void Initialize();
-
-private:
-  /* The first instructions use the pc register so we have to rewrite all the code */
-  static u32 GetParamHook(ItemData* item, u32 param_id);
-  static s32 GetParam(const ItemData* item, s32 param_id);
+  SpeciesData* species;
+  void* _0[2];
+  Message* ability_names;
+  Message* ability_descriptions;
+  void* _1[9];
+  EvolutionTable* evolution;
+  void* _2[2];
+  MegaEvolutionTable* mega_evolution;
+  void* _3[9];
+  Message* move_names;
 };
 
+static_assert(offsetof(Database, ability_names) == 0x0C &&
+              offsetof(Database, evolution) == 0x38 &&
+              offsetof(Database, mega_evolution) == 0x44 &&
+              offsetof(Database, move_names) == 0x6C,
+              "Database must match the game's pml::Library layout");
 } // namespace pokemon

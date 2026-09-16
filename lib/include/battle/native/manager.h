@@ -21,13 +21,6 @@
 #include "battle/native/pokemon.h"
 #include "battle/native/process.h"
 #include "battle/native/team.h"
-#include "pokemon/constant/ability.h"
-#include "pokemon/constant/form.h"
-#include "pokemon/constant/gender.h"
-#include "pokemon/constant/item.h"
-#include "pokemon/constant/move.h"
-#include "pokemon/constant/species.h"
-#include "pokemon/constant/type.h"
 
 namespace sys {
 class Device;

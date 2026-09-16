@@ -37,10 +37,6 @@
 #include "ui/patch/title_screen.h"
 
 namespace {
-/* ---------------------------------------------------------
-Where the hack plugs into the library's features.
---------------------------------------------------------- */
-
 bool IsCaptureAllowed() { return !kaizo::CapturedEvent::Check(); }
 
 void OnCaptured() { kaizo::CapturedEvent::Set(); }

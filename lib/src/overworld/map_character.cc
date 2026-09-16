@@ -17,7 +17,6 @@
 
 #include "overworld/patch/map_character.h"
 #include "core/hook_manager.h"
-#include "core/native/game_manager.h"
 #include "core/native/process_manager.h"
 #include "overworld/native/character_placement.h"
 #include "overworld/native/map_manager.h"

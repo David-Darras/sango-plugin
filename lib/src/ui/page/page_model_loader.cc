@@ -15,13 +15,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "pokemon/patch/model_loader.h"
-#include "core/native/data_manager.h"
 #include "core/native/process_manager.h"
-#include "pokemon/constant/form.h"
 #include "overworld/constant/model.h"
-#include "pokemon/constant/species.h"
 #include "overworld/native/model_manager.h"
+#include "pokemon/constant/form.h"
+#include "pokemon/constant/species.h"
+#include "pokemon/patch/model_loader.h"
 #include "renderer/native/h3d_shader_model.h"
 #include "savedata/native/pokemon_team.h"
 #include "ui/log_application.h"
@@ -34,7 +33,7 @@ namespace {
 struct Settings {
   ModelId model_id = ModelId::kStevenStone;
   SpeciesId species = SpeciesId::kSwalot;
-  Form form = Form::kNormal;
+  FormId form = FormId::kNormal;
   bool is_shiny = true;
   f32 scale = 1.0f;
   f32 distance = 0.0f;
@@ -93,7 +92,7 @@ void Spawn1stPokemon(void*) {
   auto& pkm = *team.pokemons[0];
   pkm.accessor->Decrypt();
   SpeciesId species = pkm.core->species;
-  Form form = pkm.core->form;
+  FormId form = pkm.core->form;
   bool is_shiny = pokemon::Utils::IsShiny(pkm.core->id, pkm.core->shiny_id);
   if (pokemon::ModelLoader::LoadPokemon(&g_my_1st_pokemon, species,
                                         form, is_shiny,
@@ -117,7 +116,7 @@ void LoadModelLoaderPage(MainApplication& app, void* args) {
      .Add("Spawn Pokemon", SpawnPokemon)
      .AddSpecies("Species", settings.species)
      .WithBounds(1, static_cast<u32>(SpeciesId::kVolcanion))
-     .Add("Form", settings.form)
+     .Add("FormId", settings.form)
      .WithBounds(0, 30)
      .Add("Shiny", settings.is_shiny)
      .AddSeparator()
@@ -125,8 +124,6 @@ void LoadModelLoaderPage(MainApplication& app, void* args) {
      .WithFactor(0.1f)
      .Add("Distance", settings.distance)
      .WithFactor(1.0f);
-  //.AddSeparator()
-  //.Add("Clear spawned", ClearModels);
 }
 } // namespace ui
 

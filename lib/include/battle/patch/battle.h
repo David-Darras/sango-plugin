@@ -22,7 +22,7 @@
 #include "common.h"
 #include "battle/native/entry_animation_data.h"
 #include "battle/native/level_up_data.h"
-#include "battle/native/manager.h"
+#include "battle/native/team.h"
 
 namespace battle {
 

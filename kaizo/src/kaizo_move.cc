@@ -15,29 +15,29 @@
  * along with this program.  If not, see <https:
  */
 
-#include "pokemon/native/global_data/move.h"
+#include "pokemon/native/move_data.h"
 #include "pokemon/constant/move.h"
 
 namespace kaizo {
 void PatchMoveData() {
-  global_data::Move::GetInstance(MoveId::kAcupressure).base_pp = 2;
-  global_data::Move::GetInstance(MoveId::kDragonDance).base_pp = 1;
-  global_data::Move::GetInstance(MoveId::kSwordsDance).base_pp = 1;
-  global_data::Move::GetInstance(MoveId::kNastyPlot).base_pp = 1;
-  global_data::Move::GetInstance(MoveId::kAgility).base_pp = 1;
-  global_data::Move::GetInstance(MoveId::kRockPolish).base_pp = 2;
-  global_data::Move::GetInstance(MoveId::kMinimize).base_pp = 1;
-  global_data::Move::GetInstance(MoveId::kDoubleTeam).base_pp = 2;
-  global_data::Move::GetInstance(MoveId::kBulkUp).base_pp = 2;
-  global_data::Move::GetInstance(MoveId::kCalmMind).base_pp = 2;
-  global_data::Move::GetInstance(MoveId::kQuiverDance).base_pp = 1;
-  global_data::Move::GetInstance(MoveId::kAmnesia).base_pp = 1;
-  global_data::Move::GetInstance(MoveId::kTailGlow).base_pp = 1;
-  global_data::Move::GetInstance(MoveId::kCottonGuard).base_pp = 1;
-  global_data::Move::GetInstance(MoveId::kAcidArmor).base_pp = 1;
-  global_data::Move::GetInstance(MoveId::kStockpile).base_pp = 2;
-  global_data::Move::GetInstance(MoveId::kCurse).base_pp = 2;
-  global_data::Move::GetInstance(MoveId::kSubstitute).base_pp = 2;
-  global_data::Move::GetInstance(MoveId::kProtect).base_pp = 2;
+  pokemon::MoveData::GetInstance(MoveId::kAcupressure).base_pp = 2;
+  pokemon::MoveData::GetInstance(MoveId::kDragonDance).base_pp = 1;
+  pokemon::MoveData::GetInstance(MoveId::kSwordsDance).base_pp = 1;
+  pokemon::MoveData::GetInstance(MoveId::kNastyPlot).base_pp = 1;
+  pokemon::MoveData::GetInstance(MoveId::kAgility).base_pp = 1;
+  pokemon::MoveData::GetInstance(MoveId::kRockPolish).base_pp = 2;
+  pokemon::MoveData::GetInstance(MoveId::kMinimize).base_pp = 1;
+  pokemon::MoveData::GetInstance(MoveId::kDoubleTeam).base_pp = 2;
+  pokemon::MoveData::GetInstance(MoveId::kBulkUp).base_pp = 2;
+  pokemon::MoveData::GetInstance(MoveId::kCalmMind).base_pp = 2;
+  pokemon::MoveData::GetInstance(MoveId::kQuiverDance).base_pp = 1;
+  pokemon::MoveData::GetInstance(MoveId::kAmnesia).base_pp = 1;
+  pokemon::MoveData::GetInstance(MoveId::kTailGlow).base_pp = 1;
+  pokemon::MoveData::GetInstance(MoveId::kCottonGuard).base_pp = 1;
+  pokemon::MoveData::GetInstance(MoveId::kAcidArmor).base_pp = 1;
+  pokemon::MoveData::GetInstance(MoveId::kStockpile).base_pp = 2;
+  pokemon::MoveData::GetInstance(MoveId::kCurse).base_pp = 2;
+  pokemon::MoveData::GetInstance(MoveId::kSubstitute).base_pp = 2;
+  pokemon::MoveData::GetInstance(MoveId::kProtect).base_pp = 2;
 }
 } // namespace kaizo

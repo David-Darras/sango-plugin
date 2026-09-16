@@ -20,9 +20,8 @@
 #include <types.h>
 
 namespace battle {
-
 enum class MutationMessageId : u16 {
+  // TODO
   kCount
 };
-
 } // namespace battle

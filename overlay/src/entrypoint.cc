@@ -20,13 +20,13 @@
  * editing the game while it runs.
  */
 
-#include "overworld/patch/map_graft.h"
-#include "overworld/constant/map.h"
-#include "overlay/scripts.h"
 #include "plugin.h"
-#include "core/patch/archive.h"
 #include "ui/page/pages.h"
 #include "ui/painter.h"
+
+namespace script {
+void Install();
+}
 
 static void EveryFrame() {
   plugin::UpdateFrame();
@@ -36,22 +36,6 @@ static void EveryFrame() {
 
 void Initialize() {
   plugin::InitializeEngine();
-
-  // Work in progress: stitching Hoenn towns together.
-  // overworld::MapGraft::Attach(MapId::kLittlerootTown, overworld::Facing::kUp,
-  //                           MapId::kOldaleTown);
-  // overworld::MapGraft::Link(MapId::kOldaleTown, overworld::Facing::kUp,
-  //                         MapId::kRustboroCity, 125, 238);
-  // overworld::MapGraft::Link(MapId::kRustboroCity, overworld::Facing::kDown,
-  //                         MapId::kOldaleTown, 100, 121);
-  // overworld::MapGraft::Link(MapId::kRustboroCity, overworld::Facing::kRight,
-  //                         MapId::kPetalburgCity, 80, 126);
-  // overworld::MapGraft::Link(MapId::kPetalburgCity, overworld::Facing::kLeft,
-  //                         MapId::kRustboroCity, 159, 173);
-  // overworld::MapGraft::Link(MapId::kPetalburgCity, overworld::Facing::kRight,
-  //                         MapId::kFallarborTown, 160, 102);
-  // overworld::MapGraft::Link(MapId::kFallarborTown, overworld::Facing::kLeft,
-  //                         MapId::kVerdanturfTown, 119, 102);
 
   script::Install();
 

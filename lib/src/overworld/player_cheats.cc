@@ -21,7 +21,6 @@
 #include "core/native/process_manager.h"
 #include "overworld/native/model_manager.h"
 #include "system/native/controller.h"
-#include "system/native/device.h"
 
 namespace overworld {
 

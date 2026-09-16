@@ -20,12 +20,6 @@
 #include "savedata/native/savedata.h"
 
 namespace savedata {
-/**
-* @struct Misc
-* @brief Container for general player progress and metadata.
-* * This structure holds various information such as currency, badges,
-* the rival's name, and unlock flags for game mechanics.
-*/
 struct Misc {
   SINGLETON(Misc)
   STATIC_INLINE Misc& GetInstance() {
@@ -40,25 +34,20 @@ struct Misc {
     return count;
   }
 
-  /// @brief Maximum character length for nicknames.
   static constexpr u32 kNicknameLength = 13;
 
-  void* vtable; ///< Pointer to the virtual method table.
-  u32 padding0; ///< Alignment padding.
-  u64 random_value; ///< Seed or value used for RNG-related save state.
+  void* vtable;
+  u32 padding0;
+  u64 random_value;
 
-  u32 money; ///< Current amount of player currency.
-  u32 badges; ///< Bitmask or count of obtained gym badges.
+  u32 money;
+  u32 badges;
 
-  /**
-* @brief The name assigned to the rival character.
-* Stored as a 16-bit character array (UTF-16/UCS-2).
-*/
   c16 rival_nickname[kNicknameLength];
-  c16 padding1; ///< Alignment padding after nickname.
+  c16 padding1;
 
-  u32 flags; ///< General purpose game state flags.
-  u32 battle_points; ///< Currency earned from battle facilities.
+  u32 flags;
+  u32 battle_points;
 
   /**
 * @brief Bitmask tracking encountered Mega Evolutions.

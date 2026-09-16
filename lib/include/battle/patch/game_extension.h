@@ -20,6 +20,7 @@
 #include "battle/native/listener.h"
 #include "pokemon/constant/ability.h"
 #include "pokemon/constant/move.h"
+#include "pokemon/native/database.h"
 
 // Plugin-defined extensions to the game's ability / move ID spaces. They are
 // not part of the vanilla tables in pokemon/constant, so they are declared
@@ -30,8 +31,8 @@ constexpr AbilityId kAbilityRealityWarp = static_cast<AbilityId>(253);
 constexpr MoveId kMoveAbsoluteZero = static_cast<MoveId>(863);
 constexpr MoveId kMoveSolarFlare = static_cast<MoveId>(864);
 
-namespace global_data {
-struct Move;
+namespace pokemon {
+struct MoveData;
 }
 
 namespace battle {
@@ -49,7 +50,7 @@ struct MoveSpec {
   MoveId id;
   const c16* name;
   const c16* description;
-  void (*patch_data)(global_data::Move& move);
+  void (*patch_data)(pokemon::MoveData& move);
   void (*patch_animation)(u32& id, bool& is_move);
   const ReactionTable* reactions;
   u32 reaction_count;
@@ -83,15 +84,15 @@ private:
   static void GetAbilityDescriptionHook(String* output, AbilityId ability);
 
   STATIC_INLINE Message& GetAbilityName() {
-    return *(Message*)READ32(pokemon::address::kGlobalDataAbilityNameMessage);
+    return *pokemon::Database::GetInstance().ability_names;
   }
 
   STATIC_INLINE Message& GetAbilityDescription() {
-    return *(Message*)READ32(pokemon::address::kGlobalDataAbilityDescriptionMessage);
+    return *pokemon::Database::GetInstance().ability_descriptions;
   }
 
-  static Message& GetMoveName() {
-    return *(Message*)READ32(pokemon::address::kGlobalDataMoveNameMessage);
+  STATIC_INLINE Message& GetMoveName() {
+    return *pokemon::Database::GetInstance().move_names;
   }
 };
 

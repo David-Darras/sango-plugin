@@ -22,7 +22,6 @@
 
 #include "common.h"
 #include "system/native/controller.h"
-#include "system/native/device.h"
 #include "system/native/graphics.h"
 #include "ui/application.h"
 

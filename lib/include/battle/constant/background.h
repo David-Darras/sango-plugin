@@ -19,7 +19,6 @@
 
 #include <types.h>
 
-
 namespace battle {
 
 enum class BackgroundId : u8 {

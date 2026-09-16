@@ -19,11 +19,6 @@
 #include <types.h>
 
 namespace battle {
-// The exact slot a Pokémon occupies on the field - distinct from UID (which
-// Pokémon), needed for anything that depends on physical position: spread
-// moves, targeting in Double/Triple Battles, adjacency checks. These ids are
-// used as raw array indices elsewhere, so don't reorder them.
-// Slots 3-4 only exist in Triple Battles.
 enum class FieldPosition : u8 {
   kFirstSideSlot0, ///< The player's side in single-player, the server's side in online play
   kSecondSideSlot0,
@@ -35,7 +30,6 @@ enum class FieldPosition : u8 {
   kSecondSideSlot3,
   kFirstSideSlot4,
   kSecondSideSlot4,
-
   kCount,
   kNone = kCount,
 };

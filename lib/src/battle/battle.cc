@@ -18,12 +18,12 @@
 #include "battle/patch/battle.h"
 
 #include "battle/native/manager.h"
-#include "battle/native/pokemon.h"
 #include "battle/patch/game_extension.h"
 #include "battle/patch/type_chart.h"
 #include "core/hook_manager.h"
 #include "overworld/patch/field.h"
 #include "system/native/sound.h"
+#include "pokemon/native/species_data.h"
 
 namespace battle {
 
@@ -240,9 +240,9 @@ void Battle::PatchPokemonSize() {
     if (pkmNum >= 722)
       continue;
 
-    u32 pkmData = READ32(pokemon::address::kGlobalDataPokemonTable) + 0x50 * pkmNum;
-    f32 realSize = (f32)READ16(pkmData + 0x24);
-    f32 defaultSize = (f32)READ16(pkmData + 0x3C);
+    const pokemon::SpeciesData& data = pokemon::SpeciesData::GetTable()[pkmNum];
+    f32 realSize = (f32)data.height;
+    f32 defaultSize = (f32)data.fake_height;
     f32 ratio = realSize / defaultSize;
 
     WRITEF(pkmMdl + 0x34, ratio);

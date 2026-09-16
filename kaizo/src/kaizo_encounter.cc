@@ -19,13 +19,12 @@
 
 #include "common.h"
 #include "core/utils.h"
-#include "overworld/constant/map.h"
-#include "pokemon/constant/species.h"
-#include "overworld/native/map_data.h"
 #include "kaizo/kaizo.h"
+#include "overworld/constant/map.h"
+#include "overworld/native/encounter_data.h"
 #include "overworld/native/map_manager.h"
+#include "pokemon/constant/species.h"
 #include "savedata/native/pokemon_team.h"
-#include "ui/log_application.h"
 
 namespace kaizo {
 static const SpeciesId ROUTE_101[] = {
@@ -122,14 +121,15 @@ static const EncounterEntry s_table[] = {
     {MapId::kRoute104South, SIZE(ROUTE_104_SOUTH), ROUTE_104_SOUTH},
     {MapId::kPetalburgWoods, SIZE(PETALBURG_WOODS), PETALBURG_WOODS},
     {MapId::kRoute104North, SIZE(ROUTE_104_NORTH), ROUTE_104_NORTH},
+    {MapId::kRoute116, SIZE(ROUTE_116), ROUTE_116},
 };
 static const u32 s_table_size = SIZE(s_table);
 
 
 const EncounterEntry* GetEncounterEntry(MapId map_id) {
-  for (u16 i = 0; i < s_table_size; ++i) {
-    if (s_table[i].map_id == map_id) {
-      return &s_table[i];
+  for (const auto& i : s_table) {
+    if (i.map_id == map_id) {
+      return &i;
     }
   }
   return nullptr;
@@ -144,7 +144,7 @@ void PatchEncounterTable(overworld::EncounterData* data) {
   for (overworld::PokeInfoOnAction& info : data->poke_info) {
     if (info.species == SpeciesId::kNone) continue;
     info.species = entry->species[offset];
-    info.form = Form::kNormal;
+    info.form = FormId::kNormal;
     offset = (offset + 1) % 5;
   }
 }
@@ -164,8 +164,9 @@ u8 GetEncounterLevel() {
     pkm.accessor->Encrypt();
   }
 
-  f32 mean = sum / team.count;
-  f32 variance = (sumSq / team.count) - (mean * mean);
+  f32 count = static_cast<f32>(team.count);
+  f32 mean = sum / count;
+  f32 variance = (sumSq / count) - (mean * mean);
   f32 sd = sqrtf(variance > 0.0f ? variance : 0.0f);
 
   sd = sd < 1.0f ? 1.0f : sd;

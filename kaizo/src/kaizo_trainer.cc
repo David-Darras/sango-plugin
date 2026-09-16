@@ -35,8 +35,7 @@
 #include "pokemon/constant/item.h"
 #include "pokemon/constant/nature.h"
 #include "pokemon/constant/species.h"
-#include "pokemon/native/global_data/pokemon.h"
-#include "pokemon/native/data_accessor.h"
+#include "pokemon/native/species_data.h"
 #include "savedata/native/pokemon_team.h"
 #include "ui/log_application.h"
 
@@ -69,14 +68,6 @@ void RestoreTeamAfterBattle() {
   s_count = 0;
 }
 
-// ----------------------------------------------------------------------
-// Trainer data tables.
-//
-// Adding or rebalancing a trainer is a one-line data change. The types and
-// the lookup live in battle::TrainerTeams so a team can also be set without
-// kaizo mode.
-// ----------------------------------------------------------------------
-
 static const TrainerSpec kMaySpec(
     5, Format::kHorde, BackgroundId::kSkyPillarTop,
     GroundId::kSkyPillarTop, PlatformId::kSkyPillarTop,
@@ -84,19 +75,19 @@ static const TrainerSpec kMaySpec(
     {
         {SpeciesId::kWhismur, ItemId::kNone, AbilityId::kRattled, Nature::kModest, false,
          0, 0, 0, 0, 0, 0, MoveId::kNone, MoveId::kNone, MoveId::kNone,
-         MoveId::kNone, Form::kNormal, nullptr, 1},
+         MoveId::kNone, FormId::kNormal, nullptr, 1},
         {SpeciesId::kWhismur, ItemId::kLifeOrb, AbilityId::kSoundproof, Nature::kModest,
          true, 244, 0, 12, 188, 0, 12, MoveId::kHyperVoice, MoveId::kFireBlast,
-         MoveId::kShadowBall, MoveId::kExtrasensory, Form::kNormal, u"Hash"},
+         MoveId::kShadowBall, MoveId::kExtrasensory, FormId::kNormal, u"Hash"},
         {SpeciesId::kWhismur, ItemId::kNone, AbilityId::kRattled, Nature::kModest, false,
          0, 0, 0, 0, 0, 0, MoveId::kNone, MoveId::kNone, MoveId::kNone,
-         MoveId::kNone, Form::kNormal, nullptr, 1},
+         MoveId::kNone, FormId::kNormal, nullptr, 1},
         {SpeciesId::kWhismur, ItemId::kNone, AbilityId::kRattled, Nature::kModest, false,
          0, 0, 0, 0, 0, 0, MoveId::kNone, MoveId::kNone, MoveId::kNone,
-         MoveId::kNone, Form::kNormal, nullptr, 1},
+         MoveId::kNone, FormId::kNormal, nullptr, 1},
         {SpeciesId::kWhismur, ItemId::kNone, AbilityId::kRattled, Nature::kModest, false,
          0, 0, 0, 0, 0, 0, MoveId::kNone, MoveId::kNone, MoveId::kNone,
-         MoveId::kNone, Form::kNormal, nullptr, 1},
+         MoveId::kNone, FormId::kNormal, nullptr, 1},
     });
 
 static const TrainerSpec kRoute102Kid1Spec(
@@ -107,7 +98,7 @@ static const TrainerSpec kRoute102Kid1Spec(
         {SpeciesId::kFurfrou, ItemId::kLeftovers, AbilityId::kFurCoat, Nature::kJolly,
          true, 0, 252, 0, 0, 4, 252, MoveId::kUTurn, MoveId::kThunderWave,
          MoveId::kReturn, MoveId::kSuckerPunch,
-         Form::kFurfrouHeart},
+         FormId::kFurfrouHeart},
         {SpeciesId::kPoochyena, ItemId::kToxicOrb, AbilityId::kQuickFeet, Nature::kJolly,
          true, 0, 236, 0, 0, 36, 236, MoveId::kCrunch, MoveId::kPlayRough,
          MoveId::kFacade, MoveId::kFireFang},
@@ -142,7 +133,6 @@ static const TrainerSpec kRoute102Kid3Spec(
          MoveId::kUTurn},
     });
 
-// Tiana Lass
 static const TrainerSpec kRoute102GirlSpec(
     3, Format::kRotation, BackgroundId::kAbandonedShip,
     GroundId::kAbandonedShip, PlatformId::kShip,
@@ -280,22 +270,20 @@ static const TrainerSpec kRoute104FishermanIvanSpec(
     {
         {SpeciesId::kMagikarp, ItemId::kNone, AbilityId::kRattled, Nature::kJolly, false,
          0, 196, 0, 0, 116, 196, MoveId::kSplash, MoveId::kTackle, MoveId::kFlail,
-         MoveId::kBounce, Form::kNormal, nullptr, 1},
+         MoveId::kBounce, FormId::kNormal, nullptr, 1},
         {SpeciesId::kMagikarp, ItemId::kNone, AbilityId::kRattled, Nature::kJolly, false,
          0, 196, 0, 0, 116, 196, MoveId::kSplash, MoveId::kTackle, MoveId::kFlail,
-         MoveId::kBounce, Form::kNormal, nullptr, 1},
+         MoveId::kBounce, FormId::kNormal, nullptr, 1},
         {SpeciesId::kGyarados, ItemId::kGyaradosite, AbilityId::kIntimidate,
          Nature::kJolly, true, 0, 252, 4, 0, 0, 252, MoveId::kDragonDance,
          MoveId::kCrunch, MoveId::kWaterfall, MoveId::kEarthquake},
         {SpeciesId::kMagikarp, ItemId::kNone, AbilityId::kRattled, Nature::kJolly, false,
          0, 196, 0, 0, 116, 196, MoveId::kSplash, MoveId::kTackle, MoveId::kFlail,
-         MoveId::kBounce, Form::kNormal, nullptr, 1},
+         MoveId::kBounce, FormId::kNormal, nullptr, 1},
         {SpeciesId::kMagikarp, ItemId::kNone, AbilityId::kRattled, Nature::kJolly, false,
          0, 196, 0, 0, 116, 196, MoveId::kSplash, MoveId::kTackle, MoveId::kFlail,
-         MoveId::kBounce, Form::kNormal, nullptr, 1},
+         MoveId::kBounce, FormId::kNormal, nullptr, 1},
     });
-
-////////////////////////////////////////////////////////////////////////////////
 
 static const TrainerSpec kRustboroCityYoungsterJoshSpec(
     4, Format::kDouble, BackgroundId::kRockGymLeader2,
@@ -335,9 +323,6 @@ static const TrainerSpec kRustboroCityYoungsterTommySpec(
          MoveId::kAcrobatics, MoveId::kEarthquake},
     });
 
-// This trainer forces a wild-style battle_type (see the original
-// PatchTrainer_Rustboro_City_Schoolkid_Georgia, which set
-// `config.battle_type = 0;` before calling `config.Set()`).
 static const TrainerSpec kRustboroCitySchoolkidGeorgiaSpec(
     1, Format::kSingle, BackgroundId::kRockGymLeader2,
     GroundId::kRockGymLeader2, PlatformId::kRockGymLeader,
@@ -430,8 +415,8 @@ void PatchTrainer_AI(battle::Config& config) {
 }
 
 u32 GetPokemonBST(pokemon::CoreData* core) {
-  global_data::Pokemon& data =
-      global_data::Pokemon::GetInstance(core->species, core->form);
+  pokemon::SpeciesData& data =
+      pokemon::SpeciesData::GetInstance(core->species, core->form);
   u32 bst = data.base_hp + data.base_attack + data.base_defense +
             data.base_speed + data.base_special_attack +
             data.base_special_defense;

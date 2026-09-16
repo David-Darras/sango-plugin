@@ -20,7 +20,7 @@
 
 namespace battle {
 enum class FriendshipEffect : u8 {
-  kHeart, ///< A heart appears
+  kHeart,
   kTurnToLookAtTrainer,
   kBoth,
 };

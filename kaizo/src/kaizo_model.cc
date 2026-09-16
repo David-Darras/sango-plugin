@@ -15,7 +15,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include "common.h"
-#include "core/hook_manager.h"
 #include "pokemon/patch/mega_evolution.h"
 #include "pokemon/patch/model_replacement.h"
 #include "pokemon/constant/form.h"
@@ -57,36 +56,33 @@ void PatchPokemonModels(PokeInfo* poke_info) {
       break;
     case SpeciesId::kKyogre:
       poke_info->is_shiny = true;
-      poke_info->form = Form::kKyogreAlpha;
+      poke_info->form = FormId::kKyogreAlpha;
       break;
     case SpeciesId::kGroudon:
       poke_info->is_shiny = true;
-      poke_info->form = Form::kGroudonOmega;
+      poke_info->form = FormId::kGroudonOmega;
       break;
     case SpeciesId::kShroomish:
       static u32 count = 0;
       if (count == 0) {
         poke_info->species = SpeciesId::kFurfrou;
-        poke_info->form = Form::kFurfrouHeart;
+        poke_info->form = FormId::kFurfrouHeart;
         poke_info->is_shiny = true;
       } else {
         poke_info->species = SpeciesId::kPikachu;
-        poke_info->form = Form::kPikachuClever;
+        poke_info->form = FormId::kPikachuClever;
         poke_info->is_shiny = true;
       }
       count++;
       break;
     case SpeciesId::kAzurill: {
-      // Skip the mandatory nickname-entry prompt that normally follows
-      // catching/receiving this species.
       constexpr uptr kAddressSkipNameInput = 0x0071E05C;
       WRITE32(kAddressSkipNameInput, 0x03A00003);
-      // Force the gift/starter level to 25 regardless of the game's default.
       constexpr uptr kAddressForceLevel = 0x00719D60;
       constexpr u32 kForcedLevel = 25;
       WRITE32(kAddressForceLevel, 0xE3A00000 | kForcedLevel);
       poke_info->species = SpeciesId::kKeldeo;
-      poke_info->form = Form::kKeldeoResolute;
+      poke_info->form = FormId::kKeldeoResolute;
       poke_info->is_shiny = false;
       break;
     }
@@ -95,12 +91,12 @@ void PatchPokemonModels(PokeInfo* poke_info) {
       break;
     case SpeciesId::kAron:
       poke_info->species = SpeciesId::kMawile;
-      poke_info->form = Form::kMawileMega;
+      poke_info->form = FormId::kMawileMega;
       poke_info->is_shiny = false;
       break;
     case SpeciesId::kPoochyena:
       poke_info->species = SpeciesId::kKadabra;
-      poke_info->form = Form::kNormal;
+      poke_info->form = FormId::kNormal;
       poke_info->is_shiny = false;
       break;
     case SpeciesId::kTropius:
@@ -110,11 +106,12 @@ void PatchPokemonModels(PokeInfo* poke_info) {
       poke_info->species = SpeciesId::kBeldum;
       poke_info->is_shiny = true;
       break;
+    default:
+      break;
   }
 }
 
 static bool is_enabled = false;
-/// How many times the Mime Jr. demo mega evolved (see the model hook).
 static s32 mega_step = 0;
 
 void ShouldReplacePokemonModel(bool no_yes) {
@@ -131,19 +128,19 @@ static void OnPokemonModel(PokeInfo* poke_info) {
     if (mega_step == 1) {
       poke_info->species = SpeciesId::kSmoochum;
       poke_info->is_shiny = false;
-      poke_info->form = Form::kNormal;
+      poke_info->form = FormId::kNormal;
     } else if (mega_step == 2) {
       poke_info->species = SpeciesId::kJynx;
       poke_info->is_shiny = false;
-      poke_info->form = Form::kNormal;
+      poke_info->form = FormId::kNormal;
     } else if (mega_step == 3) {
       poke_info->species = SpeciesId::kGardevoir;
       poke_info->is_shiny = false;
-      poke_info->form = Form::kNormal;
+      poke_info->form = FormId::kNormal;
     } else if (mega_step == 4) {
       poke_info->species = SpeciesId::kGarchomp;
       poke_info->is_shiny = true;
-      poke_info->form = Form::kGarchompMega;
+      poke_info->form = FormId::kGarchompMega;
     }
   }
 }

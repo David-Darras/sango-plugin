@@ -17,11 +17,8 @@
 
 #pragma once
 #include "common.h"
-#include "pokemon/native/core_data.h"
-#include "pokemon/native/data_accessor.h"
-#include "pokemon/native/runtime_data.h"
+#include "core/native/data_manager.h"
 #include "savedata/native/pokemon_param.h"
-#include "savedata/native/savedata.h"
 
 namespace savedata {
 
@@ -36,7 +33,7 @@ struct PokemonTeam {
     for (u32 i = 0; i < count; i++) {
       pokemons[i]->accessor->Decrypt();
       SpeciesId species = pokemons[i]->core->species;
-      Form form = pokemons[i]->core->form;
+      FormId form = pokemons[i]->core->form;
       u32 experience = pokemons[i]->core->experience;
       pokemons[i]->accessor->Encrypt();
       u8 level =
@@ -78,18 +75,4 @@ struct PokemonTeam {
   u8 _0[3];
 };
 
-// struct PokemonTeam {
-//   static PokemonTeam& GetInstance() {
-//     return SaveData::GetInstance().GetPokemonTeam();
-//   }
-//   static constexpr u32 kMaxSlots = 6;
-//
-//   void* vtable;
-//   struct PokemonData {
-//     pokemon::CoreData core;
-//     pokemon::RuntimeData runtime;
-//   } pokemons[kMaxSlots];
-//   u8 count;
-//   u8 pokemon_amie_index;
-// };
 } // namespace savedata

@@ -25,14 +25,8 @@ namespace ui {
 */
 class Numpad {
 public:
-  /**
-* @brief Constructor that initializes button positions and dimensions.
-*/
   Numpad();
 
-  /**
-* @brief Renders the numpad and all its buttons to the screen.
-*/
   void Draw() const;
 
   /**
@@ -41,10 +35,6 @@ public:
 */
   void Update();
 
-  /**
-* @brief Checks if the 'OK' button was pressed and released.
-* @return True if the user confirmed the input.
-*/
   bool IsButtonOkReleased() const;
 
   /**
@@ -55,9 +45,6 @@ public:
   u32 GetInput() const;
 
 private:
-  /**
-* @brief Internal button identifiers for array mapping.
-*/
   enum ButtonId : u8 {
     kButton0 = 0, ///< Number 0
     kButton1, ///< Number 1
@@ -73,7 +60,7 @@ private:
     kButtonCancel, ///< CLR/Cancel action
     kButtonDelete, ///< DEL/Backspace action
     kButtonOk, ///< OK/Confirm action
-    kButtonMax ///< Sentinel for array size
+    kButtonMax
   };
 
   /**
@@ -82,9 +69,6 @@ private:
 */
   void AddDigit(u32 digit);
 
-  /**
-* @brief Removes the last character from the input buffer.
-*/
   void RemoveLastDigit();
 
   /**
@@ -94,8 +78,8 @@ private:
 */
   static u32 UnicodeToInteger(const c16* str);
 
-  Button buttons_[kButtonMax]; ///< Array of interactive buttons.
+  Button buttons_[kButtonMax];
   c16 input_[16]; ///< Internal UTF-16 buffer for digits.
-  s8 cursor_; ///< Current position in the buffer.
+  s8 cursor_;
 };
 } // namespace ui

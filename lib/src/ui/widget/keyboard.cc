@@ -73,17 +73,14 @@ Keyboard::Keyboard() : page_index_(0), cursor_(0) {
 void Keyboard::Draw() const {
   c16 buffer[2] = {0, 0};
 
-  // Draw input area
   buttons_[kButtonInput].Draw(input_, 2, 0);
 
-  // Draw character grid
   c16 ch = page_index_ * kPageSize;
   for (c16 i = 0; i < kPageSize; i++) {
     buffer[0] = ch + i;
     buttons_[kButtonGridStart + i].Draw(buffer, 6, 4);
   }
 
-  // Labels
   buttons_[kButtonPrev10].Draw(u"<<", 6, 4);
   buttons_[kButtonPrev].Draw(u"<", 10, 4);
   buttons_[kButtonDelete].Draw(u"DEL", 12, 4);
@@ -92,7 +89,6 @@ void Keyboard::Draw() const {
   buttons_[kButtonNext].Draw(u">", 10, 4);
   buttons_[kButtonNext10].Draw(u">>", 6, 4);
 
-  // Draw the page num
   c16 page[sys::address::kBufferSize];
   core::Utils::Format(page, u"[u%04X] %d/%d", page_index_ * kPageSize, page_index_,
                 0x10000 / kPageSize);
@@ -112,7 +108,6 @@ void Keyboard::Update() {
     }
   }
 
-  // Navigation logic
   if (buttons_[kButtonPrev].IsReleased()) {
     sys::Sound::PlaySoundEffect(4);
     if (page_index_ > 0) page_index_--;
@@ -133,7 +128,6 @@ void Keyboard::Update() {
     page_index_ += 10;
   }
 
-  // Edit actions
   if (buttons_[kButtonDelete].IsReleased()) {
     sys::Sound::PlaySoundEffect(4);
     RemoveLastChar();

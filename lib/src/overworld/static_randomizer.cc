@@ -37,7 +37,7 @@ void StaticRandomizer::PatchLoad() {
 void StaticRandomizer::RandomizeSpecies(StaticEncounterId id) {
   auto& entry = StaticEncounter::GetInstance(id);
   entry.species = core::Utils::GetRandomEnum<SpeciesId>();
-  entry.form = Form::kNormal;
+  entry.form = FormId::kNormal;
   ui::LogApplication::Print(u"static[%u]=%u", id, entry.species);
 }
 

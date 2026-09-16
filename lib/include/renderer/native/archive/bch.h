@@ -57,7 +57,7 @@ struct Bch {
   // Byte offset of each section, relative to this header
   u32 section_size[kSectionSizeCount]; // Byte size of each section
   u8 flags;
-  u8 _0; // Padding
+  u8 _0;
   u16 pointer_fixup_count; // Number of entries in kPointerFixupTable
 
   INLINE uptr GetSection(SectionType type) const {

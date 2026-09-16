@@ -19,9 +19,7 @@
 
 #include <types.h>
 
-
 namespace battle {
-
 enum class EncounterAnimationId : u8 {
   kNone = 0,
   kWildGeneric = 1,

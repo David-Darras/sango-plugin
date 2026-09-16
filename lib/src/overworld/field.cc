@@ -17,10 +17,8 @@
 
 #include "overworld/patch/field.h"
 #include "core/hook_manager.h"
-#include "overworld/patch/camera.h"
 #include "overworld/patch/day_care.h"
 #include "overworld/patch/gift_pokemon.h"
-#include "overworld/patch/player_cheats.h"
 #include "overworld/patch/run_animation.h"
 #include "overworld/patch/static_randomizer.h"
 #include "overworld/patch/trade.h"
@@ -68,7 +66,6 @@ void Field::PatchLoad() {
   core::HookManager::ForceEnable(HookId::kGetPlayerMovement);
   RunAnimation::PatchLoad();
 
-  // Simulate a button press
   WRITE32(address::kSimulateButtonPress, 0xE1A00000);
 }
 

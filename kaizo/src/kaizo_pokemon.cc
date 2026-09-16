@@ -18,48 +18,48 @@
 #include "pokemon/constant/form.h"
 #include "pokemon/constant/species.h"
 #include "pokemon/constant/ability.h"
-#include "pokemon/native/global_data/pokemon.h"
+#include "pokemon/native/species_data.h"
 
 namespace kaizo {
 void PatchPokemonData() {
   {
-    auto& pkm = global_data::Pokemon::GetInstance(
+    auto& pkm = pokemon::SpeciesData::GetInstance(
         SpeciesId::kGengar,
-        Form::kGengarMega);
+        FormId::kGengarMega);
     pkm.ability[0] = pkm.ability[1] = pkm.ability[2] =
         AbilityId::kInfiltrator;
   }
   {
-    auto& pkm = global_data::Pokemon::GetInstance(
+    auto& pkm = pokemon::SpeciesData::GetInstance(
         SpeciesId::kBlaziken,
-        Form::kBlazikenNormal);
+        FormId::kBlazikenNormal);
     pkm.ability[0] = pkm.ability[1] = pkm.ability[2] =
         AbilityId::kBlaze;
   }
   {
-    auto& pkm = global_data::Pokemon::GetInstance(
+    auto& pkm = pokemon::SpeciesData::GetInstance(
         SpeciesId::kBlaziken,
-        Form::kBlazikenMega);
+        FormId::kBlazikenMega);
     pkm.ability[0] = pkm.ability[1] = pkm.ability[2] =
         AbilityId::kQuickFeet;
   }
   {
-    auto& pkm = global_data::Pokemon::GetInstance(
+    auto& pkm = pokemon::SpeciesData::GetInstance(
         SpeciesId::kKangaskhan,
-        Form::kKangaskhanNormal);
+        FormId::kKangaskhanNormal);
     pkm.base_attack = 100;
   }
   {
-    auto& pkm = global_data::Pokemon::GetInstance(
+    auto& pkm = pokemon::SpeciesData::GetInstance(
         SpeciesId::kLucario,
-        Form::kLucarioMega);
+        FormId::kLucarioMega);
     pkm.base_attack = 145;
     pkm.base_special_attack = 140;
   }
   {
-    auto& pkm = global_data::Pokemon::GetInstance(
+    auto& pkm = pokemon::SpeciesData::GetInstance(
         SpeciesId::kMawile,
-        Form::kMawileMega);
+        FormId::kMawileMega);
     pkm.base_attack = 85;
   }
 }

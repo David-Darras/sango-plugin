@@ -17,17 +17,43 @@
 
 #pragma once
 
-#include "core/types.h"
+#include "common.h"
+#include "pokemon/constant/form.h"
+#include "pokemon/constant/move.h"
 #include "pokemon/constant/species.h"
-#include "pokemon/native/global_data/evolution_data.h"
 
-namespace global_data {
+namespace pokemon {
+class Movepool {
+  SINGLETON(Movepool)
+  STATIC_INLINE Movepool& GetInstance(SpeciesId species, FormId form) {
+    ((void(*)(SpeciesId, FormId))address::kLoadMovepool)(species, form);
+    return *(Movepool*)address::kMovepool;
+  }
 
-struct EvolutionTable {
-  uptr vtable;
+  INLINE bool Contains(MoveId move) const {
+    for (u32 i = 0; i < count; i++) {
+      if (entry[i].move == move) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+public:
+  // 0014EB80
+
   SpeciesId species;
-  u16 _0;
-  EvolutionData* data;
-};
+  FormId form;
+  u8 _0;
 
-} // namespace global_data
+  struct Entry {
+    MoveId move;
+    u8 level;
+    u8 padding;
+  };
+
+  Entry* entry;
+  // MAX = 26
+  u8 count;
+};
+} // namespace pokemon

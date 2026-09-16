@@ -16,7 +16,6 @@
  */
 
 #pragma once
-#include "ui/main_application.h"
 #include "core/native/data_manager.h"
 
 namespace savedata {

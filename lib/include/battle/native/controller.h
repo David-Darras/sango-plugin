@@ -19,10 +19,9 @@
 
 #include "common.h"
 #include "battle/constant/mutation_kind.h"
-#include "battle/constant/situation_key.h"
+#include "battle/constant/mutation_message.h"
 #include "battle/constant/weather.h"
 #include "battle/native/listener.h"
-#include "battle/native/mutation_message.h"
 #include "battle/native/pokemon.h"
 #include "pokemon/constant/item.h"
 #include "pokemon/constant/move.h"

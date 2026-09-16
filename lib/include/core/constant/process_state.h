@@ -21,16 +21,13 @@
 
 namespace core {
 
-/**
- * @brief Execution states for the game processes.
- */
 enum class ProcessState : u32 {
-  kLoading = 0, ///< Process is loading resources.
-  kInitializing, ///< Process is setting up internal data.
-  kRunning, ///< Process is actively updating.
-  kStopped, ///< Process is paused or halted.
-  kCustom, ///< Custom engine-specific state.
-  kMax ///< State count sentinel.
+  kLoading = 0,
+  kInitializing,
+  kRunning,
+  kStopped,
+  kCustom,
+  kMax
 };
 
 } // namespace core

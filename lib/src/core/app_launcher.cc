@@ -17,8 +17,10 @@
 
 #include "core/patch/app_launcher.h"
 #include "core/hook_manager.h"
+#include "core/native/box_app_input.h"
 #include "core/native/game_manager.h"
-#include "pokemon/native/data_accessor.h"
+#include "core/native/move_app_input.h"
+#include "core/native/town_map_app_input.h"
 #include "savedata/native/bag_manager.h"
 #include "savedata/native/battle_box.h"
 #include "savedata/native/box_manager.h"
@@ -43,8 +45,8 @@ constexpr MoveId kTutorMove = MoveId::kDragonAscent;
 
 void AppLauncher::Initialize() {
   // Alloc 0x100 bytes for app hook
-  WRITE32(address::kOverworldMenuAppAllocSize, 0xE3A01C01); // Overworld Menu
-  WRITE32(address::kTopMenuAppAllocSize, 0xE3A01C01); // Top Menu
+  WRITE32(address::kOverworldMenuAppAllocSize, 0xE3A01C01);
+  WRITE32(address::kTopMenuAppAllocSize, 0xE3A01C01);
   HookManager::Initialize(HookId::kCallApp, sys::address::kCallApp,
                           (uptr)CallAppHook);
   HookManager::Initialize(HookId::kCheckAppRequest,

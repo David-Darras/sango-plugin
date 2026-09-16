@@ -24,8 +24,8 @@
 namespace pokemon {
 
 /// The form the plugin gives Mime Jr. when it mega evolves - not one of the
-/// game's own forms, hence a typed constant rather than a Form enumerator.
-constexpr Form kFormMimeJrMega = static_cast<Form>(10);
+/// game's own forms, hence a typed constant rather than a FormId enumerator.
+constexpr FormId kFormMimeJrMega = static_cast<FormId>(10);
 
 class MegaEvolution {
   MAKE_SINGLETON(MegaEvolution)

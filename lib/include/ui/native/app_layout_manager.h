@@ -19,7 +19,6 @@
 
 #include "common.h"
 #include "renderer/native/picture.h"
-#include "ui/log_application.h"
 
 namespace renderer {
 struct TextBox;

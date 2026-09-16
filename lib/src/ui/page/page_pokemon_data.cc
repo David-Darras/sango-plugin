@@ -15,9 +15,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "core/native/time_manager.h"
-#include "pokemon/native/global_data/move.h"
-#include "pokemon/native/global_data/pokemon.h"
+#include "pokemon/native/move_data.h"
+#include "pokemon/native/species_data.h"
 #include "pokemon/data/move.inc"
 #include "ui/main_application.h"
 #include "ui/page/pages.h"
@@ -25,7 +24,7 @@
 namespace ui {
 void LoadMoveDataPage(MainApplication& app, void* args) {
   static MoveId move = MoveId::kNone;
-  auto& data = global_data::Move::GetInstance(move);
+  auto& data = pokemon::MoveData::GetInstance(move);
 
   app.AddMove("Move", move).WithRefresh().AddSeparator();
 
@@ -82,11 +81,11 @@ void LoadMoveDataPage(MainApplication& app, void* args) {
 
 void LoadSpeciesDataPage(MainApplication& app, void* args) {
   static SpeciesId species = SpeciesId::kNone;
-  static Form form = Form::kNormal;
-  auto& data = global_data::Pokemon::GetInstance(species, form);
+  static FormId form = FormId::kNormal;
+  auto& data = pokemon::SpeciesData::GetInstance(species, form);
 
   app.AddSpecies("Species", species).WithRefresh()
-     .Add("Form", form).WithRefresh().AddSeparator();
+     .Add("FormId", form).WithRefresh().AddSeparator();
 
   app.Add("Base HP", data.base_hp)
      .Add("Base Attack", data.base_attack)
@@ -124,7 +123,7 @@ void LoadSpeciesDataPage(MainApplication& app, void* args) {
      .AddAbility("Ability 3 (Hidden)", data.ability[2])
      .Add("Gender", data.gender);
 
-  app.Add("Form Count", data.form_count)
+  app.Add("FormId Count", data.form_count)
      .Add("Egg Hatch Steps", data.egg_hatch_steps);
 }
 } // namespace ui

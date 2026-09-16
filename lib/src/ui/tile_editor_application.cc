@@ -16,12 +16,12 @@
  */
 
 #include "ui/tile_editor_application.h"
+#include "overworld/patch/tile_editor.h"
 
 #include "core/utils.h"
 #include "overworld/native/model_manager.h"
 #include "overworld/native/world_layout.h"
 #include "system/native/controller.h"
-#include "system/native/device.h"
 #include "system/native/graphics.h"
 #include "ui/application_manager.h"
 

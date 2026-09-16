@@ -17,7 +17,6 @@
 
 #pragma once
 
-#include "savedata/native/pss.h"
 #include "core/native/data_manager.h"
 
 namespace savedata {
@@ -45,28 +44,14 @@ struct DayCare;
 struct Fusion;
 struct HallOfFame;
 
-/**
-* @class SaveData
-* @brief Represents the structure and management of the game's save data.
-* * This class provides access to the raw save buffer, the segment pointers,
-* and the integrity-checking Footer.
-*/
 class SaveData {
   SINGLETON(SaveData)
 
 public:
-  /**
-* @brief Accesses the global SaveData instance via the GameDataManager.
-* @return A reference to the active SaveData instance.
-*/
   STATIC_INLINE SaveData& GetInstance() {
     return core::DataManager::GetInstance().GetSavedata();
   }
 
-  /**
-* @brief Retrieves the footer associated with this save data.
-* @return A reference to the Footer object used for integrity validation.
-*/
   INLINE Footer& GetFooter() { return *footer_; }
 
   INLINE Misc& GetMisc() { return *(Misc*)segments_[11]; }
@@ -106,8 +91,6 @@ public:
   INLINE TrainerStatus& GetTrainerStatus() {
     return *(TrainerStatus*)segments_[17];
   }
-
-  // INLINE PokemonTeam& GetPokemonTeam() { return *(PokemonTeam*)segments_[18]; }
 
   INLINE PokemonBox& GetPokemonBox() {
     return *(PokemonBox*)segments_[56];
@@ -150,22 +133,14 @@ public:
   INLINE EventTable& GetEventTable() { return *(EventTable*)segments_[19]; }
 
 
-  /// @brief Total number of data segments monitored for integrity.
   static constexpr u32 kSegmentCount = 58;
 
 private:
-  void* vtable_; ///< Pointer to the virtual method table.
-  Footer* footer_; ///< Pointer to the integrity and checksum footer.
+  void* vtable_;
+  Footer* footer_;
 
-  /**
-* @brief Raw save data buffer.
-* Total size: 0x722C8 bytes.
-*/
   u8 data_[0x722C8];
 
-  /**
-* @brief Array of pointers to specific data segments within the save.
-*/
   void* segments_[kSegmentCount]; ///< Address : 0x08CE0C68
 };
 } // namespace savedata

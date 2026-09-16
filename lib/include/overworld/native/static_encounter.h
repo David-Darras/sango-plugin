@@ -37,7 +37,7 @@ namespace overworld {
 /// event...): what to fight and how to stage the battle.
 struct StaticEncounter {
   SpeciesId species;
-  Form form;
+  FormId form;
   u8 level;
 
   ItemId item;

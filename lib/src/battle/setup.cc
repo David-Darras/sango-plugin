@@ -18,7 +18,6 @@
 #include "battle/patch/setup.h"
 #include "core/hook_manager.h"
 #include "battle/native/config.h"
-#include "pokemon/native/data_accessor.h"
 #include "savedata/native/pokemon_team.h"
 
 namespace battle {

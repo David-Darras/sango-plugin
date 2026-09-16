@@ -17,6 +17,22 @@
 
 #pragma once
 
-namespace script {
-void Install();
-} // namespace script
+#include "core/types.h"
+#include "pokemon/constant/form.h"
+#include "pokemon/constant/item.h"
+#include "pokemon/constant/mega_evolution_method.h"
+
+namespace pokemon {
+
+struct MegaEvolutionData {
+  struct {
+    FormId form;
+    u8 _0;
+    MegaEvolutionMethod method;
+    u8 _1;
+    ItemId item;
+    u16 _2;
+  } entry[3];
+};
+
+} // namespace pokemon

@@ -17,7 +17,6 @@
 
 #include "core/patch/process_patch.h"
 #include "battle/patch/battle.h"
-#include "core/patch/app_launcher.h"
 #include "core/hook_manager.h"
 #include "overworld/patch/field.h"
 #include "ui/patch/app_status.h"

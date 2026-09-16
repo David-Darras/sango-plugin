@@ -18,7 +18,6 @@
 #pragma once
 
 #include "common.h"
-#include "renderer/native/h3d_model.h"
 #include "renderer/native/h3d_resource.h"
 
 namespace renderer {

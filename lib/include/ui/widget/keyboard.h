@@ -26,25 +26,12 @@ namespace ui {
 */
 class Keyboard {
 public:
-  /**
-* @brief Initializes the keyboard layout, buttons, and input buffer.
-*/
   Keyboard();
 
-  /**
-* @brief Renders the input field, the character grid, and navigation buttons.
-*/
   void Draw() const;
 
-  /**
-* @brief Processes touch input and updates the state of all internal buttons.
-*/
   void Update();
 
-  /**
-* @brief Checks if the 'OK' button was pressed and released.
-* @return True if the user confirmed the input.
-*/
   bool IsButtonOkReleased() const;
 
   /**
@@ -60,26 +47,19 @@ private:
 */
   void AddChar(c16 character);
 
-  /**
-* @brief Removes the last character from the input buffer.
-*/
   void RemoveLastChar();
 
-  // Layout Constants
-  static constexpr u32 kColNum = 15; ///< Number of columns in the grid.
-  static constexpr u32 kRowNum = 4; ///< Number of rows in the grid.
-  static constexpr u32 kPageSize = kColNum * kRowNum; ///< Characters per page.
+  static constexpr u32 kColNum = 15;
+  static constexpr u32 kRowNum = 4;
+  static constexpr u32 kPageSize = kColNum * kRowNum;
   static constexpr u32 kBufferSize =
       17; ///< Max string length including null terminator.
 
-  /**
-* @brief Button ID mapping for the internal button array.
-*/
   enum ButtonId : u8 {
     kButtonInput = 0, ///< The text display bar.
     kButtonPrev10, ///< Jump back 10 pages.
-    kButtonPrev, ///< Previous page.
-    kButtonNext, ///< Next page.
+    kButtonPrev,
+    kButtonNext,
     kButtonNext10, ///< Jump forward 10 pages.
     kButtonCancel, ///< Clear (CLR) action.
     kButtonDelete, ///< Backspace (DEL) action.
@@ -88,7 +68,7 @@ private:
     kButtonMax = kButtonGridStart + kPageSize
   };
 
-  Button buttons_[kButtonMax]; ///< Array of all interactive screen regions.
+  Button buttons_[kButtonMax];
   c16 input_[kBufferSize]; ///< UTF-16 input buffer.
   u16 page_index_ : 11; ///< Current Unicode page (supports up to 2048 pages).
   u16 cursor_ : 5; ///< Current character position (0 to 16).

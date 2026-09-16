@@ -17,8 +17,6 @@
 
 #include "renderer/patch/model_filter.h"
 #include "core/hook_manager.h"
-#include "battle/native/config.h"
-#include "battle/native/manager.h"
 #include "core/native/process_manager.h"
 #include "overworld/patch/weather_override.h"
 #include "renderer/native/h3d_model.h"

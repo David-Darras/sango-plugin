@@ -56,7 +56,6 @@
 #include "renderer/patch/text_box_filter.h"
 #include "script/patch/native_script.h"
 #include "system/native/controller.h"
-#include "system/native/device.h"
 #include "system/native/file.h"
 #include "system/native/graphics.h"
 #include "ui/application_manager.h"

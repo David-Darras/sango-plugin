@@ -19,9 +19,7 @@
 
 #include <types.h>
 
-
 namespace battle {
-
 enum class GroundId : u8 {
   kNone = 0,
   kGrass = 1,

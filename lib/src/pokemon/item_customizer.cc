@@ -18,7 +18,7 @@
 #include "pokemon/patch/item_customizer.h"
 
 #include "core/hook_manager.h"
-#include "pokemon/native/global_data/item.h"
+#include "pokemon/native/item_data.h"
 
 namespace pokemon {
 
@@ -37,12 +37,12 @@ void ItemCustomizer::Initialize() {
     WRITE32(address::kItemEvStatLimitCheck6, 0xE35A00FF);
   }
 
-  core::HookManager::Initialize(HookId::kGlobalDataItemGetParam,
-                          address::kGlobalDataItemGetParam,
+  core::HookManager::Initialize(HookId::kItemDataGetParam,
+                          address::kItemDataGetParam,
                           (uptr)GetParamHook);
 }
 
-u32 ItemCustomizer::GetParamHook(global_data::Item* item, u32 param_id) {
+u32 ItemCustomizer::GetParamHook(ItemData* item, u32 param_id) {
   if (!item) return 0;
 
   auto& feat = GetInstance();
@@ -51,7 +51,7 @@ u32 ItemCustomizer::GetParamHook(global_data::Item* item, u32 param_id) {
   return GetParam(item, param_id);
 }
 
-s32 ItemCustomizer::GetParam(const global_data::Item* item, s32 param_id) {
+s32 ItemCustomizer::GetParam(const ItemData* item, s32 param_id) {
   if (!item) return 0;
 
   switch (param_id) {

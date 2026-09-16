@@ -41,7 +41,7 @@ struct SetupSettings {
   GroundId ground = GroundId::kAquaBoss;
   EncounterAnimationId encounter_animation = EncounterAnimationId::kKyogre;
   SpeciesId species = SpeciesId::kKyogre;
-  Form form = Form::kKyogreAlpha;
+  FormId form = FormId::kKyogreAlpha;
   u32 background_music = (1 << 16) + 79;
   f32 money_rate = 1.0f;
   u32 flags = 0;

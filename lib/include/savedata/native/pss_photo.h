@@ -17,7 +17,6 @@
 
 #pragma once
 #include "savedata/native/savedata.h"
-#include "core/native/data_manager.h"
 
 namespace savedata {
 struct PssPhoto {

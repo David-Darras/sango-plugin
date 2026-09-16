@@ -16,11 +16,11 @@
  */
 
 #include "overworld/patch/tile_editor.h"
+#include "overworld/native/map_manager.h"
 #include <cstring>
 #include "core/hook_manager.h"
 #include "core/native/game_manager.h"
 #include "core/native/process_manager.h"
-#include "overworld/native/map_manager.h"
 #include "overworld/native/model_manager.h"
 #include "overworld/native/world_layout.h"
 #include "system/native/file.h"

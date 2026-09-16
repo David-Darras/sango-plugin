@@ -20,10 +20,8 @@
 #include "core/native/event_manager.h"
 #include "core/native/process_manager.h"
 #include "core/patch/device_patch.h"
-#include "core/patch/process_patch.h"
 #include "core/utils.h"
 #include "system/native/controller.h"
-#include "system/native/device.h"
 #include "system/native/graphics.h"
 #include "system/native/sound.h"
 #include "ui/theme.h"
@@ -70,12 +68,12 @@ void MainApplication::DrawBottom(sys::Graphics& graphics) {
   const char* process_name = core::Utils::Unmangle(
       game_manager.GetCurrentProcessName(vtable));
 
-  core::Utils::Format(buffer, u"Process[%08X][%s]", vtable, process_name);
+  core::Utils::Format(buffer, u"Process[%s]", process_name);
   sys::Graphics::DrawText(5, 150, buffer, theme_.unselected_text_color);
 
   const char* event_name = core::Utils::Unmangle(
       core::EventManager::GetInstance().GetCurrentEventName(vtable));
-  core::Utils::Format(buffer, u"Event[%08X][%s]", vtable, event_name);
+  core::Utils::Format(buffer, u"Event[%s]", event_name);
   sys::Graphics::DrawText(5, 170, buffer, theme_.unselected_text_color);
 
   sys::Graphics::SetTextScale(0.5, 0.5);

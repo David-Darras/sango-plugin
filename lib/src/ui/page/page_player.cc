@@ -18,7 +18,6 @@
 #include <utility>
 
 #include "core/patch/app_launcher.h"
-#include "overworld/native/map_manager.h"
 #include "overworld/native/model_manager.h"
 #include "overworld/patch/camera.h"
 #include "overworld/patch/field_move.h"

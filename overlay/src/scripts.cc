@@ -15,8 +15,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "overlay/scripts.h"
-
 #include "script/patch/native_script.h"
 #include "overworld/patch/map_character.h"
 #include "pokemon/constant/item.h"
@@ -38,7 +36,7 @@ void LittlerootGreeter(Context& s) {
     if (s.GetMoney() < amount) {
       s.Talk(u"You don't have enough money!");
     } else {
-      ItemId item = core::Utils::GetRandomEnum<ItemId>();
+      auto item = core::Utils::GetRandomEnum<ItemId>();
       if (s.CanGiveItem(item)) {
         s.SubMoney(amount);
         s.GiveItem(item);

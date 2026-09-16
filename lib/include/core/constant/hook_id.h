@@ -21,10 +21,6 @@
 
 namespace core {
 
-/**
- * @brief Identifiers for specific input-related function hooks.
- * Used by the HookManager to track and manage multiple hooks.
- */
 enum class HookId : u32 {
   kEntrypoint,
   kIsKeyPressed,
@@ -67,8 +63,8 @@ enum class HookId : u32 {
   kAppStatusSetupGraphicsMoves,
   kAppStatusSetupGraphicsContest,
   kAppStatusSetupGraphicsInfos,
-  kLoadEvolveTable,
-  kGlobalDataItemGetParam,
+  kLoadEvolutionTable,
+  kItemDataGetParam,
   kAddPokemonToTeam,
   kGetAbilityName,
   kMessageGetString,
@@ -104,7 +100,7 @@ enum class HookId : u32 {
   kArchiveLoadData,
   kMainProcessLoop,
   kMainEventLoop,
-  kGlobalDataLoadMegaEvolutionTable,
+  kLoadMegaEvolutionTable,
   kParticleCreate,
   kResourceAttachBufferAndSetup,
   kScriptAddPokemonToTeam,

@@ -20,9 +20,6 @@
 #include <types.h>
 
 namespace battle {
-
-/// The game's WazaSick: every condition a move can leave on a Pokémon, the
-/// major ones (paralysis, sleep...) as well as the volatile ones.
 enum class StatusCondition : u8 {
   kNone = 0,
   kParalysis = 1,

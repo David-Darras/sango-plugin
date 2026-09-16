@@ -26,7 +26,7 @@ struct Fato {
   u32 signature; // Identifies the block: 'FATO'
   u32 block_size; // Size of this block only, NOT the whole archive
   u16 file_id_count; // Number of file ids in this archive
-  u16 _0; // Padding
+  u16 _0;
 
   // The file_id_count offsets right after this header, one per file id,
   // each pointing into Fatb's data (past Fatb's own header).
@@ -102,7 +102,7 @@ struct Garc {
   u16 byte_order; // little-endian : 0xFEFF
   u16 version;
   u16 block_count; // Number of blocks after this header
-  u16 _0; // Padding
+  u16 _0;
   // Size of header+Fato+Fatb combined = byte offset where Fimb's data starts
   u32 blocks_before_fimb_size;
   u32 archive_size; // Size of the entire .garc file

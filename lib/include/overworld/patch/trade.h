@@ -18,8 +18,6 @@
 #pragma once
 
 #include "common.h"
-#include "pokemon/constant/form.h"
-#include "pokemon/constant/species.h"
 
 namespace overworld {
 

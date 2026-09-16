@@ -31,7 +31,7 @@ void StarterChoice::PatchLoad() {
 
 void StarterChoice::Apply(PokeInfo* info, SpeciesId species) {
   info->species = species;
-  info->form = Form::kNormal;
+  info->form = FormId::kNormal;
   info->gender = Gender::kMale;
   info->is_shiny = false;
   info->is_egg = false;

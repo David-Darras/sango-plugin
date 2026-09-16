@@ -23,12 +23,19 @@
 #include "pokemon/constant/item.h"
 #include "pokemon/constant/type.h"
 #include "pokemon/constant/species.h"
+#include "pokemon/native/database.h"
 
-namespace global_data {
-struct Pokemon {
-  STATIC_INLINE Pokemon& GetInstance(const SpeciesId species,
-                                     const Form form = Form::kNormal) {
-    Pokemon* table = (Pokemon*)READ32(pokemon::address::kGlobalDataPokemonTable);
+namespace pokemon {
+struct SpeciesData {
+  /// The species table (pml::personal), one row per species then one per
+  /// alternate form.
+  STATIC_INLINE SpeciesData* GetTable() {
+    return Database::GetInstance().species;
+  }
+
+  STATIC_INLINE SpeciesData& GetInstance(const SpeciesId species,
+                                         const FormId form = FormId::kNormal) {
+    SpeciesData* table = GetTable();
 
     // cf. 0x0014EAA0
     const u32 species_index = static_cast<u16>(species);
@@ -72,4 +79,7 @@ struct Pokemon {
   u16 _4;
   u32 _5[4];
 };
-} // namespace global_data
+
+static_assert(sizeof(SpeciesData) == 0x50,
+              "SpeciesData must match the game's personal data layout");
+} // namespace pokemon

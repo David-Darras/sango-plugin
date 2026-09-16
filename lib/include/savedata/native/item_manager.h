@@ -22,42 +22,32 @@
 #include "savedata/native/savedata.h"
 
 namespace savedata {
-/**
-* @brief Manages the player's inventory (Bag) items.
-*/
 struct ItemManager {
   SINGLETON(ItemManager)
-  /** @brief Represents a single item stack in the bag. */
   struct ItemSlot {
-    ItemId id; ///< Item ID.
+    ItemId id;
     u16 count; ///< Quantity held (max 999).
   };
 
-  /** @brief Accessor for the singleton instance. */
   STATIC_INLINE ItemManager& GetInstance() {
     return SaveData::GetInstance().GetItemManager();
   }
 
-  /** @brief Maximum quantity allowed for a single item stack. */
   static constexpr u16 kMaxItemCount = 999;
 
-  /** @brief Pocket Size Constants. */
-  static constexpr u32 kMaxNormalItems = 400; ///< "Items" pocket.
-  static constexpr u32 kMaxMedicine = 64; ///< "Medicine" pocket.
-  static constexpr u32 kMaxTMsHMs = 108; ///< "TMs & HMs" pocket.
-  static constexpr u32 kMaxBerries = 72; ///< "Berries" pocket.
-  static constexpr u32 kMaxKeyItems = 96; ///< "Key Items" pocket.
+  static constexpr u32 kMaxNormalItems = 400;
+  static constexpr u32 kMaxMedicine = 64;
+  static constexpr u32 kMaxTMsHMs = 108;
+  static constexpr u32 kMaxBerries = 72;
+  static constexpr u32 kMaxKeyItems = 96;
 
-  /** @brief Total number of slots across all pockets. */
   static constexpr u32 kTotalSlots =
       kMaxNormalItems + kMaxKeyItems + kMaxTMsHMs + kMaxMedicine + kMaxBerries;
 
   void* vtable;
 
-  /** @brief Raw array containing all items sequentially. */
   ItemSlot items[kTotalSlots];
 
-  // Helper methods to get pocket pointers
   ItemSlot* GetNormalItems() { return &items[0]; }
   ItemSlot* GetKeyItems() { return &items[kMaxNormalItems]; }
   ItemSlot* GetTMsHMs() { return &items[kMaxNormalItems + kMaxKeyItems]; }

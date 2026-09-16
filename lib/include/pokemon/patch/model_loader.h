@@ -49,7 +49,7 @@ public:
 
   static bool LoadOverworldModel(LoadedModel* out, ModelId model_id,
                                  const Vec3& position);
-  static bool LoadPokemon(LoadedModel* out, SpeciesId species, Form form,
+  static bool LoadPokemon(LoadedModel* out, SpeciesId species, FormId form,
                           bool is_shiny, const Vec3& position,
                           Gender gender = Gender::kMale);
   static void DropAll();

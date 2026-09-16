@@ -21,12 +21,10 @@
 #include "overworld/constant/map.h"
 #include "overworld/constant/model.h"
 #include "pokemon/constant/species.h"
-#include "overworld/native/map_manager.h"
 #include "savedata/native/pss_photo.h"
-#include "savedata/native/savedata.h"
 
-namespace global_data {
-struct Item;
+namespace pokemon {
+struct ItemData;
 }
 
 namespace battle {
@@ -105,7 +103,7 @@ extern void PatchTrainerData(battle::Config& config, TrainerId& trainer_id);
 extern void InitializeTrainerTeams();
 extern ModelId PatchOverworldModels(ModelId model, bool is_real_overworld);
 extern void ApplyLevelCaps(battle::Team* team, void* data);
-extern void PatchItemData(global_data::Item* item);
+extern void PatchItemData(pokemon::ItemData* item);
 extern void InitializeModelHook();
 extern void ShouldReplacePokemonModel(bool no_yes);
 extern void PatchStarterView();
@@ -116,9 +114,7 @@ extern u8 GetEncounterLevel();
 extern void SaveTeamBeforeBattle();
 extern void RestoreTeamAfterBattle();
 
-/// Installs the hack's patches and wires it into the library's features.
 extern void Initialize();
 
-/// The hack's menu: a single page.
 extern void LoadMenuPage(ui::MainApplication& app, void* args);
 } // namespace kaizo

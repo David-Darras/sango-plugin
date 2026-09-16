@@ -22,7 +22,7 @@
 #include "pokemon/constant/item.h"
 #include "pokemon/constant/species.h"
 
-namespace global_data {
+namespace pokemon {
 
 struct EvolutionData {
   struct {
@@ -38,4 +38,4 @@ struct EvolutionData {
   } data[8];
 };
 
-} // namespace global_data
+} // namespace pokemon

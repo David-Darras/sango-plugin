@@ -52,7 +52,7 @@ struct TrainerOpponent {
 
   MoveId move1, move2, move3, move4;
 
-  Form form;
+  FormId form;
   const c16* nickname;
   u8 forced_level;
 
@@ -61,7 +61,7 @@ struct TrainerOpponent {
       nature(Nature::kHardy), is_shiny(false), ev_hp(0), ev_attack(0),
       ev_defense(0), ev_sp_attack(0), ev_sp_defense(0), ev_speed(0),
       move1(MoveId::kNone), move2(MoveId::kNone), move3(MoveId::kNone),
-      move4(MoveId::kNone), form(Form::kNormal), nickname(nullptr),
+      move4(MoveId::kNone), form(FormId::kNormal), nickname(nullptr),
       forced_level(0) {
   }
 
@@ -69,7 +69,7 @@ struct TrainerOpponent {
                   bool is_shiny, u8 ev_hp, u8 ev_attack, u8 ev_defense,
                   u8 ev_sp_attack, u8 ev_sp_defense, u8 ev_speed, MoveId move1,
                   MoveId move2, MoveId move3, MoveId move4,
-                  Form form = Form::kNormal, const c16* nickname = nullptr,
+                  FormId form = FormId::kNormal, const c16* nickname = nullptr,
                   u8 forced_level = 0)
     : species(species), item(item), ability(ability), nature(nature),
       is_shiny(is_shiny), ev_hp(ev_hp), ev_attack(ev_attack),

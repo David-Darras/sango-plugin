@@ -50,5 +50,5 @@ static const c8* EVOLVE_CONDITIONS[] = {
   "Weather Rain",
   "Level Up Day",
   "Level Up Night",
-  "Female Form Change"
+  "Female FormId Change"
 };

@@ -18,7 +18,7 @@
 #include "pokemon/patch/custom_shop.h"
 #include "core/hook_manager.h"
 #include "core/utils.h"
-#include "pokemon/native/global_data/gift_pokemon.h"
+#include "pokemon/native/gift_pokemon_data.h"
 #include "pokemon/native/shop_data.h"
 #include "savedata/native/pokemon_team.h"
 #include "ui/log_application.h"
@@ -94,7 +94,7 @@ const ShopPokemon* CustomShop::GetSelectedPokemon() {
 }
 
 bool CustomShop::GivePokemon(const ShopPokemon& entry) {
-  using Gift = global_data::GiftPokemon;
+  using Gift = GiftPokemonData;
 
   auto& param = Gift::GetInstance(kParamSlot);
   const Gift backup = param;

@@ -17,7 +17,6 @@
 
 #include "ui/widget/button.h"
 
-#include "system/native/device.h"
 #include "system/native/graphics.h"
 #include "system/native/touch_screen.h"
 #include "ui/theme.h"

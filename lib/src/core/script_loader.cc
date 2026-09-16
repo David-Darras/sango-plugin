@@ -18,7 +18,6 @@
 #include "core/patch/script_loader.h"
 #include "script/patch/native_script.h"
 #include "core/hook_manager.h"
-#include "overworld/native/map_manager.h"
 #include "script/native/amx.h"
 #include "system/native/file.h"
 #include "ui/log_application.h"

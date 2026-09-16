@@ -42,13 +42,6 @@ public:
     is_initialized_ = false;
   }
 
-  /**
-   * @brief Calls the original, unhooked function through the gateway.
-   * @tparam R    The return type of the original function.
-   * @tparam Args The argument types of the original function.
-   * @param args  The arguments to pass to the original function.
-   * @return      The result of the original function call.
-   */
   template <typename R, typename... Args>
   R CallOriginal(Args... args) {
     using FunctionType = R (*)(Args...);

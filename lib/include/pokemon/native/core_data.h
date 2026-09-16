@@ -56,7 +56,7 @@ struct CoreData {
     struct {
       u8 event : 1;
       Gender gender : 2;
-      Form form : 5;
+      FormId form : 5;
     };
   };
 

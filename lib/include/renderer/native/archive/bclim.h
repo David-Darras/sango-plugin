@@ -34,7 +34,7 @@ struct BclimFooter {
   u32 version; // 0x02020000
   u32 file_size; // Size of the whole .bclim file (pixel data + this footer)
   u16 block_count; // Always 1 (the "imag" block below)
-  u16 _0; // Padding
+  u16 _0;
   u32 imag_signature; // Identifies the block: 'imag'
   u32 imag_size; // Size of the fields below, always 0x10
   u16 width;

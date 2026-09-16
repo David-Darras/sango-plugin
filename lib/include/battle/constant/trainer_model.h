@@ -19,9 +19,7 @@
 
 #include <types.h>
 
-
 namespace battle {
-
 enum class TrainerModelId : u8 {
   kSerena = 0,
   kCalem = 1,

@@ -20,24 +20,10 @@
 #include "common.h"
 
 namespace ui {
-/**
-* @brief A simple UI Button class for handling touch interactions and
-* rendering.
-*/
 class Button {
 public:
-  /**
-* @brief Default constructor.
-*/
   Button();
 
-  /**
-* @brief Initializes a button with specific dimensions and position.
-* @param x The X coordinate of the top-left corner.
-* @param y The Y coordinate of the top-left corner.
-* @param width The width of the button.
-* @param height The height of the button.
-*/
   void Initialize(u32 x, u32 y, u32 width, u32 height);
 
   /**
@@ -48,10 +34,6 @@ public:
 */
   void Draw(const c16* label, u32 offset_x, u32 offset_y) const;
 
-  /**
-* @brief Checks if the button is currently being pressed.
-* @return True if the touchscreen is active within the button's bounds.
-*/
   bool IsDown() const;
 
   /**

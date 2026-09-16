@@ -22,40 +22,25 @@
 #include "savedata/native/savedata.h"
 
 namespace savedata {
-/**
-* @brief Manages the player's inventory (Bag) state and metadata.
-* * This structure handles the organization of item pockets, registered
-* shortcut items, and the history of recently used items.
-*/
 struct BagManager {
   SINGLETON(BagManager)
-  /**
-* @brief Returns the singleton instance of the BagManager from the SaveData.
-* @return Reference to the unique BagManager instance.
-*/
   STATIC_INLINE BagManager& GetInstance() {
     return SaveData::GetInstance().GetBagManager();
   }
 
-  /** @brief Maximum number of inventory pockets (categories). */
   static constexpr u32 kMaxPockets = 5;
 
-  /** @brief Maximum number of registered shortcut items. */
   static constexpr u32 kMaxRegisteredItems = 4;
 
-  /** @brief Maximum number of entries in the item usage history log. */
   static constexpr u32 kMaxUsageHistory = 12;
 
   void* vtable;
 
-  /** @brief Custom order/sorting of the inventory pockets. */
   u16 pocket_order[kMaxPockets];
 
-  /** @brief Item IDs assigned to the quick-access registered buttons. */
   ItemId registered_items[kMaxRegisteredItems];
   u16 padding;
 
-  /** @brief List of recently used item IDs for quick access in the UI. */
   ItemId last_items_used[kMaxUsageHistory];
 };
 } // namespace savedata

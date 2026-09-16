@@ -24,7 +24,7 @@ struct Theme {
   MAKE_SINGLETON(Theme)
   Color background_color = Color{0, 0, 0, 0.75f};
   Color unselected_text_color = Color{1, 1, 1, 1};
-  Color selected_text_color = Color{0, 1, 1, 1};
+  Color selected_text_color = Color{1, 0.1f, 0.5f, 1};
 
   u16 open_sound = 7;
   u16 close_sound = 8;

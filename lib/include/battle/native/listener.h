@@ -48,10 +48,10 @@ struct Listener {
   u32 reaction_count : 8; ///< Number of entries in reaction_table
   u32 is_reacting : 1;
   ///< Guards against a reaction re-entering itself while it's already running
-  u32 is_paused : 1; ///< Temporarily suspended (won't react to anything)
+  u32 is_paused : 1;
   u32 is_temporary_item_listener : 1;
   ///< Only reacts to the one-off "item used" moment, not the listener's normal moments
-  u32 pending_removal : 1; ///< Scheduled to be unregistered
+  u32 pending_removal : 1;
   u32 allow_reentry : 1;
   ///< Permits this listener to react again while already reacting (overrides is_reacting)
   u32 is_active : 1;

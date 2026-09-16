@@ -30,17 +30,17 @@ public:
   // The raw function pointers below are real game-ABI entry points. Each enum
   // class has the exact integer width the ABI expects, so the pointer types
   // below simply declare the enum directly instead of casting at every call.
-  STATIC_INLINE u32 GetExperienceFromLevel(SpeciesId species, Form form,
+  STATIC_INLINE u32 GetExperienceFromLevel(SpeciesId species, FormId form,
                                            u16 level) {
-    ((void (*)(SpeciesId, Form))
+    ((void (*)(SpeciesId, FormId))
         address::kUtilsLoadPokemonExperienceTable)(species, form);
     return ((u32 (*)(u8))address::kUtilsGetPokemonMinimumExperience)(
         level);
   }
 
   STATIC_INLINE u8
-  GetLevelFromExperience(SpeciesId species, Form form, u32 experience) {
-    return ((u8 (*)(SpeciesId, Form, u32))
+  GetLevelFromExperience(SpeciesId species, FormId form, u32 experience) {
+    return ((u8 (*)(SpeciesId, FormId, u32))
         address::kUtilsGetPokemonLevelFromExperience)(
         species, form, experience);
   }

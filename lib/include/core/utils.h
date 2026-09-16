@@ -23,7 +23,6 @@
 #include "common.h"
 #include <cxxabi.h>
 
-#include "pokemon/constant/item.h"
 
 namespace core {
 

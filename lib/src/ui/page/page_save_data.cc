@@ -45,7 +45,6 @@
 
 #include "savedata/native/pss_group.h"
 #include "system/native/core.h"
-#include "ui/log_application.h"
 #include "ui/page/pages.h"
 
 namespace ui {
@@ -105,7 +104,7 @@ void LoadSaveDataPokemonPage(MainApplication& app, void* args) {
      .Add("Is Shiny", ctx.is_shiny)
      .Add("Nickname", pkm->nickname, 13)
      .Add("Gender", &pkm->event_gender_form_flags, 1, 2)
-     .Add("Form", &pkm->event_gender_form_flags, 3, 5)
+     .Add("FormId", &pkm->event_gender_form_flags, 3, 5)
      .Add("Level", ctx.level)
      .Add("Nature", pkm->nature)
      .AddAbility("Ability", pkm->ability)
@@ -519,20 +518,20 @@ void LoadSaveDataPokedexPage(MainApplication& app, void* args) {
     u32* normal_form_seen_flags = (u32*)data.form_seen_flags[0];
     u32* shiny_form_seen_flags = (u32*)data.form_seen_flags[1];
 
-    app.Add("Form", form)
+    app.Add("FormId", form)
        .WithArray(FORMS[table_index], form_max)
        .WithRefresh()
-       .Add("Form Seen: Normal",
+       .Add("FormId Seen: Normal",
             &normal_form_seen_flags[array_idx], bit_pos,
             1)
-       .Add("Form Seen: Shiny", &shiny_form_seen_flags[array_idx], bit_pos, 1);
+       .Add("FormId Seen: Shiny", &shiny_form_seen_flags[array_idx], bit_pos, 1);
 
     u32* normal_displayed_form_flags = (u32*)data.displayed_form_flags[0];
     u32* shiny_displayed_form_flags = (u32*)data.displayed_form_flags[1];
 
-    app.Add("Display Form: Normal", &normal_displayed_form_flags[array_idx],
+    app.Add("Display FormId: Normal", &normal_displayed_form_flags[array_idx],
             bit_pos, 1)
-       .Add("Display Form: Shiny", &shiny_displayed_form_flags[array_idx],
+       .Add("Display FormId: Shiny", &shiny_displayed_form_flags[array_idx],
             bit_pos, 1)
        .AddSeparator();
   }
@@ -737,7 +736,7 @@ void LoadSaveDataHallOfFamePokemonPage(MainApplication& app, void* args) {
   }
 
   app.AddSpecies("Species", pkm->species)
-     .Add("Form", &pkm->flags, 0, 5)
+     .Add("FormId", &pkm->flags, 0, 5)
      .Add("Gender", &pkm->flags, 5, 2)
      .Add("Level", &pkm->flags, 7, 7)
      .WithBounds(1, 100)

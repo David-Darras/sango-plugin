@@ -28,7 +28,6 @@
 #include "script/constant/talk_option.h"
 #include "script/constant/window_type.h"
 #include "script/native/engine.h"
-#include "script/native/engine_workspace.h"
 #include "script/native/message_header.h"
 #include "script/native/message_language_block.h"
 #include "script/native/script_vm.h"

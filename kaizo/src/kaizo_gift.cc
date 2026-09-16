@@ -18,76 +18,75 @@
 #include "pokemon/constant/species.h"
 #include "common.h"
 #include "core/hook_manager.h"
-#include "pokemon/native/data_accessor.h"
 #include "savedata/native/pokemon_team.h"
 
 namespace kaizo {
 static const SpeciesId SPECIAL_POKEMON[] = {
     // --- GENERATION 1 ---
-    SpeciesId::kArticuno, // Sub-Legendary (Allowed)
-    SpeciesId::kZapdos, // Sub-Legendary (Allowed)
-    SpeciesId::kMoltres, // Sub-Legendary (Allowed)
-    SpeciesId::kMewtwo, // Restricted Legendary (Banned)
-    SpeciesId::kMew, // Mythical (Banned)
+    SpeciesId::kArticuno,
+    SpeciesId::kZapdos,
+    SpeciesId::kMoltres,
+    SpeciesId::kMewtwo,
+    SpeciesId::kMew,
 
     // --- GENERATION 2 ---
-    SpeciesId::kRaikou, // Sub-Legendary (Allowed)
-    SpeciesId::kEntei, // Sub-Legendary (Allowed)
-    SpeciesId::kSuicune, // Sub-Legendary (Allowed)
-    SpeciesId::kLugia, // Restricted Legendary (Banned)
-    SpeciesId::kHoOh, // Restricted Legendary (Banned)
-    SpeciesId::kCelebi, // Mythical (Banned)
+    SpeciesId::kRaikou,
+    SpeciesId::kEntei,
+    SpeciesId::kSuicune,
+    SpeciesId::kLugia,
+    SpeciesId::kHoOh,
+    SpeciesId::kCelebi,
 
     // --- GENERATION 3 ---
-    SpeciesId::kRegirock, // Sub-Legendary (Allowed)
-    SpeciesId::kRegice, // Sub-Legendary (Allowed)
-    SpeciesId::kRegisteel, // Sub-Legendary (Allowed)
-    SpeciesId::kLatias, // Sub-Legendary (Allowed)
-    SpeciesId::kLatios, // Sub-Legendary (Allowed)
-    SpeciesId::kKyogre, // Restricted Legendary (Banned)
-    SpeciesId::kGroudon, // Restricted Legendary (Banned)
-    SpeciesId::kRayquaza, // Restricted Legendary (Banned)
-    SpeciesId::kJirachi, // Mythical (Banned)
-    SpeciesId::kDeoxys, // Mythical (Banned)
+    SpeciesId::kRegirock,
+    SpeciesId::kRegice,
+    SpeciesId::kRegisteel,
+    SpeciesId::kLatias,
+    SpeciesId::kLatios,
+    SpeciesId::kKyogre,
+    SpeciesId::kGroudon,
+    SpeciesId::kRayquaza,
+    SpeciesId::kJirachi,
+    SpeciesId::kDeoxys,
 
     // --- GENERATION 4 ---
-    SpeciesId::kUxie, // Sub-Legendary (Allowed)
-    SpeciesId::kMesprit, // Sub-Legendary (Allowed)
-    SpeciesId::kAzelf, // Sub-Legendary (Allowed)
-    SpeciesId::kDialga, // Restricted Legendary (Banned)
-    SpeciesId::kPalkia, // Restricted Legendary (Banned)
-    SpeciesId::kHeatran, // Sub-Legendary (Allowed)
-    SpeciesId::kRegigigas, // Sub-Legendary (Allowed)
-    SpeciesId::kGiratina, // Restricted Legendary (Banned)
-    SpeciesId::kCresselia, // Sub-Legendary (Allowed)
-    SpeciesId::kPhione, // Mythical (Banned)
-    SpeciesId::kManaphy, // Mythical (Banned)
-    SpeciesId::kDarkrai, // Mythical (Banned)
-    SpeciesId::kShaymin, // Mythical (Banned)
-    SpeciesId::kArceus, // Mythical (Banned)
+    SpeciesId::kUxie,
+    SpeciesId::kMesprit,
+    SpeciesId::kAzelf,
+    SpeciesId::kDialga,
+    SpeciesId::kPalkia,
+    SpeciesId::kHeatran,
+    SpeciesId::kRegigigas,
+    SpeciesId::kGiratina,
+    SpeciesId::kCresselia,
+    SpeciesId::kPhione,
+    SpeciesId::kManaphy,
+    SpeciesId::kDarkrai,
+    SpeciesId::kShaymin,
+    SpeciesId::kArceus,
 
     // --- GENERATION 5 ---
-    SpeciesId::kCobalion, // Sub-Legendary (Allowed)
-    SpeciesId::kTerrakion, // Sub-Legendary (Allowed)
-    SpeciesId::kVirizion, // Sub-Legendary (Allowed)
-    SpeciesId::kTornadus, // Sub-Legendary (Allowed)
-    SpeciesId::kThundurus, // Sub-Legendary (Allowed)
-    SpeciesId::kReshiram, // Restricted Legendary (Banned)
-    SpeciesId::kZekrom, // Restricted Legendary (Banned)
-    SpeciesId::kLandorus, // Sub-Legendary (Allowed)
-    SpeciesId::kKyurem, // Restricted Legendary (Banned)
-    SpeciesId::kVictini, // Mythical (Banned)
-    SpeciesId::kKeldeo, // Mythical (Banned)
-    SpeciesId::kMeloetta, // Mythical (Banned)
-    SpeciesId::kGenesect, // Mythical (Banned)
+    SpeciesId::kCobalion,
+    SpeciesId::kTerrakion,
+    SpeciesId::kVirizion,
+    SpeciesId::kTornadus,
+    SpeciesId::kThundurus,
+    SpeciesId::kReshiram,
+    SpeciesId::kZekrom,
+    SpeciesId::kLandorus,
+    SpeciesId::kKyurem,
+    SpeciesId::kVictini,
+    SpeciesId::kKeldeo,
+    SpeciesId::kMeloetta,
+    SpeciesId::kGenesect,
 
     // --- GENERATION 6 ---
-    SpeciesId::kXerneas, // Restricted Legendary (Banned)
-    SpeciesId::kYveltal, // Restricted Legendary (Banned)
-    SpeciesId::kZygarde, // Restricted Legendary (Banned)
-    SpeciesId::kDiancie, // Mythical (Banned)
-    SpeciesId::kHoopa, // Mythical (Banned)
-    SpeciesId::kVolcanion, // Mythical (Banned)
+    SpeciesId::kXerneas,
+    SpeciesId::kYveltal,
+    SpeciesId::kZygarde,
+    SpeciesId::kDiancie,
+    SpeciesId::kHoopa,
+    SpeciesId::kVolcanion,
 };
 
 bool IsSpecialPokemon(SpeciesId species) {

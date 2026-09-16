@@ -17,10 +17,6 @@
 
 #include "kaizo/kaizo.h"
 
-#include "battle/patch/battle.h"
-#include "battle/patch/setup.h"
-#include "pokemon/patch/evolution.h"
-#include "pokemon/patch/item_customizer.h"
 #include "renderer/patch/lighting.h"
 #include "overworld/patch/camera.h"
 #include "overworld/patch/map_data_loader.h"
@@ -46,39 +42,21 @@ void Initialize() {
   InitializeStarterHook();
   InitializeTrainerTeams();
 
-  // Shiny
-  {
-    pokemon::Shiny::GetInstance().rate = pokemon::ShinyRate::k1_8;
-  }
-  // Map Data
-  {
-    overworld::MapDataLoader::GetInstance().is_contact_enabled = false;
-  }
-  // Item (useless just use in-game pokémon editor)
-  // {
-  //   pokemon::ItemCustomizer::GetInstance().remove_limit = true;
-  // }
-  // Music
-  {
-    overworld::Field::GetInstance().freeze_background_music = true;
-    overworld::Field::GetInstance().background_music = BackgroundMusicId::kCinema;
-  }
-  // Title Screen
-  {
-    auto& title = ui::TitleScreen::GetInstance();
-    title.is_enabled = true;
-    title.no_shadow = true;
-    title.no_delay = true;
-    title.top_video = VideoId::kPrimoKyogre;
-    title.bottom_video = VideoId::kPrimoGroudon;
-    title.pokemon_cry_species = SpeciesId::kBeldum;
-    title.pokemon_cry_volume = 1.0f;
-  }
-  // Camera
-  {
-    auto& camera = overworld::Camera::GetInstance();
-    camera.overworld_state = overworld::CameraState::kTps;
-  }
+  pokemon::Shiny::GetInstance().rate = pokemon::ShinyRate::k1_8;
+  overworld::MapDataLoader::GetInstance().is_contact_enabled = false;
+  overworld::Field::GetInstance().freeze_background_music = true;
+  overworld::Field::GetInstance().background_music = BackgroundMusicId::kCinema;
+  overworld::Camera::GetInstance().overworld_state =
+      overworld::CameraState::kTps;
+
+  auto& title = ui::TitleScreen::GetInstance();
+  title.is_enabled = true;
+  title.no_shadow = true;
+  title.no_delay = true;
+  title.top_video = VideoId::kPrimoKyogre;
+  title.bottom_video = VideoId::kPrimoGroudon;
+  title.pokemon_cry_species = SpeciesId::kBeldum;
+  title.pokemon_cry_volume = 1.0f;
 }
 
 void PatchOutline() {

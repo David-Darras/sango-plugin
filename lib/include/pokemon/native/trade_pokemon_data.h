@@ -18,15 +18,43 @@
 #pragma once
 
 #include "common.h"
-#include "pokemon/constant/move.h"
+#include "pokemon/constant/form.h"
+#include "pokemon/constant/item.h"
+#include "pokemon/constant/nature.h"
 
-namespace global_data {
-class TechnicalMachine {
-  SINGLETON(TechnicalMachine)
-public:
-  /// The move taught by each TM, indexed by TM number - 1.
-  STATIC_INLINE MoveId* GetTable() {
-    return (MoveId*)pokemon::address::kTechnicalMachineMoveTable;
+namespace pokemon {
+struct TradePokemonData {
+  STATIC_INLINE TradePokemonData& GetInstance(u32 idx) {
+    return *(TradePokemonData*)(
+      address::kTradePokemonTable + sizeof(TradePokemonData) * idx);
   }
+
+  SpeciesId species;
+  u8 nickname_id;
+  FormId form;
+
+  u8 level;
+  u8 ev_hp;
+  u8 ev_attack;
+  u8 ev_defense;
+
+  u8 ev_speed;
+  u8 ev_special_attack;
+  u8 ev_special_defense;
+  u8 ability_idx;
+
+  Nature nature;
+  Gender gender;
+  u16 _0;
+
+  ItemId item;
+  u8 parent_nickname_id;
+  Gender parent_gender;
+
+  u8 _3[12];
+
+  SpeciesId wanted_species;
+  Gender wanted_gender;
+  u8 _4;
 };
-} // namespace global_data
+} // namespace pokemon

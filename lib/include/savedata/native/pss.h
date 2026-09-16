@@ -16,7 +16,8 @@
  */
 
 #pragma once
-#include "savedata/native/savedata.h"
+
+#include "core/types.h"
 
 namespace savedata {
 struct PssProfilePayload {

@@ -25,7 +25,7 @@ namespace overworld {
 
 struct PokeInfoOnAction {
   SpeciesId species : 11;
-  Form form : 5;
+  FormId form : 5;
   u8 min_level;
   u8 max_level;
 };

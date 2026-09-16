@@ -19,7 +19,6 @@
 #include "core/hook_manager.h"
 #include "core/utils.h"
 #include "system/native/controller.h"
-#include "system/native/device.h"
 #include "system/native/font_manager.h"
 #include "system/native/graphics.h"
 
@@ -47,7 +46,6 @@ void KeyboardPatch::PatchLoad() {
   // Don't switch between the two keyboard mode
   ARM_NOP(address::kKeyboardModeSwitch);
 
-  // No animation
   ARM_NOP(address::kKeyboardAnimation1);
   ARM_NOP(address::kKeyboardAnimation2);
   ARM_NOP(address::kKeyboardAnimation3);

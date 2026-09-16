@@ -21,21 +21,15 @@
 #include "savedata/native/savedata.h"
 
 namespace savedata {
-/**
-* @class TrainerStatus
-* @brief Manages player identity, network synchronization, and PSS
-* configurations.
-*/
 struct TrainerStatus {
   SINGLETON(TrainerStatus)
 
-  /** @brief Accessor for the singleton instance. */
   STATIC_INLINE TrainerStatus& GetInstance() {
     return SaveData::GetInstance().GetTrainerStatus();
   }
 
-  static constexpr u32 kPlayerNameLen = 13; ///< Max name length
-  static constexpr u32 kPssMessageLen = 17; ///< Max PSS message length
+  static constexpr u32 kPlayerNameLen = 13;
+  static constexpr u32 kPssMessageLen = 17;
 
   void* vtable;
   u32 padding;
@@ -47,7 +41,7 @@ struct TrainerStatus {
   u8 game_version; ///< Game version ID (e.g., 24: X, 25: Y, 26: AS, 27: OR)
   Gender gender;
   u8 unknow0;
-  u8 pss_icon; ///< Active PSS avatar icon index
+  u8 pss_icon;
   ///@}
 
   /** @name Network & Console Identifiers */
@@ -82,8 +76,8 @@ struct TrainerStatus {
   u8 style[16]; ///< Customization data (Clothing/Hair/Accessories)
   u32 pss_flags; ///< Bitfield for PSS settings (Rejections, visibility)
   u32 reserved;
-  c16 name[kPlayerNameLen]; ///< Player name
-  c16 nickname[kPlayerNameLen]; ///< Player nickname
+  c16 name[kPlayerNameLen];
+  c16 nickname[kPlayerNameLen];
   c16 pss_messages[6][kPssMessageLen];
   ///< Set of 6 customizable PSS shout-out
                                    ///< messages

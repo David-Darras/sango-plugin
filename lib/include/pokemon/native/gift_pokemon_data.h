@@ -24,11 +24,11 @@
 #include "pokemon/constant/shiny_roll.h"
 #include "pokemon/constant/species.h"
 
-namespace global_data {
-struct GiftPokemon {
-  STATIC_INLINE GiftPokemon& GetInstance(u32 idx) {
-    return *(GiftPokemon*)(
-      pokemon::address::kGiftPokemonTable + sizeof(GiftPokemon) * idx);
+namespace pokemon {
+struct GiftPokemonData {
+  STATIC_INLINE GiftPokemonData& GetInstance(u32 idx) {
+    return *(GiftPokemonData*)(
+      address::kGiftPokemonTable + sizeof(GiftPokemonData) * idx);
   }
 
   static constexpr u16 kNotAnEgg = 0xFFFF;
@@ -41,7 +41,7 @@ struct GiftPokemon {
   /// the low half, the high half stays zero.
   SpeciesId species;
   u16 _0;
-  Form form;
+  FormId form;
   u8 level;
   ShinyRoll shiny;
   s8 ability_slot;
@@ -53,4 +53,4 @@ struct GiftPokemon {
   s8 iv[6];
   u8 contest[6];
 };
-}
+} // namespace pokemon

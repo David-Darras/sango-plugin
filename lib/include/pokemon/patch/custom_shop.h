@@ -27,7 +27,7 @@ namespace pokemon {
 
 struct ShopPokemon {
   SpeciesId species;
-  Form form;
+  FormId form;
   u8 level;
   u32 price;
 };
@@ -35,11 +35,11 @@ struct ShopPokemon {
 constexpr u32 kCoin = 20;
 
 constexpr ShopPokemon kShopPokemons[] = {
-    {SpeciesId::kAbra, Form::kNormal, 9, 120 * kCoin},
-    {SpeciesId::kClefairy, Form::kNormal, 8, 750 * kCoin},
-    {SpeciesId::kDratini, Form::kNormal, 18, 4600 * kCoin},
-    {SpeciesId::kScyther, Form::kNormal, 25, 6500 * kCoin},
-    {SpeciesId::kPorygon, Form::kNormal, 26, 9999 * kCoin},
+    {SpeciesId::kAbra, FormId::kNormal, 9, 120 * kCoin},
+    {SpeciesId::kClefairy, FormId::kNormal, 8, 750 * kCoin},
+    {SpeciesId::kDratini, FormId::kNormal, 18, 4600 * kCoin},
+    {SpeciesId::kScyther, FormId::kNormal, 25, 6500 * kCoin},
+    {SpeciesId::kPorygon, FormId::kNormal, 26, 9999 * kCoin},
 };
 
 /// Rewrites what a mart sells: its own item list, or Pokémon sold through a

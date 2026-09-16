@@ -20,12 +20,9 @@
 #include "core/cheat_code.h"
 #include "ui/main_application.h"
 #include "core/utils.h"
-#include "pokemon/native/global_data/item.h"
+#include "pokemon/native/item_data.h"
 
 namespace ui {
-/**
-* @brief Helper to set specific bits in memory.
-*/
 static void SetBits(u32* num, u32 offset, u32 size, u32 value) {
   num += size / 32;
   size %= 32;
@@ -253,7 +250,7 @@ void PageItem::GetDefaultDisplayValue(c16* buffer) const {
       break;
 
     case kTypeItem: {
-      global_data::Item item(*(ItemId*)address_);
+      pokemon::ItemData item(*(ItemId*)address_);
       item.GetName(String::GetTmpStr());
       core::Utils::Format(buffer, u"%ls%s : %ls", prefix, name_, String::GetTmpBuf());
     }

@@ -18,7 +18,7 @@
 #pragma once
 
 #include "common.h"
-#include "overworld/patch/tile_editor.h"
+#include "overworld/native/tile.h"
 #include "system/native/controller.h"
 #include "ui/application.h"
 

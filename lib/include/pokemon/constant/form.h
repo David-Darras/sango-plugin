@@ -22,7 +22,7 @@
 
 namespace pokemon {
 
-enum class Form : u8 {
+enum class FormId : u8 {
   kNormal = 0,
   kMega = 1,
 
@@ -468,4 +468,4 @@ enum class Form : u8 {
 
 } // namespace pokemon
 
-using pokemon::Form;
+using pokemon::FormId;

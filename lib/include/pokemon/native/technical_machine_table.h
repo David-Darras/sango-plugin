@@ -17,22 +17,16 @@
 
 #pragma once
 
-#include "core/types.h"
-#include "pokemon/constant/form.h"
-#include "pokemon/constant/item.h"
-#include "pokemon/constant/mega_evolution_method.h"
+#include "common.h"
+#include "pokemon/constant/move.h"
 
-namespace global_data {
-
-struct MegaEvolutionData {
-  struct {
-    Form form;
-    u8 _0;
-    MegaEvolutionMethod method;
-    u8 _1;
-    ItemId item;
-    u16 _2;
-  } entry[3];
+namespace pokemon {
+class TechnicalMachineTable {
+  SINGLETON(TechnicalMachineTable)
+public:
+  /// The move taught by each TM, indexed by TM number - 1.
+  STATIC_INLINE MoveId* GetTable() {
+    return (MoveId*)address::kTechnicalMachineMoveTable;
+  }
 };
-
-} // namespace global_data
+} // namespace pokemon

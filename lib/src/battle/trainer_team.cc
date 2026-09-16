@@ -17,15 +17,13 @@
 
 #include "battle/patch/trainer_team.h"
 #include "battle/native/config.h"
-#include "pokemon/native/global_data/pokemon.h"
-#include "pokemon/native/data_accessor.h"
 #include "savedata/native/pokemon_team.h"
 
 namespace battle {
 
 void TrainerOpponent::ApplyTo(pokemon::CoreData& pkm) const {
   pkm.Set(species, item, ability, nature, is_shiny);
-  if (form != Form::kNormal) pkm.form = form;
+  if (form != FormId::kNormal) pkm.form = form;
   pkm.SetStats(ev_hp, ev_attack, ev_defense, ev_sp_attack, ev_sp_defense,
                ev_speed);
   pkm.SetMoves(move1, move2, move3, move4);

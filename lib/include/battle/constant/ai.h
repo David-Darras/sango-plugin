@@ -20,7 +20,6 @@
 #include "core/bitmask.h"
 #include "core/types.h"
 
-/// Bitmask of AI behaviours enabled for a trainer (battle::TrainerData::ai_flags).
 namespace battle {
 
 enum class AiFlags : u32 {

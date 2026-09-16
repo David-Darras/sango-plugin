@@ -19,7 +19,6 @@
 
 #include "overworld/native/map_manager.h"
 #include "overworld/native/prop_model.h"
-#include "overworld/native/renderer.h"
 
 namespace overworld {
 

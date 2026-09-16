@@ -18,7 +18,7 @@
 #include "battle/patch/type_helper.h"
 #include "battle/native/manager.h"
 #include "core/native/process_manager.h"
-#include "pokemon/native/global_data/move.h"
+#include "pokemon/native/move_data.h"
 #include "system/native/graphics.h"
 #include "ui/main_application.h"
 
@@ -36,13 +36,13 @@ TypeHelper::EffectivenessInfo TypeHelper::GetEffectivenessInfo(u8 result) {
 
   Color color;
   if (result == 0) {
-    color = Color{0.5f, 0.5f, 0.5f, 1.0f}; // Gris
+    color = Color{0.5f, 0.5f, 0.5f, 1.0f};
   } else if (result < 7) {
-    color = Color{1.0f, 0.2f, 0.2f, 1.0f}; // Rouge
+    color = Color{1.0f, 0.2f, 0.2f, 1.0f};
   } else if (result == 7) {
-    color = Color{1.0f, 1.0f, 1.0f, 1.0f}; // Blanc
+    color = Color{1.0f, 1.0f, 1.0f, 1.0f};
   } else {
-    color = Color{0.2f, 1.0f, 0.2f, 1.0f}; // Vert
+    color = Color{0.2f, 1.0f, 0.2f, 1.0f};
   }
 
   return {symbols[result], color};
@@ -85,7 +85,7 @@ void TypeHelper::DrawTop() {
     if (move_id == MoveId::kNone) continue;
 
     GetMoveString(move_id);
-    auto& move_data = global_data::Move::GetInstance(move_id);
+    auto& move_data = pokemon::MoveData::GetInstance(move_id);
 
     u8 result = ((u8 (*)(TypeId, u16))address::kGetEffectiveness)(
         move_data.type, def_types);

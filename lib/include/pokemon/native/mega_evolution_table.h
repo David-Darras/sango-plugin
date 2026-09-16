@@ -19,9 +19,9 @@
 
 #include "core/types.h"
 #include "pokemon/constant/species.h"
-#include "pokemon/native/global_data/mega_evolution_data.h"
+#include "pokemon/native/mega_evolution_data.h"
 
-namespace global_data {
+namespace pokemon {
 
 struct MegaEvolutionTable {
   uptr vtable;
@@ -30,4 +30,4 @@ struct MegaEvolutionTable {
   MegaEvolutionData* data;
 };
 
-} // namespace global_data
+} // namespace pokemon

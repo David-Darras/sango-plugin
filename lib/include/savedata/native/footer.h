@@ -31,34 +31,26 @@ class Footer {
   SINGLETON(Footer)
 
 public:
-  /**
-* @brief Retrieves the singleton instance of Footer from the global SaveData.
-* @return A reference to the Footer instance.
-*/
   STATIC_INLINE Footer& GetInstance() { return SaveData::GetInstance().GetFooter(); }
 
 private:
-  void* vtable_; ///< Pointer to the virtual method table.
-  u32 padding0_; ///< Memory alignment padding.
+  void* vtable_;
+  u32 padding0_;
 
-  u64 checksum_; ///< Current checksum of the save data.
-  u64 last_checksum_; ///< Previous valid checksum recorded.
+  u64 checksum_;
+  u64 last_checksum_;
 
   /**
 * @brief Magic signature for format identification (Expected value: "BEEF").
 */
   u32 signature_;
 
-  /**
-* @struct Entry
-* @brief Individual entry structure for tracking save data segments.
-*/
   struct Entry {
-    u32 size; ///< Size of the associated data segment.
-    u16 id; ///< Unique identifier for the entry.
-    u16 checksum; ///< Partial checksum for this specific segment.
-  } entries_[SaveData::kSegmentCount]; ///< Array of save segment entries.
+    u32 size;
+    u16 id;
+    u16 checksum;
+  } entries_[SaveData::kSegmentCount];
 
-  u64 padding1_; ///< Final padding for structure alignment.
+  u64 padding1_;
 };
 } // namespace savedata

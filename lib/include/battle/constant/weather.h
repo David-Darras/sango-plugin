@@ -20,7 +20,6 @@
 #include <types.h>
 
 namespace battle {
-
 enum class Weather : u8 {
   kNone = 0,
   kHarshSunlight = 1,

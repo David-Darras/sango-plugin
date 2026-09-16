@@ -16,6 +16,7 @@
  */
 
 #include "ui/patch/app_status.h"
+#include "savedata/native/pokemon_team.h"
 
 #include <type_traits>
 
@@ -27,9 +28,8 @@
 #include "pokemon/constant/move.h"
 #include "pokemon/constant/nature.h"
 #include "pokemon/constant/species.h"
-#include "pokemon/native/global_data/item.h"
-#include "pokemon/native/global_data/pokemon.h"
-#include "renderer/native/text_box.h"
+#include "pokemon/native/item_data.h"
+#include "pokemon/native/species_data.h"
 #include "ui/native/app_layout_manager.h"
 
 #include "pokemon/data/form.inc"
@@ -253,10 +253,10 @@ static Pane pane_level
 static Pane pane_species
     (true, 58, 60, 1, [](pokemon::CoreData& core, u32 value) {
        PREV(core.species, value, static_cast<u16>(SpeciesId::kCount));
-       core.form = static_cast<Form>(0);
+       core.form = static_cast<FormId>(0);
      }, [](pokemon::CoreData& core, u32 value) {
        NEXT(core.species, value, static_cast<u16>(SpeciesId::kCount));
-       core.form = static_cast<Form>(0);
+       core.form = static_cast<FormId>(0);
      }, [](Pane* pane, AppLayoutManager& manager,
            pokemon::DataAccessor& accessor) {
        auto& core = *accessor.GetCoreData();
@@ -295,7 +295,7 @@ static Pane pane_item_ball
          ctx.item_page_ == AppStatus::ItemPage::kBall) {
          const ItemId item_id =
              pokemon::Utils::ConvertBallIdToItemId(core.ball);
-         global_data::Item item(item_id);
+         pokemon::ItemData item(item_id);
          item.GetName(String::GetTmpStr());
          pane->SetStringValue0(manager, String::GetTmpBuf());
        }
@@ -334,7 +334,7 @@ static Pane pane_nature_form
                                NATURE_NAMES[static_cast<u8>(core.nature)]);
        } else if (
          ctx.item_page_ == AppStatus::ItemPage::kForm) {
-         pane->SetStringValue0(manager, u"Form");
+         pane->SetStringValue0(manager, u"FormId");
          pane->SetStringValue1(manager, u"%s",
                                GetFormName(core.species, core.form));
        }
@@ -346,7 +346,7 @@ static Pane pane_ability
     (true, 38, 40, 0xFF,
      [](pokemon::CoreData& core, u32 value) {
        if (AppStatus::GetInstance().is_restricted) {
-         auto& pkm = global_data::Pokemon::GetInstance(core.species, core.form);
+         auto& pkm = pokemon::SpeciesData::GetInstance(core.species, core.form);
          PREV(ability_index, 1, 3);
          core.ability = pkm.ability[ability_index];
        } else {
@@ -354,7 +354,7 @@ static Pane pane_ability
        }
      }, [](pokemon::CoreData& core, u32 value) {
        if (AppStatus::GetInstance().is_restricted) {
-         auto& pkm = global_data::Pokemon::GetInstance(core.species, core.form);
+         auto& pkm = pokemon::SpeciesData::GetInstance(core.species, core.form);
          NEXT(ability_index, 1, 3);
          core.ability = pkm.ability[ability_index];
        } else {

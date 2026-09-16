@@ -24,10 +24,10 @@ namespace pokemon {
 /** @brief Kind of counter the shop event is running (app::shop::ShopType). */
 enum class ShopType : u32 {
   kNormal, ///< Regular mart, pays with money.
-  kBattlePoint, ///< Battle Point counter.
+  kBattlePoint,
   kBattlePointMove, ///< Battle Point move tutor counter.
-  kMileagePoint, ///< Mileage Point counter.
-  kSecretBaseGoods, ///< Secret base goods counter.
+  kMileagePoint,
+  kSecretBaseGoods,
 };
 
 } // namespace pokemon

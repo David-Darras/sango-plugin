@@ -78,7 +78,7 @@ void LoadBattleSetupPage(MainApplication& app, void* args) {
      .Add("Background Music", ctx.background_music)
      .AddSeparator()
      .AddSpecies("Species", ctx.species)
-     .Add("Form", ctx.form)
+     .Add("FormId", ctx.form)
      .AddSeparator()
      .Add("Long Animation", &ctx.flags, 16, 1)
      .Add("Is Deoxys Event", &ctx.flags, 19, 1)
@@ -208,7 +208,7 @@ void LoadBattlePokemonDataPage(MainApplication& app, void* args) {
      .Add("Level", pkm.level)
      .Add("Experience", pkm.experience)
      .Add("Friendship", pkm.friendship)
-     .Add("Form", pkm.form)
+     .Add("FormId", pkm.form)
      .Add("Gender", pkm.gender)
 
      .AddAbility("Ability", pkm.ability)

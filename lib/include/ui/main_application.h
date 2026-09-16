@@ -19,7 +19,6 @@
 
 #include <type_traits>
 
-#include "core/cheat_code.h"
 #include "core/cheat_code_manager.h"
 #include "system/native/controller.h"
 #include "ui/application.h"
@@ -46,10 +45,6 @@ public:
   friend class Painter;
   friend class MainAppPainter;
 
-  /**
-* @brief Returns the singleton instance of the MainApplication.
-* @return Reference to the unique MainApplication instance.
-*/
   STATIC_INLINE MainApplication& GetInstance() { return instance_; }
 
   /**
@@ -68,10 +63,6 @@ public:
 */
   void Update(sys::Controller& controller) override;
 
-  /**
-* @brief Checks if the menu is currently opened.
-* @return True if the menu is visible, false otherwise.
-*/
   bool IsOpened() const { return is_opened_; };
 
   void ForceClose();
@@ -127,33 +118,16 @@ public:
     return *this;
   }
 
-  /**
-* @brief Sets the minimum allowed value for the last added entry.
-* @param min The lower bound value.
-* @return Reference to the MainApplication instance for method chaining.
-*/
   MainApplication& WithMin(s32 min) {
     entries_[entries_count_ - 1].WithMin(min);
     return *this;
   }
 
-  /**
-* @brief Sets the maximum allowed value for the last added entry.
-* @param max The upper bound value.
-* @return Reference to the MainApplication instance for method chaining.
-*/
   MainApplication& WithMax(s32 max) {
     entries_[entries_count_ - 1].WithMax(max);
     return *this;
   }
 
-  /**
-* @brief Sets both minimum and maximum allowed values for the last added
-* entry.
-* @param min The lower bound value.
-* @param max The upper bound value.
-* @return Reference to the MainApplication instance for method chaining.
-*/
   MainApplication& WithBounds(u32 min, u32 max) {
     entries_[entries_count_ - 1].WithMin(min);
     entries_[entries_count_ - 1].WithMax(max);
@@ -197,25 +171,12 @@ public:
     return *this;
   }
 
-  /**
-* @brief Adds a simple menu entry by name, address, and type.
-* @param name Display name.
-* @param addr Memory address.
-* @param type Entry type (PageItemType).
-* @return Reference to the MainApplication instance.
-*/
   MainApplication& Add(const c8* name, void* addr, u8 type) {
     if (entries_count_ < kMaxEntries)
       entries_[entries_count_++].Initialize(name, addr, type);
     return *this;
   }
 
-  /**
-* @brief Adds a submenu entry.
-* @param name Display name of the submenu.
-* @param menu Callback function to build the submenu.
-* @return Reference to the MainApplication instance.
-*/
   MainApplication& Add(const c8* name, menu_callback_t menu,
                        void* args = nullptr) {
     if (entries_count_ < kMaxEntries) {
@@ -226,38 +187,18 @@ public:
     return *this;
   }
 
-  /**
-* @brief Adds a pointer entry.
-* @param name Display name.
-* @param addr Reference to the pointer.
-* @return Reference to the MainApplication instance.
-*/
   MainApplication& Add(const c8* name, void*& addr) {
     if (entries_count_ < kMaxEntries)
       entries_[entries_count_++].Initialize(name, &addr, kTypePointer);
     return *this;
   }
 
-  /**
-* @brief Adds a boolean entry.
-* @param name Display name.
-* @param addr Reference to the boolean variable.
-* @return Reference to the MainApplication instance.
-*/
   MainApplication& Add(const c8* name, bool& addr) {
     if (entries_count_ < kMaxEntries)
       entries_[entries_count_++].Initialize(name, &addr, kTypeBoolean);
     return *this;
   }
 
-  /**
-* @brief Adds a bitfield entry.
-* @param name Display name.
-* @param addr Address of the integer containing the bits.
-* @param offset Bit offset.
-* @param size Bit size.
-* @return Reference to the MainApplication instance.
-*/
   MainApplication& Add(const c8* name, void* addr, u32 offset, u32 size) {
     if (entries_count_ < kMaxEntries)
       entries_[entries_count_++].Initialize(name, addr, kTypeBits, offset,
@@ -330,9 +271,6 @@ public:
     return *this;
   }
 
-  /**
-* @brief Macro helper for adding numeric typed entries.
-*/
 #define ADD(type, type_id)                                      \
   MainApplication &Add(const c8 *name, type &var) {                  \
     if (entries_count_ < kMaxEntries)                           \
@@ -395,19 +333,13 @@ public:
 #undef ADD_ENUM_ALIAS
 
 private:
-  /**
-* @brief Internal structure representing a menu context (for submenus).
-*/
   struct MenuContext {
-    u8 cursor; ///< Current cursor position.
-    u8 offset; ///< Current scroll offset.
-    u8 display_count; ///< Number of entries to display.
-    menu_callback_t load_menu; ///< Initialization callback.
+    u8 cursor;
+    u8 offset;
+    u8 display_count;
+    menu_callback_t load_menu;
     void* args;
 
-    /**
-* @brief Default constructor.
-*/
     MenuContext()
       : cursor(0),
         offset(0),
@@ -416,10 +348,6 @@ private:
         args(nullptr) {
     }
 
-    /**
-* @brief Resets the context with a specific callback.
-* @param menu Function to call for this context.
-*/
     void Initialize(menu_callback_t menu, void* args) {
       cursor = 0;
       offset = 0;
@@ -429,9 +357,6 @@ private:
     }
   };
 
-  /**
-* @brief Private constructor for singleton pattern.
-*/
   MainApplication()
     : is_opened_(0),
       entries_count_(0),
@@ -441,18 +366,10 @@ private:
       theme_(Theme::GetInstance()) {
   }
 
-  /**
-* @brief Returns the currently active context.
-* @return Reference to the top context on the stack.
-*/
   MenuContext& GetContext() {
     return contexts_[contexts_count_ > 0 ? contexts_count_ - 1 : 0];
   }
 
-  /**
-* @brief Returns the currently selected menu entry in the current context.
-* @return Reference to the selected PageItem.
-*/
   PageItem& GetSelectedEntry() {
     MenuContext& ctx = GetContext();
     return entries_[ctx.cursor + ctx.offset];
@@ -465,20 +382,20 @@ private:
   static constexpr u32 kMaxDisplayCount = 15;
   static constexpr u32 kLineHeight = 16;
 
-  static MainApplication instance_; ///< Unique instance.
+  static MainApplication instance_;
 
-  u32 is_opened_ : 1; ///< True if menu is open.
-  u32 entries_count_ : 6; ///< Active entries in current app.
-  u32 contexts_count_ : 3; ///< Number of submenus in the stack.
+  u32 is_opened_ : 1;
+  u32 entries_count_ : 6;
+  u32 contexts_count_ : 3;
   u32 no_background_ : 1;
-  u32  : 21; ///< Reserved.
+  u32  : 21;
 
   uptr process_vtable_;
 
-  PageItem entries_[kMaxEntries]; ///< Entry pool.
-  MenuContext contexts_[kMaxContexts]; ///< Context stack.
-  Numpad numpad_; ///< Numpad logic.
-  Keyboard keyboard_; ///< Keyboard logic.
+  PageItem entries_[kMaxEntries];
+  MenuContext contexts_[kMaxContexts];
+  Numpad numpad_;
+  Keyboard keyboard_;
 
   Theme& theme_;
   Painter* painter_ = nullptr;

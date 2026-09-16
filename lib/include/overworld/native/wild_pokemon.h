@@ -32,7 +32,7 @@ struct WildPokemon {
   SpeciesId species;
   ItemId item;
   u8 level;
-  Form form;
+  FormId form;
   bool is_shiny;
   AbilityId ability;
   MoveId moves[4];

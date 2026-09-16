@@ -20,7 +20,8 @@
 #include "core/hook_manager.h"
 #include "core/native/process_manager.h"
 #include "core/patch/device_patch.h"
-#include "savedata/native/pokemon_team.h"
+#include "pokemon/native/data_accessor.h"
+#include "savedata/native/pokemon_param.h"
 #include "system/native/controller.h"
 #include "ui/native/app_layout_manager.h"
 

@@ -15,10 +15,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+#include "battle/native/pokemon.h"
 #include "battle/patch/battle.h"
 #include "core/constant/event_flag.h"
 #include "core/utils.h"
-#include "overworld/native/map_data.h"
 #include "pokemon/native/utils.h"
 #include "savedata/native/event_table.h"
 #include "savedata/native/misc.h"
@@ -61,7 +61,6 @@ void ApplyLevelCaps(battle::Team* team,
     data[i].ev_special_attack = 0;
     data[i].ev_special_defense = 0;
 
-    // Game finished => Max Level = 100
     if (!savedata::EventTable::GetInstance().Check(EventFlag::kGameFinished)) {
       u8 new_level = pokemon::Utils::GetLevelFromExperience(
           team->pokemon[i]->species,

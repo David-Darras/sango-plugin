@@ -18,23 +18,24 @@
 #include "pokemon/patch/mega_evolution.h"
 #include "core/hook_manager.h"
 #include "pokemon/constant/item.h"
-#include "pokemon/native/global_data/mega_evolution_table.h"
+#include "pokemon/constant/mega_evolution_method.h"
+#include "pokemon/native/database.h"
+#include "pokemon/native/mega_evolution_table.h"
 
 namespace pokemon {
 
 void MegaEvolution::Initialize() {
-  core::HookManager::Initialize(HookId::kGlobalDataLoadMegaEvolutionTable,
-                          address::kGlobalDataLoadMegaEvolutionTable,
+  core::HookManager::Initialize(HookId::kLoadMegaEvolutionTable,
+                          address::kLoadMegaEvolutionTable,
                           (uptr)LoadMegaEvolutionTableHook);
   // disable cache
-  ARM_RET(address::kGlobalDataLoadMegaEvolutionTable + 0x3C);
+  ARM_RET(address::kLoadMegaEvolutionTable + 0x3C);
 }
 
 void MegaEvolution::LoadMegaEvolutionTableHook(SpeciesId species) {
-  core::HookManager::Call<void>(HookId::kGlobalDataLoadMegaEvolutionTable, species);
+  core::HookManager::Call<void>(HookId::kLoadMegaEvolutionTable, species);
 
-  auto& mega_evolve_table = *(global_data::MegaEvolutionTable*)
-      READ32(address::kGlobalDataMegaEvolutionTable);
+  auto& mega_evolve_table = *Database::GetInstance().mega_evolution;
   auto& table = *mega_evolve_table.data;
   if (species == SpeciesId::kMimeJr) {
     table.entry[0].form = kFormMimeJrMega;

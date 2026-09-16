@@ -72,7 +72,7 @@ bool ModelLoader::LoadOverworldModel(LoadedModel* out, ModelId model_id,
   return true;
 }
 
-bool ModelLoader::LoadPokemon(LoadedModel* out, SpeciesId species, Form form,
+bool ModelLoader::LoadPokemon(LoadedModel* out, SpeciesId species, FormId form,
                               bool is_shiny, const Vec3& position,
                               Gender gender) {
   if (out == nullptr || out->IsLoaded()) return false;

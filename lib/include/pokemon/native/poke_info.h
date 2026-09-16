@@ -26,7 +26,7 @@ namespace pokemon {
 
 struct PokeInfo {
   SpeciesId species;
-  Form form;
+  FormId form;
   Gender gender;
   bool is_shiny;
   bool is_egg;

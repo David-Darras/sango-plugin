@@ -22,23 +22,15 @@
 
 namespace core {
 
-/**
- * @brief Container for process execution and hierarchy.
- * Links the logical BaseProcess with its position in the process tree.
- */
 class ProcessHandle {
 public:
-  /**
- * @brief Accesses the underlying process logic.
- * @return A reference to the BaseProcess.
- */
   BaseProcess* GetProcess() const { return process_; }
 
 public:
-  ProcessState state_; ///< Current execution state of the handle.
-  ProcessHandle* parent_; ///< Pointer to the parent handle.
-  ProcessHandle* child_; ///< Pointer to the first child handle.
-  BaseProcess* process_; ///< Pointer to the underlying process logic.
+  ProcessState state_;
+  ProcessHandle* parent_;
+  ProcessHandle* child_;
+  BaseProcess* process_;
 };
 
 } // namespace core

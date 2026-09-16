@@ -34,11 +34,6 @@ class EventManager;
 struct TimeManager;
 class DataManager;
 
-/**
- * @brief The primary singleton controller for the game engine.
- * Acts as the central hub for memory heaps, frame timing, and
- * high-level managers (Process and Event).
- */
 class GameManager {
   SINGLETON(GameManager)
 
@@ -79,9 +74,9 @@ public:
 
 private:
   // Memory Heaps
-  void* system_heap_; ///< Main system memory heap.
+  void* system_heap_;
   void* device_heap_; ///< GPU/Hardware-specific memory heap.
-  void* process_cell_heap_; ///< Heap dedicated to process-cell allocations.
+  void* process_cell_heap_;
 
   u8 frame_mode_requested_;
   u8 frame_mode_;

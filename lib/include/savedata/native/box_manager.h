@@ -21,11 +21,6 @@
 #include "savedata/native/savedata.h"
 
 namespace savedata {
-/**
-* @brief Manages the collection of storage boxes and their metadata.
-* * This structure handles the naming, visual appearance (wallpapers),
-* and unlocking progression of the box system.
-*/
 struct BoxManager {
   SINGLETON(BoxManager)
 
@@ -33,10 +28,8 @@ struct BoxManager {
     return SaveData::GetInstance().GetBoxManager();
   }
 
-  /** @brief Maximum number of boxes available in the system. */
   static constexpr u32 kMaxBoxes = 31;
 
-  /** @brief Maximum number of wallpapers available in the system. */
   static constexpr u32 kMaxWallpapers = 24;
 
   /** @brief Maximum length for a box title, including the null terminator. */
@@ -44,19 +37,14 @@ struct BoxManager {
 
   void* vtable;
 
-  /** @brief Array of box names stored as UTF-16 strings. */
   c16 titles[kMaxBoxes][kMaxTitleLength];
 
-  /** @brief Array of wallpaper IDs assigned to each box. */
   u8 wallpapers[kMaxBoxes];
 
-  /** @brief Configuration flags for the box system state. */
   u8 flags;
 
-  /** @brief Number of boxes currently accessible by the player. */
   u8 unlocked_count;
 
-  /** @brief Index of the last visited or currently active box. */
   u8 active_box_index;
 };
 } // namespace savedata

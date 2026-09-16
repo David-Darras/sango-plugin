@@ -34,7 +34,6 @@ Numpad::Numpad() : cursor_(0) {
   constexpr s32 btn_width = 100;
   constexpr s32 btn_height = 18;
 
-  // Input display bar
   buttons_[kButtonInput].Initialize(x, y_start, bar_width, bar_height);
 
   // Numeric buttons 0-9
@@ -43,7 +42,6 @@ Numpad::Numpad() : cursor_(0) {
     buttons_[kButton0 + i].Initialize(x + i * width, current_y, width, height);
   }
 
-  // Control buttons
   current_y += height - 1;
   buttons_[kButtonCancel].Initialize(x, current_y, btn_width, btn_height);
   buttons_[kButtonDelete].Initialize(x + btn_width, current_y, btn_width,
@@ -55,16 +53,13 @@ Numpad::Numpad() : cursor_(0) {
 void Numpad::Draw() const {
   c16 buffer[2] = {0, 0};
 
-  // Render text input
   buttons_[kButtonInput].Draw(input_, 2, 0);
 
-  // Render numbers
   for (int i = 0; i < 10; ++i) {
     buffer[0] = u'0' + i;
     buttons_[kButton0 + i].Draw(buffer, 10, 6);
   }
 
-  // Render controls
   buttons_[kButtonCancel].Draw(u"CANCEL", 19, 0);
   buttons_[kButtonDelete].Draw(u"DELETE", 20, 0);
   buttons_[kButtonOk].Draw(u"OK", 39, 0);
@@ -75,7 +70,6 @@ void Numpad::Update() {
     buttons_[i].Update();
   }
 
-  // Check digits
   for (u32 i = 0; i <= 9; ++i) {
     if (buttons_[kButton0 + i].IsReleased()) {
       sys::Sound::PlaySoundEffect(4);
@@ -83,7 +77,6 @@ void Numpad::Update() {
     }
   }
 
-  // Check controls
   if (buttons_[kButtonDelete].IsReleased()) {
     sys::Sound::PlaySoundEffect(4);
     RemoveLastDigit();
@@ -124,7 +117,6 @@ u32 Numpad::UnicodeToInteger(const c16* str) {
   u32 base = 10;
   const c16* current = str;
 
-  // Check for hex prefix
   if (current[0] == u'0' && (current[1] == u'x' || current[1] == u'X')) {
     base = 16;
     current += 2;

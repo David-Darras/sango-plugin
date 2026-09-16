@@ -50,12 +50,12 @@ struct PokemonModelTable {
   }
 
   INLINE const SpeciesFlagMetadata* GetSpeciesFlagMetadata(
-      SpeciesId species, Form form, Gender gender) const {
+      SpeciesId species, FormId form, Gender gender) const {
     const s32 index = GetDataIndex(species, form, gender);
     return index < 0 ? nullptr : &flags_[index];
   }
 
-  INLINE s32 GetDataIndex(SpeciesId species, Form form, Gender gender) const {
+  INLINE s32 GetDataIndex(SpeciesId species, FormId form, Gender gender) const {
     const SpeciesMetadata* species_metadata = GetSpeciesMetadata(species);
     if (species_metadata == nullptr) return -1;
 
@@ -74,7 +74,7 @@ struct PokemonModelTable {
     return (s32)(species_metadata->data_offset + index);
   }
 
-  INLINE u32 GetPackTop(SpeciesId species, Form form, Gender gender) const {
+  INLINE u32 GetPackTop(SpeciesId species, FormId form, Gender gender) const {
     const s32 index = GetDataIndex(species, form, gender);
     if (index < 0) return kInvalidPack;
     return (u32)index * kFileSectionCount + kPackFirstFile;

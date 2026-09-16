@@ -30,7 +30,10 @@
 #include "ui/painter.h"
 #include "ui/patch/new_game.h"
 #include "ui/patch/title_screen.h"
-#include "undertow/undertow.h"
+
+namespace undertow {
+void InstallScripts();
+}
 
 namespace {
 ModelId PlayerAsAquaGrunt(ModelId model) {
@@ -60,16 +63,16 @@ void OnPokemonModel(PokeInfo* info) {
       core::address::kTitleScreenVtable)) {
     return;
   }
-  if (info->form != Form::kNormal) return;
+  if (info->form != FormId::kNormal) return;
   switch (info->species) {
     case SpeciesId::kGroudon:
       info->species = SpeciesId::kCamerupt;
-      info->form = Form::kCameruptMega;
+      info->form = FormId::kCameruptMega;
       info->is_shiny = true;
       break;
     case SpeciesId::kKyogre:
       info->species = SpeciesId::kSharpedo;
-      info->form = Form::kSharpedoMega;
+      info->form = FormId::kSharpedoMega;
       info->is_shiny = false;
       break;
     default:

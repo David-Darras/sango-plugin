@@ -23,33 +23,20 @@
 #include "core/native/base_process.h"
 #include "core/native/game_manager.h"
 #include "core/native/process_handle.h"
-#include "core/native/process_virtual_table.h"
 #include "core/utils.h"
-#include "ui/log_application.h"
 
 namespace core {
 
 class GameManager;
 
-/**
- * @brief Singleton manager that controls the lifecycle of game processes.
- */
 class ProcessManager {
   SINGLETON(ProcessManager)
 
 public:
-  /**
- * @brief Retrieves the singleton instance of the GameProcManager.
- * @return A reference to the active manager instance.
- */
   STATIC_INLINE ProcessManager& GetInstance() {
     return GameManager::GetInstance().GetProcessManager();
   }
 
-  /**
- * @brief Retrieves the main (root) process handle.
- * @return A reference to the main ProcessHandle.
- */
   INLINE ProcessHandle& GetMainHandle() const { return *handle_; }
 
   BaseProcess* GetCurrentProcess() const {
@@ -102,16 +89,14 @@ public:
   }
 
 private:
-  // Member fields mapped to the engine memory layout
-  void* vtable_; ///< Pointer to the virtual method table.
-  void* heap_base_; ///< Base address of the process heap.
+  void* vtable_;
+  void* heap_base_;
 
   u32 flags_;
   void* data_;
 
 public:
-  ProcessHandle* handle_; ///< Pointer to the root process handle.
+  ProcessHandle* handle_;
   GameManager* game_manager_;
-  ///< Pointer back to the parent GameManager.
 };
 } // namespace core

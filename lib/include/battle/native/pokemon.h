@@ -44,7 +44,7 @@ struct Pokemon {
   // u8 enum, and retyping it would mean changing the field width.
   u16 base_ability;
   u8 level;
-  u8 uid; // UID
+  u8 uid;
   u8 _1[2];
   u32 status_condition[38];
   u8 status_condition_count[38];
@@ -93,7 +93,7 @@ struct Pokemon {
   u8 padding;
   u16 weight;
   u8 move_count;
-  Form form;
+  FormId form;
   u8 friendship;
   u8 _4[3];
   u16 turn_count;

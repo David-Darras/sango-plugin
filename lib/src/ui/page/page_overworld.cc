@@ -20,7 +20,6 @@
 #include "core/native/process_manager.h"
 #include "overworld/native/encounter_state.h"
 #include "overworld/native/map_manager.h"
-#include "overworld/native/model_manager.h"
 #include "overworld/native/prop_model_manager.h"
 #include "overworld/native/weather_manager.h"
 #include "overworld/native/world_layout.h"

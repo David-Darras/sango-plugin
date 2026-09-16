@@ -19,11 +19,6 @@
 
 #include "common.h"
 #include "core/constant/app_id.h"
-#include "core/native/box_app_input.h"
-#include "core/native/move_app_input.h"
-#include "core/native/town_map_app_input.h"
-#include "overworld/constant/map.h"
-#include "pokemon/constant/move.h"
 
 namespace core {
 class GameManager;

@@ -21,19 +21,15 @@
 
 namespace core {
 
-/**
- * @brief Base class for all game process logic.
- * This structure reflects the memory layout of the engine's base process.
- */
 class BaseProcess {
 public:
-  void* vtable; ///< Pointer to the virtual method table.
-  u32 sub_state; ///< Internal sub-state of the process.
-  bool is_done; ///< Flag indicating if the process has finished.
-  BaseProcess* parent_; ///< Pointer to the parent process logic.
+  void* vtable;
+  u32 sub_state;
+  bool is_done;
+  BaseProcess* parent_;
   void* ro_; ///< Pointer to the associated executable module.
   void** ro_child_; ///< Array of child module pointers.
-  u32 ro_child_count_; ///< Number of child modules attached.
+  u32 ro_child_count_;
 };
 
 } // namespace core

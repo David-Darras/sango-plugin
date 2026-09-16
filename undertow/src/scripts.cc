@@ -15,15 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "undertow/undertow.h"
-
 #include "script/patch/native_script.h"
 #include "overworld/patch/map_character.h"
 #include "ui/patch/starter_choice.h"
 #include "overworld/constant/model.h"
 #include "script/constant/script.h"
 #include "pokemon/constant/species.h"
-#include "pokemon/native/global_data/gift_pokemon.h"
+#include "pokemon/native/gift_pokemon_data.h"
 #include "savedata/native/overworld_menu.h"
 
 namespace undertow {
@@ -32,6 +30,25 @@ using script::Context;
 
 constexpr SpeciesId kAquaRecruitPokemon[ui::StarterChoice::kCount] = {
     SpeciesId::kZubat, SpeciesId::kPoochyena, SpeciesId::kCarvanha
+};
+
+struct CastMember {
+  ModelId model_id;
+  u16 tile_x;
+  u16 tile_z;
+  f32 height;
+};
+
+constexpr CastMember kAquaHideoutCast[] = {
+    {ModelId::kArchie, 29, 10, 4},
+    {ModelId::kShelly, 28, 11, 4},
+    {ModelId::kMatt, 30, 11, 4},
+    {ModelId::kTeamAquaGruntFemale, 27, 12, 3},
+    {ModelId::kTeamAquaGruntMale, 26, 13, 3},
+    {ModelId::kTeamAquaGruntFemale, 25, 12, 3},
+    {ModelId::kTeamAquaGruntMale, 31, 12, 3},
+    {ModelId::kTeamAquaGruntFemale, 32, 13, 3},
+    {ModelId::kTeamAquaGruntMale, 33, 12, 3},
 };
 
 void AquaBossWelcome(Context& s) {
@@ -55,9 +72,9 @@ void AquaBossWelcome(Context& s) {
   const u32 gift_id = s.ChooseStarter();
 
   if (gift_id < ui::StarterChoice::kCount) {
-    auto& gift = global_data::GiftPokemon::GetInstance(gift_id);
+    auto& gift = pokemon::GiftPokemonData::GetInstance(gift_id);
     gift.species = kAquaRecruitPokemon[gift_id];
-    gift.form = Form::kNormal;
+    gift.form = FormId::kNormal;
   }
   s.GivePokemon(gift_id, true);
   s.SetFlag(EventFlag::kStarterGiven);
@@ -79,106 +96,15 @@ void InstallScripts() {
   overworld::MapCharacter::Empty(MapId::kAquaHideout);
   overworld::MapCharacter::Empty(MapId::kAquaHideoutEntrance);
 
-  overworld::MapCharacterRequest boss;
-  boss.map_id = MapId::kAquaHideout;
-  boss.model_id = ModelId::kArchie;
-  boss.script_id = ScriptId::kAquaBossWelcome;
-  boss.tile_x = 29;
-  boss.tile_z = 10;
-  boss.height = 4;
-  boss.facing = overworld::Facing::kDown;
-  overworld::MapCharacter::Add(boss);
-
-  overworld::MapCharacterRequest shelly;
-  shelly.map_id = MapId::kAquaHideout;
-  shelly.model_id = ModelId::kShelly;
-  shelly.script_id = ScriptId::kAquaBossWelcome;
-  shelly.tile_x = 28;
-  shelly.tile_z = 11;
-  shelly.height = 4;
-  shelly.facing = overworld::Facing::kDown;
-  overworld::MapCharacter::Add(shelly);
-
-  overworld::MapCharacterRequest matt;
-  matt.map_id = MapId::kAquaHideout;
-  matt.model_id = ModelId::kMatt;
-  matt.script_id = ScriptId::kAquaBossWelcome;
-  matt.tile_x = 30;
-  matt.tile_z = 11;
-  matt.height = 4;
-  matt.facing = overworld::Facing::kDown;
-  overworld::MapCharacter::Add(matt);
-
-  {
-    overworld::MapCharacterRequest grunt;
-    grunt.map_id = MapId::kAquaHideout;
-    grunt.model_id = ModelId::kTeamAquaGruntFemale;
-    grunt.script_id = ScriptId::kAquaBossWelcome;
-    grunt.tile_x = 27;
-    grunt.tile_z = 12;
-    grunt.height = 3;
-    grunt.facing = overworld::Facing::kDown;
-    overworld::MapCharacter::Add(grunt);
-  }
-
-  {
-    overworld::MapCharacterRequest grunt;
-    grunt.map_id = MapId::kAquaHideout;
-    grunt.model_id = ModelId::kTeamAquaGruntMale;
-    grunt.script_id = ScriptId::kAquaBossWelcome;
-    grunt.tile_x = 26;
-    grunt.tile_z = 13;
-    grunt.height = 3;
-    grunt.facing = overworld::Facing::kDown;
-    overworld::MapCharacter::Add(grunt);
-  }
-
-  {
-    overworld::MapCharacterRequest grunt;
-    grunt.map_id = MapId::kAquaHideout;
-    grunt.model_id = ModelId::kTeamAquaGruntFemale;
-    grunt.script_id = ScriptId::kAquaBossWelcome;
-    grunt.tile_x = 25;
-    grunt.tile_z = 12;
-    grunt.height = 3;
-    grunt.facing = overworld::Facing::kDown;
-    overworld::MapCharacter::Add(grunt);
-  }
-
-  {
-    overworld::MapCharacterRequest grunt;
-    grunt.map_id = MapId::kAquaHideout;
-    grunt.model_id = ModelId::kTeamAquaGruntMale;
-    grunt.script_id = ScriptId::kAquaBossWelcome;
-    grunt.tile_x = 31;
-    grunt.tile_z = 12;
-    grunt.height = 3;
-    grunt.facing = overworld::Facing::kDown;
-    overworld::MapCharacter::Add(grunt);
-  }
-
-  {
-    overworld::MapCharacterRequest grunt;
-    grunt.map_id = MapId::kAquaHideout;
-    grunt.model_id = ModelId::kTeamAquaGruntFemale;
-    grunt.script_id = ScriptId::kAquaBossWelcome;
-    grunt.tile_x = 32;
-    grunt.tile_z = 13;
-    grunt.height = 3;
-    grunt.facing = overworld::Facing::kDown;
-    overworld::MapCharacter::Add(grunt);
-  }
-
-  {
-    overworld::MapCharacterRequest grunt;
-    grunt.map_id = MapId::kAquaHideout;
-    grunt.model_id = ModelId::kTeamAquaGruntMale;
-    grunt.script_id = ScriptId::kAquaBossWelcome;
-    grunt.tile_x = 33;
-    grunt.tile_z = 12;
-    grunt.height = 3;
-    grunt.facing = overworld::Facing::kDown;
-    overworld::MapCharacter::Add(grunt);
+  for (const auto& member : kAquaHideoutCast) {
+    overworld::MapCharacterRequest request;
+    request.map_id = MapId::kAquaHideout;
+    request.model_id = member.model_id;
+    request.script_id = ScriptId::kAquaBossWelcome;
+    request.tile_x = member.tile_x;
+    request.tile_z = member.tile_z;
+    request.height = member.height;
+    overworld::MapCharacter::Add(request);
   }
 }
 }

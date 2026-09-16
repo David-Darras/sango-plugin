@@ -19,24 +19,24 @@
 #include "core/hook_manager.h"
 #include "pokemon/constant/evolution_method.h"
 #include "pokemon/constant/item.h"
-#include "pokemon/native/global_data/evolution_table.h"
+#include "pokemon/native/database.h"
+#include "pokemon/native/evolution_table.h"
 
 namespace pokemon {
 
 void Evolution::Initialize() {
-  core::HookManager::Initialize(HookId::kLoadEvolveTable,
-                          address::kGlobalDataLoadEvolveTable,
+  core::HookManager::Initialize(HookId::kLoadEvolutionTable,
+                          address::kLoadEvolutionTable,
                           (uptr)LoadEvolveTableHook);
 }
 
 void Evolution::LoadEvolveTableHook(SpeciesId species, u32 b, u32 c, u32 d) {
-  core::HookManager::Call<void>(HookId::kLoadEvolveTable, species, b, c, d);
+  core::HookManager::Call<void>(HookId::kLoadEvolutionTable, species, b, c, d);
   PatchEvolve(species);
 }
 
 void Evolution::PatchEvolve(SpeciesId species) {
-  auto& evolve_table = *(global_data::EvolutionTable*)
-      READ32(address::kGlobalDataEvolveTable);
+  auto& evolve_table = *Database::GetInstance().evolution;
   auto& table = *evolve_table.data;
   switch (species) {
     case SpeciesId::kMachoke:

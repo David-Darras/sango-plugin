@@ -17,8 +17,7 @@
 
 #include "overworld/patch/trade.h"
 #include "core/hook_manager.h"
-#include "core/native/game_manager.h"
-#include "pokemon/native/global_data/trade_pokemon.h"
+#include "pokemon/native/trade_pokemon_data.h"
 #include "ui/log_application.h"
 #include "core/utils.h"
 
@@ -34,9 +33,9 @@ void Trade::PatchLoad() {
 }
 
 void Trade::RandomizeSpecies(u32 index) {
-  auto& entry = global_data::TradePokemon::GetInstance(index);
+  auto& entry = pokemon::TradePokemonData::GetInstance(index);
   entry.species = core::Utils::GetRandomEnum<SpeciesId>();
-  entry.form = Form::kNormal;
+  entry.form = FormId::kNormal;
   entry.level = 1 + core::Utils::GetRandomValue(99);
   ui::LogApplication::Print(u"trade[%u]=%u", index, entry.species);
 }

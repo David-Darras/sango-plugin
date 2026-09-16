@@ -21,8 +21,6 @@
 #include "ui/painter.h"
 
 namespace kaizo {
-/// The compact menu of the ROM hack: a small panel in the top-right corner,
-/// plus a splash screen on the bottom screen for the first second.
 class Painter : public ui::Painter {
   MAKE_SINGLETON(Painter)
 public:

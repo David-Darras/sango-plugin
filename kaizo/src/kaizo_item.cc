@@ -16,10 +16,10 @@
  */
 
 #include "pokemon/constant/item.h"
-#include "pokemon/native/global_data/item.h"
+#include "pokemon/native/item_data.h"
 
 namespace kaizo {
-void PatchItemData(global_data::Item* item) {
+void PatchItemData(pokemon::ItemData* item) {
   switch (item->id) {
     case ItemId::kHpUp:
       item->hp_ev_value = 63;
@@ -55,6 +55,8 @@ void PatchItemData(global_data::Item* item) {
       item->evolve = 1;
       item->use_on_pokemon = true;
       item->field_function = 1;
+      break;
+    default:
       break;
   }
 }

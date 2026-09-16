@@ -20,7 +20,6 @@
 #include "core/native/game_event.h"
 #include "core/native/game_manager.h"
 #include "core/utils.h"
-#include "ui/log_application.h"
 
 namespace core {
 

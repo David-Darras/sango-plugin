@@ -16,12 +16,10 @@
  */
 
 #pragma once
-#include "battle/native/pokemon.h"
 #include "battle/constant/field_effect_kind.h"
 #include "battle/constant/field_position.h"
 #include "battle/constant/field_side.h"
 #include "battle/constant/friendship_effect.h"
-#include "battle/constant/terrain_kind.h"
 #include "battle/constant/item_reaction_kind.h"
 #include "battle/constant/mutation_kind.h"
 #include "battle/constant/persistent_marker.h"
@@ -31,18 +29,19 @@
 #include "battle/constant/status_data.h"
 #include "battle/constant/status_overwrite_mode.h"
 #include "battle/constant/team_effect_kind.h"
+#include "battle/constant/terrain_kind.h"
 #include "battle/constant/turn_marker.h"
-#include "battle/native/listener.h"
+#include "battle/constant/weather.h"
 #include "battle/native/mutation_message.h"
+#include "battle/native/uid.h"
 #include "pokemon/constant/form.h"
 #include "pokemon/constant/item.h"
 #include "pokemon/constant/move.h"
 #include "pokemon/constant/type.h"
-#include "battle/constant/weather.h"
 
 namespace battle {
 struct Mutation {
-  MutationKind kind : 8; ///< Which concrete mutation this is
+  MutationKind kind : 8;
   u32 owner_id : 5; ///< The Pokémon this mutation is scoped to
   u32 struct_size : 10;
   ///< Size of the concrete mutation struct, for the pool allocator
@@ -56,19 +55,16 @@ struct Mutation {
   u32 _padding : 5;
 };
 
-// --- kUseItem -----------------------------------------------------------
 struct UseItemMutation : Mutation {
   u32 skip_if_hp_full : 1; ///< Don't run if the Pokémon is already at full HP
   u32 allow_if_fainted : 1; ///< Runs even if the Pokémon has fainted
   u32 _padding : 30;
 };
 
-// --- kShowMessage ---------------------------------------------------------
 struct ShowMessageMutation : Mutation {
   MutationMessage message;
 };
 
-// --- kRecoverHp -------------------------------------------------------
 struct RecoverHpMutation : Mutation {
   u16 heal_amount;
   UID target_id;
@@ -76,7 +72,6 @@ struct RecoverHpMutation : Mutation {
   MutationMessage message;
 };
 
-// --- kLifestealHeal -----------------------------------------------------
 struct LifestealHealMutation : Mutation {
   u16 heal_amount;
   UID healed_id;
@@ -84,7 +79,6 @@ struct LifestealHealMutation : Mutation {
   MutationMessage message;
 };
 
-// --- kDealDamage --------------------------------------------------------
 struct DealDamageMutation : Mutation {
   u16 damage_amount;
   UID target_id;
@@ -98,7 +92,6 @@ struct DealDamageMutation : Mutation {
   MutationMessage message;
 };
 
-// --- kAdjustHpDirectly ----------------------------------------------------
 struct AdjustHpDirectlyMutation : Mutation {
   u8 target_count;
   u8 suppress_gauge_effect;
@@ -119,7 +112,6 @@ struct PpAdjustmentMutation : Mutation {
   MutationMessage message;
 };
 
-// --- kCureStatus ----------------------------------------------------------
 struct CureStatusMutation : Mutation {
   StatusCondition status; ///< Extendable status code
   UID target_ids[12];
@@ -128,7 +120,6 @@ struct CureStatusMutation : Mutation {
   MutationMessage message;
 };
 
-// --- kInflictStatus ---------------------------------------------------
 struct InflictStatusMutation : Mutation {
   StatusCondition status;
   StatusData status_data;
@@ -142,7 +133,6 @@ struct InflictStatusMutation : Mutation {
   ///< Custom message (suppress_default_message should be set alongside)
 };
 
-// --- kAdjustStatStage -------------------------------------------------
 struct AdjustStatStageMutation : Mutation {
   StatStageEffectKind stage_kind;
   u32 effect_serial; ///< 0 if unused
@@ -158,7 +148,6 @@ struct AdjustStatStageMutation : Mutation {
   MutationMessage message;
 };
 
-// --- kSetStatStageDirectly ----------------------------------------------
 struct SetStatStageDirectlyMutation : Mutation {
   UID target_id;
   s8 attack;
@@ -171,18 +160,15 @@ struct SetStatStageDirectlyMutation : Mutation {
   u8 critical_hit_stage;
 };
 
-// --- kRemoveStatDebuffs -------------------------------------------------
 struct RemoveStatDebuffsMutation : Mutation {
   UID target_id;
 };
 
-// --- kResetAllStatStages --------------------------------------------------
 struct ResetAllStatStagesMutation : Mutation {
   u8 target_count;
   UID target_ids[10];
 };
 
-// --- kOverwriteBaseStat ---------------------------------------------------
 struct OverwriteBaseStatMutation : Mutation {
   u16 attack;
   u16 defense;
@@ -199,7 +185,6 @@ struct OverwriteBaseStatMutation : Mutation {
   MutationMessage message;
 };
 
-// --- kKnockOut ------------------------------------------------------------
 struct KnockOutMutation : Mutation {
   UID target_id;
   u8 allow_if_already_fainted;
@@ -208,7 +193,6 @@ struct KnockOutMutation : Mutation {
   MutationMessage message;
 };
 
-// --- kChangeType ------------------------------------------------------------
 struct ChangeTypeMutation : Mutation {
   TypeId next_type;
   UID target_id;
@@ -217,7 +201,6 @@ struct ChangeTypeMutation : Mutation {
   ///< Show a failure message if the new type is identical to the current one
 };
 
-// --- kAddExtraType --------------------------------------------------------
 struct AddExtraTypeMutation : Mutation {
   TypeId ex_type;
   UID target_id;
@@ -235,7 +218,6 @@ struct PersistentMarkerMutation : Mutation {
   UID target_id;
 };
 
-// --- kAddTeamEffect ---------------------------------------------------
 struct AddTeamEffectMutation : Mutation {
   TeamEffectKind effect;
   StatusData duration;
@@ -243,20 +225,17 @@ struct AddTeamEffectMutation : Mutation {
   MutationMessage message;
 };
 
-// --- kRemoveTeamEffect --------------------------------------------------
 struct RemoveTeamEffectMutation : Mutation {
   u8 flags[4];
   FieldSide side;
 };
 
-// --- kSetTeamEffectPaused -------------------------------------------------
 struct SetTeamEffectPausedMutation : Mutation {
   u8 flags[4];
   FieldSide side;
   u8 resume; ///< true = resume instead of pause
 };
 
-// --- kAddFieldEffect --------------------------------------------------
 struct AddFieldEffectMutation : Mutation {
   FieldEffectKind effect;
   TerrainKind terrain; ///< Only read when effect == kTerrain
@@ -266,12 +245,10 @@ struct AddFieldEffectMutation : Mutation {
   ///< If adding fails, still track owner_id as depending on it
 };
 
-// --- kRemoveFieldEffect ---------------------------------------------------
 struct RemoveFieldEffectMutation : Mutation {
   FieldEffectKind effect;
 };
 
-// --- kChangeWeather ---------------------------------------------------
 struct ChangeWeatherMutation : Mutation {
   Weather weather;
   u8 turns;
@@ -279,7 +256,6 @@ struct ChangeWeatherMutation : Mutation {
   MutationMessage message;
 };
 
-// --- kAddPositionalEffect -------------------------------------------------
 struct AddPositionalEffectMutation : Mutation {
   PositionalEffectKind effect;
   FieldPosition position;
@@ -287,7 +263,6 @@ struct AddPositionalEffectMutation : Mutation {
   u8 param_count;
 };
 
-// --- kChangeAbility ---------------------------------------------------
 struct ChangeAbilityMutation : Mutation {
   u16 ability_id; ///< kNoAbility clears the ability entirely
   UID target_id;
@@ -297,7 +272,6 @@ struct ChangeAbilityMutation : Mutation {
   MutationMessage message;
 };
 
-// --- kSetHeldItem -------------------------------------------------------
 struct SetHeldItemMutation : Mutation {
   ItemId item_id; ///< ItemId::kNone clears the held item
   UID target_id;
@@ -308,7 +282,6 @@ struct SetHeldItemMutation : Mutation {
   MutationMessage message;
 };
 
-// --- kSwapHeldItems -------------------------------------------------------
 struct SwapHeldItemsMutation : Mutation {
   UID target_id; ///< Swaps with owner_id from the header
   MutationMessage message;
@@ -316,27 +289,23 @@ struct SwapHeldItemsMutation : Mutation {
   MutationMessage sub_message_2;
 };
 
-// --- kCheckItemActivation -------------------------------------------------
 struct CheckItemActivationMutation : Mutation {
   UID target_id;
   ItemReactionKind reaction_kind;
 };
 
-// --- kActivateItemEffect ----------------------------------------------
 struct ActivateItemEffectMutation : Mutation {
   UID target_id;
   u8 treat_as_eaten_berry; ///< For Bug Bite/Pluck-style effects
   ItemId item_id;
 };
 
-// --- kConsumeItem -----------------------------------------------------
 struct ConsumeItemMutation : Mutation {
   u8 skip_action;
   u8 skip_berry_eaten_flag;
   MutationMessage message;
 };
 
-// --- kOverwriteMoveData -------------------------------------------------
 struct OverwriteMoveDataMutation : Mutation {
   UID target_id;
   u8 move_slot_index;
@@ -345,14 +314,12 @@ struct OverwriteMoveDataMutation : Mutation {
   MoveId move_id;
 };
 
-// --- kSetMoveCounter --------------------------------------------------
 struct SetMoveCounterMutation : Mutation {
   UID target_id;
   u8 counter_id;
   u8 value;
 };
 
-// --- kDelayedMoveDamage -------------------------------------------------
 struct DelayedMoveDamageMutation : Mutation {
   UID attacker_id;
   UID target_id;
@@ -360,7 +327,6 @@ struct DelayedMoveDamageMutation : Mutation {
   MoveId move_id;
 };
 
-// --- kSwitchInPokemon -----------------------------------------------------
 struct SwitchInPokemonMutation : Mutation {
   MutationMessage pre_message; ///< Shown as the switch begins
   MutationMessage message; ///< Shown on success
@@ -368,33 +334,28 @@ struct SwitchInPokemonMutation : Mutation {
   u8 forbid_interrupt; ///< Blocks pursuit-style interrupts
 };
 
-// --- kBatonTouch ----------------------------------------------------------
 struct BatonTouchMutation : Mutation {
-  UID source_id; ///< Pokémon passing its state on
-  UID target_id; ///< Pokémon receiving it
+  UID source_id;
+  UID target_id;
 };
 
-// --- kFlinch ----------------------------------------------------------
 struct FlinchMutation : Mutation {
   UID target_id;
   u8 chance_percent;
 };
 
-// --- kRevive ------------------------------------------------------------
 struct ReviveMutation : Mutation {
   UID target_id;
   u16 heal_amount;
   MutationMessage message;
 };
 
-// --- kSetWeight ---------------------------------------------------------
 struct SetWeightMutation : Mutation {
   UID target_id;
   u16 weight_value;
   MutationMessage message;
 };
 
-// --- kForceSwitchOut --------------------------------------------------
 struct ForceSwitchOutMutation : Mutation {
   u16 visual_effect_id;
   UID target_id;
@@ -403,50 +364,42 @@ struct ForceSwitchOutMutation : Mutation {
   MutationMessage message;
 };
 
-// --- kForceActImmediately -------------------------------------------------
 struct ForceActImmediatelyMutation : Mutation {
   UID target_id;
   MutationMessage message;
 };
 
-// --- kInterceptPendingMove ------------------------------------------------
 struct InterceptPendingMoveMutation : Mutation {
   MoveId move_id;
 };
 
-// --- kDeferActionToTurnEnd -------------------------------------------------
 struct DeferActionToTurnEndMutation : Mutation {
   UID target_id;
   MutationMessage message;
 };
 
-// --- kSwapActivePokemon ---------------------------------------------------
 struct SwapActivePokemonMutation : Mutation {
   UID first_id;
   UID second_id;
   MutationMessage message;
 };
 
-// --- kTransform ---------------------------------------------------------
 struct TransformMutation : Mutation {
   UID target_id;
   MutationMessage message;
 };
 
-// --- kBreakIllusion -----------------------------------------------------
 struct BreakIllusionMutation : Mutation {
   UID target_id;
   MutationMessage message;
 };
 
-// --- kCancelSemiInvulnerableState -----------------------------------------
 struct CancelSemiInvulnerableStateMutation : Mutation {
   UID target_id;
   PersistentMarker state_to_cancel;
   MutationMessage message;
 };
 
-// --- kPlayVisualEffectAtPosition -------------------------------------------
 struct PlayVisualEffectAtPositionMutation : Mutation {
   u16 visual_effect_id;
   FieldPosition start_position; ///< FieldPosition::kNone if unused
@@ -457,14 +410,12 @@ struct PlayVisualEffectAtPositionMutation : Mutation {
   MutationMessage message; ///< Shown after the effect plays
 };
 
-// --- kChangeForm ----------------------------------------------------------
 struct ChangeFormMutation : Mutation {
   UID target_id;
-  Form form;
+  FormId form;
   MutationMessage message;
 };
 
-// --- kSetMoveEffectVariant -----------------------------------------------
 struct SetMoveEffectVariantMutation : Mutation {
   u8 variant_index;
 };
@@ -472,7 +423,6 @@ struct SetMoveEffectVariantMutation : Mutation {
 // --- kForcePlayMoveEffect ------------------------------------------------
 // No extra data beyond Mutation.
 
-// --- kApplyFriendshipBonus -------------------------------------------------
 struct ApplyFriendshipBonusMutation : Mutation {
   UID target_id;
   FriendshipEffect effect_kind;

@@ -22,13 +22,13 @@
 #include "pokemon/constant/move.h"
 #include "pokemon/constant/type.h"
 
-namespace global_data {
-struct Move {
-  STATIC_INLINE Move* GetTable() {
-    return (Move*)READ32(pokemon::address::kGlobalDataMoveTable);
+namespace pokemon {
+struct MoveData {
+  STATIC_INLINE MoveData* GetTable() {
+    return (MoveData*)READ32(address::kMoveDataTable);
   }
 
-  STATIC_INLINE Move& GetInstance(const MoveId move) {
+  STATIC_INLINE MoveData& GetInstance(const MoveId move) {
     return GetTable()[static_cast<u16>(move)];
   }
 
@@ -64,4 +64,4 @@ struct Move {
 
   u32 flags;
 };
-} // namespace global_data
+} // namespace pokemon

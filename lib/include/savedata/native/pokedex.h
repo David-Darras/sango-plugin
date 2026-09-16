@@ -17,7 +17,6 @@
 
 #pragma once
 #include "savedata/native/savedata.h"
-#include "core/native/data_manager.h"
 
 namespace savedata {
 struct Pokedex {
@@ -28,7 +27,7 @@ struct Pokedex {
   }
 
   /**
-* @return Form index, or -1 if the species has no alternative forms.
+* @return FormId index, or -1 if the species has no alternative forms.
 */
   INLINE s32 GetFormIndex(u16 species) {
     return ((s32(*)(Pokedex*, u16))pokemon::address::kPokedexGetFormIndex)(
