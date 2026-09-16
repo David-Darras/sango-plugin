@@ -28,7 +28,7 @@ constexpr uptr kLanguageId = GAME_ADDRESS(0, 0x005F4F01);
 constexpr uptr kAppStatusVtable = GAME_ADDRESS(0, 0x0071C3BC);
 constexpr uptr kAppPokeListVtable = GAME_ADDRESS(0, 0x00705B08);
 constexpr uptr kKeyboardVtable = GAME_ADDRESS(0, 0x0074B628);
-constexpr uptr kFontHasGlyph = GAME_ADDRESS(0, 0x004C4B40);
+constexpr uptr kFontHasGlyph = GAME_ADDRESS(0x00494F64, 0x004C4B40);
 constexpr uptr kAppLayoutManagerSetTextBoxColor = GAME_ADDRESS(0, 0x00362828);
 constexpr uptr kAppLayoutManagerSetTextBoxIntegerValue =
     GAME_ADDRESS(0, 0x003629B4);

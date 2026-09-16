@@ -61,21 +61,17 @@ void OnReadFile(core::ArchiveInput* input) {
 
 void OnProcessLoad(uptr vtable) {
   kaizo::ShouldReplacePokemonModel(false);
-  switch (vtable) {
-    case core::address::kIntroductionVtable:
-    case core::address::kCinematicVtable:
+  // Vtables still unknown for a game read 0: never match them.
+  if (vtable == 0) return;
+  if (vtable == core::address::kIntroductionVtable ||
+      vtable == core::address::kCinematicVtable) {
+    kaizo::ShouldReplacePokemonModel(true);
+  } else if (vtable == core::address::kTitleScreenVtable) {
+    if (ui::TitleScreen::GetInstance().is_enabled) {
       kaizo::ShouldReplacePokemonModel(true);
-      break;
-    case core::address::kTitleScreenVtable:
-      if (ui::TitleScreen::GetInstance().is_enabled) {
-        kaizo::ShouldReplacePokemonModel(true);
-      }
-      break;
-    case core::address::kSelectStarterVtable:
-      kaizo::PatchStarterView();
-      break;
-    default:
-      break;
+    }
+  } else if (vtable == core::address::kSelectStarterVtable) {
+    kaizo::PatchStarterView();
   }
 }
 

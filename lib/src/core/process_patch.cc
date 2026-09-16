@@ -40,15 +40,13 @@ u32 ProcessPatch::MainProcessLoopHook(ProcessManager* manager) {
 
 void ProcessPatch::OnUpdate(uptr vtable) {
   ui::NewGame::OnProcessUpdate(vtable);
-  switch (vtable) {
-    case ui::address::kAppStatusVtable:
-      ui::AppStatus::PatchUpdate();
-      break;
-    case battle::address::kVtable:
-      battle::Battle::PatchUpdate();
-      break;
-    default:
-      break;
+  // Vtables still unknown for a game read 0, so no `switch` here: a process
+  // whose vtable is unknown must never match anything.
+  if (vtable == 0) return;
+  if (vtable == ui::address::kAppStatusVtable) {
+    ui::AppStatus::PatchUpdate();
+  } else if (vtable == battle::address::kVtable) {
+    battle::Battle::PatchUpdate();
   }
 }
 
@@ -64,27 +62,19 @@ void ProcessPatch::OnLoad(uptr vtable) {
     ui::KeyboardPatch::GetInstance().is_opened = false;
   }
 
-  switch (vtable) {
-    case address::kTitleScreenVtable:
-      ui::TitleScreen::PatchLoad();
-      break;
-    case battle::address::kVtable:
-      battle::Battle::PatchLoad();
-      break;
-    case overworld::address::kVtable:
-      overworld::Field::PatchLoad();
-      break;
-    case ui::address::kAppStatusVtable:
-      ui::AppStatus::PatchLoad();
-      break;
-    case ui::address::kKeyboardVtable:
-      ui::KeyboardPatch::PatchLoad();
-      break;
-    case address::kSelectStarterVtable:
-      ui::StarterChoice::PatchLoad();
-      break;
-    default:
-      break;
+  if (vtable == 0) return;
+  if (vtable == address::kTitleScreenVtable) {
+    ui::TitleScreen::PatchLoad();
+  } else if (vtable == battle::address::kVtable) {
+    battle::Battle::PatchLoad();
+  } else if (vtable == overworld::address::kVtable) {
+    overworld::Field::PatchLoad();
+  } else if (vtable == ui::address::kAppStatusVtable) {
+    ui::AppStatus::PatchLoad();
+  } else if (vtable == ui::address::kKeyboardVtable) {
+    ui::KeyboardPatch::PatchLoad();
+  } else if (vtable == address::kSelectStarterVtable) {
+    ui::StarterChoice::PatchLoad();
   }
 }
 

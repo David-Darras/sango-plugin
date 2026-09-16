@@ -34,8 +34,14 @@ void MainApplication::DrawTop(sys::Graphics& graphics) {
 
   painter_->DrawPageBackground(*this);
   sys::Graphics::SetTextScale(1.0f, 1.0f);
-  sys::Graphics::DrawText(390, 220, u"『さんご』",
-                     Theme::GetInstance().selected_text_color);
+#ifdef GAME_ORAS
+  static const c16* kPluginTitle = u"『さんご』";
+#endif
+#ifdef GAME_XY
+  static const c16* kPluginTitle = u"『くじら』";
+#endif
+  sys::Graphics::DrawText(390, 220, kPluginTitle,
+                          Theme::GetInstance().selected_text_color);
   painter_->DrawPageItems(*this);
 }
 
@@ -54,7 +60,7 @@ void MainApplication::DrawBottom(sys::Graphics& graphics) {
 
   sys::Graphics::FillScreen(theme_.background_color);
   sys::Graphics::DrawRectStroke(0, 0, 320, 240, 1,
-                           theme_.selected_text_color);
+                                theme_.selected_text_color);
 
   if (GetSelectedEntry().GetType() == kTypeUnicode) {
     keyboard_.Draw();
@@ -77,23 +83,25 @@ void MainApplication::DrawBottom(sys::Graphics& graphics) {
   sys::Graphics::DrawText(5, 170, buffer, theme_.unselected_text_color);
 
   sys::Graphics::SetTextScale(0.5, 0.5);
-  core::Utils::Format(buffer, u"Sango Plugin | Created by %s",
-                PLUGIN_CREATOR);
+  core::Utils::Format(buffer, u"%s Plugin | Created by %s",
+                      PLUGIN_NAME, PLUGIN_CREATOR);
   sys::Graphics::DrawText(5, 200, buffer, theme_.selected_text_color);
   core::Utils::Format(buffer, u"Build: %s %s", PLUGIN_VERSION, __DATE__,
-                __TIME__);
+                      __TIME__);
   sys::Graphics::DrawText(5, 216, buffer, theme_.selected_text_color);
 }
 
 void MainApplication::ForceClose() {
-  sys::Sound::PlaySoundEffect(IsOpened() ? theme_.close_sound : theme_.open_sound);
+  sys::Sound::PlaySoundEffect(IsOpened()
+                                ? theme_.close_sound
+                                : theme_.open_sound);
   is_opened_ = false;
   core::DevicePatch::GetInstance().use_redirection = is_opened_;
 }
 
 void MainApplication::Update(sys::Controller& controller) {
   if (AreKeysReleased(controller)) {
-    sys::Sound::PlaySoundEffect(IsOpened() ? theme_.close_sound : theme_.open_sound);
+    // sys::Sound::PlaySoundEffect(IsOpened() ? theme_.close_sound : theme_.open_sound);
     is_opened_ ^= 1;
     core::DevicePatch::GetInstance().use_redirection = is_opened_;
     return;
@@ -101,11 +109,11 @@ void MainApplication::Update(sys::Controller& controller) {
 
   if (!IsOpened()) return;
 
-  if (process_vtable_ != 0 && !core::ProcessManager::GetInstance().
-      IsCurrentProcess(process_vtable_)) {
-    Close();
-    return;
-  }
+  // if (process_vtable_ != 0 && !core::ProcessManager::GetInstance().
+  //     IsCurrentProcess(process_vtable_)) {
+  //   Close();
+  //   return;
+  // }
 
   MenuContext& ctx = GetContext();
   PageItem& entry = GetSelectedEntry();
@@ -125,12 +133,12 @@ void MainApplication::Update(sys::Controller& controller) {
   } else if (controller.IsKeyReleased(Key::kB)) {
     Close();
   } else if (controller.IsKeyReleased(Key::kA)) {
-    sys::Sound::PlaySoundEffect(theme_.confirm_sound);
+    // sys::Sound::PlaySoundEffect(theme_.confirm_sound);
     entry.Execute(*this);
   } else if (controller.IsKeyReleased(Key::kX) || numpad_.IsButtonOkReleased()
              ||
              keyboard_.IsButtonOkReleased()) {
-    sys::Sound::PlaySoundEffect(theme_.confirm_sound);
+    // sys::Sound::PlaySoundEffect(theme_.confirm_sound);
 
     switch (entry.GetType()) {
       case kTypeUnicode:
@@ -147,7 +155,7 @@ void MainApplication::Update(sys::Controller& controller) {
           Key::kRight) ||
       controller.IsKeyRepeated(Key::kDown) || controller.
       IsKeyRepeated(Key::kUp)) {
-    sys::Sound::PlaySoundEffect(theme_.next_sound);
+    // sys::Sound::PlaySoundEffect(theme_.next_sound);
   }
 
   u8& offset = ctx.offset;
@@ -252,7 +260,7 @@ void MainAppPainter::DrawPageBackground(MainApplication& app) {
     sys::Graphics::FillScreen(app.theme_.background_color);
   }
   sys::Graphics::DrawRectStroke(0, 0, 400, 240, 1,
-                           Theme::GetInstance().selected_text_color);
+                                Theme::GetInstance().selected_text_color);
 }
 
 void MainAppPainter::DrawPageItems(MainApplication& app) {
@@ -260,16 +268,15 @@ void MainAppPainter::DrawPageItems(MainApplication& app) {
 
   sys::Graphics::SetTextScale(0.6, 0.6);
   sys::Graphics::DrawText(5, 6 + ctx.cursor * MainApplication::kLineHeight,
-                     u"\uE077", app.theme_.selected_text_color);
+                          u"\uE077", app.theme_.selected_text_color);
 
   c16 buffer[BUFFER_SIZE];
   for (u32 i = 0; i < ctx.display_count; i++) {
     app.entries_[i + ctx.offset].GetDisplayValue(buffer);
     sys::Graphics::DrawText(25, 5 + i * MainApplication::kLineHeight, buffer,
-                       ctx.cursor == i
-                         ? app.theme_.selected_text_color
-                         : app.theme_.unselected_text_color);
+                            ctx.cursor == i
+                              ? app.theme_.selected_text_color
+                              : app.theme_.unselected_text_color);
   }
 }
-
 } // namespace ui

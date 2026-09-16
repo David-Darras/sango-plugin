@@ -25,14 +25,14 @@ namespace address {
 
 constexpr uptr kFadeRequestIn = GAME_ADDRESS(0, 0x00371518);
 
-constexpr uptr kGraphicsGetFramebuffer = GAME_ADDRESS(0, 0x0012FA94);
-constexpr uptr kGraphicsBindFramebuffer = GAME_ADDRESS(0, 0x003717E0);
-constexpr uptr kGraphicsEnableScissor = GAME_ADDRESS(0, 0x003A30A8);
-constexpr uptr kGraphicsDisableScissor = GAME_ADDRESS(0, 0x003A3284);
-constexpr uptr kGraphicsBeginRender = GAME_ADDRESS(0, 0x00175A58);
-constexpr uptr kGraphicsSetTextScale = GAME_ADDRESS(0, 0x003A3498);
-constexpr uptr kGraphicsDrawText = GAME_ADDRESS(0, 0x003A44C4);
-constexpr uptr kGraphicsDrawRect = GAME_ADDRESS(0, 0x00175BDC);
+constexpr uptr kGraphicsGetFramebuffer = GAME_ADDRESS(0x0012F9F8, 0x0012FA94);
+constexpr uptr kGraphicsBindFramebuffer = GAME_ADDRESS(0x00359FA0, 0x003717E0);
+constexpr uptr kGraphicsEnableScissor = GAME_ADDRESS(0x0038C7B0, 0x003A30A8);
+constexpr uptr kGraphicsDisableScissor = GAME_ADDRESS(0x0038C98C, 0x003A3284);
+constexpr uptr kGraphicsBeginRender = GAME_ADDRESS(0x00174B20, 0x00175A58);
+constexpr uptr kGraphicsSetTextScale = GAME_ADDRESS(0x0038CBA0, 0x003A3498);
+constexpr uptr kGraphicsDrawText = GAME_ADDRESS(0x0038DB54, 0x003A44C4);
+constexpr uptr kGraphicsDrawRect = GAME_ADDRESS(0x00174CA4, 0x00175BDC);
 constexpr uptr kStereoCameraUpdateMatrices = GAME_ADDRESS(0, 0x00377C10);
 constexpr uptr kStereoCameraUpdateLookAt = GAME_ADDRESS(0, 0x001483DC);
 constexpr uptr kStereoCameraSetProjectionMatrix = GAME_ADDRESS(0, 0x003939CC);
@@ -90,7 +90,8 @@ constexpr uptr kParticleSetScale = GAME_ADDRESS(0, 0x0039D260);
 constexpr uptr kParticleCreate = GAME_ADDRESS(0, 0x0039C5F4);
 constexpr uptr kResourceAttachBufferAndSetup = GAME_ADDRESS(0, 0x0039D974);
 
-constexpr uptr kGraphicsSetMaterial = GAME_ADDRESS(0, 0x0014DA94);
+// DO NOT EXIST ?
+constexpr uptr kGraphicsSetMaterial = GAME_ADDRESS(0x0014E5E4, 0x0014DA94);
 
 constexpr uptr kApplyShader = GAME_ADDRESS(0, 0x003989B0);
 constexpr uptr kApplyShader2 = GAME_ADDRESS(0, 0x003881EC);

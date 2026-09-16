@@ -12,9 +12,21 @@ include $(DEVKITARM)/3ds_rules
 PLUGIN_VERSION  := 5.0.0
 PLUGIN_CREATOR  := ZettaD
 
-DEST      := C:/Users/David/AppData/Roaming/Azahar/sdmc/luma/plugins/000400000011C500
-EMULATOR  := "C:/Program Files/Azahar/azahar.exe"
+# Target game: ORAS (Alpha Sapphire, 000400000011C500) or XY (X, 0004000000055D00).
+GAME      ?= XY
+ifeq ($(GAME),XY)
+GAME_DEFINE := -DGAME_XY
+TITLE_ID    := 0004000000055D00
+GAME_PATH := "C:/Users/David/Desktop/ctr/cia/kujira.cci"
+PLUGIN_NAME   := Kujira
+else
+GAME_DEFINE := -DGAME_ORAS
+TITLE_ID    := 000400000011C500
 GAME_PATH := "C:/Users/David/Desktop/ctr/cia/sango.3ds"
+PLUGIN_NAME  := Sango
+endif
+DEST      := C:/Users/David/AppData/Roaming/Azahar/sdmc/luma/plugins/$(TITLE_ID)
+EMULATOR  := "C:/Program Files/Azahar/azahar.exe"
 
 CTRPFLIB	?=	$(DEVKITPRO)/libctrpf
 
@@ -66,8 +78,8 @@ ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 CFLAGS	:=	-mword-relocations \
  			-ffunction-sections -fdata-sections -fno-strict-aliasing \
 			$(ARCH) $(BUILD_FLAGS) $(G) \
-		   -DPLUGIN_CREATOR=\"$(PLUGIN_CREATOR)\" -DPLUGIN_VERSION=\"$(PLUGIN_VERSION)\" \
-		   -DUSE_SANGO_PLUGIN -DGAME_ORAS # -DUSE_DEFAULT_CTRPF -DGAME_XY
+		   -DPLUGIN_CREATOR=\"$(PLUGIN_CREATOR)\" -DPLUGIN_VERSION=\"$(PLUGIN_VERSION)\" -DPLUGIN_NAME=\"$(PLUGIN_NAME)\" \
+		   -DUSE_SANGO_PLUGIN $(GAME_DEFINE) -DUSE_DEFAULT_CTRPF
 
 CFLAGS		+=	$(INCLUDE) -D__3DS__ $(DEFINES)
 
@@ -109,6 +121,7 @@ relink: run-overlay
 $(addprefix run-,$(PRODUCTS)): run-%:
 	@rm -f *.elf *.3gx
 	@$(MAKE) --no-print-directory $*
+	@mkdir -p "$(DEST)"
 	@cp $($*_TARGET)-release.3gx "$(DEST)/sango_plugin.3gx"
 	@$(EMULATOR) $(GAME_PATH)
 

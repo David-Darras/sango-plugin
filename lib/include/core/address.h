@@ -44,7 +44,7 @@ constexpr uptr kTitleScreenPokemonCrySpecies = GAME_ADDRESS(0, 0x00740498);
 constexpr uptr kTitleScreenPokemonCryVolume = GAME_ADDRESS(0, 0x0074049C);
 
 // Engine, scripts, shops...
-constexpr uptr kCore = GAME_ADDRESS(0, 0x0063106C);
+constexpr uptr kCore = GAME_ADDRESS(0x005EF084, 0x0063106C);
 constexpr uptr kUpdateFrame = GAME_ADDRESS(0, 0x0011EEA4);
 constexpr uptr kEventTableCheckFlag = GAME_ADDRESS(0, 0x0012FE90);
 constexpr uptr kEventTableResetFlag = GAME_ADDRESS(0, 0x0011FB38);

@@ -71,48 +71,48 @@ c16 sys::String::s_buffer[128];
 
 namespace plugin {
 void InitializeEngine() {
-  sys::File::MountSdmc();
+  // sys::File::MountSdmc();
 
   core::DevicePatch::Initialize();
-  core::GameSpeed::Initialize();
-  renderer::Lighting::Initialize();
-  renderer::TextBoxFilter::Initialize();
-  renderer::PictureFilter::Initialize();
-  overworld::MapTile::Initialize();
-  overworld::Camera::Initialize();
-  overworld::FieldMove::Initialize();
-  pokemon::ItemCustomizer::Initialize();
-  overworld::Field::Initialize();
-  overworld::MapDataLoader::Initialize();
-  overworld::WildEncounter::Initialize();
-  core::Archive::Initialize();
-  core::ScriptLoader::Initialize();
-  script::NativeScript::Initialize();
-  battle::Setup::Initialize();
-  renderer::ModelFilter::Initialize();
-  battle::Battle::Initialize();
-  overworld::PlayerCheats::Initialize();
-  core::ProcessPatch::Initialize();
-  core::EventPatch::Initialize();
-  ui::KeyboardPatch::Initialize();
-  core::AppLauncher::Initialize();
-  ui::AppStatus::Initialize();
-  pokemon::Shiny::Initialize();
-  battle::GameExtension::Initialize();
-  pokemon::MegaEvolution::Initialize();
-  pokemon::Evolution::Initialize();
-  overworld::GiftPokemon::Initialize();
-  overworld::StaticRandomizer::Initialize();
-  overworld::Trade::Initialize();
-  overworld::MapCharacter::Initialize();
-  overworld::MapGraft::Initialize();
-  overworld::TileEditor::Initialize();
-  pokemon::CustomShop::Initialize();
-  overworld::WeatherOverride::Initialize();
-  ui::NewGame::Initialize();
-  overworld::RunAnimation::Initialize();
-  pokemon::ModelReplacement::Initialize();
-  ui::TitleScreen::Initialize();
+  // core::GameSpeed::Initialize();
+  // renderer::Lighting::Initialize();
+  // renderer::TextBoxFilter::Initialize();
+  // renderer::PictureFilter::Initialize();
+  // overworld::MapTile::Initialize();
+  // overworld::Camera::Initialize();
+  // overworld::FieldMove::Initialize();
+  // pokemon::ItemCustomizer::Initialize();
+  // overworld::Field::Initialize();
+  // overworld::MapDataLoader::Initialize();
+  // overworld::WildEncounter::Initialize();
+  // core::Archive::Initialize();
+  // core::ScriptLoader::Initialize();
+  // script::NativeScript::Initialize();
+  // battle::Setup::Initialize();
+  // renderer::ModelFilter::Initialize();
+  // battle::Battle::Initialize();
+  // overworld::PlayerCheats::Initialize();
+  // core::ProcessPatch::Initialize();
+  // core::EventPatch::Initialize();
+  // ui::KeyboardPatch::Initialize();
+  // core::AppLauncher::Initialize();
+  // ui::AppStatus::Initialize();
+  // pokemon::Shiny::Initialize();
+  // battle::GameExtension::Initialize();
+  // pokemon::MegaEvolution::Initialize();
+  // pokemon::Evolution::Initialize();
+  // overworld::GiftPokemon::Initialize();
+  // overworld::StaticRandomizer::Initialize();
+  // overworld::Trade::Initialize();
+  // overworld::MapCharacter::Initialize();
+  // overworld::MapGraft::Initialize();
+  // overworld::TileEditor::Initialize();
+  // pokemon::CustomShop::Initialize();
+  // overworld::WeatherOverride::Initialize();
+  // ui::NewGame::Initialize();
+  // overworld::RunAnimation::Initialize();
+  // pokemon::ModelReplacement::Initialize();
+  // ui::TitleScreen::Initialize();
 }
 
 void LoadConfiguration() {
@@ -136,11 +136,11 @@ void UpdateFrame() {
   auto* application = ui::ApplicationManager::GetInstance().GetCurrentApplication();
 
   application->Update(controller);
-  core::CheatCodeManager::GetInstance().Update();
+  // core::CheatCodeManager::GetInstance().Update();
 
-  overworld::MapCharacter::Update();
-  overworld::MapGraft::Update();
-  overworld::TileEditor::Update();
+  // overworld::MapCharacter::Update();
+  // overworld::MapGraft::Update();
+  // overworld::TileEditor::Update();
 }
 
 void DrawFrame() {
@@ -152,8 +152,8 @@ void DrawFrame() {
     sys::Graphics::EnableScissor(0, 0, 400, 240);
     sys::Graphics::BeginRender(top_buffer);
     application->DrawTop(graphics);
-    ui::KeyboardPatch::DrawTop();
-    battle::TypeHelper::DrawTop();
+    // ui::KeyboardPatch::DrawTop();
+    // battle::TypeHelper::DrawTop();
     sys::Graphics::DisableScissor();
   }
 
