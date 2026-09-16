@@ -20,20 +20,21 @@
 #include <type_traits>
 
 #include "core/native/process_manager.h"
-#include "renderer/native/app_layout_manager.h"
 #include "pokemon/constant/ability.h"
-#include "pokemon/constant/form.h"
-#include "pokemon/constant/move.h"
-#include "pokemon/constant/item.h"
 #include "pokemon/constant/ball.h"
+#include "pokemon/constant/form.h"
+#include "pokemon/constant/item.h"
+#include "pokemon/constant/move.h"
 #include "pokemon/constant/nature.h"
 #include "pokemon/constant/species.h"
 #include "pokemon/native/global_data/item.h"
 #include "pokemon/native/global_data/pokemon.h"
 #include "renderer/native/text_box.h"
+#include "ui/native/app_layout_manager.h"
 
-#include "pokemon/data/nature.inc"
 #include "pokemon/data/form.inc"
+#include "pokemon/data/nature.inc"
+#include "system/native/controller.h"
 
 // Cycle a Pokemon field forward/backward within [0, max).
 //
@@ -360,7 +361,6 @@ static Pane pane_ability
          NEXT(core.ability, value, static_cast<u8>(AbilityId::kCount));
        }
      }, nullptr);
-
 
 static Pane pane_null(true, 0xFF, 0xFF, 0xFF, nullptr, nullptr, nullptr);
 
@@ -777,7 +777,6 @@ void AppStatus::PatchLoad() {
 }
 
 } // namespace ui
-
 
 #undef NEXT
 #undef PREV

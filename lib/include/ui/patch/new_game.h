@@ -18,8 +18,8 @@
 #pragma once
 
 #include "common.h"
+#include "overworld/constant/facing.h"
 #include "overworld/constant/map.h"
-#include "overworld/native/character_placement.h"
 
 namespace ui {
 

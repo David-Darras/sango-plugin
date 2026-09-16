@@ -18,24 +18,10 @@
 #pragma once
 
 #include "common.h"
-#include "pokemon/constant/item.h"
+#include "pokemon/constant/shop_type.h"
+#include "pokemon/native/shop_item.h"
 
-/** @brief Kind of counter the shop event is running (app::shop::ShopType). */
-enum class ShopType : u32 {
-  kNormal, ///< Regular mart, pays with money.
-  kBattlePoint, ///< Battle Point counter.
-  kBattlePointMove, ///< Battle Point move tutor counter.
-  kMileagePoint, ///< Mileage Point counter.
-  kSecretBaseGoods, ///< Secret base goods counter.
-};
-
-struct ShopItem {
-  /// The game stores the item in a 32-bit slot; the id itself fits in the
-  /// low half, the high half stays zero.
-  ItemId id;
-  u16 _0;
-  u32 price;
-};
+namespace pokemon {
 
 /**
  * @brief The item list a shop counter is currently selling
@@ -56,3 +42,5 @@ struct ShopData {
   Message* goods_name_message;
   Message* goods_info_message;
 };
+
+} // namespace pokemon

@@ -20,6 +20,8 @@
 #include <type_traits>
 
 #include "common.h"
+#include "battle/native/entry_animation_data.h"
+#include "battle/native/level_up_data.h"
 #include "battle/native/manager.h"
 
 namespace battle {
@@ -57,20 +59,6 @@ public:
   CaptureAllowedCallback is_capture_allowed = nullptr;
   CapturedCallback on_captured = nullptr;
 
-  struct LevelUpData {
-    u32 exp;
-    u16 ev_hp;
-    u16 ev_attack;
-    u16 ev_defense;
-    u16 ev_speed;
-    u16 ev_special_attack;
-    u16 ev_special_defense;
-    bool _0;
-    bool _1;
-    bool use_exp_share;
-    bool _2;
-  };
-
   static void Initialize();
   static void PatchUpdate();
   static void PatchLoad();
@@ -89,22 +77,7 @@ private:
   static void PlayAnimationHook(uptr view_manager, u16 id);
   static void StartBackgroundMusicHook(uptr sound_manager, u32 id, u8 p2);
 
-  struct BattleAnimationData {
-    u32 view;
-    u32 _0;
-    u32 state;
-    u8 position[5];
-    u32 trainer_model[2];
-
-    bool skip_pokeball_animation;
-    bool is_long_encounter_animation;
-    bool use_trainer_pov;
-    bool show_fade_in;
-    bool show_shiny_animation;
-    bool dont_show_trainer;
-  };
-
-  static void StartEntryAnimationHook(void* p0, BattleAnimationData* data);
+  static void StartEntryAnimationHook(void* p0, EntryAnimationData* data);
   static void StartMegaEvolutionAnimationHook(void* view, u8 target,
                                               bool is_long_animation);
   static bool LevelUpHook(void* self, Team* team, LevelUpData* data);

@@ -19,12 +19,13 @@
 
 #include "core/native/event_manager.h"
 #include "core/native/process_manager.h"
+#include "core/patch/device_patch.h"
+#include "core/patch/process_patch.h"
+#include "core/utils.h"
+#include "system/native/controller.h"
 #include "system/native/device.h"
 #include "system/native/graphics.h"
 #include "system/native/sound.h"
-#include "core/utils.h"
-#include "core/patch/device_patch.h"
-#include "core/patch/process_patch.h"
 #include "ui/theme.h"
 
 namespace ui {

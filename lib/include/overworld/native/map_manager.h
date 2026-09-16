@@ -18,8 +18,9 @@
 #pragma once
 
 #include "core/native/game_manager.h"
-#include "overworld/native/character_placement.h"
+#include "overworld/constant/facing.h"
 #include "overworld/constant/map.h"
+#include "overworld/native/position.h"
 
 namespace core {
 class GameManager;
@@ -29,7 +30,6 @@ namespace overworld {
 class Renderer;
 struct PropModelManager;
 struct WorldLayout;
-struct Position;
 
 class MapManager {
   SINGLETON(MapManager)

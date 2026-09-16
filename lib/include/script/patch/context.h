@@ -20,56 +20,22 @@
 #include "common.h"
 #include "core/constant/event_flag.h"
 #include "overworld/constant/action_command.h"
+#include "overworld/constant/facing.h"
 #include "pokemon/constant/item.h"
+#include "script/constant/message_option.h"
 #include "script/constant/script.h"
-#include "overworld/native/character_placement.h"
-#include "script/native/native.h"
+#include "script/constant/script_variable.h"
+#include "script/constant/talk_option.h"
+#include "script/constant/window_type.h"
 #include "script/native/engine.h"
+#include "script/native/engine_workspace.h"
+#include "script/native/message_header.h"
+#include "script/native/message_language_block.h"
+#include "script/native/script_vm.h"
+#include "script/patch/natives.h"
 #include "system/coroutine.h"
 
 namespace script {
-enum class WindowType : u16 {
-  kTalk = 0,
-  kTalkVariable = 1,
-  kJagged = 2,
-  kJaggedVariable = 3,
-  kFluffyVariable = 4,
-  kTown = 5,
-  kFacility = 6,
-  kBargain = 7,
-  kISee = 8,
-  kRoadSign = 9,
-  kSign = 10,
-  kSystem = 11,
-  kSmallCircle = 12,
-  kMoney = 13,
-};
-
-enum TalkOption : u16 {
-  kTalkNone = 0,
-  kTalkNoZoom = 1 << 0,
-  kTalkNoHalfSit = 1 << 1,
-  kTalkNoEyeContact = 1 << 2,
-  kTalkNoTurn = 1 << 3,
-  kTalkMotion = 1 << 4,
-  kTalkNoSound = 1 << 5,
-  kTalkNoKneel = 1 << 6,
-};
-
-enum MessageOption : u32 {
-  kMessageNone = 0,
-  kMessageCenter = 1 << 0,
-  kMessageDoubleSize = 1 << 1,
-  kMessageInstant = 1 << 2,
-  kMessagePositionUpLeft = 1 << 3,
-  kMessagePositionUpRight = 1 << 4,
-  kMessagePositionUpCenter = 1 << 5,
-  kMessagePositionDownLeft = 1 << 6,
-  kMessagePositionDownRight = 1 << 7,
-  kMessagePositionDownCenter = 1 << 8,
-  kMessageNoTail = 1 << 9,
-  kMessageAlignRight = 1 << 14,
-};
 
 struct Step {
   ActionCommand action;
@@ -179,21 +145,22 @@ public:
     Call(natives_.MEReturnBGM);
   }
 
-  void TalkStart(s32 object_id = kTalkTarget, u16 options = kTalkMotion) {
+  void TalkStart(s32 object_id = kTalkTarget,
+                 TalkOption options = TalkOption::kMotion) {
     if (object_id == kTalkTarget) object_id = GetTalkTarget();
     SetVariable(ScriptVariable::kSmallMessageTail, 1);
 
     const s32 direction = Call(natives_.PlayerGetReturnDir);
     bool half_sit = false;
-    if (!(options & kTalkNoHalfSit)) {
+    if (!HasFlag(options, TalkOption::kNoHalfSit)) {
       half_sit = Call(natives_.MdlIsHalfSitSkelPreset, object_id) == 1;
     }
-    options = (u16)Call(natives_._TalkMdlStartInit, object_id, options,
-                        direction, half_sit);
+    options = static_cast<TalkOption>(Call(
+        natives_._TalkMdlStartInit, object_id, options, direction, half_sit));
 
-    if (!(options & kTalkNoSound)) PlaySound(kSoundMessage);
+    if (!HasFlag(options, TalkOption::kNoSound)) PlaySound(kSoundMessage);
 
-    if (!(options & kTalkNoTurn)) {
+    if (!HasFlag(options, TalkOption::kNoTurn)) {
       const s32 facing = Call(natives_.MdlGetDirDisp, object_id);
       const bool can_turn = Call(natives_.MdlCanUseTurnAcmd, object_id) != 0;
       if (can_turn && direction != facing) {
@@ -209,11 +176,11 @@ public:
       WaitAnimation();
     }
 
-    if (!(options & kTalkNoEyeContact)) {
+    if (!HasFlag(options, TalkOption::kNoEyeContact)) {
       Call(natives_.TalkMdlSetEyeToEye, object_id);
     }
 
-    if (!(options & kTalkNoHalfSit) && half_sit) {
+    if (!HasFlag(options, TalkOption::kNoHalfSit) && half_sit) {
       static const Step kHalfSit[] = {
           {ActionCommand::kHalfSitStart, overworld::Facing::kInvalid, 1},
           {ActionCommand::kHalfSitWait, overworld::Facing::kInvalid, 1},
@@ -222,7 +189,7 @@ public:
       WaitAnimation();
     }
 
-    if (!(options & kTalkNoKneel) && IsKneelingNpc(object_id)) {
+    if (!HasFlag(options, TalkOption::kNoKneel) && IsKneelingNpc(object_id)) {
       static const Step kKneel[] = {
           {ActionCommand::kKneelStart, overworld::Facing::kInvalid, 1},
           {ActionCommand::kKneelWait, overworld::Facing::kInvalid, 1},
@@ -231,19 +198,23 @@ public:
       WaitAnimation();
     }
 
-    if (options & kTalkMotion) Call(natives_.TalkMdlSetTalkMotion, object_id);
+    if (HasFlag(options, TalkOption::kMotion)) {
+      Call(natives_.TalkMdlSetTalkMotion, object_id);
+    }
   }
 
   void TalkEnd() {
-    u16 options = GetVariable(ScriptVariable::kTalkOptions);
+    auto options =
+        static_cast<TalkOption>(GetVariable(ScriptVariable::kTalkOptions));
     const s32 object_id = (s16)GetVariable(ScriptVariable::kTalkStartTarget);
-    options = (u16)Call(natives_._TalkMdlEndInit, object_id, options);
+    options = static_cast<TalkOption>(
+        Call(natives_._TalkMdlEndInit, object_id, options));
 
-    if (!(options & kTalkNoEyeContact)) {
+    if (!HasFlag(options, TalkOption::kNoEyeContact)) {
       Call(natives_.TalkMdlClearEyeToEye, object_id);
     }
 
-    if (!(options & kTalkNoHalfSit) &&
+    if (!HasFlag(options, TalkOption::kNoHalfSit) &&
         Call(natives_.MdlIsHalfSitSkelPreset, object_id) == 1) {
       static const Step kStandUp[] = {
           {ActionCommand::kHalfSitEnd, overworld::Facing::kInvalid, 1},
@@ -253,7 +224,7 @@ public:
       WaitAnimation();
     }
 
-    if (!(options & kTalkNoKneel) && IsKneelingNpc(object_id)) {
+    if (!HasFlag(options, TalkOption::kNoKneel) && IsKneelingNpc(object_id)) {
       static const Step kStandUp[] = {
           {ActionCommand::kKneelEnd, overworld::Facing::kInvalid, 1},
           {ActionCommand::kFace, overworld::Facing::kInvalid, 1},
@@ -262,7 +233,7 @@ public:
       WaitAnimation();
     }
 
-    if (options & kTalkMotion) {
+    if (HasFlag(options, TalkOption::kMotion)) {
       Call(natives_.MdlSetWaitAnimeReq, object_id);
       Yield();
     }
@@ -270,7 +241,8 @@ public:
   }
 
   void ShowMessage(const c16* text, WindowType type = WindowType::kTalkVariable,
-                   s32 object_id = kTalkTarget, u32 options = kMessageNone,
+                   s32 object_id = kTalkTarget,
+                   MessageOption options = MessageOption::kNone,
                    u32 window_id = 0) {
     SharedWorkspaces* shared = GetSharedWorkspaces();
     if (shared == nullptr) return;
@@ -358,38 +330,26 @@ private:
   }
 
   u32 BuildMessage(const c16* text) {
-    struct Header {
-      u16 language_count;
-      u16 string_count;
-      u32 max_language_block_size;
-      u32 coded;
-      u32 language_block_offset[1];
-    } __attribute__((packed));
-    struct LanguageBlock {
-      u32 size;
-      u32 string_offset;
-      u16 length;
-      u16 user_param;
-    } __attribute__((packed));
 
     u32 length = 0;
     while (text[length] != u'\0') length++;
-    const u32 capacity = message_capacity_ -
-                         (sizeof(Header) + sizeof(LanguageBlock)) / sizeof(c16);
+    const u32 capacity =
+        message_capacity_ -
+        (sizeof(MessageHeader) + sizeof(MessageLanguageBlock)) / sizeof(c16);
     if (length >= capacity) length = capacity - 1;
 
-    auto* header = (Header*)message_buffer_;
-    auto* block = (LanguageBlock*)(header + 1);
+    auto* header = (MessageHeader*)message_buffer_;
+    auto* block = (MessageLanguageBlock*)(header + 1);
     auto* string = (c16*)(block + 1);
 
     header->language_count = 1;
     header->string_count = 1;
-    header->max_language_block_size = sizeof(LanguageBlock) +
+    header->max_language_block_size = sizeof(MessageLanguageBlock) +
                                       (length + 1) * sizeof(c16);
     header->coded = 1;
-    header->language_block_offset[0] = sizeof(Header);
+    header->language_block_offset[0] = sizeof(MessageHeader);
     block->size = header->max_language_block_size;
-    block->string_offset = sizeof(LanguageBlock);
+    block->string_offset = sizeof(MessageLanguageBlock);
     block->length = (u16)(length + 1);
     block->user_param = 0;
     for (u32 i = 0; i < length; i++) string[i] = text[i];

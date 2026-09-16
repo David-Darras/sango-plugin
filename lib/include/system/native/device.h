@@ -18,32 +18,13 @@
 #pragma once
 
 #include "common.h"
+#include "system/constant/key.h"
 #include "system/native/core.h"
 
 namespace sys {
 class Controller;
 class TouchScreen;
 class DPad;
-
-enum class Key : u32 {
-  kNone = 0,
-  kLeft = 1 << 0,
-  kRight = 1 << 1,
-  kUp = 1 << 2,
-  kDown = 1 << 3,
-  kA = 1 << 4,
-  kB = 1 << 5,
-  kX = 1 << 6,
-  kY = 1 << 7,
-  kL = 1 << 8,
-  kR = 1 << 9,
-  kZl = 1 << 10,
-  kZr = 1 << 11,
-  kStart = 1 << 12,
-  kSelect = 1 << 13,
-  kHome = 1 << 14,
-};
-ENABLE_BITMASK_OPERATORS(Key)
 
 class Device {
   SINGLETON(Device)
@@ -70,75 +51,5 @@ public:
   }
 };
 
-class Controller {
-  SINGLETON(Controller)
-
-public:
-  STATIC_INLINE Controller& GetInstance() {
-    return Device::GetInstance().GetController();
-  }
-
-  INLINE bool IsKeyPressed(Key key) {
-    return ((bool (*)(Controller*, Key, u8))address::kControllerIsKeyPressed)(
-        this, key, Device::kCustomChannel);
-  }
-
-  INLINE bool IsKeyReleased(Key key) {
-    return ((bool (*)(Controller*, Key, u8))address::kControllerIsKeyReleased)(
-        this, key, Device::kCustomChannel);
-  }
-
-  INLINE bool IsKeyRepeated(Key key) {
-    return ((bool (*)(Controller*, Key, u8))address::kControllerIsKeyRepeated)(
-        this, key, Device::kCustomChannel);
-  }
-
-  INLINE bool IsKeyDown(Key key) {
-    return ((bool (*)(Controller*, Key, u8))address::kControllerIsKeyDown)(
-        this, key, Device::kCustomChannel);
-  }
-
-  INLINE Key GetRepeatedKey() {
-    return ((Key (*)(Controller*, u8))address::kControllerGetRepeatedKey)(
-        this, Device::kCustomChannel);
-  }
-};
-
-class TouchScreen {
-  SINGLETON(TouchScreen)
-
-public:
-  STATIC_INLINE TouchScreen& GetInstance() {
-    return Device::GetInstance().GetTouchScreen();
-  }
-
-  INLINE s32 GetX() {
-    return ((s32 (*)(TouchScreen*, u8))address::kTouchscreenGetX)(
-        this, Device::kCustomChannel);
-  }
-
-  INLINE s32 GetY() {
-    return ((s32 (*)(TouchScreen*, u8))address::kTouchscreenGetY)(
-        this, Device::kCustomChannel);
-  }
-
-  INLINE bool IsReleased() {
-    return ((bool (*)(TouchScreen*, u8))address::kTouchscreenIsReleased)(
-        this, Device::kCustomChannel);
-  }
-
-  INLINE bool IsDown() {
-    return ((bool (*)(TouchScreen*, u8))address::kTouchscreenIsDown)(
-        this, Device::kCustomChannel);
-  }
-};
-
-class DPad {
-  SINGLETON(DPad)
-public:
-  STATIC_INLINE DPad& GetInstance() { return Device::GetInstance().GetDPad(); }
-};
-
 } // namespace sys
 
-using sys::Key;

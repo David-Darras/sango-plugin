@@ -18,12 +18,14 @@
 #include "overworld/patch/camera.h"
 
 #include <cmath>
+#include "battle/native/graphics.h"
+#include "battle/native/manager.h"
 #include "core/hook_manager.h"
 #include "core/native/process_manager.h"
+#include "overworld/constant/facing.h"
 #include "overworld/native/model_manager.h"
 #include "overworld/native/renderer.h"
-#include "battle/native/manager.h"
-#include "overworld/native/character_placement.h"
+#include "system/native/controller.h"
 #include "system/native/device.h"
 
 namespace overworld {

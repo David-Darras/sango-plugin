@@ -17,26 +17,31 @@
 
 #pragma once
 
-#include "common.h"
-#include "pokemon/constant/item.h"
-#include "pokemon/constant/mega_evolution_method.h"
+#include "core/types.h"
+#include "overworld/constant/facing.h"
+#include "overworld/constant/map.h"
 
-namespace global_data {
-struct MegaEvolutionData {
-  struct {
-    Form form;
-    u8 _0;
-    MegaEvolutionMethod method;
-    u8 _1;
-    ItemId item;
-    u16 _2;
-  } entry[3];
+namespace overworld {
+
+struct WarpEvent {
+  MapId map_id;
+  u16 exit_id;
+  Facing exit_facing;
+  u8 exit_kind;
+  u16 position_kind;
+  union {
+    struct {
+      s16 x;
+      s16 y;
+      s16 z;
+      u16 width;
+      u16 depth;
+    } world;
+    u8 raw[16];
+  };
 };
 
-struct MegaEvolutionTable {
-  uptr vtable;
-  SpeciesId species;
-  u16 _0;
-  MegaEvolutionData* data;
-};
-} // namespace global_data
+static_assert(sizeof(WarpEvent) == 24,
+              "WarpEvent must match the game's event data layout");
+
+} // namespace overworld

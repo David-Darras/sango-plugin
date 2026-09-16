@@ -17,60 +17,9 @@
 
 #pragma once
 
-#include <cstring>
-
-#include "common.h"
-#include "script/native/amx.h"
+#include "script/patch/native_table.h"
 
 namespace script {
-typedef PawnNativeFunction NativeFunction;
-
-class NativeTable {
-public:
-  static NativeFunction Find(const c8* name) {
-    static const uptr kTables[] = {
-        core::address::kScriptNativesField,
-        core::address::kScriptNativesState,
-        core::address::kScriptNativesInteractive,
-        core::address::kScriptNativesPokemonCenter,
-        core::address::kScriptNativesMapEffects,
-        core::address::kScriptNativesBattleFacility,
-        core::address::kScriptNativesFieldServices,
-        core::address::kScriptNativesNpcAi,
-        core::address::kScriptNativesProgram,
-    };
-    for (uptr kTable : kTables) {
-      NativeFunction function = FindIn((const PawnNativeBinding*)kTable,
-                                       name);
-      if (function != nullptr) return function;
-    }
-    return nullptr;
-  }
-
-  template <typename... Args>
-  STATIC_INLINE s32 Call(NativeFunction function, AmxRuntime* amx,
-                         Args... args) {
-    PawnCell params[sizeof...(Args) + 1] = {
-        (PawnCell)(sizeof...(Args) * sizeof(PawnCell)),
-        (PawnCell)(s32)args...
-    };
-    return (s32)function(amx, params);
-  }
-
-private:
-  static NativeFunction FindIn(const PawnNativeBinding* table,
-                               const c8* name) {
-    for (u32 i = 0; i < kMaxEntries; i++) {
-      if (table[i].function_name == nullptr) break;
-      if (std::strcmp(table[i].function_name, name) == 0) {
-        return table[i].function;
-      }
-    }
-    return nullptr;
-  }
-
-  static constexpr u32 kMaxEntries = 512;
-};
 
 struct Natives {
   // state table
@@ -177,4 +126,5 @@ struct Natives {
     return complete;
   }
 };
+
 } // namespace script

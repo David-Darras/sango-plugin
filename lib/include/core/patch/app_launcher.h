@@ -19,26 +19,14 @@
 
 #include "common.h"
 #include "core/constant/app_id.h"
+#include "core/native/box_app_input.h"
+#include "core/native/move_app_input.h"
+#include "core/native/town_map_app_input.h"
 #include "overworld/constant/map.h"
 #include "pokemon/constant/move.h"
 
 namespace core {
 class GameManager;
-}
-
-namespace savedata {
-struct PokemonParam;
-struct BoxManager;
-struct PokemonBox;
-struct BattleBox;
-struct PokemonTeam;
-struct TrainerStatus;
-struct ItemManager;
-struct BagManager;
-struct Misc;
-}
-
-namespace core {
 
 /// Opens one of the game's applications from the overworld menu, filling in
 /// the input the game expects for it.
@@ -46,45 +34,6 @@ class AppLauncher {
   MAKE_SINGLETON(AppLauncher)
 
 public:
-  struct MoveInput {
-    savedata::PokemonParam* pokemon;
-    MoveId move_id;
-    bool delete_move;
-    u8 move_index;
-  };
-
-  struct BoxInput {
-    savedata::BoxManager* box_manager;
-    savedata::PokemonBox* pokemon_box;
-    savedata::BattleBox* battle_box;
-    savedata::PokemonTeam* team;
-    savedata::TrainerStatus* trainer_status;
-    savedata::ItemManager* item_manager;
-    savedata::BagManager* bag_manager;
-    void* bag_data;
-    savedata::Misc* misc;
-
-    u32 mode;
-
-    u16 trade_species;
-    u8 trade_sex;
-    u8 _0;
-    u32 trade_level;
-
-    u16 exit_type;
-    u8 box_index;
-    u8 slot_index;
-  };
-
-  struct TownMapInput {
-    bool is_fly_mode;
-    u8 _0[0x20 - 1];
-    u8 result;
-    u8 _1;
-    MapId map_id;
-    u16 pokemon_index;
-  };
-
   static void Initialize();
   void TriggerApp(AppId id);
   static void DoFly();

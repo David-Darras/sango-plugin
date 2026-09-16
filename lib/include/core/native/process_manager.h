@@ -19,69 +19,15 @@
 
 #include <cstring>
 
-#include "core/native/game_manager.h"
 #include "common.h"
+#include "core/native/base_process.h"
+#include "core/native/game_manager.h"
+#include "core/native/process_handle.h"
+#include "core/native/process_virtual_table.h"
 #include "core/utils.h"
 #include "ui/log_application.h"
 
 namespace core {
-class ProcessHandle;
-class BaseProcess;
-
-/**
- * @brief Execution states for the game processes.
- */
-enum class ProcessState : u32 {
-  kLoading = 0, ///< Process is loading resources.
-  kInitializing, ///< Process is setting up internal data.
-  kRunning, ///< Process is actively updating.
-  kStopped, ///< Process is paused or halted.
-  kCustom, ///< Custom engine-specific state.
-  kMax ///< State count sentinel.
-};
-
-struct ProcessVirtualTable {
-  uptr destructor;
-  uptr destructor2;
-  uptr initialize;
-  uptr update;
-  uptr draw;
-  uptr finalize;
-};
-
-/**
- * @brief Base class for all game process logic.
- * This structure reflects the memory layout of the engine's base process.
- */
-class BaseProcess {
-public:
-  void* vtable; ///< Pointer to the virtual method table.
-  u32 sub_state; ///< Internal sub-state of the process.
-  bool is_done; ///< Flag indicating if the process has finished.
-  BaseProcess* parent_; ///< Pointer to the parent process logic.
-  void* ro_; ///< Pointer to the associated executable module.
-  void** ro_child_; ///< Array of child module pointers.
-  u32 ro_child_count_; ///< Number of child modules attached.
-};
-
-/**
- * @brief Container for process execution and hierarchy.
- * Links the logical BaseProcess with its position in the process tree.
- */
-class ProcessHandle {
-public:
-  /**
- * @brief Accesses the underlying process logic.
- * @return A reference to the BaseProcess.
- */
-  BaseProcess* GetProcess() const { return process_; }
-
-public:
-  ProcessState state_; ///< Current execution state of the handle.
-  ProcessHandle* parent_; ///< Pointer to the parent handle.
-  ProcessHandle* child_; ///< Pointer to the first child handle.
-  BaseProcess* process_; ///< Pointer to the underlying process logic.
-};
 
 class GameManager;
 

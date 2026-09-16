@@ -18,6 +18,7 @@
 #pragma once
 
 #include "common.h"
+#include "battle/constant/type_multiplier.h"
 #include "pokemon/constant/type.h"
 
 namespace battle {
@@ -26,19 +27,13 @@ class TypeChart {
   MAKE_SINGLETON(TypeChart)
 
 public:
-  enum class Multiplier : u8 {
-    k0 = 0,
-    k05 = 1,
-    k1 = 2,
-    k2 = 4
-  };
 
   static constexpr u32 kTypeCount = static_cast<u32>(TypeId::kCount);
-  typedef Multiplier Row[kTypeCount];
+  typedef TypeMultiplier Row[kTypeCount];
 
   static void PatchLoad();
   static Row* GetTable();
-  static void Set(TypeId attacking_type, TypeId defending_type, Multiplier value);
-  static Multiplier Get(TypeId attacking_type, TypeId defending_type);
+  static void Set(TypeId attacking_type, TypeId defending_type, TypeMultiplier value);
+  static TypeMultiplier Get(TypeId attacking_type, TypeId defending_type);
 };
 } // namespace battle

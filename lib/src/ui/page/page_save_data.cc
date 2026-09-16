@@ -17,7 +17,9 @@
 
 #include <cstring>
 
-#include "ui/main_application.h"
+#include "pokemon/native/core_data.h"
+#include "pokemon/native/data_accessor.h"
+#include "pokemon/native/utils.h"
 #include "savedata/native/bag_manager.h"
 #include "savedata/native/battle_box.h"
 #include "savedata/native/box_manager.h"
@@ -33,16 +35,15 @@
 #include "savedata/native/pokedex.h"
 #include "savedata/native/pokemon_amie.h"
 #include "savedata/native/pokemon_box.h"
-#include "pokemon/native/core_data.h"
-#include "pokemon/native/data_accessor.h"
 #include "savedata/native/pokemon_team.h"
-#include "pokemon/native/utils.h"
 #include "savedata/native/pss.h"
 #include "savedata/native/record_manager.h"
 #include "savedata/native/repel.h"
 #include "savedata/native/settings.h"
 #include "savedata/native/trainer_status.h"
+#include "ui/main_application.h"
 
+#include "savedata/native/pss_group.h"
 #include "system/native/core.h"
 #include "ui/log_application.h"
 #include "ui/page/pages.h"

@@ -17,12 +17,12 @@
 
 #include "overworld/patch/map_character.h"
 #include "core/hook_manager.h"
-#include "overworld/patch/map_graft.h"
 #include "core/native/game_manager.h"
 #include "core/native/process_manager.h"
 #include "overworld/native/character_placement.h"
 #include "overworld/native/map_manager.h"
 #include "overworld/native/model_manager.h"
+#include "overworld/patch/map_graft.h"
 #include "ui/log_application.h"
 
 namespace overworld {
@@ -105,39 +105,35 @@ void MapCharacter::ReloadCurrentMap() {
                         Facing::kUp, true, false);
 }
 
-u32 MapCharacter::LoadMapCharacters(uptr event_data, u32 buffer_id) {
-  u32 result = core::HookManager::Call<u32>(HookId::kLoadMapCharacters, event_data,
-                                      buffer_id);
+u32 MapCharacter::LoadMapCharacters(MapEventData* events, u32 buffer_id) {
+  u32 result = core::HookManager::Call<u32>(HookId::kLoadMapCharacters,
+                                            events, buffer_id);
   auto& ctx = GetInstance();
-  if (ctx.is_logging_enabled) ctx.LogShippedCharacters(event_data);
-  ctx.MoveGraftedEvents(event_data);
-  ctx.PlaceCharacters(event_data);
+  if (ctx.is_logging_enabled) ctx.LogShippedCharacters(events);
+  ctx.MoveGraftedEvents(events);
+  ctx.PlaceCharacters(events);
   return result;
 }
 
-void MapCharacter::MoveGraftedEvents(uptr event_data) {
-  const MapId map_id = READ(MapId, event_data + map_event_offsets::kMapId);
+void MapCharacter::MoveGraftedEvents(MapEventData* events) {
   s32 dx = 0;
   s32 dz = 0;
-  if (!MapGraft::GetTileOffset(map_id, dx, dz)) return;
-  MapGraft::OffsetEvents(event_data, dx, dz);
+  if (!MapGraft::GetTileOffset(events->map_id, dx, dz)) return;
+  MapGraft::OffsetEvents(events, dx, dz);
 }
 
-void MapCharacter::CompleteRegionModelList(uptr manager, u32 player_sex,
-                                    uptr placements, u32 placement_count) {
+void MapCharacter::CompleteRegionModelList(
+    CharacterManager* manager, u32 player_sex,
+    const CharacterPlacement* placements, u32 placement_count) {
   core::HookManager::Call<void>(HookId::kCompleteRegionModelList, manager,
-                          player_sex, placements, placement_count);
-  GetInstance().AddMissingModels(
-      manager, (const CharacterPlacement*)placements,
-      placement_count);
+                                player_sex, placements, placement_count);
+  GetInstance().AddMissingModels(manager, placements, placement_count);
 }
 
-void MapCharacter::LogShippedCharacters(uptr event_data) const {
-  u16 map_id = READ16(event_data + map_event_offsets::kMapId);
-  u32 count = READ16(event_data + map_event_offsets::kCharacterCount);
-  auto* shipped = *(CharacterPlacement**)(event_data +
-                                          map_event_offsets::kCharacters);
-  ui::LogApplication::Print(u"map=%u chars=%u", map_id, count);
+void MapCharacter::LogShippedCharacters(const MapEventData* events) const {
+  const u32 count = events->character_count;
+  const CharacterPlacement* shipped = events->characters;
+  ui::LogApplication::Print(u"map=%u chars=%u", events->map_id, count);
   if (shipped == nullptr) return;
 
   u32 shown = count < 8 ? count : 8;
@@ -150,13 +146,10 @@ void MapCharacter::LogShippedCharacters(uptr event_data) const {
   }
 }
 
-void MapCharacter::PlaceCharacters(uptr event_data) {
-  const MapId map_id = READ(MapId, event_data + map_event_offsets::kMapId);
-
-  auto* shipped = *(CharacterPlacement**)(event_data +
-                                          map_event_offsets::kCharacters);
-  u32 shipped_count = READ16(event_data +
-                             map_event_offsets::kCharacterCount);
+void MapCharacter::PlaceCharacters(MapEventData* events) {
+  const MapId map_id = events->map_id;
+  const CharacterPlacement* shipped = events->characters;
+  u32 shipped_count = events->character_count;
   if (shipped == nullptr) return;
   if (shipped_count > kMaxCharactersPerMap) return;
 
@@ -188,9 +181,9 @@ void MapCharacter::PlaceCharacters(uptr event_data) {
 
   if (added == 0 && !is_grafted && !IsEmptied(map_id)) return;
 
-  WRITE32(event_data + map_event_offsets::kCharacters, (u32)placements_);
-  WRITE16(event_data + map_event_offsets::kCharacterCount, count);
-  WRITE16(event_data + map_event_offsets::kCharacterCapacity, count);
+  events->characters = placements_;
+  events->character_count = count;
+  events->character_capacity = count;
 
   if (is_logging_enabled) {
     ui::LogApplication::Print(u"placed %u -> chars=%u", added, count);
@@ -223,14 +216,13 @@ void MapCharacter::BuildPlacement(const MapCharacterRequest& request, u16 local_
   out->position.height = request.height;
 }
 
-void MapCharacter::AddMissingModels(uptr manager,
+void MapCharacter::AddMissingModels(CharacterManager* manager,
                                     const CharacterPlacement* placements,
                                     u32 placement_count) {
   if (placements == nullptr) return;
 
-  auto* models = (ModelAppearance*)(manager +
-                                    character_manager_offsets::kModelList);
-  u32 count = READ32(manager + character_manager_offsets::kModelCount);
+  ModelAppearance* models = manager->models;
+  u32 count = manager->model_count;
   u32 initial_count = count;
 
   for (u32 i = 0; i < placement_count; i++) {
@@ -251,8 +243,8 @@ void MapCharacter::AddMissingModels(uptr manager,
   }
 
   if (count == initial_count) return;
-  WRITE32(manager + character_manager_offsets::kModelCount, count);
-  WRITE32(manager + character_manager_offsets::kModelCountOriginal, count);
+  manager->model_count = count;
+  manager->model_count_original = count;
 }
 
 bool MapCharacter::Contains(const ModelAppearance* models, u32 count,
@@ -263,15 +255,13 @@ bool MapCharacter::Contains(const ModelAppearance* models, u32 count,
   return false;
 }
 
-bool MapCharacter::LoadAppearance(uptr manager, ModelId model_id,
-                           ModelAppearance* out) {
+bool MapCharacter::LoadAppearance(const CharacterManager* manager,
+                                  ModelId model_id, ModelAppearance* out) {
   s32 index = ((s32 (*)(ModelId))address::kGetModelArchiveIndex)(
       model_id);
   if (index < 0) return false;
 
-  void* archive =
-      *(void**)(manager +
-                character_manager_offsets::kModelParamArchive);
+  void* archive = manager->model_param_archive;
   if (archive == nullptr) return false;
 
   ((void (*)(void*, s32, void*))sys::address::kArchiveLoadData2)(archive, index,

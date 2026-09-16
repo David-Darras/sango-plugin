@@ -17,30 +17,23 @@
 
 #pragma once
 
-#include "common.h"
-#include "pokemon/constant/evolution_method.h"
-#include "pokemon/constant/item.h"
-#include "pokemon/constant/species.h"
+#include "core/types.h"
 
-namespace global_data {
-struct EvolutionData {
-  struct {
-    EvolutionMethod method;
-    u8 _0;
-    /// What the method needs: a level, an item, a move... see EvolutionMethod.
-    union {
-      u16 arg;
-      u16 level;
-      ItemId item;
-    };
-    SpeciesId species;
-  } data[8];
+namespace core {
+
+/**
+ * @brief Base class for all game process logic.
+ * This structure reflects the memory layout of the engine's base process.
+ */
+class BaseProcess {
+public:
+  void* vtable; ///< Pointer to the virtual method table.
+  u32 sub_state; ///< Internal sub-state of the process.
+  bool is_done; ///< Flag indicating if the process has finished.
+  BaseProcess* parent_; ///< Pointer to the parent process logic.
+  void* ro_; ///< Pointer to the associated executable module.
+  void** ro_child_; ///< Array of child module pointers.
+  u32 ro_child_count_; ///< Number of child modules attached.
 };
 
-struct EvolutionTable {
-  uptr vtable;
-  SpeciesId species;
-  u16 _0;
-  EvolutionData* data;
-};
-} // namespace global_data
+} // namespace core

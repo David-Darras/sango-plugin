@@ -17,111 +17,10 @@
 
 #pragma once
 
+#include "core/constant/hook_id.h"
 #include "core/hook.h"
 
 namespace core {
-
-/**
- * @brief Identifiers for specific input-related function hooks.
- * Used by the HookManager to track and manage multiple hooks.
- */
-enum class HookId : u32 {
-  kEntrypoint,
-  kIsKeyPressed,
-  kIsKeyReleased,
-  kIsKeyDown,
-  kIsKeyRepeated,
-  kIsDPadDown,
-  kIsDPadRepeated,
-  kIsTouchDown,
-  kIsTouchReleased,
-  kGetRepeatedKey,
-  kUpdateMatrices,
-  kUpdateLookAt,
-  kGetPlayerMovement,
-  kBattleCheckPokemonCaptured,
-  kBattleUpdateGauge,
-  kBattleUpdateView,
-  kBattleConfigSetupWild,
-  kBattleConfigSetupTrainer,
-  kChangeOutlineScale,
-  kChangeAmbientLightColor,
-  kChangeDiffuseLightColor,
-  kDrawPicture,
-  kDrawTextBox,
-  kGetMapTile,
-  kUpdateFrame,
-  kStartBackupThread,
-  kSceneRegister0,
-  kCallApp,
-  kLoadShopItems,
-  kUnloadShopItems,
-  kShopGetItemName,
-  kShopGetItemDescription,
-  kShopDisplayItemDescription,
-  kShopPurchaseItem,
-  kBagAddItem,
-  kBattleLevelUp,
-  kCheckAppRequest,
-  kAppStatusSetupGraphicsParams,
-  kAppStatusSetupGraphicsMoves,
-  kAppStatusSetupGraphicsContest,
-  kAppStatusSetupGraphicsInfos,
-  kLoadEvolveTable,
-  kGlobalDataItemGetParam,
-  kAddPokemonToTeam,
-  kGetAbilityName,
-  kMessageGetString,
-  kBattleRegisterAbilityListener,
-  kBattleRegisterMoveListener,
-  kBattleLoadAnimation,
-  kBattleAddTerrain,
-  kSetAbilityName,
-  kSetMoveName,
-  kGetAbilityDescription,
-  kLoadCro,
-  kGameTextManagerGetText,
-  kGetMoveName,
-  kLoadMoveData,
-  kKeyboardUpdateKeys,
-  kInitializePokemon,
-  kIsShiny,
-  kFromNormalToShiny,
-  kFromShinyToNormal,
-  kLoadScript,
-  kGetEncounterPokemon,
-  kGetNaviDexTable,
-  kLoadMapData,
-  kBattleStartMegaEvolutionAnimation,
-  kBattleStartEntryAnimation,
-  kBattleStartBackgroundMusic,
-  kBattlePlayAnimation,
-  kGetOverworldBackgroundMusic,
-  kOverworldUpdateZone,
-  kReplacePokemonModel,
-  kReadFileAsync,
-  kReadFileAsync2,
-  kArchiveLoadData,
-  kMainProcessLoop,
-  kMainEventLoop,
-  kGlobalDataLoadMegaEvolutionTable,
-  kParticleCreate,
-  kResourceAttachBufferAndSetup,
-  kScriptAddPokemonToTeam,
-  kCallStaticEncounter,
-  kTradePokemon,
-  kLoadMapCharacters,
-  kCompleteRegionModelList,
-  kLoadWorldLayout,
-  kScriptDescriptorSetup,
-  kUpdateZoneWeather,
-  kUpdateAreaWeather,
-  kOverworldSetDefaultPosition,
-  kModelPlayAnimation,
-  kModelUpdateMotion,
-  kTitleSequenceSync,
-  kMax
-};
 
 /**
  * @brief Singleton registry for managing the lifecycle of all plugin hooks.
@@ -153,4 +52,3 @@ private:
 
 } // namespace core
 
-using core::HookId;

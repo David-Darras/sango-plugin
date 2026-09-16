@@ -17,12 +17,14 @@
 
 #pragma once
 
-#include "core/types.h"
 #include "battle/constant/ai.h"
+#include "core/types.h"
 #include "pokemon/constant/gender.h"
 #include "pokemon/constant/item.h"
 
+namespace sys {
 struct String;
+}
 
 namespace battle {
 struct TrainerAppearance;

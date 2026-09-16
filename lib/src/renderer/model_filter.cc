@@ -22,6 +22,8 @@
 #include "core/native/process_manager.h"
 #include "overworld/patch/weather_override.h"
 #include "renderer/native/h3d_model.h"
+#include "battle/native/graphics.h"
+#include "renderer/native/particle.h"
 
 namespace renderer {
 
@@ -81,12 +83,12 @@ bool ModelFilter::IsBattlePlatformModel(const H3dModel* h3d_model) {
   return false;
 }
 
-bool ModelFilter::IsBattleEnvironnementModel(const H3dModel* h3d_model) {
+bool ModelFilter::IsBattleEnvironmentModel(const H3dModel* h3d_model) {
   auto& grp = battle::Graphics::GetInstance();
-  return grp.environnement->unknow_0 == h3d_model
-         || grp.environnement->unknow_1 == h3d_model
-         || grp.environnement->landscape == h3d_model
-         || grp.environnement->ground == h3d_model;
+  return grp.environment->unknow_0 == h3d_model
+         || grp.environment->unknow_1 == h3d_model
+         || grp.environment->landscape == h3d_model
+         || grp.environment->ground == h3d_model;
 }
 
 void ModelFilter::PatchWeatherParticleColor(uptr raw) {

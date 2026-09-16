@@ -20,6 +20,7 @@
 #include "common.h"
 #include "renderer/constant/texture_format.h"
 
+namespace renderer {
 /// CLIM = CTR Layout IMage. Unlike Garc, this header sits at the END of
 /// the file as a footer: pixel data comes first, then this struct. Locate
 /// it using the file's total size (e.g. from Garc::GetFileSize):
@@ -94,3 +95,4 @@ struct BclimFooter {
     SetPixel(x, y, packed);
   }
 };
+} // namespace renderer

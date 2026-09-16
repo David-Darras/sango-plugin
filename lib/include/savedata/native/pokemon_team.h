@@ -17,28 +17,13 @@
 
 #pragma once
 #include "common.h"
-#include "pokemon/native/data_accessor.h"
-#include "savedata/native/savedata.h"
 #include "pokemon/native/core_data.h"
+#include "pokemon/native/data_accessor.h"
 #include "pokemon/native/runtime_data.h"
-
-class pokemon::DataAccessor;
+#include "savedata/native/pokemon_param.h"
+#include "savedata/native/savedata.h"
 
 namespace savedata {
-struct PokemonParam {
-  void* vtable;
-  pokemon::CoreData* core;
-  pokemon::RuntimeData* runtime;
-  pokemon::DataAccessor* accessor;
-
-  INLINE void UpdateRuntimeData() {
-    ((void(*)(PokemonParam*))pokemon::address::kUpdateRuntimeData)(this);
-  }
-
-  INLINE void ResetNickname() {
-    ((void(*)(PokemonParam*))pokemon::address::kResetNickname)(this);
-  }
-};
 
 struct PokemonTeam {
   SINGLETON(PokemonTeam)

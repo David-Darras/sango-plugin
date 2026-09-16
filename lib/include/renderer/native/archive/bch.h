@@ -19,6 +19,7 @@
 
 #include "common.h"
 
+namespace renderer {
 /// BCH = Binary CTR Hardware 3D. Top-level header of a compiled 3D model file
 /// (models, materials, meshes, textures, skeletons and animations all
 /// live inside one of its sections). Unlike Garc, sections are reached
@@ -67,3 +68,4 @@ struct Bch {
     return section_size[type];
   }
 };
+} // namespace renderer

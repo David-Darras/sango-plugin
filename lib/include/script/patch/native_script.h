@@ -21,9 +21,9 @@
 #include "core/hook_manager.h"
 #include "script/constant/script.h"
 #include "script/native/amx.h"
-#include "script/patch/context.h"
-#include "script/native/native.h"
 #include "script/native/engine.h"
+#include "script/patch/context.h"
+#include "script/patch/natives.h"
 #include "system/coroutine.h"
 #include "ui/log_application.h"
 

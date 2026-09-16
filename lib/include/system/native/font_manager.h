@@ -18,19 +18,9 @@
 #pragma once
 #include "common.h"
 #include "system/native/core.h"
+#include "system/native/font_resource.h"
 
 namespace sys {
-
-struct Font {
-  INLINE bool HasGlyph(u16 c) {
-    return ((bool(*)(Font*, u16))ui::address::kFontHasGlyph)(this, c);
-  }
-};
-
-struct FontResource {
-  Font* font;
-  void* resource;
-};
 
 class FontManager {
   SINGLETON(FontManager)

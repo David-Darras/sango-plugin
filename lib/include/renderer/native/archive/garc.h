@@ -19,6 +19,7 @@
 
 #include "common.h"
 
+namespace renderer {
 /// FATO = File Allocation Table Offsets. One entry per file id, pointing
 /// to where that file's byte range lives inside Fatb.
 struct Fato {
@@ -140,3 +141,4 @@ struct Garc {
            start_offset;
   }
 };
+} // namespace renderer

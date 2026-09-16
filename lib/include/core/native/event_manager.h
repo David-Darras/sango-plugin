@@ -17,25 +17,12 @@
 
 #pragma once
 
-#include "core/utils.h"
+#include "core/native/game_event.h"
 #include "core/native/game_manager.h"
+#include "core/utils.h"
 #include "ui/log_application.h"
 
 namespace core {
-enum class EventState : u32 {
-  kLoading,
-  kRunning,
-  kStopped,
-};
-
-struct GameEvent {
-  void* vtable;
-  GameEvent* parent;
-  u32 sequence;
-  void* heap;
-  EventState state;
-  void* ro;
-};
 
 class EventManager {
   SINGLETON(EventManager)

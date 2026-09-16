@@ -21,30 +21,6 @@
 
 namespace overworld {
 
-/// How the game runs a scripted encounter (StaticEncounter).
-enum class StaticEncounterKind : u16 {
-  kNormal = 0, ///< A regular random wild encounter, with no visible sprite
-  kOverworldEncounter = 1, ///< A regular Pokémon visible on the map
-  kLegendary = 2,
-  ///< A legendary Pokémon - uses a distinct encounter message and only fights once
-  kLegendaryEndless = 3,
-  ///< Same as kLegendary, but stays on the map and can be re-fought after being defeated or caught
-  kRescueEvent = 4,
-  ///< The early-game scripted battle where the player saves the professor
-  ///< from a wild Pokémon (a level 3 male Poochyena) - running away is
-  ///< disabled and the messages differ
-  kLegendaryUnlosable = 5,
-  ///< Same as kLegendary, but the battle can't be lost
-};
-
-/// Which of the species' abilities a scripted encounter gets.
-enum class AbilitySlot : u16 {
-  kRandom = 0,
-  kFirst = 1,
-  kSecond = 2,
-  kHidden = 3,
-};
-
 /// Rows of the game's scripted encounter table.
 enum class StaticEncounterId : u32 {
   kPoochyena = 0, ///< The rescue-event encounter, see StaticEncounterKind
@@ -110,6 +86,4 @@ enum class StaticEncounterId : u32 {
 
 } // namespace overworld
 
-using overworld::StaticEncounterKind;
-using overworld::AbilitySlot;
 using overworld::StaticEncounterId;

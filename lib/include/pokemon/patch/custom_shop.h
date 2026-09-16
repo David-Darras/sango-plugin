@@ -21,7 +21,7 @@
 #include "pokemon/constant/form.h"
 #include "pokemon/constant/item.h"
 #include "pokemon/constant/species.h"
-#include "pokemon/native/shop.h"
+#include "pokemon/native/shop_data.h"
 
 namespace pokemon {
 

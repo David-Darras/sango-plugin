@@ -17,9 +17,10 @@
 
 #pragma once
 
-#include "ui/application.h"
 #include "common.h"
 #include "overworld/patch/tile_editor.h"
+#include "system/native/controller.h"
+#include "ui/application.h"
 
 namespace sys {
 class Controller;

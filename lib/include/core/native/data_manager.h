@@ -18,7 +18,7 @@
 #pragma once
 
 #include "core/native/game_manager.h"
-#include "overworld/native/character_placement.h"
+#include "overworld/constant/facing.h"
 #include "overworld/constant/map.h"
 
 namespace savedata {

@@ -18,16 +18,16 @@
 #pragma once
 
 #include "common.h"
+#include "battle/native/pokemon.h"
 #include "battle/native/process.h"
+#include "battle/native/team.h"
 #include "pokemon/constant/ability.h"
 #include "pokemon/constant/form.h"
 #include "pokemon/constant/gender.h"
 #include "pokemon/constant/item.h"
 #include "pokemon/constant/move.h"
-#include "pokemon/constant/type.h"
 #include "pokemon/constant/species.h"
-#include "renderer/native/h3d_model.h"
-#include "battle/native/pokemon.h"
+#include "pokemon/constant/type.h"
 
 namespace sys {
 class Device;
@@ -37,30 +37,15 @@ namespace core {
 class GameManager;
 } // namespace core
 
-namespace pokemon {
-struct CoreData;
-}
-
 namespace savedata {
 struct PokemonTeam;
 struct PokemonParam;
 } // namespace savedata
 
-namespace overworld {
-struct StereoCamera;
-} // namespace overworld
-
 namespace battle {
 struct Pokemon;
 struct Config;
-class Manager;
 class Graphics;
-
-struct Team {
-  Pokemon* pokemon[6];
-  u8 count;
-  u8 _0[3];
-};
 
 class Manager {
   SINGLETON(Manager)
@@ -114,68 +99,4 @@ private:
   } client_, server_;
 };
 
-struct BaseModel {
-  void* vtable;
-  Vec3 position;
-  Vec3 position_offset;
-  Vec3 rotation;
-  Vec3 rotation_offset;
-  Vec3 scale;
-  Vec3 scale_offset;
-  bool update;
-  bool _0[3];
-
-  u32 _1[1 + 3 + 1 + 8 + 1 + 1 + 3 + 3 + 1 + 1 + 1 + 2 + 6 + 3 * 3];
-
-  renderer::H3dModel* h3d_model;
-};
-
-struct Environnement {
-  uptr vtable;
-  uptr _0[11];
-  renderer::H3dModel* ground;
-  uptr _1[4 + 4 + 1];
-  renderer::H3dModel* landscape;
-  void* _2;
-  renderer::H3dModel* unknow_0;
-  void* _3[2];
-  renderer::H3dModel* unknow_1;
-};
-
-class Graphics {
-  SINGLETON(Graphics)
-public:
-  STATIC_INLINE Graphics& GetInstance() {
-    return Manager::GetInstance().GetGraphics();
-  }
-
-  overworld::StereoCamera& GetStereoCamera() {
-    return *(overworld::StereoCamera*)((uptr)this + 0x1F0);
-  }
-
-  BaseModel& GetPokemonModel(u32 index) const {
-    if (index >= 6) index = 5;
-    return *pokemon_model[index];
-  }
-
-  BaseModel& GetTrainerModel(u32 index) const {
-    if (index >= 4) index = 3;
-    return *trainer_model[index];
-  }
-
-  u8 _0[0x100];
-  BaseModel* pokemon_model[6];
-  BaseModel* trainer_model[4];
-  Environnement* environnement;
-  u32 _1;
-  Bundle* platform_pack_0;
-  Bundle* platform_pack_1;
-  void* platform_resource[7];
-  BaseModel* platform_model[6];
-  void* big_platform_resource[2];
-  BaseModel* big_platform_model[4];
-  u32 _2;
-  BaseModel* prop_model;
-  BaseModel* unknow;
-};
 } // namespace battle

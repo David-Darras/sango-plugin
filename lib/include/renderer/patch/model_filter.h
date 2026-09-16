@@ -20,39 +20,11 @@
 #include <type_traits>
 
 #include "common.h"
+#include "renderer/constant/texture_filter.h"
+#include "renderer/native/particle.h"
 
 namespace renderer {
 struct H3dModel;
-struct Particle;
-
-/// Colour treatments applied to the Pokémon models in battle, see
-/// H3dModel::Apply*.
-enum class TextureFilter : u8 {
-  kNormal,
-  kPitchBlack,
-  kInvert,
-  kDarken,
-  kOverexposed,
-  kPsychedelic,
-  kTrueSaturation,
-  kSepia,
-  kTintRed,
-  kTintBlue,
-  kTintGreen,
-  kNightVision,
-  kVintage,
-  kSolarize,
-  kChromeMetallic,
-  kGoldMetallic,
-  kDuotoneOceanFire,
-  kThermalCam,
-  kFilmNoir,
-  kBlueprint,
-  kXray,
-  kToon,
-  kGhost,
-  kCount,
-};
 
 struct ModelFilterSettings {
   TextureFilter filter = TextureFilter::kDarken;
@@ -69,7 +41,7 @@ struct ModelFilter : public ModelFilterSettings {
   static bool IsBattlePokemonModel(const H3dModel* h3d_model);
   static bool IsBattleTrainerModel(const H3dModel* h3d_model);
   static bool IsBattlePlatformModel(const H3dModel* h3d_model);
-  static bool IsBattleEnvironnementModel(const H3dModel* h3d_model);
+  static bool IsBattleEnvironmentModel(const H3dModel* h3d_model);
   static void PatchWeatherParticleColor(uptr raw);
   static void OnParticleCreate(Particle* self, uptr heap_alloc,
                                uptr device_alloc, uptr resource, uptr desc);

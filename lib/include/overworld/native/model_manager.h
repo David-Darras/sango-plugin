@@ -21,65 +21,11 @@
 #include "core/native/data_manager.h"
 #include "overworld/constant/map.h"
 #include "overworld/constant/model.h"
+#include "overworld/native/model.h"
+#include "overworld/native/model_resource.h"
 #include "renderer/native/h3d_resource.h"
 
 namespace overworld {
-struct Position {
-  u32 _0;
-  Vec3 coords;
-  Vec3 _1;
-  Vec3 _2;
-  u32 _3;
-};
-
-struct DrawModel {
-  u8 _0[0x150];
-  Vec3 position;
-  Vec3 rotation;
-  Vec3 scale;
-};
-
-struct Model {
-  static constexpr u32 kSize = 0xAB0;
-
-  INLINE DrawModel& GetDrawModel() {
-    return *((DrawModel * (*)(Model*))address::kGetDrawModel)(this);
-  }
-
-  INLINE bool IsUsed() const { return (flags[0] & 1) == 1; }
-
-  void* vtable;
-  u32 flags[2];
-
-  u16 id; // 0xFF = player
-  MapId map_id;
-  ModelId model_id;
-  u16 move_id;
-  u16 _0[4];
-
-  Vec3 facing_direction;
-  Vec3 movement_direction;
-  Vec3 prev_facing_direction;
-  Vec3 prev_movement_direction;
-
-  u16 _2[12];
-
-  Position init_pos;
-  Position prev_pos;
-  Position map_pos;
-  Position world_pos;
-  Vec3 draw_pos;
-  Vec3 draw_offset;
-};
-
-struct ModelResource {
-  u16 code;
-  u8 draw_type;
-  u8 draw_code;
-  u32 _0[4];
-  ModelId model_id;
-  u16 padding;
-};
 
 class ModelManager {
   SINGLETON(ModelManager)

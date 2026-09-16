@@ -18,14 +18,10 @@
 #pragma once
 
 #include "common.h"
+#include "system/constant/screen.h"
 #include "system/native/core.h"
 
 namespace sys {
-
-enum class Screen : u8 {
-  kTop = 0,
-  kBottom = 1
-};
 
 class Graphics {
   SINGLETON(Graphics)
@@ -135,4 +131,3 @@ public:
 
 } // namespace sys
 
-using sys::Screen;

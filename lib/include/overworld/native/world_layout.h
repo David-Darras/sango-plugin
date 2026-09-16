@@ -18,27 +18,11 @@
 #pragma once
 
 #include "common.h"
-#include "overworld/constant/map.h"
 #include "core/native/data_manager.h"
+#include "overworld/constant/map.h"
+#include "overworld/native/camera_scroll_area.h"
 
 namespace overworld {
-struct CameraScrollRect {
-  f32 top;
-  f32 bottom;
-  f32 left;
-  f32 right;
-  u32 mode;
-};
-
-struct CameraScrollArea {
-  static constexpr u32 kMaxRects = 16;
-
-  u32 rect_count;
-  CameraScrollRect rect[kMaxRects];
-};
-
-static_assert(sizeof(CameraScrollArea) == 0x144,
-              "CameraScrollArea must match the game's camera scroll pack");
 
 struct WorldLayout {
   static constexpr u32 kMaxWidth = 32;

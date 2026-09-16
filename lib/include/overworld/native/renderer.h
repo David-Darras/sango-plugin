@@ -19,6 +19,7 @@
 
 #include "common.h"
 #include "overworld/native/map_manager.h"
+#include "overworld/native/stereo_camera.h"
 #include "renderer/native/h3d_resource.h"
 
 namespace core {
@@ -26,17 +27,6 @@ class GameManager;
 } // namespace core
 
 namespace overworld {
-struct StereoCamera {
-  void* vtable_;
-  u32 _0[7];
-  u32 _1[5];
-  Mtx34 _2;
-  Vec3 _3;
-  u32 _4[10];
-
-  void* left_camera_;
-  void* right_camera_;
-};
 
 class Renderer {
   SINGLETON(Renderer)

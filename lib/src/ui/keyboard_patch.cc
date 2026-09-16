@@ -17,10 +17,11 @@
 
 #include "ui/patch/keyboard_patch.h"
 #include "core/hook_manager.h"
+#include "core/utils.h"
+#include "system/native/controller.h"
 #include "system/native/device.h"
 #include "system/native/font_manager.h"
 #include "system/native/graphics.h"
-#include "core/utils.h"
 
 namespace ui {
 

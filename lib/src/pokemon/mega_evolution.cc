@@ -18,7 +18,7 @@
 #include "pokemon/patch/mega_evolution.h"
 #include "core/hook_manager.h"
 #include "pokemon/constant/item.h"
-#include "pokemon/native/global_data/mega_evolution.h"
+#include "pokemon/native/global_data/mega_evolution_table.h"
 
 namespace pokemon {
 

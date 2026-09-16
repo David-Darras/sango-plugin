@@ -23,7 +23,7 @@
 #include "overworld/native/renderer.h"
 #include "renderer/native/h3d_resource.h"
 #include "renderer/native/h3d_shader_model.h"
-#include "renderer/native/pokemon_model.h"
+#include "renderer/native/pokemon_model_table.h"
 #include "renderer/native/scene.h"
 #include "ui/log_application.h"
 
@@ -77,11 +77,11 @@ bool ModelLoader::LoadPokemon(LoadedModel* out, SpeciesId species, Form form,
                               Gender gender) {
   if (out == nullptr || out->IsLoaded()) return false;
 
-  PokeModelTable table(GetPokemonTable());
+  renderer::PokemonModelTable table(GetPokemonTable());
   if (!table.IsValid()) return false;
 
   const u32 pack_top = table.GetPackTop(species, form, gender);
-  if (pack_top == PokeModelTable::kInvalidPack) {
+  if (pack_top == renderer::PokemonModelTable::kInvalidPack) {
     ui::LogApplication::Print(u"unknown species %d", species);
     return false;
   }

@@ -28,13 +28,13 @@ TypeChart::Row* TypeChart::GetTable() {
 }
 
 void TypeChart::Set(TypeId attacking_type, TypeId defending_type,
-                    Multiplier value) {
+                    TypeMultiplier value) {
   const u8 row = static_cast<u8>(attacking_type);
   const u8 col = static_cast<u8>(defending_type);
   GetTable()[row][col] = value;
 }
 
-TypeChart::Multiplier TypeChart::Get(TypeId attacking_type,
+TypeMultiplier TypeChart::Get(TypeId attacking_type,
                                      TypeId defending_type) {
   const u8 row = static_cast<u8>(attacking_type);
   const u8 col = static_cast<u8>(defending_type);

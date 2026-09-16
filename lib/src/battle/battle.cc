@@ -17,12 +17,12 @@
 
 #include "battle/patch/battle.h"
 
-#include "battle/patch/game_extension.h"
-#include "battle/patch/type_chart.h"
-#include "overworld/patch/field.h"
-#include "core/hook_manager.h"
 #include "battle/native/manager.h"
 #include "battle/native/pokemon.h"
+#include "battle/patch/game_extension.h"
+#include "battle/patch/type_chart.h"
+#include "core/hook_manager.h"
+#include "overworld/patch/field.h"
 #include "system/native/sound.h"
 
 namespace battle {
@@ -267,7 +267,7 @@ void Battle::StartBackgroundMusicHook(uptr sound_manager, u32 id, u8 p2) {
                                  sound_manager, id, p2);
 }
 
-void Battle::StartEntryAnimationHook(void* p0, BattleAnimationData* data) {
+void Battle::StartEntryAnimationHook(void* p0, EntryAnimationData* data) {
   auto& config = GetInstance();
   data->skip_pokeball_animation = !config.show_pokeball_animation;
   data->is_long_encounter_animation = config.is_long_encounter_animation;

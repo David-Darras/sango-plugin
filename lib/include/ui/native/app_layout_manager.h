@@ -25,11 +25,10 @@ namespace renderer {
 struct TextBox;
 }
 
-class AppLayoutSubManager {
-  SINGLETON(AppLayoutSubManager)
-public:
-};
+namespace ui {
 
+/// The game's app layout manager: the panes, text boxes and pictures of
+/// the layouts an app has loaded.
 class AppLayoutManager {
   SINGLETON(AppLayoutManager)
 public:
@@ -114,3 +113,5 @@ public:
         );
   }
 };
+
+} // namespace ui

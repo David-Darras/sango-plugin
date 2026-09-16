@@ -17,35 +17,11 @@
 
 #pragma once
 
-#include "overworld/native/renderer.h"
 #include "overworld/native/map_manager.h"
-
-namespace renderer {
-struct H3dShaderModel;
-}
+#include "overworld/native/prop_model.h"
+#include "overworld/native/renderer.h"
 
 namespace overworld {
-struct PropModelManager;
-
-struct PropModel {
-  bool is_initialized;
-  bool _0[3];
-  PropModelManager* manager;
-  u32 index;
-  u32 _1[2];
-  u32 map_index;
-  u16 index_2;
-  u8 sound_effect;
-  u8 _2;
-  u32 _3[4];
-  renderer::H3dShaderModel* shader;
-  u32 _4[38];
-  bool is_visible;
-  bool needs_bounds_update;
-  bool _5[2];
-  Vec3 bounds_min;
-  Vec3 bounds_max;
-};
 
 struct PropModelManager {
   SINGLETON(PropModelManager)

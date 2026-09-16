@@ -20,26 +20,12 @@
 #include <type_traits>
 
 #include "common.h"
-#include "overworld/native/character_placement.h"
+#include "overworld/constant/camera_context.h"
+#include "overworld/constant/camera_state.h"
+#include "overworld/constant/facing.h"
 
 namespace overworld {
 struct StereoCamera;
-
-enum class CameraState : u8 {
-  kIdle,
-  kTps,
-  kRotate,
-  kTop,
-  kFpv,
-  kFree,
-};
-
-/// Which of the game's two cameras the plugin is currently steering.
-enum class CameraContext : u8 {
-  kNone,
-  kOverworld,
-  kBattle,
-};
 
 struct CameraSettings {
   CameraState overworld_state = CameraState::kIdle;

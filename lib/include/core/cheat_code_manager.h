@@ -18,15 +18,9 @@
 #pragma once
 
 #include "core/cheat_code.h"
+#include "core/constant/cheat_code_id.h"
 
 namespace core {
-
-enum class CheatCodeId : u32 {
-  kNoclip,
-  kSwarmMod,
-  kNoEncounter,
-  kMax
-};
 
 class CheatCodeManager {
   MAKE_SINGLETON(CheatCodeManager)
@@ -52,4 +46,3 @@ private:
 
 } // namespace core
 
-using core::CheatCodeId;

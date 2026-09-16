@@ -18,9 +18,12 @@
 #pragma once
 
 #include "common.h"
-#include "overworld/native/character_placement.h"
 #include "overworld/constant/map.h"
 #include "overworld/constant/model.h"
+#include "overworld/native/character_manager.h"
+#include "overworld/native/character_placement.h"
+#include "overworld/native/map_event_data.h"
+#include "overworld/native/model_appearance.h"
 #include "script/constant/script.h"
 
 namespace overworld {
@@ -57,21 +60,24 @@ private:
   static constexpr u32 kMaxEmptiedMaps = 8;
 
   static void ReloadCurrentMap();
-  static u32 LoadMapCharacters(uptr event_data, u32 buffer_id);
-  static void MoveGraftedEvents(uptr event_data);
-  static void CompleteRegionModelList(uptr manager, u32 player_sex,
-                                      uptr placements, u32 placement_count);
-  void LogShippedCharacters(uptr event_data) const;
-  void PlaceCharacters(uptr event_data);
+  static u32 LoadMapCharacters(MapEventData* events, u32 buffer_id);
+  static void MoveGraftedEvents(MapEventData* events);
+  static void CompleteRegionModelList(CharacterManager* manager,
+                                      u32 player_sex,
+                                      const CharacterPlacement* placements,
+                                      u32 placement_count);
+  void LogShippedCharacters(const MapEventData* events) const;
+  void PlaceCharacters(MapEventData* events);
   bool IsEmptied(MapId map_id) const;
   static void BuildPlacement(const MapCharacterRequest& request, u16 local_id,
                              CharacterPlacement* out);
-  void AddMissingModels(uptr manager, const CharacterPlacement* placements,
+  void AddMissingModels(CharacterManager* manager,
+                        const CharacterPlacement* placements,
                         u32 placement_count);
   static bool Contains(const ModelAppearance* models, u32 count,
                        ModelId model_id);
-  static bool LoadAppearance(uptr manager, ModelId model_id,
-                             ModelAppearance* out);
+  static bool LoadAppearance(const CharacterManager* manager,
+                             ModelId model_id, ModelAppearance* out);
 
   MapCharacterRequest requests_[kMaxRequests];
   u32 request_count_ = 0;

@@ -64,7 +64,7 @@ bool WildEncounter::GetEncounterPokemonHook(u32 p0, u32 p1) {
   if (!core::ProcessManager::GetInstance().IsCurrentProcess(address::kVtable))
     return result;
 
-  feat.on_wild_pokemon(MapManager::GetInstance().GetMap(), (PokemonData*)p0,
+  feat.on_wild_pokemon(MapManager::GetInstance().GetMap(), (WildPokemon*)p0,
                        READ32(p0 + 108));
 
   return result;

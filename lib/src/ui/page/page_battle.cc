@@ -19,6 +19,7 @@
 
 #include <cstring>
 
+#include "battle/native/graphics.h"
 #include "battle/native/manager.h"
 #include "battle/patch/battle.h"
 #include "battle/patch/setup.h"
@@ -101,9 +102,9 @@ TypeChartEdit& GetTypeChartEdit() {
   return edit;
 }
 
-const battle::TypeChart::Multiplier kMultipliers[] = {
-    battle::TypeChart::Multiplier::k0, battle::TypeChart::Multiplier::k05,
-    battle::TypeChart::Multiplier::k1, battle::TypeChart::Multiplier::k2,
+const battle::TypeMultiplier kMultipliers[] = {
+    battle::TypeMultiplier::k0, battle::TypeMultiplier::k05,
+    battle::TypeMultiplier::k1, battle::TypeMultiplier::k2,
 };
 
 void ApplyTypeChart(void*) {

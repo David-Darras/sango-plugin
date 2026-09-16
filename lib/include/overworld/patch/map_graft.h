@@ -19,14 +19,13 @@
 
 #include "common.h"
 #include "overworld/constant/map.h"
+#include "overworld/constant/position_kind.h"
 #include "overworld/native/character_placement.h"
 #include "overworld/native/map_data.h"
+#include "overworld/native/map_event_data.h"
 
 namespace overworld {
 struct WorldLayout;
-}
-
-namespace overworld {
 
 struct MapGraftRequest {
   MapId anchor = MapId::kNone;
@@ -77,7 +76,7 @@ public:
   static void Update();
   static bool GetTileOffset(MapId map, s32& dx, s32& dz);
   static void OffsetPlacement(CharacterPlacement* placement, s32 dx, s32 dz);
-  static void OffsetEvents(uptr events, s32 dx, s32 dz);
+  static void OffsetEvents(MapEventData* events, s32 dx, s32 dz);
   static void OffsetSettings(MapSettings& settings, s32 dx, s32 dz);
 
 private:

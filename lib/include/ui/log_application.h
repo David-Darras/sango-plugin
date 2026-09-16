@@ -20,10 +20,11 @@
 #include <cstdarg>
 #include <cstring>
 
-#include "ui/application.h"
 #include "common.h"
+#include "system/native/controller.h"
 #include "system/native/device.h"
 #include "system/native/graphics.h"
+#include "ui/application.h"
 
 namespace ui {
 class LogApplication : public Application {

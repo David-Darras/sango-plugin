@@ -17,10 +17,11 @@
 
 #pragma once
 
+#include "system/native/controller.h"
+#include "system/native/device.h"
 #include "ui/application.h"
 #include "ui/log_application.h"
 #include "ui/main_application.h"
-#include "system/native/device.h"
 
 namespace ui {
 class RootApplication : public Application {

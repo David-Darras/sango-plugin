@@ -20,91 +20,10 @@
 #include "common.h"
 #include "core/native/data_manager.h"
 #include "overworld/constant/map.h"
-#include "pokemon/constant/form.h"
-#include "pokemon/constant/species.h"
+#include "overworld/native/encounter_data.h"
+#include "overworld/native/map_settings.h"
 
 namespace overworld {
-struct PokeInfoOnAction {
-  SpeciesId species : 11;
-  Form form : 5;
-  u8 min_level;
-  u8 max_level;
-};
-
-static_assert(sizeof(PokeInfoOnAction) == 4,
-              "PokeInfoOnAction must match the game's encounter table layout");
-
-enum class EncounterMethod : u8 {
-  kWalk, kXXX, kYYY, kSurf, kRockSmash,
-  kOldRod, kGoodRod, kSuperRod, kHorde,
-  kMax
-};
-
-struct EncounterData {
-  u8 rate[14];
-
-  union {
-    PokeInfoOnAction poke_info[61];
-
-    struct {
-      PokeInfoOnAction on_walk[12];
-      PokeInfoOnAction on_xxx[12];
-      PokeInfoOnAction on_yyy[3];
-      PokeInfoOnAction on_surf[5];
-      PokeInfoOnAction on_rock_smash[5];
-      PokeInfoOnAction on_old_rod[3];
-      PokeInfoOnAction on_good_rod[3];
-      PokeInfoOnAction on_super_rod[3];
-      PokeInfoOnAction on_horde[3 * 5];
-    };
-  };
-
-  INLINE u8& GetRate(EncounterMethod action) {
-    return rate[static_cast<u8>(action)];
-  }
-
-  INLINE PokeInfoOnAction*
-  GetPokeInfoTable(EncounterMethod action, u32& count) {
-    PokeInfoOnAction* output = nullptr;
-    count = 0;
-    switch (action) {
-      case EncounterMethod::kWalk:
-        if (GetRate(EncounterMethod::kWalk) > 0) {
-          output = on_walk;
-          count = 12;
-        }
-        break;
-    }
-    return output;
-  }
-};
-
-struct MapSettings {
-  u8 terrain_kind;
-  u8 model_set_id;
-  u16 area_id;
-  u16 layout_id;
-  u16 message_id;
-  u32 background_music_id[4];
-  u16 event_data_id;
-  u16 group_id;
-  u16 place_name_bits;
-  u16 weather_bits;
-  u16 map_change_bits;
-  u16 _0;
-  u16 camera_area_id;
-  u16 unique_sequence_id;
-  u32 flag_bits;
-  s16 fly_x;
-  s16 fly_y;
-  s16 fly_z;
-  s16 start_x;
-  s16 start_y;
-  s16 start_z;
-};
-
-static_assert(sizeof(MapSettings) == 56,
-              "MapSettings must match the game's ZONEDATA layout");
 
 struct MapData {
   SINGLETON(MapData)

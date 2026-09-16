@@ -250,18 +250,4 @@ struct PssDatagram {
   PssPayload payload;
 };
 
-struct PssUserData {
-  PssDatagram datagram;
-  PssGameDataPayload game_data;
-  s16 handicap_battle_points;
-  u8 handicap_battle_count;
-  u8 relation;
-};
-
-// Friends, Acquaintances, Passerby
-struct PssGroup {
-  void* vtable;
-  PssUserData user_data[100];
-  u32 count;
-};
 } // namespace savedata

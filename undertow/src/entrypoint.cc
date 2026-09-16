@@ -15,21 +15,21 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "core/patch/archive.h"
-#include "overworld/patch/run_animation.h"
-#include "pokemon/patch/model_replacement.h"
-#include "ui/patch/new_game.h"
-#include "ui/patch/title_screen.h"
-#include "overworld/constant/map.h"
-#include "pokemon/constant/form.h"
-#include "overworld/constant/model.h"
-#include "pokemon/constant/species.h"
 #include "core/native/process_manager.h"
+#include "core/patch/archive.h"
+#include "overworld/constant/map.h"
+#include "overworld/constant/model.h"
+#include "overworld/patch/run_animation.h"
 #include "plugin.h"
+#include "pokemon/constant/form.h"
+#include "pokemon/constant/species.h"
+#include "pokemon/patch/model_replacement.h"
 #include "savedata/native/overworld_menu.h"
 #include "ui/main_application.h"
 #include "ui/page/pages.h"
 #include "ui/painter.h"
+#include "ui/patch/new_game.h"
+#include "ui/patch/title_screen.h"
 #include "undertow/undertow.h"
 
 namespace {
@@ -49,7 +49,7 @@ u32 OnStreamFile(const u32* archive, u32 file_id) {
   return file_id;
 }
 
-void OnReadFile(core::Archive::Input* input) {
+void OnReadFile(core::ArchiveInput* input) {
   if (core::Archive::IsArchive(input, ArchiveId::kOverworldModel)) {
     input->file_id = PlayerAsAquaGrunt(input->file_id);
   }

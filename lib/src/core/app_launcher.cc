@@ -18,14 +18,14 @@
 #include "core/patch/app_launcher.h"
 #include "core/hook_manager.h"
 #include "core/native/game_manager.h"
-#include "savedata/native/pokemon_box.h"
 #include "pokemon/native/data_accessor.h"
-#include "savedata/native/pokemon_team.h"
 #include "savedata/native/bag_manager.h"
 #include "savedata/native/battle_box.h"
 #include "savedata/native/box_manager.h"
 #include "savedata/native/item_manager.h"
 #include "savedata/native/misc.h"
+#include "savedata/native/pokemon_box.h"
+#include "savedata/native/pokemon_team.h"
 #include "savedata/native/trainer_status.h"
 #include "ui/main_application.h"
 
@@ -71,7 +71,7 @@ bool AppLauncher::CheckAppRequestHook(uptr menu, u32 id) {
 }
 
 void AppLauncher::MoveDeleterCallback(uptr* data, GameManager* manager) {
-  auto* input = (MoveInput*)data[1];
+  auto* input = (MoveAppInput*)data[1];
   if (input->delete_move) {
     input->pokemon->accessor->Decrypt();
     input->pokemon->core->moves[input->move_index] = MoveId::kNone;
@@ -80,14 +80,14 @@ void AppLauncher::MoveDeleterCallback(uptr* data, GameManager* manager) {
 }
 
 void AppLauncher::MoveTutorCallback(uptr* data, GameManager* manager) {
-  auto* input = (MoveInput*)data[1];
+  auto* input = (MoveAppInput*)data[1];
   input->pokemon->accessor->Decrypt();
   input->pokemon->core->moves[input->move_index] = input->move_id;
   input->pokemon->accessor->Encrypt();
 }
 
 void AppLauncher::TownMapCallback(uptr* data, GameManager* manager) {
-  auto* input = (TownMapInput*)data[1];
+  auto* input = (TownMapAppInput*)data[1];
   input->result = 2;
   input->pokemon_index = 0;
   ((void(*)(uptr*, void*))address::kTownMapCallback)(data, manager);
@@ -105,25 +105,25 @@ void AppLauncher::CallAppHook(uptr self, GameManager* manager) {
   WRITE8(self + kOffsetAppId, static_cast<u8>(ctx.app_id));
   switch (ctx.app_id) {
     case AppId::kMoveTutor: {
-      auto* input = (MoveInput*)READ32(self + kOffsetInput);
+      auto* input = (MoveAppInput*)READ32(self + kOffsetInput);
       input->pokemon = savedata::PokemonTeam::GetInstance().pokemons[0];
       input->move_id = kTutorMove;
       WRITE32(self + kOffsetCallback, (uptr)MoveTutorCallback);
       break;
     }
     case AppId::kMoveDeleter: {
-      auto* input = (MoveInput*)READ32(self + kOffsetInput);
+      auto* input = (MoveAppInput*)READ32(self + kOffsetInput);
       input->pokemon = savedata::PokemonTeam::GetInstance().pokemons[0];
       WRITE32(self + kOffsetCallback, (uptr)MoveDeleterCallback);
       break;
     }
     case AppId::kMoveReminder: {
-      auto* input = (MoveInput*)READ32(self + kOffsetInput);
+      auto* input = (MoveAppInput*)READ32(self + kOffsetInput);
       input->pokemon = savedata::PokemonTeam::GetInstance().pokemons[0];
       break;
     }
     case AppId::kBox: {
-      auto* input = (BoxInput*)READ32(self + kOffsetInput);
+      auto* input = (BoxAppInput*)READ32(self + kOffsetInput);
       input->box_manager = &savedata::BoxManager::GetInstance();
       input->pokemon_box = &savedata::PokemonBox::GetInstance();
       input->battle_box = &savedata::BattleBox::GetInstance();
@@ -138,7 +138,7 @@ void AppLauncher::CallAppHook(uptr self, GameManager* manager) {
       break;
     }
     case AppId::kTownMap: {
-      auto* input = (TownMapInput*)READ32(self + kOffsetInput);
+      auto* input = (TownMapAppInput*)READ32(self + kOffsetInput);
       input->is_fly_mode = true;
       WRITE32(self + kOffsetTownMapCallback, (uptr)TownMapCallback);
       break;

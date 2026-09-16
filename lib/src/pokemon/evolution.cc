@@ -19,7 +19,7 @@
 #include "core/hook_manager.h"
 #include "pokemon/constant/evolution_method.h"
 #include "pokemon/constant/item.h"
-#include "pokemon/native/global_data/evolution.h"
+#include "pokemon/native/global_data/evolution_table.h"
 
 namespace pokemon {
 

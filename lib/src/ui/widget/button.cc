@@ -17,9 +17,10 @@
 
 #include "ui/widget/button.h"
 
-#include "ui/theme.h"
 #include "system/native/device.h"
 #include "system/native/graphics.h"
+#include "system/native/touch_screen.h"
+#include "ui/theme.h"
 
 namespace ui {
 Button::Button() : x_(0), width_(0), y_(0), state_(kIdle), height_(0) {

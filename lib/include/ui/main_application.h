@@ -21,10 +21,11 @@
 
 #include "core/cheat_code.h"
 #include "core/cheat_code_manager.h"
+#include "system/native/controller.h"
+#include "ui/application.h"
 #include "ui/page_item.h"
 #include "ui/painter.h"
 #include "ui/theme.h"
-#include "ui/application.h"
 #include "ui/widget/keyboard.h"
 #include "ui/widget/numpad.h"
 
@@ -60,7 +61,6 @@ public:
 * @brief Draws the bottom section of the menu (numpad or keyboard).
 */
   void DrawBottom(sys::Graphics& graphics) override;
-
 
   /**
 * @brief Updates the menu state and input handling.

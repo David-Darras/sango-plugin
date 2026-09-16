@@ -19,7 +19,9 @@
 
 #include "common.h"
 
+namespace savedata {
 class PssManager;
+}
 
 namespace overworld {
 class MapManager;
@@ -67,7 +69,7 @@ public:
     return *overworld_map_manager_;
   }
 
-  INLINE PssManager& GetPssManager() const {
+  INLINE savedata::PssManager& GetPssManager() const {
     return *pss_manager_;
   }
 
@@ -96,7 +98,7 @@ private:
   void* _1;
   overworld::WeatherManager* weather_manager_;
   void* _2[2];
-  PssManager* pss_manager_;
+  savedata::PssManager* pss_manager_;
   void* _3[3];
   overworld::MapManager* overworld_map_manager_;
 };

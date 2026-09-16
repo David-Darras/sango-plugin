@@ -34,7 +34,7 @@ void Archive::LoadDataHook(uptr self, u32 id, uptr heap, uptr buffer,
                                 uptr buffer_size, u32* size) {
   HookManager::Call<void>(HookId::kArchiveLoadData, self, id,
                           heap, buffer, buffer_size, size);
-  auto* footer = (BclimFooter*)(buffer + buffer_size);
+  auto* footer = (renderer::BclimFooter*)(buffer + buffer_size);
   footer--;
   if (footer->signature != 0x4D494C43) return;
 
@@ -50,7 +50,7 @@ bool Archive::IsArchive(const u32* archive_data,
   return archive_data[12] == archive_table[static_cast<u32>(archive_id)];
 }
 
-bool Archive::IsArchive(const Input* input, const ArchiveId archive_id) {
+bool Archive::IsArchive(const ArchiveInput* input, const ArchiveId archive_id) {
   return input->archive_id == archive_id;
 }
 
@@ -66,7 +66,7 @@ bool Archive::ReadFileAsync2(u32* archive, void* heap, u32 file_id,
                                  buffer, p4, p5, p6);
 }
 
-bool Archive::ReadFileAsync(void* file_manager, Input* input) {
+bool Archive::ReadFileAsync(void* file_manager, ArchiveInput* input) {
   auto& feat = GetInstance();
   if (feat.on_read_file != nullptr) feat.on_read_file(input);
   return HookManager::Call<bool>(HookId::kReadFileAsync, file_manager, input);

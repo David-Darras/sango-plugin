@@ -18,6 +18,7 @@
 #pragma once
 
 #include "common.h"
+#include "system/native/controller.h"
 
 namespace sys {
 class Controller;

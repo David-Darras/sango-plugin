@@ -17,29 +17,10 @@
 
 #pragma once
 
-#include "savedata/native/pss.h"
+#include "core/native/game_manager.h"
+#include "savedata/native/pss_data.h"
 
-struct PssData {
-  savedata::PssUserData user_data;
-
-  u32 nice_received : 1;
-  u32 nice_count_blocked : 1;
-  u32 nice_display_blocked : 1;
-  u32 birthday_count_blocked : 1;
-  u32 birthday_display_blocked : 1;
-  u32 is_locked : 1;
-  u32 is_online : 1;
-  u32 message_displayed : 1;
-  u32 affection_anim_done : 1;
-  u32 active_opower : 8;
-  u32  : 15;
-
-  struct {
-    void* next;
-    void* previous;
-  } hash_node, node;
-};
-
+namespace savedata {
 class PssManager {
   SINGLETON(PssManager)
 
@@ -48,10 +29,11 @@ public:
     return core::GameManager::GetInstance().GetPssManager();
   }
 
-  INLINE savedata::PssProfilePayload& GetMyProfile() {
+  INLINE PssProfilePayload& GetMyProfile() {
     return self_data_.user_data.datagram.profile;
   }
 
 private:
   PssData self_data_;
 };
+} // namespace savedata

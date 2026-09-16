@@ -17,11 +17,12 @@
 
 #pragma once
 #include "common.h"
-#include "core/patch/device_patch.h"
 #include "core/hook_manager.h"
 #include "core/native/process_manager.h"
-#include "renderer/native/app_layout_manager.h"
+#include "core/patch/device_patch.h"
 #include "savedata/native/pokemon_team.h"
+#include "system/native/controller.h"
+#include "ui/native/app_layout_manager.h"
 
 namespace ui {
 class Pane;

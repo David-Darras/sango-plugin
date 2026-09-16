@@ -18,49 +18,14 @@
 #pragma once
 #include <types.h>
 
+#include "battle/constant/listener_source.h"
 #include "battle/constant/moment_kind.h"
+#include "battle/native/reaction_table.h"
+#include "battle/native/uid.h"
 
 namespace battle {
 struct Listener;
 class Controller;
-
-struct UID {
-  static constexpr u8 kNoneValue = 0xFF; ///< Sentinel meaning "no Pokémon"
-
-  u8 value;
-
-  static constexpr UID None() { return UID{kNoneValue}; }
-  constexpr bool IsNone() const { return value == kNoneValue; }
-
-  constexpr bool operator==(UID other) const {
-    return value == other.value;
-  }
-};
-
-typedef void (*Reaction)(Listener* self, Controller* controller,
-                         UID owner_id, s32* local_state);
-
-struct ReactionTable {
-  MomentKind moment;
-  Reaction reaction;
-};
-
-enum class ListenerSource : u8 {
-  kActiveMove, ///< Registered by the move currently being resolved
-  kFieldPosition, ///< Registered by an effect tied to one specific field slot
-  kTeamSide, ///< Registered by a team-side effect (Light Screen, Tailwind...)
-  kField, ///< Registered by a whole-field effect (Trick Room, Gravity...)
-  kAbility, ///< Registered by an ability
-  kHeldItem, ///< Registered by a held item
-
-  kDetached,
-  ///< Converted from any of the above once it no longer depends on
-   ///< the Pokémon/item that created it - keeps reacting even if that
-   ///< Pokémon faints or that item gets consumed. All swept away
-   ///< together at the end of every turn.
-
-  kCount,
-};
 
 typedef bool (*SkipPredicate)(Listener* self, Controller* controller,
                               ListenerSource source, MomentKind moment,

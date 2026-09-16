@@ -162,33 +162,34 @@ void MapGraft::OffsetPlacement(CharacterPlacement* placement,
   placement->trigger_z += dz;
 }
 
-void MapGraft::OffsetEvents(uptr events, s32 dx, s32 dz) {
+void MapGraft::OffsetEvents(MapEventData* events, s32 dx, s32 dz) {
   const u32 grid = static_cast<u32>(PositionKind::kTileGrid);
 
-  auto* signs = *(SignEvent**)(events + map_event_offsets::kSigns);
-  const u32 sign_count = READ16(events + map_event_offsets::kSignCount);
-  for (u32 i = 0; signs != nullptr && i < sign_count; i++) {
+  SignEvent* signs = events->signs;
+  for (u32 i = 0; signs != nullptr && i < events->sign_count; i++) {
     if (signs[i].position_kind != grid) continue;
     signs[i].tiles.tile_x += dx;
     signs[i].tiles.tile_z += dz;
   }
 
-  auto* warps = *(WarpEvent**)(events + map_event_offsets::kWarps);
-  const u32 warp_count = READ16(events + map_event_offsets::kWarpCount);
-  for (u32 i = 0; warps != nullptr && i < warp_count; i++) {
+  WarpEvent* warps = events->warps;
+  for (u32 i = 0; warps != nullptr && i < events->warp_count; i++) {
     if (warps[i].position_kind != grid) continue;
     warps[i].world.x += dx * static_cast<s32>(WorldLayout::kUnitsPerTile);
     warps[i].world.z += dz * static_cast<s32>(WorldLayout::kUnitsPerTile);
   }
 
-  const u32 tables[2][2] = {
-      {map_event_offsets::kTriggers, map_event_offsets::kTriggerCount},
-      {map_event_offsets::kInterrupts, map_event_offsets::kInterruptCount},
+  // Interrupts share the trigger layout.
+  const struct {
+    TriggerEvent* triggers;
+    u32 count;
+  } tables[2] = {
+      {events->triggers, events->trigger_count},
+      {events->interrupts, events->interrupt_count},
   };
-  for (u32 t = 0; t < 2; t++) {
-    auto* triggers = *(TriggerEvent**)(events + tables[t][0]);
-    const u32 count = READ16(events + tables[t][1]);
-    for (u32 i = 0; triggers != nullptr && i < count; i++) {
+  for (const auto& table : tables) {
+    TriggerEvent* triggers = table.triggers;
+    for (u32 i = 0; triggers != nullptr && i < table.count; i++) {
       if (triggers[i].position_kind != grid) continue;
       triggers[i].tiles.tile_x += dx;
       triggers[i].tiles.tile_z += dz;

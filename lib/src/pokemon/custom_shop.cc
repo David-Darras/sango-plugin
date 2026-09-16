@@ -17,12 +17,12 @@
 
 #include "pokemon/patch/custom_shop.h"
 #include "core/hook_manager.h"
-#include "pokemon/native/shop.h"
+#include "core/utils.h"
 #include "pokemon/native/global_data/gift_pokemon.h"
-#include "renderer/native/app_layout_manager.h"
+#include "pokemon/native/shop_data.h"
 #include "savedata/native/pokemon_team.h"
 #include "ui/log_application.h"
-#include "core/utils.h"
+#include "ui/native/app_layout_manager.h"
 
 namespace pokemon {
 
@@ -198,7 +198,7 @@ void CustomShop::DispItemInfoHook(uptr event) {
   core::HookManager::Call<void>(HookId::kShopDisplayItemDescription, event);
 
   if (!IsPokemonShop((ShopData*)(event + kOffsetItems))) return;
-  auto* layout = (AppLayoutManager*)READ32(event + kOffsetLayout);
+  auto* layout = (ui::AppLayoutManager*)READ32(event + kOffsetLayout);
   if (layout != nullptr) layout->HidePane(0, kIconPane);
 }
 

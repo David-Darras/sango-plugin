@@ -21,18 +21,10 @@
 
 #include "common.h"
 #include "overworld/constant/weather.h"
+#include "overworld/constant/weather_mode.h"
 
 namespace overworld {
 class WeatherManager;
-
-/// How the rain is drawn: the custom abilities of battle::GameExtension
-/// recolour it, renderer::ModelFilter reads the mode back when the weather
-/// particles are loaded.
-enum class WeatherMode : u8 {
-  kNormal = 0,
-  kToxic = 1,
-  kRadioactive = 2,
-};
 
 struct WeatherOverrideSettings {
   WeatherMode mode = WeatherMode::kNormal;

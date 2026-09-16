@@ -16,12 +16,12 @@
  */
 
 #pragma once
+
 #include <types.h>
 
+#include "battle/constant/mutation_message.h"
+
 namespace battle {
-enum class MutationMessageId : u16 {
-  kCount
-};
 
 struct MutationMessage {
   MutationMessageId id;

@@ -17,12 +17,12 @@
 
 #include "battle/patch/battle.h"
 #include "core/constant/event_flag.h"
+#include "core/utils.h"
 #include "overworld/native/map_data.h"
+#include "pokemon/native/utils.h"
 #include "savedata/native/event_table.h"
 #include "savedata/native/misc.h"
-#include "pokemon/native/utils.h"
 #include "savedata/native/settings.h"
-#include "core/utils.h"
 
 namespace kaizo {
 static const u8 LEVEL_CAPS[] = {
@@ -39,7 +39,7 @@ static const u8 LEVEL_CAPS[] = {
 
 void ApplyLevelCaps(battle::Team* team,
                     void* raw_data) {
-  auto* data = (battle::Battle::LevelUpData*)raw_data;
+  auto* data = (battle::LevelUpData*)raw_data;
   u32 count = savedata::Misc::GetInstance().GetBadgesCount();
   u32 max_level = LEVEL_CAPS[count];
 

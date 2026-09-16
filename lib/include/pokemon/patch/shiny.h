@@ -20,36 +20,9 @@
 #include <type_traits>
 
 #include "common.h"
+#include "pokemon/constant/shiny_rate.h"
 
 namespace pokemon {
-
-/// Odds of a Pokémon being shiny: 1 chance out of 2^(n-1), kOff leaves the
-/// game's own roll untouched.
-enum class ShinyRate : u32 {
-  kOff,
-  k1_1,
-  k1_2,
-  k1_4,
-  k1_8,
-  k1_16,
-  k1_32,
-  k1_64,
-  k1_128,
-  k1_256,
-  k1_512,
-  k1_1024,
-  k1_2048,
-  k1_4096,
-  k1_8192,
-  k1_16384,
-  k1_32768,
-  k1_65536,
-  k1_131072,
-  k1_262144,
-  k1_524288,
-  k1_1048576,
-  kCount,
-};
 
 struct ShinySettings {
   ShinyRate rate = ShinyRate::kOff;

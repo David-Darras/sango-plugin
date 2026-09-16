@@ -23,18 +23,18 @@
 #include "battle/patch/setup.h"
 #include "core/patch/archive.h"
 #include "core/patch/process_patch.h"
-#include "overworld/patch/wild_encounter.h"
+#include "core/utils.h"
+#include "kaizo/kaizo.h"
+#include "kaizo/kaizo_painter.h"
+#include "overworld/patch/field.h"
 #include "overworld/patch/gift_pokemon.h"
 #include "overworld/patch/static_randomizer.h"
 #include "overworld/patch/trade.h"
-#include "overworld/patch/field.h"
-#include "pokemon/patch/item_customizer.h"
-#include "ui/patch/title_screen.h"
-#include "ui/patch/app_status.h"
-#include "kaizo/kaizo.h"
-#include "kaizo/kaizo_painter.h"
+#include "overworld/patch/wild_encounter.h"
 #include "plugin.h"
-#include "core/utils.h"
+#include "pokemon/patch/item_customizer.h"
+#include "ui/patch/app_status.h"
+#include "ui/patch/title_screen.h"
 
 namespace {
 /* ---------------------------------------------------------
@@ -53,7 +53,7 @@ u32 OnStreamFile(const u32* archive, u32 file_id) {
   return file_id;
 }
 
-void OnReadFile(core::Archive::Input* input) {
+void OnReadFile(core::ArchiveInput* input) {
   if (core::Archive::IsArchive(input, ArchiveId::kOverworldModel)) {
     input->file_id = static_cast<u32>(kaizo::PatchOverworldModels(
         static_cast<ModelId>(input->file_id), false));
@@ -83,7 +83,7 @@ void OnProcessLoad(uptr vtable) {
   }
 }
 
-void OnWildPokemon(MapId map_id, overworld::WildEncounter::PokemonData* pokemons,
+void OnWildPokemon(MapId map_id, overworld::WildPokemon* pokemons,
                    u32 count) {
   const kaizo::EncounterEntry* entry = kaizo::GetEncounterEntry(map_id);
   if (entry == nullptr) return;

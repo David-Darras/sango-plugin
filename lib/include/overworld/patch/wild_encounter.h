@@ -19,39 +19,19 @@
 
 #include "common.h"
 #include "overworld/constant/map.h"
-#include "pokemon/constant/ability.h"
-#include "pokemon/constant/form.h"
-#include "pokemon/constant/gender.h"
-#include "pokemon/constant/item.h"
-#include "pokemon/constant/move.h"
-#include "pokemon/constant/species.h"
+#include "overworld/native/wild_pokemon.h"
 
 namespace overworld {
 struct EncounterData;
-}
-
-namespace overworld {
 
 struct WildEncounter {
   MAKE_SINGLETON(WildEncounter)
-
-  struct PokemonData {
-    SpeciesId species;
-    ItemId item;
-    u8 level;
-    Form form;
-    bool is_shiny;
-    AbilityId ability;
-    MoveId moves[4];
-    Gender gender;
-    u8 ivs;
-  };
 
   /// Lets a product rewrite an encounter table as the game reads it.
   typedef void (*EncounterTableCallback)(EncounterData* data);
   /// Lets a product rewrite the Pokémon the game just rolled for a wild
   /// battle on the current map.
-  typedef void (*WildPokemonCallback)(MapId map_id, PokemonData* pokemons,
+  typedef void (*WildPokemonCallback)(MapId map_id, WildPokemon* pokemons,
                                       u32 count);
 
   EncounterTableCallback on_encounter_table = nullptr;
