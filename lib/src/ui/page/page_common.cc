@@ -15,7 +15,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "ui/log_application.h"
+#include "ui/page/page_common.h"
+
+#include "overworld/native/map_manager.h"
+#include "overworld/native/model_manager.h"
 #include "ui/main_application.h"
 
 namespace ui {
@@ -36,5 +39,20 @@ void LoadColor8Page(MainApplication& app, void* args) {
       .Add("Green", color.g)
       .Add("Blue", color.b)
       .Add("Alpha", color.a);
+}
+
+void RefreshMap(void*) {
+  auto& main_app = MainApplication::GetInstance();
+  if (main_app.CheckProcess(overworld::address::kVtable)) return;
+
+  const overworld::Position& pos =
+      overworld::ModelManager::GetInstance().GetPlayer().world_pos;
+  const bool same_background_music = true;
+  const bool show_map_name = false;
+  overworld::MapManager::ChangeMap(overworld::MapManager::GetInstance().GetMap(),
+                                   pos, overworld::Facing::kUp,
+                                   same_background_music, show_map_name);
+
+  main_app.ForceClose();
 }
 } // namespace ui

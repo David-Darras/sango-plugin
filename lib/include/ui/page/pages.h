@@ -18,27 +18,58 @@
 #pragma once
 #include "common.h"
 
-/// The menu pages the library ships, one per feature family; a product
-/// assembles them under its own root page.
+/// The menu pages the library ships. The overlay assembles them all under
+/// LoadTopPage; a product picks the ones it wants under its own root page.
 namespace ui {
 class MainApplication;
-void LoadThemePage(MainApplication& app, void* args);
-void LoadBattleConfigPage(MainApplication& app, void* args);
-void LoadBattlePage(MainApplication& app, void* args);
-void LoadDayCarePage(MainApplication& app, void* args);
-void LoadGameTimePage(MainApplication& app, void* args);
-void LoadGlobalDataPage(MainApplication& app, void* args);
-void LoadModelLoaderPage(MainApplication& app, void* args);
-void LoadOverworldPage(MainApplication& app, void* args);
-void LoadOverworldFieldMovePage(MainApplication& app, void* args);
-void LoadRendererPage(MainApplication& app, void* args);
-void LoadSaveDataPage(MainApplication& app, void* args);
-void LoadScriptPage(MainApplication& app, void* args);
-void LoadSoundPage(MainApplication& app, void* args);
-void LoadAppPage(MainApplication& app, void* args);
-void LoadTitleScreenPage(MainApplication& app, void* args);
-void LoadShinyPage(MainApplication& app, void* args);
+
+// Root: the quick toggles and one entry per family below.
 void LoadTopPage(MainApplication& app, void* args);
+
+// Player: what the player can do or become on the field.
+void LoadPlayerPage(MainApplication& app, void* args);
+void LoadOverworldFieldMovePage(MainApplication& app, void* args);
+void LoadAppPage(MainApplication& app, void* args);
+void LoadOverworldCameraPage(MainApplication& app, void* args);
+void LoadPlayerModelPage(MainApplication& app, void* args);
+
+// Battle: the plugin's battle options, then the live battle.
+void LoadBattlePage(MainApplication& app, void* args);
+void LoadBattleSettingsPage(MainApplication& app, void* args);
+void LoadBattleSetupPage(MainApplication& app, void* args);
+void LoadTypeChartPage(MainApplication& app, void* args);
+void LoadBattleLivePage(MainApplication& app, void* args);
+
+// Overworld: the map being played and its data.
+void LoadOverworldPage(MainApplication& app, void* args);
+void LoadWeatherPage(MainApplication& app, void* args);
+void LoadWorldLayoutPage(MainApplication& app, void* args);
+void LoadOverworldMapTilePage(MainApplication& app, void* args);
+void LoadPropModelPage(MainApplication& app, void* args);
+void LoadOverworldEncounterPage(MainApplication& app, void* args);
+void LoadDayCarePage(MainApplication& app, void* args);
+
+// Pokemon: shininess, randomizers and the game's species/move tables.
+void LoadPokemonPage(MainApplication& app, void* args);
+void LoadShinyPage(MainApplication& app, void* args);
+void LoadSpeciesDataPage(MainApplication& app, void* args);
+void LoadMoveDataPage(MainApplication& app, void* args);
+void LoadModelLoaderPage(MainApplication& app, void* args);
+
+// Save data, by segment.
+void LoadSaveDataPage(MainApplication& app, void* args);
+
+// Renderer, scripts, title screen, system.
+void LoadRendererPage(MainApplication& app, void* args);
+void LoadScriptPage(MainApplication& app, void* args);
+void LoadTitleScreenPage(MainApplication& app, void* args);
+void LoadNewGamePage(MainApplication& app, void* args);
+void LoadSystemPage(MainApplication& app, void* args);
+void LoadSoundPage(MainApplication& app, void* args);
+void LoadGameTimePage(MainApplication& app, void* args);
+
+// The plugin itself.
+void LoadThemePage(MainApplication& app, void* args);
 } // namespace ui
 
 /// Keeps the model spawned by the model loader page next to the player.

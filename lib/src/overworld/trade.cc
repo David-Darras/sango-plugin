@@ -42,7 +42,7 @@ void Trade::RandomizeSpecies(u32 index) {
 }
 
 s32 Trade::TradePokemonHook(u32* p1, u32* p2) {
-  RandomizeSpecies(p2[1]);
+  if (GetInstance().randomize_species) RandomizeSpecies(p2[1]);
   return core::HookManager::Call<s32>(HookId::kTradePokemon, p1, p2);
 }
 

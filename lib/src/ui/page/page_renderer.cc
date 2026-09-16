@@ -103,8 +103,8 @@ void LoadLayoutPicturePage(MainApplication& app, void* args) {
 }
 
 void LoadRendererPage(MainApplication& app, void* args) {
-  app.Add("Light", LoadLightPage)
-     .Add("Battle Pokemon Texture", LoadPokemonTexturePage)
+  app.Add("Lighting", LoadLightPage)
+     .Add("Battle Pokemon Filter", LoadPokemonTexturePage)
      .Add("Text Box", LoadLayoutTextBoxPage)
      .Add("Picture", LoadLayoutPicturePage);
 }

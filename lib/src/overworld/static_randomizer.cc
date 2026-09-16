@@ -44,7 +44,7 @@ void StaticRandomizer::RandomizeSpecies(StaticEncounterId id) {
 s32 StaticRandomizer::CallStaticEncounterHook(core::GameManager* man,
                                               StaticEncounterId id, u32 p3,
                                               u32 p4) {
-  RandomizeSpecies(id);
+  if (GetInstance().randomize_species) RandomizeSpecies(id);
   return core::HookManager::Call<s32>(HookId::kCallStaticEncounter, man, id, p3,
                                 p4);
 }

@@ -20,40 +20,122 @@
 #include <cstring>
 
 #include "battle/native/manager.h"
-#include "core/native/data_manager.h"
+#include "battle/patch/battle.h"
 #include "battle/patch/setup.h"
+#include "battle/patch/type_chart.h"
 #include "overworld/patch/camera.h"
 #include "ui/main_application.h"
+#include "ui/page/pages.h"
 
 namespace ui {
 #include "battle/data/config.inc"
 
-void LoadBattleConfigPage(MainApplication& app, void* args) {
-  auto& ctx = battle::Setup::GetInstance();
-  auto& game_data = core::DataManager::GetInstance();
+// --- Options ---------------------------------------------------------------
 
-  app.Add("Inverse Teams", ctx.inverse_teams)
+void LoadBattleSettingsPage(MainApplication& app, void* args) {
+  auto& ctx = battle::Battle::GetInstance();
+
+  app.Add("Can Use Items", ctx.can_use_item)
+     .Add("Same Catch Rate For Every Ball", ctx.same_ratio_for_all_pokeball)
+     .Add("Mega Restriction", ctx.mega_restriction)
+     .Add("Unlimited Mega Evolutions", ctx.unlimited_mega_evolution)
      .AddSeparator()
-     .Add("Is Enabled", ctx.is_enabled)
-     .Add("Ground", ctx.ground)
-     .WithArray(GROUNDS, SIZE(GROUNDS))
+     .Add("Long Mega Evolution Animation", ctx.is_long_mega_evolve_animation)
+     .Add("Long Encounter Animation", ctx.is_long_encounter_animation)
+     .Add("Show Enemy POV", ctx.show_enemy_pov)
+     .Add("Show Trainer Animation", ctx.show_trainer_animation)
+     .Add("Show Pokeball Animation", ctx.show_pokeball_animation)
+     .Add("Show Fade In", ctx.show_fade_in)
+     .Add("Show Shiny Animation", ctx.show_shiny_animation)
+     .Add("No Shader", ctx.no_shader)
+     .AddSeparator()
+     .Add("Fix Pokemon Size", ctx.fix_pokemon_size)
+     .Add("Sync Overworld Music", ctx.sync_overworld_music)
+     .Add("Sync Team HP", ctx.sync_team_hp)
+     .Add("Inverse Stats", ctx.inverse_stats)
+     .Add("Metronome Only", ctx.metronome_only);
+}
+
+void LoadBattleSetupPage(MainApplication& app, void* args) {
+  auto& ctx = battle::Setup::GetInstance();
+
+  app.Add("Override Wild Battles", ctx.is_enabled)
+     .Add("Inverse Teams", ctx.inverse_teams)
+     .Add("Trainer Id", ctx.trainer_id)
+     .AddSeparator()
+     .Add("Format", ctx.format)
+     .WithArray(FORMATS, SIZE(FORMATS))
      .Add("Background", ctx.background)
      .WithArray(BACKGROUNDS, SIZE(BACKGROUNDS))
+     .Add("Ground", ctx.ground)
+     .WithArray(GROUNDS, SIZE(GROUNDS))
      .Add("Platform", ctx.platform)
      .WithArray(PLATFORMS, SIZE(PLATFORMS))
      .Add("Encounter Animation", ctx.encounter_animation)
      .WithArray(ENCOUNTER_ANIMATIONS, SIZE(ENCOUNTER_ANIMATIONS))
-     .AddSeparator()
-     .Add("Battle Format", ctx.format)
-     .WithArray(FORMATS, SIZE(FORMATS))
      .Add("Use Skybox", ctx.use_skybox)
-     .Add("Long animation", &ctx.flags, 16, 1)
      .Add("Background Music", ctx.background_music)
+     .AddSeparator()
+     .AddSpecies("Species", ctx.species)
+     .Add("Form", ctx.form)
+     .AddSeparator()
+     .Add("Long Animation", &ctx.flags, 16, 1)
+     .Add("Is Deoxys Event", &ctx.flags, 19, 1)
      .Add("Is Sky Battle", ctx.is_sky_battle)
      .Add("Is Inverse Battle", ctx.is_inverse_battle)
      .Add("Is Capture Forced", ctx.is_capture_forced)
-     .Add("Is Deoxys Event", &ctx.flags, 19, 1);
+     .Add("No Money", ctx.no_money)
+     .Add("Money Rate", ctx.money_rate)
+     .WithFactor(0.1f);
 }
+
+namespace {
+struct TypeChartEdit {
+  TypeId attacking = TypeId::kNormal;
+  TypeId defending = TypeId::kNormal;
+  u8 multiplier = 2; ///< Index in kMultipliers
+};
+
+TypeChartEdit& GetTypeChartEdit() {
+  static TypeChartEdit edit;
+  return edit;
+}
+
+const battle::TypeChart::Multiplier kMultipliers[] = {
+    battle::TypeChart::Multiplier::k0, battle::TypeChart::Multiplier::k05,
+    battle::TypeChart::Multiplier::k1, battle::TypeChart::Multiplier::k2,
+};
+
+void ApplyTypeChart(void*) {
+  auto& edit = GetTypeChartEdit();
+  battle::TypeChart::Set(edit.attacking, edit.defending,
+                         kMultipliers[edit.multiplier]);
+}
+} // namespace
+
+void LoadTypeChartPage(MainApplication& app, void* args) {
+  static const c8* MULTIPLIERS[] = {"x0", "x0.5", "x1", "x2"};
+
+  auto& edit = GetTypeChartEdit();
+  const auto current = battle::TypeChart::Get(edit.attacking, edit.defending);
+  for (u32 i = 0; i < SIZE(kMultipliers); i++) {
+    if (kMultipliers[i] == current) edit.multiplier = i;
+  }
+
+  const u32 last_type = static_cast<u32>(TypeId::kCount) - 1;
+  app.AddType("Attacking Type", edit.attacking)
+     .WithBounds(0, last_type)
+     .WithRefresh()
+     .AddType("Defending Type", edit.defending)
+     .WithBounds(0, last_type)
+     .WithRefresh()
+     .AddSeparator()
+     .Add("Multiplier (A to apply)", edit.multiplier)
+     .WithArray(MULTIPLIERS, SIZE(MULTIPLIERS))
+     .WithCallback(ApplyTypeChart);
+}
+
+// --- Live battle -----------------------------------------------------------
 
 static battle::Pokemon* pkm_server = nullptr;
 static battle::Pokemon* pkm_client = nullptr;
@@ -205,15 +287,15 @@ void LoadBattleCameraPage(MainApplication& app, void* args) {
      .Add("TPS Height", ctx.tps_height)
      .Add("TPS Shoulder Offset", ctx.tps_offset)
      .AddSeparator()
-     .Add("Radius", ctx.radius)
+     .Add("Orbit Radius", ctx.radius)
      .WithFactor(3.0f)
-     .Add("Height", ctx.height)
+     .Add("Orbit Height", ctx.height)
      .WithFactor(3.0f)
-     .Add("Orbit Rot Speed", ctx.theta_speed)
+     .Add("Orbit Rotation Speed", ctx.theta_speed)
      .WithFactor(0.01f);
 }
 
-void LoadBattlePage(MainApplication& app, void* args) {
+void LoadBattleLivePage(MainApplication& app, void* args) {
   if (app.CheckProcess(battle::address::kVtable)) return;
 
   pkm_server = battle::Manager::GetPokemon(true, team_idx, pokemon_idx);
@@ -225,8 +307,19 @@ void LoadBattlePage(MainApplication& app, void* args) {
      .Add("Pokemon Index", pokemon_idx)
      .WithBounds(0, 5)
      .WithRefresh()
+     .AddSeparator()
      .Add("Pokemon Data", LoadBattlePokemonDataPage)
      .Add("Pokemon Model", LoadBattlePokemonModelPage)
      .Add("Camera", LoadBattleCameraPage);
+}
+
+// --- Family root -----------------------------------------------------------
+
+void LoadBattlePage(MainApplication& app, void* args) {
+  app.Add("Settings", LoadBattleSettingsPage)
+     .Add("Wild Battle Setup", LoadBattleSetupPage)
+     .Add("Type Chart", LoadTypeChartPage)
+     .AddSeparator()
+     .Add("Live Battle", LoadBattleLivePage);
 }
 } // namespace ui

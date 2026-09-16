@@ -21,15 +21,17 @@
 
 namespace ui {
 void LoadScriptPage(MainApplication& app, void* args) {
-  auto& ctx = core::ScriptLoader::GetInstance();
+  auto& loader = core::ScriptLoader::GetInstance();
   auto& native = script::NativeScript::GetInstance();
 
-  app.Add("Dump Scripts", ctx.dump_scripts)
-     .Add("Load Edited Scripts", ctx.inject_scripts)
-     .Add("Log To Screen", ctx.log_activity)
+  app.Add("Dump Scripts", loader.dump_scripts)
+     .Add("Load Edited Scripts", loader.inject_scripts)
+     .Add("Log To Screen", loader.log_activity)
+     .Add("Scripts Dumped", loader.dumped_count)
+     .Add("Scripts Replaced", loader.injected_count)
      .AddSeparator()
-     .Add("Scripts Dumped", ctx.dumped_count)
-     .Add("Scripts Replaced", ctx.injected_count)
+     .Add("Skip Key Presses", loader.no_key_press)
+     .Add("Skip Cutscenes", loader.no_cutscene)
      .AddSeparator()
      .Add("Log C++ Scripts", native.log_activity)
      .Add("C++ Scripts Run", native.run_count);

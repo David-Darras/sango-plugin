@@ -27,6 +27,8 @@ class Trade {
   MAKE_SINGLETON(Trade)
 
 public:
+  bool randomize_species = false;
+
   static void Initialize();
   static void PatchLoad();
 

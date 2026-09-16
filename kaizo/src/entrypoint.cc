@@ -25,6 +25,8 @@
 #include "core/patch/process_patch.h"
 #include "overworld/patch/wild_encounter.h"
 #include "overworld/patch/gift_pokemon.h"
+#include "overworld/patch/static_randomizer.h"
+#include "overworld/patch/trade.h"
 #include "overworld/patch/field.h"
 #include "pokemon/patch/item_customizer.h"
 #include "ui/patch/title_screen.h"
@@ -107,6 +109,8 @@ void InstallCallbacks() {
       kaizo::PatchTrainerData;
 
   overworld::GiftPokemon::GetInstance().randomize_species = true;
+  overworld::StaticRandomizer::GetInstance().randomize_species = true;
+  overworld::Trade::GetInstance().randomize_species = true;
 
   auto& archive = core::Archive::GetInstance();
   archive.on_stream_file = OnStreamFile;

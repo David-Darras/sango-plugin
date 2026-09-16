@@ -30,6 +30,8 @@ class StaticRandomizer {
   MAKE_SINGLETON(StaticRandomizer)
 
 public:
+  bool randomize_species = false;
+
   static void Initialize();
   static void PatchLoad();
 

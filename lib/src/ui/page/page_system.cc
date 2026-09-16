@@ -15,29 +15,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "config_manager.h"
-#include "core/patch/game_speed.h"
 #include "ui/main_application.h"
 #include "ui/page/pages.h"
 
 namespace ui {
-void LoadTopPage(MainApplication& app, void* args) {
-  app.Add("Game Speed", core::GameSpeed::GetInstance().game_speed)
-     .WithMin(-10)
-     .WithMax(10)
-     .Add("Repel", CheatCodeId::kNoEncounter)
-     .AddSeparator()
-     .Add("Player", LoadPlayerPage)
-     .Add("Battle", LoadBattlePage)
-     .Add("Overworld", LoadOverworldPage)
-     .Add("Pokemon", LoadPokemonPage)
-     .Add("Save Data", LoadSaveDataPage)
-     .Add("Renderer", LoadRendererPage)
-     .Add("Scripts", LoadScriptPage)
-     .Add("Title Screen", LoadTitleScreenPage)
-     .Add("System", LoadSystemPage)
-     .AddSeparator()
-     .Add("Plugin Theme", LoadThemePage)
-     .Add("Save Config", ConfigManager::Save);
+void LoadSystemPage(MainApplication& app, void* args) {
+  app.Add("Sound", LoadSoundPage)
+     .Add("Game Time", LoadGameTimePage);
 }
 } // namespace ui

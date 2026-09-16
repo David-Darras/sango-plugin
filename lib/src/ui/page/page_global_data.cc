@@ -20,9 +20,10 @@
 #include "pokemon/native/global_data/pokemon.h"
 #include "pokemon/data/move.inc"
 #include "ui/main_application.h"
+#include "ui/page/pages.h"
 
 namespace ui {
-void LoadMovePage(MainApplication& app, void* args) {
+void LoadMoveDataPage(MainApplication& app, void* args) {
   static MoveId move = MoveId::kNone;
   auto& data = global_data::Move::GetInstance(move);
 
@@ -79,7 +80,7 @@ void LoadMovePage(MainApplication& app, void* args) {
   app.Add("Flags", data.flags);
 }
 
-void LoadPokemonPage(MainApplication& app, void* args) {
+void LoadSpeciesDataPage(MainApplication& app, void* args) {
   static SpeciesId species = SpeciesId::kNone;
   static Form form = Form::kNormal;
   auto& data = global_data::Pokemon::GetInstance(species, form);
@@ -125,10 +126,5 @@ void LoadPokemonPage(MainApplication& app, void* args) {
 
   app.Add("Form Count", data.form_count)
      .Add("Egg Hatch Steps", data.egg_hatch_steps);
-}
-
-void LoadGlobalDataPage(MainApplication& app, void* args) {
-  app.Add("Global Pokemon Data", LoadPokemonPage)
-     .Add("Global Move Data", LoadMovePage);
 }
 } // namespace ui

@@ -45,6 +45,7 @@
 
 #include "system/native/core.h"
 #include "ui/log_application.h"
+#include "ui/page/pages.h"
 
 namespace ui {
 static struct {
@@ -319,13 +320,16 @@ void LoadSaveDataMiscellaneousPage(MainApplication& app, void* args) {
 }
 
 void LoadSaveDataTrainerStatusPage(MainApplication& app, void* args) {
+  static const c8* GENDERS[] = {"Male", "Female"};
   auto& data = savedata::TrainerStatus::GetInstance();
 
   app.Add("Player Name", data.name, savedata::TrainerStatus::kPlayerNameLen)
      .Add("Nickname", data.nickname, savedata::TrainerStatus::kPlayerNameLen)
      .Add("Visible Trainer ID (TID)", data.trainer_id)
      .Add("Secret Trainer ID (SID)", data.secret_id)
-     .Add("Gender (0:M, 1:F)", data.gender)
+     .Add("Gender", data.gender)
+     .WithArray(GENDERS, SIZE(GENDERS))
+     .WithBounds(0, SIZE(GENDERS) - 1)
      .AddSeparator()
 
      .Add("Game Version", data.game_version)
@@ -649,11 +653,11 @@ void LoadSaveDataSettingsPage(MainApplication& app, void* args) {
      .WithArray(TOGGLE_OFF_ON, SIZE(TOGGLE_OFF_ON));
 }
 
-void LoadSaveDataEncounterPage(MainApplication& app, void* args) {
+void LoadSaveDataRepelPage(MainApplication& app, void* args) {
   auto& data = savedata::Repel::GetInstance();
 
-  app.AddItem("Spray Type", data.spray_id)
-     .Add("Spray Count", data.spray_count);
+  app.AddItem("Repel", data.spray_id)
+     .Add("Steps Left", data.spray_count);
 }
 
 #include "savedata/data/pss.inc"
@@ -780,42 +784,54 @@ void LoadSaveDataHallOfFamePage(MainApplication& app, void* args) {
   LoadSaveDataHallOfFamePokemonPage(app, &entry.pokemon[slot_idx]);
 }
 
-void LoadSaveDataPage(MainApplication& app, void* args) {
-  auto& sv = savedata::SaveData::GetInstance();
+void LoadSaveDataPokemonsPage(MainApplication& app, void* args) {
   auto& fusion = savedata::Fusion::GetInstance();
 
   app.Add("Team", LoadSaveDataTeamPage)
-     .Add("PC", LoadSaveDataPokemonBoxPage)
+     .Add("PC Boxes", LoadSaveDataPokemonBoxPage)
      .Add("Battle Box", LoadSaveDataBattleBoxPage)
      .Add("Day Care", LoadSaveDataDayCarePage)
      .Add("Fusion", LoadSaveDataPokemonPage, &fusion.pokemon)
      .AddSeparator()
-
-     .Add("Bag Items", LoadSaveDataBagItemsPage)
-     .Add("Miscellaneous", LoadSaveDataMiscellaneousPage)
-     .Add("Trainer Status", LoadSaveDataTrainerStatusPage)
      .Add("Pokedex", LoadSaveDataPokedexPage)
+     .Add("Hall of Fame", LoadSaveDataHallOfFamePage);
+}
+
+void LoadSaveDataTrainerPage(MainApplication& app, void* args) {
+  app.Add("Trainer Status", LoadSaveDataTrainerStatusPage)
+     .Add("Money, Badges, Flags", LoadSaveDataMiscellaneousPage)
      .Add("Play Time", LoadSaveDataPlayTimePage)
-     .AddSeparator()
-
-     .Add("O-Power", LoadSaveDataOPowerPage)
-     .Add("Encounter", LoadSaveDataEncounterPage)
-     .Add("Settings", LoadSaveDataSettingsPage)
-     .Add("Overworld Menu", LoadSaveDataOverworldMenuPage)
-     .AddSeparator()
-
-     .Add("Hall of Fame", LoadSaveDataHallOfFamePage)
-     .Add("Pokemon-Amie", LoadSaveDataPokemonAmiePage)
-     .Add("Minigame", LoadSaveDataMinigamePage)
      .Add("Records", LoadSaveDataRecordsPage)
+     .AddSeparator()
+     .Add("Settings", LoadSaveDataSettingsPage)
+     .Add("Overworld Menu", LoadSaveDataOverworldMenuPage);
+}
+
+void LoadSaveDataItemsPage(MainApplication& app, void* args) {
+  app.Add("Bag Items", LoadSaveDataBagItemsPage)
      .Add("Bag Metadata", LoadSaveDataBagMetadataPage)
      .Add("Boxes Metadata", LoadSaveDataBoxesMetadataPage)
-     .AddSeparator()
+     .Add("Repel", LoadSaveDataRepelPage);
+}
 
+void LoadSaveDataActivitiesPage(MainApplication& app, void* args) {
+  auto& sv = savedata::SaveData::GetInstance();
+
+  app.Add("O-Power", LoadSaveDataOPowerPage)
+     .Add("Pokemon-Amie", LoadSaveDataPokemonAmiePage)
+     .Add("Minigames", LoadSaveDataMinigamePage)
+     .AddSeparator()
      .Add("PSS - Favourites", LoadSaveDataPssGroupPage,
           &sv.GetPssFavouriteGroup())
      .Add("PSS - Friends", LoadSaveDataPssGroupPage, &sv.GetPssFriendGroup())
      .Add("PSS - Acquaintances", LoadSaveDataPssGroupPage,
           &sv.GetPssAcquaintanceGroup());
 }
+
+void LoadSaveDataPage(MainApplication& app, void* args) {
+  app.Add("Pokemon", LoadSaveDataPokemonsPage)
+     .Add("Trainer", LoadSaveDataTrainerPage)
+     .Add("Items", LoadSaveDataItemsPage)
+     .Add("Activities", LoadSaveDataActivitiesPage);
 }
+} // namespace ui

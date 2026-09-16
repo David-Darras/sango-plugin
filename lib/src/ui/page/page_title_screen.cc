@@ -112,23 +112,49 @@ const char* VIDEO_NAMES[] = {
     "Primo Kyogre" // 86
 };
 
+void LoadNewGamePage(MainApplication& app, void* args) {
+  static const c8* FACINGS[] = {
+      "Up", "Down", "Left", "Right", "Up Left", "Up Right", "Down Left",
+      "Down Right", "", "Default"
+  };
+  static const c8* GENDERS[] = {"Male", "Female"};
+
+  auto& new_game = NewGame::GetInstance();
+
+  app.Add("Skip Intro", new_game.skip_intro)
+     .Add("Player Gender", new_game.player_gender)
+     .WithArray(GENDERS, SIZE(GENDERS))
+     .WithBounds(0, SIZE(GENDERS) - 1)
+     .AddSeparator()
+     .Add("Start Zone", new_game.start_zone)
+     .Add("Start Tile X (-1: default)", new_game.start_tile_x)
+     .WithMin(-1)
+     .Add("Start Tile Z (-1: default)", new_game.start_tile_z)
+     .WithMin(-1)
+     .Add("Start Facing", new_game.start_facing)
+     .WithArray(FACINGS, SIZE(FACINGS))
+     .WithBounds(0, SIZE(FACINGS) - 1);
+}
+
 void LoadTitleScreenPage(MainApplication& app, void* args) {
   auto& title_screen = TitleScreen::GetInstance();
 
-  auto& new_game = NewGame::GetInstance();
-  app.Add("Is Enabled", title_screen.is_enabled)
-     .Add("No delay", title_screen.no_delay)
-     .Add("No shadow", title_screen.no_shadow)
+  app.Add("Custom Title Screen", title_screen.is_enabled)
+     .Add("No Delay", title_screen.no_delay)
+     .Add("No Shadow", title_screen.no_shadow)
+     .Add("Skip To Frame", title_screen.skip_to_frame)
+     .AddSeparator()
      .Add("Top Video", title_screen.top_video)
      .WithArray(VIDEO_NAMES, SIZE(VIDEO_NAMES))
+     .WithBounds(0, SIZE(VIDEO_NAMES) - 1)
      .Add("Bottom Video", title_screen.bottom_video)
      .WithArray(VIDEO_NAMES, SIZE(VIDEO_NAMES))
+     .WithBounds(0, SIZE(VIDEO_NAMES) - 1)
      .AddSpecies("Pokemon Cry", title_screen.pokemon_cry_species)
      .Add("Pokemon Cry Volume", title_screen.pokemon_cry_volume)
-     .AddSeparator()
-     .Add("Skip Intro", new_game.skip_intro)
-     .Add("Player Gender", new_game.player_gender)
+     .WithFactor(0.1f)
      .WithBounds(0, 1)
-     .Add("Start Zone", new_game.start_zone);
+     .AddSeparator()
+     .Add("New Game", LoadNewGamePage);
 }
 } // namespace ui
