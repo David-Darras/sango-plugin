@@ -45,7 +45,7 @@ constexpr uptr kTitleScreenPokemonCryVolume = GAME_ADDRESS(0, 0x0074049C);
 
 // Engine, scripts, shops...
 constexpr uptr kCore = GAME_ADDRESS(0x005EF084, 0x0063106C);
-constexpr uptr kUpdateFrame = GAME_ADDRESS(0, 0x0011EEA4);
+constexpr uptr kUpdateFrame = GAME_ADDRESS(0x0011E9D0, 0x0011EEA4);
 constexpr uptr kEventTableCheckFlag = GAME_ADDRESS(0, 0x0012FE90);
 constexpr uptr kEventTableResetFlag = GAME_ADDRESS(0, 0x0011FB38);
 constexpr uptr kEventTableSetFlag = GAME_ADDRESS(0, 0x00406E94);
@@ -61,7 +61,7 @@ constexpr uptr kCheckRegulation =
     GAME_ADDRESS(0, 0x006F4F80); // app poke list static work
 // 0x8072520, 0x807251C, 0x8072510
 constexpr uptr kLoadCroFile = GAME_ADDRESS(0, 0x00110E2C);
-constexpr uptr kStartBackupThread = GAME_ADDRESS(0, 0x0045D6BC);
+constexpr uptr kStartBackupThread = GAME_ADDRESS(0x00431A68, 0x0045D6BC);
 constexpr uptr kOnUpdateFrame = GAME_ADDRESS(0, 0x0011EEA4);
 constexpr uptr kKeyboardUpdateKeys = GAME_ADDRESS(0, 0x00744540);
 

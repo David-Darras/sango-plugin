@@ -53,94 +53,38 @@ public:
   }
 
   INLINE Footer& GetFooter() { return *footer_; }
-
   INLINE Misc& GetMisc() { return *(Misc*)segments_[11]; }
-
-  INLINE BoxManager& GetBoxManager() {
-    return *(BoxManager*)segments_[12];
-  }
-
+  INLINE BoxManager& GetBoxManager() { return *(BoxManager*)segments_[12]; }
   INLINE Minigame& GetMinigame() { return *(Minigame*)segments_[8]; }
-
   INLINE BattleBox& GetBattleBox() { return *(BattleBox*)segments_[13]; }
-
-  INLINE PssGroup& GetPssFavouriteGroup() {
-    return *(PssGroup*)segments_[14];
-  }
-
-  INLINE PssGroup& GetPssFriendGroup() {
-    return *(PssGroup*)segments_[15];
-  }
-
-  INLINE PssGroup& GetPssAcquaintanceGroup() {
-    return *(PssGroup*)segments_[16];
-  }
-
-  INLINE BagManager& GetBagManager() {
-    return *(BagManager*)segments_[2];
-  }
-
-  INLINE PokemonAmie& GetPokemonAmie() {
-    return *(PokemonAmie*)segments_[0];
-  }
-
-  INLINE ItemManager& GetItemManager() {
-    return *(ItemManager*)segments_[1];
-  }
-
-  INLINE TrainerStatus& GetTrainerStatus() {
-    return *(TrainerStatus*)segments_[17];
-  }
-
-  INLINE PokemonBox& GetPokemonBox() {
-    return *(PokemonBox*)segments_[56];
-  }
-
-  INLINE OPowerManager& GetOPowerManager() {
-    return *(OPowerManager*)segments_[25];
-  }
-
-  INLINE Repel& GetRepel() {
-    return *(Repel*)segments_[31];
-  }
-
-  INLINE HallOfFame& GetHallOfFame() {
-    return *(HallOfFame*)segments_[36];
-  }
-
-  INLINE OverworldMenu& GetOverworldMenu() {
-    return *(OverworldMenu*)segments_[29];
-  }
-
-  INLINE RecordManager& GetRecordManager() {
-    return *(RecordManager*)segments_[44];
-  }
-
-  INLINE DayCare& GetDayCare() {
-    return *(DayCare*)segments_[38];
-  }
-
-  INLINE PssPhoto& GetPssPhoto() {
-    return *(PssPhoto*)segments_[50];
-  }
-
+  INLINE PssGroup& GetPssFavouriteGroup() { return *(PssGroup*)segments_[14]; }
+  INLINE PssGroup& GetPssFriendGroup() { return *(PssGroup*)segments_[15]; }
+  INLINE PssGroup& GetPssAcquaintanceGroup() { return *(PssGroup*)segments_[16]; }
+  INLINE BagManager& GetBagManager() { return *(BagManager*)segments_[2]; }
+  INLINE PokemonAmie& GetPokemonAmie() { return *(PokemonAmie*)segments_[0]; }
+  INLINE ItemManager& GetItemManager() { return *(ItemManager*)segments_[1]; }
+  INLINE TrainerStatus& GetTrainerStatus() { return *(TrainerStatus*)segments_[17]; }
+  INLINE OPowerManager& GetOPowerManager() { return *(OPowerManager*)segments_[25]; }
+  INLINE Repel& GetRepel() { return *(Repel*)segments_[31];}
+  INLINE HallOfFame& GetHallOfFame() { return *(HallOfFame*)segments_[36]; }
+  INLINE OverworldMenu& GetOverworldMenu() { return *(OverworldMenu*)segments_[29]; }
+  INLINE RecordManager& GetRecordManager() { return *(RecordManager*)segments_[44]; }
+  INLINE DayCare& GetDayCare() { return *(DayCare*)segments_[38]; }
   INLINE Fusion& GetFusion() { return *(Fusion*)segments_[22]; }
-
   INLINE Settings& GetSettings() { return *(Settings*)segments_[23]; }
-
   INLINE Pokedex& GetPokedex() { return *(Pokedex*)segments_[20]; }
-
   INLINE EventTable& GetEventTable() { return *(EventTable*)segments_[19]; }
+  INLINE PokemonBox& GetPokemonBox() { return *(PokemonBox*)segments_[kPokemonBoxIndex]; }
+  INLINE PssPhoto& GetPssPhoto() { return *(PssPhoto*)segments_[50]; }
 
-
-  static constexpr u32 kSegmentCount = 58;
+  static constexpr u32 kPokemonBoxIndex = GAME_CONSTANT(53, 56);
+  static constexpr u32 kSegmentCount = GAME_CONSTANT(55, 58);
+  static constexpr u32 kSize = GAME_CONSTANT(0x61A68, 0x722C8);
 
 private:
   void* vtable_;
   Footer* footer_;
-
-  u8 data_[0x722C8];
-
-  void* segments_[kSegmentCount]; ///< Address : 0x08CE0C68
+  u8 data_[kSize];
+  void* segments_[kSegmentCount];
 };
 } // namespace savedata

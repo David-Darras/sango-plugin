@@ -24,26 +24,25 @@ namespace pokemon {
 namespace address {
 
 constexpr uptr kAppStatusSetupPokemonInfo = GAME_ADDRESS(0, 0x007144FC);
-constexpr uptr kDataAccessorEncrypt = GAME_ADDRESS(0, 0x00168DCC);
-constexpr uptr kDataAccessorDecrypt = GAME_ADDRESS(0, 0x00168E3C);
-constexpr uptr kDataAccessorInitialize = GAME_ADDRESS(0, 0x0012C2BC);
-constexpr uptr kUtilsLoadPokemonExperienceTable = GAME_ADDRESS(0, 0x0016886C);
-constexpr uptr kUtilsGetPokemonMinimumExperience = GAME_ADDRESS(0, 0x00168A28);
+constexpr uptr kDataAccessorEncrypt = GAME_ADDRESS(0x00168814, 0x00168DCC);
+constexpr uptr kDataAccessorDecrypt = GAME_ADDRESS(0x00168884, 0x00168E3C);
+constexpr uptr kDataAccessorInitialize = GAME_ADDRESS(0x0013AA9C, 0x0012C2BC);
+constexpr uptr kUtilsLoadPokemonExperienceTable = GAME_ADDRESS(0x00167FD4, 0x0016886C);
+constexpr uptr kUtilsGetPokemonMinimumExperience = GAME_ADDRESS(0x001681BC, 0x00168A28);
 constexpr uptr kUtilsGetPokemonLevelFromExperience =
-    GAME_ADDRESS(0, 0x0014FDAC);
-constexpr uptr kUtilsIsShiny = GAME_ADDRESS(0, 0x00168F48);
-constexpr uptr kUtilsToShiny = GAME_ADDRESS(0, 0x00168F6C);
-constexpr uptr kUtilsToNormal = GAME_ADDRESS(0, 0x00168FCC);
-constexpr uptr kUtilsFromBallIdToItemId = GAME_ADDRESS(0, 0x003B7300);
-constexpr uptr kGetSpeciesName = GAME_ADDRESS(0, 0x003B08F8);
-constexpr uptr kGetDefaultNickname = GAME_ADDRESS(0, 0x00139E40);
+    GAME_ADDRESS(0x00168D60, 0x0014FDAC);
+constexpr uptr kUtilsIsShiny = GAME_ADDRESS(0x00168AC8, 0x00168F48);
+constexpr uptr kUtilsToShiny = GAME_ADDRESS(0x00168B68, 0x00168F6C);
+constexpr uptr kUtilsToNormal = GAME_ADDRESS(0x00168BC8, 0x00168FCC);
+constexpr uptr kGetSpeciesName = GAME_ADDRESS(0x00399BB8, 0x003B08F8);
+constexpr uptr kGetDefaultNickname = GAME_ADDRESS(0x0014F500, 0x00139E40);
 constexpr uptr kSetAbilityName = GAME_ADDRESS(0, 0x0045108C);
 constexpr uptr kSetMoveName = GAME_ADDRESS(0, 0x004509F4);
-constexpr uptr kGetAbilityName = GAME_ADDRESS(0, 0x003B0D1C);
-constexpr uptr kGetAbilityDescription = GAME_ADDRESS(0, 0x003B0CF0);
-constexpr uptr kGetMoveName = GAME_ADDRESS(0, 0x003B5C54);
+constexpr uptr kGetAbilityName = GAME_ADDRESS(0x00399E50, 0x003B0D1C);
+constexpr uptr kGetAbilityDescription = GAME_ADDRESS(0x00399E24, 0x003B0CF0);
+constexpr uptr kGetMoveName = GAME_ADDRESS(0x0039EF68, 0x003B5C54);
 constexpr uptr kLoadMoveData = GAME_ADDRESS(0, 0x00175FB4);
-constexpr uptr kItemDataGetName = GAME_ADDRESS(0, 0x003B7A64);
+constexpr uptr kItemDataGetName = GAME_ADDRESS(0x003A0CAC, 0x003B7A64); // Description : 003B79D8
 constexpr uptr kMoveDataTable = GAME_ADDRESS(0, 0x0062B3A0);
 constexpr uptr kCreatePokemon = GAME_ADDRESS(0, 0x0046FE44);
 constexpr uptr kAddPokemonToTeam = GAME_ADDRESS(0, 0x003B6754);
@@ -72,7 +71,7 @@ constexpr uptr kStaticEncounterTable = GAME_ADDRESS(0, 0x007E4B20);
 constexpr uptr kHealTeam = GAME_ADDRESS(0, 0x003B5FC0);
 constexpr uptr kRemovePokemonFromTeam = GAME_ADDRESS(0, 0x003B6098);
 constexpr uptr kResetNickname = GAME_ADDRESS(0, 0x003B51C0);
-constexpr uptr kUpdateRuntimeData = GAME_ADDRESS(0, 0x003B360C);
+constexpr uptr kUpdateRuntimeData = GAME_ADDRESS(0x0039C730, 0x003B360C);
 constexpr uptr kInitializePokemon = GAME_ADDRESS(0, 0x0011F754);
 constexpr uptr kBattleCheckPokemonCaptured = GAME_ADDRESS(0, 0x007247C8);
 constexpr uptr kTechnicalMachineMoveTable = GAME_ADDRESS(0, 0x005A69E2);
@@ -88,6 +87,8 @@ constexpr uptr kItemEvStatLimitCheck3 = GAME_ADDRESS(0, 0x0046E244);
 constexpr uptr kItemEvStatLimitCheck4 = GAME_ADDRESS(0, 0x0046E2E0);
 constexpr uptr kItemEvStatLimitCheck5 = GAME_ADDRESS(0, 0x0046E37C);
 constexpr uptr kItemEvStatLimitCheck6 = GAME_ADDRESS(0, 0x0046E41C);
+
+constexpr uptr kUtilsFromBallIdToItemId = GAME_ADDRESS(0, 0x003B7300);
 
 } // namespace address
 } // namespace pokemon

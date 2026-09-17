@@ -21,7 +21,6 @@
 
 
 namespace pokemon {
-
 enum class MoveId : u16 {
   kNone = 0,
   kPound = 1,
@@ -641,15 +640,17 @@ enum class MoveId : u16 {
   kThousandWaves = 615,
   kLandsWrath = 616,
   kLightOfRuin = 617,
+#ifdef GAME_XY
+  kCount=618,
+#else
   kOriginPulse = 618,
   kPrecipiceBlades = 619,
   kDragonAscent = 620,
   kHyperspaceFury = 621,
   kCount = 622,
-
+#endif
   kXxx = 1000,
 };
-
 } // namespace pokemon
 
 using pokemon::MoveId;

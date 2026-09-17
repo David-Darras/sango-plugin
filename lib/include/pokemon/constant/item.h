@@ -21,7 +21,6 @@
 
 
 namespace pokemon {
-
 enum class ItemId : u16 {
   kNone = 0x0000,
   kMasterBall = 0x0001,
@@ -716,6 +715,9 @@ enum class ItemId : u16 {
   kFairyGem = 0x02CB,
   kMegaCharm = 0x02CC,
   kMegaGlove = 0x02CD,
+#ifdef GAME_XY
+  kCount = 0x02CE,
+#else
   kMachBike = 0x02CE,
   kAcroBike = 0x02CF,
   kWailmerPail = 0x02D0,
@@ -774,8 +776,8 @@ enum class ItemId : u16 {
   kMeteoriteShard = 0x0306,
   kEonFlute = 0x0307,
   kCount = 0x0308,
+#endif
 };
-
 } // namespace pokemon
 
 using pokemon::ItemId;

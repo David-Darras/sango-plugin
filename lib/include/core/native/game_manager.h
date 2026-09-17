@@ -39,7 +39,7 @@ class GameManager {
 
 public:
   STATIC_INLINE GameManager& GetInstance() {
-    return *(GameManager*)sys::address::kGameManager;
+    return *(GameManager*)READ32(sys::address::kGameManager);
   }
 
   INLINE ProcessManager& GetProcessManager() const {

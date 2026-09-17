@@ -25,8 +25,10 @@
 #error "GAME_XY and GAME_ORAS are exclusive"
 #elif defined(GAME_XY)
 #define GAME_ADDRESS(xy, oras) (xy)
+#define GAME_CONSTANT(xy, oras) (xy)
 #elif defined(GAME_ORAS)
 #define GAME_ADDRESS(xy, oras) (oras)
+#define GAME_CONSTANT(xy, oras) (oras)
 #else
 #error "Build with -DGAME_XY or -DGAME_ORAS"
 #endif

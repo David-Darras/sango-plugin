@@ -101,7 +101,7 @@ void MainApplication::ForceClose() {
 
 void MainApplication::Update(sys::Controller& controller) {
   if (AreKeysReleased(controller)) {
-    // sys::Sound::PlaySoundEffect(IsOpened() ? theme_.close_sound : theme_.open_sound);
+    sys::Sound::PlaySoundEffect(IsOpened() ? theme_.close_sound : theme_.open_sound);
     is_opened_ ^= 1;
     core::DevicePatch::GetInstance().use_redirection = is_opened_;
     return;
@@ -133,12 +133,12 @@ void MainApplication::Update(sys::Controller& controller) {
   } else if (controller.IsKeyReleased(Key::kB)) {
     Close();
   } else if (controller.IsKeyReleased(Key::kA)) {
-    // sys::Sound::PlaySoundEffect(theme_.confirm_sound);
+    sys::Sound::PlaySoundEffect(theme_.confirm_sound);
     entry.Execute(*this);
   } else if (controller.IsKeyReleased(Key::kX) || numpad_.IsButtonOkReleased()
              ||
              keyboard_.IsButtonOkReleased()) {
-    // sys::Sound::PlaySoundEffect(theme_.confirm_sound);
+    sys::Sound::PlaySoundEffect(theme_.confirm_sound);
 
     switch (entry.GetType()) {
       case kTypeUnicode:
@@ -155,7 +155,7 @@ void MainApplication::Update(sys::Controller& controller) {
           Key::kRight) ||
       controller.IsKeyRepeated(Key::kDown) || controller.
       IsKeyRepeated(Key::kUp)) {
-    // sys::Sound::PlaySoundEffect(theme_.next_sound);
+    sys::Sound::PlaySoundEffect(theme_.next_sound);
   }
 
   u8& offset = ctx.offset;

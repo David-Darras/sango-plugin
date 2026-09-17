@@ -74,7 +74,7 @@ void InitializeEngine() {
   // sys::File::MountSdmc();
 
   core::DevicePatch::Initialize();
-  // core::GameSpeed::Initialize();
+  core::GameSpeed::Initialize();
   // renderer::Lighting::Initialize();
   // renderer::TextBoxFilter::Initialize();
   // renderer::PictureFilter::Initialize();

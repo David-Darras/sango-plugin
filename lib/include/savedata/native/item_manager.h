@@ -37,7 +37,7 @@ struct ItemManager {
 
   static constexpr u32 kMaxNormalItems = 400;
   static constexpr u32 kMaxMedicine = 64;
-  static constexpr u32 kMaxTMsHMs = 108;
+  static constexpr u32 kMaxTMsHMs = GAME_CONSTANT(106, 108);
   static constexpr u32 kMaxBerries = 72;
   static constexpr u32 kMaxKeyItems = 96;
 

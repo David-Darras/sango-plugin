@@ -19,7 +19,6 @@
 
 #include <types.h>
 
-
 namespace pokemon {
 
 enum class TypeId : u8 {

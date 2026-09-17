@@ -63,17 +63,17 @@ constexpr uptr kTouchscreenGetX = GAME_ADDRESS(0x00497C20, 0x004C794C);
 constexpr uptr kTouchscreenGetY = GAME_ADDRESS(0x00497C48, 0x004C7974);
 
 // Sound
-constexpr uptr kSoundPlayPokemonCry = GAME_ADDRESS(0, 0x004500C0);
-constexpr uptr kSoundChangePokemonCryVolume = GAME_ADDRESS(0, 0x0044EB4C);
-constexpr uptr kSoundPlaySoundEffect = GAME_ADDRESS(0, 0x0044FC88);
-constexpr uptr kSoundPlayBackgroundMusic = GAME_ADDRESS(0, 0x0044E6CC);
+constexpr uptr kSoundPlayPokemonCry = GAME_ADDRESS(0x00427988, 0x004500C0);
+constexpr uptr kSoundChangePokemonCryVolume = GAME_ADDRESS(0x004265B4, 0x0044EB4C);
+constexpr uptr kSoundPlaySoundEffect = GAME_ADDRESS(0x00427550, 0x0044FC88);
+constexpr uptr kSoundPlayBackgroundMusic = GAME_ADDRESS(0x004260FC, 0x0044E6CC);
 
 // System
 constexpr uptr kMessageGetString = GAME_ADDRESS(0, 0x00139A34);
 constexpr uptr kStringVtable = GAME_ADDRESS(0x0059B9F8, 0x005DE3BC);
 constexpr uptr kEntrypoint =
     GAME_ADDRESS(0x001220D0, 0x00122938); // Render Home Button Blocked
-constexpr uptr kGameManager = GAME_ADDRESS(0, 0x08C69094);
+constexpr uptr kGameManager = GAME_ADDRESS(0x005EDA08, 0x0062F7C4);
 constexpr uptr kCallApp = GAME_ADDRESS(0, 0x003CFBA8);
 constexpr uptr kOsReadOnlyKernelInfo = GAME_ADDRESS(0x1FF80000, 0x1FF80000);
 constexpr uptr kHeapTable = GAME_ADDRESS(0, 0x08000000);
@@ -91,10 +91,6 @@ constexpr uptr kGameTextManagerGetText = GAME_ADDRESS(0, 0x00139A34);
 
 constexpr uptr kHeapAlloc = GAME_ADDRESS(0, 0x0011ED58);
 constexpr uptr kHeapFree = GAME_ADDRESS(0, 0x00139DA4);
-
-constexpr uptr kThreadInitialize = GAME_ADDRESS(0, 0x0014E424);
-constexpr uptr kThreadStart = GAME_ADDRESS(0, 0x00139C5C);
-constexpr uptr kThreadDestroy = GAME_ADDRESS(0, 0x003A8174);
 
 constexpr uptr kProcessMemoryStart = GAME_ADDRESS(0, 0x00100000);
 constexpr uptr kProcessMemoryEnd = GAME_ADDRESS(0, 0x00900000);

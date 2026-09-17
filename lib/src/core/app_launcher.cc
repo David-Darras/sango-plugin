@@ -40,7 +40,7 @@ constexpr uptr kOffsetInput = 0x20;
 constexpr uptr kOffsetCallback = 0x2C;
 constexpr uptr kOffsetTownMapCallback = 0x30;
 /// The move the Move Tutor teaches when opened from the menu.
-constexpr MoveId kTutorMove = MoveId::kDragonAscent;
+constexpr MoveId kTutorMove = MoveId::kAquaJet;
 } // namespace
 
 void AppLauncher::Initialize() {

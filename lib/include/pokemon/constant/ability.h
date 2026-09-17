@@ -212,10 +212,14 @@ enum class AbilityId : u8 {
   kDarkAura = 186,
   kFairyAura = 187,
   kAuraBreak = 188,
+#ifdef GAME_ORAS
   kPrimordialSea = 189,
   kDesolateLand = 190,
   kDeltaStream = 191,
   kCount = 192,
+#else
+  kCount = 189,
+#endif
 };
 
 } // namespace pokemon
