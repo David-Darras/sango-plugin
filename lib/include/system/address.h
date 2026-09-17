@@ -24,22 +24,22 @@ namespace sys {
 namespace address {
 
 // Filesystem
-constexpr uptr kFileOpen = GAME_ADDRESS(0, 0x00123FA8);
-constexpr uptr kFileRead = GAME_ADDRESS(0, 0x00145CF0);
-constexpr uptr kFileWrite = GAME_ADDRESS(0, 0x001F5BE0);
-constexpr uptr kFsMountSdmc = GAME_ADDRESS(0, 0x001F7CFC);
-constexpr uptr kFsCreateFile = GAME_ADDRESS(0, 0x001F5C50);
-constexpr uptr kFsDeleteFile = GAME_ADDRESS(0, 0x001F5CCC);
-constexpr uptr kFsCreateDirectory = GAME_ADDRESS(0, 0x001F5F0C);
-constexpr uptr kArchiveFilenameTable = GAME_ADDRESS(0, 0x005F5050);
-constexpr uptr kArchiveReadFileAsync = GAME_ADDRESS(0, 0x0036DC68);
-constexpr uptr kArchiveReadFileAsync2 = GAME_ADDRESS(0, 0x0036ED10);
-constexpr uptr kArchiveLoadData = GAME_ADDRESS(0, 0x0036F030);
-constexpr uptr kArchiveLoadData2 = GAME_ADDRESS(0, 0x00128E4C);
-constexpr uptr kArchiveInitialize = GAME_ADDRESS(0, 0x0011CA2C);
-constexpr uptr kArchiveGetFileSize = GAME_ADDRESS(0, 0x0011CA10);
-constexpr uptr kArchiveLoadFile = GAME_ADDRESS(0, 0x00128B34);
-constexpr uptr kArchiveLoadCompressedFile = GAME_ADDRESS(0, 0x00137A30);
+constexpr uptr kFileOpen = GAME_ADDRESS(0x001237E8, 0x00123FA8);
+constexpr uptr kFileRead = GAME_ADDRESS(0x0014688C, 0x00145CF0);
+constexpr uptr kFileWrite = GAME_ADDRESS(0x001E1438, 0x001F5BE0);
+constexpr uptr kFsMountSdmc = GAME_ADDRESS(0x001E3554, 0x001F7CFC);
+constexpr uptr kFsCreateFile = GAME_ADDRESS(0x001E14A8, 0x001F5C50);
+constexpr uptr kFsDeleteFile = GAME_ADDRESS(0x001E1524, 0x001F5CCC);
+constexpr uptr kFsCreateDirectory = GAME_ADDRESS(0x001E1764, 0x001F5F0C);
+constexpr uptr kArchiveFilenameTable = GAME_ADDRESS(0x005B21E0, 0x005F5050);
+constexpr uptr kArchiveReadFileAsync = GAME_ADDRESS(0x003560B4, 0x0036DC68);
+constexpr uptr kArchiveReadFileAsync2 = GAME_ADDRESS(0x0035715C, 0x0036ED10);
+constexpr uptr kArchiveLoadData = GAME_ADDRESS(0x0035747C, 0x0036F030);
+constexpr uptr kArchiveLoadData2 = GAME_ADDRESS(0x00138510, 0x00128E4C);
+constexpr uptr kArchiveInitialize = GAME_ADDRESS(0x0011C724, 0x0011CA2C);
+constexpr uptr kArchiveGetFileSize = GAME_ADDRESS(0x0011C708, 0x0011CA10);
+constexpr uptr kArchiveLoadFile = GAME_ADDRESS(0x00128100, 0x00128B34);
+constexpr uptr kArchiveLoadCompressedFile = GAME_ADDRESS(0x001283D8, 0x00137A30);
 
 // Input
 constexpr uptr kDeviceGetController = GAME_ADDRESS(0x001174D0, 0x00117550);
@@ -69,33 +69,33 @@ constexpr uptr kSoundPlaySoundEffect = GAME_ADDRESS(0x00427550, 0x0044FC88);
 constexpr uptr kSoundPlayBackgroundMusic = GAME_ADDRESS(0x004260FC, 0x0044E6CC);
 
 // System
-constexpr uptr kMessageGetString = GAME_ADDRESS(0, 0x00139A34);
+constexpr uptr kMessageGetString = GAME_ADDRESS(0x0013A498, 0x00139A34);
 constexpr uptr kStringVtable = GAME_ADDRESS(0x0059B9F8, 0x005DE3BC);
 constexpr uptr kEntrypoint =
     GAME_ADDRESS(0x001220D0, 0x00122938); // Render Home Button Blocked
 constexpr uptr kGameManager = GAME_ADDRESS(0x005EDA08, 0x0062F7C4);
-constexpr uptr kCallApp = GAME_ADDRESS(0, 0x003CFBA8);
+constexpr uptr kCallApp = GAME_ADDRESS(0x003B389C, 0x003CFBA8);
 constexpr uptr kOsReadOnlyKernelInfo = GAME_ADDRESS(0x1FF80000, 0x1FF80000);
-constexpr uptr kHeapTable = GAME_ADDRESS(0, 0x08000000);
-constexpr uptr kStdWcslen = GAME_ADDRESS(0, 0x001003E8 | 1);
+constexpr uptr kHeapTable = GAME_ADDRESS(0x08000000, 0x08000000);
+constexpr uptr kStdWcslen = GAME_ADDRESS(0x001003E4 | 1, 0x001003E8 | 1);
 constexpr uptr kStdVswprintf = GAME_ADDRESS(0x001004B4 | 1  , 0x001004B8 | 1);
 constexpr u32 kBufferSize = 128;
-constexpr uptr kGetRandomValue = GAME_ADDRESS(0, 0x0048AF80);
-constexpr uptr kGetElapsedTime = GAME_ADDRESS(0, 0x0012B724);
-constexpr uptr kConvertTimeToSeconds = GAME_ADDRESS(0, 0x0012FBDC);
-constexpr uptr kDateTime = GAME_ADDRESS(0, 0x006174F8);
-constexpr uptr kCheckAppRequest = GAME_ADDRESS(0, 0x007BDE50);
+constexpr uptr kGetRandomValue = GAME_ADDRESS(0x0045C358, 0x0048AF80);
+constexpr uptr kGetElapsedTime = GAME_ADDRESS(0x0012AF08, 0x0012B724);
+constexpr uptr kConvertTimeToSeconds = GAME_ADDRESS(0x0012FB40, 0x0012FBDC);
+constexpr uptr kDateTime = GAME_ADDRESS(0x005D45E0, 0x006174F8);
+constexpr uptr kCheckAppRequest = GAME_ADDRESS(0x00770584, 0x007BDE50);
 constexpr uptr kMainProcessLoop = GAME_ADDRESS(0x00394E88, 0x003AB62C);
 constexpr uptr kMainEventLoop = GAME_ADDRESS(0x00117D7C, 0x00117E4C);
-constexpr uptr kGameTextManagerGetText = GAME_ADDRESS(0, 0x00139A34);
+constexpr uptr kGameTextManagerGetText = GAME_ADDRESS(0x0013A498, 0x00139A34);
 
-constexpr uptr kHeapAlloc = GAME_ADDRESS(0, 0x0011ED58);
-constexpr uptr kHeapFree = GAME_ADDRESS(0, 0x00139DA4);
+constexpr uptr kHeapAlloc = GAME_ADDRESS(0x0012B4C0, 0x0011ED58);
+constexpr uptr kHeapFree = GAME_ADDRESS(0x0013A808, 0x00139DA4);
 
-constexpr uptr kProcessMemoryStart = GAME_ADDRESS(0, 0x00100000);
-constexpr uptr kProcessMemoryEnd = GAME_ADDRESS(0, 0x00900000);
+constexpr uptr kProcessMemoryStart = GAME_ADDRESS(0x00100000, 0x00100000);
+constexpr uptr kProcessMemoryEnd = GAME_ADDRESS(0x00800000, 0x00900000); // XY: CRO region ends ~0x7EC000
 
-constexpr uptr kMemoryRegionGameCode = GAME_ADDRESS(0, 0x006F3000);
+constexpr uptr kMemoryRegionGameCode = GAME_ADDRESS(0x006A9000, 0x006F3000); // XY: field CRO base seen in the kujira dump
 constexpr uptr kMemoryRegionAppStatus = GAME_ADDRESS(0, 0x0070B000);
 constexpr uptr kMemoryRegionTitleScreen = GAME_ADDRESS(0, 0x00728000);
 constexpr uptr kMemoryRegionKeyboard = GAME_ADDRESS(0, 0x00742000);

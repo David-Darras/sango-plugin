@@ -23,15 +23,15 @@
 namespace battle {
 namespace address {
 
-constexpr uptr kConfigSetupWild = GAME_ADDRESS(0, 0x001D6CD8);
-constexpr uptr kConfigSetupTrainer = GAME_ADDRESS(0, 0x001D6E0C);
+constexpr uptr kConfigSetupWild = GAME_ADDRESS(0x001CCC9C, 0x001D6CD8);
+constexpr uptr kConfigSetupTrainer = GAME_ADDRESS(0x001CCDD0, 0x001D6E0C);
 
 constexpr uptr kVtable = GAME_ADDRESS(0, 0x007D85D0);
 constexpr uptr kMainProcess = GAME_ADDRESS(0, 0x08C69214);
 constexpr uptr kLevelUp = GAME_ADDRESS(0, 0x0075D73C);
 constexpr uptr kStartMegaEvolutionAnimation = GAME_ADDRESS(0, 0x0072EF18);
 constexpr uptr kStartEntryAnimation = GAME_ADDRESS(0, 0x00775354);
-constexpr uptr kStartBackgroundMusic = GAME_ADDRESS(0, 0x0044D560);
+constexpr uptr kStartBackgroundMusic = GAME_ADDRESS(0x00425238, 0x0044D560);
 constexpr uptr kPlayAnimation = GAME_ADDRESS(0, 0x007510A8);
 constexpr uptr kUpdateView = GAME_ADDRESS(0, 0x0073B60C);
 constexpr uptr kUpdateGauge = GAME_ADDRESS(0, 0x0071E174);
@@ -61,7 +61,7 @@ constexpr uptr kRegisterMoveListener = GAME_ADDRESS(0, 0x00762B18);
 
 constexpr uptr kLoadAnimation = GAME_ADDRESS(0, 0x0074E908);
 
-constexpr uptr kGetHpGaugePane = GAME_ADDRESS(0, 0x004BCD08);
+constexpr uptr kGetHpGaugePane = GAME_ADDRESS(0x0048D760, 0x004BCD08);
 constexpr uptr kPokemonModelTable = GAME_ADDRESS(0, 0x083F84C0);
 
 constexpr uptr kMenuEntryHpPp = GAME_ADDRESS(0, 0x007CB09C);
@@ -76,7 +76,7 @@ constexpr uptr kBallCatchRate = GAME_ADDRESS(0, 0x007232E4);
 
 constexpr uptr kMegaRestrictionCheck = GAME_ADDRESS(0, 0x007007C0);
 constexpr uptr kMegaRestrictionCheck2 = GAME_ADDRESS(0, 0x006FDA74);
-constexpr uptr kCanMegaEvolved = GAME_ADDRESS(0, 0x004D2970);
+constexpr uptr kCanMegaEvolved = GAME_ADDRESS(0x004A2A28, 0x004D2970);
 
 } // namespace address
 } // namespace battle

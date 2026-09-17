@@ -20,6 +20,7 @@
 #include <cstddef>
 
 #include "common.h"
+#include "core/game.h"
 
 namespace pokemon {
 struct EvolutionTable;
@@ -35,17 +36,20 @@ struct Database {
   void* _0[2];
   Message* ability_names;
   Message* ability_descriptions;
-  void* _1[9];
+  // X/Y lacks one member before the evolution tables and keeps the move
+  // names much further in the object (found from LoadEvolutionTable,
+  // LoadMegaEvolveTable and GetMoveName in the kujira dump).
+  void* _1[GAME_CONSTANT(7, 9)];
   EvolutionTable* evolution;
   void* _2[2];
   MegaEvolutionTable* mega_evolution;
-  void* _3[9];
+  void* _3[GAME_CONSTANT(47, 9)];
   Message* move_names;
 };
 
 static_assert(offsetof(Database, ability_names) == 0x0C &&
-              offsetof(Database, evolution) == 0x38 &&
-              offsetof(Database, mega_evolution) == 0x44 &&
-              offsetof(Database, move_names) == 0x6C,
+              offsetof(Database, evolution) == GAME_CONSTANT(0x30, 0x38) &&
+              offsetof(Database, mega_evolution) == GAME_CONSTANT(0x3C, 0x44) &&
+              offsetof(Database, move_names) == GAME_CONSTANT(0xFC, 0x6C),
               "Database must match the game's pml::Library layout");
 } // namespace pokemon
