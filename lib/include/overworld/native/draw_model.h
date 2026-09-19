@@ -17,13 +17,14 @@
 
 #pragma once
 
+#include "core/game.h"
 #include "core/math.h"
 #include "core/types.h"
 
 namespace overworld {
 
 struct DrawModel {
-  u8 _0[0x150];
+  u8 _0[GAME_CONSTANT(0x154, 0x150)];
   Vec3 position;
   Vec3 rotation;
   Vec3 scale;

@@ -38,7 +38,7 @@ static const c16* kConfigFilename =
     u"sdmc:/luma/plugins/000400000011C500/sango.cfg";
 
 // Bump whenever one of the *Settings structs below changes layout.
-static constexpr u32 kConfigVersion = 12;
+static constexpr u32 kConfigVersion = 13;
 
 // Only the *Settings base of each feature goes through the file: the rest of
 // the singleton (callbacks, counters, runtime state) belongs to the product

@@ -43,6 +43,7 @@ struct BattleSettings {
   bool sync_team_hp = false;
   bool inverse_stats = false;
   bool metronome_only = false;
+  bool show_type_helper = true;
 
   bool mega_restriction = true;
   bool unlimited_mega_evolution = true;
@@ -67,6 +68,7 @@ private:
   /// Move id of the animation played when a shiny Pokémon enters the field.
   static constexpr u16 kShinyAnimationId = 621;
   static constexpr u32 kCameraOffset = GAME_CONSTANT(0, 408);
+  static constexpr u32 kModelSpeciesOffset = GAME_CONSTANT(0x138, 0x170);
   static constexpr bool kHasTrainerVisibilityFlag = GAME_CONSTANT(false, true);
 
   static bool CheckPokemonCapturedHook(u32 p0, u32 p1, u32 p2, u32 p3, u32 p4,

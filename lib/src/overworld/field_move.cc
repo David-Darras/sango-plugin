@@ -22,7 +22,7 @@
 namespace overworld {
 
 void FieldMove::Initialize() {
-  ARM_NOP(address::kFlyCheck); // Force fly
+  if (address::kFlyCheck) ARM_NOP(address::kFlyCheck);
 }
 
 void FieldMove::Execute(FieldMoveId move) {

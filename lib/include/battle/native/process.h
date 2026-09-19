@@ -18,6 +18,7 @@
 #pragma once
 
 #include "common.h"
+#include "core/native/process_manager.h"
 
 namespace core {
 class ProcessManager;
@@ -32,6 +33,10 @@ class Process {
 public:
 
   STATIC_INLINE Process& GetInstance() {
+    auto* current = core::ProcessManager::GetInstance().GetCurrentProcess();
+    if (current != nullptr && (uptr)current->vtable == address::kVtable) {
+      return *(Process*)current;
+    }
     return *(Process*)(address::kMainProcess);
   }
 

@@ -17,6 +17,7 @@
 
 #pragma once
 
+#include "core/game.h"
 #include "core/types.h"
 
 namespace core {
@@ -26,8 +27,8 @@ enum class AppId : u32 {
   kMoveTutor = 7,
   kMoveDeleter = 8,
   kMoveReminder = 9,
-  kTownMap = 15,
-  kBox = 17,
+  kTownMap = GAME_CONSTANT(19, 15),
+  kBox = GAME_CONSTANT(21, 17),
 };
 
 } // namespace core

@@ -17,12 +17,21 @@
 
 #pragma once
 
+#include "core/game.h"
 #include "core/types.h"
 #include "overworld/constant/map.h"
 
 namespace core {
 
-/// What the game's town map app reads on start and writes back on exit.
+#ifdef GAME_XY
+struct TownMapAppInput {
+  u8 start_mode;
+  u8 result;
+  MapId map_id;
+  static constexpr u32 kStartModeFly = 1;
+  static constexpr u32 kResultFly = 2;
+};
+#else
 struct TownMapAppInput {
   bool is_fly_mode;
   u8 _0[0x20 - 1];
@@ -31,5 +40,6 @@ struct TownMapAppInput {
   MapId map_id;
   u16 pokemon_index;
 };
+#endif
 
 } // namespace core

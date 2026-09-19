@@ -36,18 +36,17 @@ void Lighting::Initialize() {
 void Lighting::ChangeOutlineScaleHook(void* outline_manager, f32 screen_width,
                                   f32 screen_height, f32 scale) {
   auto& ctx = GetInstance();
+  static bool was_enabled = false;
+  auto set_color = (void (*)(void*, f32, f32, f32, f32))address::kChangeOutlineColor;
 
   if (ctx.use_outline) {
-    ((void (*)(void*, f32, f32, f32, f32))
-      address::kChangeOutlineColor)(
-        outline_manager,
-        ctx.outline_color.r,
-        ctx.outline_color.g,
-        ctx.outline_color.b,
-        ctx.outline_color.a);
+    set_color(outline_manager, ctx.outline_color.r, ctx.outline_color.g,
+              ctx.outline_color.b, ctx.outline_color.a);
   } else {
+    if (was_enabled) set_color(outline_manager, 0.0f, 0.0f, 0.0f, 1.0f);
     ctx.outline_scale = scale;
   }
+  was_enabled = ctx.use_outline;
 
   core::HookManager::Call<void>(HookId::kChangeOutlineScale, outline_manager,
                           screen_width, screen_height,

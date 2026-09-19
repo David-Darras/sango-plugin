@@ -19,6 +19,8 @@
 
 #include <types.h>
 
+#include "core/game.h"
+
 
 namespace overworld {
 
@@ -587,6 +589,7 @@ enum class ModelId : u16 {
   kSubPencilM = 0x21d,
   kSubDowsingMachineM = 0x21e,
   kSubDevonScopeM = 0x21f,
+  kLastCharacter = GAME_CONSTANT(0xaa, 0x161),
 };
 
 } // namespace overworld

@@ -19,8 +19,79 @@
 
 #include <types.h>
 
+#include "core/game.h"
+
 namespace battle {
 
+#ifdef GAME_XY
+enum class BackgroundId : u8 {
+  kNone = 0,
+  kGrass = 1,
+  kFactory = 2,
+  kCave = 3,
+  kForest = 4,
+  kShore = 5,
+  kSnow = 6,
+  kMountain = 7,
+  kRoom = 8,
+  kCity = 9,
+  kTown = 10,
+  kAvenue = 11,
+  kPalace = 12,
+  kLinkBattle = 13,
+  kWater = 14,
+  kSea = 15,
+  kRedLoam = 16,
+  kSnowCave = 17,
+  kMarsh = 18,
+  kMossCave = 19,
+  kMirror = 20,
+  kVictoryRoad = 21,
+  kAlley = 22,
+  kSmallForest = 23,
+  kBugGym = 24,
+  kRockGym = 25,
+  kFightingGym = 26,
+  kGrassGym = 27,
+  kElectricGym = 28,
+  kFairyGym = 29,
+  kPsychicGym = 30,
+  kIceGym = 31,
+  kEliteFourSteel = 32,
+  kEliteFourFire = 33,
+  kEliteFourDragon = 34,
+  kEliteFourWater = 35,
+  kChampion = 36,
+  kFlareBoss = 37,
+  kXerneas = 38,
+  kYveltal = 39,
+  kT02 = 40,
+  kGrassAutumn = 41,
+  kPlain = 42,
+  kDarkRoom = 43,
+  kFlareBase = 44,
+  kWcs = 45,
+  kWcs2 = 46,
+  kParade = 47,
+  kBugGymLeader = 48,
+  kRockGymLeader = 49,
+  kFightingGymLeader = 50,
+  kGrassGymLeader = 51,
+  kElectricGymLeader = 52,
+  kFairyGymLeader = 53,
+  kPsychicGymLeader = 54,
+  kIceGymLeader = 55,
+  kSky = 56,
+  kMega = 57,
+  kWaterSnowPlain = 58,
+  kWaterSnowCave = 59,
+  kWaterCave = 60,
+  kWaterAutumn = 61,
+  kPlainAutumn = 62,
+  kPlainBridge = 63,
+  kMarshAutumn = 64,
+};
+#else
 enum class BackgroundId : u8 {
   kNone = 0,
   kGrass = 1,
@@ -116,6 +187,7 @@ enum class BackgroundId : u8 {
   kAquaHideoutCave = 91,
   kAbandonedShip = 92,
 };
+#endif
 } // namespace battle
 
 using battle::BackgroundId;

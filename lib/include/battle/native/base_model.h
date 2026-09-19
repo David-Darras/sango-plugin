@@ -17,6 +17,7 @@
 
 #pragma once
 
+#include "core/game.h"
 #include "core/math.h"
 #include "core/types.h"
 
@@ -37,7 +38,7 @@ struct BaseModel {
   bool update;
   bool _0[3];
 
-  u32 _1[1 + 3 + 1 + 8 + 1 + 1 + 3 + 3 + 1 + 1 + 1 + 2 + 6 + 3 * 3];
+  u32 _1[GAME_CONSTANT(21, 41)];
 
   renderer::H3dModel* h3d_model;
 };

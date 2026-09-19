@@ -29,9 +29,19 @@ struct Pokedex {
   /**
 * @return FormId index, or -1 if the species has no alternative forms.
 */
-  INLINE s32 GetFormIndex(u16 species) {
-    return ((s32(*)(Pokedex*, u16))pokemon::address::kPokedexGetFormIndex)(
-        this, species);
+  static s32 GetFormIndex(u16 species) {
+    struct Entry {
+      u16 species;
+      u16 form_max;
+      u16 flags;
+    };
+    const Entry* entry = (const Entry*)pokemon::address::kPokedexFormTable;
+    s32 index = 0;
+    for (; entry->species != 0; entry++) {
+      if (entry->species == species) return index;
+      index += entry->form_max;
+    }
+    return -1;
   }
 
   static void GetTableIndexAndFormMax(s32& table_idx, s32& form_max,

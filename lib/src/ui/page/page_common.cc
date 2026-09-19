@@ -17,6 +17,7 @@
 
 #include "ui/page/page_common.h"
 
+#include "core/native/data_manager.h"
 #include "overworld/native/map_manager.h"
 #include "overworld/native/model_manager.h"
 #include "ui/main_application.h"
@@ -49,9 +50,11 @@ void RefreshMap(void*) {
       overworld::ModelManager::GetInstance().GetPlayer().world_pos;
   const bool same_background_music = true;
   const bool show_map_name = false;
+  overworld::Facing facing = core::DataManager::GetInstance().GetPlayerDirection();
+  if (facing >= overworld::Facing::kCount) facing = overworld::Facing::kUp;
   overworld::MapManager::ChangeMap(overworld::MapManager::GetInstance().GetMap(),
-                                   pos, overworld::Facing::kUp,
-                                   same_background_music, show_map_name);
+                                   pos, facing, same_background_music,
+                                   show_map_name);
 
   main_app.ForceClose();
 }

@@ -19,7 +19,38 @@
 
 #include <types.h>
 
+#include "core/game.h"
+
 namespace battle {
+#ifdef GAME_XY
+enum class TrainerModelId : u8 {
+  kSerena = 0,
+  kCalem = 1,
+  kShauna = 2,
+  kTierno = 3,
+  kTrevor = 4,
+  kSycamore = 5,
+  kMalva = 6,
+  kLysandre = 7,
+  kFlareAdminMale = 8,
+  kFlareAdminFemale = 9,
+  kAliana = 10,
+  kXerosic = 11,
+  kFlareGruntMale = 12,
+  kFlareGruntFemale = 13,
+  kCelosia = 14,
+  kBryony = 15,
+  kMable = 16,
+  kAz = 17,
+  kLysandreFinal = 18,
+  kHolocaster = 19,
+  kRivalCalem = 20,
+  kRivalSerena = 21,
+  kPupilMale = 22,
+  kPupilFemale = 23,
+  kCount = 24,
+};
+#else
 enum class TrainerModelId : u8 {
   kSerena = 0,
   kCalem = 1,
@@ -38,6 +69,7 @@ enum class TrainerModelId : u8 {
   kTrevor = 14,
   kCount = 15,
 };
+#endif
 } // namespace battle
 
 using battle::TrainerModelId;

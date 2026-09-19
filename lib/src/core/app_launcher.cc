@@ -39,6 +39,8 @@ constexpr uptr kOffsetAppId = 28;
 constexpr uptr kOffsetInput = 0x20;
 constexpr uptr kOffsetCallback = 0x2C;
 constexpr uptr kOffsetTownMapCallback = 0x30;
+constexpr uptr kOffsetMenuRequestFlags = GAME_CONSTANT(0xA4, 0xB0);
+constexpr u32 kRequestPokemonList = 5;
 /// The move the Move Tutor teaches when opened from the menu.
 constexpr MoveId kTutorMove = MoveId::kAquaJet;
 } // namespace
@@ -67,7 +69,8 @@ void AppLauncher::DoFly() {
 bool AppLauncher::CheckAppRequestHook(uptr menu, u32 id) {
   auto& ctx = GetInstance();
   if (ctx.open_app) {
-    WRITE32(menu + 4 * (5 >> 5) + 0xB0, 1 << (5 % 32));
+    WRITE32(menu + 4 * (kRequestPokemonList >> 5) + kOffsetMenuRequestFlags,
+            1 << (kRequestPokemonList % 32));
   }
   return HookManager::Call<bool>(HookId::kCheckAppRequest, menu, id);
 }
@@ -88,12 +91,27 @@ void AppLauncher::MoveTutorCallback(uptr* data, GameManager* manager) {
   input->pokemon->accessor->Encrypt();
 }
 
+#ifdef GAME_XY
+void AppLauncher::TownMapCallback(uptr* data, GameManager* manager) {
+  auto* input = (TownMapAppInput*)data[1];
+  if (input->result != TownMapAppInput::kResultFly) return;
+  struct {
+    u8 end_mode;
+    u8 pokemon_index;
+    u16 zone_id;
+    u16 move_id;
+  } result = {3, 0, static_cast<u16>(input->map_id), static_cast<u16>(MoveId::kFly)};
+  uptr work[5] = {data[0], (uptr)&result, data[2], data[3], data[4]};
+  ((void(*)(uptr*, void*))address::kTownMapCallback)(work, manager);
+}
+#else
 void AppLauncher::TownMapCallback(uptr* data, GameManager* manager) {
   auto* input = (TownMapAppInput*)data[1];
   input->result = 2;
   input->pokemon_index = 0;
   ((void(*)(uptr*, void*))address::kTownMapCallback)(data, manager);
 }
+#endif
 
 void AppLauncher::CallAppHook(uptr self, GameManager* manager) {
   auto& ctx = GetInstance();
@@ -141,7 +159,11 @@ void AppLauncher::CallAppHook(uptr self, GameManager* manager) {
     }
     case AppId::kTownMap: {
       auto* input = (TownMapAppInput*)READ32(self + kOffsetInput);
+#ifdef GAME_XY
+      input->start_mode = TownMapAppInput::kStartModeFly;
+#else
       input->is_fly_mode = true;
+#endif
       WRITE32(self + kOffsetTownMapCallback, (uptr)TownMapCallback);
       break;
     }

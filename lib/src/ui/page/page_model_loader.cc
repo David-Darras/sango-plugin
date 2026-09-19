@@ -31,7 +31,7 @@ pokemon::LoadedModel g_my_1st_pokemon;
 
 namespace {
 struct Settings {
-  ModelId model_id = ModelId::kStevenStone;
+  ModelId model_id = GAME_CONSTANT(ModelId::kProfessorSycamore, ModelId::kStevenStone);
   SpeciesId species = SpeciesId::kSwalot;
   FormId form = FormId::kNormal;
   bool is_shiny = true;
@@ -111,7 +111,7 @@ void LoadModelLoaderPage(MainApplication& app, void* args) {
   app.Add("Spawn 1st Pokémon", Spawn1stPokemon)
      .Add("Spawn model", SpawnOverworldModel)
      .Add("Model", settings.model_id)
-     .WithBounds(0, 0x1FF)
+     .WithBounds(0, static_cast<u32>(ModelId::kLastCharacter))
      .AddSeparator()
      .Add("Spawn Pokemon", SpawnPokemon)
      .AddSpecies("Species", settings.species)

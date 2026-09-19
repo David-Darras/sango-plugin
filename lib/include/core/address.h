@@ -86,7 +86,7 @@ constexpr uptr kScriptWaitKeyPress2 = GAME_ADDRESS(0x003F6F0C, 0x00419984);
 constexpr uptr kScriptWaitKeyPress3 = GAME_ADDRESS(0x003F6E28, 0x00419898);
 constexpr uptr kScriptPlayCutscene = GAME_ADDRESS(0x0073E3C8, 0x0074BE5C);
 
-constexpr uptr kLoadShopItems = GAME_ADDRESS(0, 0x00346554); // XY: near 0x003310xx (ItemContainer::Initialize)
+constexpr uptr kLoadShopItems = GAME_ADDRESS(0, 0x00346554);
 constexpr uptr kUnloadShopItems = GAME_ADDRESS(0x003313A4, 0x00346AE0);
 constexpr uptr kShopGetItemName = GAME_ADDRESS(0x00331348, 0x00346A44);
 constexpr uptr kShopGetItemInfo = GAME_ADDRESS(0x00331324, 0x003469E0);
@@ -96,7 +96,7 @@ constexpr uptr kBagAddItem = GAME_ADDRESS(0x004362FC, 0x00463750);
 
 constexpr uptr kOverworldMenuAppAllocSize = GAME_ADDRESS(0x003BA6F4, 0x003D6D18);
 constexpr uptr kTopMenuAppAllocSize = GAME_ADDRESS(0x003BB9C4, 0x003D81D4); // XY: unverified (patch site, 31/40 words)
-constexpr uptr kTownMapCallback = GAME_ADDRESS(0, 0x003EF898);
+constexpr uptr kTownMapCallback = GAME_ADDRESS(0x003CF0B0, 0x003EF898);
 
 } // namespace address
 } // namespace core

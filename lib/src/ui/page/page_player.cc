@@ -36,13 +36,17 @@ void LoadOverworldFieldMovePage(MainApplication& app, void* args) {
       {"Rock Smash", FieldMoveId::kRockSmash},
       {"Strength", FieldMoveId::kStrength},
       {"Surf", FieldMoveId::kSurf},
+#ifndef GAME_XY
       {"Dive", FieldMoveId::kDive},
+#endif
       {"Waterfall", FieldMoveId::kWaterfall},
       {"Flash", FieldMoveId::kFlash},
       {"Teleport", FieldMoveId::kTeleport},
       {"Dig", FieldMoveId::kDig},
       {"Sweet Scent", FieldMoveId::kSweetScent},
+#ifndef GAME_XY
       {"Secret Power", FieldMoveId::kSecretPower},
+#endif
   };
 
   // Fly goes through the town map, not through the field move menu.

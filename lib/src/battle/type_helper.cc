@@ -16,6 +16,7 @@
  */
 
 #include "battle/patch/type_helper.h"
+#include "battle/patch/battle.h"
 #include "battle/native/manager.h"
 #include "core/native/process_manager.h"
 #include "pokemon/native/move_data.h"
@@ -54,6 +55,7 @@ void TypeHelper::GetMoveString(MoveId move) {
 }
 
 void TypeHelper::DrawTop() {
+  if (!Battle::GetInstance().show_type_helper) return;
   if (ui::MainApplication::GetInstance().IsOpened()) return;
 
   const bool is_battle = core::ProcessManager::GetInstance().IsCurrentProcess(
@@ -80,8 +82,8 @@ void TypeHelper::DrawTop() {
   const u16 def_types = ((u16 (*)(const Pokemon*))
       address::kGetPokemonTypes)(defender);
 
-  for (int i = 0; i < 4; ++i) {
-    MoveId move_id = attacker->moves[i].core.id;
+  for (const auto & move : attacker->moves) {
+    MoveId move_id = move.core.id;
     if (move_id == MoveId::kNone) continue;
 
     GetMoveString(move_id);

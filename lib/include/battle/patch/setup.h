@@ -36,12 +36,21 @@ struct Config;
 struct SetupSettings {
   bool is_enabled = false;
   Format format = Format::kSingle;
+#ifdef GAME_XY
+  BackgroundId background = BackgroundId::kXerneas;
+  PlatformId platform = PlatformId::kXerneas;
+  GroundId ground = GroundId::kXerneas;
+  EncounterAnimationId encounter_animation = EncounterAnimationId::kPokeX;
+  SpeciesId species = SpeciesId::kXerneas;
+  FormId form = FormId::kNormal;
+#else
   BackgroundId background = BackgroundId::kAquaBoss;
   PlatformId platform = PlatformId::kAquaBoss;
   GroundId ground = GroundId::kAquaBoss;
   EncounterAnimationId encounter_animation = EncounterAnimationId::kKyogre;
   SpeciesId species = SpeciesId::kKyogre;
   FormId form = FormId::kKyogreAlpha;
+#endif
   u32 background_music = (1 << 16) + 79;
   f32 money_rate = 1.0f;
   u32 flags = 0;

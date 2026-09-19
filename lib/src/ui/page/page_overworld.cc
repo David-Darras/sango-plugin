@@ -51,9 +51,6 @@ static void ApplyForcedWeather(void*) {
       core::DataManager::GetInstance().GetSeason());
 }
 
-static void ReleaseForcedWeather(void*) {
-  overworld::WeatherManager::GetInstance().ReleaseWeather();
-}
 #endif
 
 void LoadWeatherPage(MainApplication& app, void* args) {
@@ -79,16 +76,11 @@ void LoadWeatherPage(MainApplication& app, void* args) {
   if (core::ProcessManager::IsOverworldActive()) {
     auto& manager = overworld::WeatherManager::GetInstance();
 #ifdef GAME_XY
-    // The requested weather is rewritten by the game every frame on X/Y:
-    // show the current one and go through the force request instead.
-    app.Add("Current Weather", manager.GetCurrentWeather())
+    forced_weather = static_cast<u8>(manager.GetCurrentWeather());
+    app.Add("Weather", forced_weather)
        .WithArray(WEATHERS, SIZE(WEATHERS))
        .WithBounds(0, SIZE(WEATHERS) - 1)
-       .Add("Forced Weather", forced_weather)
-       .WithArray(WEATHERS, SIZE(WEATHERS))
-       .WithBounds(0, SIZE(WEATHERS) - 1)
-       .Add("Apply Forced Weather", ApplyForcedWeather)
-       .Add("Release Forced Weather", ReleaseForcedWeather)
+       .WithCallback(ApplyForcedWeather)
        .AddSeparator();
 #else
     app.Add("Current Weather", manager.GetRequestedWeather())

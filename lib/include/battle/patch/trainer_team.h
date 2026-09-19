@@ -94,12 +94,19 @@ struct TrainerTeam {
   bool keeps_the_scene;
   TrainerOpponent opponents[6];
 
+  static constexpr BackgroundId kDefaultBackground =
+      GAME_CONSTANT(BackgroundId::kFlareBoss, BackgroundId::kAquaBoss);
+  static constexpr GroundId kDefaultGround =
+      GAME_CONSTANT(GroundId::kFlareBoss, GroundId::kAquaBoss);
+  static constexpr EncounterAnimationId kDefaultEncounterAnimation =
+      GAME_CONSTANT(EncounterAnimationId::kFlareBoss, EncounterAnimationId::kKyogre);
+
   TrainerTeam(u8 opponent_count, Format format,
               std::initializer_list<TrainerOpponent> opponent_list)
     : opponent_count(opponent_count), format(format),
-      background(BackgroundId::kAquaBoss), ground(GroundId::kAquaBoss),
+      background(kDefaultBackground), ground(kDefaultGround),
       platform(PlatformId::kWater),
-      encounter_animation(EncounterAnimationId::kKyogre),
+      encounter_animation(kDefaultEncounterAnimation),
       weather(Weather::kInvalid), force_wild_battle_type(false),
       keeps_the_scene(true) {
     u32 i = 0;

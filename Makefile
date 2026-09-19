@@ -16,11 +16,13 @@ PLUGIN_CREATOR  := ZettaD
 GAME      ?= XY
 ifeq ($(GAME),XY)
 GAME_DEFINE := -DGAME_XY
+GAME_PRODUCTS := overlay
 TITLE_ID    := 0004000000055D00
 GAME_PATH := "C:/Users/David/Desktop/ctr/cia/kujira.cci"
 PLUGIN_NAME   := Kujira
 else
 GAME_DEFINE := -DGAME_ORAS
+GAME_PRODUCTS := overlay kaizo undertow
 TITLE_ID    := 000400000011C500
 GAME_PATH := "C:/Users/David/Desktop/ctr/cia/sango.3ds"
 PLUGIN_NAME  := Sango
@@ -34,7 +36,7 @@ CTRPFLIB	?=	$(DEVKITPRO)/libctrpf
 # One library, several plugins built on it. `make` builds them all,
 # `make overlay` / `make kaizo` just one; each gets its own build directory.
 #---------------------------------------------------------------------------------
-PRODUCTS	:=	overlay kaizo undertow
+PRODUCTS	:=	$(GAME_PRODUCTS)
 
 LIB_SOURCES	:=	lib/src \
 				lib/src/core \

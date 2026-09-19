@@ -19,7 +19,77 @@
 
 #include <types.h>
 
+#include "core/game.h"
+
 namespace battle {
+#ifdef GAME_XY
+enum class EncounterAnimationId : u8 {
+  kNone = 0,
+  kWildGrass = 1,
+  kWildGrassRed = 2,
+  kWildGrassBlue = 3,
+  kWildGrassYellow = 4,
+  kWildWater = 5,
+  kWildCave = 6,
+  kWildSnow = 7,
+  kWildLongGrass = 8,
+  kWildSwamp = 9,
+  kWildRock = 10,
+  kWildDesert = 11,
+  kHordeGrass = 12,
+  kHordeGrassRed = 13,
+  kHordeGrassBlue = 14,
+  kHordeGrassYellow = 15,
+  kHordeCave = 16,
+  kSurprise = 17,
+  kSurpriseGrass = 18,
+  kSurpriseFlight = 19,
+  kSurpriseCave = 20,
+  kSurpriseDust = 21,
+  kSurpriseLand = 22,
+  kPokeX = 23,
+  kPokeY = 24,
+  kPokeZ = 25,
+  kWildSpecial01 = 26,
+  kTrainerNormal2d = 27,
+  kTrainerNormal3d = 28,
+  kTrainerMulti2d = 29,
+  kTrainerMulti3d = 30,
+  kTrainerSky = 31,
+  kRival = 32,
+  kBugGymLeader = 33,
+  kRockGymLeader = 34,
+  kFightingGymLeader = 35,
+  kGrassGymLeader = 36,
+  kElectricGymLeader = 37,
+  kFairyGymLeader = 38,
+  kPsychicGymLeader = 39,
+  kIceGymLeader = 40,
+  kFlare = 41,
+  kFlareBoss = 42,
+  kEliteFourSteel = 43,
+  kEliteFourFire = 44,
+  kEliteFourDragon = 45,
+  kEliteFourWater = 46,
+  kChampion = 47,
+  kAz = 48,
+  kGymLeaderRematch = 49,
+  kEliteFourRematch = 50,
+  kChampionRematch = 51,
+  kBattleChateauBoss = 52,
+  kLinkBattle = 53,
+  kLinkMulti = 54,
+  kWcsQualifier = 55,
+  kWcsFinal = 56,
+  kFriend = 57,
+  kFlare2d = 58,
+  kPokeX2 = 59,
+  kPokeY2 = 60,
+  kFightingGymLeader2 = 61,
+  kFightingGymLeader3 = 62,
+  kSnorlax = 63,
+};
+#else
 enum class EncounterAnimationId : u8 {
   kNone = 0,
   kWildGeneric = 1,
@@ -88,6 +158,7 @@ enum class EncounterAnimationId : u8 {
   kBattleHouseXy = 64,
   kBattleHouseXyMulti = 65,
 };
+#endif
 } // namespace battle
 
 using battle::EncounterAnimationId;

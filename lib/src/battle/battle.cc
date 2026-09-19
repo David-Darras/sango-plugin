@@ -20,6 +20,7 @@
 #include "battle/native/manager.h"
 #include "battle/patch/game_extension.h"
 #include "battle/patch/type_chart.h"
+#include "battle/native/graphics.h"
 #include "core/hook_manager.h"
 #include "overworld/patch/field.h"
 #include "system/native/sound.h"
@@ -234,11 +235,11 @@ void Battle::UpdateViewHook(uptr self) {
 
 void Battle::PatchPokemonSize() {
   for (u32 i = 0; i < 6; i++) {
-    u32 pkmMdl = READ32(address::kPokemonModelTable + 4 * i);
+    uptr pkmMdl = (uptr)Graphics::GetInstance().pokemon_model[i];
     if (pkmMdl == 0)
       continue;
 
-    u16 pkmNum = READ16(pkmMdl + 0x170);
+    u16 pkmNum = READ16(pkmMdl + kModelSpeciesOffset);
     if (pkmNum >= 722)
       continue;
 

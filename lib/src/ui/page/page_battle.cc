@@ -54,7 +54,8 @@ void LoadBattleSettingsPage(MainApplication& app, void* args) {
      .Add("Sync Overworld Music", ctx.sync_overworld_music)
      .Add("Sync Team HP", ctx.sync_team_hp)
      .Add("Inverse Stats", ctx.inverse_stats)
-     .Add("Metronome Only", ctx.metronome_only);
+     .Add("Metronome Only", ctx.metronome_only)
+     .Add("Type Helper", ctx.show_type_helper);
 }
 
 void LoadBattleSetupPage(MainApplication& app, void* args) {
