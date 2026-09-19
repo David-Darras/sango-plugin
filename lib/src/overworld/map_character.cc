@@ -123,9 +123,11 @@ void MapCharacter::MoveGraftedEvents(MapEventData* events) {
 
 void MapCharacter::CompleteRegionModelList(
     CharacterManager* manager, u32 player_sex,
-    const CharacterPlacement* placements, u32 placement_count) {
+    const CharacterPlacement* placements, u32 placement_count,
+    void* player_outfit, void* character_outfits) {
   core::HookManager::Call<void>(HookId::kCompleteRegionModelList, manager,
-                                player_sex, placements, placement_count);
+                                player_sex, placements, placement_count,
+                                player_outfit, character_outfits);
   GetInstance().AddMissingModels(manager, placements, placement_count);
 }
 

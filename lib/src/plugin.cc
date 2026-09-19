@@ -104,8 +104,8 @@ void InitializeEngine() {
   overworld::GiftPokemon::Initialize();
   overworld::StaticRandomizer::Initialize();
   overworld::Trade::Initialize();
-#ifndef GAME_XY
   overworld::MapCharacter::Initialize();
+#ifndef GAME_XY
   overworld::MapGraft::Initialize();
   overworld::TileEditor::Initialize();
   pokemon::CustomShop::Initialize();
@@ -142,8 +142,8 @@ void UpdateFrame() {
   application->Update(controller);
   core::CheatCodeManager::GetInstance().Update();
 
-#ifndef GAME_XY
   overworld::MapCharacter::Update();
+#ifndef GAME_XY
   overworld::MapGraft::Update();
   overworld::TileEditor::Update();
 #endif

@@ -44,7 +44,7 @@ constexpr uptr kMapSettingsTable = GAME_ADDRESS(0x005B1650, 0x005F45BC);
 constexpr u32 kMapSettingsTableCount = 536;
 
 constexpr uptr kLoadMapCharacters = GAME_ADDRESS(0x003BE640, 0x003DBB4C);
-constexpr uptr kCompleteRegionModelList = GAME_ADDRESS(0, 0x003F7640);
+constexpr uptr kCompleteRegionModelList = GAME_ADDRESS(0x003D7654, 0x003F7640);
 constexpr uptr kGetModelArchiveIndex = GAME_ADDRESS(0x0019B02C, 0x0019C678);
 
 constexpr uptr kGetDrawModel = GAME_ADDRESS(0x004ACAC8, 0x004E3F90);

@@ -37,7 +37,9 @@ static void EveryFrame() {
 void Initialize() {
   plugin::InitializeEngine();
 
-  // script::Install();
+#ifdef GAME_XY
+  script::Install();
+#endif
 
   // plugin::LoadConfiguration();
   plugin::OpenMenu(ui::MainAppPainter::GetInstance(), ui::LoadTopPage);

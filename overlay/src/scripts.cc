@@ -63,7 +63,28 @@ void LittlerootGreeter(Context& s) {
 
 } // namespace
 
+#ifdef GAME_XY
+void KujiraGreeter(Context& s) {
+  s.TalkStart();
+  s.Talk(u"Hi!");
+  s.TalkEnd();
+}
+#endif
+
 void Install() {
+#ifdef GAME_XY
+  NativeScript::Register(ScriptId::kKujiraGreeter, KujiraGreeter);
+
+  overworld::MapCharacterRequest trevor;
+  trevor.map_id = static_cast<MapId>(264);
+  trevor.model_id = ModelId::kTrevor;
+  trevor.script_id = ScriptId::kKujiraGreeter;
+  trevor.tile_x = 582;
+  trevor.tile_z = 510;
+  trevor.facing = overworld::Facing::kDown;
+  overworld::MapCharacter::Add(trevor);
+  return;
+#endif
   NativeScript::Register(ScriptId::kLittlerootGreeter,
                          LittlerootGreeter);
 

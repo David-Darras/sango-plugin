@@ -65,7 +65,9 @@ private:
   static void CompleteRegionModelList(CharacterManager* manager,
                                       u32 player_sex,
                                       const CharacterPlacement* placements,
-                                      u32 placement_count);
+                                      u32 placement_count,
+                                      void* player_outfit,
+                                      void* character_outfits);
   void LogShippedCharacters(const MapEventData* events) const;
   void PlaceCharacters(MapEventData* events);
   bool IsEmptied(MapId map_id) const;

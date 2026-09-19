@@ -30,7 +30,8 @@ constexpr u32 kMaxModelsPerRegion = 33;
 /// of the current region is mapped (the model list setup stage sits at
 /// offset 13994).
 struct CharacterManager {
-  u8 _0[14004];
+  static constexpr u32 kArchiveOffset = GAME_CONSTANT(0x14A8, 14004);
+  u8 _0[kArchiveOffset];
   void* model_param_archive;
   u8 _1[12];
   u32 model_count_original;
@@ -38,10 +39,10 @@ struct CharacterManager {
   ModelAppearance models[kMaxModelsPerRegion];
 };
 
-static_assert(offsetof(CharacterManager, model_param_archive) == 14004 &&
-              offsetof(CharacterManager, model_count_original) == 14020 &&
-              offsetof(CharacterManager, model_count) == 14024 &&
-              offsetof(CharacterManager, models) == 14028,
+static_assert(offsetof(CharacterManager, model_param_archive) == CharacterManager::kArchiveOffset &&
+              offsetof(CharacterManager, model_count_original) == CharacterManager::kArchiveOffset + 16 &&
+              offsetof(CharacterManager, model_count) == CharacterManager::kArchiveOffset + 20 &&
+              offsetof(CharacterManager, models) == CharacterManager::kArchiveOffset + 24,
               "CharacterManager must match the game's field character manager layout");
 
 } // namespace overworld

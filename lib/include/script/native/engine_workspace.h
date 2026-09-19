@@ -18,13 +18,14 @@
 #pragma once
 
 #include "core/types.h"
+#include "core/game.h"
 #include "script/native/shared_workspaces.h"
 
 namespace script {
 
 struct EngineWorkspace {
-  u8 _0[0x88];
-  SharedWorkspaces shared; // 0x88
+  u8 _0[GAME_CONSTANT(0x7C, 0x88)];
+  SharedWorkspaces shared;
 };
 
 } // namespace script

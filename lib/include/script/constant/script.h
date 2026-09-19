@@ -379,6 +379,7 @@ enum class ScriptId : u16 {
   kFirstCustom = 30500,
   kLittlerootGreeter = 30500,
   kAquaBossWelcome = 30501,
+  kKujiraGreeter = 30502,
   kLastCustom = 59999,
 };
 
