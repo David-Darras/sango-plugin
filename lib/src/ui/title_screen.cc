@@ -29,7 +29,7 @@ void TitleScreen::Initialize() {
 
 void TitleScreen::PatchLoad() {
   auto& title = GetInstance();
-  if (!title.is_enabled) return;
+  if (!title.is_enabled || core::address::kTitleScreenTopVideoId == 0) return;
 
   MEMORY_SCOPE(sys::address::kMemoryRegionTitleScreen, 0x1E000);
   title.skipped_ = false;

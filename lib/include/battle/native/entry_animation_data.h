@@ -19,13 +19,15 @@
 
 #include <types.h>
 
+#include "core/game.h"
+
 namespace battle {
 
 struct EntryAnimationData {
   u32 view;
   u32 _0;
   u32 state;
-  u8 position[5];
+  u8 position[GAME_CONSTANT(3, 5)];
   u32 trainer_model[2];
 
   bool skip_pokeball_animation;

@@ -64,6 +64,7 @@ public:
 
 private:
   static u32 BattleAddTerrainHook(u32 a, u32 b);
+  static constexpr u32 kMoveAnimationCount = GAME_CONSTANT(0x26A, 0);
   static void BattleLoadAnimationHook(uptr self, u32 id, bool is_move);
   static u32 LoadMoveData(uptr self, MoveId move_id);
 

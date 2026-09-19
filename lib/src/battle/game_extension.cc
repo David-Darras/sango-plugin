@@ -263,6 +263,7 @@ u32 GameExtension::BattleAddTerrainHook(u32 a, u32 b) {
 }
 
 void GameExtension::BattleLoadAnimationHook(uptr self, u32 id, bool is_move) {
+  if (kMoveAnimationCount != 0) is_move = id < kMoveAnimationCount;
   if (is_move) {
     for (auto& spec : kMoves) {
       if (id == static_cast<u32>(spec.id) && spec.patch_animation != nullptr) {

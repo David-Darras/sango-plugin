@@ -23,7 +23,7 @@
 namespace pokemon {
 namespace address {
 
-constexpr uptr kAppStatusSetupPokemonInfo = GAME_ADDRESS(0, 0x007144FC);
+constexpr uptr kAppStatusSetupPokemonInfo = GAME_ADDRESS(0x006C5C60, 0x007144FC);
 constexpr uptr kDataAccessorEncrypt = GAME_ADDRESS(0x00168814, 0x00168DCC);
 constexpr uptr kDataAccessorDecrypt = GAME_ADDRESS(0x00168884, 0x00168E3C);
 constexpr uptr kDataAccessorInitialize = GAME_ADDRESS(0x0013AA9C, 0x0012C2BC);
@@ -46,7 +46,7 @@ constexpr uptr kItemDataGetName = GAME_ADDRESS(0x003A0CAC, 0x003B7A64); // Descr
 constexpr uptr kMoveDataTable = GAME_ADDRESS(0x005E8EB0, 0x0062B3A0);
 constexpr uptr kCreatePokemon = GAME_ADDRESS(0x004424C4, 0x0046FE44); // XY: unverified (2 call sites)
 constexpr uptr kAddPokemonToTeam = GAME_ADDRESS(0x0039FA78, 0x003B6754);
-constexpr uptr kAppStatusUpdatePokemon = GAME_ADDRESS(0, 0x007122B4);
+constexpr uptr kAppStatusUpdatePokemon = GAME_ADDRESS(0x006C64F8, 0x007122B4);
 constexpr uptr kGetStats = GAME_ADDRESS(0x004A3174, 0x004D30BC);
 constexpr uptr kGetEvs = GAME_ADDRESS(0x004A2AE4, 0x004D2A2C);
 constexpr uptr kGetIvs = GAME_ADDRESS(0x004A2B6C, 0x004D2AB4);
@@ -56,7 +56,7 @@ constexpr uptr kCheckEggHatching = GAME_ADDRESS(0x006D7BAC, 0x00715D8C);
 constexpr uptr kDayCareUpdate = GAME_ADDRESS(0, 0x007111F8);
 constexpr uptr kEggHatch = GAME_ADDRESS(0x006D7D14, 0x00715EF0);
 constexpr uptr kEggGeneration = GAME_ADDRESS(0, 0x00711364);
-constexpr uptr kDayCareMaxExp = GAME_ADDRESS(0, 0x00465A34);
+constexpr uptr kDayCareMaxExp = GAME_ADDRESS(0x00438DBC, 0x00465A34);
 constexpr uptr kReplacePokemonModel = GAME_ADDRESS(0x00443818, 0x004713FC); // XY: unverified (4 branch sites)
 constexpr uptr kEncounterSetPokemon = GAME_ADDRESS(0, 0x0078DB30);
 constexpr uptr kItemDataInitialize = GAME_ADDRESS(0x003A0DE8, 0x003B7B9C);
@@ -73,7 +73,7 @@ constexpr uptr kRemovePokemonFromTeam = GAME_ADDRESS(0x0039F3BC, 0x003B6098);
 constexpr uptr kResetNickname = GAME_ADDRESS(0x0039E468, 0x003B51C0);
 constexpr uptr kUpdateRuntimeData = GAME_ADDRESS(0x0039C730, 0x003B360C);
 constexpr uptr kInitializePokemon = GAME_ADDRESS(0x0039ECEC, 0x0011F754);
-constexpr uptr kBattleCheckPokemonCaptured = GAME_ADDRESS(0, 0x007247C8);
+constexpr uptr kBattleCheckPokemonCaptured = GAME_ADDRESS(0x006DA3E4, 0x007247C8);
 constexpr uptr kTechnicalMachineMoveTable = GAME_ADDRESS(0x00567A02, 0x005A69E2);
 constexpr uptr kDatabase = GAME_ADDRESS(0x005D4B7C, 0x00617A00);
 constexpr uptr kLoadMovepool = GAME_ADDRESS(0x0014F594, 0x0014EB80);

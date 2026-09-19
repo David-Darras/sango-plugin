@@ -66,6 +66,8 @@ public:
 private:
   /// Move id of the animation played when a shiny Pokémon enters the field.
   static constexpr u16 kShinyAnimationId = 621;
+  static constexpr u32 kCameraOffset = GAME_CONSTANT(0, 408);
+  static constexpr bool kHasTrainerVisibilityFlag = GAME_CONSTANT(false, true);
 
   static bool CheckPokemonCapturedHook(u32 p0, u32 p1, u32 p2, u32 p3, u32 p4,
                                        u32 p5);

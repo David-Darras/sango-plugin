@@ -18,6 +18,12 @@
 #include "overworld/patch/day_care.h"
 
 namespace overworld {
+namespace {
+constexpr u32 kMaxExpOriginal0 = GAME_CONSTANT(0x15803004, 0x1582C004);
+constexpr u32 kMaxExpInstant0 = GAME_CONSTANT(0x15802004, 0x15824004);
+constexpr u32 kMaxExpOriginal1 = GAME_CONSTANT(0x158010F4, 0x1582C0F4);
+constexpr u32 kMaxExpInstant1 = GAME_CONSTANT(0x158020F4, 0x158240F4);
+} // namespace
 
 void DayCare::PatchLoad() {
   auto& day_care = GetInstance();
@@ -27,9 +33,9 @@ void DayCare::PatchLoad() {
   }
   if (pokemon::address::kDayCareMaxExp) {
     WRITE32(pokemon::address::kDayCareMaxExp,
-            day_care.instant_max_exp ? 0x15824004 : 0x1582C004);
+            day_care.instant_max_exp ? kMaxExpInstant0 : kMaxExpOriginal0);
     WRITE32(pokemon::address::kDayCareMaxExp + 0x20,
-            day_care.instant_max_exp ? 0x158240F4 : 0x1582C0F4);
+            day_care.instant_max_exp ? kMaxExpInstant1 : kMaxExpOriginal1);
   }
 }
 
@@ -43,9 +49,9 @@ void DayCare::ApplyEggHatch(void*) {
 void DayCare::ApplyMaxExp(void*) {
   auto& day_care = GetInstance();
   SAFE_WRITE32(pokemon::address::kDayCareMaxExp,
-               day_care.instant_max_exp ? 0x15824004 : 0x1582C004);
+               day_care.instant_max_exp ? kMaxExpInstant0 : kMaxExpOriginal0);
   SAFE_WRITE32(pokemon::address::kDayCareMaxExp + 0x20,
-               day_care.instant_max_exp ? 0x158240F4 : 0x1582C0F4);
+               day_care.instant_max_exp ? kMaxExpInstant1 : kMaxExpOriginal1);
 }
 
 } // namespace overworld

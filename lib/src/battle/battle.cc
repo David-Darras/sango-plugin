@@ -215,9 +215,11 @@ void Battle::UpdateGaugeHook(uptr gauge, u16 max_hp, u32 new_hp) {
 }
 
 void Battle::UpdateViewHook(uptr self) {
-  u32* camera = *(u32**)(self + 408);
-  camera[4] = 0; // don't use split view
-  camera[5] = 0x7FFFFFFF; // disable camera animation
+  if (kCameraOffset != 0) {
+    u32* camera = *(u32**)(self + kCameraOffset);
+    camera[4] = 0; // don't use split view
+    camera[5] = 0x7FFFFFFF; // disable camera animation
+  }
 
   if (GetInstance().fix_pokemon_size) {
     static u32 counter = 20;
@@ -275,7 +277,7 @@ void Battle::StartEntryAnimationHook(void* p0, EntryAnimationData* data) {
   data->show_fade_in = config.show_fade_in;
   data->skip_pokeball_animation = !config.show_pokeball_animation;
   data->show_shiny_animation = config.show_shiny_animation;
-  data->dont_show_trainer = !config.show_trainer_animation;
+  if (kHasTrainerVisibilityFlag) data->dont_show_trainer = !config.show_trainer_animation;
 
   core::HookManager::Call<void>(HookId::kBattleStartEntryAnimation, p0, data);
 }

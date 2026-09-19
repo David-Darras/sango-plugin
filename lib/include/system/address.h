@@ -96,9 +96,9 @@ constexpr uptr kProcessMemoryStart = GAME_ADDRESS(0x00100000, 0x00100000);
 constexpr uptr kProcessMemoryEnd = GAME_ADDRESS(0x00800000, 0x00900000); // XY: CRO region ends ~0x7EC000
 
 constexpr uptr kMemoryRegionGameCode = GAME_ADDRESS(0x006A9000, 0x006F3000); // XY: field CRO base seen in the kujira dump
-constexpr uptr kMemoryRegionAppStatus = GAME_ADDRESS(0, 0x0070B000);
-constexpr uptr kMemoryRegionTitleScreen = GAME_ADDRESS(0, 0x00728000);
-constexpr uptr kMemoryRegionKeyboard = GAME_ADDRESS(0, 0x00742000);
+constexpr uptr kMemoryRegionAppStatus = GAME_ADDRESS(0x006C1000, 0x0070B000);
+constexpr uptr kMemoryRegionTitleScreen = GAME_ADDRESS(0x006A9000, 0x00728000);
+constexpr uptr kMemoryRegionKeyboard = GAME_ADDRESS(0x006A9000, 0x00742000);
 
 } // namespace address
 } // namespace sys

@@ -19,15 +19,16 @@
 
 #include "core/game.h"
 #include "core/types.h"
+#include "system/address.h"
 
 namespace ui {
 namespace address {
 
 constexpr uptr kAppStatusGetStatTrampoline = GAME_ADDRESS(0, 0x0070BA2C);
 constexpr uptr kLanguageId = GAME_ADDRESS(0x005B1FE1, 0x005F4F01);
-constexpr uptr kAppStatusVtable = GAME_ADDRESS(0, 0x0071C3BC);
-constexpr uptr kAppPokeListVtable = GAME_ADDRESS(0, 0x00705B08);
-constexpr uptr kKeyboardVtable = GAME_ADDRESS(0, 0x0074B628);
+constexpr uptr kAppStatusVtable = GAME_ADDRESS(0x006CCE54, 0x0071C3BC);
+constexpr uptr kAppPokeListVtable = GAME_ADDRESS(0x006BBAD8, 0x00705B08);
+constexpr uptr kKeyboardVtable = GAME_ADDRESS(sys::address::kMemoryRegionKeyboard + 0x9608, 0x0074B628);
 constexpr uptr kFontHasGlyph = GAME_ADDRESS(0x00494F64, 0x004C4B40);
 constexpr uptr kAppLayoutManagerSetTextBoxColor = GAME_ADDRESS(0x0034A334, 0x00362828);
 constexpr uptr kAppLayoutManagerSetTextBoxIntegerValue = GAME_ADDRESS(0x0034A4C0, 0x003629B4);
@@ -41,14 +42,14 @@ constexpr uptr kAppLayoutManagerGetTextBox = GAME_ADDRESS(0x0049928C, 0x004C8CE0
 constexpr uptr kKeyboardWordFilter = GAME_ADDRESS(0x0038DE50, 0x003A47C0);
 constexpr uptr kKeyboardWordFilterReturn = GAME_ADDRESS(0x0038DE54, 0x003A47C4);
 constexpr uptr kKeyboardCalculateKeyIndex = GAME_ADDRESS(0x00495CA0, 0x004C5924);
-constexpr uptr kKeyboardRefreshOnL = GAME_ADDRESS(0, 0x0074323C);
+constexpr uptr kKeyboardRefreshOnL = GAME_ADDRESS(sys::address::kMemoryRegionKeyboard + 0x1198, 0x0074323C);
 
-constexpr uptr kKeyboardKeyHandlerTable = GAME_ADDRESS(0, 0x00742F58);
-constexpr uptr kKeyboardModeSwitch = GAME_ADDRESS(0, 0x00746294);
-constexpr uptr kKeyboardAnimation1 = GAME_ADDRESS(0, 0x00743250);
-constexpr uptr kKeyboardAnimation2 = GAME_ADDRESS(0, 0x0074326C);
-constexpr uptr kKeyboardAnimation3 = GAME_ADDRESS(0, 0x007432DC);
-constexpr uptr kKeyboardAnimation4 = GAME_ADDRESS(0, 0x007432F8);
+constexpr uptr kKeyboardKeyHandlerTable = GAME_ADDRESS(sys::address::kMemoryRegionKeyboard + 0xEB4, 0x00742F58);
+constexpr uptr kKeyboardModeSwitch = GAME_ADDRESS(sys::address::kMemoryRegionKeyboard + 0x4158, 0x00746294);
+constexpr uptr kKeyboardAnimation1 = GAME_ADDRESS(sys::address::kMemoryRegionKeyboard + 0x11AC, 0x00743250);
+constexpr uptr kKeyboardAnimation2 = GAME_ADDRESS(sys::address::kMemoryRegionKeyboard + 0x11C8, 0x0074326C);
+constexpr uptr kKeyboardAnimation3 = GAME_ADDRESS(sys::address::kMemoryRegionKeyboard + 0x1238, 0x007432DC);
+constexpr uptr kKeyboardAnimation4 = GAME_ADDRESS(sys::address::kMemoryRegionKeyboard + 0x1254, 0x007432F8);
 
 constexpr uptr kAppLayoutManagerGetPicture = GAME_ADDRESS(0x00499234, 0x004C8C88);
 constexpr uptr kAppLayoutManagerGetPane = GAME_ADDRESS(0x004996EC, 0x004C9140);
