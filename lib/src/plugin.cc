@@ -79,10 +79,10 @@ void InitializeEngine() {
   // renderer::TextBoxFilter::Initialize();
   // renderer::PictureFilter::Initialize();
   // overworld::MapTile::Initialize();
-  // overworld::Camera::Initialize();
+  overworld::Camera::Initialize();
   // overworld::FieldMove::Initialize();
   // pokemon::ItemCustomizer::Initialize();
-  // overworld::Field::Initialize();
+  overworld::Field::Initialize();
   // overworld::MapDataLoader::Initialize();
   // overworld::WildEncounter::Initialize();
   // core::Archive::Initialize();
@@ -91,8 +91,8 @@ void InitializeEngine() {
   // battle::Setup::Initialize();
   // renderer::ModelFilter::Initialize();
   // battle::Battle::Initialize();
-  // overworld::PlayerCheats::Initialize();
-  // core::ProcessPatch::Initialize();
+  overworld::PlayerCheats::Initialize();
+  core::ProcessPatch::Initialize();
   // core::EventPatch::Initialize();
   // ui::KeyboardPatch::Initialize();
   // core::AppLauncher::Initialize();
@@ -108,7 +108,7 @@ void InitializeEngine() {
   // overworld::MapGraft::Initialize();
   // overworld::TileEditor::Initialize();
   // pokemon::CustomShop::Initialize();
-  // overworld::WeatherOverride::Initialize();
+  overworld::WeatherOverride::Initialize();
   // ui::NewGame::Initialize();
   // overworld::RunAnimation::Initialize();
   // pokemon::ModelReplacement::Initialize();
@@ -136,7 +136,7 @@ void UpdateFrame() {
   auto* application = ui::ApplicationManager::GetInstance().GetCurrentApplication();
 
   application->Update(controller);
-  // core::CheatCodeManager::GetInstance().Update();
+  core::CheatCodeManager::GetInstance().Update();
 
   // overworld::MapCharacter::Update();
   // overworld::MapGraft::Update();

@@ -27,8 +27,6 @@
 
 namespace pokemon {
 struct SpeciesData {
-  /// The species table (pml::personal), one row per species then one per
-  /// alternate form.
   STATIC_INLINE SpeciesData* GetTable() {
     return Database::GetInstance().species;
   }
@@ -37,7 +35,6 @@ struct SpeciesData {
                                          const FormId form = FormId::kNormal) {
     SpeciesData* table = GetTable();
 
-    // cf. 0x0014EAA0
     const u32 species_index = static_cast<u16>(species);
     const u32 form_index = static_cast<u8>(form);
     u32 index = species_index;
@@ -60,7 +57,7 @@ struct SpeciesData {
   u8 _0;
   u16 give_effort_values;
   ItemId give_item[3];
-  u8 gender; // gender *ratio* (0-254 threshold), not a Gender id
+  u8 gender;
   u8 egg_hatch_steps;
   u8 base_friendship;
   u8 _1;
@@ -77,9 +74,10 @@ struct SpeciesData {
   u32 technical_moves[5];
   u16 fake_height;
   u16 _4;
+#ifndef GAME_XY
   u32 _5[4];
+#endif
 };
-
-static_assert(sizeof(SpeciesData) == 0x50,
+static_assert(sizeof(SpeciesData) == GAME_CONSTANT(0x40, 0x50),
               "SpeciesData must match the game's personal data layout");
 } // namespace pokemon

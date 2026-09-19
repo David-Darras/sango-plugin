@@ -17,6 +17,7 @@
 
 #include <cmath>
 
+#include "core/native/data_manager.h"
 #include "core/native/process_manager.h"
 #include "overworld/native/encounter_state.h"
 #include "overworld/native/map_manager.h"
@@ -41,21 +42,60 @@
 namespace ui {
 #include "overworld/data/tile.inc"
 
+#ifdef GAME_XY
+static u8 forced_weather = 0;
+
+static void ApplyForcedWeather(void*) {
+  overworld::WeatherManager::GetInstance().ForceWeather(
+      static_cast<overworld::Weather>(forced_weather),
+      core::DataManager::GetInstance().GetSeason());
+}
+
+static void ReleaseForcedWeather(void*) {
+  overworld::WeatherManager::GetInstance().ReleaseWeather();
+}
+#endif
+
 void LoadWeatherPage(MainApplication& app, void* args) {
+#ifdef GAME_XY
+  static const c8* WEATHERS[] = {
+      "Sunny", "Sunny 2", "Sunny 3", "Sunny 4",
+      "Sunny 5", "Sunny 6", "Sunny 7",
+      "Sunny 8", "Sunny 9", "Sunny 10",
+      "Sunny 11", "Sunny 12", "Sunny 13",
+      "Cloudy", "Light Rain", "Rain", "Heavy Rain", "Light Snow", "Snow",
+      "Heavy Snow", "Snowstorm", "Diamond Dust", "Sunny Wind", "None"
+  };
+#else
   static const c8* WEATHERS[] = {
       "Sunny", "Rainy", "Thunderstorm", "Misty", "Ash", "Sandstorm",
       "Cloudy", "Stormy", "Dry", "None"
   };
+#endif
   static const c8* RAIN_MODES[] = {"Normal", "Toxic", "Radioactive"};
 
   auto& ctx = overworld::WeatherOverride::GetInstance();
 
   if (core::ProcessManager::IsOverworldActive()) {
     auto& manager = overworld::WeatherManager::GetInstance();
+#ifdef GAME_XY
+    // The requested weather is rewritten by the game every frame on X/Y:
+    // show the current one and go through the force request instead.
+    app.Add("Current Weather", manager.GetCurrentWeather())
+       .WithArray(WEATHERS, SIZE(WEATHERS))
+       .WithBounds(0, SIZE(WEATHERS) - 1)
+       .Add("Forced Weather", forced_weather)
+       .WithArray(WEATHERS, SIZE(WEATHERS))
+       .WithBounds(0, SIZE(WEATHERS) - 1)
+       .Add("Apply Forced Weather", ApplyForcedWeather)
+       .Add("Release Forced Weather", ReleaseForcedWeather)
+       .AddSeparator();
+#else
     app.Add("Current Weather", manager.GetRequestedWeather())
        .WithArray(WEATHERS, SIZE(WEATHERS))
        .WithBounds(0, SIZE(WEATHERS) - 1)
        .AddSeparator();
+#endif
   }
 
   app.Add("Keep Weather Indoors", ctx.keep_weather_indoors)
@@ -201,7 +241,8 @@ void LoadWorldLayoutPage(MainApplication& app, void* args) {
      .Add("Tile Editor", [](void*) { TileEditorApplication::Open(); })
      .Add("Tile Edits Enabled", overworld::TileEditor::GetInstance().is_enabled)
      .Add("Save Tile Edits", [](void*) { overworld::TileEditor::Save(); })
-     .Add("Clear Tile Edits", [](void*) { overworld::TileEditor::ClearEdits(); });
+     .Add("Clear Tile Edits",
+          [](void*) { overworld::TileEditor::ClearEdits(); });
 
   for (u32 i = 0; i < overworld::MapGraft::GetCount(); i++) {
     auto& request = overworld::MapGraft::GetRequest(i);

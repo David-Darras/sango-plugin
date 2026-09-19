@@ -33,12 +33,9 @@ struct Database {
   }
 
   SpeciesData* species;
-  void* _0[2];
+  void* _0[GAME_CONSTANT(6, 2)];
   Message* ability_names;
   Message* ability_descriptions;
-  // X/Y lacks one member before the evolution tables and keeps the move
-  // names much further in the object (found from LoadEvolutionTable,
-  // LoadMegaEvolveTable and GetMoveName in the kujira dump).
   void* _1[GAME_CONSTANT(7, 9)];
   EvolutionTable* evolution;
   void* _2[2];
@@ -47,9 +44,9 @@ struct Database {
   Message* move_names;
 };
 
-static_assert(offsetof(Database, ability_names) == 0x0C &&
-              offsetof(Database, evolution) == GAME_CONSTANT(0x30, 0x38) &&
-              offsetof(Database, mega_evolution) == GAME_CONSTANT(0x3C, 0x44) &&
-              offsetof(Database, move_names) == GAME_CONSTANT(0xFC, 0x6C),
+static_assert(offsetof(Database, ability_names) == GAME_CONSTANT(0x1C, 0x0C) &&
+              offsetof(Database, evolution) == GAME_CONSTANT(0x40, 0x38) &&
+              offsetof(Database, mega_evolution) == GAME_CONSTANT(0x4C, 0x44) &&
+              offsetof(Database, move_names) == GAME_CONSTANT(0x10C, 0x6C),
               "Database must match the game's pml::Library layout");
 } // namespace pokemon

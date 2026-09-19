@@ -25,6 +25,7 @@ void Hook::Initialize(u32 src, u32 dst) {
 }
 
 void Hook::Enable(bool force) {
+  if (src_addr_ == 0) return; // address not found for this game yet
   if (!force && is_enabled_) return;
 
   if (!is_initialized_) {
@@ -64,6 +65,7 @@ void Hook::Disable() {
 
 void HookManager::Add(HookId id, u32 src, u32 dst, bool enable) {
   if (id >= HookId::kMax) return;
+  if (src == 0) return; // address not found for this game yet
   if (hooks_[(u32)id].IsEnabled()) return;
   hooks_[(u32)id].Initialize(src, dst);
   if (enable) {

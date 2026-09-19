@@ -49,5 +49,9 @@ private:
                                     Weather weather);
   static void UpdateAreaWeatherHook(WeatherManager* self, u16 zone_id,
                                     Weather weather);
+#ifdef GAME_XY
+  static void SetZoneHook(WeatherManager* self, u16 zone_id, u32 list_idx,
+                          u32 wind_id, u32 arg4);
+#endif
 };
 } // namespace overworld

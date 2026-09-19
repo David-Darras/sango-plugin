@@ -61,11 +61,15 @@ struct Pokedex {
   u32 captured_flags[24];
   u32 gender_seen_flags[4][24];
   u32 displayed_gender_flags[4][24];
-  u8 form_seen_flags[2][38];
-  u8 displayed_form_flags[2][38];
+  u8 form_seen_flags[2][GAME_CONSTANT(24, 38)];
+  u8 displayed_form_flags[2][GAME_CONSTANT(24, 38)];
   u8 language_version_flags[640];
   u32 spinda_pattern;
+#ifdef GAME_XY
+  u32 past_captured_flags[21];
+#else
   u16 seen_count[722];
   u16 captured_count[722]; // unused
+#endif
 };
 } // namespace savedata

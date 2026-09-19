@@ -26,9 +26,21 @@ struct ModelResource {
   u16 code;
   u8 draw_type;
   u8 draw_code;
-  u32 _0[4];
+  u16 skeleton_preset;
+  u8 shadow_type;
+  u8 footmark_type;
+  u8 reflect_type;
+  u8 sex;
+  u8 size_width;
+  u8 size_depth;
+  s8 offset[3];
+  u8 dress_up_flag;
+  u8 dress_up_memory_flag;
+  u8 edge_type;
+  u16 dress_up_pattern;
   ModelId model_id;
   u16 padding;
 };
+static_assert(sizeof(ModelResource) == 24, "ObjCodeParam is 24 bytes");
 
 } // namespace overworld

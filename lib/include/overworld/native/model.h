@@ -21,15 +21,20 @@
 #include "overworld/constant/map.h"
 #include "overworld/constant/model.h"
 #include "overworld/native/draw_model.h"
+#include "overworld/native/model_resource.h"
 #include "overworld/native/position.h"
 
 namespace overworld {
 
 struct Model {
-  static constexpr u32 kSize = 0xAB0;
+  static constexpr u32 kSize = GAME_CONSTANT(0xAA8, 0xAB0);
 
   INLINE DrawModel& GetDrawModel() {
     return *((DrawModel * (*)(Model*))address::kGetDrawModel)(this);
+  }
+
+  INLINE ModelResource& GetObjCodeParam() {
+    return *(ModelResource*)((uptr)this + GAME_CONSTANT(0x87C, 0x884));
   }
 
   INLINE bool IsUsed() const { return (flags[0] & 1) == 1; }

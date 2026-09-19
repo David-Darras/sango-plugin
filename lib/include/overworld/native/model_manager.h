@@ -72,12 +72,12 @@ private:
 
   void* heap_;
   core::DataManager* game_data_manager_;
-  void* _0[5];
-  u8 _1[0x3680];
+  void* _0[GAME_CONSTANT(6, 5)];
+  u8 _1[GAME_CONSTANT(0x1470, 0x3680)];
   Model* overworld_models_;
   u32 overworld_model_count_;
 
-  void* _2[6]; // collision, etc.
+  void* _2[6];
   void* move_3d_model_manager_;
   void* effect_manager_;
 

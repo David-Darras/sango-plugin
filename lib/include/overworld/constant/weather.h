@@ -20,7 +20,34 @@
 #include <types.h>
 
 namespace overworld {
-
+#ifdef GAME_XY
+enum class Weather : u8 {
+  kSunny = 0,
+  kSunny2 = 1,
+  kSunny3 = 2,
+  kSunny4 = 3,
+  kSunny5 = 4,
+  kSunny6 = 5,
+  kSunny7 = 6,
+  kSunny8 = 7,
+  kSunny9 = 8,
+  kSunny10 = 9,
+  kSunny11 = 10,
+  kSunny12 = 11,
+  kSunny13 = 12,
+  kCloudy = 13,
+  kLightRain = 14,
+  kRainy = 15,
+  kHeavyRain = 16,
+  kLightSnow = 17,
+  kSnow = 18,
+  kHeavySnow = 19,
+  kSnowstorm = 20,
+  kDiamondDust = 21,
+  kSunnyWind = 22,
+  kNone = 23,
+};
+#else
 enum class Weather : u8 {
   kSunny = 0,
   kRainy = 1,
@@ -33,4 +60,5 @@ enum class Weather : u8 {
   kDry = 8,
   kNone = 9,
 };
+#endif
 } // namespace overworld

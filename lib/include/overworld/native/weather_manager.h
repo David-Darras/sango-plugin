@@ -30,17 +30,31 @@ public:
   }
 
   INLINE Weather& GetCurrentWeather() {
-    return *(Weather*)((uptr)this + 0x1C);
+    return *(Weather*)((uptr)this + GAME_CONSTANT(0x34, 0x1C));
   }
 
   INLINE Weather& GetRequestedWeather() {
-    return *(Weather*)((uptr)this + 0x1E);
+    return *(Weather*)((uptr)this + GAME_CONSTANT(0x36, 0x1E));
   }
 
   INLINE void SetMapId(MapId map_id) {
-    *(MapId*)((uptr)this + 0x14) = map_id;
+    *(MapId*)((uptr)this + GAME_CONSTANT(0x24, 0x14)) = map_id;
   }
+#ifdef GAME_XY
+  static constexpr u32 kNoWeatherZone = 29;
+  INLINE u32 GetZoneListIndex() { return READ32((uptr)this + 0x18); }
+  INLINE u32& IsForced() { return *(u32*)((uptr)this + 0x2C); }
+  INLINE void ForceWeather(Weather weather, u8 season) {
+    WRITE32((uptr)this + 0x2C, 1);
+    WRITE8((uptr)this + 0x3D, static_cast<u8>(weather));
+    WRITEF((uptr)this + 0x40, 10.0f);
+    WRITE8((uptr)this + 0x44, season);
+  }
+  INLINE void ReleaseWeather() { WRITE32((uptr)this + 0x2C, 0); }
+  INLINE void SetWeather(Weather weather) { ForceWeather(weather, 0); }
+#else
   INLINE void SetWeather(Weather weather) { GetRequestedWeather() = weather; }
+#endif
 
   INLINE void SetSkybox(bool is_enabled) {
     uptr addr = READ32((uptr)this);
@@ -55,7 +69,9 @@ public:
   }
 
   INLINE void Synchronize(bool sync) {
+#ifndef GAME_XY
     WRITE32((uptr)this + 48, sync);
+#endif
   }
 };
 } // namespace overworld

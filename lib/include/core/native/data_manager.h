@@ -68,6 +68,7 @@ public:
     return *common_resource_;
   }
   INLINE MapId GetPlayerZone() const { return player_zone_id_; }
+  INLINE u8 GetSeason() const { return static_cast<u8>(season_); }
   INLINE overworld::Facing& GetPlayerDirection() { return player_direction_; }
 
 private:
@@ -92,7 +93,7 @@ private:
   MapId player_zone_id_;
   overworld::Facing player_direction_;
   u8 _6;
-  u8 _2[388 - 0x124];
+  u8 _2[GAME_CONSTANT(392, 388) - 0x124];
 
   overworld::EncounterState* encounter_;
 

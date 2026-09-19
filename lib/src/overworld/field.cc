@@ -66,7 +66,9 @@ void Field::PatchLoad() {
   core::HookManager::ForceEnable(HookId::kGetPlayerMovement);
   RunAnimation::PatchLoad();
 
-  WRITE32(address::kSimulateButtonPress, 0xE1A00000);
+  if (address::kSimulateButtonPress) {
+    WRITE32(address::kSimulateButtonPress, 0xE1A00000);
+  }
 }
 
 u32 Field::GetBackgroundMusic(u32 sound_manager, u32 map_id, u32 player_form) {

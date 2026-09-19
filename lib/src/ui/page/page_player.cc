@@ -115,6 +115,20 @@ void LoadOverworldCameraPage(MainApplication& app, void* args) {
      .WithFactor(0.01f);
 }
 
+#ifdef GAME_XY
+// The draw code reads the player's own ObjCodeParam copy, not the area list:
+// push the edited copy into the list entry too, then rebuild the map.
+static void ApplyPlayerModel(void*) {
+  auto& cheats = overworld::PlayerCheats::GetInstance();
+  auto& man = overworld::ModelManager::GetInstance();
+  auto& player_param = man.GetPlayer().GetObjCodeParam();
+  auto& resource = man.GetResource(cheats.model_idx);
+  resource.model_id = player_param.model_id;
+  resource.dress_up_flag = player_param.dress_up_flag;
+  RefreshMap(nullptr);
+}
+#endif
+
 void LoadPlayerModelPage(MainApplication& app, void* args) {
   if (app.CheckProcess(overworld::address::kVtable)) return;
 
@@ -124,8 +138,16 @@ void LoadPlayerModelPage(MainApplication& app, void* args) {
   auto& draw_model = man.GetPlayer().GetDrawModel();
 
   app.WithNoBackground()
+#ifdef GAME_XY
+     .Add("Model", man.GetPlayer().GetObjCodeParam().model_id)
+     .WithCallback(ApplyPlayerModel)
+     .Add("Use Outfit", man.GetPlayer().GetObjCodeParam().dress_up_flag)
+     .WithBounds(0, 1)
+     .WithCallback(ApplyPlayerModel)
+#else
      .Add("Model", resource.model_id)
      .WithCallback(RefreshMap)
+#endif
      .Add("Animation", cheats.model_animation)
      .WithCallback(overworld::PlayerCheats::PlayAnimation)
      .AddSeparator()

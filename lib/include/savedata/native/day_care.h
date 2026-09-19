@@ -39,7 +39,9 @@ struct DayCare {
     u64 random;
   };
 
+  static constexpr u32 kLocationCount = GAME_CONSTANT(1, 2);
+
   void* vtable;
-  Location location[2];
+  Location location[kLocationCount];
 };
 } // namespace savedata

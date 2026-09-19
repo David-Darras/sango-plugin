@@ -21,12 +21,16 @@ namespace overworld {
 
 void DayCare::PatchLoad() {
   auto& day_care = GetInstance();
-  WRITE32(pokemon::address::kEggHatch,
-          day_care.instant_egg_hatch ? 0xEA000007 : 0x0A000007);
-  WRITE32(pokemon::address::kDayCareMaxExp,
-          day_care.instant_max_exp ? 0x15824004 : 0x1582C004);
-  WRITE32(pokemon::address::kDayCareMaxExp + 0x20,
-          day_care.instant_max_exp ? 0x158240F4 : 0x1582C0F4);
+  if (pokemon::address::kEggHatch) {
+    WRITE32(pokemon::address::kEggHatch,
+            day_care.instant_egg_hatch ? 0xEA000007 : 0x0A000007);
+  }
+  if (pokemon::address::kDayCareMaxExp) {
+    WRITE32(pokemon::address::kDayCareMaxExp,
+            day_care.instant_max_exp ? 0x15824004 : 0x1582C004);
+    WRITE32(pokemon::address::kDayCareMaxExp + 0x20,
+            day_care.instant_max_exp ? 0x158240F4 : 0x1582C0F4);
+  }
 }
 
 void DayCare::ApplyEggHatch(void*) {

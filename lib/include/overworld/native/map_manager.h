@@ -35,21 +35,27 @@ class MapManager {
   SINGLETON(MapManager)
 
 public:
-  /// No map: what `GetNextMapId()` holds while no map change is pending.
   static constexpr u32 kNoMap = 0xFFFF;
 
   STATIC_INLINE MapManager& GetInstance() {
     return core::GameManager::GetInstance().GetOverworldMapManager();
   }
 
-  /// Warps the player, the way the game does it between two maps.
   STATIC_INLINE void ChangeMap(MapId map_id, const Position& position,
                                Facing facing, bool keep_background_music,
                                bool show_map_name) {
+#ifdef GAME_XY
+    ((void (*)(core::GameManager*, MapId, const Vec3*, Facing, u32, bool,
+               s32, s32))address::kChangeMap)(
+        &core::GameManager::GetInstance(), map_id, &position.coords, facing, 0,
+        keep_background_music, 1, 1);
+    (void)show_map_name;
+#else
     ((void (*)(core::GameManager*, MapId, const Position*, Facing, u8, bool, s32,
                s32, s32, bool))address::kChangeMap)(
         &core::GameManager::GetInstance(), map_id, &position, facing, 0,
         keep_background_music, 1, 1, 1, show_map_name);
+#endif
   }
 
   INLINE Renderer* GetRenderer() const { return renderer_; }
@@ -89,24 +95,24 @@ private:
   void* __8; // 0x30
   void* __9; // 0x34
   void* __10; // 0x38
-  void* _0[8]; // 0x3C
-  u32 _1; // 0x5C
-  core::GameManager* game_manager_; // 0x60
-  WorldLayout* world_layout_; // 0x64
-  void* _2[34]; // 0x68
+  void* _0[GAME_CONSTANT(4, 8)]; // 0x3C
+  u32 _1; // 0x5C / 0x4C
+  core::GameManager* game_manager_; // 0x60 / 0x50
+  WorldLayout* world_layout_; // 0x64 / 0x54
+  void* _2[34]; // 0x68 / 0x58
 
-  u32 current_map_id; // 0xF0
-  void* map_data_; // 0xF4
+  u32 current_map_id; // 0xF0 / 0xE0
+  void* map_data_; // 0xF4 / 0xE4
 
-  u32 next_map_id; // 0xF8
-  u32 next_map_step; // 0xFC 0 loading, 1 swapping models, 2 setting up
+  u32 next_map_id; // 0xF8 / 0xE8
+  u32 next_map_step; // 0xFC / 0xEC 0 loading, 1 swapping models, 2 setting up
 
-  Renderer* renderer_; // 0x100
-  void* encounter_manager_; // 0x104
-  void* day_care; // 0x108
-  void* mapper_; // 0x10C
-  u32 _3[12]; // 0x110
-  u32 _4[12]; // 0x140
-  PropModelManager* prop_model_manager_; // 0x170
+  Renderer* renderer_; // 0x100 / 0xF0
+  void* encounter_manager_; // 0x104 / 0xF4
+  void* day_care; // 0x108 / 0xF8
+  void* mapper_; // 0x10C / 0xFC
+  u32 _3[12]; // 0x110 / 0x100
+  u32 _4[GAME_CONSTANT(14, 12)]; // 0x140 / 0x130
+  PropModelManager* prop_model_manager_; // 0x170 / 0x168
 };
 } // namespace overworld

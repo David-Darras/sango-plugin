@@ -48,7 +48,7 @@ public:
   INLINE StereoCamera* GetStereoCamera() const { return use_camera_; }
 
 private:
-  u32 _000[5]; // 0x00 m_animation_camera
+  u32 _000[5]; // 0x00
   core::GameManager* game_manager_; // 0x14
   void* _00; // 0x18
   void* _0; // 0x1C
@@ -69,8 +69,8 @@ private:
   s32 _11; // 0x88
   s32 _12; // 0x8C
   f32 _13[640]; // 0x90
-  u32 _14[4]; // 0xA90
-  u32 _15; // 0xAA0
-  StereoCamera* use_camera_; // 0xAA4
+  u32 _14[GAME_CONSTANT(9, 4)]; // 0xA90
+  u32 _15; // 0xAA0 / 0xAB4
+  StereoCamera* use_camera_; // 0xAA4 / 0xAB8
 };
 } // namespace overworld

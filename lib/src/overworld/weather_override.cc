@@ -23,13 +23,32 @@
 namespace overworld {
 
 void WeatherOverride::Initialize() {
+#ifdef GAME_XY
+  core::HookManager::Initialize(HookId::kUpdateZoneWeather,
+                          address::kWeatherSetZone, (uptr)SetZoneHook);
+#else
   core::HookManager::Initialize(HookId::kUpdateZoneWeather,
                           address::kUpdateZoneWeather,
                           (uptr)UpdateZoneWeatherHook);
   core::HookManager::Initialize(HookId::kUpdateAreaWeather,
                           address::kUpdateAreaWeather,
                           (uptr)UpdateAreaWeatherHook);
+#endif
 }
+
+#ifdef GAME_XY
+void WeatherOverride::SetZoneHook(WeatherManager* self, u16 zone_id,
+                                  u32 list_idx, u32 wind_id, u32 arg4) {
+  auto& feat = GetInstance();
+  const bool indoors = list_idx == WeatherManager::kNoWeatherZone;
+  if (feat.ignore_zone_weather || self->IsForced() ||
+      (indoors && feat.keep_weather_indoors)) {
+    list_idx = self->GetZoneListIndex();
+  }
+  core::HookManager::Call<void>(HookId::kUpdateZoneWeather, self, zone_id,
+                                list_idx, wind_id, arg4);
+}
+#endif
 
 Weather WeatherOverride::PickWeather(WeatherManager* manager,
                                        Weather weather) {

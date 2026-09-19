@@ -24,6 +24,21 @@
 
 namespace pokemon {
 struct MoveData {
+#ifdef GAME_XY
+  STATIC_INLINE MoveData& GetInstance(const MoveId move) {
+    static struct {
+      void* heap;
+      u16 move;
+      u16 _0;
+      MoveData* data;
+    } accessor = {nullptr, 0, 0, nullptr};
+    static u32 buffer[16];
+    accessor.data = (MoveData*)buffer;
+    ((void (*)(void*, u16))address::kLoadMoveData)(&accessor,
+                                                    static_cast<u16>(move));
+    return *accessor.data;
+  }
+#else
   STATIC_INLINE MoveData* GetTable() {
     return (MoveData*)READ32(address::kMoveDataTable);
   }
@@ -31,6 +46,7 @@ struct MoveData {
   STATIC_INLINE MoveData& GetInstance(const MoveId move) {
     return GetTable()[static_cast<u16>(move)];
   }
+#endif
 
   TypeId type;
   u8 category;
@@ -42,7 +58,6 @@ struct MoveData {
   s8 priority;
   u8 hit_count;
 
-  /// The condition the move can inflict, stored in a 16-bit slot.
   StatusCondition effect_id;
   u8 _1;
   u8 effect_rate;

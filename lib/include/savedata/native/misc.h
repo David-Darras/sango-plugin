@@ -47,6 +47,11 @@ struct Misc {
   c16 padding1;
 
   u32 flags;
+#ifdef GAME_XY
+  u32 tutorial_pokemon_amie;
+  u32 tutorial_super_training;
+  u32 flags2;
+#endif
   u32 battle_points;
 
   /**
