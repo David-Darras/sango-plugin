@@ -21,6 +21,8 @@
 #include "core/utils.h"
 #include "overworld/constant/map.h"
 #include "overworld/constant/model.h"
+#include "savedata/native/pokemon_team.h"
+#include "savedata/native/savedata.h"
 #include "script/constant/script.h"
 
 namespace script {
@@ -60,14 +62,27 @@ void LittlerootGreeter(Context& s) {
   s.Talk(u"See ya!");
   s.TalkEnd();
 }
-
 } // namespace
 
 #ifdef GAME_XY
 void KujiraGreeter(Context& s) {
   s.TalkStart();
-  s.Talk(u"Hi!");
+  s.Talk(u"This is a new script generated with ZettaD's Kujira plugin.");
+  s.Talk(u"I'm going to turn all your Pokémon into shinies.");
   s.TalkEnd();
+  s.PlayJingle(kJingleItem);
+  auto& team = savedata::PokemonTeam::GetInstance();
+  for (u32 i = 0; i < team.count; i++) {
+    auto& pkm = team.pokemons[i];
+    auto& core = *pkm->core;
+    pkm->accessor->Decrypt();
+    if (pokemon::Utils::IsShiny(core.id, core.shiny_id)) {
+      pokemon::Utils::ConvertToNormal(core.id, &core.shiny_id);
+    } else {
+      pokemon::Utils::ConvertToShiny(core.id, &core.shiny_id);
+    }
+    pkm->accessor->Encrypt();
+  }
 }
 #endif
 
@@ -75,16 +90,15 @@ void Install() {
 #ifdef GAME_XY
   NativeScript::Register(ScriptId::kKujiraGreeter, KujiraGreeter);
 
-  overworld::MapCharacterRequest trevor;
-  trevor.map_id = static_cast<MapId>(264);
-  trevor.model_id = ModelId::kTrevor;
-  trevor.script_id = ScriptId::kKujiraGreeter;
-  trevor.tile_x = 582;
-  trevor.tile_z = 510;
-  trevor.facing = overworld::Facing::kDown;
-  overworld::MapCharacter::Add(trevor);
-  return;
-#endif
+  overworld::MapCharacterRequest greeter;
+  greeter.map_id = static_cast<MapId>(264);
+  greeter.model_id = ModelId::kTeamFlareAdminMale;
+  greeter.script_id = ScriptId::kKujiraGreeter;
+  greeter.tile_x = 593;
+  greeter.tile_z = 492;
+  greeter.facing = overworld::Facing::kRight;
+  overworld::MapCharacter::Add(greeter);
+#else
   NativeScript::Register(ScriptId::kLittlerootGreeter,
                          LittlerootGreeter);
 
@@ -96,5 +110,6 @@ void Install() {
   greeter.tile_z = 163;
   greeter.facing = overworld::Facing::kDown;
   overworld::MapCharacter::Add(greeter);
+#endif
 }
 } // namespace script
