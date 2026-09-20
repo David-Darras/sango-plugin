@@ -63,6 +63,7 @@ constexpr uptr kItemDataInitialize = GAME_ADDRESS(0x003A0DE8, 0x003B7B9C);
 constexpr uptr kItemDataGetParam = GAME_ADDRESS(0x004A3D3C, 0x004D3C84);
 constexpr uptr kLoadEvolutionTable = GAME_ADDRESS(0x0039A23C, 0x003B1108);
 constexpr uptr kLoadMegaEvolutionTable = GAME_ADDRESS(0x00168108, 0x00168974);
+constexpr uptr kResetMegaEvolution = GAME_ADDRESS(0x00441778, 0x0046F1FC);
 constexpr uptr kScriptCreatePokemon = GAME_ADDRESS(0x00720444, 0x0077279C);
 constexpr uptr kScriptAddPokemonToTeam = GAME_ADDRESS(0x007024A4, 0x0073F474);
 constexpr uptr kGiftPokemonTable = GAME_ADDRESS(0x007A105C, 0x007EC06C);

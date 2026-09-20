@@ -30,6 +30,7 @@ void MegaEvolution::Initialize() {
                           (uptr)LoadMegaEvolutionTableHook);
   // disable cache
   ARM_RET(address::kLoadMegaEvolutionTable + 0x3C);
+  ARM_RET(address::kResetMegaEvolution);
 }
 
 void MegaEvolution::LoadMegaEvolutionTableHook(SpeciesId species) {

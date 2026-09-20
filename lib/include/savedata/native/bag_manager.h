@@ -17,7 +17,6 @@
 
 #pragma once
 
-#include "common.h"
 #include "pokemon/constant/item.h"
 #include "savedata/native/savedata.h"
 

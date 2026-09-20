@@ -17,7 +17,6 @@
 
 #pragma once
 
-#include "bag_manager.h"
 #include "core/native/data_manager.h"
 
 namespace savedata {
