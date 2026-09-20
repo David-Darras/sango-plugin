@@ -17,6 +17,7 @@
 
 #pragma once
 
+#include "bag_manager.h"
 #include "core/native/data_manager.h"
 
 namespace savedata {
@@ -43,6 +44,7 @@ struct EventTable;
 struct DayCare;
 struct Fusion;
 struct HallOfFame;
+struct BerryTreeManager;
 
 class SaveData {
   SINGLETON(SaveData)
@@ -74,6 +76,7 @@ public:
   INLINE Settings& GetSettings() { return *(Settings*)segments_[23]; }
   INLINE Pokedex& GetPokedex() { return *(Pokedex*)segments_[20]; }
   INLINE EventTable& GetEventTable() { return *(EventTable*)segments_[19]; }
+  INLINE BerryTreeManager& GetBerryTreeManager() { return *(BerryTreeManager*)segments_[40]; }
   INLINE PokemonBox& GetPokemonBox() { return *(PokemonBox*)segments_[kPokemonBoxIndex]; }
   INLINE PssPhoto& GetPssPhoto() { return *(PssPhoto*)segments_[50]; }
 

@@ -21,6 +21,8 @@
  */
 
 #include "plugin.h"
+#include "core/native/process_manager.h"
+#include "overworld/native/model_manager.h"
 #include "ui/page/pages.h"
 #include "ui/painter.h"
 
@@ -37,9 +39,7 @@ static void EveryFrame() {
 void Initialize() {
   plugin::InitializeEngine();
 
-#ifdef GAME_XY
   script::Install();
-#endif
 
   // plugin::LoadConfiguration();
   plugin::OpenMenu(ui::MainAppPainter::GetInstance(), ui::LoadTopPage);

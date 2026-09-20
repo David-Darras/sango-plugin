@@ -103,11 +103,12 @@ void Install() {
                          LittlerootGreeter);
 
   overworld::MapCharacterRequest greeter;
-  greeter.map_id = MapId::kLittlerootTown;
+  greeter.map_id = MapId::kBrendanHouseGroundFloor;
   greeter.model_id = ModelId::kYoungster;
   greeter.script_id = ScriptId::kLittlerootGreeter;
-  greeter.tile_x = 100;
-  greeter.tile_z = 163;
+  greeter.tile_x = 16;
+  greeter.tile_z = 14;
+  greeter.movement_id = 17;
   greeter.facing = overworld::Facing::kDown;
   overworld::MapCharacter::Add(greeter);
 #endif
