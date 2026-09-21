@@ -109,14 +109,12 @@ void InitializeEngine() {
   overworld::MapGraft::Initialize();
   overworld::TileEditor::Initialize();
   pokemon::CustomShop::Initialize();
-#endif
-  overworld::WeatherOverride::Initialize();
-  ui::NewGame::Initialize();
-#ifndef GAME_XY
   overworld::RunAnimation::Initialize();
 #endif
-  pokemon::ModelReplacement::Initialize();
-  ui::TitleScreen::Initialize();
+   overworld::WeatherOverride::Initialize();
+   ui::NewGame::Initialize();
+   pokemon::ModelReplacement::Initialize();
+   ui::TitleScreen::Initialize();
 }
 
 void LoadConfiguration() {

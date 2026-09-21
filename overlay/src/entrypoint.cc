@@ -39,7 +39,7 @@ static void EveryFrame() {
 void Initialize() {
   plugin::InitializeEngine();
 
-  script::Install();
+  // script::Install();
 
   // plugin::LoadConfiguration();
   plugin::OpenMenu(ui::MainAppPainter::GetInstance(), ui::LoadTopPage);

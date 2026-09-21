@@ -28,16 +28,12 @@ class WeatherManager;
 
 struct WeatherOverrideSettings {
   WeatherMode mode = WeatherMode::kNormal;
-  bool enlarge_drops = true;
-  bool keep_weather_indoors = true;
+  bool keep_weather_indoors = false;
   bool ignore_zone_weather = false;
 };
 static_assert(std::is_standard_layout<WeatherOverrideSettings>::value,
               "WeatherOverrideSettings must have standard layout");
 
-/// Decides which weather the field really shows when a zone or an area asks
-/// for one: keeps the current weather indoors, or ignores zones altogether so
-/// a product can drive the weather itself.
 struct WeatherOverride : public WeatherOverrideSettings {
   MAKE_SINGLETON(WeatherOverride)
 

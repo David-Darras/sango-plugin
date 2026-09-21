@@ -18,6 +18,8 @@
 #include "core/patch/archive.h"
 #include "core/hook_manager.h"
 #include "renderer/native/archive/bclim.h"
+#include "system/native/file.h"
+#include "core/utils.h"
 
 namespace core {
 
@@ -69,6 +71,27 @@ bool Archive::ReadFileAsync2(u32* archive, void* heap, u32 file_id,
 bool Archive::ReadFileAsync(void* file_manager, ArchiveInput* input) {
   auto& feat = GetInstance();
   if (feat.on_read_file != nullptr) feat.on_read_file(input);
+  // sdmc:/sango/pokemodel/<file id>.pc replaces a Pok�mon model pack (already
+  // decompressed BinLinker "PC" pack). The request is completed synchronously.
+  // if (IsArchive(input, ArchiveId::kPokemonModel) && input->buffer != 0) {
+  //   c16 filename[64];
+  //   Utils::Format(filename, u"sdmc:/sango/pokemodel/%d.pc", input->file_id);
+  //   sys::File file;
+  //   file.Open(filename, sys::File::kRead);
+  //   if (file.IsOpen()) {
+  //     file.Close();
+  //     constexpr u32 kMaxPackSize = 0x280000;
+  //     void* buffer = ((void* (*)(void*, u32, u32))sys::address::kHeapAlloc)(
+  //         (void*)input->heap[2], kMaxPackSize, input->heap[3] ? input->heap[3] : 128);
+  //     const u32 size =
+  //         buffer ? sys::File::ReadAll(filename, buffer, kMaxPackSize) : 0;
+  //     if (size != 0) {
+  //       *(void**)input->buffer = buffer;
+  //       if (input->size != nullptr) *input->size = size;
+  //       return true;
+  //     }
+  //   }
+  // }
   return HookManager::Call<bool>(HookId::kReadFileAsync, file_manager, input);
 }
 
