@@ -45,6 +45,14 @@ public:
 private:
   static void LoadDataHook(uptr self, u32 id, uptr heap, uptr buffer,
                            uptr buffer_size, u32* size);
+  static void* LoadCompressedHook(u32* archive, u32 file_id, void* heap_work,
+                                  void* heap_data, s32 align, u32* out_size);
+  static u32 GetFileSizeHook(u32* archive, u32 file_id);
+  static u32 GetFileSizeHook2(u32* archive, u32 file_id);
+  static void GetInfoHook(u32* archive, u32 file_id, u32* info);
+  static void ReadHook(u32* archive, u32 offset, u32 size,
+                                void* buffer, u32* read);
+  static u32 LoadDataHook2(u32* archive, u32 file_id, void* buffer);
   static bool ReadFileAsync2(u32* archive, void* heap, u32 file_id,
                              void* buffer, u32 p4, u32 p5, u32 p6);
   static bool ReadFileAsync(void* file_manager, ArchiveInput* input);

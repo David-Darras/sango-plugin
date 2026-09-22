@@ -48,6 +48,8 @@
 #include "pokemon/patch/evolution.h"
 #include "pokemon/patch/item_customizer.h"
 #include "pokemon/patch/mega_evolution.h"
+#include "pokemon/patch/alolan_forms.h"
+#include "pokemon/patch/species_table.h"
 #include "pokemon/patch/model_replacement.h"
 #include "pokemon/patch/shiny.h"
 #include "renderer/patch/lighting.h"
@@ -100,6 +102,8 @@ void InitializeEngine() {
   pokemon::Shiny::Initialize();
   battle::GameExtension::Initialize();
   pokemon::MegaEvolution::Initialize();
+  pokemon::AlolanForms::Initialize();
+  pokemon::SpeciesTable::Initialize();
   pokemon::Evolution::Initialize();
   overworld::GiftPokemon::Initialize();
   overworld::StaticRandomizer::Initialize();

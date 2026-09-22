@@ -25,6 +25,7 @@ namespace address {
 
 // Filesystem
 constexpr uptr kFileOpen = GAME_ADDRESS(0x001237E8, 0x00123FA8);
+constexpr uptr kFileClose = GAME_ADDRESS(0x0012387C, 0x0012403C);
 constexpr uptr kFileRead = GAME_ADDRESS(0x0014688C, 0x00145CF0);
 constexpr uptr kFileWrite = GAME_ADDRESS(0x001E1438, 0x001F5BE0);
 constexpr uptr kFsMountSdmc = GAME_ADDRESS(0x001E3554, 0x001F7CFC);
@@ -38,6 +39,9 @@ constexpr uptr kArchiveLoadData = GAME_ADDRESS(0x0035747C, 0x0036F030);
 constexpr uptr kArchiveLoadData2 = GAME_ADDRESS(0x00138510, 0x00128E4C);
 constexpr uptr kArchiveInitialize = GAME_ADDRESS(0x0011C724, 0x0011CA2C);
 constexpr uptr kArchiveGetFileSize = GAME_ADDRESS(0x0011C708, 0x0011CA10);
+constexpr uptr kArchiveGetFileSize2 = GAME_ADDRESS(0, 0x00110E10);
+constexpr uptr kArchiveGetInfo = GAME_ADDRESS(0, 0x0012894C);
+constexpr uptr kArchiveRead = GAME_ADDRESS(0, 0x001288DC);
 constexpr uptr kArchiveLoadFile = GAME_ADDRESS(0x00128100, 0x00128B34);
 constexpr uptr kArchiveLoadCompressedFile = GAME_ADDRESS(0x001283D8, 0x00137A30);
 

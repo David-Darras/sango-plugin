@@ -67,7 +67,7 @@ public:
 
   INLINE void Close() {
     if (handle_) {
-      (*(void (**)())(READ32((uptr)handle_) + 44))();
+      ((void (*)(void*))address::kFileClose)(handle_);
       handle_ = nullptr;
     }
   }

@@ -25,6 +25,7 @@
 #include "ui/patch/starter_choice.h"
 #include "ui/patch/title_screen.h"
 #include "core/native/process_manager.h"
+#include "pokemon/patch/species_table.h"
 
 namespace core {
 
@@ -34,6 +35,7 @@ void ProcessPatch::Initialize() {
 }
 
 u32 ProcessPatch::MainProcessLoopHook(ProcessManager* manager) {
+  pokemon::SpeciesTable::Update();
   manager->Patch(OnLoad, OnUpdate);
   return HookManager::Call<u32>(HookId::kMainProcessLoop, manager);
 }

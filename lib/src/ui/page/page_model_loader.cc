@@ -115,7 +115,7 @@ void LoadModelLoaderPage(MainApplication& app, void* args) {
      .AddSeparator()
      .Add("Spawn Pokemon", SpawnPokemon)
      .AddSpecies("Species", settings.species)
-     .WithBounds(1, static_cast<u32>(SpeciesId::kVolcanion))
+     .WithBounds(1, static_cast<u32>(SpeciesId::kCount) - 1)
      .Add("FormId", settings.form)
      .WithBounds(0, 30)
      .Add("Shiny", settings.is_shiny)

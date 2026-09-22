@@ -60,7 +60,8 @@ static void SavePokemon(void*) {
   pokemon::CoreData* pkm = ctx.accessor.GetCoreData();
 
   pkm->experience =
-      pokemon::Utils::GetExperienceFromLevel(pkm->species, pkm->form, ctx.level);
+      pokemon::Utils::GetExperienceFromLevel(pkm->species, pkm->form,
+                                             ctx.level);
   if (ctx.is_shiny) {
     pokemon::Utils::ConvertToShiny(pkm->id, &pkm->shiny_id);
   } else {
@@ -95,7 +96,7 @@ void LoadSaveDataPokemonPage(MainApplication& app, void* args) {
   }
 
   ctx.level = pokemon::Utils::GetLevelFromExperience(pkm->species, pkm->form,
-                                                   pkm->experience);
+    pkm->experience);
   ctx.is_shiny = pokemon::Utils::IsShiny(pkm->id, pkm->shiny_id);
 
   app.Add("Save", SavePokemon)
@@ -313,15 +314,15 @@ void LoadSaveDataMiscellaneousPage(MainApplication& app, void* args) {
      .Add("Exp. Share Enabled", &data.flags, 3, 1)
 #ifdef GAME_XY
      .Add("Pokemon-Amie Tutorial Seen", &data.tutorial_pokemon_amie, 0, 1)
-     .Add("Super Training Tutorial Seen", &data.tutorial_super_training, 0, 1)
-     .Add("Vs. Recorder Tutorial Seen", &data.flags2, 1, 1);
+      .Add("Super Training Tutorial Seen", &data.tutorial_super_training, 0, 1)
+      .Add("Vs. Recorder Tutorial Seen", &data.flags2, 1, 1);
 #else
-     .Add("PSS Tutorial Seen", &data.flags, 5, 1)
-     .Add("Pokemon-Amie Tutorial Seen", &data.flags, 6, 1)
-     .Add("Super Training Tutorial Seen", &data.flags, 7, 1)
-     .Add("Vs. Recorder Tutorial Seen", &data.flags, 9, 1)
-     .Add("Skip Long Sky Trip Animation", &data.flags, 11, 1)
-     .Add("TV Navi Tutorial Seen", &data.flags, 14, 1);
+      .Add("PSS Tutorial Seen", &data.flags, 5, 1)
+      .Add("Pokemon-Amie Tutorial Seen", &data.flags, 6, 1)
+      .Add("Super Training Tutorial Seen", &data.flags, 7, 1)
+      .Add("Vs. Recorder Tutorial Seen", &data.flags, 9, 1)
+      .Add("Skip Long Sky Trip Animation", &data.flags, 11, 1)
+      .Add("TV Navi Tutorial Seen", &data.flags, 14, 1);
 #endif
 }
 
@@ -506,7 +507,6 @@ void LoadSaveDataPokedexPage(MainApplication& app, void* args) {
      .AddSeparator();
 
   app.AddSpecies("Species", species)
-     .WithBounds(1, 721)
      .WithRefresh()
      .AddSeparator();
 
@@ -530,7 +530,8 @@ void LoadSaveDataPokedexPage(MainApplication& app, void* args) {
        .Add("FormId Seen: Normal",
             &normal_form_seen_flags[array_idx], bit_pos,
             1)
-       .Add("FormId Seen: Shiny", &shiny_form_seen_flags[array_idx], bit_pos, 1);
+       .Add("FormId Seen: Shiny", &shiny_form_seen_flags[array_idx], bit_pos,
+            1);
 
     u32* normal_displayed_form_flags = (u32*)data.displayed_form_flags[0];
     u32* shiny_displayed_form_flags = (u32*)data.displayed_form_flags[1];
@@ -547,25 +548,25 @@ void LoadSaveDataPokedexPage(MainApplication& app, void* args) {
 
   app.Add("Captured", &data.captured_flags[array_idx], bit_pos, 1)
 #ifndef GAME_XY
-     .Add("Times Encountered", data.seen_count[species])
-     .WithBounds(0, 999)
+      .Add("Times Encountered", data.seen_count[species])
+      .WithBounds(0, 999)
 #endif
-     .AddSeparator()
-     .Add("Seen: Male", &data.gender_seen_flags[0][array_idx], bit_pos, 1)
-     .Add("Seen: Female", &data.gender_seen_flags[1][array_idx], bit_pos, 1)
-     .Add("Seen: Shiny Male", &data.gender_seen_flags[2][array_idx], bit_pos,
-          1)
-     .Add("Seen: Shiny Female", &data.gender_seen_flags[3][array_idx], bit_pos,
-          1)
-     .AddSeparator()
-     .Add("Display: Male", &data.displayed_gender_flags[0][array_idx],
-          bit_pos, 1)
-     .Add("Display: Female", &data.displayed_gender_flags[1][array_idx],
-          bit_pos, 1)
-     .Add("Display: Shiny Male",
-          &data.displayed_gender_flags[2][array_idx], bit_pos, 1)
-     .Add("Display: Shiny Female",
-          &data.displayed_gender_flags[3][array_idx], bit_pos, 1);
+      .AddSeparator()
+      .Add("Seen: Male", &data.gender_seen_flags[0][array_idx], bit_pos, 1)
+      .Add("Seen: Female", &data.gender_seen_flags[1][array_idx], bit_pos, 1)
+      .Add("Seen: Shiny Male", &data.gender_seen_flags[2][array_idx], bit_pos,
+           1)
+      .Add("Seen: Shiny Female", &data.gender_seen_flags[3][array_idx], bit_pos,
+           1)
+      .AddSeparator()
+      .Add("Display: Male", &data.displayed_gender_flags[0][array_idx],
+           bit_pos, 1)
+      .Add("Display: Female", &data.displayed_gender_flags[1][array_idx],
+           bit_pos, 1)
+      .Add("Display: Shiny Male",
+           &data.displayed_gender_flags[2][array_idx], bit_pos, 1)
+      .Add("Display: Shiny Female",
+           &data.displayed_gender_flags[3][array_idx], bit_pos, 1);
 }
 
 #include "savedata/data/opower.inc"

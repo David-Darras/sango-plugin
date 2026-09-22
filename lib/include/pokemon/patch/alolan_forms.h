@@ -15,24 +15,29 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "pokemon/patch/model_replacement.h"
-#include "core/hook_manager.h"
-#include "pokemon/patch/species_table.h"
+#pragma once
+
+#include "common.h"
+#include "pokemon/constant/species.h"
 
 namespace pokemon {
 
-void ModelReplacement::Initialize() {
-  core::HookManager::Initialize(HookId::kReplacePokemonModel,
-                          address::kReplacePokemonModel, (uptr)CreateHook);
-}
+struct MegaEvolutionData;
 
-void ModelReplacement::CreateHook(void* model, PokeInfo* info, void* p0, void* p1,
-                              void* p2, void* p3) {
-  auto& feat = GetInstance();
-  SpeciesTable::PatchModelRequest(info);
-  if (feat.on_create != nullptr) feat.on_create(info);
-  core::HookManager::Call<void>(HookId::kReplacePokemonModel, model, info, p0, p1,
-                          p2, p3);
-}
+class AlolanForms {
+  MAKE_SINGLETON(AlolanForms)
+
+public:
+  static constexpr u32 kSpeciesEntries = 826;
+  static constexpr u32 kEntrySize = 0x50;
+  static constexpr u32 kFormCount = 18;
+
+  static bool PatchMegaTable(SpeciesId species, MegaEvolutionData* table);
+  static void Initialize();
+  static bool HasForm(u16 species);
+
+private:
+  static u32 GetMegaEvolvedFormNoHook(void* manager, void* poke);
+};
 
 } // namespace pokemon

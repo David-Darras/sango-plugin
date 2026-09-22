@@ -63,6 +63,11 @@ constexpr uptr kItemDataInitialize = GAME_ADDRESS(0x003A0DE8, 0x003B7B9C);
 constexpr uptr kItemDataGetParam = GAME_ADDRESS(0x004A3D3C, 0x004D3C84);
 constexpr uptr kLoadEvolutionTable = GAME_ADDRESS(0x0039A23C, 0x003B1108);
 constexpr uptr kLoadMegaEvolutionTable = GAME_ADDRESS(0x00168108, 0x00168974);
+constexpr uptr kGetMegaEvolvedFormNo = GAME_ADDRESS(0, 0x004D09E8); // EvolveManager::GetMegaEvolvedFormNo(CoreParam*)
+constexpr uptr kCoreParamGetSpecies = GAME_ADDRESS(0, 0x00153310);
+constexpr uptr kSpeciesBound[] = {
+    GAME_ADDRESS(0, 0x00168868), GAME_ADDRESS(0, 0x003B0ACC),
+    GAME_ADDRESS(0, 0x003B0C14), GAME_ADDRESS(0, 0x00139FB4)};
 constexpr uptr kResetMegaEvolution = GAME_ADDRESS(0x00441778, 0x0046F1FC);
 constexpr uptr kScriptCreatePokemon = GAME_ADDRESS(0x00720444, 0x0077279C);
 constexpr uptr kScriptAddPokemonToTeam = GAME_ADDRESS(0x007024A4, 0x0073F474);
@@ -74,6 +79,7 @@ constexpr uptr kRemovePokemonFromTeam = GAME_ADDRESS(0x0039F3BC, 0x003B6098);
 constexpr uptr kResetNickname = GAME_ADDRESS(0x0039E468, 0x003B51C0);
 constexpr uptr kUpdateRuntimeData = GAME_ADDRESS(0x0039C730, 0x003B360C);
 constexpr uptr kInitializePokemon = GAME_ADDRESS(0x0039ECEC, 0x0011F754);
+constexpr uptr kCreateCoreDataFromDescriptor = GAME_ADDRESS(0, 0x0014EF94);
 constexpr uptr kBattleCheckPokemonCaptured = GAME_ADDRESS(0x006DA3E4, 0x007247C8);
 constexpr uptr kTechnicalMachineMoveTable = GAME_ADDRESS(0x00567A02, 0x005A69E2);
 constexpr uptr kDatabase = GAME_ADDRESS(0x005D4B7C, 0x00617A00);

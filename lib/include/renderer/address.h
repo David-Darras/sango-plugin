@@ -61,6 +61,12 @@ constexpr uptr kH3dModelSetCombinerSourceAlpha = GAME_ADDRESS(0x00382FB8, 0x0039
 constexpr uptr kH3dModelSetCombinerOperandAlpha = GAME_ADDRESS(0x00383174, 0x00399C70);
 constexpr uptr kH3dModelSetTranslucencyKind = GAME_ADDRESS(0x003822B0, 0x00398C7C);
 constexpr uptr kH3dModelSetAlphaTestEnable = GAME_ADDRESS(0x003821E8, 0x00398BB4);
+constexpr uptr kH3dModelSetBlendMode = GAME_ADDRESS(0x0036A1C8, 0x0038149C);
+constexpr uptr kH3dModelSetBlendFuncSourceRgb = GAME_ADDRESS(0x00382B44, 0x00399610);
+constexpr uptr kH3dModelSetBlendFuncDestRgb = GAME_ADDRESS(0x003830D4, 0x00399BD0);
+constexpr uptr kH3dModelSetBlendEquationRgb = GAME_ADDRESS(0x0038223C, 0x00398C08);
+constexpr uptr kH3dModelSetBufferInputRgb = GAME_ADDRESS(0x003831A8, 0x00399CA4);
+constexpr uptr kH3dModelSetBufferInputAlpha = GAME_ADDRESS(0x0038323C, 0x00399D60);
 
 constexpr uptr kH3dResourceInitialize = GAME_ADDRESS(0x0035D490, 0x00374E7C);
 constexpr uptr kH3dResourceSetData = GAME_ADDRESS(0x0035C900, 0x00374310);

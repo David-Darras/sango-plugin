@@ -222,7 +222,7 @@ public:
   MainApplication& AddSpecies(const c8* name, u16& var) {
     if (entries_count_ < kMaxEntries) {
       entries_[entries_count_++].Initialize(name, (void*)&var, kTypeSpecies);
-      WithBounds(0, 0x2D4);
+      WithBounds(0, static_cast<u32>(pokemon::SpeciesId::kCount)-1);
     }
     return *this;
   }

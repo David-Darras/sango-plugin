@@ -32,7 +32,15 @@ namespace pokemon {
 struct CoreData {
   // HEADER [0x08 bytes]
   u32 encryption_key; // 04
-  u16 _0; // 06
+  union {
+    u16 _0; // 06
+    struct {
+      u16 fast_mode : 1;
+      u16 fast_mode_param : 1;
+      u16 is_illegal_egg : 1;
+      u16 _header_bits : 13;
+    };
+  };
   u16 checksum; // 08
 
   // BLOCK 1 [0x38 bytes]

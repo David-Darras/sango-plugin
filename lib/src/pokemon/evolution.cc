@@ -17,6 +17,7 @@
 
 #include "pokemon/patch/evolution.h"
 #include "core/hook_manager.h"
+#include "pokemon/patch/species_table.h"
 #include "pokemon/constant/evolution_method.h"
 #include "pokemon/constant/item.h"
 #include "pokemon/native/database.h"
@@ -38,6 +39,9 @@ void Evolution::LoadEvolveTableHook(SpeciesId species, u32 b, u32 c, u32 d) {
 void Evolution::PatchEvolve(SpeciesId species) {
   auto& evolve_table = *Database::GetInstance().evolution;
   auto& table = *evolve_table.data;
+  if (SpeciesTable::PatchEvolutionTable(static_cast<u16>(species), &table)) {
+    return;
+  }
   switch (species) {
     case SpeciesId::kMachoke:
     case SpeciesId::kGraveler:

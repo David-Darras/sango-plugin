@@ -31,24 +31,16 @@ void LoadPokemonTexturePage(MainApplication& app, void* args) {
       "Darken", // 3
       "Overexposed", // 4
       "Psychedelic", // 5
-      "True Saturation", // 6
-      "Sepia", // 7
-      "Red Tint", // 8
-      "Blue Tint", // 9
-      "Green Tint", // 10
-      "Night Vision", // 11
-      "Vintage", // 12
-      "Solarize", // 13
-      "Chrome Metallic", // 14
-      "Gold Metallic", // 15
-      "Duotone Ocean Fire", // 16
-      "Thermal Cam", // 17
-      "Film Noir", // 18
-      "Blueprint", // 19
-      "X-ray", // 20
-      "Toon", // 21
-      "Ghost", // 21
+      "Sepia", // 6
+      "Obsidian", // 7
+      "Plasma", // 8
+      "Sketch", // 9
+      "Chrome Metallic", // 10
+      "Liquid Chrome", // 11
+      "Ghost", // 12
   };
+
+
 
   auto& ctx = renderer::ModelFilter::GetInstance();
 

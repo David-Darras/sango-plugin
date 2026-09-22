@@ -16,6 +16,7 @@
  */
 
 #include "pokemon/patch/mega_evolution.h"
+#include "pokemon/patch/alolan_forms.h"
 #include "core/hook_manager.h"
 #include "pokemon/constant/item.h"
 #include "pokemon/constant/mega_evolution_method.h"
@@ -38,6 +39,7 @@ void MegaEvolution::LoadMegaEvolutionTableHook(SpeciesId species) {
 
   auto& mega_evolve_table = *Database::GetInstance().mega_evolution;
   auto& table = *mega_evolve_table.data;
+  if (AlolanForms::PatchMegaTable(species, &table)) return;
   if (species == SpeciesId::kMimeJr) {
     table.entry[0].form = kFormMimeJrMega;
     table.entry[0].method = MegaEvolutionMethod::kItem;

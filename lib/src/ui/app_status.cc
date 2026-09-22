@@ -250,12 +250,25 @@ static Pane pane_level
      },
      nullptr);
 
+static void SkipNonSpecies(pokemon::CoreData& core, bool forward) {
+  while (core.species == SpeciesId::kEgg ||
+         core.species == SpeciesId::kMaxMarker) {
+    if (forward) {
+      NEXT(core.species, 1, static_cast<u16>(SpeciesId::kCount));
+    } else {
+      PREV(core.species, 1, static_cast<u16>(SpeciesId::kCount));
+    }
+  }
+}
+
 static Pane pane_species
     (true, 58, 60, 1, [](pokemon::CoreData& core, u32 value) {
        PREV(core.species, value, static_cast<u16>(SpeciesId::kCount));
+       SkipNonSpecies(core, false);
        core.form = static_cast<FormId>(0);
      }, [](pokemon::CoreData& core, u32 value) {
        NEXT(core.species, value, static_cast<u16>(SpeciesId::kCount));
+       SkipNonSpecies(core, true);
        core.form = static_cast<FormId>(0);
      }, [](Pane* pane, AppLayoutManager& manager,
            pokemon::DataAccessor& accessor) {

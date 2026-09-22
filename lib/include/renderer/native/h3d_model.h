@@ -21,14 +21,25 @@
 namespace renderer {
 namespace TevCombine {
 enum Combine : u8 {
-  REPLACE = 0, MODULATE = 1, ADD = 2, ADD_SIGNED = 3,
-  INTERPOLATE = 4, SUBTRACT = 5, DOT3_RGB = 6, DOT3_RGBA = 7,
-  MULTIPLY_ADD = 8, ADD_MULTIPLY = 9
+  REPLACE = 0,        ///< A
+  MODULATE = 1,       ///< A * B
+  ADD = 2,            ///< A + B
+  ADD_SIGNED = 3,     ///< A + B - 0.5
+  INTERPOLATE = 4,    ///< A * C + B * (1 - C)
+  SUBTRACT = 5,       ///< A - B
+  DOT3_RGB = 6,       ///< dot(A, B), broadcast to rgb
+  DOT3_RGBA = 7,      ///< dot(A, B), broadcast to rgba
+  MULTIPLY_ADD = 8,   ///< A * B + C
+  ADD_MULTIPLY = 9    ///< (A + B) * C
 };
 
 enum Source : u8 {
-  PRIMARY_COLOR = 0, TEXTURE0 = 3, TEXTURE1 = 4, TEXTURE2 = 5,
-  PREVIOUS_BUFFER = 13, CONSTANT = 14, PREVIOUS = 15
+  PRIMARY_COLOR = 0,
+  FRAGMENT_PRIMARY_COLOR = 1,
+  FRAGMENT_SECONDARY_COLOR = 2,
+  TEXTURE0 = 3, TEXTURE1 = 4, TEXTURE2 = 5, TEXTURE3 = 6,
+  PREVIOUS_BUFFER = 13,
+  CONSTANT = 14, PREVIOUS = 15
 };
 
 enum OperandRgb : u8 {
@@ -39,6 +50,18 @@ enum OperandRgb : u8 {
 };
 
 enum Scale : u8 { SCALE_1 = 0, SCALE_2 = 1, SCALE_4 = 2 };
+
+enum BlendMode : u8 { BLEND_OFF = 0, BLEND_ON = 1 };
+
+enum BlendFactor : u8 {
+  FACTOR_ZERO = 0, FACTOR_ONE = 1,
+  FACTOR_SRC_COLOR = 2, FACTOR_ONE_MINUS_SRC_COLOR = 3,
+  FACTOR_DST_COLOR = 4, FACTOR_ONE_MINUS_DST_COLOR = 5,
+  FACTOR_SRC_ALPHA = 6, FACTOR_ONE_MINUS_SRC_ALPHA = 7,
+  FACTOR_DST_ALPHA = 8, FACTOR_ONE_MINUS_DST_ALPHA = 9
+};
+
+enum BlendEquation : u8 { EQUATION_ADD = 0, EQUATION_SUBTRACT = 1 };
 } // namespace TevCombine
 
 using namespace TevCombine;
@@ -106,6 +129,36 @@ struct H3dModel {
       address::kH3dModelSetTranslucencyKind)(this, mat, kind);
   }
 
+  INLINE void SetBufferInputRgb(s32 mat, s32 step, u8 value) {
+    return ((void(*)(H3dModel*, s32, s32, u8))
+      address::kH3dModelSetBufferInputRgb)(this, mat, step, value);
+  }
+
+  INLINE void SetBufferInputAlpha(s32 mat, s32 step, u8 value) {
+    return ((void(*)(H3dModel*, s32, s32, u8))
+      address::kH3dModelSetBufferInputAlpha)(this, mat, step, value);
+  }
+
+  INLINE void SetBlendMode(s32 mat, s32 mode) {
+    return ((void(*)(H3dModel*, s32, s32))
+      address::kH3dModelSetBlendMode)(this, mat, mode);
+  }
+
+  INLINE void SetBlendFuncSourceRgb(s32 mat, s32 factor) {
+    return ((void(*)(H3dModel*, s32, s32))
+      address::kH3dModelSetBlendFuncSourceRgb)(this, mat, factor);
+  }
+
+  INLINE void SetBlendFuncDestRgb(s32 mat, s32 factor) {
+    return ((void(*)(H3dModel*, s32, s32))
+      address::kH3dModelSetBlendFuncDestRgb)(this, mat, factor);
+  }
+
+  INLINE void SetBlendEquationRgb(s32 mat, s32 equation) {
+    return ((void(*)(H3dModel*, s32, s32))
+      address::kH3dModelSetBlendEquationRgb)(this, mat, equation);
+  }
+
   INLINE void SetAlphaTestEnable(s32 mat, bool enable) {
     return ((void(*)(H3dModel*, s32, bool))
       address::kH3dModelSetAlphaTestEnable)(this, mat, enable);
@@ -114,7 +167,8 @@ struct H3dModel {
   void ConfigureStage(s32 step, s32 combine,
                       s32 src0, s32 op0,
                       s32 src1 = -1, s32 op1 = 0,
-                      s32 scale = SCALE_1) {
+                      s32 scale = SCALE_1,
+                      s32 src2 = -1, s32 op2 = 0) {
     s32 matCnt = this->GetMaterialCount();
     for (s32 i = 0; i < matCnt; ++i) {
       this->SetCombineRgb(i, step, combine);
@@ -123,6 +177,10 @@ struct H3dModel {
       if (src1 != -1) {
         this->SetSourceRgb(i, step, 1, src1);
         this->SetOperandRgb(i, step, 1, op1);
+      }
+      if (src2 != -1) {
+        this->SetSourceRgb(i, step, 2, src2);
+        this->SetOperandRgb(i, step, 2, op2);
       }
       this->SetScaleRgb(i, step, scale);
     }
@@ -139,7 +197,8 @@ struct H3dModel {
 
   void ConfigureAlphaStage(s32 step, s32 combine,
                            s32 src0, s32 op0 = 0,
-                           s32 src1 = -1, s32 op1 = 0) {
+                           s32 src1 = -1, s32 op1 = 0,
+                           s32 src2 = -1, s32 op2 = 0) {
     s32 matCnt = this->GetMaterialCount();
     for (s32 i = 0; i < matCnt; ++i) {
       this->SetCombineAlpha(i, step, combine);
@@ -149,6 +208,22 @@ struct H3dModel {
         this->SetSourceAlpha(i, step, 1, src1);
         this->SetOperandAlpha(i, step, 1, op1);
       }
+      if (src2 != -1) {
+        this->SetSourceAlpha(i, step, 2, src2);
+        this->SetOperandAlpha(i, step, 2, op2);
+      }
+    }
+  }
+
+  void EnableAlphaBlend() {
+    s32 matCnt = this->GetMaterialCount();
+    for (s32 i = 0; i < matCnt; ++i) {
+      this->SetBlendMode(i, BLEND_ON);
+      this->SetBlendEquationRgb(i, EQUATION_ADD);
+      this->SetBlendFuncSourceRgb(i, FACTOR_SRC_ALPHA);
+      this->SetBlendFuncDestRgb(i, FACTOR_ONE_MINUS_SRC_ALPHA);
+      this->SetTranslucencyKind(i, 1);
+      this->SetAlphaTestEnable(i, false);
     }
   }
 
@@ -175,67 +250,24 @@ struct H3dModel {
                          ONE_MINUS_COLOR, SCALE_4);
   }
 
-  INLINE void ApplyTrueSaturation() {
-    this->SetConstant(4, 0, 77, 150, 29);
-    this->ConfigureStage(4, DOT3_RGB, CONSTANT, COLOR, PREVIOUS, COLOR,
-                         SCALE_1);
-    this->ConfigureStage(5, ADD_SIGNED, PREVIOUS, COLOR, PREVIOUS_BUFFER,
-                         ONE_MINUS_COLOR, SCALE_2);
-  }
-
   INLINE void ApplySepia() {
     this->SetConstant(5, 0, 112, 66, 20);
     this->ConfigureStage(5, MODULATE, PREVIOUS, COLOR, CONSTANT, COLOR,
                          SCALE_1);
   }
 
-  INLINE void ApplyTintRed() {
-    this->SetConstant(5, 0, 255, 90, 90);
-    this->ConfigureStage(5, MODULATE, PREVIOUS, COLOR, CONSTANT, COLOR,
-                         SCALE_1);
+  INLINE void ApplyObsidian() {
+    this->ConfigureStage(5, REPLACE, FRAGMENT_PRIMARY_COLOR, COLOR);
   }
 
-  INLINE void ApplyTintBlue() {
-    this->SetConstant(5, 0, 90, 90, 255);
-    this->ConfigureStage(5, MODULATE, PREVIOUS, COLOR, CONSTANT, COLOR,
-                         SCALE_1);
+  INLINE void ApplyPlasma() {
+    this->ConfigureStage(5, REPLACE, FRAGMENT_SECONDARY_COLOR, COLOR);
   }
 
-  INLINE void ApplyTintGreen() {
-    this->SetConstant(5, 0, 90, 255, 90);
-    this->ConfigureStage(5, MODULATE, PREVIOUS, COLOR, CONSTANT, COLOR,
-                         SCALE_1);
-  }
-
-  INLINE void ApplyTintPink() {
-    this->SetConstant(5, 0, 255, 20, 200);
-    this->ConfigureStage(5, MODULATE, PREVIOUS, COLOR, CONSTANT, COLOR,
-                         SCALE_1);
-  }
-
-  INLINE void ApplyTintPurple() {
-    this->SetConstant(5, 0, 150, 20, 220);
-    this->ConfigureStage(5, MODULATE, PREVIOUS, COLOR, CONSTANT, COLOR,
-                         SCALE_1);
-  }
-
-  INLINE void ApplyNightVision() {
-    this->SetConstant(4, 0, 40, 255, 40);
-    this->ConfigureStage(4, MODULATE, PREVIOUS, COLOR, CONSTANT, COLOR,
-                         SCALE_1);
-    this->ConfigureStage(5, MODULATE, PREVIOUS_BUFFER, COLOR, PREVIOUS_BUFFER,
-                         COLOR, SCALE_2);
-  }
-
-  INLINE void ApplyVintage() {
-    this->SetConstant(5, 0, 200, 180, 150, 90);
-    this->ConfigureStage(5, INTERPOLATE, PREVIOUS, COLOR, CONSTANT,
-                         ONE_MINUS_COLOR, SCALE_1);
-  }
-
-  INLINE void ApplySolarize() {
-    this->ConfigureStage(5, ADD_SIGNED, PREVIOUS, COLOR, PREVIOUS,
-                         ONE_MINUS_COLOR, SCALE_2);
+  INLINE void ApplySketch() {
+    this->ConfigureStage(5, MODULATE,
+                         FRAGMENT_SECONDARY_COLOR, BLUE,
+                         FRAGMENT_SECONDARY_COLOR, BLUE, SCALE_1);
   }
 
   INLINE void ApplyChromeMetallic() {
@@ -246,72 +278,20 @@ struct H3dModel {
                          ONE_MINUS_COLOR, SCALE_1);
   }
 
-  INLINE void ApplyGoldMetallic() {
-    this->ConfigureStage(4, MODULATE, PREVIOUS, COLOR, PREVIOUS, COLOR,
-                         SCALE_4);
-    this->SetConstant(5, 0, 255, 215, 120);
-    this->ConfigureStage(5, INTERPOLATE, PREVIOUS_BUFFER, COLOR, CONSTANT,
-                         ONE_MINUS_COLOR, SCALE_1);
-  }
-
-  INLINE void ApplyDuotoneOceanFire() {
-    this->SetConstant(4, 0, 77, 150, 29);
-    this->ConfigureStage(4, DOT3_RGB, CONSTANT, COLOR, PREVIOUS, COLOR,
-                         SCALE_1);
-    this->SetConstant(5, 1, 255, 140, 40);
-    this->ConfigureStage(5, INTERPOLATE, CONSTANT, COLOR, PREVIOUS_BUFFER,
-                         COLOR, SCALE_1);
-  }
-
-  INLINE void ApplyThermalCam() {
-    this->SetConstant(4, 0, 77, 150, 29);
-    this->ConfigureStage(4, DOT3_RGB, CONSTANT, COLOR, PREVIOUS, COLOR,
-                         SCALE_1);
-    this->SetConstant(5, 1, 255, 0, 120);
-    this->ConfigureStage(5, MODULATE, PREVIOUS_BUFFER, COLOR, CONSTANT, COLOR,
-                         SCALE_2);
-  }
-
-  INLINE void ApplyFilmNoir() {
-    this->SetConstant(4, 0, 77, 150, 29);
-    this->ConfigureStage(4, DOT3_RGB, CONSTANT, COLOR, PREVIOUS, COLOR,
-                         SCALE_1);
-    this->ConfigureStage(5, INTERPOLATE, PREVIOUS, COLOR, PREVIOUS_BUFFER,
-                         ONE_MINUS_COLOR, SCALE_2);
-  }
-
-  INLINE void ApplyBlueprint() {
-    this->SetConstant(4, 0, 77, 150, 29);
-    this->ConfigureStage(4, DOT3_RGB, CONSTANT, COLOR, PREVIOUS, COLOR,
-                         SCALE_1);
-    this->SetConstant(5, 1, 40, 80, 200);
-    this->ConfigureStage(5, MODULATE, PREVIOUS_BUFFER, ONE_MINUS_COLOR,
-                         CONSTANT, COLOR, SCALE_1);
-  }
-
-  INLINE void ApplyXray() {
-    this->ConfigureStage(4, REPLACE, PREVIOUS, ONE_MINUS_COLOR);
-    this->SetConstant(5, 0, 150, 220, 255);
-    this->ConfigureStage(5, MODULATE, PREVIOUS_BUFFER, COLOR, CONSTANT, COLOR,
-                         SCALE_2);
-  }
-
-  void ApplyToon() {
-    s32 matCnt = this->GetMaterialCount();
-    for (s32 i = 0; i < matCnt; ++i) {
-      this->SetCombineRgb(i, 1, MODULATE);
-    }
+  INLINE void ApplyLiquidChrome() {
+    this->SetConstant(5, 0, 225, 238, 255);
+    this->ConfigureStage(5, INTERPOLATE,
+                         CONSTANT, COLOR,
+                         PREVIOUS, GREEN, SCALE_1,
+                         FRAGMENT_SECONDARY_COLOR, BLUE);
   }
 
   void ApplyGhostMode() {
-    s32 matCnt = this->GetMaterialCount();
-    for (s32 i = 0; i < matCnt; ++i) {
-      this->SetAlphaTestEnable(i, true);
-      this->SetTranslucencyKind(i, 1);
-    }
-    this->SetConstant(5, 0, 255, 255, 255, 128);
+    this->EnableAlphaBlend();
+    this->SetConstant(5, 0, 255, 255, 255, 110);
     this->ConfigureAlphaStage(5, MODULATE, PREVIOUS, 0, CONSTANT, 0);
   }
+
 };
 
 } // namespace renderer
