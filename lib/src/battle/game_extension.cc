@@ -181,6 +181,55 @@ static void MistySurgeReaction(Listener* self,
   controller->Apply(mut);
 }
 
+static StatStageEffectKind
+GetBeastBoostStage(Pokemon* pkm) {
+  u16 max = pkm->attack;
+  StatStageEffectKind kind = StatStageEffectKind::kAttack;
+  if (pkm->defense > max) {
+    kind = StatStageEffectKind::kDefense;
+    max = pkm->defense;
+  }
+  if (pkm->special_attack > max) {
+    kind = StatStageEffectKind::kSpecialAttack;
+    max = pkm->special_attack;
+  }
+  if (pkm->special_defense > max) {
+    kind = StatStageEffectKind::kSpecialDefense;
+    max = pkm->special_defense;
+  }
+  if (pkm->speed > max) {
+    kind = StatStageEffectKind::kSpecialAttack;
+    max = pkm->speed;
+  }
+  return kind;
+}
+
+static void BeastBoostReaction(Listener* self,
+                               Controller* controller,
+                               UID owner,
+                               s32* local_state) {
+  if (Situation::Get(SituationKey::kMoveUserId) != owner.value) return;
+
+  s8 count = 0;
+  for (u32 i = 0; i < Situation::Get(SituationKey::kTargetCount); i++) {
+    const u32 target = static_cast<u32>(SituationKey::kTargetId1) + i;
+    UID id{(u8)Situation::Get(static_cast<SituationKey>(target))};
+    auto* pkm = controller->GetPokemon(id);
+    if (pkm->hp == 0) count++;
+  }
+
+  if (count <= 0) return;
+
+  auto* mut = static_cast<AdjustStatStageMutation*>(controller->Create(
+      MutationKind::kAdjustStatStage, owner));
+  mut->show_ability_banner = true;
+  mut->target_count = 1;
+  mut->target_ids[0] = owner;
+  mut->stage_kind = GetBeastBoostStage(controller->GetPokemon(owner));
+  mut->stage_delta = count;
+  controller->Apply(mut);
+}
+
 static const ReactionTable kToxicDrizzleReactions[] = {
     {MomentKind::kPokemonEntered, ToxicDrizzleReaction},
 };
@@ -205,6 +254,9 @@ static const ReactionTable kGrassySurgeReactions[] = {
 static const ReactionTable kMistySurgeReactions[] = {
     {MomentKind::kPokemonEntered, MistySurgeReaction},
     {MomentKind::kAfterAbilityChange, MistySurgeReaction},
+};
+static const ReactionTable kBeastBoostReactions[] = {
+    {MomentKind::kDamageSequenceEndRealHit, BeastBoostReaction},
 };
 
 // ----------------------------------------------------------------------
@@ -237,6 +289,10 @@ static const AbilitySpec kAbilities[] = {
     {kAbilityMistySurge, u"Misty Surge",
      u"Turns the ground into Misty Terrain\nwhen the Pokémon enters a battle.",
      kMistySurgeReactions, SIZE(kMistySurgeReactions)},
+
+    {kAbilityBeastBoost, u"Beat Boost",
+     u"Boosts the Pokémon's highest stat\nwhen it knocks out a target.",
+     kBeastBoostReactions, SIZE(kBeastBoostReactions)},
 };
 
 // ----------------------------------------------------------------------

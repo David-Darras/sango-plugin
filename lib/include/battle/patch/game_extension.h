@@ -32,6 +32,7 @@ constexpr AbilityId kAbilityElectricSurge = static_cast<AbilityId>(252);
 constexpr AbilityId kAbilityPsychicSurge = static_cast<AbilityId>(251);
 constexpr AbilityId kAbilityGrassySurge = static_cast<AbilityId>(250);
 constexpr AbilityId kAbilityMistySurge = static_cast<AbilityId>(249);
+constexpr AbilityId kAbilityBeastBoost = static_cast<AbilityId>(248);
 constexpr MoveId kMoveAbsoluteZero = static_cast<MoveId>(863);
 constexpr MoveId kMoveSolarFlare = static_cast<MoveId>(864);
 
