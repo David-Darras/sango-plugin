@@ -36,80 +36,83 @@ enum class MutationKind : u8 {
 
   kCureStatus = 10,
   kInflictStatus = 11,
+  kSetStickyStatusParams = 12,
+  ///< Re-apply/overwrite the parameters of a status the target already has
 
-  kAdjustStatStage = 12,
-  kSetStatStageDirectly = 13,
-  kResetAllStatStages = 14,
-  kOverwriteBaseStat = 15,
+  kAdjustStatStage = 13,
+  kSetStatStageDirectly = 14,
+  kResetAllStatStages = 15,
+  kOverwriteBaseStat = 16,
   ///< Force-overwrite a raw stat number (Attack, Defense...)
-  kRemoveStatDebuffs = 16,
+  kRemoveStatDebuffs = 17,
 
-  kKnockOut = 17,
-  kChangeType = 18,
-  kAddExtraType = 19, ///< Grant a 3rd type on top of the existing two
+  kKnockOut = 18,
+  kChangeType = 19,
+  kAddExtraType = 20, ///< Grant a 3rd type on top of the existing two
 
-  kSetTurnMarker = 20, ///< Set a flag that clears automatically at end of turn
-  kClearTurnMarker = 21, ///< Force-clear a turn-scoped flag
-  kSetPersistentMarker = 22, ///< Set a flag that survives across turns
-  kClearPersistentMarker = 23,
+  kSetTurnMarker = 21, ///< Set a flag that clears automatically at end of turn
+  kClearTurnMarker = 22, ///< Force-clear a turn-scoped flag
+  kSetPersistentMarker = 23, ///< Set a flag that survives across turns
+  kClearPersistentMarker = 24,
 
-  kAddTeamEffect = 24,
+  kAddTeamEffect = 25,
   ///< Add an effect covering one whole team's side (Light Screen, Tailwind...)
-  kRemoveTeamEffect = 25,
-  kSetTeamEffectPaused = 26,
+  kRemoveTeamEffect = 26,
+  kSetTeamEffectPaused = 27,
 
-  kAddFieldEffect = 27, ///< Add a whole-field effect (Trick Room, Gravity...)
-  kRemoveFieldEffect = 28,
-  kChangeWeather = 29,
-  kAddPositionalEffect = 30, ///< Add an effect tied to one specific field slot
+  kAddFieldEffect = 28, ///< Add a whole-field effect (Trick Room, Gravity...)
+  kRemoveFieldEffect = 29,
+  kChangeWeather = 30,
+  kAddPositionalEffect = 31, ///< Add an effect tied to one specific field slot
 
-  kChangeAbility = 31,
-  kSetHeldItem = 32,
-  kCheckItemActivation = 33,
+  kChangeAbility = 32,
+  kSetHeldItem = 33,
+  kCheckItemActivation = 34,
   ///< Check whether a held item's effect should trigger
-  kActivateItemEffect = 34,
-  kConsumeItem = 35,
-  kSwapHeldItems = 36,
+  kActivateItemEffect = 35,
+  kConsumeItem = 36,
+  kSwapHeldItems = 37,
 
-  kOverwriteMoveData = 37,
-  kSetMoveCounter = 38,
+  kOverwriteMoveData = 38,
+  kSetMoveCounter = 39,
   ///< Set a Pokémon's internal move-tracking counter (combo/retaliation moves)
-  kDelayedMoveDamage = 39,
+  kDelayedMoveDamage = 40,
   ///< Schedule damage to land on a later turn (Future Sight-style)
 
-  kLeaveBattle = 40,
-  kSwitchInPokemon = 41,
-  kBatonTouch = 42, ///< Pass stat stages (and similar) to the incoming Pokémon
-  kFlinch = 43,
-  kRevive = 44,
-  kSetWeight = 45,
-  kForceSwitchOut = 46,
+  kLeaveBattle = 41,
+  kSwitchInPokemon = 42,
+  kBatonTouch = 43, ///< Pass stat stages (and similar) to the incoming Pokémon
+  kFlinch = 44,
+  kRevive = 45,
+  kSetWeight = 46,
+  kForceSwitchOut = 47,
   ///< Forcibly remove the Pokémon from the field (Roar/Whirlwind-style)
-  kForceActImmediately = 47,
+  kForceActImmediately = 48,
   ///< Insert an action for a Pokémon right now, out of normal turn order
-  kInterceptPendingMove = 48,
+  kInterceptPendingMove = 49,
   ///< Intercept a Pokémon that is about to use a specific move
-  kDeferActionToTurnEnd = 49,
+  kDeferActionToTurnEnd = 50,
   ///< Push a Pokémon's action to resolve last this turn
-  kSwapActivePokemon = 50,
+  kSwapActivePokemon = 51,
 
-  kTransform = 51,
-  kBreakIllusion = 52,
-  kCheckGravityEffects = 53,
+  kTransform = 52,
+  kBreakIllusion = 53,
+  kCheckGravityEffects = 54,
   ///< Run the checks triggered when Gravity activates
-  kCancelSemiInvulnerableState = 54,
+  kCancelSemiInvulnerableState = 55,
   ///< Cancel a semi-invulnerable state (Fly, Dig, Dive...)
 
-  kPlayVisualEffectAtPosition = 55,
+  kPlayVisualEffectAtPosition = 56,
   ///< Play a visual effect at a chosen field position
-  kFadeOutMessageWindow = 56,
-  kChangeForm = 57,
-  kSetMoveEffectVariant = 58,
+  kFadeOutMessageWindow = 57,
+  kChangeForm = 58,
+  kSetMoveEffectVariant = 59,
   ///< Choose which visual variant of a move's effect to play
-  kForcePlayMoveEffect = 59,
+  kForcePlayMoveEffect = 60,
   ///< Force a move's visual effect to play regardless of normal conditions
-  kApplyFriendshipBonus = 60,
+  kFreefall = 61,
+  kApplyFriendshipBonus = 62,
 
-  kCount = 61,
+  kCount = 63,
 };
 }

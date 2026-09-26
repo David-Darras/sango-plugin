@@ -21,6 +21,7 @@
 
 namespace battle {
 enum class MutationMessageId : u16 {
+  kNone,
   // TODO
   kCount
 };

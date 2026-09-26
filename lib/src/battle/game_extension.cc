@@ -117,6 +117,70 @@ static void RealityWarpReaction(Listener* self,
   CastMove(controller, owner, MoveId::kStealthRock);
 }
 
+static void ElectricSurgeReaction(Listener* self,
+                                  Controller* controller,
+                                  UID owner,
+                                  s32* local_state) {
+  if (Situation::Get(SituationKey::kPokemonId) != owner.value) return;
+
+  auto* mut = static_cast<AddFieldEffectMutation*>(controller->Create(
+      MutationKind::kAddFieldEffect, owner));
+  mut->show_ability_banner = true;
+  mut->effect = FieldEffectKind::kTerrain;
+  mut->terrain = TerrainKind::kElectricTerrain;
+  mut->duration.raw = 1;
+  mut->message.id = MutationMessageId::kNone;
+  controller->Apply(mut);
+}
+
+static void PsychicSurgeReaction(Listener* self,
+                                 Controller* controller,
+                                 UID owner,
+                                 s32* local_state) {
+  if (Situation::Get(SituationKey::kPokemonId) != owner.value) return;
+
+  auto* mut = static_cast<AddFieldEffectMutation*>(controller->Create(
+      MutationKind::kAddFieldEffect, owner));
+  mut->show_ability_banner = true;
+  mut->effect = FieldEffectKind::kTerrain;
+  mut->terrain = TerrainKind::kMistyTerrain;
+  mut->duration.raw = 1;
+  mut->message.id = MutationMessageId::kNone;
+  controller->Apply(mut);
+}
+
+static void GrassySurgeReaction(Listener* self,
+                                Controller* controller,
+                                UID owner,
+                                s32* local_state) {
+  if (Situation::Get(SituationKey::kPokemonId) != owner.value) return;
+
+  auto* mut = static_cast<AddFieldEffectMutation*>(controller->Create(
+      MutationKind::kAddFieldEffect, owner));
+  mut->show_ability_banner = true;
+  mut->effect = FieldEffectKind::kTerrain;
+  mut->terrain = TerrainKind::kGrassyTerrain;
+  mut->duration.raw = 1;
+  mut->message.id = MutationMessageId::kNone;
+  controller->Apply(mut);
+}
+
+static void MistySurgeReaction(Listener* self,
+                               Controller* controller,
+                               UID owner,
+                               s32* local_state) {
+  if (Situation::Get(SituationKey::kPokemonId) != owner.value) return;
+
+  auto* mut = static_cast<AddFieldEffectMutation*>(controller->Create(
+      MutationKind::kAddFieldEffect, owner));
+  mut->show_ability_banner = true;
+  mut->effect = FieldEffectKind::kTerrain;
+  mut->terrain = TerrainKind::kMistyTerrain;
+  mut->duration.raw = 1;
+  mut->message.id = MutationMessageId::kNone;
+  controller->Apply(mut);
+}
+
 static const ReactionTable kToxicDrizzleReactions[] = {
     {MomentKind::kPokemonEntered, ToxicDrizzleReaction},
 };
@@ -125,6 +189,22 @@ static const ReactionTable kRadioactiveDrizzleReactions[] = {
 };
 static const ReactionTable kRealityWarpReactions[] = {
     {MomentKind::kPokemonEntered, RealityWarpReaction},
+};
+static const ReactionTable kElectricSurgeReactions[] = {
+    {MomentKind::kPokemonEntered, ElectricSurgeReaction},
+    {MomentKind::kAfterAbilityChange, ElectricSurgeReaction},
+};
+static const ReactionTable kPsychicSurgeReactions[] = {
+    {MomentKind::kPokemonEntered, PsychicSurgeReaction},
+    {MomentKind::kAfterAbilityChange, PsychicSurgeReaction},
+};
+static const ReactionTable kGrassySurgeReactions[] = {
+    {MomentKind::kPokemonEntered, GrassySurgeReaction},
+    {MomentKind::kAfterAbilityChange, GrassySurgeReaction},
+};
+static const ReactionTable kMistySurgeReactions[] = {
+    {MomentKind::kPokemonEntered, MistySurgeReaction},
+    {MomentKind::kAfterAbilityChange, MistySurgeReaction},
 };
 
 // ----------------------------------------------------------------------
@@ -141,6 +221,22 @@ static const AbilitySpec kAbilities[] = {
      kRadioactiveDrizzleReactions, SIZE(kRadioactiveDrizzleReactions)},
     {kAbilityRealityWarp, u"Reality Warp", u"???",
      kRealityWarpReactions, SIZE(kRealityWarpReactions)},
+
+    {kAbilityElectricSurge, u"Electric Surge",
+     u"Turns the ground into Electric Terrain\nwhen the Pokémon enters a battle.",
+     kElectricSurgeReactions, SIZE(kElectricSurgeReactions)},
+
+    {kAbilityPsychicSurge, u"Psychic Surge",
+     u"Turns the ground into Psychic Terrain\nwhen the Pokémon enters a battle.",
+     kPsychicSurgeReactions, SIZE(kPsychicSurgeReactions)},
+
+    {kAbilityGrassySurge, u"Grassy Surge",
+     u"Turns the ground into Grassy Terrain\nwhen the Pokémon enters a battle.",
+     kGrassySurgeReactions, SIZE(kGrassySurgeReactions)},
+
+    {kAbilityMistySurge, u"Misty Surge",
+     u"Turns the ground into Misty Terrain\nwhen the Pokémon enters a battle.",
+     kMistySurgeReactions, SIZE(kMistySurgeReactions)},
 };
 
 // ----------------------------------------------------------------------
@@ -221,32 +317,38 @@ static const MoveSpec kMoves[] = {
 // GameExtension.
 // ----------------------------------------------------------------------
 void GameExtension::Initialize() {
-  core::HookManager::Initialize(HookId::kGetMoveName, pokemon::address::kGetMoveName,
-                          (uptr)GetMoveNameHook);
-  core::HookManager::Initialize(HookId::kGetAbilityName, pokemon::address::kGetAbilityName,
-                          (uptr)GetAbilityNameHook);
+  core::HookManager::Initialize(HookId::kGetMoveName,
+                                pokemon::address::kGetMoveName,
+                                (uptr)GetMoveNameHook);
+  core::HookManager::Initialize(HookId::kGetAbilityName,
+                                pokemon::address::kGetAbilityName,
+                                (uptr)GetAbilityNameHook);
   core::HookManager::Initialize(HookId::kGetAbilityDescription,
-                          pokemon::address::kGetAbilityDescription,
-                          (uptr)GetAbilityDescriptionHook);
-  core::HookManager::Initialize(HookId::kSetAbilityName, pokemon::address::kSetAbilityName,
-                          (uptr)SetAbilityNameHook);
-  core::HookManager::Initialize(HookId::kSetMoveName, pokemon::address::kSetMoveName,
-                          (uptr)SetMoveNameHook);
-  core::HookManager::Initialize(HookId::kMessageGetString, sys::address::kMessageGetString,
-                          (uptr)MessageGetStringHook);
+                                pokemon::address::kGetAbilityDescription,
+                                (uptr)GetAbilityDescriptionHook);
+  core::HookManager::Initialize(HookId::kSetAbilityName,
+                                pokemon::address::kSetAbilityName,
+                                (uptr)SetAbilityNameHook);
+  core::HookManager::Initialize(HookId::kSetMoveName,
+                                pokemon::address::kSetMoveName,
+                                (uptr)SetMoveNameHook);
+  core::HookManager::Initialize(HookId::kMessageGetString,
+                                sys::address::kMessageGetString,
+                                (uptr)MessageGetStringHook);
   core::HookManager::Initialize(HookId::kBattleRegisterAbilityListener,
-                          address::kRegisterAbilityListener,
-                          (uptr)GetBattleAbilityHandlerHook, false);
+                                address::kRegisterAbilityListener,
+                                (uptr)GetBattleAbilityHandlerHook, false);
   core::HookManager::Initialize(HookId::kBattleRegisterMoveListener,
-                          address::kRegisterMoveListener,
-                          (uptr)GetBattleMoveHandlerHook, false);
+                                address::kRegisterMoveListener,
+                                (uptr)GetBattleMoveHandlerHook, false);
   core::HookManager::Initialize(HookId::kBattleLoadAnimation,
-                          address::kLoadAnimation,
-                          (uptr)BattleLoadAnimationHook, false);
+                                address::kLoadAnimation,
+                                (uptr)BattleLoadAnimationHook, false);
   core::HookManager::Initialize(HookId::kBattleAddTerrain, address::kAddTerrain,
-                          (uptr)BattleAddTerrainHook, false);
-  core::HookManager::Initialize(HookId::kLoadMoveData, pokemon::address::kLoadMoveData,
-                          (uptr)LoadMoveData);
+                                (uptr)BattleAddTerrainHook, false);
+  core::HookManager::Initialize(HookId::kLoadMoveData,
+                                pokemon::address::kLoadMoveData,
+                                (uptr)LoadMoveData);
 }
 
 void GameExtension::PatchBattleLoad() {
@@ -272,7 +374,8 @@ void GameExtension::BattleLoadAnimationHook(uptr self, u32 id, bool is_move) {
       }
     }
   }
-  core::HookManager::Call<void>(HookId::kBattleLoadAnimation, self, id, is_move);
+  core::HookManager::Call<
+    void>(HookId::kBattleLoadAnimation, self, id, is_move);
 }
 
 u32 GameExtension::LoadMoveData(uptr self, MoveId move_id) {
@@ -349,7 +452,8 @@ uptr GameExtension::GetBattleAbilityHandlerHook(Pokemon* pkm) {
           spec.reaction_count);
     }
   }
-  return core::HookManager::Call<uptr>(HookId::kBattleRegisterAbilityListener, pkm);
+  return core::HookManager::Call<uptr>(HookId::kBattleRegisterAbilityListener,
+                                       pkm);
 }
 
 uptr GameExtension::GetBattleMoveHandlerHook(Pokemon* pkm, MoveId move,
@@ -363,12 +467,14 @@ uptr GameExtension::GetBattleMoveHandlerHook(Pokemon* pkm, MoveId move,
           spec.reaction_count);
     }
   }
-  return core::HookManager::Call<uptr>(HookId::kBattleRegisterMoveListener, pkm, move, x);
+  return core::HookManager::Call<uptr>(HookId::kBattleRegisterMoveListener, pkm,
+                                       move, x);
 }
 
 void GameExtension::MessageGetStringHook(Message* self, u32 str_id,
                                          String* output) {
-  core::HookManager::Call<void>(HookId::kMessageGetString, self, str_id, output);
+  core::HookManager::Call<
+    void>(HookId::kMessageGetString, self, str_id, output);
   switch (self->file_id) {
     case 14:
     case 15:
@@ -393,7 +499,8 @@ void GameExtension::MessageGetStringHook(Message* self, u32 str_id,
 }
 
 void GameExtension::SetAbilityNameHook(uptr self, u32 archive, u32 ability) {
-  core::HookManager::Call<void>(HookId::kSetAbilityName, self, archive, ability);
+  core::HookManager::Call<
+    void>(HookId::kSetAbilityName, self, archive, ability);
   String* output = (String*)READ32(READ32(self + 8) + 12 * archive);
   PatchAbilityName(static_cast<AbilityId>(ability), output);
 }
@@ -420,5 +527,4 @@ void GameExtension::GetAbilityDescriptionHook(String* output,
     return;
   GetAbilityDescription().GetString(static_cast<u8>(ability), output);
 }
-
 } // namespace battle
