@@ -18,6 +18,7 @@
 #pragma once
 
 #include "common.h"
+#include "pokemon/constant/item.h"
 #include "savedata/native/savedata.h"
 
 namespace savedata {
@@ -32,14 +33,21 @@ enum class BerryTreeState {
   kCount
 };
 
+static const ItemId BerryIdToItemId(u16 berry_id) {
+  auto* table = (ItemId*)(overworld::address::kBerryIdTable);
+  if (berry_id >= 67) return ItemId::kNone;
+  return table[berry_id];
+}
+
 struct BerryTree {
   BerryTreeState state;
   u16 elapsed_minutes;
   u16 moisture_minutes;
-  ItemId item_id;
+  u16 berry_id;
   f32 count;
-  bool default_berry;
+  bool use_default_berry;
 };
+
 
 struct BerryTreeManager {
   SINGLETON(BerryTreeManager)

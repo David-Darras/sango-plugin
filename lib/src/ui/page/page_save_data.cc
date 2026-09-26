@@ -17,11 +17,13 @@
 
 #include <cstring>
 
+#include "overworld/native/berry_tree_location.h"
 #include "pokemon/native/core_data.h"
 #include "pokemon/native/data_accessor.h"
 #include "pokemon/native/utils.h"
 #include "savedata/native/bag_manager.h"
 #include "savedata/native/battle_box.h"
+#include "savedata/native/berry_tree_manager.h"
 #include "savedata/native/box_manager.h"
 #include "savedata/native/day_care.h"
 #include "savedata/native/fusion.h"
@@ -816,10 +818,55 @@ void LoadSaveDataTrainerPage(MainApplication& app, void* args) {
      .Add("Overworld Menu", LoadSaveDataOverworldMenuPage);
 }
 
+static u32 tree_idx = 0;
+static ItemId berry_item_id = ItemId::kNone;
+
+static void UpdateBerryId(void*) {
+  auto& data = savedata::BerryTreeManager::GetInstance();
+  auto& tree = data.berry_trees[tree_idx];
+  berry_item_id = savedata::BerryIdToItemId(tree.berry_id);
+}
+
+void LoadSaveDataBerryTreePage(MainApplication& app, void* args) {
+  if (app.CheckProcess(overworld::address::kVtable)) return;
+
+  static const c8* BERRY_TREE_STATES[] = {
+      "None", "Seeded", "Sprout", "Tall",
+      "Flowering", "Berries", "Withered"
+  };
+
+  auto& data = savedata::BerryTreeManager::GetInstance();
+
+  app.Add("Tree Index", tree_idx)
+     .WithBounds(0, savedata::BerryTreeManager::kMaxBerryTrees - 1)
+     .WithRefresh()
+     .AddSeparator();
+
+  auto& tree = data.berry_trees[tree_idx];
+  auto& loc = overworld::BerryTreeLocation::GetInstance(tree_idx);
+
+  UpdateBerryId(nullptr);
+  app.Add("State", reinterpret_cast<u32&>(tree.state))
+     .WithArray(BERRY_TREE_STATES, SIZE(BERRY_TREE_STATES))
+     .Add("Elapsed Minutes", tree.elapsed_minutes)
+     .Add("Moisture Minutes", tree.moisture_minutes)
+     .Add("Berry ID", tree.berry_id)
+     .WithCallback(UpdateBerryId)
+     .AddItem("(Item)", berry_item_id)
+     .Add("Count", tree.count)
+     .Add("Use Default Berry", tree.use_default_berry)
+     .AddSeparator()
+     .Add("Map ID", loc.map_id)
+     .Add("Tile X", loc.tile_x)
+     .Add("Tile Z", loc.tile_z)
+     .Add("Height", loc.height);
+}
+
 void LoadSaveDataItemsPage(MainApplication& app, void* args) {
   app.Add("Bag Items", LoadSaveDataBagItemsPage)
      .Add("Bag Metadata", LoadSaveDataBagMetadataPage)
      .Add("Boxes Metadata", LoadSaveDataBoxesMetadataPage)
+     .Add("Berry Trees", LoadSaveDataBerryTreePage)
      .Add("Repel", LoadSaveDataRepelPage);
 }
 

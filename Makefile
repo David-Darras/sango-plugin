@@ -9,7 +9,7 @@ endif
 export TOPDIR ?= $(CURDIR)
 include $(DEVKITARM)/3ds_rules
 
-PLUGIN_VERSION  := 5.0.0
+PLUGIN_VERSION  := 5.1.0
 PLUGIN_CREATOR  := ZettaD
 
 # Target game: ORAS (Alpha Sapphire, 000400000011C500) or XY (X, 0004000000055D00).
