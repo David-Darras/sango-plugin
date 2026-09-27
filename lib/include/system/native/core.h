@@ -34,6 +34,7 @@ public:
   INLINE Graphics& GetGraphics() const { return *graphics_; }
   INLINE Language& GetLanguage() const { return *language; }
   INLINE FontManager& GetFontManager() const { return *font_manager_; }
+  INLINE void ForceReset() { reset = true; }
 
 private:
   Device* device_;
@@ -41,6 +42,10 @@ private:
   void* _0[21];
   Language* language;
   FontManager* font_manager_;
+  u32 _1[4];
+  bool _2;
+  bool reset;
+  bool _3;
+  bool _4;
 };
-
 } // namespace sys

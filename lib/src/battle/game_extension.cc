@@ -290,7 +290,7 @@ static const AbilitySpec kAbilities[] = {
      u"Turns the ground into Misty Terrain\nwhen the Pokémon enters a battle.",
      kMistySurgeReactions, SIZE(kMistySurgeReactions)},
 
-    {kAbilityBeastBoost, u"Beat Boost",
+    {kAbilityBeastBoost, u"Beast Boost",
      u"Boosts the Pokémon's highest stat\nwhen it knocks out a target.",
      kBeastBoostReactions, SIZE(kBeastBoostReactions)},
 };

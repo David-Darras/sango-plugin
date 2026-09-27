@@ -24,12 +24,23 @@
 #include "battle/patch/battle.h"
 #include "battle/patch/setup.h"
 #include "battle/patch/type_chart.h"
+#include "overworld/data/static_encounter.inc"
 #include "overworld/patch/camera.h"
 #include "ui/main_application.h"
 #include "ui/page/pages.h"
 
 namespace ui {
 #include "battle/data/config.inc"
+
+static u32 static_encounter_id = 0;
+
+static void StartBattle(void*) {
+  ((void(*)(core::GameManager*, u32, u32, s32))0x0077D0C4)(
+      &core::GameManager::GetInstance(),
+      static_encounter_id,
+      0,
+      -1);
+}
 
 // --- Options ---------------------------------------------------------------
 
@@ -319,6 +330,9 @@ void LoadBattleLivePage(MainApplication& app, void* args) {
 
 void LoadBattlePage(MainApplication& app, void* args) {
   app.Add("Settings", LoadBattleSettingsPage)
+     .Add("Static Encounter", static_encounter_id)
+     .WithArray(STATIC_ENCOUNTER_NAMES, SIZE(STATIC_ENCOUNTER_NAMES))
+     .WithCallback(StartBattle)
      .Add("Wild Battle Setup", LoadBattleSetupPage)
      .Add("Type Chart", LoadTypeChartPage)
      .AddSeparator()
