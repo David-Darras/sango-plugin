@@ -32,6 +32,7 @@
 #include "overworld/patch/map_tile.h"
 #include "overworld/patch/tile_editor.h"
 #include "overworld/patch/weather_override.h"
+#include "core/patch/time_override.h"
 #include "renderer/native/h3d_shader_model.h"
 #include "system/native/sound.h"
 #include "ui/main_application.h"
@@ -95,6 +96,29 @@ void LoadWeatherPage(MainApplication& app, void* args) {
      .Add("Rain Mode", ctx.mode)
      .WithArray(RAIN_MODES, SIZE(RAIN_MODES))
      .WithBounds(0, SIZE(RAIN_MODES) - 1);
+}
+
+static void SetTimeOfDay(u8 hour) {
+  auto& ctx = core::TimeOverride::GetInstance();
+  ctx.is_enabled = true;
+  ctx.hour = hour;
+  ctx.minute = 0;
+}
+
+void LoadTimeOfDayPage(MainApplication& app, void* args) {
+  auto& ctx = core::TimeOverride::GetInstance();
+
+  app.Add("Override Time", ctx.is_enabled)
+     .Add("Hour", ctx.hour)
+     .WithBounds(0, 23)
+     .Add("Minute", ctx.minute)
+     .WithBounds(0, 59)
+     .AddSeparator()
+     .Add("Morning (7:00)", [](void*) { SetTimeOfDay(7); })
+     .Add("Day (12:00)", [](void*) { SetTimeOfDay(12); })
+     .Add("Evening (18:00)", [](void*) { SetTimeOfDay(18); })
+     .Add("Night (22:00)", [](void*) { SetTimeOfDay(22); })
+     .Add("Midnight (0:00)", [](void*) { SetTimeOfDay(0); });
 }
 
 void LoadOverworldMapTilePage(MainApplication& app, void* args) {
@@ -285,6 +309,7 @@ void LoadOverworldPage(MainApplication& app, void* args) {
      .Add("Reload Map", RefreshMap)
      .AddSeparator()
      .Add("Weather", LoadWeatherPage)
+     .Add("Time of Day", LoadTimeOfDayPage)
      .Add("World Layout", LoadWorldLayoutPage)
      .Add("Map Tile", LoadOverworldMapTilePage)
      .Add("Props", LoadPropModelPage)

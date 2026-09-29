@@ -88,6 +88,7 @@ constexpr uptr kGetRandomValue = GAME_ADDRESS(0x0045C358, 0x0048AF80);
 constexpr uptr kGetElapsedTime = GAME_ADDRESS(0x0012AF08, 0x0012B724);
 constexpr uptr kConvertTimeToSeconds = GAME_ADDRESS(0x0012FB40, 0x0012FBDC);
 constexpr uptr kDateTime = GAME_ADDRESS(0x005D45E0, 0x006174F8);
+constexpr uptr kGetSystemDateTime = GAME_ADDRESS(0x00146F78, 0x001463DC);
 constexpr uptr kCheckAppRequest = GAME_ADDRESS(0x00770584, 0x007BDE50);
 constexpr uptr kMainProcessLoop = GAME_ADDRESS(0x00394E88, 0x003AB62C);
 constexpr uptr kMainEventLoop = GAME_ADDRESS(0x00117D7C, 0x00117E4C);

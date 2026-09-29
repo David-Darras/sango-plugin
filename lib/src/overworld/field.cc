@@ -16,6 +16,7 @@
  */
 
 #include "overworld/patch/field.h"
+#include "overworld/patch/auto_surf.h"
 #include "core/hook_manager.h"
 #include "overworld/patch/day_care.h"
 #include "overworld/patch/gift_pokemon.h"
@@ -65,6 +66,7 @@ void Field::PatchLoad() {
   core::HookManager::ForceEnable(HookId::kOverworldUpdateZone);
   core::HookManager::ForceEnable(HookId::kGetPlayerMovement);
   RunAnimation::PatchLoad();
+  AutoSurf::PatchLoad();
 
   if (address::kSimulateButtonPress) {
     WRITE32(address::kSimulateButtonPress, 0xE1A00000);

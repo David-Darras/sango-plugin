@@ -29,6 +29,7 @@
 #include "core/patch/game_speed.h"
 #include "core/patch/process_patch.h"
 #include "core/patch/script_loader.h"
+#include "overworld/patch/auto_surf.h"
 #include "overworld/patch/camera.h"
 #include "overworld/patch/field.h"
 #include "overworld/patch/field_move.h"
@@ -43,6 +44,7 @@
 #include "overworld/patch/tile_editor.h"
 #include "overworld/patch/trade.h"
 #include "overworld/patch/weather_override.h"
+#include "core/patch/time_override.h"
 #include "overworld/patch/wild_encounter.h"
 #include "pokemon/patch/custom_shop.h"
 #include "pokemon/patch/evolution.h"
@@ -91,6 +93,7 @@ void InitializeEngine() {
   core::Archive::Initialize();
   core::ScriptLoader::Initialize();
   script::NativeScript::Initialize();
+  overworld::AutoSurf::Initialize();
   battle::Setup::Initialize();
   renderer::ModelFilter::Initialize();
   battle::Battle::Initialize();
@@ -117,6 +120,7 @@ void InitializeEngine() {
   overworld::RunAnimation::Initialize();
 #endif
    overworld::WeatherOverride::Initialize();
+   core::TimeOverride::Initialize();
    ui::NewGame::Initialize();
    pokemon::ModelReplacement::Initialize();
    ui::TitleScreen::Initialize();

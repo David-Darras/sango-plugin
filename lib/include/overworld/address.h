@@ -53,6 +53,12 @@ constexpr uptr kTradePokemon = GAME_ADDRESS(0x0073D180, 0x0074AC64);
 constexpr uptr kFlyCheck = GAME_ADDRESS(0, 0x003EF8C4);
 constexpr uptr kSimulateButtonPress = GAME_ADDRESS(0x006D7A74, 0x00715C48);
 
+constexpr uptr kPlayerCheckPushEvent = GAME_ADDRESS(0, 0x0070B80C);
+constexpr uptr kPlayerCallSwimOnEvent = GAME_ADDRESS(0, 0x0070B9E0);
+constexpr uptr kPlayerIsSwimOn = GAME_ADDRESS(0, 0x00783008);
+constexpr uptr kMoveModelGetFacing = GAME_ADDRESS(0, 0x006F3C30);
+constexpr uptr kPartyGetMember = GAME_ADDRESS(0, 0x006F3B30);
+
 constexpr uptr kBerryTreeLocationTable = GAME_ADDRESS(0, 0x007E4458);
 constexpr uptr kBerryIdTable = GAME_ADDRESS(0, 0x005A695C);
 

@@ -26,6 +26,7 @@
 #include "battle/patch/type_chart.h"
 #include "overworld/data/static_encounter.inc"
 #include "overworld/patch/camera.h"
+#include "ui/free_camera_application.h"
 #include "ui/main_application.h"
 #include "ui/page/pages.h"
 
@@ -280,6 +281,8 @@ void LoadBattleCameraPage(MainApplication& app, void* args) {
   auto& ctx = overworld::Camera::GetInstance();
 
   app.WithNoBackground()
+     .Add("Free Camera", [](void*) { FreeCameraApplication::Open(); })
+     .AddSeparator()
      .Add("State", ctx.battle_state)
      .WithArray(STATES, SIZE(STATES))
      .Add("Target Pokemon Slot", ctx.battle_target_pokemon_slot)

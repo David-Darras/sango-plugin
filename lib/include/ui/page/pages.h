@@ -43,6 +43,7 @@ void LoadBattleLivePage(MainApplication& app, void* args);
 // Overworld: the map being played and its data.
 void LoadOverworldPage(MainApplication& app, void* args);
 void LoadWeatherPage(MainApplication& app, void* args);
+void LoadTimeOfDayPage(MainApplication& app, void* args);
 void LoadWorldLayoutPage(MainApplication& app, void* args);
 void LoadOverworldMapTilePage(MainApplication& app, void* args);
 void LoadPropModelPage(MainApplication& app, void* args);

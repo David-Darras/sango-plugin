@@ -19,10 +19,12 @@
 
 #include "core/patch/app_launcher.h"
 #include "overworld/native/model_manager.h"
+#include "overworld/patch/auto_surf.h"
 #include "overworld/patch/camera.h"
 #include "overworld/patch/field_move.h"
 #include "overworld/patch/player_cheats.h"
 #include "overworld/patch/run_animation.h"
+#include "ui/free_camera_application.h"
 #include "ui/main_application.h"
 #include "ui/page/page_common.h"
 #include "ui/page/pages.h"
@@ -90,6 +92,8 @@ void LoadOverworldCameraPage(MainApplication& app, void* args) {
   auto& ctx = overworld::Camera::GetInstance();
 
   app.WithNoBackground()
+     .Add("Free Camera", [](void*) { FreeCameraApplication::Open(); })
+     .AddSeparator()
      .Add("State", ctx.overworld_state)
      .WithArray(STATES, SIZE(STATES))
      .AddSeparator()
@@ -189,6 +193,7 @@ void LoadPlayerPage(MainApplication& app, void* args) {
      .Add("Swarm Rotation Speed", cheats.theta_speed)
      .AddSeparator()
      .Add("Run Animation", overworld::RunAnimation::GetInstance().enabled)
+     .Add("Auto Surf", overworld::AutoSurf::GetInstance().is_enabled)
      .Add("Tile X", player.map_pos.coords.x)
      .Add("Tile Y", player.map_pos.coords.y)
      .Add("Tile Z", player.map_pos.coords.z);
