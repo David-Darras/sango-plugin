@@ -65,6 +65,7 @@
 #include "ui/patch/app_status.h"
 #include "ui/patch/keyboard_patch.h"
 #include "ui/patch/new_game.h"
+#include "ui/patch/party_select.h"
 #include "ui/patch/title_screen.h"
 #include "ui/root_application.h"
 
@@ -119,6 +120,7 @@ void InitializeEngine() {
    ui::NewGame::Initialize();
    pokemon::ModelReplacement::Initialize();
    ui::TitleScreen::Initialize();
+   ui::PartySelect::Initialize();
 }
 
 void LoadConfiguration() {

@@ -33,6 +33,7 @@
 #include "script/native/script_vm.h"
 #include "script/patch/natives.h"
 #include "system/coroutine.h"
+#include "ui/patch/party_select.h"
 
 namespace script {
 
@@ -44,6 +45,11 @@ struct Step {
 
 constexpr s32 kTalkTarget = -1;
 constexpr s32 kPlayerObject = 0xFF;
+
+constexpr u32 kPokeSelectSimple = 1;
+constexpr u32 kPokeSelectContest = 4;
+constexpr s32 kBattleResultWon = 1; // second value of the wild outcome enum
+constexpr s32 kPokeSelectCancel = 6;
 
 constexpr u32 kSoundMessage = (6 << 16) + 0;
 constexpr u32 kSoundDecide = (6 << 16) + 1;
@@ -93,6 +99,32 @@ public:
     Call(natives_._FieldOpen, true);
     Yield();
     return GetVariable(kStarterChoiceResult);
+  }
+
+  /// Opens the party list on the player's team and returns the chosen slot,
+  /// or kPokeSelectCancel when the player backs out.
+  s32 SelectPokemon() {
+    Call(natives_.CallPokeSelect, kPokeSelectSimple,
+         (u32)ScriptVariable::kReturn0, 0, true);
+    Yield();
+    return (s16)GetVariable(ScriptVariable::kReturn0);
+  }
+
+  /// True when the player won the last battle; a loss or a draw is false.
+  bool WonLastBattle() {
+    return Call(natives_.WildBattleResultGet) == kBattleResultWon;
+  }
+
+  /// Opens the party list so the player picks `count` Pokemon at once. The
+  /// chosen party slots go to `order`; kUnsupported means nothing was asked.
+  ui::PartySelect::Status SelectParty(u32 count, u8* order) {
+    if (!ui::PartySelect::kIsSupported) return ui::PartySelect::Status::kUnsupported;
+    auto& party_select = ui::PartySelect::GetInstance();
+    party_select.Arm(count);
+    Call(natives_.CallPokeSelect, kPokeSelectContest,
+         (u32)ScriptVariable::kReturn0, 0, true);
+    Yield();
+    return party_select.GetResult(order);
   }
 
   template <typename... Args>

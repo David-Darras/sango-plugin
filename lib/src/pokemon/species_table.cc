@@ -136,12 +136,14 @@ void SpeciesTable::LoadMovepoolHook(u16 species, u8 form) {
     pool.species = static_cast<SpeciesId>(species);
     pool.form = static_cast<FormId>(form);
     u32 count = 0;
-    for (; count < Gen7Species::kMoveMax; count++) {
-      const u16 move = kGen7Species[i].moves[count].move;
-      if (move == 0 || move >= static_cast<u16>(MoveId::kCount)) break;
+    for (u32 k = 0; k < Gen7Species::kMoveMax; k++) {
+      const u16 move = kGen7Species[i].moves[k].move;
+      if (move == 0) break;
+      if (move >= static_cast<u16>(MoveId::kCount)) continue;
       pool.entry[count].move = static_cast<MoveId>(move);
-      pool.entry[count].level = kGen7Species[i].moves[count].level;
+      pool.entry[count].level = kGen7Species[i].moves[k].level;
       pool.entry[count].padding = 0;
+      count++;
     }
     pool.count = count;
     return;

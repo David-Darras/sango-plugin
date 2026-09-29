@@ -67,6 +67,8 @@ struct Natives {
   NativeFunction _FieldClose;
   NativeFunction _FieldOpen;
   NativeFunction _CallPoke3Select;
+  NativeFunction CallPokeSelect; // (mode, ret_work, param, fade) party list
+  NativeFunction WildBattleResultGet; // () -> outcome of the last battle
 
   bool Resolve() {
     struct Entry {
@@ -117,6 +119,8 @@ struct Natives {
         {"_FieldClose", &_FieldClose},
         {"_FieldOpen", &_FieldOpen},
         {"_CallPoke3Select", &_CallPoke3Select},
+        {"CallPokeSelect", &CallPokeSelect},
+        {"WildBattleResultGet", &WildBattleResultGet},
     };
     bool complete = true;
     for (const auto & entry : entries) {

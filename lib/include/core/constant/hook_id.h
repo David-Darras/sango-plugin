@@ -125,6 +125,7 @@ enum class HookId : u32 {
   kModelPlayAnimation,
   kModelUpdateMotion,
   kTitleSequenceSync,
+  kCallPokemonList,
   kMax
 };
 

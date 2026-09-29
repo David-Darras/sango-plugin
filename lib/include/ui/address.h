@@ -28,6 +28,7 @@ constexpr uptr kAppStatusGetStatTrampoline = GAME_ADDRESS(0, 0x0070BA2C);
 constexpr uptr kLanguageId = GAME_ADDRESS(0x005B1FE1, 0x005F4F01);
 constexpr uptr kAppStatusVtable = GAME_ADDRESS(0x006CCE54, 0x0071C3BC);
 constexpr uptr kAppPokeListVtable = GAME_ADDRESS(0x006BBAD8, 0x00705B08);
+constexpr uptr kCallPokemonList = GAME_ADDRESS(0, 0x00369D60);
 constexpr uptr kKeyboardVtable = GAME_ADDRESS(sys::address::kMemoryRegionKeyboard + 0x9608, 0x0074B628);
 constexpr uptr kFontHasGlyph = GAME_ADDRESS(0x00494F64, 0x004C4B40);
 constexpr uptr kAppLayoutManagerSetTextBoxColor = GAME_ADDRESS(0x0034A334, 0x00362828);
