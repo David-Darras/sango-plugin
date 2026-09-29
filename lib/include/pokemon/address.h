@@ -58,6 +58,7 @@ constexpr uptr kEggHatch = GAME_ADDRESS(0x006D7D14, 0x00715EF0);
 constexpr uptr kEggGeneration = GAME_ADDRESS(0, 0x00711364);
 constexpr uptr kDayCareMaxExp = GAME_ADDRESS(0x00438DBC, 0x00465A34);
 constexpr uptr kReplacePokemonModel = GAME_ADDRESS(0x00443818, 0x004713FC); // XY: unverified (4 branch sites)
+constexpr uptr kPokemonModelSettings = GAME_ADDRESS(0x00442000, 0x0046F950);
 constexpr uptr kEncounterSetPokemon = GAME_ADDRESS(0, 0x0078DB30);
 constexpr uptr kItemDataInitialize = GAME_ADDRESS(0x003A0DE8, 0x003B7B9C);
 constexpr uptr kItemDataGetParam = GAME_ADDRESS(0x004A3D3C, 0x004D3C84);

@@ -58,6 +58,7 @@ enum class HookId : u32 {
   kShopPurchaseItem,
   kBagAddItem,
   kBattleLevelUp,
+  kPokemonModelSettings,
   kCheckAppRequest,
   kAppStatusSetupGraphicsParams,
   kAppStatusSetupGraphicsMoves,

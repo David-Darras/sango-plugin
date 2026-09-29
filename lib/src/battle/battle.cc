@@ -20,11 +20,10 @@
 #include "battle/native/manager.h"
 #include "battle/patch/game_extension.h"
 #include "battle/patch/type_chart.h"
-#include "battle/native/graphics.h"
 #include "core/hook_manager.h"
 #include "overworld/patch/field.h"
 #include "system/native/sound.h"
-#include "pokemon/native/species_data.h"
+#include "pokemon/address.h"
 
 namespace battle {
 void Battle::Initialize() {
@@ -45,6 +44,9 @@ void Battle::Initialize() {
   core::HookManager::Initialize(HookId::kBattleUpdateView,
                                 address::kUpdateView,
                                 (uptr)UpdateViewHook, false);
+  core::HookManager::Initialize(HookId::kPokemonModelSettings,
+                                pokemon::address::kPokemonModelSettings,
+                                (uptr)PokemonModelSettingsHook);
   core::HookManager::Initialize(HookId::kBattleCheckPokemonCaptured,
                                 pokemon::address::kBattleCheckPokemonCaptured,
                                 (uptr)CheckPokemonCapturedHook,
@@ -223,36 +225,15 @@ void Battle::UpdateViewHook(uptr self) {
     camera[5] = 0x7FFFFFFF; // disable camera animation
   }
 
-  if (GetInstance().fix_pokemon_size) {
-    static u32 counter = 20;
-    if (counter >= 20) {
-      PatchPokemonSize();
-      counter = 0;
-    }
-    counter++;
-  }
   core::HookManager::Call<void>(HookId::kBattleUpdateView, self);
 }
 
-void Battle::PatchPokemonSize() {
-  for (u32 i = 0; i < 6; i++) {
-    auto& model = *Graphics::GetInstance().pokemon_model[i];
-    uptr pkmMdl = (uptr)&model;
-    if (pkmMdl == 0)
-      continue;
+void Battle::PokemonModelSettingsHook(uptr model, uptr p0, uptr p1) {
+  core::HookManager::Call<void>(HookId::kPokemonModelSettings, model, p0, p1);
+  if (!GetInstance().fix_pokemon_size) return;
 
-    u16 pkmNum = READ16(pkmMdl + kModelSpeciesOffset);
-    if (pkmNum >= 722)
-      continue;
-
-    const pokemon::SpeciesData& data = pokemon::SpeciesData::GetTable()[pkmNum];
-    f32 realSize = (f32)data.height;
-    f32 defaultSize = (f32)data.fake_height;
-    f32 ratio = realSize / defaultSize;
-
-    model.scale.x = model.scale.y = model.scale.z = ratio;
-    model.update = true;
-  }
+  WRITE32(model + kModelShownHeightOffset, READ32(model + kModelRealHeightOffset));
+  WRITE32(model + kModelShownScaleOffset, 0x3F800000);
 }
 
 void Battle::PlayAnimationHook(uptr view_manager, u16 id) {
