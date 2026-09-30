@@ -38,6 +38,7 @@
 #include "overworld/patch/map_data_loader.h"
 #include "overworld/patch/map_graft.h"
 #include "overworld/patch/map_tile.h"
+#include "overworld/patch/placed_decorations.h"
 #include "overworld/patch/player_cheats.h"
 #include "overworld/patch/run_animation.h"
 #include "overworld/patch/static_randomizer.h"
@@ -94,6 +95,7 @@ void InitializeEngine() {
   core::ScriptLoader::Initialize();
   script::NativeScript::Initialize();
   overworld::AutoSurf::Initialize();
+  overworld::PlacedDecorations::Initialize();
   battle::Setup::Initialize();
   renderer::ModelFilter::Initialize();
   battle::Battle::Initialize();
@@ -151,6 +153,7 @@ void UpdateFrame() {
   core::CheatCodeManager::GetInstance().Update();
 
   overworld::MapCharacter::Update();
+  overworld::PlacedDecorations::Update();
 #ifndef GAME_XY
   overworld::MapGraft::Update();
   overworld::TileEditor::Update();

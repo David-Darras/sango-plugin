@@ -17,6 +17,7 @@
 
 #include "battle/patch/setup.h"
 #include "core/hook_manager.h"
+#include "overworld/patch/placed_decorations.h"
 #include "battle/native/config.h"
 #include "savedata/native/pokemon_team.h"
 
@@ -35,6 +36,7 @@ void Setup::Initialize() {
 void Setup::SetupTrainerHook(Config* config, void* game_manager,
                              TrainerId trainer_id, void* p1, Format format,
                              void* p2) {
+  overworld::PlacedDecorations::RemoveModelsBeforeBattle();
   const TrainerId forced = GetInstance().trainer_id;
   if (forced != TrainerId::kNone) trainer_id = forced;
   core::HookManager::Call<void>(HookId::kBattleConfigSetupTrainer,
@@ -53,6 +55,7 @@ void Setup::SetupWildHook(Config* config,
                                  void* p1, Format format,
                                  u32 effect_id,
                                  void* p2) {
+  overworld::PlacedDecorations::RemoveModelsBeforeBattle();
   core::HookManager::Call<void>(HookId::kBattleConfigSetupWild, config,
                           game_manager,
                           opponent_team, p1,

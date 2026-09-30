@@ -120,6 +120,67 @@ bool ModelLoader::LoadPokemon(LoadedModel* out, SpeciesId species, FormId form,
   return BuildModel(out, position);
 }
 
+bool ModelLoader::LoadDecoration(LoadedModel* out, u32 decoration_index,
+                                 const Vec3& position) {
+  if (out == nullptr || out->IsLoaded()) return false;
+  if (!overworld::address::kDecorationTable ||
+      decoration_index >= overworld::address::kDecorationCount) {
+    return false;
+  }
+
+  const u8* info =
+      reinterpret_cast<const u8*>(overworld::address::kDecorationTable) +
+      decoration_index * overworld::address::kDecorationEntrySize;
+  const u32 pack_id = info[17];
+  const u32 model_index = info[18];
+
+  out->model_pack = ReadFile(ArchiveId::kSecretBase, pack_id, false);
+  if (out->model_pack == nullptr) {
+    ui::LogApplication::Print(u"decoration %u: pack %u unreadable",
+                              decoration_index, pack_id);
+    return false;
+  }
+  out->model_resource = AttachPackEntry(out->model_pack, model_index);
+  if (out->model_resource == nullptr) {
+    ui::LogApplication::Print(u"decoration %u: model %u missing",
+                              decoration_index, model_index);
+    return false;
+  }
+
+  out->model_resource->Setup(HeapAllocator(), DeviceAllocator(), nullptr,
+                             renderer::H3dResource::kCommonDefaultShader);
+  if (!out->model_resource->IsSetup()) {
+    ReportUnresolved(out->model_resource);
+    return false;
+  }
+  return BuildModel(out, position);
+}
+
+void ModelLoader::Untrack(LoadedModel* entry) {
+  auto& context = GetInstance();
+  for (u32 i = 0; i < context.loaded_count_; ++i) {
+    if (context.loaded_[i] != entry) continue;
+    context.loaded_[i] = context.loaded_[--context.loaded_count_];
+    context.loaded_[context.loaded_count_] = nullptr;
+    return;
+  }
+}
+
+void ModelLoader::Drop(LoadedModel* entry) {
+  if (entry == nullptr) return;
+  void* scene = Scene();
+  if (entry->model != nullptr && scene != nullptr) {
+    renderer::Scene::Unregister(scene, entry->model);
+    entry->model->Destroy();
+    if (entry->model_resource != nullptr) entry->model_resource->RemoveData();
+    if (entry->texture_resource != nullptr) {
+      entry->texture_resource->RemoveData();
+    }
+  }
+  Untrack(entry);
+  *entry = LoadedModel{};
+}
+
 void ModelLoader::DropAll() {
   void* scene = Scene();
   if (scene == nullptr) return;
@@ -131,7 +192,9 @@ void ModelLoader::DropAll() {
       renderer::Scene::Unregister(scene, entry->model);
       entry->model->Destroy();
       entry->model_resource->RemoveData();
-      entry->texture_resource->RemoveData();
+      if (entry->texture_resource != nullptr) {
+        entry->texture_resource->RemoveData();
+      }
     }
     *entry = LoadedModel{};
     context.loaded_[i] = nullptr;
@@ -168,9 +231,10 @@ void* ModelLoader::Scene() {
 }
 
 void* ModelLoader::OpenArchive(ArchiveId archive_id) {
-  static void* archives[256] = {};
+  constexpr u32 kMaxArchives = 512;
+  static void* archives[kMaxArchives] = {};
   const u32 index = static_cast<u32>(archive_id);
-  if (index >= 256) return nullptr;
+  if (index >= kMaxArchives) return nullptr;
   if (archives[index] != nullptr) return archives[index];
 
   void* heap = DeviceHeap();

@@ -22,6 +22,7 @@
 #include "overworld/native/map_manager.h"
 #include "overworld/native/model_manager.h"
 #include "overworld/patch/map_graft.h"
+#include "overworld/patch/placed_decorations.h"
 #include "ui/log_application.h"
 
 namespace overworld {
@@ -111,6 +112,7 @@ u32 MapCharacter::LoadMapCharacters(MapEventData* events, u32 buffer_id) {
   if (ctx.is_logging_enabled) ctx.LogShippedCharacters(events);
   ctx.MoveGraftedEvents(events);
   ctx.PlaceCharacters(events);
+  PlacedDecorations::OnMapEventsLoaded(events);
   return result;
 }
 

@@ -52,6 +52,10 @@ public:
   static bool LoadPokemon(LoadedModel* out, SpeciesId species, FormId form,
                           bool is_shiny, const Vec3& position,
                           Gender gender = Gender::kMale);
+  static bool LoadDecoration(LoadedModel* out, u32 decoration_index,
+                             const Vec3& position);
+  static void Drop(LoadedModel* entry);
+  static void Untrack(LoadedModel* entry);
   static void DropAll();
 
 private:

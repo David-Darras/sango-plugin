@@ -20,6 +20,7 @@
 #include "core/cheat_code_manager.h"
 #include "core/hook_manager.h"
 #include "core/native/process_manager.h"
+#include "overworld/patch/placed_decorations.h"
 #include "overworld/native/map_manager.h"
 #include "savedata/native/repel.h"
 
@@ -59,10 +60,12 @@ void WildEncounter::RemoveMaxRepel() {
 bool WildEncounter::GetEncounterPokemonHook(u32 p0, u32 p1) {
   bool result = core::HookManager::Call<bool>(HookId::kGetEncounterPokemon, p0, p1);
 
-  auto& feat = GetInstance();
-  if (feat.on_wild_pokemon == nullptr) return result;
   if (!core::ProcessManager::GetInstance().IsCurrentProcess(address::kVtable))
     return result;
+  PlacedDecorations::OnWildPokemonRolled((WildPokemon*)p0, READ32(p0 + 108));
+
+  auto& feat = GetInstance();
+  if (feat.on_wild_pokemon == nullptr) return result;
 
   feat.on_wild_pokemon(MapManager::GetInstance().GetMap(), (WildPokemon*)p0,
                        READ32(p0 + 108));

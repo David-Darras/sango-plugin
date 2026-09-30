@@ -62,5 +62,9 @@ constexpr uptr kPartyGetMember = GAME_ADDRESS(0, 0x006F3B30);
 constexpr uptr kBerryTreeLocationTable = GAME_ADDRESS(0, 0x007E4458);
 constexpr uptr kBerryIdTable = GAME_ADDRESS(0, 0x005A695C);
 
+constexpr uptr kDecorationTable = GAME_ADDRESS(0, 0x005837DC);
+constexpr u32 kDecorationCount = 174;
+constexpr u32 kDecorationEntrySize = 40;
+
 } // namespace address
 } // namespace overworld

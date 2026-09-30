@@ -21,6 +21,7 @@
 #include "core/native/process_manager.h"
 #include "overworld/native/encounter_state.h"
 #include "overworld/native/map_manager.h"
+#include "overworld/native/model_manager.h"
 #include "overworld/native/prop_model_manager.h"
 #include "overworld/native/weather_manager.h"
 #include "overworld/native/world_layout.h"
@@ -30,11 +31,15 @@
 #include "overworld/patch/map_data_loader.h"
 #include "overworld/patch/map_graft.h"
 #include "overworld/patch/map_tile.h"
+#include "overworld/constant/decoration.h"
+#include "overworld/patch/placed_decorations.h"
 #include "overworld/patch/tile_editor.h"
 #include "overworld/patch/weather_override.h"
+#include "pokemon/patch/model_loader.h"
 #include "core/patch/time_override.h"
 #include "renderer/native/h3d_shader_model.h"
 #include "system/native/sound.h"
+#include "ui/log_application.h"
 #include "ui/main_application.h"
 #include "ui/page/page_common.h"
 #include "ui/page/pages.h"
@@ -42,6 +47,7 @@
 
 namespace ui {
 #include "overworld/data/tile.inc"
+#include "overworld/data/decoration_names.inc"
 
 #ifdef GAME_XY
 static u8 forced_weather = 0;
@@ -299,6 +305,24 @@ static void PlayFieldMusic(void*) {
       overworld::Field::GetInstance().background_music);
 }
 
+namespace {
+overworld::DecorationId selected_decoration =
+    overworld::DecorationId::kSmallDesk;
+
+void PlaceSelectedDecoration(void*) {
+  overworld::PlacedDecorations::AddInFrontOfPlayer(selected_decoration, false);
+}
+
+void ClearDecorations(void*) { overworld::PlacedDecorations::Clear(); }
+} // namespace
+
+static void LoadDecorationPage(MainApplication& app, void* args) {
+  app.Add("Item", selected_decoration)
+     .WithArray(DECORATION_NAMES, SIZE(DECORATION_NAMES))
+     .WithCallback(PlaceSelectedDecoration)
+     .Add("Clear", ClearDecorations);
+}
+
 void LoadOverworldPage(MainApplication& app, void* args) {
   if (app.CheckProcess(overworld::address::kVtable)) return;
 
@@ -313,6 +337,7 @@ void LoadOverworldPage(MainApplication& app, void* args) {
      .Add("World Layout", LoadWorldLayoutPage)
      .Add("Map Tile", LoadOverworldMapTilePage)
      .Add("Props", LoadPropModelPage)
+     .Add("Decorations", LoadDecorationPage)
      .Add("Encounter", LoadOverworldEncounterPage)
      .Add("Day Care", LoadDayCarePage)
      .AddSeparator()
