@@ -120,6 +120,33 @@ bool CustomShop::GivePokemon(const ShopPokemon& entry) {
   return given;
 }
 
+bool CustomShop::GiveMega(SpeciesId species, ItemId item) {
+  using Gift = GiftPokemonData;
+
+  auto& param = Gift::GetInstance(kParamSlot);
+  const Gift backup = param;
+
+  param.species = species;
+  param.form = FormId::kNormal;
+  param.level = 100;
+  param.shiny = ShinyRoll::kNotShiny;
+  param.ability_slot = Gift::kRandomAbility;
+  param.nature = Gift::kRandomNature;
+  param.item = static_cast<s32>(item);
+  param.gender = GenderRoll::kRandom;
+  param.egg_place = Gift::kNotAnEgg;
+  param.move = MoveId::kNone;
+  for (u32 i = 0; i < SIZE(param.iv); i++) {
+    param.iv[i] = Gift::kRandomIv;
+    param.contest[i] = 0;
+  }
+
+  bool given = AddPokemonToTeam(kParamSlot);
+
+  param = backup;
+  return given;
+}
+
 bool CustomShop::AddPokemonToTeam(u32 slot) {
   s32 args[3] = {2 * (s32)sizeof(s32), (s32)slot, 0};
 

@@ -33,7 +33,7 @@ public:
   static constexpr u16 kSpeciesCount = 721;
   static constexpr u32 kEntries = 826;
   static constexpr u32 kEntrySize = 0x50;
-  static constexpr u32 kAlolanCount = 18;
+  static constexpr u32 kAlolanCount = 86;
   static constexpr u32 kGen7Count = 81;
   static constexpr u32 kTotalEntries = kEntries + kAlolanCount + kGen7Count;
 

@@ -18,6 +18,7 @@
 #pragma once
 
 #include "common.h"
+#include "pokemon/constant/item.h"
 #include "pokemon/constant/species.h"
 
 namespace pokemon {
@@ -30,11 +31,16 @@ class AlolanForms {
 public:
   static constexpr u32 kSpeciesEntries = 826;
   static constexpr u32 kEntrySize = 0x50;
-  static constexpr u32 kFormCount = 18;
+  static constexpr u32 kFormCount = 53;
 
   static bool PatchMegaTable(SpeciesId species, MegaEvolutionData* table);
   static void Initialize();
   static bool HasForm(u16 species);
+  static u32 FormCount(u16 species);
+  static u32 GetForm(u16 species, u32 rank = 0);
+  static ItemId GetItem(u32 rank);
+  static u32 GetFormByItem(u16 species, ItemId item);
+  static bool IsLifeOrbSpecies(u16 species);
 
 private:
   static u32 GetMegaEvolvedFormNoHook(void* manager, void* poke);

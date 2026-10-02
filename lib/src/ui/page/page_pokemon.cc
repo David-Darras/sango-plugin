@@ -21,6 +21,9 @@
 #include <cstring>
 #include "pokemon/native/data_accessor.h"
 #include "pokemon/native/movepool.h"
+#include "pokemon/native/move_data.h"
+#include "pokemon/native/species_data.h"
+#include "pokemon/patch/custom_shop.h"
 #include "pokemon/native/utils.h"
 #include "savedata/native/pokemon_team.h"
 #include "savedata/native/pokemon_box.h"
@@ -31,6 +34,7 @@
 #include "ui/main_application.h"
 #include "ui/page/pages.h"
 #include "ui/patch/app_status.h"
+#include "pokemon/data/za_mega.inc"
 
 namespace ui {
 void LoadShinyPage(MainApplication& app, void* args) {
@@ -50,8 +54,20 @@ void LoadShinyPage(MainApplication& app, void* args) {
      .WithBounds(0, SIZE(SHINY_RATES) - 1);
 }
 
+static void DefaultMoves(SpeciesId species, FormId data_form,
+                         MoveId (&learnt)[4]) {
+  auto& pool = pokemon::Movepool::GetInstance(species, data_form);
+  for (u32 k = 0; k < 4; k++) learnt[k] = MoveId::kNone;
+  u32 count = 0;
+  for (u32 k = 0; k < pool.count; k++) {
+    if (pool.entry[k].level > 100) break;
+    learnt[count % 4] = pool.entry[k].move;
+    count++;
+  }
+}
+
 static bool PutInBox(u32 slot, SpeciesId species, FormId form,
-                     FormId data_form) {
+                     FormId data_form, ItemId item = ItemId::kNone) {
   const u32 box = slot / savedata::PokemonBox::kMaxSlotsPerBox;
   const u32 index = slot % savedata::PokemonBox::kMaxSlotsPerBox;
   if (box >= savedata::PokemonBox::kMaxBoxes) return false;
@@ -65,20 +81,14 @@ static bool PutInBox(u32 slot, SpeciesId species, FormId form,
   accessor.Decrypt();
   scratch.species = species;
   scratch.form = form;
+  if (item != ItemId::kNone) scratch.item = item;
   scratch.is_illegal_egg = false;
   scratch.is_egg = false;
   scratch.SetShiny(false);
   scratch.experience =
       pokemon::Utils::GetExperienceFromLevel(species, data_form, 100);
-  auto& pool = pokemon::Movepool::GetInstance(species, data_form);
-  MoveId learnt[4] = {MoveId::kNone, MoveId::kNone, MoveId::kNone,
-                      MoveId::kNone};
-  u32 count = 0;
-  for (u32 k = 0; k < pool.count; k++) {
-    if (pool.entry[k].level > 100) break;
-    learnt[count % 4] = pool.entry[k].move;
-    count++;
-  }
+  MoveId learnt[4];
+  DefaultMoves(species, data_form, learnt);
   scratch.SetMoves(learnt[0], learnt[1], learnt[2], learnt[3]);
   for (u32 k = 0; k < 4; k++) scratch.pp[k] = 20;
   scratch.ResetNickname();
@@ -97,12 +107,101 @@ static void FillBoxesWithGen7(void*) {
     slot++;
   }
   for (u16 i = 1; i <= pokemon::SpeciesTable::kSpeciesCount; i++) {
-    if (!pokemon::AlolanForms::HasForm(i)) continue;
-    if (!PutInBox(slot, static_cast<SpeciesId>(i), FormId::kMega,
-                  FormId::kNormal))
-      break;
-    slot++;
+    for (u32 rank = 0; rank < pokemon::AlolanForms::FormCount(i); rank++) {
+      if (!PutInBox(slot, static_cast<SpeciesId>(i),
+                    static_cast<FormId>(pokemon::AlolanForms::GetForm(i, rank)),
+                    FormId::kNormal))
+        return;
+      slot++;
+    }
   }
+}
+
+static void SetTeamSlot(u32 slot, SpeciesId species, ItemId item) {
+  savedata::PokemonParam* pokemon =
+      savedata::PokemonTeam::GetInstance().pokemons[slot];
+  pokemon->accessor->Decrypt();
+  pokemon::CoreData* core = pokemon->core;
+  core->species = species;
+  core->form = FormId::kNormal;
+  core->item = item;
+  core->is_egg = 0;
+  core->is_illegal_egg = 0;
+  core->SetShiny(false);
+  core->SetLevel(100);
+  core->ability =
+      pokemon::SpeciesData::GetInstance(species, FormId::kNormal).ability[0];
+  MoveId learnt[4];
+  DefaultMoves(species, FormId::kNormal, learnt);
+  core->SetMoves(learnt[0], learnt[1], learnt[2], learnt[3]);
+  for (u32 k = 0; k < 4; k++) {
+    core->pp[k] = learnt[k] == MoveId::kNone
+                    ? 0
+                    : pokemon::MoveData::GetInstance(learnt[k]).base_pp;
+    core->pp_up_count[k] = 0;
+  }
+  core->ResetNickname();
+  pokemon->accessor->Encrypt();
+  pokemon->UpdateRuntimeData();
+}
+
+static u8 za_index = 0;
+
+static void GiveZaMegaToTeam(void*) {
+  auto& team = savedata::PokemonTeam::GetInstance();
+  if (team.count == 0) return;
+  const ZaMega& mega = kZaMegas[za_index];
+  if (team.count >= savedata::PokemonTeam::kMaxSlots ||
+      !pokemon::CustomShop::GiveMega(mega.species, mega.item)) {
+    SetTeamSlot(team.count - 1, mega.species, mega.item);
+  }
+  team.HealAllPokemons();
+}
+
+static void FillTeamWithZaMegas(void*) {
+  auto& team = savedata::PokemonTeam::GetInstance();
+  if (team.count == 0) return;
+  for (u32 i = 0; i < savedata::PokemonTeam::kMaxSlots; i++) {
+    const ZaMega& mega = kZaMegas[(za_index + i) % SIZE(kZaMegas)];
+    if (i < team.count) {
+      SetTeamSlot(i, mega.species, mega.item);
+    } else if (!pokemon::CustomShop::GiveMega(mega.species, mega.item)) {
+      break;
+    }
+  }
+  team.HealAllPokemons();
+}
+
+static void FillBoxesWithZaMegas(void*) {
+  if (savedata::PokemonTeam::GetInstance().count == 0) return;
+  for (u32 i = 0; i < SIZE(kZaMegas); i++) {
+    if (!PutInBox(i, kZaMegas[i].species, FormId::kNormal, FormId::kNormal,
+                  kZaMegas[i].item))
+      break;
+  }
+}
+
+static void FillBoxesWithZaMegaForms(void*) {
+  if (savedata::PokemonTeam::GetInstance().count == 0) return;
+  for (u32 i = 0; i < SIZE(kZaMegas); i++) {
+    if (!PutInBox(i, kZaMegas[i].species, static_cast<FormId>(kZaMegas[i].form),
+                  FormId::kNormal, kZaMegas[i].item))
+      break;
+  }
+}
+
+void LoadZaMegaPage(MainApplication& app, void* args) {
+  static const c8* names[SIZE(kZaMegas)];
+  for (u32 i = 0; i < SIZE(kZaMegas); i++) names[i] = kZaMegas[i].name;
+
+  app.Add("Pokemon", za_index)
+     .WithArray(names, SIZE(kZaMegas))
+     .WithBounds(0, SIZE(kZaMegas) - 1)
+     .AddSeparator()
+     .Add("Give To Team (Lv. 100, mega item)", GiveZaMegaToTeam)
+     .Add("Fill Team From Selected (6)", FillTeamWithZaMegas)
+     .Add("Fill Boxes With All (Lv. 100, mega item)", FillBoxesWithZaMegas)
+     .Add("Fill Boxes With Mega Forms (Lv. 100)", FillBoxesWithZaMegaForms);
 }
 
 void LoadPokemonPage(MainApplication& app, void* args) {
@@ -117,6 +216,7 @@ void LoadPokemonPage(MainApplication& app, void* args) {
      .Add("Restricted Summary Editor", AppStatus::GetInstance().is_restricted)
      .AddSeparator()
      .Add("Fill Boxes With Gen 7 (Lv. 100)", FillBoxesWithGen7)
+     .Add("Z-A Megas", LoadZaMegaPage)
      .AddSeparator()
      .Add("Species Data", LoadSpeciesDataPage)
      .Add("Move Data", LoadMoveDataPage)

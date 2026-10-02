@@ -31,6 +31,7 @@
 namespace pokemon {
 
 static constexpr u32 kGen7Base = SpeciesTable::kSpeciesCount + 3;
+static constexpr u32 kAlolanFormCount = sizeof(kAlolanForms) / sizeof(kAlolanForms[0]);
 
 u16 SpeciesTable::kFirstGen7Species = kGen7Species[0].species;
 
@@ -91,18 +92,25 @@ void SpeciesTable::BuildTable(u8* game_table) {
   }
 
   u32 next = kEntries + kGen7Count;
-  for (u32 i = 0; i < kAlolanCount; i++) {
+  for (u32 i = 0; i < kAlolanFormCount; i++) {
     const AlolanForm& form = kAlolanForms[i];
     auto* base = (SpeciesData*)(out + form.species * kEntrySize);
+    const u32 existing = base->form_count > 1 ? base->form_count - 1u : 0u;
+    const u32 first = next;
+    for (u32 k = 0; k < existing; k++) {
+      std::memcpy(out + next * kEntrySize,
+                  out + (base->form_index + k) * kEntrySize, kEntrySize);
+      next++;
+    }
     auto* entry = (SpeciesData*)(out + next * kEntrySize);
     std::memcpy(entry, form.data, kEntrySize);
     FixAbilities(entry, base);
     entry->form_index = 0;
     entry->form_index_2 = 0;
     entry->form_count = 1;
-    base->form_index = (u16)next;
-    base->form_index_2 = (u16)next;
-    base->form_count = 2;
+    base->form_index = (u16)first;
+    base->form_index_2 = (u16)first;
+    base->form_count = (u8)(existing + 2);
     next++;
   }
 }

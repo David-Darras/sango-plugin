@@ -24,7 +24,9 @@
 
 namespace pokemon {
 
-static constexpr ItemId kMegaItem = ItemId::kLifeOrb;
+static constexpr ItemId kFormItems[] = {ItemId::kLifeOrb, ItemId::kChoiceBand,
+                                        ItemId::kChoiceSpecs, ItemId::kChoiceScarf};
+static constexpr u32 kMaxRoutes = 3;
 
 void AlolanForms::Initialize() {
   if (address::kGetMegaEvolvedFormNo == 0) return;
@@ -34,8 +36,40 @@ void AlolanForms::Initialize() {
 }
 
 bool AlolanForms::HasForm(u16 species) {
+  return FormCount(species) != 0;
+}
+
+u32 AlolanForms::FormCount(u16 species) {
+  u32 count = 0;
   for (u32 i = 0; i < kFormCount; i++) {
-    if (kAlolanForms[i].species == species) return true;
+    if (kAlolanForms[i].species == species) count++;
+  }
+  return count;
+}
+
+u32 AlolanForms::GetForm(u16 species, u32 rank) {
+  for (u32 i = 0; i < kFormCount; i++) {
+    if (kAlolanForms[i].species != species) continue;
+    if (rank == 0) return kAlolanForms[i].form;
+    rank--;
+  }
+  return 0;
+}
+
+ItemId AlolanForms::GetItem(u32 rank) {
+  return rank < SIZE(kFormItems) ? kFormItems[rank] : ItemId::kNone;
+}
+
+u32 AlolanForms::GetFormByItem(u16 species, ItemId item) {
+  for (u32 rank = 0; rank < SIZE(kFormItems); rank++) {
+    if (kFormItems[rank] == item) return GetForm(species, rank);
+  }
+  return 0;
+}
+
+bool AlolanForms::IsLifeOrbSpecies(u16 species) {
+  for (u32 i = 0; i < kLifeOrbCount; i++) {
+    if (kLifeOrbSpecies[i] == species) return true;
   }
   return false;
 }
@@ -43,19 +77,40 @@ bool AlolanForms::HasForm(u16 species) {
 u32 AlolanForms::GetMegaEvolvedFormNoHook(void* manager, void* poke) {
   if (poke != nullptr) {
     const u16 species =
-        ((u16 (*)(void*))address::kCoreParamGetSpecies)(poke);
-    if (HasForm(species)) return 1;
+        ((u16 (*)(void*))address::kCoreDataGetSpecies)(poke);
+    if (HasForm(species)) {
+      const auto item = static_cast<ItemId>(
+          ((u16 (*)(void*))address::kCoreDataGetItem)(poke));
+      const u32 form = GetFormByItem(species, item);
+      if (form != 0) return form;
+    }
   }
   return core::HookManager::Call<u32>(HookId::kGetMegaEvolvedFormNo, manager,
                                       poke);
 }
 
 bool AlolanForms::PatchMegaTable(SpeciesId species, MegaEvolutionData* table) {
-  for (u32 i = 0; i < kFormCount; i++) {
-    if (kAlolanForms[i].species != static_cast<u16>(species)) continue;
-    table->entry[0].form = static_cast<FormId>(1);
+  const u32 count = FormCount(static_cast<u16>(species));
+  if (count != 0) {
+    // after the routes the species already has (Absol keeps its Mega Stone)
+    u32 route = 0;
+    for (u32 rank = 0; rank < count; rank++) {
+      while (route < kMaxRoutes &&
+             table->entry[route].method != MegaEvolutionMethod::kNone) {
+        route++;
+      }
+      if (route >= kMaxRoutes) break;
+      table->entry[route].form =
+          static_cast<FormId>(GetForm(static_cast<u16>(species), rank));
+      table->entry[route].method = MegaEvolutionMethod::kItem;
+      table->entry[route].item = GetItem(rank);
+      route++;
+    }
+    return true;
+  }
+  if (IsLifeOrbSpecies(static_cast<u16>(species))) {
     table->entry[0].method = MegaEvolutionMethod::kItem;
-    table->entry[0].item = kMegaItem;
+    table->entry[0].item = ItemId::kLifeOrb;
     return true;
   }
   return false;

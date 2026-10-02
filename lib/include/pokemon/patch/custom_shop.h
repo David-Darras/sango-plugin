@@ -56,6 +56,7 @@ public:
   static void SetPokemons(const ShopPokemon* pokemons, u32 count,
                           u32 shop_id = kDefaultShopId);
   static bool PatchItemName(ItemId item, String* output);
+  static bool GiveMega(SpeciesId species, ItemId item = ItemId::kLifeOrb);
 
 private:
   enum Offset : u32 {

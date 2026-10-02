@@ -64,8 +64,9 @@ constexpr uptr kItemDataInitialize = GAME_ADDRESS(0x003A0DE8, 0x003B7B9C);
 constexpr uptr kItemDataGetParam = GAME_ADDRESS(0x004A3D3C, 0x004D3C84);
 constexpr uptr kLoadEvolutionTable = GAME_ADDRESS(0x0039A23C, 0x003B1108);
 constexpr uptr kLoadMegaEvolutionTable = GAME_ADDRESS(0x00168108, 0x00168974);
-constexpr uptr kGetMegaEvolvedFormNo = GAME_ADDRESS(0, 0x004D09E8); // EvolveManager::GetMegaEvolvedFormNo(CoreParam*)
-constexpr uptr kCoreParamGetSpecies = GAME_ADDRESS(0, 0x00153310);
+constexpr uptr kGetMegaEvolvedFormNo = GAME_ADDRESS(0, 0x004D09E8);
+constexpr uptr kCoreDataGetSpecies = GAME_ADDRESS(0, 0x00153310);
+constexpr uptr kCoreDataGetItem = GAME_ADDRESS(0, 0x004D3094);
 constexpr uptr kSpeciesBound[] = {
     GAME_ADDRESS(0, 0x00168868), GAME_ADDRESS(0, 0x003B0ACC),
     GAME_ADDRESS(0, 0x003B0C14), GAME_ADDRESS(0, 0x00139FB4)};
