@@ -32,7 +32,9 @@ void Evolution::Initialize() {
 }
 
 void Evolution::LoadEvolveTableHook(SpeciesId species, u32 b, u32 c, u32 d) {
-  core::HookManager::Call<void>(HookId::kLoadEvolutionTable, species, b, c, d);
+  const bool extra = SpeciesTable::IsGen7(static_cast<u16>(species));
+  core::HookManager::Call<void>(HookId::kLoadEvolutionTable,
+                                extra ? static_cast<SpeciesId>(1) : species, b, c, d);
   PatchEvolve(species);
 }
 

@@ -19,7 +19,9 @@
 #include "pokemon/constant/item.h"
 #include "pokemon/constant/mega_evolution_method.h"
 #include "pokemon/native/mega_evolution_data.h"
+#include <cstring>
 #include "core/hook_manager.h"
+#include "pokemon/patch/species_table.h"
 #include "pokemon/data/alolan_form.inc"
 
 namespace pokemon {
@@ -52,6 +54,15 @@ u32 AlolanForms::GetForm(u16 species, u32 rank) {
     if (kAlolanForms[i].species != species) continue;
     if (rank == 0) return kAlolanForms[i].form;
     rank--;
+  }
+  return 0;
+}
+
+u32 AlolanForms::GetModelForm(u16 species, u32 form) {
+  for (u32 i = 0; i < kFormCount; i++) {
+    if (kAlolanForms[i].species == species && kAlolanForms[i].form == form) {
+      return kAlolanForms[i].model_form;
+    }
   }
   return 0;
 }
@@ -92,7 +103,7 @@ u32 AlolanForms::GetMegaEvolvedFormNoHook(void* manager, void* poke) {
 bool AlolanForms::PatchMegaTable(SpeciesId species, MegaEvolutionData* table) {
   const u32 count = FormCount(static_cast<u16>(species));
   if (count != 0) {
-    // after the routes the species already has (Absol keeps its Mega Stone)
+    if (SpeciesTable::IsGen7(static_cast<u16>(species))) std::memset(table, 0, sizeof(*table));
     u32 route = 0;
     for (u32 rank = 0; rank < count; rank++) {
       while (route < kMaxRoutes &&

@@ -98,36 +98,35 @@ static bool PutInBox(u32 slot, SpeciesId species, FormId form,
   return true;
 }
 
-static void FillBoxesWithGen7(void*) {
+static void FillBoxesWithAll(void*) {
   if (savedata::PokemonTeam::GetInstance().count == 0) return;
   u32 slot = 0;
   for (u32 i = 0; i < pokemon::SpeciesTable::kGen7Count; i++) {
     const auto species =
         static_cast<SpeciesId>(pokemon::SpeciesTable::kFirstGen7Species + i);
-    if (!PutInBox(slot, species, FormId::kNormal, FormId::kNormal)) break;
-    slot++;
+    if (!PutInBox(slot++, species, FormId::kNormal, FormId::kNormal)) return;
   }
-  for (u16 i = 1; i <= pokemon::SpeciesTable::kSpeciesCount; i++) {
-    for (u32 rank = 0; rank < pokemon::AlolanForms::FormCount(i); rank++) {
-      if (!PutInBox(slot, static_cast<SpeciesId>(i),
-                    static_cast<FormId>(pokemon::AlolanForms::GetForm(i, rank)),
-                    FormId::kNormal))
-        return;
-      slot++;
-    }
-  }
-}
-
-static void FillBoxesWithGen8(void*) {
-  if (savedata::PokemonTeam::GetInstance().count == 0) return;
-  u32 slot = 0;
   for (u32 i = pokemon::SpeciesTable::kGen8Skipped;
        i < pokemon::SpeciesTable::kGen8Count; i++) {
     const auto species = static_cast<SpeciesId>(
       pokemon::SpeciesTable::kFirstGen8Species +
       (i - pokemon::SpeciesTable::kGen8Skipped));
-    if (!PutInBox(slot, species, FormId::kNormal, FormId::kNormal)) break;
-    slot++;
+    if (!PutInBox(slot++, species, FormId::kNormal, FormId::kNormal)) return;
+  }
+  const u16 last = static_cast<u16>(pokemon::SpeciesTable::kFirstGen8Species +
+                                    pokemon::SpeciesTable::kGen8Count);
+  for (u16 i = 1; i < last; i++) {
+    for (u32 rank = 0; rank < pokemon::AlolanForms::FormCount(i); rank++) {
+      if (!PutInBox(slot++, static_cast<SpeciesId>(i),
+                    static_cast<FormId>(pokemon::AlolanForms::GetForm(i, rank)),
+                    FormId::kNormal))
+        return;
+    }
+  }
+  for (u32 i = 0; i < SIZE(kZaMegas); i++) {
+    if (!PutInBox(slot++, kZaMegas[i].species, FormId::kNormal, FormId::kNormal,
+                  kZaMegas[i].item))
+      return;
   }
 }
 
@@ -204,24 +203,9 @@ static void FillBoxesWithZaMegaForms(void*) {
   }
 }
 
-void LoadZaMegaPage(MainApplication& app, void* args) {
-  static const c8* names[SIZE(kZaMegas)];
-  for (u32 i = 0; i < SIZE(kZaMegas); i++) names[i] = kZaMegas[i].name;
-
-  app.Add("Pokemon", za_index)
-     .WithArray(names, SIZE(kZaMegas))
-     .WithBounds(0, SIZE(kZaMegas) - 1)
-     .AddSeparator()
-     .Add("Give To Team (Lv. 100, mega item)", GiveZaMegaToTeam)
-     .Add("Fill Team From Selected (6)", FillTeamWithZaMegas)
-     .Add("Fill Boxes With All (Lv. 100, mega item)", FillBoxesWithZaMegas)
-     .Add("Fill Boxes With Mega Forms (Lv. 100)", FillBoxesWithZaMegaForms);
-}
-
 void LoadPokemonPage(MainApplication& app, void* args) {
   LoadShinyPage(app, args);
-  app.Add("Fill Boxes With Gen 8 (Lv. 100)", FillBoxesWithGen8)
-     .Add("Z-A Megas / Galar Forms", LoadZaMegaPage);
+  app.Add("Fill Boxes With All New (Lv. 100)", FillBoxesWithAll);
   app.Add("Randomize Gift Pokemon",
           overworld::GiftPokemon::GetInstance().randomize_species)
      .Add("Randomize Static Encounters",
@@ -229,8 +213,6 @@ void LoadPokemonPage(MainApplication& app, void* args) {
      .Add("Randomize Trades",
           overworld::Trade::GetInstance().randomize_species)
      .Add("Restricted Summary Editor", AppStatus::GetInstance().is_restricted)
-     .AddSeparator()
-     .Add("Fill Boxes With Gen 7 (Lv. 100)", FillBoxesWithGen7)
      .AddSeparator()
      .Add("Species Data", LoadSpeciesDataPage)
      .Add("Move Data", LoadMoveDataPage)

@@ -16,6 +16,7 @@
  */
 
 #include "pokemon/patch/species_table.h"
+#include "pokemon/patch/alolan_forms.h"
 #include <cstring>
 #include "pokemon/constant/ability.h"
 #include "pokemon/native/database.h"
@@ -53,8 +54,10 @@ void SpeciesTable::PatchModelRequest(PokeInfo* info) {
   const u16 species = static_cast<u16>(info->species);
   for (u32 i = 0; i < SpeciesTable::kExtraCount; i++) {
     if (Extra(i).species != species) continue;
+    const u32 form_model = info->form != FormId::kNormal
+        ? AlolanForms::GetModelForm(species, static_cast<u32>(info->form)) : 0;
     info->species = static_cast<SpeciesId>(kGen7Carrier);
-    info->form = static_cast<FormId>(Extra(i).model_form);
+    info->form = static_cast<FormId>(form_model != 0 ? form_model : Extra(i).model_form);
     return;
   }
 }

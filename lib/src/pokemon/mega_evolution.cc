@@ -17,6 +17,7 @@
 
 #include "pokemon/patch/mega_evolution.h"
 #include "pokemon/patch/alolan_forms.h"
+#include "pokemon/patch/species_table.h"
 #include "core/hook_manager.h"
 #include "pokemon/constant/item.h"
 #include "pokemon/constant/mega_evolution_method.h"
@@ -35,7 +36,9 @@ void MegaEvolution::Initialize() {
 }
 
 void MegaEvolution::LoadMegaEvolutionTableHook(SpeciesId species) {
-  core::HookManager::Call<void>(HookId::kLoadMegaEvolutionTable, species);
+  const bool extra = SpeciesTable::IsGen7(static_cast<u16>(species));
+  core::HookManager::Call<void>(HookId::kLoadMegaEvolutionTable,
+                                extra ? static_cast<SpeciesId>(1) : species);
 
   auto& mega_evolve_table = *Database::GetInstance().mega_evolution;
   auto& table = *mega_evolve_table.data;
