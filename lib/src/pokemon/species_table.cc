@@ -32,6 +32,9 @@
 
 namespace pokemon {
 
+static constexpr u16 kGen9Carrier = 721;
+static constexpr u32 kSecondCarrierBase = 256;
+static constexpr u32 kNativeModel = 0x8000;
 static constexpr u32 kGen7Base = SpeciesTable::kSpeciesCount + 3;
 static constexpr u32 kAlolanFormCount = sizeof(kAlolanForms) / sizeof(kAlolanForms[0]);
 
@@ -56,8 +59,17 @@ void SpeciesTable::PatchModelRequest(PokeInfo* info) {
     if (Extra(i).species != species) continue;
     const u32 form_model = info->form != FormId::kNormal
         ? AlolanForms::GetModelForm(species, static_cast<u32>(info->form)) : 0;
-    info->species = static_cast<SpeciesId>(kGen7Carrier);
-    info->form = static_cast<FormId>(form_model != 0 ? form_model : Extra(i).model_form);
+    const u32 model = form_model != 0 ? form_model : Extra(i).model_form;
+    if ((model & kNativeModel) != 0) {
+      info->species = static_cast<SpeciesId>(model & ~kNativeModel);
+      info->form = FormId::kNormal;
+    } else if (model >= kSecondCarrierBase) {
+      info->species = static_cast<SpeciesId>(kGen9Carrier);
+      info->form = static_cast<FormId>(model - kSecondCarrierBase);
+    } else {
+      info->species = static_cast<SpeciesId>(kGen7Carrier);
+      info->form = static_cast<FormId>(model);
+    }
     return;
   }
 }

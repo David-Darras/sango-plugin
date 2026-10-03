@@ -111,6 +111,7 @@ static void FillBoxesWithAll(void*) {
     const auto species = static_cast<SpeciesId>(
       pokemon::SpeciesTable::kFirstGen8Species +
       (i - pokemon::SpeciesTable::kGen8Skipped));
+    if (pokemon::SpeciesData::GetInstance(species).base_hp == 0) continue;
     if (!PutInBox(slot++, species, FormId::kNormal, FormId::kNormal)) return;
   }
   const u16 last = static_cast<u16>(pokemon::SpeciesTable::kFirstGen8Species +
