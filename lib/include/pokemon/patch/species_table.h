@@ -33,9 +33,11 @@ public:
   static constexpr u16 kSpeciesCount = 721;
   static constexpr u32 kEntries = 826;
   static constexpr u32 kEntrySize = 0x50;
-  static constexpr u32 kAlolanCount = 86;
+  static constexpr u32 kAlolanCount = 112;
   static constexpr u32 kGen7Count = 81;
-  static constexpr u32 kTotalEntries = kEntries + kAlolanCount + kGen7Count;
+  static constexpr u32 kGen8Count = 96;
+  static constexpr u32 kExtraCount = kGen7Count + kGen8Count;
+  static constexpr u32 kTotalEntries = kEntries + kAlolanCount + kExtraCount;
 
   static void Initialize();
   static void Update();
@@ -43,6 +45,10 @@ public:
   static bool IsGen7(u16 species);
   static bool PatchEvolutionTable(u16 species, EvolutionData* table);
   static u16 kFirstGen7Species;
+  /// First real generation 8 species (Grookey); the slots before it, up to the end of
+  /// generation 7, are empty.
+  static constexpr u16 kFirstGen8Species = 812;
+  static constexpr u32 kGen8Skipped = 7;
 
 private:
   static void BuildTable(u8* game_table);

@@ -87,6 +87,7 @@ constexpr uptr kTechnicalMachineMoveTable = GAME_ADDRESS(0x00567A02, 0x005A69E2)
 constexpr uptr kDatabase = GAME_ADDRESS(0x005D4B7C, 0x00617A00);
 constexpr uptr kLoadMovepool = GAME_ADDRESS(0x0014F594, 0x0014EB80);
 constexpr uptr kMovepool = GAME_ADDRESS(0, 0x08029330);
+constexpr uptr kMovepoolPointer = GAME_ADDRESS(0, 0x00617A28);
 constexpr uptr kItemEvTotalLimitCheck = GAME_ADDRESS(0x0044A600, 0x0047888C);
 constexpr uptr kItemEvTotalLimitCheck2 = GAME_ADDRESS(0x0044A664, 0x004788F0);
 constexpr uptr kItemEvTotalLimitClamp = GAME_ADDRESS(0x0044A670, 0x004788FC);

@@ -23,8 +23,8 @@
 namespace renderer {
 
 struct LightingSettings {
-  f32 outline_scale = 1.0f;
-  bool use_outline = false;
+  f32 outline_scale = 0.0f;
+  bool use_outline = true;
   Color outline_color = Color(0, 0, 0, 1);
   bool use_ambient_light = false;
   Color ambient_color = Color(1, 1, 1, 1);

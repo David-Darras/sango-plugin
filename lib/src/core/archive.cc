@@ -70,7 +70,7 @@ struct OverrideEntry {
   u32 file_id;
   u32 size;
 };
-static constexpr u32 kMaxOverrides = 2048;
+static constexpr u32 kMaxOverrides = 4096;
 static OverrideEntry overrides[kMaxOverrides];
 static u32 override_count = 0;
 static bool override_loaded = false;

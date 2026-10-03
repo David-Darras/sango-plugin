@@ -317,28 +317,29 @@ void LoadBattleLivePage(MainApplication& app, void* args) {
   pkm_server = battle::Manager::GetPokemon(true, team_idx, pokemon_idx);
   pkm_client = battle::Manager::GetPokemon(false, team_idx, pokemon_idx);
 
-  app.Add("Team Index", team_idx)
-     .WithBounds(0, 3)
-     .WithRefresh()
-     .Add("Pokemon Index", pokemon_idx)
-     .WithBounds(0, 5)
-     .WithRefresh()
-     .AddSeparator()
-     .Add("Pokemon Data", LoadBattlePokemonDataPage)
-     .Add("Pokemon Model", LoadBattlePokemonModelPage)
-     .Add("Camera", LoadBattleCameraPage);
+  app
+      .Add("Camera", LoadBattleCameraPage).Add("Team Index", team_idx)
+      .WithBounds(0, 3)
+      .WithRefresh()
+      .Add("Pokemon Index", pokemon_idx)
+      .WithBounds(0, 5)
+      .WithRefresh()
+      .AddSeparator()
+      .Add("Pokemon Data", LoadBattlePokemonDataPage)
+      .Add("Pokemon Model", LoadBattlePokemonModelPage);
 }
 
 // --- Family root -----------------------------------------------------------
 
 void LoadBattlePage(MainApplication& app, void* args) {
-  app.Add("Settings", LoadBattleSettingsPage)
-     .Add("Static Encounter", static_encounter_id)
-     .WithArray(STATIC_ENCOUNTER_NAMES, SIZE(STATIC_ENCOUNTER_NAMES))
-     .WithCallback(StartBattle)
-     .Add("Wild Battle Setup", LoadBattleSetupPage)
-     .Add("Type Chart", LoadTypeChartPage)
-     .AddSeparator()
-     .Add("Live Battle", LoadBattleLivePage);
+  app
+      .Add("Static Encounter", static_encounter_id)
+      .WithCallback(StartBattle)
+
+      .Add("Live Battle", LoadBattleLivePage)
+      .Add("Settings", LoadBattleSettingsPage)
+      .WithArray(STATIC_ENCOUNTER_NAMES, SIZE(STATIC_ENCOUNTER_NAMES))
+      .Add("Wild Battle Setup", LoadBattleSetupPage)
+      .Add("Type Chart", LoadTypeChartPage);
 }
 } // namespace ui

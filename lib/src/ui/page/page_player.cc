@@ -177,8 +177,8 @@ void LoadPlayerPage(MainApplication& app, void* args) {
   auto& cheats = overworld::PlayerCheats::GetInstance();
   auto& player = overworld::ModelManager::GetInstance().GetPlayer();
 
-  app.Add("Field Moves", LoadOverworldFieldMovePage)
-     .Add("Apps", LoadAppPage)
+  app.Add("Apps", LoadAppPage)
+     .Add("Field Moves", LoadOverworldFieldMovePage)
      .Add("Wonder Trade", WonderTrade)
      .Add("Camera", LoadOverworldCameraPage)
      .Add("Model", LoadPlayerModelPage)

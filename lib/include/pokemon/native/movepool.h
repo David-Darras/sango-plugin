@@ -18,6 +18,8 @@
 #pragma once
 
 #include "common.h"
+#include "core/memory.h"
+#include "pokemon/address.h"
 #include "pokemon/constant/form.h"
 #include "pokemon/constant/move.h"
 #include "pokemon/constant/species.h"
@@ -27,7 +29,12 @@ class Movepool {
   SINGLETON(Movepool)
   STATIC_INLINE Movepool& GetInstance(SpeciesId species, FormId form) {
     ((void(*)(SpeciesId, FormId))address::kLoadMovepool)(species, form);
-    return *(Movepool*)address::kMovepool;
+    return Object();
+  }
+
+  STATIC_INLINE Movepool& Object() {
+    const uptr object = address::kMovepoolPointer != 0 ? READ32(address::kMovepoolPointer) : 0;
+    return *(Movepool*)(object != 0 ? object : address::kMovepool);
   }
 
   INLINE bool Contains(MoveId move) const {

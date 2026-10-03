@@ -85,6 +85,7 @@ static bool PutInBox(u32 slot, SpeciesId species, FormId form,
   scratch.is_illegal_egg = false;
   scratch.is_egg = false;
   scratch.SetShiny(false);
+  scratch.ability = pokemon::SpeciesData::GetInstance(species, form).ability[0];
   scratch.experience =
       pokemon::Utils::GetExperienceFromLevel(species, data_form, 100);
   MoveId learnt[4];
@@ -114,6 +115,19 @@ static void FillBoxesWithGen7(void*) {
         return;
       slot++;
     }
+  }
+}
+
+static void FillBoxesWithGen8(void*) {
+  if (savedata::PokemonTeam::GetInstance().count == 0) return;
+  u32 slot = 0;
+  for (u32 i = pokemon::SpeciesTable::kGen8Skipped;
+       i < pokemon::SpeciesTable::kGen8Count; i++) {
+    const auto species = static_cast<SpeciesId>(
+      pokemon::SpeciesTable::kFirstGen8Species +
+      (i - pokemon::SpeciesTable::kGen8Skipped));
+    if (!PutInBox(slot, species, FormId::kNormal, FormId::kNormal)) break;
+    slot++;
   }
 }
 
@@ -206,7 +220,8 @@ void LoadZaMegaPage(MainApplication& app, void* args) {
 
 void LoadPokemonPage(MainApplication& app, void* args) {
   LoadShinyPage(app, args);
-
+  app.Add("Fill Boxes With Gen 8 (Lv. 100)", FillBoxesWithGen8)
+     .Add("Z-A Megas / Galar Forms", LoadZaMegaPage);
   app.Add("Randomize Gift Pokemon",
           overworld::GiftPokemon::GetInstance().randomize_species)
      .Add("Randomize Static Encounters",
@@ -216,7 +231,6 @@ void LoadPokemonPage(MainApplication& app, void* args) {
      .Add("Restricted Summary Editor", AppStatus::GetInstance().is_restricted)
      .AddSeparator()
      .Add("Fill Boxes With Gen 7 (Lv. 100)", FillBoxesWithGen7)
-     .Add("Z-A Megas", LoadZaMegaPage)
      .AddSeparator()
      .Add("Species Data", LoadSpeciesDataPage)
      .Add("Move Data", LoadMoveDataPage)

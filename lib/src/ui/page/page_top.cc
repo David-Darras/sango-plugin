@@ -26,22 +26,23 @@
 
 namespace ui {
 void LoadTopPage(MainApplication& app, void* args) {
-  app.Add("Game Speed", core::GameSpeed::GetInstance().game_speed)
-     .WithMin(-10)
-     .WithMax(10)
-     .Add("Repel", CheatCodeId::kNoEncounter)
-     .AddSeparator()
-     .Add("Player", LoadPlayerPage)
-     .Add("Battle", LoadBattlePage)
-     .Add("Overworld", LoadOverworldPage)
-     .Add("Pokemon", LoadPokemonPage)
-     .Add("Save Data", LoadSaveDataPage)
-     .Add("Renderer", LoadRendererPage)
-     .Add("Scripts", LoadScriptPage)
-     .Add("Title Screen", LoadTitleScreenPage)
-     .Add("System", LoadSystemPage)
-     .AddSeparator()
-     .Add("Plugin Theme", LoadThemePage)
-     .Add("Save Config", ConfigManager::Save);
+  app
+      .Add("Player", LoadPlayerPage)
+      .Add("Pokemon", LoadPokemonPage)
+      .Add("Battle", LoadBattlePage)
+      .Add("Game Speed", core::GameSpeed::GetInstance().game_speed)
+      .WithMin(-10)
+      .WithMax(10)
+      .Add("Repel", CheatCodeId::kNoEncounter)
+      .AddSeparator()
+      .Add("Overworld", LoadOverworldPage)
+      .Add("Save Data", LoadSaveDataPage)
+      .Add("Renderer", LoadRendererPage)
+      .Add("Scripts", LoadScriptPage)
+      .Add("Title Screen", LoadTitleScreenPage)
+      .Add("System", LoadSystemPage)
+      .AddSeparator()
+      .Add("Plugin Theme", LoadThemePage)
+      .Add("Save Config", ConfigManager::Save);
 }
 } // namespace ui

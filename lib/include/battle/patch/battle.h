@@ -43,7 +43,7 @@ struct BattleSettings {
   bool sync_team_hp = false;
   bool inverse_stats = false;
   bool metronome_only = false;
-  bool show_type_helper = true;
+  bool show_type_helper = false;
 
   bool mega_restriction = true;
   bool unlimited_mega_evolution = true;

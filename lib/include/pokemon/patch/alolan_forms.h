@@ -31,7 +31,7 @@ class AlolanForms {
 public:
   static constexpr u32 kSpeciesEntries = 826;
   static constexpr u32 kEntrySize = 0x50;
-  static constexpr u32 kFormCount = 53;
+  static constexpr u32 kFormCount = 73;
 
   static bool PatchMegaTable(SpeciesId species, MegaEvolutionData* table);
   static void Initialize();
