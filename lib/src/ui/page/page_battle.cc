@@ -332,14 +332,12 @@ void LoadBattleLivePage(MainApplication& app, void* args) {
 // --- Family root -----------------------------------------------------------
 
 void LoadBattlePage(MainApplication& app, void* args) {
-  app
-      .Add("Static Encounter", static_encounter_id)
-      .WithCallback(StartBattle)
-
-      .Add("Live Battle", LoadBattleLivePage)
-      .Add("Settings", LoadBattleSettingsPage)
-      .WithArray(STATIC_ENCOUNTER_NAMES, SIZE(STATIC_ENCOUNTER_NAMES))
-      .Add("Wild Battle Setup", LoadBattleSetupPage)
-      .Add("Type Chart", LoadTypeChartPage);
+  app.Add("Static Encounter", static_encounter_id)
+     .WithCallback(StartBattle)
+     .WithArray(STATIC_ENCOUNTER_NAMES, SIZE(STATIC_ENCOUNTER_NAMES))
+     .Add("Live Battle", LoadBattleLivePage)
+     .Add("Settings", LoadBattleSettingsPage)
+     .Add("Wild Battle Setup", LoadBattleSetupPage)
+     .Add("Type Chart", LoadTypeChartPage);
 }
 } // namespace ui
