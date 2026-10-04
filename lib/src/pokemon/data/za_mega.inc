@@ -57,6 +57,7 @@ static const ZaMega kZaMegas[] = {
   {SpeciesId::kDragonite, 1, ItemId::kLifeOrb, "Dragonite"},
   {SpeciesId::kMeganium, 1, ItemId::kLifeOrb, "Meganium"},
   {SpeciesId::kFeraligrator, 1, ItemId::kLifeOrb, "Feraligrator"},
+  {SpeciesId::kPichu, 1, ItemId::kLifeOrb, "Pichu Spiky-eared"},
   {SpeciesId::kWooper, 1, ItemId::kLifeOrb, "Wooper Paldean"},
   {SpeciesId::kSlowking, 1, ItemId::kLifeOrb, "Slowking Galar"},
   {SpeciesId::kCorsola, 1, ItemId::kLifeOrb, "Corsola Galar"},

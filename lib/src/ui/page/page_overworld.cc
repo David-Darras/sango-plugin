@@ -37,6 +37,7 @@
 #include "overworld/patch/weather_override.h"
 #include "pokemon/patch/model_loader.h"
 #include "core/patch/time_override.h"
+#include "overworld/native/hidden_item.h"
 #include "renderer/native/h3d_shader_model.h"
 #include "system/native/sound.h"
 #include "ui/log_application.h"
@@ -323,6 +324,60 @@ static void LoadDecorationPage(MainApplication& app, void* args) {
      .Add("Clear", ClearDecorations);
 }
 
+void LoadHiddenItemPage(MainApplication& app, void* args) {
+  if (app.CheckProcess(overworld::address::kVtable)) return;
+
+  static u32 hidden_item_index = 0;
+
+  app.Add("Index", hidden_item_index)
+     .WithBounds(0, overworld::HiddenItem::kCount - 1)
+     .WithRefresh();
+
+  auto& hidden_item = overworld::HiddenItem::GetInstance(hidden_item_index);
+
+  app.AddSeparator()
+     .AddItem("Item ID", hidden_item.item_id)
+     .Add("UID", hidden_item.uid)
+     .AddSeparator()
+     .Add("Tile X", hidden_item.tile_x)
+     .Add("Height", hidden_item.height)
+     .Add("Tile Z", hidden_item.tile_z)
+     .Add("Map ID", hidden_item.map_id)
+     .AddSeparator()
+     .Add("Respawn Rate", &hidden_item.flags, 0, 7)
+     .WithBounds(0, 127)
+     .Add("Initially Placed", &hidden_item.flags, 7, 1);
+}
+
+void LoadRandomHiddenItemPage(MainApplication& app, void* args) {
+  if (app.CheckProcess(overworld::address::kVtable)) return;
+
+  static u32 random_hidden_item_index = 0;
+
+  app.Add("Index", random_hidden_item_index)
+     .WithBounds(0, overworld::RandomHiddenItem::kCount - 1)
+     .WithRefresh();
+
+  auto& random_item = overworld::RandomHiddenItem::GetInstance(
+      random_hidden_item_index);
+
+  app.AddSeparator()
+     .Add("Map ID", random_item.map_id)
+     .Add("UID", &random_item.flags, 0, 15)
+     .Add("Is Mirage Spot", &random_item.flags, 15, 1)
+     .AddSeparator()
+     .Add("Tile X", random_item.tile_x)
+     .Add("Height", random_item.height)
+     .Add("Tile Z", random_item.tile_z)
+     .AddSeparator()
+     .AddItem("Item ID 0", random_item.item_id[0])
+     .AddItem("Item ID 1", random_item.item_id[1])
+     .AddItem("Item ID 2", random_item.item_id[2])
+     .AddItem("Item ID 3", random_item.item_id[3])
+     .AddItem("Item ID 4", random_item.item_id[4])
+     .AddItem("Item ID 5", random_item.item_id[5]);
+}
+
 void LoadOverworldPage(MainApplication& app, void* args) {
   if (app.CheckProcess(overworld::address::kVtable)) return;
 
@@ -338,6 +393,8 @@ void LoadOverworldPage(MainApplication& app, void* args) {
      .Add("Map Tile", LoadOverworldMapTilePage)
      .Add("Props", LoadPropModelPage)
      .Add("Decorations", LoadDecorationPage)
+     .Add("Hidden Item", LoadHiddenItemPage)
+     .Add("Random Hidden Item", LoadRandomHiddenItemPage)
      .Add("Encounter", LoadOverworldEncounterPage)
      .Add("Day Care", LoadDayCarePage)
      .AddSeparator()
