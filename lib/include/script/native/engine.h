@@ -18,6 +18,7 @@
 #pragma once
 
 #include "common.h"
+#include "script/constant/script.h"
 #include "script/native/amx.h"
 #include "script/native/engine_workspace.h"
 #include "script/native/script_vm.h"
@@ -40,6 +41,17 @@ public:
   INLINE EngineWorkspace* GetWorkspace() const { return workspace_; }
   INLINE ScriptVm* GetCurrentVm() const { return current_vm_; }
   INLINE u16 GetZoneId() const { return zone_id_; }
+
+  INLINE bool IsScriptRunning() const {
+    return current_vm_ != nullptr && current_vm_->is_loaded;
+  }
+
+  INLINE bool ReserveScript(ScriptId id) {
+    if (reserved_script_id_ != (s32)ScriptId::kDoNothing) return false;
+    reserved_script_id_ = (s32)id;
+    return true;
+  }
+
   STATIC_INLINE void RaiseSleep(AmxRuntime* amx) {
     ((s32 (*)(AmxRuntime*, s32))core::address::kScriptRaiseError)(amx, AMX_ERR_SLEEP);
   }

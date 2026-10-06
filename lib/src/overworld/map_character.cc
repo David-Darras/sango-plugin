@@ -34,7 +34,34 @@ void MapCharacter::Initialize() {
   core::HookManager::Initialize(HookId::kCompleteRegionModelList,
                           address::kCompleteRegionModelList,
                           (uptr)CompleteRegionModelList);
+#ifdef GAME_ORAS
+  core::HookManager::Initialize(HookId::kChangeMap, address::kChangeMap,
+                          (uptr)ChangeMapHook);
+#endif
 }
+
+#ifdef GAME_ORAS
+void MapCharacter::ChangeMapHook(core::GameManager* manager, MapId map_id,
+                                 const Position* position, Facing facing,
+                                 u8 p0, bool p1, s32 p2, s32 p3, s32 p4,
+                                 bool p5) {
+  auto& ctx = GetInstance();
+  if (position != nullptr) {
+    const auto& player = ModelManager::GetInstance().GetPlayer();
+    if (player.map_pos.coords.x > 4.0f && player.world_pos.coords.x > 4.0f) {
+      ctx.world_per_tile_ =
+          player.world_pos.coords.x / player.map_pos.coords.x;
+    }
+    ctx.arrival_map_ = map_id;
+    ctx.arrival_tile_x_ =
+        static_cast<s32>(position->coords.x / ctx.world_per_tile_);
+    ctx.arrival_tile_z_ =
+        static_cast<s32>(position->coords.z / ctx.world_per_tile_);
+  }
+  core::HookManager::Call<void>(HookId::kChangeMap, manager, map_id, position,
+                                facing, p0, p1, p2, p3, p4, p5);
+}
+#endif
 
 bool MapCharacter::Add(const MapCharacterRequest& request) {
   auto& ctx = GetInstance();
@@ -57,6 +84,16 @@ bool MapCharacter::Empty(MapId map_id) {
 
 u32 MapCharacter::GetCount() {
   return GetInstance().request_count_;
+}
+
+u16 MapCharacter::GetLocalId(ScriptId script_id) {
+  auto& ctx = GetInstance();
+  for (u32 i = 0; i < ctx.request_count_; i++) {
+    if (ctx.requests_[i].script_id == script_id) {
+      return ctx.requests_[i].local_id;
+    }
+  }
+  return 0xFFFF;
 }
 
 void MapCharacter::ReloadMapAfterBattleWith(u16 trainer_id) {
@@ -153,7 +190,7 @@ void MapCharacter::PlaceCharacters(MapEventData* events) {
   const MapId map_id = events->map_id;
   const CharacterPlacement* shipped = events->characters;
   u32 shipped_count = events->character_count;
-  if (shipped == nullptr) return;
+  if (shipped == nullptr && shipped_count != 0) return;
   if (shipped_count > kMaxCharactersPerMap) return;
 
   s32 graft_dx = 0;
@@ -176,9 +213,22 @@ void MapCharacter::PlaceCharacters(MapEventData* events) {
 
   u32 added = 0;
   for (u32 i = 0; i < request_count_ && count < kMaxCharactersPerMap; i++) {
-    const MapCharacterRequest& request = requests_[i];
-    if (request.map_id != map_id) continue;
-    BuildPlacement(request, next_local_id++, &placements_[count++]);
+    MapCharacterRequest& request = requests_[i];
+    if (request.map_id != map_id && !request.is_everywhere) continue;
+    request.local_id = next_local_id;
+    BuildPlacement(request, next_local_id++, &placements_[count]);
+    if (request.is_everywhere) {
+      const auto& player = ModelManager::GetInstance().GetPlayer();
+      const bool has_arrival = arrival_map_ == map_id && arrival_tile_x_ >= 0;
+      placements_[count].map_id = map_id;
+      placements_[count].displayed_on_map_id = map_id;
+      placements_[count].owned_by_map_id = map_id;
+      placements_[count].position.tile_x = static_cast<u16>(
+          has_arrival ? arrival_tile_x_ : (s32)player.map_pos.coords.x);
+      placements_[count].position.tile_z = static_cast<u16>(
+          has_arrival ? arrival_tile_z_ : (s32)player.map_pos.coords.z);
+    }
+    count++;
     added++;
   }
 

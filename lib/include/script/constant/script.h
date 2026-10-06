@@ -381,6 +381,7 @@ enum class ScriptId : u16 {
   kAquaBossWelcome = 30501,
   kKujiraGreeter = 30502,
   kWhosThatPokemon = 30510,
+  kHealerFollower = 30511,
   kLastCustom = 59999,
 };
 

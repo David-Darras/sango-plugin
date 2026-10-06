@@ -117,6 +117,7 @@ enum class HookId : u32 {
   kCallStaticEncounter,
   kTradePokemon,
   kLoadMapCharacters,
+  kChangeMap,
   kCompleteRegionModelList,
   kLoadWorldLayout,
   kScriptDescriptorSetup,

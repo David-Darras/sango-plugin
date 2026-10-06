@@ -24,7 +24,12 @@
 #include "overworld/native/character_placement.h"
 #include "overworld/native/map_event_data.h"
 #include "overworld/native/model_appearance.h"
+#include "overworld/native/position.h"
 #include "script/constant/script.h"
+
+namespace core {
+class GameManager;
+}
 
 namespace overworld {
 
@@ -38,6 +43,8 @@ struct MapCharacterRequest {
   Facing facing = Facing::kDown;
   u16 movement_id = 0;
   u16 hide_when_flag_set = 0;
+  bool is_everywhere = false;
+  u16 local_id = 0xFFFF;
 };
 
 class MapCharacter {
@@ -52,6 +59,7 @@ public:
   static void Clear();
   static bool Empty(MapId map_id);
   static u32 GetCount();
+  static u16 GetLocalId(ScriptId script_id);
   static void ReloadMapAfterBattleWith(u16 trainer_id);
   static void Update();
 
@@ -60,6 +68,12 @@ private:
   static constexpr u32 kMaxEmptiedMaps = 8;
 
   static void ReloadCurrentMap();
+#ifdef GAME_ORAS
+  static void ChangeMapHook(core::GameManager* manager, MapId map_id,
+                            const Position* position, Facing facing,
+                            u8 p0, bool p1, s32 p2, s32 p3, s32 p4,
+                            bool p5);
+#endif
   static u32 LoadMapCharacters(MapEventData* events, u32 buffer_id);
   static void MoveGraftedEvents(MapEventData* events);
   static void CompleteRegionModelList(CharacterManager* manager,
@@ -84,6 +98,10 @@ private:
   MapCharacterRequest requests_[kMaxRequests];
   u32 request_count_ = 0;
   bool is_reload_armed_ = false;
+  MapId arrival_map_ = MapId::kNone;
+  s32 arrival_tile_x_ = -1;
+  s32 arrival_tile_z_ = -1;
+  f32 world_per_tile_ = 18.0f;
   bool has_resting_spot_ = false;
   f32 resting_x_ = 0.0f;
   f32 resting_z_ = 0.0f;

@@ -28,6 +28,7 @@
 #include "overworld/patch/day_care.h"
 #include "overworld/patch/field.h"
 #include "overworld/patch/field_grass.h"
+#include "overworld/patch/healer_follower.h"
 #include "overworld/patch/map_character.h"
 #include "overworld/patch/map_data_loader.h"
 #include "overworld/patch/map_graft.h"
@@ -409,6 +410,7 @@ void LoadOverworldPage(MainApplication& app, void* args) {
      .Add("Decorations", LoadDecorationPage)
 #ifdef GAME_ORAS
      .Add("Field Grass", LoadFieldGrassPage)
+     .Add("Healer Follower", overworld::HealerFollower::GetInstance().is_enabled)
 #endif
      .Add("Hidden Item", LoadHiddenItemPage)
      .Add("Random Hidden Item", LoadRandomHiddenItemPage)

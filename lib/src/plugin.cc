@@ -39,6 +39,7 @@
 #include "overworld/patch/map_graft.h"
 #include "overworld/patch/map_tile.h"
 #include "overworld/patch/field_grass.h"
+#include "overworld/patch/healer_follower.h"
 #include "overworld/patch/placed_decorations.h"
 #include "overworld/patch/whos_that_pokemon.h"
 #include "overworld/patch/player_cheats.h"
@@ -102,6 +103,7 @@ void InitializeEngine() {
   overworld::PlacedDecorations::Initialize();
 #ifdef GAME_ORAS
   overworld::WhosThatPokemon::Initialize();
+  overworld::HealerFollower::Initialize();
 #endif
   battle::Setup::Initialize();
   renderer::ModelFilter::Initialize();
@@ -163,6 +165,7 @@ void UpdateFrame() {
   overworld::PlacedDecorations::Update();
 #ifdef GAME_ORAS
   overworld::FieldGrass::Update();
+  overworld::HealerFollower::Update();
 #endif
 #ifndef GAME_XY
   overworld::MapGraft::Update();
