@@ -38,7 +38,9 @@
 #include "overworld/patch/map_data_loader.h"
 #include "overworld/patch/map_graft.h"
 #include "overworld/patch/map_tile.h"
+#include "overworld/patch/field_grass.h"
 #include "overworld/patch/placed_decorations.h"
+#include "overworld/patch/whos_that_pokemon.h"
 #include "overworld/patch/player_cheats.h"
 #include "overworld/patch/run_animation.h"
 #include "overworld/patch/static_randomizer.h"
@@ -87,7 +89,9 @@ void InitializeEngine() {
   overworld::MapTile::Initialize();
   overworld::Camera::Initialize();
   overworld::FieldMove::Initialize();
+#ifdef GAME_ORAS
   pokemon::ItemCustomizer::Initialize();
+#endif
   overworld::Field::Initialize();
   overworld::MapDataLoader::Initialize();
   overworld::WildEncounter::Initialize();
@@ -96,6 +100,9 @@ void InitializeEngine() {
   script::NativeScript::Initialize();
   overworld::AutoSurf::Initialize();
   overworld::PlacedDecorations::Initialize();
+#ifdef GAME_ORAS
+  overworld::WhosThatPokemon::Initialize();
+#endif
   battle::Setup::Initialize();
   renderer::ModelFilter::Initialize();
   battle::Battle::Initialize();
@@ -154,6 +161,9 @@ void UpdateFrame() {
 
   overworld::MapCharacter::Update();
   overworld::PlacedDecorations::Update();
+#ifdef GAME_ORAS
+  overworld::FieldGrass::Update();
+#endif
 #ifndef GAME_XY
   overworld::MapGraft::Update();
   overworld::TileEditor::Update();

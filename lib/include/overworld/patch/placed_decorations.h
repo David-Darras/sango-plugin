@@ -43,7 +43,7 @@ class PlacedDecorations {
   MAKE_SINGLETON(PlacedDecorations)
 
 public:
-  static constexpr u32 kMaxDecorations = 8;
+  static constexpr u32 kMaxDecorations = 8*10;
   static constexpr u32 kMaxFootprintTiles = 25;
   static constexpr u32 kFirstTalkScript = 31000;
 
@@ -61,6 +61,7 @@ public:
   static void ReloadMap();
   static void OnWildPokemonRolled(WildPokemon* pokemons, u32 count);
   static void RunTalkScript(script::Context& script, u32 slot);
+  static bool IsNearExit(MapId map);
 
 private:
   struct Entry {
@@ -89,7 +90,6 @@ private:
   static void ShowModel(Entry& entry);
   static void HideModel(Entry& entry);
   static void DiscardModel(Entry& entry);
-  static bool IsNearExit(MapId map);
   static bool IsOnTallGrass(s32 tile_x, s32 tile_z);
   static void UpdateTallGrass();
   static void StartTallGrassBattle();

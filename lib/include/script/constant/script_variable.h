@@ -25,6 +25,7 @@ enum class ScriptVariable : u16 {
   kParam0 = 0x8000,
   kTemp0 = 0x8008,
   kReturn0 = 0x800C,
+  kReturn1 = 0x800D,
   kAnswer = 0x8010,
   kTalkTarget = 0x8011,
   kTalkStartTarget = 0x8012,

@@ -110,6 +110,13 @@ public:
     return (s16)GetVariable(ScriptVariable::kReturn0);
   }
 
+  bool InputPartyNickname(u32 slot) {
+    Call(natives_.CallPokePartyNameInput, (u32)ScriptVariable::kReturn0,
+         (u32)ScriptVariable::kReturn1, slot, true, false);
+    Yield();
+    return GetVariable(ScriptVariable::kReturn0) != 0;
+  }
+
   /// True when the player won the last battle; a loss or a draw is false.
   bool WonLastBattle() {
     return Call(natives_.WildBattleResultGet) == kBattleResultWon;

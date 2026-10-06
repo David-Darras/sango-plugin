@@ -29,6 +29,7 @@ public:
   static constexpr u32 kCount = 3;
   SpeciesId candidates[kCount] = {SpeciesId::kNone, SpeciesId::kNone,
                                 SpeciesId::kNone};
+  bool is_egg[kCount] = {false, false, false};
 
   static void PatchLoad();
 
@@ -36,7 +37,7 @@ private:
   static constexpr u32 kViewStride = 0x54;
   static constexpr u32 kModelStride = 0x170;
 
-  static void Apply(PokeInfo* info, SpeciesId species);
+  static void Apply(PokeInfo* info, SpeciesId species, bool is_egg);
 };
 
 } // namespace ui

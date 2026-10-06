@@ -34,7 +34,6 @@
 #include "ui/log_application.h"
 
 namespace overworld {
-
 namespace {
 constexpr f32 kPi = 3.14159265f;
 constexpr u32 kMinBlockingLayout = 2;
@@ -51,8 +50,8 @@ constexpr u32 kTileBackgroundMask = 0x7Fu << kTileBackgroundShift;
 constexpr StaticEncounterId kBorrowedEncounter = StaticEncounterId::kWurmple;
 constexpr u32 kTallGrassPokemonLevel = 100;
 constexpr battle::BackgroundId kTallGrassBackground =
-    battle::BackgroundId::kCity;
-constexpr battle::GroundId kTallGrassGround = battle::GroundId::kCity;
+    battle::BackgroundId::kShore;
+constexpr battle::GroundId kTallGrassGround = battle::GroundId::kShore;
 const MoveId kTallGrassMoves[4] = {MoveId::kRoarOfTime, MoveId::kSpacialRend,
                                    MoveId::kShadowForce, MoveId::kJudgment};
 
@@ -100,10 +99,14 @@ Facing ToCardinalFacing(Facing facing) {
 
 f32 ModelRotationOf(Facing facing) {
   switch (facing) {
-    case Facing::kUp: return kPi;
-    case Facing::kLeft: return -kPi / 2.0f;
-    case Facing::kRight: return kPi / 2.0f;
-    default: return 0.0f;
+    case Facing::kUp:
+      return kPi;
+    case Facing::kLeft:
+      return -kPi / 2.0f;
+    case Facing::kRight:
+      return kPi / 2.0f;
+    default:
+      return 0.0f;
   }
 }
 } // namespace
@@ -289,7 +292,7 @@ void PlacedDecorations::ShowModel(Entry& entry) {
                       entry.request.ground_height,
                       (entry.request.tile_z + entry.depth / 2.0f) * tile_size);
   if (!pokemon::ModelLoader::LoadDecoration(
-          &entry.model, static_cast<u32>(entry.request.decoration), position)) {
+      &entry.model, static_cast<u32>(entry.request.decoration), position)) {
     return;
   }
 
@@ -362,7 +365,8 @@ void PlacedDecorations::UpdateTallGrass() {
   }
   if (ctx.is_tall_grass_battle_pending_) return;
 
-  if (player_x != ctx.tall_grass_tile_x_ || player_z != ctx.tall_grass_tile_z_) {
+  if (player_x != ctx.tall_grass_tile_x_ || player_z != ctx.
+      tall_grass_tile_z_) {
     ctx.tall_grass_tile_x_ = player_x;
     ctx.tall_grass_tile_z_ = player_z;
     ctx.step_countdown_ = 0;
@@ -394,20 +398,21 @@ void PlacedDecorations::StartTallGrassBattle() {
     ctx.saved_encounter_ = encounter;
     ctx.has_saved_encounter_ = true;
   }
-  encounter.species = SpeciesId::kChansey;
-  encounter.form = FormId::kNormal;
+  encounter.species = static_cast<SpeciesId>(929);
+  encounter.form = FormId::kMega;
   encounter.level = kTallGrassPokemonLevel;
   encounter.is_shiny = ShinyRoll::kNotShiny;
   encounter.kind = StaticEncounterKind::kNormal;
   encounter.background = kTallGrassBackground;
   encounter.ground = kTallGrassGround;
+  encounter.animation = EncounterAnimationId::kKyogre;
 
   auto& randomizer = StaticRandomizer::GetInstance();
   const bool was_randomizing = randomizer.randomize_species;
   randomizer.randomize_species = false;
   ((s32(*)(core::GameManager*, StaticEncounterId, u32, s32))
-       address::kCallStaticEncounter)(&core::GameManager::GetInstance(),
-                                      kBorrowedEncounter, 0, -1);
+    address::kCallStaticEncounter)(&core::GameManager::GetInstance(),
+                                   kBorrowedEncounter, 0, -1);
   randomizer.randomize_species = was_randomizing;
 
   ctx.is_tall_grass_battle_pending_ = true;
@@ -463,7 +468,8 @@ void PlacedDecorations::ApplyTileChanges(Entry& entry) {
                (static_cast<u32>(kTallGrassBackground)
                 << kTileBackgroundShift);
       } else {
-        attr = (attr & ~kGroundIdMask) | kBlockedGroundBits | kTileImpassableBit;
+        attr = (attr & ~kGroundIdMask) | kBlockedGroundBits |
+               kTileImpassableBit;
       }
       *attr_slot = attr;
     }

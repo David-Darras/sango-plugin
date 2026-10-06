@@ -57,6 +57,8 @@ public:
                           u32 shop_id = kDefaultShopId);
   static bool PatchItemName(ItemId item, String* output);
   static bool GiveMega(SpeciesId species, ItemId item = ItemId::kLifeOrb);
+  static bool GivePokemon(const ShopPokemon& entry);
+  static void GetSpeciesName(SpeciesId species, String* output);
 
 private:
   enum Offset : u32 {
@@ -71,11 +73,9 @@ private:
   static constexpr u32 kParamSlot = 0;
   static constexpr u32 kIconPane = 62;
 
-  static void GetSpeciesName(SpeciesId species, String* output);
   static bool IsPokemonShop(const ShopData* data);
   static const ShopPokemon* GetPokemon(const ShopData* data, s32 index);
   static const ShopPokemon* GetSelectedPokemon();
-  static bool GivePokemon(const ShopPokemon& entry);
   static bool AddPokemonToTeam(u32 slot);
   static void LoadShopItemsHook(ShopData* data, ShopType type, u32 id,
                                 void* heap, bool for_sale);

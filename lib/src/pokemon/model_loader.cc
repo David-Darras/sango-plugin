@@ -25,6 +25,7 @@
 #include "renderer/native/h3d_shader_model.h"
 #include "renderer/native/pokemon_model_table.h"
 #include "renderer/native/scene.h"
+#include "system/native/file.h"
 #include "ui/log_application.h"
 
 #define POKEMON_FILE_SPECIES_TABLE (0)
@@ -156,6 +157,69 @@ bool ModelLoader::LoadDecoration(LoadedModel* out, u32 decoration_index,
   return BuildModel(out, position);
 }
 
+void* ModelLoader::ReadSdPack(const c16* path, u32 capacity) {
+  void* device_heap = DeviceHeap();
+  if (device_heap == nullptr) return nullptr;
+  void* buffer = ((void* (*)(void*, u32, u32))sys::address::kHeapAlloc)(
+      device_heap, capacity, 128);
+  if (buffer == nullptr) return nullptr;
+
+  sys::File file;
+  file.Open(path, sys::File::kRead);
+  if (!file.IsOpen()) {
+    sys::File::MountSdmc();
+    file.Open(path, sys::File::kRead);
+  }
+  if (!file.IsOpen()) {
+    ((void (*)(void*))sys::address::kHeapFree)(buffer);
+    return nullptr;
+  }
+  const s32 read = file.Read(buffer, capacity);
+  file.Close();
+  if (read <= 0) {
+    ((void (*)(void*))sys::address::kHeapFree)(buffer);
+    return nullptr;
+  }
+  return buffer;
+}
+
+renderer::H3dResource* ModelLoader::LoadPackResource(void* pack, u32 index) {
+  renderer::H3dResource* resource = AttachPackEntry(pack, index);
+  if (resource == nullptr) return nullptr;
+
+  void* heap_allocator = HeapAllocator();
+  void* device_allocator = DeviceAllocator();
+  auto* field_renderer = overworld::Renderer::GetInstance();
+  renderer::H3dResource* shader =
+      field_renderer != nullptr ? field_renderer->GetShaderResource() : nullptr;
+  if (shader != nullptr) resource->Setup(heap_allocator, device_allocator, shader);
+  resource->Setup(heap_allocator, device_allocator, nullptr,
+                  renderer::H3dResource::kCommonDefaultShader);
+  if (!resource->IsSetup()) {
+    ReportUnresolved(resource);
+    return nullptr;
+  }
+  return resource;
+}
+
+bool ModelLoader::LoadShared(LoadedModel* out, renderer::H3dResource* resource,
+                             const Vec3& position) {
+  if (out == nullptr || out->IsLoaded() || resource == nullptr) return false;
+  out->model_resource = resource;
+  out->is_resource_shared = true;
+  if (!BuildModel(out, position)) {
+    *out = LoadedModel{};
+    return false;
+  }
+  return true;
+}
+
+void ModelLoader::FreeBuffer(void* buffer) {
+  if (buffer != nullptr) {
+    ((void (*)(void*))sys::address::kHeapFree)(buffer);
+  }
+}
+
 void ModelLoader::Untrack(LoadedModel* entry) {
   auto& context = GetInstance();
   for (u32 i = 0; i < context.loaded_count_; ++i) {
@@ -172,7 +236,9 @@ void ModelLoader::Drop(LoadedModel* entry) {
   if (entry->model != nullptr && scene != nullptr) {
     renderer::Scene::Unregister(scene, entry->model);
     entry->model->Destroy();
-    if (entry->model_resource != nullptr) entry->model_resource->RemoveData();
+    if (entry->model_resource != nullptr && !entry->is_resource_shared) {
+      entry->model_resource->RemoveData();
+    }
     if (entry->texture_resource != nullptr) {
       entry->texture_resource->RemoveData();
     }
@@ -191,7 +257,7 @@ void ModelLoader::DropAll() {
     if (entry->model != nullptr && scene != nullptr) {
       renderer::Scene::Unregister(scene, entry->model);
       entry->model->Destroy();
-      entry->model_resource->RemoveData();
+      if (!entry->is_resource_shared) entry->model_resource->RemoveData();
       if (entry->texture_resource != nullptr) {
         entry->texture_resource->RemoveData();
       }

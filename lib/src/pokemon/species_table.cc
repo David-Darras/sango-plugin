@@ -26,6 +26,7 @@
 #include "pokemon/native/species_data.h"
 #include "core/hook_manager.h"
 #include "core/memory.h"
+#include "overworld/patch/whos_that_pokemon.h"
 #include "pokemon/data/alolan_form.inc"
 #include "pokemon/data/gen7_species.inc"
 #include "pokemon/data/gen8_species.inc"
@@ -150,6 +151,10 @@ void SpeciesTable::Update() {
 }
 
 void SpeciesTable::GetSpeciesNameHook(String* output, u16 species) {
+  if (output != nullptr && overworld::WhosThatPokemon::AreNamesHidden()) {
+    output->Set(u"???");
+    return;
+  }
   for (u32 i = 0; i < SpeciesTable::kExtraCount; i++) {
     if (Extra(i).species != species) continue;
     if (output != nullptr) output->Set(Extra(i).name);

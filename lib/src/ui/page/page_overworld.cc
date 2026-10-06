@@ -27,6 +27,7 @@
 #include "overworld/native/world_layout.h"
 #include "overworld/patch/day_care.h"
 #include "overworld/patch/field.h"
+#include "overworld/patch/field_grass.h"
 #include "overworld/patch/map_character.h"
 #include "overworld/patch/map_data_loader.h"
 #include "overworld/patch/map_graft.h"
@@ -324,6 +325,19 @@ static void LoadDecorationPage(MainApplication& app, void* args) {
      .Add("Clear", ClearDecorations);
 }
 
+static void LoadFieldGrassPage(MainApplication& app, void* args) {
+  static const c8* kMixNames[] = {"All", "Green", "Ferns", "Ash"};
+  auto& grass = overworld::FieldGrass::GetInstance();
+  app.Add("Enabled", grass.is_enabled)
+     .Add("Types", grass.mix)
+     .WithArray(kMixNames, SIZE(kMixNames))
+     .WithBounds(0, SIZE(kMixNames) - 1)
+     .Add("Radius (tiles)", grass.radius)
+     .WithBounds(1, overworld::FieldGrass::kMaxRadius)
+     .Add("Density (%)", grass.density)
+     .WithBounds(1, 100);
+}
+
 void LoadHiddenItemPage(MainApplication& app, void* args) {
   if (app.CheckProcess(overworld::address::kVtable)) return;
 
@@ -393,6 +407,9 @@ void LoadOverworldPage(MainApplication& app, void* args) {
      .Add("Map Tile", LoadOverworldMapTilePage)
      .Add("Props", LoadPropModelPage)
      .Add("Decorations", LoadDecorationPage)
+#ifdef GAME_ORAS
+     .Add("Field Grass", LoadFieldGrassPage)
+#endif
      .Add("Hidden Item", LoadHiddenItemPage)
      .Add("Random Hidden Item", LoadRandomHiddenItemPage)
      .Add("Encounter", LoadOverworldEncounterPage)

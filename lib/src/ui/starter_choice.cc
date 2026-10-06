@@ -23,18 +23,18 @@ void StarterChoice::PatchLoad() {
   auto& feat = GetInstance();
   if (feat.candidates[0] == SpeciesId::kNone) return;
   for (u32 i = 0; i < kCount; i++) {
-    Apply((PokeInfo*)(core::address::kStarter + kViewStride * i), feat.candidates[i]);
+    Apply((PokeInfo*)(core::address::kStarter + kViewStride * i), feat.candidates[i], feat.is_egg[i]);
     Apply((PokeInfo*)(core::address::kStarterModel + kModelStride * i),
-          feat.candidates[i]);
+          feat.candidates[i], feat.is_egg[i]);
   }
 }
 
-void StarterChoice::Apply(PokeInfo* info, SpeciesId species) {
+void StarterChoice::Apply(PokeInfo* info, SpeciesId species, bool is_egg) {
   info->species = species;
   info->form = FormId::kNormal;
   info->gender = Gender::kMale;
   info->is_shiny = false;
-  info->is_egg = false;
+  info->is_egg = is_egg;
 }
 
 } // namespace ui

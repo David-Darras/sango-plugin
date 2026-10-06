@@ -19,6 +19,7 @@
 #include "core/hook_manager.h"
 #include "core/native/process_manager.h"
 #include "overworld/patch/weather_override.h"
+#include "overworld/patch/whos_that_pokemon.h"
 #include "renderer/native/h3d_model.h"
 #include "battle/native/graphics.h"
 #include "renderer/native/particle.h"
@@ -169,6 +170,14 @@ void ModelFilter::OnResourceAttachBufferAndSetup(uptr self, uptr allocator,
 }
 
 void ModelFilter::UpdateH3dModel(H3dModel* h3d_model) {
+  if (overworld::WhosThatPokemon::IsSilhouetteActive() &&
+      core::ProcessManager::GetInstance().IsCurrentProcess(
+          core::address::kSelectStarterVtable)) {
+    if (*(const u32*)h3d_model == address::kH3dPokemonShaderModelVtable) {
+      h3d_model->ApplyPitchBlack();
+    }
+    return;
+  }
   if (!IsInBattle()) {
     return;
   }

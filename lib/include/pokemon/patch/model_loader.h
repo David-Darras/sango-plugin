@@ -37,6 +37,7 @@ struct LoadedModel {
   renderer::H3dResource* model_resource = nullptr;
   renderer::H3dResource* texture_resource = nullptr;
   renderer::H3dShaderModel* model = nullptr;
+  bool is_resource_shared = false;
 
   INLINE bool IsLoaded() const { return model != nullptr; }
 };
@@ -45,7 +46,7 @@ class ModelLoader {
   MAKE_SINGLETON(ModelLoader)
 
 public:
-  static constexpr u32 kMaxLoaded = 16;
+  static constexpr u32 kMaxLoaded = 160;
 
   static bool LoadOverworldModel(LoadedModel* out, ModelId model_id,
                                  const Vec3& position);
@@ -54,6 +55,11 @@ public:
                           Gender gender = Gender::kMale);
   static bool LoadDecoration(LoadedModel* out, u32 decoration_index,
                              const Vec3& position);
+  static void* ReadSdPack(const c16* path, u32 capacity);
+  static renderer::H3dResource* LoadPackResource(void* pack, u32 index);
+  static bool LoadShared(LoadedModel* out, renderer::H3dResource* resource,
+                         const Vec3& position);
+  static void FreeBuffer(void* buffer);
   static void Drop(LoadedModel* entry);
   static void Untrack(LoadedModel* entry);
   static void DropAll();

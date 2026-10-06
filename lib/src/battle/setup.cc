@@ -17,6 +17,7 @@
 
 #include "battle/patch/setup.h"
 #include "core/hook_manager.h"
+#include "overworld/patch/field_grass.h"
 #include "overworld/patch/placed_decorations.h"
 #include "battle/native/config.h"
 #include "savedata/native/pokemon_team.h"
@@ -37,6 +38,9 @@ void Setup::SetupTrainerHook(Config* config, void* game_manager,
                              TrainerId trainer_id, void* p1, Format format,
                              void* p2) {
   overworld::PlacedDecorations::RemoveModelsBeforeBattle();
+#ifdef GAME_ORAS
+  overworld::FieldGrass::RemoveModelsBeforeBattle();
+#endif
   const TrainerId forced = GetInstance().trainer_id;
   if (forced != TrainerId::kNone) trainer_id = forced;
   core::HookManager::Call<void>(HookId::kBattleConfigSetupTrainer,
@@ -56,6 +60,9 @@ void Setup::SetupWildHook(Config* config,
                                  u32 effect_id,
                                  void* p2) {
   overworld::PlacedDecorations::RemoveModelsBeforeBattle();
+#ifdef GAME_ORAS
+  overworld::FieldGrass::RemoveModelsBeforeBattle();
+#endif
   core::HookManager::Call<void>(HookId::kBattleConfigSetupWild, config,
                           game_manager,
                           opponent_team, p1,

@@ -206,7 +206,9 @@ static void FillBoxesWithZaMegaForms(void*) {
 
 void LoadPokemonPage(MainApplication& app, void* args) {
   LoadShinyPage(app, args);
+#ifdef GAME_ORAS
   app.Add("Fill Boxes With All New (Lv. 100)", FillBoxesWithAll);
+#endif
   app.Add("Randomize Gift Pokemon",
           overworld::GiftPokemon::GetInstance().randomize_species)
      .Add("Randomize Static Encounters",
