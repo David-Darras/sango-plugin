@@ -16,9 +16,11 @@
  */
 
 #include "battle/patch/game_extension.h"
+#include "battle/patch/move_animation.h"
 #include "pokemon/patch/custom_shop.h"
 #include "ui/log_application.h"
 
+#include "core/constant/archive_id.h"
 #include "core/hook_manager.h"
 #include "overworld/patch/weather_override.h"
 #include "battle/native/broadcaster.h"
@@ -313,15 +315,15 @@ static void SolarFlareSunReaction(Listener* self,
 
 static void PatchAbsoluteZeroData(pokemon::MoveData& move) {
   move.power = 0;
-  move.accuracy = 100;
+  move.accuracy = 101;
   move.base_pp = 50;
   move.type = TypeId::kIce;
   move.effect_id = StatusCondition::kFreeze;
   move.effect_rate = 100;
   move.effect_turn_type = 1;
-  move.flinch_rate = 100;
-  move.category = 4;
-  move.damage_category = 1;
+  move.flinch_rate = 0;
+  move.category = 1;
+  move.damage_category = 0;
 }
 
 static void PatchSolarFlareData(pokemon::MoveData& move) {
@@ -400,6 +402,9 @@ void GameExtension::Initialize() {
   core::HookManager::Initialize(HookId::kBattleLoadAnimation,
                                 address::kLoadAnimation,
                                 (uptr)BattleLoadAnimationHook, false);
+  core::HookManager::Initialize(HookId::kBattleLoadEffect,
+                                address::kLoadEffect,
+                                (uptr)BattleLoadEffectHook, false);
   core::HookManager::Initialize(HookId::kBattleAddTerrain, address::kAddTerrain,
                                 (uptr)BattleAddTerrainHook, false);
   core::HookManager::Initialize(HookId::kLoadMoveData,
@@ -411,6 +416,9 @@ void GameExtension::PatchBattleLoad() {
   core::HookManager::ForceEnable(HookId::kBattleRegisterAbilityListener);
   core::HookManager::ForceEnable(HookId::kBattleRegisterMoveListener);
   core::HookManager::ForceEnable(HookId::kBattleLoadAnimation);
+  if (address::kLoadEffect != 0) {
+    core::HookManager::ForceEnable(HookId::kBattleLoadEffect);
+  }
   core::HookManager::ForceEnable(HookId::kBattleAddTerrain);
 }
 
@@ -420,8 +428,20 @@ u32 GameExtension::BattleAddTerrainHook(u32 a, u32 b) {
   return res;
 }
 
+void GameExtension::BattleLoadEffectHook(uptr self, u32 archive_id,
+                                             u32 file_id, u32 type) {
+  if (MoveAnimations::AreEffectsOnDemand() &&
+      archive_id == static_cast<u32>(core::ArchiveId::kMoveEffectParticle)) {
+    return;
+  }
+  core::HookManager::Call<void>(HookId::kBattleLoadEffect, self,
+                                archive_id, file_id, type);
+}
+
 void GameExtension::BattleLoadAnimationHook(uptr self, u32 id, bool is_move) {
+  MoveAnimations::LoadEffectsOnDemand(false);
   if (kMoveAnimationCount != 0) is_move = id < kMoveAnimationCount;
+  if (is_move) MoveAnimations::Resolve(static_cast<MoveId>(id), &id, &is_move);
   if (is_move) {
     for (auto& spec : kMoves) {
       if (id == static_cast<u32>(spec.id) && spec.patch_animation != nullptr) {
@@ -545,8 +565,8 @@ void GameExtension::MessageGetStringHook(Message* self, u32 str_id,
     case 37:
       PatchAbilityName(static_cast<AbilityId>(str_id), output);
       break;
-    case 113: // itemname_wordset, used to build the shop sentences
-    case 116: // itemname
+    case 113:
+    case 116:
       pokemon::CustomShop::PatchItemName(static_cast<ItemId>(str_id), output);
       break;
     default:

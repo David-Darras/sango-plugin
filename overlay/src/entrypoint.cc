@@ -21,7 +21,10 @@
  */
 
 #include "plugin.h"
+#include "battle/patch/game_extension.h"
+#include "battle/patch/move_animation.h"
 #include "core/native/process_manager.h"
+#include "savedata/native/pokemon_team.h"
 #include "overworld/native/model_manager.h"
 #include "ui/page/pages.h"
 #include "ui/painter.h"
@@ -30,7 +33,35 @@ namespace script {
 void Install();
 }
 
+namespace battle {
+void RegisterAbsoluteZeroAnimation();
+void RegisterThunderboltAnimation();
+void RegisterThunderboltLayersAnimation();
+void RegisterEffectShowcaseAnimation();
+void RegisterThunderboltWebAnimation();
+}
+
+static void GiveTestMovesToFirstPokemon() {
+  static bool done = false;
+  if (done || !core::ProcessManager::IsOverworldActive()) return;
+
+  auto& team = savedata::PokemonTeam::GetInstance();
+  if (team.count == 0 || team.pokemons[0] == nullptr) return;
+
+  auto& pokemon = *team.pokemons[0];
+  pokemon.accessor->Decrypt();
+  pokemon.core->moves[0] = kMoveAbsoluteZero;
+  pokemon.core->pp[0] = 50;
+  pokemon.core->pp_up_count[0] = 0;
+  pokemon.core->moves[1] = MoveId::kThunderbolt;
+  pokemon.core->pp[1] = 24;
+  pokemon.core->pp_up_count[1] = 3;
+  pokemon.accessor->Encrypt();
+  done = true;
+}
+
 static void EveryFrame() {
+  GiveTestMovesToFirstPokemon();
   plugin::UpdateFrame();
   // UpdateFollowingPokemon();
   plugin::DrawFrame();
@@ -40,6 +71,10 @@ void Initialize() {
   plugin::InitializeEngine();
 
   script::Install();
+
+  battle::RegisterThunderboltWebAnimation();
+
+  // battle::RegisterThunderboltLayersAnimation();
 
   // plugin::LoadConfiguration();
   plugin::OpenMenu(ui::MainAppPainter::GetInstance(), ui::LoadTopPage);

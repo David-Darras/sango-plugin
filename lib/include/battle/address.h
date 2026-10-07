@@ -60,6 +60,7 @@ constexpr uptr kRegisterAbilityListener = GAME_ADDRESS(0x00710DB0, 0x0076063C);
 constexpr uptr kRegisterMoveListener = GAME_ADDRESS(0x0071328C, 0x00762B18);
 
 constexpr uptr kLoadAnimation = GAME_ADDRESS(0x006FF9EC, 0x0074E908);
+constexpr uptr kLoadEffect = GAME_ADDRESS(0, 0x0076728C);
 
 constexpr uptr kGetHpGaugePane = GAME_ADDRESS(0x0048D760, 0x004BCD08);
 constexpr uptr kPokemonModelTable = GAME_ADDRESS(0, 0x083F84C0);

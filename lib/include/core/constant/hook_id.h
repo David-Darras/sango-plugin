@@ -72,6 +72,7 @@ enum class HookId : u32 {
   kBattleRegisterAbilityListener,
   kBattleRegisterMoveListener,
   kBattleLoadAnimation,
+  kBattleLoadEffect,
   kBattleAddTerrain,
   kSetAbilityName,
   kSetMoveName,

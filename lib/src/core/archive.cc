@@ -17,6 +17,8 @@
 
 #include "core/patch/archive.h"
 #include <cstring>
+#include "battle/patch/move_animation.h"
+#include "battle/patch/effect_style.h"
 #include "core/hook_manager.h"
 #include "core/utils.h"
 #include "renderer/native/archive/bclim.h"
@@ -170,6 +172,10 @@ static bool ServeRaw(void* buffer, u32 size) {
 }
 
 u32 Archive::GetFileSizeHook(u32* archive, u32 file_id) {
+  if (IsArchive(archive, ArchiveId::kBattleMoveAnimation)) {
+    const u32 patched = battle::MoveAnimations::PatchedSize(archive, file_id);
+    if (patched) return patched;
+  }
   if (IsArchive(archive, ArchiveId::kPokemonModel)) {
     if (file_id == kSpeciesTableFile && RawSize()) return RawSize();
     const u32 size = OverrideSize(file_id);
@@ -179,6 +185,10 @@ u32 Archive::GetFileSizeHook(u32* archive, u32 file_id) {
 }
 
 u32 Archive::GetFileSizeHook2(u32* archive, u32 file_id) {
+  if (IsArchive(archive, ArchiveId::kBattleMoveAnimation)) {
+    const u32 patched = battle::MoveAnimations::PatchedSize(archive, file_id);
+    if (patched) return patched;
+  }
   if (IsArchive(archive, ArchiveId::kPokemonModel)) {
     if (file_id == kSpeciesTableFile && RawSize()) return RawSize();
     const u32 size = OverrideSize(file_id);
@@ -218,6 +228,12 @@ void Archive::ReadHook(u32* archive, u32 offset, u32 size,
 }
 
 u32 Archive::LoadDataHook2(u32* archive, u32 file_id, void* buffer) {
+  if (IsArchive(archive, ArchiveId::kBattleMoveAnimation)) {
+    u32 patched = 0;
+    if (battle::MoveAnimations::Serve(archive, file_id, buffer, &patched)) {
+      return patched;
+    }
+  }
   if (IsArchive(archive, ArchiveId::kPokemonModel)) {
     if (file_id == kSpeciesTableFile && RawSize() &&
         ServeRaw(buffer, RawSize())) {
@@ -299,6 +315,7 @@ bool Archive::ReadFileAsync2(u32* archive, void* heap, u32 file_id,
 
 bool Archive::ReadFileAsync(void* file_manager, ArchiveInput* input) {
   auto& feat = GetInstance();
+  battle::EffectStyles::TrackRead(input);
   if (feat.on_read_file != nullptr) feat.on_read_file(input);
   return HookManager::Call<bool>(HookId::kReadFileAsync, file_manager, input);
 }

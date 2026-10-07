@@ -16,6 +16,7 @@
  */
 
 #include "renderer/patch/model_filter.h"
+#include "battle/patch/effect_style.h"
 #include "core/hook_manager.h"
 #include "core/native/process_manager.h"
 #include "overworld/patch/weather_override.h"
@@ -164,6 +165,7 @@ void ModelFilter::OnResourceAttachBufferAndSetup(uptr self, uptr allocator,
                                            u32 flag_a, u32 flag_b) {
   if (IsInBattle() && p_buff != 0) {
     PatchWeatherParticleColor(p_buff);
+    battle::EffectStyles::Apply(p_buff);
   }
   core::HookManager::Call<void>(HookId::kResourceAttachBufferAndSetup, self,
                           allocator, p_buff, desc, flag_a, flag_b);
