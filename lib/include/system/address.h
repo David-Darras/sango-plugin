@@ -96,6 +96,7 @@ constexpr uptr kGameTextManagerGetText = GAME_ADDRESS(0x0013A498, 0x00139A34);
 
 constexpr uptr kHeapAlloc = GAME_ADDRESS(0x0012B4C0, 0x0011ED58);
 constexpr uptr kHeapFree = GAME_ADDRESS(0x0013A808, 0x00139DA4);
+constexpr uptr kGetHeapById = GAME_ADDRESS(0x0012B4D0, 0x0012BCA4);
 
 constexpr uptr kProcessMemoryStart = GAME_ADDRESS(0x00100000, 0x00100000);
 constexpr uptr kProcessMemoryEnd = GAME_ADDRESS(0x00800000, 0x00900000); // XY: CRO region ends ~0x7EC000

@@ -382,6 +382,10 @@ enum class ScriptId : u16 {
   kKujiraGreeter = 30502,
   kWhosThatPokemon = 30510,
   kHealerFollower = 30511,
+  kRemotePlayer0 = 30520, // online avatars, see net::RemoteAvatars
+  kRemotePlayer1 = 30521,
+  kRemotePlayer2 = 30522,
+  kRemotePlayer3 = 30523,
   kLastCustom = 59999,
 };
 

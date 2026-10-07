@@ -31,6 +31,7 @@ public:
 
   static void Initialize();
   static void Update();
+  static Facing ToFacing(f32 dx, f32 dz, Facing current);
 
 private:
   static constexpr f32 kFarDistance = 18.0f;
@@ -47,7 +48,6 @@ private:
 
   static void Talk(script::Context& script);
   static Model* FindModel();
-  static Facing ToFacing(f32 dx, f32 dz, Facing current);
   static void Follow(Model& nurse);
   static void Play(Model& nurse, State state, Facing facing);
 

@@ -33,6 +33,10 @@ struct Model {
     return *((DrawModel * (*)(Model*))address::kGetDrawModel)(this);
   }
 
+  INLINE DrawModel* GetDrawModelOrNull() {
+    return ((DrawModel * (*)(Model*))address::kGetDrawModel)(this);
+  }
+
   INLINE ModelResource& GetObjCodeParam() {
     return *(ModelResource*)((uptr)this + GAME_CONSTANT(0x87C, 0x884));
   }

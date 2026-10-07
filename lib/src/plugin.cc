@@ -103,7 +103,7 @@ void InitializeEngine() {
   overworld::PlacedDecorations::Initialize();
 #ifdef GAME_ORAS
   overworld::WhosThatPokemon::Initialize();
-  overworld::HealerFollower::Initialize();
+  // overworld::HealerFollower::Initialize(); // disabled: online avatars use the NPC slots
 #endif
   battle::Setup::Initialize();
   renderer::ModelFilter::Initialize();
@@ -165,7 +165,7 @@ void UpdateFrame() {
   overworld::PlacedDecorations::Update();
 #ifdef GAME_ORAS
   overworld::FieldGrass::Update();
-  overworld::HealerFollower::Update();
+  // overworld::HealerFollower::Update();
 #endif
 #ifndef GAME_XY
   overworld::MapGraft::Update();

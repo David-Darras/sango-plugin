@@ -41,6 +41,7 @@ PRODUCTS	:=	$(GAME_PRODUCTS)
 LIB_SOURCES	:=	lib/src \
 				lib/src/core \
 				lib/src/system \
+				lib/src/net \
 				lib/src/battle \
 				lib/src/overworld \
 				lib/src/pokemon \

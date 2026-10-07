@@ -24,6 +24,8 @@
 #include "battle/patch/game_extension.h"
 #include "battle/patch/move_animation.h"
 #include "core/native/process_manager.h"
+#include "net/network.h"
+#include "net/remote_avatars.h"
 #include "savedata/native/pokemon_team.h"
 #include "overworld/native/model_manager.h"
 #include "ui/page/pages.h"
@@ -38,7 +40,6 @@ void RegisterAbsoluteZeroAnimation();
 void RegisterThunderboltAnimation();
 void RegisterThunderboltLayersAnimation();
 void RegisterEffectShowcaseAnimation();
-void RegisterThunderboltWebAnimation();
 }
 
 static void GiveTestMovesToFirstPokemon() {
@@ -62,7 +63,11 @@ static void GiveTestMovesToFirstPokemon() {
 
 static void EveryFrame() {
   GiveTestMovesToFirstPokemon();
+  net::Network::Update();
   plugin::UpdateFrame();
+#ifdef GAME_ORAS
+  net::RemoteAvatars::Update();
+#endif
   // UpdateFollowingPokemon();
   plugin::DrawFrame();
 }
@@ -71,8 +76,9 @@ void Initialize() {
   plugin::InitializeEngine();
 
   script::Install();
-
-  battle::RegisterThunderboltWebAnimation();
+#ifdef GAME_ORAS
+  net::RemoteAvatars::Initialize();
+#endif
 
   // battle::RegisterThunderboltLayersAnimation();
 

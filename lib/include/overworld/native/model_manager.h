@@ -35,6 +35,15 @@ public:
     return core::DataManager::GetInstance().GetOverworldModelManager();
   }
 
+  STATIC_INLINE ModelManager* GetInstanceOrNull() {
+    ModelManager* manager =
+        core::DataManager::GetInstance().GetOverworldModelManagerOrNull();
+    if (manager == nullptr || manager->overworld_models_ == nullptr) {
+      return nullptr;
+    }
+    return manager;
+  }
+
   INLINE ModelResource& GetResource(u32 idx) { return resources_[idx]; }
 
   Model& GetPlayer() {

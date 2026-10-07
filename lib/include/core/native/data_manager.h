@@ -54,6 +54,10 @@ public:
     return *overworld_model_manager_;
   }
 
+  INLINE overworld::ModelManager* GetOverworldModelManagerOrNull() const {
+    return overworld_model_manager_;
+  }
+
   INLINE overworld::EncounterState& GetEncounterState() const {
     return *encounter_;
   }
