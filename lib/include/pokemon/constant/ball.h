@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file ball.h
+ * @brief The ids of the Poké Balls.
+ */
+
 #pragma once
 
 #include <types.h>
@@ -22,6 +27,7 @@
 
 namespace pokemon {
 
+/// A Poké Ball, as the data of a Pokémon stores it. It is not an ItemId.
 enum class Ball : u8 {
   kNone = 0,
   kMasterBall = 1,

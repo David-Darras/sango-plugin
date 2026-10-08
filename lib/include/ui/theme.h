@@ -15,11 +15,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file theme.h
+ * @brief The colors, the sounds and the buttons of the menu.
+ */
+
 #pragma once
 
 #include "common.h"
 
 namespace ui {
+/// The colors, the sounds and the buttons of the menu. The page Plugin Theme changes them.
 struct Theme {
   MAKE_SINGLETON(Theme)
   Color background_color = Color{0, 0, 0, 0.75f};

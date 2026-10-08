@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file map_manager.h
+ * @brief The manager of the overworld maps.
+ */
+
 #pragma once
 
 #include "core/native/game_manager.h"
@@ -31,6 +36,7 @@ class Renderer;
 struct PropModelManager;
 struct WorldLayout;
 
+/// The manager of the overworld maps.
 class MapManager {
   SINGLETON(MapManager)
 
@@ -41,6 +47,7 @@ public:
     return core::GameManager::GetInstance().GetOverworldMapManager();
   }
 
+  /// Sends the player to a map and a position.
   STATIC_INLINE void ChangeMap(MapId map_id, const Position& position,
                                Facing facing, bool keep_background_music,
                                bool show_map_name) {
@@ -62,9 +69,12 @@ public:
 
   INLINE void* GetAddr() { return &renderer_; }
 
+  /// Returns the id of the current map, as a number.
   INLINE u32& GetMapId() { return current_map_id; }
+  /// Returns the current map.
   INLINE MapId GetMap() const { return static_cast<MapId>(current_map_id); }
 
+  /// Returns the id of the next map, or kNoMap.
   INLINE u32& GetNextMapId() { return next_map_id; }
 
   INLINE void* GetHeap() const { return heap_; }

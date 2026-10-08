@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file berry_tree_location.h
+ * @brief The positions of the Berry trees.
+ */
+
 #pragma once
 #include <3ds/types.h>
 
@@ -23,6 +28,7 @@
 #include "overworld/constant/map.h"
 
 namespace overworld {
+/// The position of one Berry tree.
 struct BerryTreeLocation {
   STATIC_INLINE BerryTreeLocation& GetInstance(u32 index) {
     auto* table = (BerryTreeLocation*)address::kBerryTreeLocationTable;

@@ -15,12 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file decoration.h
+ * @brief The ids of the Secret Base decorations.
+ */
+
 #pragma once
 
 #include <types.h>
 
 namespace overworld {
 
+/// The id of a Secret Base decoration. See overworld::PlacedDecorations.
 enum class DecorationId : u16 {
   kSmallDesk = 0,
   kPokeBallDesk = 1,

@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file network.cc
+ * @brief The online mode: other players walk in the overworld.
+ *
+ * The declarations are in net/network.h.
+ */
+
 #include "net/network.h"
 
 #include <3ds/result.h>

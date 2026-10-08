@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file page_player.cc
+ * @brief The menu pages of the Player family.
+ */
+
 #include <utility>
 
 #include "core/patch/app_launcher.h"
@@ -129,10 +134,10 @@ void LoadOverworldCameraPage(MainApplication& app, void* args) {
 static void ApplyPlayerModel(void*) {
   auto& cheats = overworld::PlayerCheats::GetInstance();
   auto& man = overworld::ModelManager::GetInstance();
-  auto& player_param = man.GetPlayer().GetObjCodeParam();
+  auto& player_param = man.GetPlayer().GetModelResource();
   auto& resource = man.GetResource(cheats.model_idx);
   resource.model_id = player_param.model_id;
-  resource.dress_up_flag = player_param.dress_up_flag;
+  resource.uses_outfit = player_param.uses_outfit;
   RefreshMap(nullptr);
 }
 #endif
@@ -147,9 +152,9 @@ void LoadPlayerModelPage(MainApplication& app, void* args) {
 
   app.WithNoBackground()
 #ifdef GAME_XY
-     .Add("Model", man.GetPlayer().GetObjCodeParam().model_id)
+     .Add("Model", man.GetPlayer().GetModelResource().model_id)
      .WithCallback(ApplyPlayerModel)
-     .Add("Use Outfit", man.GetPlayer().GetObjCodeParam().dress_up_flag)
+     .Add("Use Outfit", man.GetPlayer().GetModelResource().uses_outfit)
      .WithBounds(0, 1)
      .WithCallback(ApplyPlayerModel)
 #else

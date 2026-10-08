@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file archive_input.h
+ * @brief A request to read one file of an archive.
+ */
+
 #pragma once
 
 #include "core/constant/archive_id.h"
@@ -22,15 +27,16 @@
 
 namespace core {
 
-/// A queued read the game's file manager is about to serve.
+/// A read request that the file manager of the game is about to run.
+/// core::Archive::on_read_file can change it.
 struct ArchiveInput {
-  u8 priority;
-  ArchiveId archive_id;
-  u32 file_id;
-  bool is_compressed;
+  u8 priority; ///< The priority of the request.
+  ArchiveId archive_id; ///< The archive.
+  u32 file_id; ///< The file in the archive. Change it to load a different file.
+  bool is_compressed; ///< true when the file is compressed.
   uptr heap[4];
-  uptr buffer;
-  u32* size;
+  uptr buffer; ///< The address that receives the address of the loaded data.
+  u32* size; ///< Receives the size of the loaded data.
 };
 
 } // namespace core

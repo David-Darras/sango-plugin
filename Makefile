@@ -1,4 +1,17 @@
 #---------------------------------------------------------------------------------
+# Sango Plugin - build file
+#
+# Usage (from the devkitPro shell):
+#   make                  builds all the products of the selected game
+#   make overlay          builds one product (overlay, kaizo or undertow)
+#   make GAME=XY          builds for Pokemon X instead of Alpha Sapphire
+#   make run-overlay      builds one product, copies it to the SD card of the
+#                         emulator and starts the game (needs config.mk)
+#   make clean            removes all the build output
+#
+# Put your local settings (emulator, game dump, SD card) in config.mk.
+# Copy config.mk.example to config.mk to start. Git ignores config.mk.
+#---------------------------------------------------------------------------------
 .SUFFIXES:
 #---------------------------------------------------------------------------------
 
@@ -9,38 +22,49 @@ endif
 export TOPDIR ?= $(CURDIR)
 include $(DEVKITARM)/3ds_rules
 
+# Local settings. The file is optional: only `make run-<product>` needs it.
+-include $(TOPDIR)/config.mk
+
 PLUGIN_VERSION  := 6.0.0
 PLUGIN_CREATOR  := ZettaD
+PLUGIN_NAME     := Sango
 
-# Target game: ORAS (Alpha Sapphire, 000400000011C500) or XY (X, 0004000000055D00).
-GAME      ?= XY
+#---------------------------------------------------------------------------------
+# The target game.
+#   ORAS: Pokemon Alpha Sapphire v1.4 (title id 000400000011C500), the main game.
+#   XY:   Pokemon X v1.5 (title id 0004000000055D00), experimental, overlay only.
+#---------------------------------------------------------------------------------
+GAME      ?= ORAS
 ifeq ($(GAME),XY)
-GAME_DEFINE := -DGAME_XY
+GAME_DEFINE   := -DGAME_XY
 GAME_PRODUCTS := overlay
-TITLE_ID    := 0004000000055D00
-GAME_PATH := "C:/Users/David/Desktop/ctr/cia/kujira.cci"
-PLUGIN_NAME   := Kujira
+TITLE_ID      := 0004000000055D00
+GAME_PATH     ?= $(XY_GAME_PATH)
 else
-GAME_DEFINE := -DGAME_ORAS
+GAME_DEFINE   := -DGAME_ORAS
 GAME_PRODUCTS := overlay kaizo undertow
-TITLE_ID    := 000400000011C500
-GAME_PATH := "C:/Users/David/Desktop/ctr/cia/sango.3ds"
-PLUGIN_NAME  := Sango
+TITLE_ID      := 000400000011C500
+GAME_PATH     ?= $(ORAS_GAME_PATH)
 endif
-DEST      := C:/Users/David/AppData/Roaming/Azahar/sdmc/luma/plugins/$(TITLE_ID)
-EMULATOR  := "C:/Program Files/Azahar/azahar.exe"
+
+# The plugin folder of the game on the SD card.
+ifneq ($(strip $(SDMC)),)
+DEST      ?= $(SDMC)/luma/plugins/$(TITLE_ID)
+endif
 
 CTRPFLIB	?=	$(DEVKITPRO)/libctrpf
 
 #---------------------------------------------------------------------------------
 # One library, several plugins built on it. `make` builds them all,
 # `make overlay` / `make kaizo` just one; each gets its own build directory.
+#
+# To add your own ROM hack, copy one product block below, change the name
+# and add the name to GAME_PRODUCTS above. See docs/tutorials/01-create-your-rom-hack.md.
 #---------------------------------------------------------------------------------
 PRODUCTS	:=	$(GAME_PRODUCTS)
 
 LIB_SOURCES	:=	lib/src \
 				lib/src/core \
-				lib/src/system \
 				lib/src/net \
 				lib/src/battle \
 				lib/src/overworld \
@@ -52,8 +76,7 @@ LIB_SOURCES	:=	lib/src \
 				lib/src/ui/widget \
 				lib/src/ui/page
 LIB_INCLUDES	:=	lib/include \
-				lib/src \
-				../Library/include
+				lib/src
 
 # sango_plugin.3gx: every page of the library under one menu
 overlay_TARGET	:=	sango_plugin
@@ -88,6 +111,7 @@ CFLAGS		+=	$(INCLUDE) -D__3DS__ $(DEFINES)
 
 #-Wall -Wextra -Wdouble-promotion -Werror
 
+# The plugin runs inside the memory of the game: no exceptions, no RTTI.
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
 
 ASFLAGS		:= $(ARCH) $(G)
@@ -122,6 +146,8 @@ re: clean all
 relink: run-overlay
 
 $(addprefix run-,$(PRODUCTS)): run-%:
+	# @test -n "$(DEST)" -a -n "$(EMULATOR)" -a -n "$(GAME_PATH)" || \
+	#	{ echo "Set SDMC, EMULATOR and the game path in config.mk (see config.mk.example)."; exit 1; }
 	@rm -f *.elf *.3gx
 	@$(MAKE) --no-print-directory $*
 	@mkdir -p "$(DEST)"

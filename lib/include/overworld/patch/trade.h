@@ -15,17 +15,23 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file trade.h
+ * @brief Changes the in-game trades.
+ */
+
 #pragma once
 
 #include "common.h"
 
 namespace overworld {
 
+/// Changes the in-game trades.
 class Trade {
   MAKE_SINGLETON(Trade)
 
 public:
-  bool randomize_species = false;
+  bool randomize_species = false; ///< true: each trade gives a random species.
 
   static void Initialize();
   static void PatchLoad();

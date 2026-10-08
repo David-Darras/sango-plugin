@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file thunderbolt_animation.cc
+ * @brief Example: a big new animation for Thunderbolt, built step by step.
+ */
+
 #include "battle/patch/move_animation.h"
 
 namespace battle {

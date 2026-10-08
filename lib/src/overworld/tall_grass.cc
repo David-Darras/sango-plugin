@@ -15,7 +15,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "overworld/patch/field_grass.h"
+/**
+ * @file tall_grass.cc
+ * @brief Shows 3D tall grass around the player.
+ *
+ * The declarations are in overworld/patch/tall_grass.h.
+ */
+
+#include "overworld/patch/tall_grass.h"
 
 #include "core/native/process_manager.h"
 #include "overworld/native/map_manager.h"
@@ -31,9 +38,9 @@ namespace overworld {
 namespace {
 constexpr f32 kPi = 3.14159265f;
 
-constexpr const c16* kGrassPackPath = u"sdmc:/sango/field_grass.bin";
+constexpr const c16* kGrassPackPath = u"sdmc:/sango/tall_grass.bin";
 constexpr u32 kGrassPackCapacity = 0x10000;
-constexpr const c16* kTracePath = u"sdmc:/sango/field_grass.log";
+constexpr const c16* kTracePath = u"sdmc:/sango/tall_grass.log";
 
 void Trace(const c8* step) {
   static u32 offset = 0;
@@ -65,7 +72,7 @@ u32 Hash(s32 tile_x, s32 tile_z) {
 s32 Abs(s32 value) { return value < 0 ? -value : value; }
 } // namespace
 
-u32 FieldGrass::GetPatchCount() {
+u32 TallGrass::GetPatchCount() {
   auto& ctx = GetInstance();
   u32 count = 0;
   for (u32 i = 0; i < kMaxPatches; i++) {
@@ -74,7 +81,7 @@ u32 FieldGrass::GetPatchCount() {
   return count;
 }
 
-FieldGrass::Kind FieldGrass::PickKind(u32 hash) {
+TallGrass::Kind TallGrass::PickKind(u32 hash) {
   auto& ctx = GetInstance();
   switch (ctx.mix) {
     case kMixGreen:
@@ -88,7 +95,7 @@ FieldGrass::Kind FieldGrass::PickKind(u32 hash) {
   }
 }
 
-bool FieldGrass::LoadResources() {
+bool TallGrass::LoadResources() {
   auto& ctx = GetInstance();
   if (ctx.resources_[kGreen] != nullptr) return true;
 
@@ -98,14 +105,14 @@ bool FieldGrass::LoadResources() {
                                                  kGrassPackCapacity);
   }
   if (ctx.pack_ == nullptr) {
-    ui::LogApplication::Print(u"field grass: pack unreadable");
+    ui::LogApplication::Print(u"tall grass: pack unreadable");
     return false;
   }
   for (u32 i = 0; i < kKindCount; i++) {
     Trace("load resource");
     ctx.resources_[i] = pokemon::ModelLoader::LoadPackResource(ctx.pack_, i);
     if (ctx.resources_[i] == nullptr) {
-      ui::LogApplication::Print(u"field grass: model %u unusable", i);
+      ui::LogApplication::Print(u"tall grass: model %u unusable", i);
       for (u32 j = 0; j < i; j++) ctx.resources_[j]->RemoveData();
       for (u32 j = 0; j < kKindCount; j++) ctx.resources_[j] = nullptr;
       return false;
@@ -114,7 +121,7 @@ bool FieldGrass::LoadResources() {
   return true;
 }
 
-FieldGrass::Patch* FieldGrass::FindPatch(s32 tile_x, s32 tile_z) {
+TallGrass::Patch* TallGrass::FindPatch(s32 tile_x, s32 tile_z) {
   auto& ctx = GetInstance();
   for (u32 i = 0; i < kMaxPatches; i++) {
     Patch& patch = ctx.patches_[i];
@@ -125,7 +132,7 @@ FieldGrass::Patch* FieldGrass::FindPatch(s32 tile_x, s32 tile_z) {
   return nullptr;
 }
 
-FieldGrass::Patch* FieldGrass::TakeFreePatch(Kind kind, u32* builds_left) {
+TallGrass::Patch* TallGrass::TakeFreePatch(Kind kind, u32* builds_left) {
   auto& ctx = GetInstance();
   Patch* empty = nullptr;
   for (u32 i = 0; i < kMaxPatches; i++) {
@@ -142,7 +149,7 @@ FieldGrass::Patch* FieldGrass::TakeFreePatch(Kind kind, u32* builds_left) {
   return nullptr;
 }
 
-FieldGrass::Patch* FieldGrass::StealFarPatch(Kind kind, s32 player_x,
+TallGrass::Patch* TallGrass::StealFarPatch(Kind kind, s32 player_x,
                                              s32 player_z, s32 max_distance) {
   auto& ctx = GetInstance();
   Patch* farthest = nullptr;
@@ -161,13 +168,13 @@ FieldGrass::Patch* FieldGrass::StealFarPatch(Kind kind, s32 player_x,
   return farthest;
 }
 
-void FieldGrass::Release(Patch& patch) {
+void TallGrass::Release(Patch& patch) {
   patch.is_used = false;
   if (!patch.model.IsLoaded()) return;
   patch.model.model->SetTranslate(Vec3(0.0f, kHiddenHeight, 0.0f));
 }
 
-void FieldGrass::Refresh() {
+void TallGrass::Refresh() {
   auto& ctx = GetInstance();
   auto& player = ModelManager::GetInstance().GetPlayer();
   const s32 player_x = static_cast<s32>(player.map_pos.coords.x);
@@ -236,7 +243,7 @@ void FieldGrass::Refresh() {
   }
 }
 
-void FieldGrass::DropAll() {
+void TallGrass::DropAll() {
   auto& ctx = GetInstance();
   for (u32 i = 0; i < kMaxPatches; i++) {
     pokemon::ModelLoader::Drop(&ctx.patches_[i].model);
@@ -250,7 +257,7 @@ void FieldGrass::DropAll() {
   ctx.pack_ = nullptr;
 }
 
-void FieldGrass::DiscardAll() {
+void TallGrass::DiscardAll() {
   auto& ctx = GetInstance();
   for (u32 i = 0; i < kMaxPatches; i++) {
     if (ctx.patches_[i].model.IsLoaded()) {
@@ -262,7 +269,7 @@ void FieldGrass::DiscardAll() {
   ctx.pack_ = nullptr;
 }
 
-void FieldGrass::RemoveModelsBeforeBattle() {
+void TallGrass::RemoveModelsBeforeBattle() {
   auto& ctx = GetInstance();
   if (ctx.resources_[kGreen] == nullptr) return;
   DropAll();
@@ -271,7 +278,7 @@ void FieldGrass::RemoveModelsBeforeBattle() {
   ctx.battle_start_frame_ = ctx.frame_;
 }
 
-void FieldGrass::Update() {
+void TallGrass::Update() {
   auto& ctx = GetInstance();
   ctx.frame_++;
 

@@ -15,10 +15,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file gift_pokemon.cc
+ * @brief Changes the gift Pokémon.
+ *
+ * The declarations are in overworld/patch/gift_pokemon.h.
+ */
+
 #include "overworld/patch/gift_pokemon.h"
 #include "core/hook_manager.h"
 #include "pokemon/native/gift_pokemon_data.h"
-#include "ui/log_application.h"
 #include "core/utils.h"
 
 namespace overworld {
@@ -37,7 +43,6 @@ void GiftPokemon::RandomizeSpecies(u32 idx) {
   auto& entry = pokemon::GiftPokemonData::GetInstance(idx);
   entry.species = core::Utils::GetRandomEnum<SpeciesId>();
   entry.form = FormId::kNormal;
-  ui::LogApplication::Print(u"gift[%u]=%u", idx, entry.species);
 }
 
 s32 GiftPokemon::ScriptAddPokemonToTeamHook(u32* a1, u32* a2) {

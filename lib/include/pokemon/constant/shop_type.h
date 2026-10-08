@@ -15,19 +15,24 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file shop_type.h
+ * @brief The types of shops.
+ */
+
 #pragma once
 
 #include <types.h>
 
 namespace pokemon {
 
-/** @brief Kind of counter the shop event is running (app::shop::ShopType). */
+/// The type of a shop: what it sells and what the player pays with.
 enum class ShopType : u32 {
   kNormal, ///< Regular mart, pays with money.
-  kBattlePoint,
+  kBattlePoint, ///< Pays with Battle Points (BP).
   kBattlePointMove, ///< Battle Point move tutor counter.
-  kMileagePoint,
-  kSecretBaseGoods,
+  kPokeMiles, ///< Pays with Poké Miles.
+  kSecretBaseGoods, ///< Sells Secret Base decorations.
 };
 
 } // namespace pokemon

@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file page_save_data.cc
+ * @brief The menu pages of the Save Data family.
+ */
+
 #include <cstring>
 
 #include "overworld/native/berry_tree_location.h"
@@ -575,7 +580,7 @@ void LoadSaveDataPokedexPage(MainApplication& app, void* args) {
 
 void LoadSaveDataOPowerPage(MainApplication& app, void* args) {
   static u32 learned_opower_idx = 0;
-  static u32 field_opower_idx = 0;
+  static u32 overworld_opower_idx = 0;
   static u32 battle_opower_idx = 0;
 
   auto& man = savedata::OPowerManager::GetInstance();
@@ -586,11 +591,11 @@ void LoadSaveDataOPowerPage(MainApplication& app, void* args) {
      .WithRefresh()
      .Add("Learned OPower Value", man.learned_powers[learned_opower_idx])
      .AddSeparator()
-     .Add("Field OPower Index", field_opower_idx)
+     .Add("Overworld O-Power Index", overworld_opower_idx)
      .WithArray(FIELD_OPOWERS, SIZE(FIELD_OPOWERS))
      .WithRefresh()
-     .Add("Field Lv. 1 Uses", man.field_power_level_1_uses[field_opower_idx])
-     .Add("Field Lv. 2 Uses", man.field_power_level_2_uses[field_opower_idx])
+     .Add("Overworld Lv. 1 Uses", man.overworld_power_level_1_uses[overworld_opower_idx])
+     .Add("Overworld Lv. 2 Uses", man.overworld_power_level_2_uses[overworld_opower_idx])
      .AddSeparator()
      .Add("Battle OPower Index", battle_opower_idx)
      .WithArray(BATTLE_OPOWERS, SIZE(BATTLE_OPOWERS))

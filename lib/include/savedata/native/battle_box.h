@@ -15,12 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file battle_box.h
+ * @brief The Battle Box.
+ */
+
 #pragma once
 
 #include "pokemon/native/core_data.h"
 #include "savedata/native/savedata.h"
 
 namespace savedata {
+/// The Battle Box: a team of six Pokémon for the link battles.
 struct BattleBox {
   SINGLETON(BattleBox)
 

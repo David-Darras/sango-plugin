@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file hall_of_fame.h
+ * @brief The Hall of Fame.
+ */
+
 #pragma once
 
 #include "savedata/native/savedata.h"
@@ -23,6 +28,7 @@
 #include "pokemon/constant/species.h"
 
 namespace savedata {
+/// The teams of the Hall of Fame.
 struct HallOfFame {
   SINGLETON(HallOfFame)
   STATIC_INLINE HallOfFame& GetInstance() {

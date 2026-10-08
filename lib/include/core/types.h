@@ -15,6 +15,20 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file core/types.h
+ * @brief The base types and macros of the project.
+ *
+ * | Type | Meaning |
+ * |---|---|
+ * | `u8`, `u16`, `u32`, `u64` | Unsigned integers of 8, 16, 32, 64 bits. |
+ * | `s8`, `s16`, `s32`, `s64` | Signed integers of 8, 16, 32, 64 bits. |
+ * | `f32`, `f64` | Decimal numbers of 32 and 64 bits. |
+ * | `c8` | One character of an ASCII text. |
+ * | `c16` | One character of a UTF-16 text (the text format of the game). |
+ * | `uptr` | An address. |
+ */
+
 #pragma once
 
 #include <types.h>
@@ -30,13 +44,20 @@ TYPEDEF_FLOAT(64, double)
 
 #undef TYPEDEF_FLOAT
 
+/// One character of a UTF-16 text. Write a UTF-16 text as u"text".
 typedef char16_t c16;
+/// One character of an ASCII text.
 typedef char c8;
 
+/// An address in memory.
 typedef uintptr_t uptr;
 
+/// Asks the compiler to always copy the function into the caller.
 #define INLINE inline __attribute__((always_inline))
+/// Same as INLINE, for a static function.
 #define STATIC_INLINE static inline __attribute__((always_inline))
+/// Marks a symbol as weak: a different definition can replace it.
 #define WEAK __attribute__((weak))
 
+/// Returns the number of elements of a C array.
 #define SIZE(x) ((sizeof(x)) / (sizeof((x)[0])))

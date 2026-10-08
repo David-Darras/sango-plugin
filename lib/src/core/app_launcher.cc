@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file app_launcher.cc
+ * @brief Opens the applications of the game (PC box, Town Map, Move Reminder...) from the menu.
+ *
+ * The declarations are in core/patch/app_launcher.h.
+ */
+
 #include "core/patch/app_launcher.h"
 #include "core/hook_manager.h"
 #include "core/native/box_app_input.h"

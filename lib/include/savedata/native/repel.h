@@ -15,12 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file repel.h
+ * @brief The active Repel.
+ */
+
 #pragma once
 
 #include "savedata/native/savedata.h"
 
 namespace savedata {
-/// The repel in effect (Repel/Super Repel/Max Repel) and its remaining steps.
+/// The active Repel (Repel, Super Repel or Max Repel) and its remaining
+/// steps.
 struct Repel {
   SINGLETON(Repel)
 

@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file address.h
+ * @brief The addresses of the overworld domain. Most of them are in the overworld CRO.
+ */
+
 #pragma once
 
 #include "core/game.h"
@@ -29,7 +34,7 @@ constexpr uptr kMapBlockVtable = GAME_ADDRESS(0x007B17F4, 0x007FD7DC);
 constexpr uptr kGetMapTile = GAME_ADDRESS(0x003E28D8, 0x00403DAC);
 constexpr uptr kGetPlayerMovement = GAME_ADDRESS(0x007338E4, 0x00782A8C);
 constexpr uptr kLoadMapData = GAME_ADDRESS(0x003BCFA0, 0x003D9BD4);
-constexpr uptr kGetNaviDexTable = GAME_ADDRESS(0, 0x004013A4);
+constexpr uptr kGetDexNavTable = GAME_ADDRESS(0, 0x004013A4);
 constexpr uptr kGetEncounterContactAction = GAME_ADDRESS(0, 0x0076E10C);
 constexpr uptr kGetOverworldBackgroundMusic = GAME_ADDRESS(
     0x003B0B10, 0x003C79F8);

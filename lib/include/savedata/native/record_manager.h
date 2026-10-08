@@ -15,10 +15,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file record_manager.h
+ * @brief The records of the player.
+ */
+
 #pragma once
 #include "savedata/native/savedata.h"
 
 namespace savedata {
+/// The records of the player (steps, battles, catches...).
 struct RecordManager {
   SINGLETON(RecordManager)
 

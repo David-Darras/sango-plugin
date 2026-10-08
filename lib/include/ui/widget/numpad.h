@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file numpad.h
+ * @brief The numpad of the menu on the bottom screen.
+ */
+
 #pragma once
 
 #include "ui/widget/button.h"

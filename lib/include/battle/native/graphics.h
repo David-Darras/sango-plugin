@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file graphics.h
+ * @brief The 3D models of a battle.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -28,6 +33,7 @@ struct StereoCamera;
 
 namespace battle {
 
+/// The 3D models of a battle: Pokémon, trainers, platforms.
 class Graphics {
   SINGLETON(Graphics)
 public:
@@ -39,11 +45,13 @@ public:
     return *(overworld::StereoCamera*)((uptr)this + 0x1F0);
   }
 
+  /// Returns the model of a Pokémon (0 to 5).
   BaseModel& GetPokemonModel(u32 index) const {
     if (index >= 6) index = 5;
     return *pokemon_model[index];
   }
 
+  /// Returns the model of a trainer (0 to 3).
   BaseModel& GetTrainerModel(u32 index) const {
     if (index >= 4) index = 3;
     return *trainer_model[index];

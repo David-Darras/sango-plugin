@@ -15,6 +15,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file gen7_species.inc
+ * @brief The data of the species of generation VII.
+ *
+ * Each entry: species, model form, name, 0x50 bytes of species data, the
+ * learnset and the evolutions. This file is generated. Do not change it by hand.
+ */
+
 #pragma once
 
 struct Gen7Move {

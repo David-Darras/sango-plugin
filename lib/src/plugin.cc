@@ -15,13 +15,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file plugin.cc
+ * @brief Starts the plugin: installs the features, opens the menu, runs each frame. See plugin.h.
+ */
+
 #include "plugin.h"
 
 #include "battle/patch/battle.h"
 #include "battle/patch/game_extension.h"
 #include "battle/patch/setup.h"
 #include "battle/patch/type_helper.h"
-#include "config_manager.h"
 #include "core/patch/app_launcher.h"
 #include "core/patch/archive.h"
 #include "core/patch/device_patch.h"
@@ -31,14 +35,14 @@
 #include "core/patch/script_loader.h"
 #include "overworld/patch/auto_surf.h"
 #include "overworld/patch/camera.h"
-#include "overworld/patch/field.h"
+#include "overworld/patch/overworld.h"
 #include "overworld/patch/field_move.h"
 #include "overworld/patch/gift_pokemon.h"
 #include "overworld/patch/map_character.h"
 #include "overworld/patch/map_data_loader.h"
 #include "overworld/patch/map_graft.h"
 #include "overworld/patch/map_tile.h"
-#include "overworld/patch/field_grass.h"
+#include "overworld/patch/tall_grass.h"
 #include "overworld/patch/healer_follower.h"
 #include "overworld/patch/placed_decorations.h"
 #include "overworld/patch/whos_that_pokemon.h"
@@ -93,7 +97,7 @@ void InitializeEngine() {
 #ifdef GAME_ORAS
   pokemon::ItemCustomizer::Initialize();
 #endif
-  overworld::Field::Initialize();
+  overworld::Overworld::Initialize();
   overworld::MapDataLoader::Initialize();
   overworld::WildEncounter::Initialize();
   core::Archive::Initialize();
@@ -103,7 +107,7 @@ void InitializeEngine() {
   overworld::PlacedDecorations::Initialize();
 #ifdef GAME_ORAS
   overworld::WhosThatPokemon::Initialize();
-  // overworld::HealerFollower::Initialize(); // disabled: online avatars use the NPC slots
+  overworld::HealerFollower::Initialize();
 #endif
   battle::Setup::Initialize();
   renderer::ModelFilter::Initialize();
@@ -138,10 +142,6 @@ void InitializeEngine() {
    ui::PartySelect::Initialize();
 }
 
-void LoadConfiguration() {
-  ConfigManager::Load();
-}
-
 void OpenMenu(ui::Painter& painter, PageLoader root_page) {
   auto& main_app = ui::MainApplication::GetInstance();
   main_app.SetPainter(painter);
@@ -164,8 +164,8 @@ void UpdateFrame() {
   overworld::MapCharacter::Update();
   overworld::PlacedDecorations::Update();
 #ifdef GAME_ORAS
-  overworld::FieldGrass::Update();
-  // overworld::HealerFollower::Update();
+  overworld::TallGrass::Update();
+  overworld::HealerFollower::Update();
 #endif
 #ifndef GAME_XY
   overworld::MapGraft::Update();

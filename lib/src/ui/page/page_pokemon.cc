@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file page_pokemon.cc
+ * @brief The menu pages of the Pokemon family.
+ */
+
 #include "overworld/patch/gift_pokemon.h"
 #include "pokemon/patch/alolan_forms.h"
 #include "pokemon/patch/species_table.h"
@@ -216,6 +221,7 @@ void LoadPokemonPage(MainApplication& app, void* args) {
      .Add("Randomize Trades",
           overworld::Trade::GetInstance().randomize_species)
      .Add("Restricted Summary Editor", AppStatus::GetInstance().is_restricted)
+     .Add("Pokemon Shop", CheatCodeId::kPokemonShop)
      .AddSeparator()
      .Add("Species Data", LoadSpeciesDataPage)
      .Add("Move Data", LoadMoveDataPage)

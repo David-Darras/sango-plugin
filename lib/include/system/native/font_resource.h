@@ -15,12 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file font_resource.h
+ * @brief A font and its resource.
+ */
+
 #pragma once
 
 #include "system/native/font.h"
 
 namespace sys {
 
+/// A font and the resource that contains it.
 struct FontResource {
   Font* font;
   void* resource;

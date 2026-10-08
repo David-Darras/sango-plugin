@@ -15,11 +15,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file pane.h
+ * @brief A pane of a 2D layout.
+ */
+
 #pragma once
 
 #include "common.h"
 
 namespace renderer {
+/// A pane of a 2D layout (the menus of the game).
 struct Pane {
   void* vtable;
   Pane* next_pane;

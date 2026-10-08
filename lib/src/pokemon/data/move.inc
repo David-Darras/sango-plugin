@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file move.inc
+ * @brief The names of the values of the move data for the menu pages.
+ */
+
 static const c8* CATEGORY_TYPES[] = {
     "Simple Damage", "Simple Status", "Simple Effect",
     "Simple Recover", "Damage + Status", "Effect + Status",

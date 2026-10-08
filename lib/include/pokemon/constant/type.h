@@ -15,12 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file type.h
+ * @brief The types.
+ */
+
 #pragma once
 
 #include <types.h>
 
 namespace pokemon {
 
+/// A type of a Pokémon or of a move.
 enum class TypeId : u8 {
   kNormal = 0,
   kFighting = 1,

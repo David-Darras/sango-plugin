@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file free_camera_application.cc
+ * @brief The application of the free camera.
+ *
+ * The declarations are in ui/free_camera_application.h.
+ */
+
 #include "ui/free_camera_application.h"
 
 #include <cmath>

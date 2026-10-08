@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file town_map_app_input.h
+ * @brief The input of the Town Map application (also for Fly).
+ */
+
 #pragma once
 
 #include "core/game.h"
@@ -23,6 +28,7 @@
 
 namespace core {
 
+/// The data that the Town Map application reads when it starts.
 #ifdef GAME_XY
 struct TownMapAppInput {
   u8 start_mode;

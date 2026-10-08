@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file model_filter.h
+ * @brief Applies color filters to the 3D models in battle.
+ */
+
 #pragma once
 
 #include <type_traits>
@@ -26,13 +31,15 @@
 namespace renderer {
 struct H3dModel;
 
+/// The settings of renderer::ModelFilter.
 struct ModelFilterSettings {
-  TextureFilter filter = TextureFilter::kDarken;
+  TextureFilter filter = TextureFilter::kDarken; ///< The filter.
   u8 mesh = 0;
 };
 static_assert(std::is_standard_layout<ModelFilterSettings>::value,
               "ModelFilterSettings must have standard layout");
 
+/// Applies a color filter to the Pokémon models in battle.
 struct ModelFilter : public ModelFilterSettings {
   MAKE_SINGLETON(ModelFilter)
 

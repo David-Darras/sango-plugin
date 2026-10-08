@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file tile_editor_application.h
+ * @brief The application of the tile editor.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -28,6 +33,7 @@ class Graphics;
 }
 
 namespace ui {
+/// Shows the tiles around the player on the bottom screen and changes their attributes.
 class TileEditorApplication : public Application {
   MAKE_SINGLETON(TileEditorApplication)
 
@@ -36,6 +42,7 @@ public:
   static constexpr s32 kColumns = 320 / kTileSize;
   static constexpr s32 kRows = 240 / kTileSize;
 
+  /// Opens the tile editor.
   static void Open();
 
   void Update(sys::Controller& controller) override;

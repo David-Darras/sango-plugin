@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file model_appearance.h
+ * @brief The description of an overworld model.
+ */
+
 #pragma once
 
 #include "core/types.h"
@@ -23,6 +28,7 @@
 
 namespace overworld {
 
+/// The description of an overworld model: shadow, size, outfit...
 struct ModelAppearance {
   ModelId model_id;
   u8 draw_kind;

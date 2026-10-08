@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file numpad.cc
+ * @brief The numpad of the menu on the bottom screen.
+ *
+ * The declarations are in ui/widget/numpad.h.
+ */
+
 #include "ui/widget/numpad.h"
 
 #include <string.h>

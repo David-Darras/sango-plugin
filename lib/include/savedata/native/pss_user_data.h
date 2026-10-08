@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file pss_user_data.h
+ * @brief The data of one PSS user.
+ */
+
 #pragma once
 
 #include "core/types.h"

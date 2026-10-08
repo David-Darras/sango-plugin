@@ -15,10 +15,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file process_patch.cc
+ * @brief Calls the patches of the game processes when they start.
+ *
+ * The declarations are in core/patch/process_patch.h.
+ */
+
 #include "core/patch/process_patch.h"
 #include "battle/patch/battle.h"
 #include "core/hook_manager.h"
-#include "overworld/patch/field.h"
+#include "overworld/patch/overworld.h"
 #include "ui/patch/app_status.h"
 #include "ui/patch/keyboard_patch.h"
 #include "ui/patch/new_game.h"
@@ -70,7 +77,7 @@ void ProcessPatch::OnLoad(uptr vtable) {
   } else if (vtable == battle::address::kVtable) {
     battle::Battle::PatchLoad();
   } else if (vtable == overworld::address::kVtable) {
-    overworld::Field::PatchLoad();
+    overworld::Overworld::PatchLoad();
   } else if (vtable == ui::address::kAppStatusVtable) {
     ui::AppStatus::PatchLoad();
   } else if (vtable == ui::address::kKeyboardVtable) {

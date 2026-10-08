@@ -15,10 +15,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file pokedex.h
+ * @brief The Pokédex.
+ */
+
 #pragma once
 #include "savedata/native/savedata.h"
 
 namespace savedata {
+/// The Pokédex: seen and caught Pokémon.
 struct Pokedex {
   SINGLETON(Pokedex)
 

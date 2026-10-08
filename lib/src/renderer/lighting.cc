@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file lighting.cc
+ * @brief Changes the lights and the outlines of the 3D models.
+ *
+ * The declarations are in renderer/patch/lighting.h.
+ */
+
 #include "renderer/patch/lighting.h"
 
 #include "core/hook_manager.h"

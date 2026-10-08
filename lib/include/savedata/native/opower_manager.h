@@ -15,10 +15,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file opower_manager.h
+ * @brief The O-Powers.
+ */
+
 #pragma once
 #include "savedata/native/savedata.h"
 
 namespace savedata {
+/// The O-Powers that the player knows, and their uses.
 struct OPowerManager {
   SINGLETON(OPowerManager)
 
@@ -29,8 +35,8 @@ struct OPowerManager {
   void* vtable;
   bool learned_powers[65];
   u8 power_points;
-  u8 field_power_level_1_uses[10];
-  u8 field_power_level_2_uses[10];
+  u8 overworld_power_level_1_uses[10];
+  u8 overworld_power_level_2_uses[10];
   u8 battle_power_level_1_uses[7];
   u8 battle_power_level_2_uses[7];
 };

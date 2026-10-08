@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file app_launcher.h
+ * @brief Opens the applications of the game (PC box, Town Map, Move Reminder...) from the menu.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -23,14 +28,16 @@
 namespace core {
 class GameManager;
 
-/// Opens one of the game's applications from the overworld menu, filling in
-/// the input the game expects for it.
+/// Opens an application of the game from the overworld menu. It fills the
+/// input that the application needs.
 class AppLauncher {
   MAKE_SINGLETON(AppLauncher)
 
 public:
   static void Initialize();
+  /// Opens an application at the next frame of the overworld menu.
   void TriggerApp(AppId id);
+  /// Opens the Town Map in Fly mode.
   static void DoFly();
 
 private:

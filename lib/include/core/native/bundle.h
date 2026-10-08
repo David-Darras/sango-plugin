@@ -15,24 +15,31 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file bundle.h
+ * @brief A pack of several resources in one file.
+ */
+
 #pragma once
 
 #include "core/types.h"
 
 namespace core {
 
-/// A "PC" pack: several resources stored back to back behind an offset
-/// table (the game's BinLinker format).
+/// A "PC" pack: several resources one after the other, with a table of
+/// offsets at the start. Many files of the game use this format.
 struct Bundle {
   u16 signature; // "PC"
   u16 resource_count;
   u32 resource_offset[];
 
+  /// Returns the size of a resource in bytes. A wrong index gives the size of resource 0.
   u32 GetResourceSize(u32 idx) const {
     u32 safe_idx = (idx >= resource_count) ? 0 : idx;
     return resource_offset[safe_idx + 1] - resource_offset[safe_idx];
   }
 
+  /// Returns the address of a resource. A wrong index gives resource 0.
   uptr GetResource(u32 idx) {
     u32 safe_idx = (idx >= resource_count) ? 0 : idx;
     return ((uptr)this + resource_offset[safe_idx]);

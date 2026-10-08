@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file ability.h
+ * @brief The ids of the abilities.
+ */
+
 #pragma once
 
 #include <types.h>
@@ -22,6 +27,7 @@
 
 namespace pokemon {
 
+/// The id of an ability. The names come from Bulbapedia.
 enum class AbilityId : u8 {
   kNone = 0,
   kStench = 1,

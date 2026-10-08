@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file archive.cc
+ * @brief Lets a product change the files that the game reads from its archives.
+ *
+ * The declarations are in core/patch/archive.h.
+ */
+
 #include "core/patch/archive.h"
 #include <cstring>
 #include "battle/patch/move_animation.h"

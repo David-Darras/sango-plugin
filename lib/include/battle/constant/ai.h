@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file ai.h
+ * @brief The AI flags of the trainers.
+ */
+
 #pragma once
 
 #include "core/bitmask.h"
@@ -22,13 +27,14 @@
 
 namespace battle {
 
+/// The AI of a trainer. Combine the flags with `|`.
 enum class AiFlags : u32 {
   kNone = 0,
-  kCasual = 1u << 0,
-  kCompetitive = 1u << 1,
-  kStrategist = 1u << 2,
-  kMulti = 1u << 7,
-  kHorde = 1u << 14,
+  kCasual = 1u << 0, ///< Basic choices.
+  kCompetitive = 1u << 1, ///< Better move choices.
+  kStrategist = 1u << 2, ///< Uses the status moves and switches the Pokémon.
+  kMulti = 1u << 7, ///< For a battle with several trainers.
+  kHorde = 1u << 14, ///< For a horde battle.
 };
 ENABLE_BITMASK_OPERATORS(AiFlags)
 

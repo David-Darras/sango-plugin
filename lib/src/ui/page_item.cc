@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file page_item.cc
+ * @brief One entry of a menu page. See ui/page_item.h.
+ */
+
 #include "ui/page_item.h"
 
 #include "core/cheat_code.h"

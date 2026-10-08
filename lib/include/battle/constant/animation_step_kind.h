@@ -15,12 +15,20 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file animation_step_kind.h
+ * @brief The types of the steps of the move animations.
+ *
+ * This file is generated from the move animation data. Do not change it by hand.
+ */
+
 #pragma once
 
 #include "core/types.h"
 
 namespace battle {
 
+/// The type of a step of a move animation. See battle::MoveAnimation.
 enum class AnimationStepKind : u16 {
   kSectionPokemon = 0,
   kPokemonTeleport = 1,

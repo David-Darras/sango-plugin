@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file starter_choice.h
+ * @brief Changes the starter Pokémon.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -22,6 +27,7 @@
 
 namespace ui {
 
+/// Changes the three starter Pokémon of the starter selection.
 class StarterChoice {
   MAKE_SINGLETON(StarterChoice)
 

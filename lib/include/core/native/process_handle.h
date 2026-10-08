@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file process_handle.h
+ * @brief A link in the list of the running processes.
+ */
+
 #pragma once
 
 #include "core/constant/process_state.h"
@@ -22,6 +27,7 @@
 
 namespace core {
 
+/// A link in the list of the running processes of the game.
 class ProcessHandle {
 public:
   BaseProcess* GetProcess() const { return process_; }

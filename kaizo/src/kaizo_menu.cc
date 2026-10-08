@@ -15,11 +15,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file kaizo_menu.cc
+ * @brief Kaizo: the menu of the ROM hack (the PokéPhone).
+ */
+
 #include "core/patch/app_launcher.h"
 #include "core/patch/game_speed.h"
 #include "overworld/patch/camera.h"
 #include "overworld/patch/field_move.h"
-#include "overworld/patch/field.h"
+#include "overworld/patch/overworld.h"
 #include "savedata/native/misc.h"
 #include "system/native/sound.h"
 #include "ui/main_application.h"
@@ -70,7 +75,7 @@ void LoadMenuPage(MainApplication& app, void* args) {
       "Idle", "Tps", "Rotate", "Top", "Fpv", "Free"
   };
 
-  auto& bgm = overworld::Field::GetInstance().background_music;
+  auto& bgm = overworld::Overworld::GetInstance().background_music;
   auto& camera = overworld::Camera::GetInstance();
   auto& speed = core::GameSpeed::GetInstance().game_speed;
 

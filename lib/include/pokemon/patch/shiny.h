@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file shiny.h
+ * @brief Changes the shiny rate.
+ */
+
 #pragma once
 
 #include <type_traits>
@@ -24,16 +29,20 @@
 
 namespace pokemon {
 
+/// The settings of pokemon::Shiny.
 struct ShinySettings {
-  ShinyRate rate = ShinyRate::kOff;
+  ShinyRate rate = ShinyRate::kOff; ///< The shiny rate. kOff: the rate of the game.
 };
 static_assert(std::is_standard_layout<ShinySettings>::value,
               "ShinySettings must have standard layout");
 
+/// Changes the chance that a Pokémon is shiny.
 struct Shiny : public ShinySettings {
   MAKE_SINGLETON(Shiny)
 
+  /// A shiny value that is always shiny.
   static constexpr u32 kForcedShiny = 0xFFFFFFFEu;
+  /// A shiny value that is never shiny.
   static constexpr u32 kForcedNormal = 0xFFFFFFFFu;
 
   static void Initialize();

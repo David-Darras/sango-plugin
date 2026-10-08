@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file garc.h
+ * @brief The GARC format: the archives of the game.
+ */
+
 #pragma once
 
 #include "common.h"

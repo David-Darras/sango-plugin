@@ -15,63 +15,75 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file situation_key.h
+ * @brief The keys of the situation: the values of the current moment.
+ */
+
 #pragma once
 #include <types.h>
 
 namespace battle {
+/// A value of the current moment. See battle::Situation::Get().
 enum class SituationKey : u8 {
   kNone = 0,
+  /// A marker between nested situations. Situation::Begin() writes it.
   kScopeBoundary = 1,
-  ///< Internal marker separating nested scopes (written by Situation_Begin, never read directly)
 
-  // Who's involved
-  kPokemonId = 2, ///< The Pokémon this handler concerns
-  kMoveUserId = 3, ///< The Pokémon performing the move being resolved right now
-  kMoveRecipientId = 4, ///< The Pokémon on the receiving end of that move
+  // The Pokémon
+  kPokemonId = 2, ///< The Pokémon of the moment.
+  kMoveUserId = 3, ///< The Pokémon that uses the current move.
+  kMoveRecipientId = 4, ///< The Pokémon that receives the current move.
   kTargetCount = 5,
   kTargetId1 = 6, kTargetId2 = 7, kTargetId3 = 8,
   kTargetId4 = 9, kTargetId5 = 10, kTargetId6 = 11,
 
-  // The chosen action
-  kActionKind = 12, ///< Which kind of action was chosen (fight/item/switch...)
+  // The selected action
+  /// The kind of the selected action (fight, item, switch...).
+  kActionKind = 12,
   kFieldPosition = 13,
-  kOriginalFieldPosition = 14, ///< Field slot before this action started
+  /// The position on the battlefield before the action.
+  kOriginalFieldPosition = 14,
 
   // Ability
   kPreviousAbility = 15,
   kNextAbility = 16,
 
-  // The move being used
+  // The current move
+  /// A priority increase from a different source (like Quick Claw).
   kSpecialPriorityBonus = 17,
-  ///< Extra priority granted outside the move's own (Quick Claw-style)
   kMoveId = 18,
-  kMoveEffectId = 19, ///< Secondary effect this move can inflict
+  kMoveEffectId = 19, ///< The secondary effect of the move.
+  /// The selected move, before a replacement (Metronome, Sleep Talk...).
   kOriginalMoveId = 20,
-  ///< Move actually chosen, before substitution (Metronome, Sleep Talk...)
+  /// The type that the engine checks now (a Pokémon can have several types).
   kTypeBeingChecked = 21,
-  ///< The specific type currently being tested (a Pokémon can have several)
   kMoveType = 22,
+  /// The real type of the move when it changes (Hidden Power, Judgment...).
   kMoveTypeOverride = 23,
-  ///< Type actually used if different from the move's own (Hidden Power, Judgment...)
   kMoveSlotIndex = 24,
   kMovePriority = 25,
-  kMoveUseSerial = 26, ///< Unique id for this particular use of the move
-  kDamageCategory = 27, ///< Physical / Special / Status
+  kMoveUseSerial = 26, ///< A unique id for this use of the move.
+  kDamageCategory = 27, ///< Physical, special or status.
+  /// How the move selects its targets (one, several, the user...).
   kMoveTargetingRule = 28,
-  ///< How targets are selected (single, spread, self, field...)
-  kMoveUserType = 29, ///< The move user's own type, cached for STAB
+  /// The type of the user, for the same-type attack bonus (STAB).
+  kMoveUserType = 29,
 
   // Status conditions
   kStatusId = 30,
-  kStatusData = 31, ///< Packed status data (turn counter, permanence flag...)
-  kConditionCategory = 32, ///< Major status vs volatile status
+  /// The packed data of the status condition (turns, duration...).
+  kStatusData = 31,
+  /// A major status condition or a volatile status condition.
+  kConditionCategory = 32,
 
-  kAmount = 33, ///< Generic quantity (HP shifted, healed...)
-  kIsSemiInvulnerable = 34, ///< Pokémon currently vanished (Fly/Dig-style)
+  kAmount = 33, ///< A quantity (HP that changes, HP that heal...).
+  /// true when the Pokémon is in the sky or underground (Fly, Dig...).
+  kIsSemiInvulnerable = 34,
   kFailureReason = 35,
   kTurnCount = 36,
 
-  // Accuracy / evasion
+  // Accuracy and evasion
   kBaseAccuracyPercent = 37,
   kBonusAccuracyPercent = 38,
   kAccuracyStage = 39,
@@ -86,8 +98,7 @@ enum class SituationKey : u8 {
 
   // Item
   kItemId = 45,
-  kItemReactionEnabled = 46,
-  ///< Whether held-item effects are allowed to trigger
+  kItemReactionEnabled = 46, ///< true when the held items can react.
 
   kSpeedValue = 47,
 
@@ -99,49 +110,50 @@ enum class SituationKey : u8 {
   kDefenseValue = 52,
   kMultiplier = 53,
   kSecondaryMultiplier = 54,
-  kFixedDamageAmount = 55, ///< Used by fixed-damage moves (Seismic Toss...)
+  /// The damage of a fixed-damage move (Seismic Toss...).
+  kFixedDamageAmount = 55,
   kTypeEffectiveness = 56,
 
   kWeather = 57,
+  /// Why the Pokémon did not faint (Sturdy, Focus Sash, Endure...).
   kSurvivalReason = 58,
-  ///< Why the Pokémon didn't faint (Sturdy, Focus Sash, Endure...)
   kSwapTargetId = 59,
 
   kVisualEffectId = 60,
   kVisualSwapCount = 61,
-  kMoveExecutionMode = 62,
-  ///< Whether the move is allowed to run, forced to fail, or forced to stop
+  kMoveExecutionMode = 62, ///< The move can run, must fail, or must stop.
+  /// The address of extra data of the moment (for example, the values of a
+  /// message).
   kExtraDataPointer = 63,
-  ///< Raw pointer to auxiliary data passed alongside a moment (e.g. a custom message's parameters)
 
   // Result flags
   kNoEffectFlag = 64,
   kFailedFlag = 65,
   kMissedFlag = 66,
+  /// Shows the failure message also when it is not a real failure.
   kShowFailureMessageFlag = 67,
-  ///< Show the failure message even though this isn't counted as a real failure
-  kStabFlag = 68, ///< Same-Type Attack Bonus applies
+  kStabFlag = 68, ///< The same-type attack bonus (STAB) applies.
   kCriticalHitFlag = 69,
-  kSubstituteFlag = 70, ///< Blocked by Substitute
-  kOvercoatGuardFlag = 71, ///< Overcoat's weather/powder immunity
-  kSheerForceFlag = 72, ///< Sheer Force's secondary-effect suppression
-  kItemSwapFlag = 73, ///< Trick/Switcheroo-style item swap
-  kResetStatsFlag = 74, ///< Flatten this Pokémon's stat stages
-  kResetAllStatsFlag = 75, ///< Flatten every Pokémon's stat stages (Haze-style)
+  kSubstituteFlag = 70, ///< A substitute blocked the move.
+  kOvercoatGuardFlag = 71, ///< Overcoat blocks the weather or the powder.
+  kSheerForceFlag = 72, ///< Sheer Force removes the secondary effect.
+  kItemSwapFlag = 73, ///< An item exchange (Trick, Switcheroo).
+  kResetStatsFlag = 74, ///< Resets the stat stages of this Pokémon.
+  /// Resets the stat stages of all the Pokémon (like Haze).
+  kResetAllStatsFlag = 75,
   kDelayedAttackFlag = 76,
-  kMagicCoatFlag = 77, ///< Reflected back by Magic Coat
+  kMagicCoatFlag = 77, ///< Magic Coat sent the move back.
   kShowMessageFlag = 78,
-  kFixedValueFlag = 79, ///< Pairs with kFixedDamageAmount
+  kFixedValueFlag = 79, ///< Goes with kFixedDamageAmount.
   kBerryFlag = 80,
-  kCheckResultFlag = 81,
-  ///< Shared yes/no result slot reused by many different checks
+  kCheckResultFlag = 81, ///< A shared yes or no result for many checks.
   kBurnPreventedFlag = 82,
 
   kFieldSide = 83,
   kTeamEffectId = 84,
   kAuraBreakFlag = 85,
-  kAuraPendingFlag = 86, ///< Aura effect queued to apply
-  kEffectNumber = 87, ///< Generic visual/mechanical effect index
+  kAuraPendingFlag = 86, ///< An aura effect waits to apply.
+  kEffectNumber = 87, ///< The number of a visual or mechanical effect.
 
   kCount = 88,
 };

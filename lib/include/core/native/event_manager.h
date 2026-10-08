@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file event_manager.h
+ * @brief The object of the game that runs the game events.
+ */
+
 #pragma once
 
 #include "core/native/game_event.h"
@@ -23,6 +28,7 @@
 
 namespace core {
 
+/// Runs the game events: the actions that stop the normal play (a conversation, a battle start...).
 class EventManager {
   SINGLETON(EventManager)
 
@@ -31,8 +37,10 @@ public:
     return GameManager::GetInstance().GetGameEventManager();
   }
 
+  /// Returns the current event, or null.
   GameEvent* GetGameEvent() const { return current_game_event_; }
 
+  /// Returns the class name of the current event, and writes its vtable.
   const char* GetCurrentEventName(uptr& vtable) const {
     if (current_game_event_ == nullptr || current_game_event_->vtable ==
         nullptr)
@@ -41,6 +49,7 @@ public:
     return core::Utils::GetClassNameFromVTable(current_game_event_->vtable);
   }
 
+  /// Calls `on_load` for an event that starts, else `on_update`.
   INLINE void Patch(void (*on_load)(uptr), void (*on_update)(uptr)) {
     if (current_game_event_ == nullptr) return;
     uptr vtable = (uptr)current_game_event_->vtable;

@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file nature.h
+ * @brief The natures.
+ */
+
 #pragma once
 
 #include <types.h>
@@ -22,6 +27,7 @@
 
 namespace pokemon {
 
+/// The nature of a Pokémon.
 enum class Nature : u8 {
   kHardy = 0,
   kLonely = 1,

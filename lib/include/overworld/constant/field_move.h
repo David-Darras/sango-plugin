@@ -15,13 +15,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file field_move.h
+ * @brief The field moves.
+ */
+
 #pragma once
 
 #include "core/types.h"
 
 namespace overworld {
 
-/// The choices of the game's field move menu (`DoFieldMove`).
+/// A field move: a move that a Pokémon uses in the overworld. See
+/// overworld::FieldMove::Execute().
 enum class FieldMoveId : u32 {
   kCut = 0,
   kSurf = 1,

@@ -15,10 +15,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file amx.h
+ * @brief The Pawn virtual machine of the game (AMX).
+ *
+ * The game scripts are Pawn programs. Game Freak changed the format: the
+ * names of the symbols are hashes.
+ */
+
 #pragma once
 
 #include "common.h"
 
+/// One value of a Pawn program (32 bits).
 typedef u32 PawnCell;
 #define AMX_MAGIC 0xF1E0
 
@@ -51,6 +60,7 @@ struct AmxInstruction {
 };
 
 namespace script {
+/// The header of a .amx file.
 struct AmxHeader {
   u32 total_file_size;
   u16 magic_number; // 0xF1E0
@@ -76,6 +86,7 @@ struct AmxHeader {
 
 static_assert(sizeof(AmxHeader) == 60, "AmxHeader must match AMX_HEADER");
 
+/// One native or public function of a .amx file.
 struct AmxSymbol {
   u32 address;
   u32 name_hash;
@@ -87,6 +98,7 @@ constexpr u32 CalcNameHash(const c8* name, u32 value = 0) {
            : CalcNameHash(name + 1, (value * 0x83) ^ static_cast<u8>(*name));
 }
 
+/// A running Pawn program.
 struct AmxRuntime {
   uint8_t* memory_base;
   uint8_t* code_section;
@@ -120,6 +132,7 @@ static_assert(sizeof(AmxRuntime) == 0x78, "AmxRuntime must match AMX");
 typedef PawnCell (*PawnNativeFunction)(struct AmxRuntime* amx,
                                        const PawnCell* params);
 
+/// One native of a table of natives: its address and the hash of its name.
 struct PawnNativeBinding {
   const char* function_name;
   PawnNativeFunction function;

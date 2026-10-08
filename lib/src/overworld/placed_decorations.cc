@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file placed_decorations.cc
+ * @brief Puts Secret Base decorations on the maps of the overworld.
+ *
+ * The declarations are in overworld/patch/placed_decorations.h.
+ */
+
 #include "overworld/patch/placed_decorations.h"
 
 #include <cmath>

@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file entry_animation_data.h
+ * @brief The settings of the animation at the start of a battle.
+ */
+
 #pragma once
 
 #include <types.h>
@@ -23,6 +28,7 @@
 
 namespace battle {
 
+/// The settings of the animation at the start of a battle.
 struct EntryAnimationData {
   u32 view;
   u32 _0;

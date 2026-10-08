@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file map_tile.h
+ * @brief Replaces the attributes of the tiles.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -23,6 +28,7 @@
 
 namespace overworld {
 
+/// The settings of overworld::MapTile: the attributes that replace the attributes of all the tiles.
 struct MapTileSettings {
   bool is_enabled = false;
   bool is_impassable = false;
@@ -44,6 +50,7 @@ struct MapTileSettings {
 static_assert(std::is_standard_layout<MapTileSettings>::value,
               "MapTileSettings must have standard layout");
 
+/// Replaces the attributes of all the tiles when `is_enabled` is true.
 struct MapTile : public MapTileSettings {
   MAKE_SINGLETON(MapTile)
 

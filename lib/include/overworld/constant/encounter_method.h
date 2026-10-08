@@ -15,12 +15,22 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file encounter_method.h
+ * @brief The methods of wild encounters.
+ */
+
 #pragma once
 
 #include <types.h>
 
 namespace overworld {
 
+/**
+ * @brief The method of a wild encounter: the tables of overworld::EncounterData.
+ *
+ * kXXX and kYYY are two tables of the game with an unknown use.
+ */
 enum class EncounterMethod : u8 {
   kWalk, kXXX, kYYY, kSurf, kRockSmash,
   kOldRod, kGoodRod, kSuperRod, kHorde,

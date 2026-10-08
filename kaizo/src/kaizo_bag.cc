@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file kaizo_bag.cc
+ * @brief Kaizo: the items in the Bag at the start.
+ */
+
 #include "pokemon/constant/item.h"
 #include "savedata/native/item_manager.h"
 

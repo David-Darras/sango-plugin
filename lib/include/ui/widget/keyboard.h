@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file keyboard.h
+ * @brief The keyboard of the menu on the bottom screen.
+ */
+
 #pragma once
 
 #include "ui/widget/button.h"

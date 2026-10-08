@@ -15,12 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file bag_manager.h
+ * @brief The Bag.
+ */
+
 #pragma once
 
 #include "pokemon/constant/item.h"
 #include "savedata/native/savedata.h"
 
 namespace savedata {
+/// The Bag of the player.
 struct BagManager {
   SINGLETON(BagManager)
   STATIC_INLINE BagManager& GetInstance() {

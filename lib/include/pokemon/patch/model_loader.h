@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file model_loader.h
+ * @brief Loads 3D models (Pokémon, characters, decorations) and shows them in the overworld.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -31,6 +36,7 @@ struct H3dShaderModel;
 
 namespace pokemon {
 
+/// A model that ModelLoader loaded.
 struct LoadedModel {
   void* model_pack = nullptr;
   void* texture_pack = nullptr;
@@ -39,29 +45,37 @@ struct LoadedModel {
   renderer::H3dShaderModel* model = nullptr;
   bool is_resource_shared = false;
 
+  /// Returns true when the model exists.
   INLINE bool IsLoaded() const { return model != nullptr; }
 };
 
+/// Loads 3D models and shows them in the overworld. 160 models at most.
 class ModelLoader {
   MAKE_SINGLETON(ModelLoader)
 
 public:
   static constexpr u32 kMaxLoaded = 160;
 
+  /// Loads an overworld model at a position.
   static bool LoadOverworldModel(LoadedModel* out, ModelId model_id,
                                  const Vec3& position);
+  /// Loads a Pokémon model at a position.
   static bool LoadPokemon(LoadedModel* out, SpeciesId species, FormId form,
                           bool is_shiny, const Vec3& position,
                           Gender gender = Gender::kMale);
+  /// Loads a Secret Base decoration at a position.
   static bool LoadDecoration(LoadedModel* out, u32 decoration_index,
                              const Vec3& position);
+  /// Reads a model pack from the SD card.
   static void* ReadSdPack(const c16* path, u32 capacity);
   static renderer::H3dResource* LoadPackResource(void* pack, u32 index);
   static bool LoadShared(LoadedModel* out, renderer::H3dResource* resource,
                          const Vec3& position);
   static void FreeBuffer(void* buffer);
+  /// Removes a model.
   static void Drop(LoadedModel* entry);
   static void Untrack(LoadedModel* entry);
+  /// Removes all the models.
   static void DropAll();
 
 private:

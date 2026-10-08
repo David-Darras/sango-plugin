@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file pawn_vm.h
+ * @brief A Pawn virtual machine of the game.
+ */
+
 #pragma once
 
 #include "core/types.h"

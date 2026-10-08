@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file dpad.h
+ * @brief The D-pad of the console.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -22,6 +27,7 @@
 
 namespace sys {
 
+/// The D-pad.
 class DPad {
   SINGLETON(DPad)
 public:

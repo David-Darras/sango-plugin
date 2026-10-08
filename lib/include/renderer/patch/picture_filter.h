@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file picture_filter.h
+ * @brief Changes the pictures of the 2D layouts (the menus).
+ */
+
 #pragma once
 
 #include "common.h"
@@ -26,6 +31,7 @@ struct Picture;
 
 namespace renderer {
 
+/// The settings of renderer::PictureFilter.
 struct PictureFilterSettings {
   bool is_enabled = false;
   Vec2 scale = Vec2(1, 1);
@@ -38,6 +44,7 @@ struct PictureFilterSettings {
 static_assert(std::is_standard_layout<PictureFilterSettings>::value,
               "PictureFilterSettings must have standard layout");
 
+/// Changes the size and the colors of the pictures of the menus.
 struct PictureFilter : public PictureFilterSettings {
   MAKE_SINGLETON(PictureFilter)
 

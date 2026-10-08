@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file tile_editor.h
+ * @brief Changes the attributes of single tiles and saves them to the SD card.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -26,6 +31,7 @@ struct WorldLayout;
 
 namespace overworld {
 
+/// One changed tile.
 struct TileEdit {
   u16 layout_id;
   u16 tile_x;
@@ -34,6 +40,7 @@ struct TileEdit {
   u32 attr;
 };
 
+/// Changes the attributes of single tiles. The changes are saved to the SD card.
 class TileEditor {
   MAKE_SINGLETON(TileEditor)
 

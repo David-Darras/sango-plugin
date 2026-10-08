@@ -15,10 +15,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file play_time.h
+ * @brief The play time.
+ */
+
 #pragma once
 #include "core/native/data_manager.h"
 
 namespace savedata {
+/// The play time.
 struct PlayTime {
   SINGLETON(PlayTime)
 

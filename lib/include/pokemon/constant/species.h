@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file species.h
+ * @brief The ids of the species. The value is the National Pokédex number.
+ */
+
 #pragma once
 
 #include <types.h>

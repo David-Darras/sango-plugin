@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file pokemon.h
+ * @brief The battle data of one Pokémon.
+ */
+
 #pragma once
 #include <types.h>
 
@@ -31,6 +36,7 @@ struct CoreData;
 }
 
 namespace battle {
+/// The data of one Pokémon during a battle: HP, stats, stat stages, moves...
 struct Pokemon {
   pokemon::CoreData* core_data;
   u32 _0;
@@ -40,8 +46,7 @@ struct Pokemon {
   u16 hp;
   ItemId item;
   ItemId used_item;
-  // NOTE: left raw on purpose. It is 16 bits wide while `Ability` is a
-  // u8 enum, and retyping it would mean changing the field width.
+  // A raw number: it has 16 bits, and AbilityId has 8 bits only.
   u16 base_ability;
   u8 level;
   u8 uid;
@@ -99,6 +104,7 @@ struct Pokemon {
   u16 turn_count;
   u8 _7[0xB6];
 
+  /// Exchanges Attack with Sp. Atk, and Defense with Sp. Def.
   void InverseStats() {
     u16 tmp = attack;
     attack = special_attack;
@@ -109,6 +115,7 @@ struct Pokemon {
     special_defense = tmp;
   }
 
+  /// Replaces all the moves with Metronome (99 PP).
   void SetMetronome() {
     for (u32 j = 0; j < move_count; j++) {
       moves[j].core.id = MoveId::kMetronome;

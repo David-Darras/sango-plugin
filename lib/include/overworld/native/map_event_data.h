@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file map_event_data.h
+ * @brief The events of a map: signs, characters, warps and triggers.
+ */
+
 #pragma once
 
 #include <cstddef>
@@ -28,10 +33,11 @@
 
 namespace overworld {
 
+/// The maximum number of characters on one map.
 constexpr u32 kMaxCharactersPerMap = 32;
 
-/// The event data of one map (the game's EventData): the signs, characters,
-/// warps and triggers placed on it.
+/// The events of one map: the signs, the characters, the warps and the
+/// triggers.
 struct MapEventData {
   MapId map_id;
   u16 sign_count;

@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file page_common.cc
+ * @brief The functions that several menu pages share.
+ */
+
 #include "ui/page/page_common.h"
 
 #include "core/native/data_manager.h"

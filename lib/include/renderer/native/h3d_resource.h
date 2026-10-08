@@ -15,25 +15,32 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file h3d_resource.h
+ * @brief A 3D resource of the game: the data of models and textures.
+ */
+
 #pragma once
 
 #include "common.h"
 
 namespace renderer {
 
+/// A 3D resource: the loaded data of models and textures.
 struct H3dResource {
   static constexpr u32 kSize = 76;
   static constexpr u32 kIsSetup = 1 << 2;
   static constexpr u32 kCommonNone = 9;
   static constexpr u32 kCommonDefaultShader = 1;
 
-  INLINE void* GetBuffer() const { return Overworld<void*>(16); }
-  INLINE void* GetResource() const { return Overworld<void*>(12); }
-  INLINE u32 GetFlags() const { return Overworld<u32>(8); }
-  INLINE u32 GetState() const { return Overworld<u32>(4); }
+  INLINE void* GetBuffer() const { return ReadFromEnd<void*>(16); }
+  INLINE void* GetResource() const { return ReadFromEnd<void*>(12); }
+  INLINE u32 GetFlags() const { return ReadFromEnd<u32>(8); }
+  INLINE u32 GetState() const { return ReadFromEnd<u32>(4); }
 
   INLINE bool IsSetup() const { return (GetFlags() & kIsSetup) != 0; }
 
+  /// Returns true when the resource has data and is set up.
   INLINE bool IsValid() const {
     if (((uptr)this & 3) != 0) return false;
     return GetBuffer() != nullptr && GetResource() != nullptr && IsSetup();
@@ -55,6 +62,7 @@ struct H3dResource {
         this, uninitialize);
   }
 
+  /// Makes an empty resource in a heap.
   STATIC_INLINE H3dResource* Create(void* heap) {
     auto* resource = (H3dResource*)((void* (*)(void*, u32, u32))
       sys::address::kHeapAlloc)(heap, kSize, 4);
@@ -66,7 +74,7 @@ struct H3dResource {
 
 private:
   template <typename T>
-  INLINE T Overworld(u32 offset_from_end) const {
+  INLINE T ReadFromEnd(u32 offset_from_end) const {
     return *(T*)((uptr)this + kSize - offset_from_end);
   }
 };

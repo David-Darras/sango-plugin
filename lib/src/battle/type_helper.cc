@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file type_helper.cc
+ * @brief Shows the effectiveness of the moves during a battle.
+ *
+ * The declarations are in battle/patch/type_helper.h.
+ */
+
 #include "battle/patch/type_helper.h"
 #include "battle/patch/battle.h"
 #include "battle/native/manager.h"

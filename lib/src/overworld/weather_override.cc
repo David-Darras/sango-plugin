@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file weather_override.cc
+ * @brief Changes the weather of the overworld.
+ *
+ * The declarations are in overworld/patch/weather_override.h.
+ */
+
 #include "overworld/patch/weather_override.h"
 
 #include "core/hook_manager.h"

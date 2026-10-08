@@ -15,16 +15,23 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file overworld_menu.h
+ * @brief The buttons of the bottom screen in the overworld.
+ */
+
 #pragma once
 #include "savedata/native/savedata.h"
 
 namespace savedata {
+/// The buttons of the bottom screen in the overworld.
 struct OverworldMenu {
   SINGLETON(OverworldMenu)
   STATIC_INLINE OverworldMenu& GetInstance() {
     return SaveData::GetInstance().GetOverworldMenu();
   }
 
+  /// Hides all the buttons.
   INLINE void DisableAll() {
     is_pokemon_list_visible = true;
     pokemon_list_position = 0;

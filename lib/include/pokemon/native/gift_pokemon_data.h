@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file gift_pokemon_data.h
+ * @brief The table of the gift Pokémon.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -25,7 +30,9 @@
 #include "pokemon/constant/species.h"
 
 namespace pokemon {
+/// One gift Pokémon of the game: a Pokémon that a character gives to the player.
 struct GiftPokemonData {
+  /// Returns the gift Pokémon with this index.
   STATIC_INLINE GiftPokemonData& GetInstance(u32 idx) {
     return *(GiftPokemonData*)(
       address::kGiftPokemonTable + sizeof(GiftPokemonData) * idx);
@@ -42,15 +49,15 @@ struct GiftPokemonData {
   SpeciesId species;
   u16 _0;
   FormId form;
-  u8 level;
-  ShinyRoll shiny;
-  s8 ability_slot;
-  s8 nature;
-  s32 item;
+  u8 level; ///< The level.
+  ShinyRoll shiny; ///< Shiny, not shiny or random.
+  s8 ability_slot; ///< The ability slot (0, 1, 2), or kRandomAbility.
+  s8 nature; ///< The nature, or kRandomNature.
+  s32 item; ///< The held item, or kRandomItem.
   GenderRoll gender;
-  u16 egg_place;
+  u16 egg_place; ///< The place of the Egg, or kNotAnEgg.
   MoveId move;
-  s8 iv[6];
+  s8 iv[6]; ///< The six IVs, or kRandomIv.
   u8 contest[6];
 };
 } // namespace pokemon

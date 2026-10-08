@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file wild_encounter.cc
+ * @brief Lets a product change the wild Pokémon.
+ *
+ * The declarations are in overworld/patch/wild_encounter.h.
+ */
+
 #include "overworld/patch/wild_encounter.h"
 
 #include "core/cheat_code_manager.h"
@@ -32,12 +39,12 @@ void WildEncounter::Initialize() {
   core::HookManager::Initialize(HookId::kGetEncounterPokemon,
                           pokemon::address::kEncounterSetPokemon,
                           (uptr)GetEncounterPokemonHook, false);
-  core::HookManager::Initialize(HookId::kGetNaviDexTable,
-                          address::kGetNaviDexTable,
-                          (uptr)GetNaviDexTable, true);
+  core::HookManager::Initialize(HookId::kGetDexNavTable,
+                          address::kGetDexNavTable,
+                          (uptr)GetDexNavTable, true);
 }
 
-u16* WildEncounter::GetNaviDexTable(EncounterData* data, s32 data_size,
+u16* WildEncounter::GetDexNavTable(EncounterData* data, s32 data_size,
                                 u32* count, void* heap,
                                 u8 p4, bool p5) {
   if (data_size <= 0 || data == nullptr) return nullptr;
@@ -45,7 +52,7 @@ u16* WildEncounter::GetNaviDexTable(EncounterData* data, s32 data_size,
   auto& feat = GetInstance();
   if (feat.on_encounter_table != nullptr) feat.on_encounter_table(data);
 
-  return core::HookManager::Call<u16*>(HookId::kGetNaviDexTable, data,
+  return core::HookManager::Call<u16*>(HookId::kGetDexNavTable, data,
                                  data_size, count, heap, p4, p5);
 }
 

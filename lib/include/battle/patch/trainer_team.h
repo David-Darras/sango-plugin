@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file trainer_team.h
+ * @brief New teams for the trainers.
+ *
+ * @see docs/tutorials/08-change-trainer-teams.md
+ */
+
 #pragma once
 
 #include <initializer_list>
@@ -41,6 +48,7 @@ struct CoreData;
 namespace battle {
 struct Config;
 
+/// One Pokémon of a trainer team.
 struct TrainerOpponent {
   SpeciesId species;
   ItemId item;
@@ -54,7 +62,7 @@ struct TrainerOpponent {
 
   FormId form;
   const c16* nickname;
-  u8 forced_level;
+  u8 forced_level; ///< The level. 0: the level of the game team.
 
   TrainerOpponent()
     : species(SpeciesId::kNone), item(ItemId::kNone), ability(AbilityId::kNone),
@@ -79,9 +87,11 @@ struct TrainerOpponent {
       nickname(nickname), forced_level(forced_level) {
   }
 
+  /// Writes this Pokémon into the data of a Pokémon.
   void ApplyTo(pokemon::CoreData& pkm) const;
 };
 
+/// A trainer team: the format, the place and up to six Pokémon.
 struct TrainerTeam {
   u8 opponent_count;
   Format format;
@@ -132,24 +142,32 @@ struct TrainerTeam {
     }
   }
 
+  /// Writes the team and the place into the settings of a battle.
   void ApplyTo(Config& config) const;
 };
 
+/// A trainer id and its team.
 struct TrainerTeamEntry {
   TrainerId id;
   const TrainerTeam* team;
 };
 
+/// The list of the new trainer teams.
 class TrainerTeams {
   MAKE_SINGLETON(TrainerTeams)
 
 public:
   static constexpr u32 kMaxTeams = 16;
 
+  /// Adds one team. 16 teams at most. The team must stay in memory.
   static bool Add(TrainerId id, const TrainerTeam* team);
+  /// Sets a table of teams. The table must stay in memory.
   static void SetTable(const TrainerTeamEntry* table, u32 count);
+  /// Removes all the teams.
   static void Clear();
+  /// Returns the team of a trainer, or null.
   static const TrainerTeam* Find(TrainerId id);
+  /// Replaces the team of the trainer, if it has a new team. Call it in Setup::on_trainer_battle.
   static void Apply(Config& config, TrainerId trainer_id);
 
 private:

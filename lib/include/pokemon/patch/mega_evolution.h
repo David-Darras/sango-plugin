@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file mega_evolution.h
+ * @brief Adds Mega Evolutions to species.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -23,10 +28,11 @@
 
 namespace pokemon {
 
-/// The form the plugin gives Mime Jr. when it mega evolves - not one of the
-/// game's own forms, hence a typed constant rather than a FormId enumerator.
+/// The form of Mega Mime Jr. It is a form of the plugin, not of the game:
+/// it is a constant, not a value of FormId.
 constexpr FormId kFormMimeJrMega = static_cast<FormId>(10);
 
+/// Changes the Mega Evolution data when the game loads it.
 class MegaEvolution {
   MAKE_SINGLETON(MegaEvolution)
 

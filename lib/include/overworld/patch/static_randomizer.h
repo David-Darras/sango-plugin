@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file static_randomizer.h
+ * @brief Changes the static encounters.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -26,11 +31,12 @@ class GameManager;
 
 namespace overworld {
 
+/// Changes the static encounters of the game.
 class StaticRandomizer {
   MAKE_SINGLETON(StaticRandomizer)
 
 public:
-  bool randomize_species = false;
+  bool randomize_species = false; ///< true: each static encounter gets a random species.
 
   static void Initialize();
   static void PatchLoad();

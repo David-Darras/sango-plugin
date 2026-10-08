@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file prop_model_manager.h
+ * @brief The props of the current map.
+ */
+
 #pragma once
 
 #include "overworld/native/map_manager.h"
@@ -22,6 +27,7 @@
 
 namespace overworld {
 
+/// The props of the current map.
 struct PropModelManager {
   SINGLETON(PropModelManager)
   STATIC_INLINE PropModelManager& GetInstance() {

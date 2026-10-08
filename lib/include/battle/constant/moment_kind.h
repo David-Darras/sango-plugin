@@ -15,62 +15,68 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file moment_kind.h
+ * @brief The moments of the battle engine.
+ *
+ * A moment is a time in a battle when the engine calls the reactions of the
+ * listeners. See docs/concepts/battle-engine.md.
+ */
+
 #pragma once
 #include <types.h>
 
 namespace battle {
+/// A moment of the battle engine.
 enum class MomentKind : u16 {
   kNone = 0,
   kActionStart = 1,
   kActionEnd = 2,
   kMoveSequenceStart = 3,
   kMoveSequenceEnd = 4,
-  kSubstitutePierceCheck = 5,
-  ///< Check whether the move pierces through Substitute
+  kSubstitutePierceCheck = 5, ///< Checks if the move goes through a substitute.
+  /// Checks if a delayed move (like Future Sight) is ready.
   kCheckDelayedMoveReady = 6,
-  ///< Check whether a delayed move (Future Sight-style) is ready to prepare
   kDelayedMoveReadyConfirmed = 7,
-  kMoveStealConfirmed = 8, ///< A move-steal (Snatch-style) has been confirmed
+  kMoveStealConfirmed = 8, ///< A move steal (like Snatch) is confirmed.
+  /// A move reflection (like Magic Coat) is confirmed.
   kMoveReflectConfirmed = 9,
-  ///< A move-reflect (Magic Coat-style) has been confirmed
+  /// Checks if the escape chance calculation is skipped.
   kSkipEscapeOddsCheck = 11,
-  ///< Check whether to skip the escape-chance calculation
   kEscapeForbiddenCheck = 12,
+  /// Gives a special message when the escape fails.
   kEscapeSpecialMessage = 13,
-  ///< Provide a special message for a failed/blocked escape
-  kDrowsinessCheck = 14, ///< Check success/failure of a "dozing off" effect
-  kSpecialPriorityCheck = 15,
-  ///< Check for a special (non-standard) priority boost
-  kSpecialPriorityApplied = 16,
-  ///< A special priority effect actually triggered
+  /// Checks if a drowsiness effect (like Yawn) succeeds.
+  kDrowsinessCheck = 14,
+  kSpecialPriorityCheck = 15, ///< Checks for a special priority increase.
+  kSpecialPriorityApplied = 16, ///< A special priority effect occurs.
   kGetMovePriority = 17,
+  /// Checks for an immunity to Ground moves (like Levitate).
   kLevitationCheck = 18,
-  ///< Check for a Levitate-style immunity to ground effects
   kCalculateSpeed = 19,
-  kBeforeFirstMoveOfTurn = 21,
-  ///< Right before the turn's very first move sequence
+  kBeforeFirstMoveOfTurn = 21, ///< Before the first move of the turn.
+  /// Asks for a different move to calculate the turn order.
   kRequestMoveForTurnOrder = 22,
-  ///< Query an alternate move used just to compute turn order
+  /// The parameters of a move that replaces the selected move.
   kRequestedMoveParams = 24,
-  ///< Parameters for a move requested/substituted on the fly
+  /// The message of a move that replaces the selected move.
   kRequestedMoveMessage = 25,
-  ///< Message shown when a move is requested/substituted on the fly
   kMoveStealCheck = 26,
+  /// A Ground move has no effect because of a levitation.
   kGroundMoveBlockedByLevitation = 27,
-  ///< A ground-type move is nullified by a Levitate-style state
+  /// Checks if the hit or miss calculation is skipped.
   kSkipAccuracyCheck = 28,
-  ///< Check whether to skip the hit/miss calculation entirely
+  /// Decides if the move ignores a cause of failure.
   kIgnoreMoveFailureCause = 29,
-  ///< Decide whether to ignore what would normally cause the move to fail
+  /// Checks the move before its message and before the confusion check.
   kMoveExecutionCheckEarly = 30,
-  ///< Move-execution check, before the move message and before confusion's own check
+  /// Checks the move before its message and after the confusion check.
   kMoveExecutionCheckMid = 31,
-  ///< Move-execution check, before the move message but after confusion's own check
   kMoveFailedToExecute = 33,
+  /// The game showed the move name and removed the PP.
   kMoveAnnouncementConfirmed = 34,
-  ///< The move's name has been declared and its PP consumed
+  /// The move can start (no Taunt, no Torment...).
   kMoveExecutionConfirmed = 35,
-  ///< Execution is confirmed (not blocked by Taunt/Torment/etc.)
   kMoveExecutionStart = 36,
   kMoveSucceededWithEffect = 37,
   kMoveSucceededNoEffect = 38,
@@ -78,204 +84,191 @@ enum class MomentKind : u16 {
   kMoveParamCheck = 40,
   kMoveParamCheckSecondPass = 41,
   kMoveTargetDecided = 42,
+  /// Sends the move to the listener's Pokémon (like Follow Me).
   kRedirectTargetToSelf = 43,
-  ///< Redirect the move's target onto oneself (Follow Me-style)
   kImmunityCheckBegin = 44,
+  /// Immunity check, tier 1. A sure-hit effect wins over it.
   kImmunityCheckTier1 = 45,
-  ///< Immunity check tier 1 (loses to an always-hit effect)
+  /// Immunity check, tier 2. It wins over a sure-hit effect.
   kImmunityCheckTier2 = 46,
-  ///< Immunity check tier 2 (beats even an always-hit effect)
-  kProtectCheck = 47, ///< Immunity check equivalent to Protect
+  kProtectCheck = 47, ///< Immunity check of Protect.
+  /// Immunity check, tier 3: after Protect, before the type immunity.
   kImmunityCheckTier3 = 48,
-  ///< Tier 3 (beats always-hit, after Protect, before type-immunity check)
+  /// Immunity check, tier 4: after Protect, after the type immunity.
   kImmunityCheckTier4 = 49,
-  ///< Tier 4 (beats always-hit, after Protect, after type-immunity check)
   kImmunityCheckEnd = 50,
   kProtectBypassCheck = 51,
+  /// Checks if the damage of the move heals instead.
   kDamageToHealConversionCheck = 53,
-  ///< Check whether this move's damage should convert into healing instead
-  kDamageToHealConversionConfirmed = 54,
-  ///< Confirms the damage-to-healing conversion
+  kDamageToHealConversionConfirmed = 54, ///< The damage heals instead.
+  /// Checks if the accuracy calculation is skipped.
   kSkipAccuracyCalculation = 55,
-  ///< Check whether to skip the accuracy-percentage calculation
+  /// Decides the accuracy stage and the evasion stage.
   kAccuracyEvasionStageDecision = 56,
-  ///< Decide the accuracy/evasion stages used
   kAccuracyModifier = 57,
   kMultiHitCountDecision = 58,
   kCriticalHitCheck = 59,
   kMoveBasePower = 60,
   kMovePowerModifier = 61,
+  /// Before the game reads the Attack or the Sp. Atk of the attacker.
   kBeforeAttackerOffenseStat = 62,
-  ///< Right before reading the attacker's offense stat (Attack or Sp. Atk)
+  /// Before the game reads the Defense or the Sp. Def of the target.
   kBeforeDefenderDefenseStat = 63,
-  ///< Right before reading the defender's defense stat (Defense or Sp. Def)
   kAttackerOffenseStatModifier = 64,
   kDefenderDefenseStatModifier = 65,
+  /// Decides if the move continues when no target remains.
   kContinueDespiteNoTargetsLeft = 66,
-  ///< Decide whether to keep resolving the move even if no targets remain
+  /// Decides if the type effectiveness check runs.
   kTypeEffectivenessCheckEnabled = 67,
-  ///< Decide whether the type-effectiveness check should run at all
   kCalculateTypeEffectiveness = 68,
+  /// Replaces the calculated type effectiveness.
   kOverrideTypeEffectiveness = 69,
-  ///< Force-overwrite the calculated type effectiveness
+  /// Skips the levitation check in the type calculation.
   kSkipLevitationInTypeCheck = 70,
-  ///< Skip checking Levitate-style state during the type-effectiveness calc
   kStabCheck = 72,
   kStabMultiplier = 73,
   kRightAfterDamageAnimation = 76,
+  /// A damaging move hits, before the damage calculation.
   kDamageWillLandConfirmed = 77,
-  ///< Confirms a damaging move will land, before damage is calculated
+  /// Changes the damage before the type multiplier.
   kDamageModifierBeforeTypeCalc = 78,
-  ///< Damage adjustment before the type-effectiveness multiplier
+  /// Changes the damage after the type multiplier.
   kDamageModifierAfterTypeCalc = 79,
-  ///< Damage adjustment after the type-effectiveness multiplier
   kDamageCalculationFinal = 80,
   kBeforeDamageReactions = 82,
-  kDamageReaction = 83, ///< A single target's reaction to taking damage
+  kDamageReaction = 83, ///< One target reacts to the damage.
+  /// The targets react to the damage a second time.
   kDamageReactionSecondPass = 84,
-  ///< A second pass of per-target damage reactions
+  /// After the damage to all the targets (one time).
   kAfterDamagingAllTargets = 85,
-  ///< Runs once, after damage has been dealt to every target
-  kGetPpCostForThisUse = 86,
-  ///< Retrieve how much PP this use of the move should cost
+  kGetPpCostForThisUse = 86, ///< Gives the PP cost of this use of the move.
   kAfterPpDeducted = 87,
   kRecoilCalculation = 88,
+  /// The secondary stat change of the move on its target.
   kAdditionalStatEffectOnTarget = 89,
-  ///< The move's secondary stat-stage effect on its target
-  kSwitchInterrupt = 91,
-  ///< A party-member switch interrupts the current action
-  kAfterPokemonWithdrawn = 92,
-  ///< Right after a specific Pokémon has been withdrawn
+  kSwitchInterrupt = 91, ///< A switch stops the current action.
+  kAfterPokemonWithdrawn = 92, ///< After a Pokémon leaves the battle.
+  /// A Pokémon enters with Baton Pass and gets the stat stages.
   kBatonTouchHandoff = 93,
-  ///< Right after a Pokémon enters via Baton Touch, carrying over stat stages
   kPokemonEntered = 94,
-  kBeforeAllPokemonEnter = 95,
-  ///< Right before the "all Pokémon enter" event sequence
-  kAfterAllPokemonEnter = 96,
-  ///< After the "all Pokémon enter" event sequence has processed
+  kBeforeAllPokemonEnter = 95, ///< Before all the Pokémon enter the battle.
+  kAfterAllPokemonEnter = 96, ///< After all the Pokémon enter the battle.
+  /// After the rotation of the two sides (Rotation Battle).
   kAfterRotationForBothSides = 97,
-  ///< After both sides' Rotation Battle turn has resolved
-  kStatStageDeltaFromMove = 98,
-  ///< Check the stat-stage increase/decrease amount from a move
-  kFinalStatStageDeltaCheck = 99,
-  ///< Final check on the stat-stage change amount
+  kStatStageDeltaFromMove = 98, ///< Checks the stat stage change of a move.
+  kFinalStatStageDeltaCheck = 99, ///< The last check of the stat stage change.
+  /// Checks if the stat stage change succeeds.
   kStatStageChangeOutcomeCheck = 100,
-  ///< Final success/failure check for a stat-stage change
   kStatStageChangeFailed = 101,
-  kAfterStatStageChange = 102,
-  ///< Runs after a stat-stage change has been applied
+  kAfterStatStageChange = 102, ///< After a stat stage change.
   kMoveStatStageEffectSucceeded = 103,
+  /// Decides the id of a special status condition.
   kSpecialStatusIdDecision = 105,
-  ///< Decide the specific status id for a specially-handled status effect
+  /// The message of a standard status condition from a move.
   kStandardStatusMessage = 106,
-  ///< The text shown when a move inflicts a standard status condition
+  /// Checks the parameters of a status condition from a move.
   kMoveInflictedStatusParamCheck = 107,
-  ///< Check the parameters of a status condition inflicted by a move
+  /// Checks if the secondary status condition of a move occurs.
   kMoveSecondaryStatusCheck = 109,
-  ///< Check whether a move's secondary status effect triggers
-  kInflictStatusFailureCheck = 110,
-  ///< Check whether inflicting the status condition fails
-  kInflictStatusFailed = 112,
-  ///< Inflicting the status condition is confirmed to fail
+  kInflictStatusFailureCheck = 110, ///< Checks if the status condition fails.
+  kInflictStatusFailed = 112, ///< The status condition fails.
   kMajorStatusConfirmed = 113,
+  /// A status condition from a move is confirmed.
   kMoveInflictedStatusConfirmed = 114,
-  ///< A move-inflicted status condition has been confirmed
-  kAbilitySuppressionConfirmed = 115,
-  ///< Gastro Acid: confirms an ability has been suppressed
+  kAbilitySuppressionConfirmed = 115, ///< Gastro Acid: an ability stops.
   kStatusConditionDamage = 116,
   kFlinchChanceFromMove = 117,
   kFlinchCheck = 118,
   kFlinchFailed = 119,
   kOneHitKoCheck = 121,
   kUseHeldItem = 123,
-  kUseHeldItemTemporary = 124,
-  ///< A held item is used (temporary/one-off processing)
+  kUseHeldItemTemporary = 124, ///< A held item is used one time only.
+  /// Checks for an effect that keeps 1 HP (Sturdy, Focus Sash, Endure).
   kEndureCheck = 125,
-  ///< Check for a "hang on at 1 HP" effect (Sturdy/Focus Sash/Endure)
-  kEndureTriggered = 126, ///< The "hang on at 1 HP" effect triggers
+  kEndureTriggered = 126, ///< An effect keeps the Pokémon at 1 HP.
   kEndOfTurnChecksBegin = 127,
   kEndOfTurnChecksEnd = 128,
   kAfterEndOfTurnChecks = 129,
+  /// An ability stops the weather effects (Air Lock, Cloud Nine).
   kAirLockActivated = 130,
-  ///< Air Lock/Cloud Nine-style weather-neutralizing ability activates
   kWeatherCheck = 131,
   kWeightMultiplierCheck = 132,
+  /// Checks the number of turns of a weather from a move.
   kMoveWeatherDurationCheck = 133,
-  ///< Check how many turns a move's weather change should last
   kBeforeWeatherChanges = 134,
   kAfterWeatherChanges = 135,
   kWeatherDamageReaction = 136,
-  kNonMoveDamageEnabled = 137,
-  ///< Check whether non-move damage is allowed to apply
+  kNonMoveDamageEnabled = 137, ///< Checks if damage without a move can occur.
   kDamageSequenceStart = 138,
-  kBeforeDamageSequenceEnd = 139,
-  ///< Right before the damaging-move sequence ends
+  kBeforeDamageSequenceEnd = 139, ///< Before the end of a damaging move.
+  /// End of a damaging move: a Pokémon (not a substitute) took damage.
   kDamageSequenceEndRealHit = 140,
-  ///< Sequence end, at least one Pokémon (excluding Substitute) actually took damage
+  /// End of a damaging move, tier 1: a Pokémon or a substitute took damage.
   kDamageSequenceEndHitTier1 = 141,
-  ///< Sequence end tier 1, at least one Pokémon (Substitute included) took damage
-  kDamageSequenceEndHitTier2 = 142, ///< Sequence end tier 2, same condition
-  kDamageSequenceEndHitTier3 = 143, ///< Sequence end tier 3, same condition
-  kDamageSequenceEndHitTier4 = 144, ///< Sequence end tier 4, same condition
-  kDamageSequenceEnd = 145, ///< The damaging-move sequence ends (always called)
+  /// End of a damaging move, tier 2: same condition.
+  kDamageSequenceEndHitTier2 = 142,
+  /// End of a damaging move, tier 3: same condition.
+  kDamageSequenceEndHitTier3 = 143,
+  /// End of a damaging move, tier 4: same condition.
+  kDamageSequenceEndHitTier4 = 144,
+  /// End of a damaging move. The engine always calls it.
+  kDamageSequenceEnd = 145,
+  /// End of a move without damage. The engine always calls it.
   kNonDamageSequenceEnd = 146,
-  ///< The non-damaging-move sequence ends (always called)
   kBeforeAbilityChange = 147,
   kAfterAbilityChange = 148,
+  /// Checks for a move that forces a switch (Roar, Whirlwind).
   kForceSwitchMoveCheck = 149,
-  ///< Check for a forced-switch-style move (Roar/Whirlwind)
+  /// Calculates the HP that an HP drain move restores.
   kLifestealAmountCalculation = 150,
-  ///< Calculate the amount healed by a lifesteal-style move
   kLifestealAmountFinal = 151,
   kHealMovePercentage = 153,
+  /// Checks if the use of the held item fails.
   kHeldItemUsageFailureCheck = 154,
-  ///< Check whether using the held item should fail
   kAfterHeldItemUsed = 155,
-  kItemReactionCheck = 156,
-  ///< Check whether a held item reacts to the current situation
+  kItemReactionCheck = 156, ///< Checks if a held item reacts to the situation.
+  /// Checks for a failure during the charge turn of a move.
   kChargingTurnFailureCheck = 158,
-  ///< Check for failure during a move's charging turn
-  kChargingTurnSkipCheck = 159,
-  ///< Check whether the charging turn can be skipped
+  kChargingTurnSkipCheck = 159, ///< Checks if the charge turn is skipped.
   kChargingStart = 160,
   kChargingStartConfirmed = 161,
   kChargingSkipConfirmed = 162,
   kChargeRelease = 163,
   kChargeReleaseConfirmed = 164,
+  /// Checks a hit on a Pokémon that is in the sky or underground.
   kSemiInvulnerableHitCheck = 165,
-  ///< Check move accuracy against a semi-invulnerable (Fly/Dig-style) Pokémon
+  /// Checks if the change of the held item fails.
   kItemOverwriteFailureCheck = 166,
-  ///< Check whether overwriting the held item should fail
-  kItemOverwriteFailed = 167,
-  ///< Overwriting the held item is confirmed to fail
+  kItemOverwriteFailed = 167, ///< The change of the held item fails.
   kItemOverwriteConfirmed = 168,
   kAfterItemOverwrite = 169,
+  /// A battlefield effect (Trick Room, Gravity...) starts.
   kFieldEffectTrigger = 170,
-  ///< A field effect (Trick Room, Gravity...) is added
   kTeamEffectParamAdjustment = 171,
-  kUncategorizedMoveEffect = 172,
-  ///< Catch-all processing for a move's uncategorized effect
-  kUncategorizedMoveEffectNoTarget = 173, ///< Same, for moves without a target
+  kUncategorizedMoveEffect = 172, ///< The effect of a move without a category.
+  /// The same, for a move without a target.
+  kUncategorizedMoveEffectNoTarget = 173,
+  /// Checks if a combination move (like a Pledge combination) occurs.
   kComboMoveCheck = 174,
-  ///< Check whether a combination move (e.g. an elemental Pledge combo) triggers
   kRightBeforeFainting = 175,
   kAfterMoveAction = 176,
+  /// A protection move blocked the move of the opponent.
   kProtectSucceeded = 177,
-  ///< A Protect-style effect successfully blocked the opponent's move
+  /// Checks the protection during the charge turn of Sky Drop.
   kFreeFallChargeGuardCheck = 178,
-  ///< Check whether to guard against a Sky Drop-style charging turn
+  /// Decides the visual effect of a move that forces a switch.
   kForceSwitchVisualEffectId = 179,
-  ///< Decide the visual effect id for a forced-switch move
+  /// Decides if the attacker faints before its target.
   kCheckAttackerFaintsBeforeTarget = 180,
-  ///< Decide whether the attacker's own fainting is checked before its target's
+  /// Checks the secondary effect chance of a special move.
   kSpecialSecondaryEffectChance = 181,
-  ///< Check a special move's secondary-effect chance
   kChargeReleaseFailed = 182,
   kForcedFaintTriggered = 183,
+  /// The Pokémon enters after a Mega Evolution. The held item check is skipped.
   kPokemonEnteredAfterMegaEvolution = 184,
-  ///< entry moment used to skip the held-item check
+  /// Before Transform, a Mega Evolution or a form change. It stops the weather
+  /// abilities.
   kBeforeFormOrTransformChange = 185,
-  ///< Right before Transform/Mega Evolution/form change (cancels weather-summoning abilities)
   kCount = 186,
 };
 }

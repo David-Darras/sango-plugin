@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file process_patch.h
+ * @brief Calls the patches of the game processes when they start.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -25,12 +30,17 @@ class ProcessManager;
 
 namespace core {
 
+/**
+ * @brief Calls the patches of a process when it starts and at each frame.
+ *
+ * For example, it calls battle::Battle::PatchLoad() when a battle starts.
+ */
 class ProcessPatch {
   MAKE_SINGLETON(ProcessPatch)
 
 public:
-  /// Called with the vtable of every process the game starts, before the
-  /// built-in per-process patches.
+  /// Called with the vtable of each process that starts, before the patches
+  /// of the library. Compare the vtable with the `kVtable` addresses.
   typedef void (*ProcessLoadCallback)(uptr vtable);
   ProcessLoadCallback on_process_load = nullptr;
 

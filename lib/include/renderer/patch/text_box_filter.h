@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file text_box_filter.h
+ * @brief Changes the text boxes of the 2D layouts (the menus).
+ */
+
 #pragma once
 
 #include "common.h"
@@ -26,6 +31,7 @@ struct TextBox;
 
 namespace renderer {
 
+/// The settings of renderer::TextBoxFilter.
 struct TextBoxFilterSettings {
   bool is_enabled = false;
   Vec2 scale = Vec2(1, 1);
@@ -35,6 +41,7 @@ struct TextBoxFilterSettings {
 static_assert(std::is_standard_layout<TextBoxFilterSettings>::value,
               "TextBoxFilterSettings must have standard layout");
 
+/// Changes the size and the colors of the texts of the menus.
 struct TextBoxFilter : public TextBoxFilterSettings {
   MAKE_SINGLETON(TextBoxFilter)
 

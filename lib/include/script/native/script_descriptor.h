@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file script_descriptor.h
+ * @brief The description of a script that the engine starts.
+ */
+
 #pragma once
 
 #include "core/types.h"

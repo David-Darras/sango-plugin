@@ -15,6 +15,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file gen8_species.inc
+ * @brief The data of the species of generations VIII and IX.
+ *
+ * The entries have the same format as gen7_species.inc. This file is generated.
+ * Do not change it by hand.
+ */
+
 #pragma once
 
 static const Gen7Species kGen8Species[] = {

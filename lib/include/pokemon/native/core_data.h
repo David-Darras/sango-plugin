@@ -15,6 +15,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file core_data.h
+ * @brief The saved data of one Pokémon (the PK6 format).
+ *
+ * The game encrypts this data. Call DataAccessor::Decrypt() before you read
+ * it, and DataAccessor::Encrypt() after.
+ */
+
 #pragma once
 #include "common.h"
 #include "pokemon/native/utils.h"
@@ -29,6 +37,12 @@
 
 namespace pokemon {
 
+/**
+ * @brief The saved data of one Pokémon: species, moves, EVs, IVs, trainer...
+ *
+ * The data has a header and four blocks of 0x38 bytes. The game encrypts it
+ * and changes the order of the blocks: see DataAccessor.
+ */
 struct CoreData {
   // HEADER [0x08 bytes]
   u32 encryption_key; // 04
@@ -166,11 +180,13 @@ struct CoreData {
   static constexpr u32 kBlockSize = 0x38;
   static constexpr u32 kBlockCount = 4;
 
+  /// Returns the address of a block (0 to 3).
   INLINE void* GetBlock(u32 index) {
     uptr addr = (uptr)this;
     return (void*)(addr + 8 + index * kBlockSize);
   }
 
+  /// Sets the nickname (12 characters at most).
   void SetNickname(const c16* nickname) {
     u32 src_len = 0;
     while (src_len < 12 && nickname[src_len] != u'\0') {
@@ -181,6 +197,7 @@ struct CoreData {
     this->use_nickname = true;
   }
 
+  /// Sets the name of the species as the nickname.
   void ResetNickname() {
     c16 buffer[13];
     ((void(*)(c16*, SpeciesId))address::kGetDefaultNickname)(buffer, species);
@@ -188,6 +205,7 @@ struct CoreData {
     use_nickname = false;
   }
 
+  /// Makes the Pokémon shiny or not shiny.
   void SetShiny(bool is_shiny) {
     if (is_shiny) {
       Utils::ConvertToShiny(id, &shiny_id);
@@ -196,10 +214,12 @@ struct CoreData {
     }
   }
 
+  /// Sets the experience points of a level.
   void SetLevel(u8 level) {
     experience = Utils::GetExperienceFromLevel(species, form, level);
   }
 
+  /// Sets the six IVs to 31.
   void SetMaxIVs() {
     iv_hp = 31;
     iv_attack = 31;
@@ -209,6 +229,7 @@ struct CoreData {
     iv_special_defense = 31;
   }
 
+  /// Sets the six contest stats to 255.
   void SetMaxContest() {
     contest.beautiful = 255;
     contest.cool = 255;
@@ -218,6 +239,7 @@ struct CoreData {
     contest.tough = 255;
   }
 
+  /// Sets the species, the held item, the ability, the nature and the shiny state.
   void Set(SpeciesId species, ItemId item, AbilityId ability, Nature nature,
            bool is_shiny) {
     this->species = species;
@@ -227,6 +249,7 @@ struct CoreData {
     SetShiny(is_shiny);
   }
 
+  /// Sets the six EVs, and the six IVs to 31.
   void SetStats(u8 hp, u8 atk, u8 def, u8 sp_atk,
                 u8 sp_def, u8 spd) {
     SetMaxIVs();
@@ -238,6 +261,7 @@ struct CoreData {
     ev_speed = spd;
   }
 
+  /// Sets the four moves.
   void SetMoves(MoveId move1, MoveId move2, MoveId move3, MoveId move4) {
     moves[0] = move1;
     moves[1] = move2;
@@ -245,6 +269,7 @@ struct CoreData {
     moves[3] = move4;
   }
 
+  /// Returns the sum of the six EVs.
   u32 GetTotalPower() const {
     return ev_hp + ev_attack + ev_defense + ev_special_attack
            + ev_special_defense + ev_speed;

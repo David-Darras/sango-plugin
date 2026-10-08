@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file reaction_table.h
+ * @brief The reactions of a listener.
+ */
+
 #pragma once
 
 #include <types.h>
@@ -26,9 +31,17 @@ namespace battle {
 struct Listener;
 class Controller;
 
+/**
+ * @brief A reaction: a function that the battle engine calls at a moment.
+ * @param self The listener.
+ * @param controller The object that changes the battle.
+ * @param owner_id The owner of the listener.
+ * @param local_state Seven numbers that the listener keeps between calls.
+ */
 typedef void (*Reaction)(Listener* self, Controller* controller,
                          UID owner_id, s32* local_state);
 
+/// One reaction and its moment.
 struct ReactionTable {
   MomentKind moment;
   Reaction reaction;

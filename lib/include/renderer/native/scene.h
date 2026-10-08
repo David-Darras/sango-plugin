@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file scene.h
+ * @brief The 3D scene of the game.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -22,6 +27,7 @@
 #include "renderer/native/h3d_shader_model.h"
 
 namespace renderer {
+/// Adds models to the 3D scene and removes them.
 struct Scene {
   STATIC_INLINE bool Register0(void* scene, H3dShaderModel* model,
                                s32 x = 0) {

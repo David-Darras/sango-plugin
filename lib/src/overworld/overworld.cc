@@ -15,7 +15,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "overworld/patch/field.h"
+/**
+ * @file overworld.cc
+ * @brief The overworld: a callback when it loads, and the background music.
+ *
+ * The declarations are in overworld/patch/overworld.h.
+ */
+
+#include "overworld/patch/overworld.h"
 #include "overworld/patch/auto_surf.h"
 #include "core/hook_manager.h"
 #include "overworld/patch/day_care.h"
@@ -23,38 +30,20 @@
 #include "overworld/patch/run_animation.h"
 #include "overworld/patch/static_randomizer.h"
 #include "overworld/patch/trade.h"
-#include "overworld/native/map_manager.h"
 #include "system/native/sound.h"
-#include "ui/log_application.h"
 
 namespace overworld {
 
-void Field::Initialize() {
+void Overworld::Initialize() {
   core::HookManager::Initialize(HookId::kGetOverworldBackgroundMusic,
                           address::kGetOverworldBackgroundMusic,
                           (uptr)GetBackgroundMusic);
-  core::HookManager::Initialize(HookId::kOverworldUpdateZone,
-                          address::kUpdateZone,
-                          (uptr)UpdateZone, false);
 }
 
-void Field::UpdateZone(MapManager* manager) {
-  auto& next_map_id = manager->GetNextMapId();
-  static s32 state = 0;
-  if (next_map_id != MapManager::kNoMap && state == 0) {
-    ui::LogApplication::Print(u"New Zone: %u", next_map_id);
-    state = 1;
-  }
-  if (next_map_id == MapManager::kNoMap && state == 1) {
-    state = 0;
-  }
-  core::HookManager::Call<void>(HookId::kOverworldUpdateZone, manager);
-}
-
-void Field::PatchLoad() {
-  MEMORY_SCOPE(sys::address::kMemoryRegionGameCode, 0xF1000);
+void Overworld::PatchLoad() {
+  MEMORY_SCOPE(sys::address::kMemoryRegionCro, 0xF1000);
   auto& feat = GetInstance();
-  if (feat.on_field_load != nullptr) feat.on_field_load();
+  if (feat.on_overworld_load != nullptr) feat.on_overworld_load();
 
   DayCare::PatchLoad();
   GiftPokemon::PatchLoad();
@@ -63,7 +52,6 @@ void Field::PatchLoad() {
 
   core::HookManager::Enable(HookId::kGetEncounterPokemon);
   core::HookManager::ForceEnable(HookId::kCheckAppRequest);
-  core::HookManager::ForceEnable(HookId::kOverworldUpdateZone);
   core::HookManager::ForceEnable(HookId::kGetPlayerMovement);
   RunAnimation::PatchLoad();
   AutoSurf::PatchLoad();
@@ -73,7 +61,7 @@ void Field::PatchLoad() {
   }
 }
 
-u32 Field::GetBackgroundMusic(u32 sound_manager, u32 map_id, u32 player_form) {
+u32 Overworld::GetBackgroundMusic(u32 sound_manager, u32 map_id, u32 player_form) {
   auto& instance = GetInstance();
   if (instance.freeze_background_music) {
     return sys::Sound::kBankBackgroundMusic +

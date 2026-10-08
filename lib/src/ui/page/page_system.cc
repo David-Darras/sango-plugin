@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file page_system.cc
+ * @brief The menu pages of the System family.
+ */
+
 #include "ui/main_application.h"
 #include "ui/page/pages.h"
 

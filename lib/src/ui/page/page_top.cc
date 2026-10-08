@@ -15,7 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "config_manager.h"
+/**
+ * @file page_top.cc
+ * @brief The root page of the overlay.
+ */
+
 #include "battle/patch/game_extension.h"
 #include "core/native/event_manager.h"
 #include "core/patch/game_speed.h"
@@ -42,7 +46,6 @@ void LoadTopPage(MainApplication& app, void* args) {
       .Add("Title Screen", LoadTitleScreenPage)
       .Add("System", LoadSystemPage)
       .AddSeparator()
-      .Add("Plugin Theme", LoadThemePage)
-      .Add("Save Config", ConfigManager::Save);
+      .Add("Plugin Theme", LoadThemePage);
 }
 } // namespace ui

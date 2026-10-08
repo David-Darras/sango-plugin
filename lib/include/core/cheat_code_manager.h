@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file cheat_code_manager.h
+ * @brief The list of the cheat codes of the plugin.
+ */
+
 #pragma once
 
 #include "core/cheat_code.h"
@@ -22,6 +27,11 @@
 
 namespace core {
 
+/**
+ * @brief Keeps the cheat codes and runs them at each frame.
+ *
+ * A menu entry can enable a cheat code: `app.Add("Repel", CheatCodeId::kNoEncounter)`.
+ */
 class CheatCodeManager {
   MAKE_SINGLETON(CheatCodeManager)
 
@@ -30,9 +40,12 @@ public:
            cheat_code_callback_t on_disable,
            bool do_each_frame);
 
+  /// Returns the cheat code with this id, or null.
   CheatCode* Get(CheatCodeId id);
+  /// Runs the cheat codes that run at each frame. plugin::UpdateFrame() calls it.
   void Update() const;
 
+  /// Adds a cheat code. A feature calls it in its Initialize().
   static void Initialize(CheatCodeId id, cheat_code_callback_t on_enable,
                          cheat_code_callback_t on_disable,
                          bool do_each_frame);

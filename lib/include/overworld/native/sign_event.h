@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file sign_event.h
+ * @brief A sign event of a map.
+ */
+
 #pragma once
 
 #include "core/types.h"
@@ -22,6 +27,7 @@
 
 namespace overworld {
 
+/// A sign event: a place that the player reads or inspects.
 struct SignEvent {
   u16 id;
   u16 kind;

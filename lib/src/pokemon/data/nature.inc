@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file nature.inc
+ * @brief The names of the natures for the menu pages.
+ */
+
 static const char* const NATURE_NAMES[static_cast<u8>(Nature::kCount)] = {
   "Hardy", "Lonely", "Brave", "Adamant", "Naughty", "Bold", "Docile",
   "Relaxed", "Impish", "Lax", "Timid", "Hasty", "Serious", "Jolly", "Naive",

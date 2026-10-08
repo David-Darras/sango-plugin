@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file camera.h
+ * @brief The camera modes of the plugin: free camera, first-person view...
+ */
+
 #pragma once
 
 #include <type_traits>
@@ -27,10 +32,11 @@
 namespace overworld {
 struct StereoCamera;
 
+/// The settings of overworld::Camera.
 struct CameraSettings {
-  CameraState overworld_state = CameraState::kIdle;
+  CameraState overworld_state = CameraState::kIdle; ///< The mode in the overworld.
   CameraState overworld_old_state = CameraState::kIdle;
-  CameraState battle_state = CameraState::kIdle;
+  CameraState battle_state = CameraState::kIdle; ///< The mode in battle.
   CameraState battle_old_state = CameraState::kIdle;
 
   u8 battle_target_pokemon_slot = 0;
@@ -54,14 +60,19 @@ struct CameraSettings {
 static_assert(std::is_standard_layout<CameraSettings>::value,
               "CameraSettings must have standard layout");
 
+/// Controls the camera of the overworld and of the battles.
 struct Camera : public CameraSettings {
   MAKE_SINGLETON(Camera)
 
   CameraContext active_context = CameraContext::kNone;
 
+  /// Gives the camera back to the game.
   void SetCameraIdle(bool is_battle);
+  /// Sets the free camera.
   void SetCameraFree(bool is_battle, f32 x, f32 y, f32 z, f32 yaw, f32 pitch);
+  /// Turns the camera around a point: radius, height, angle.
   void SetCameraRotate(bool is_battle, f32 r, f32 h, f32 w = 0.0f);
+  /// Sets the third-person view.
   void SetCameraTPS(bool is_battle, f32 dist, f32 height, f32 offset);
 
   static void Initialize();

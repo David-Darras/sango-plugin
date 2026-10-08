@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file game_speed.cc
+ * @brief Makes the game faster or slower.
+ *
+ * The declarations are in core/patch/game_speed.h.
+ */
+
 #include "core/patch/game_speed.h"
 #include "core/hook_manager.h"
 

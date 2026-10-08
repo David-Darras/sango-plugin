@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file native_script.cc
+ * @brief Runs C++ functions as overworld scripts.
+ *
+ * The declarations are in script/patch/native_script.h.
+ */
+
 #include "script/patch/native_script.h"
 
 Coroutine* Coroutine::self_ = nullptr;

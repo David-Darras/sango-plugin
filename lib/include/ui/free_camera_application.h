@@ -15,16 +15,23 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file free_camera_application.h
+ * @brief The application of the free camera.
+ */
+
 #pragma once
 
 #include "common.h"
 #include "ui/application.h"
 
 namespace ui {
+/// Moves the free camera with the buttons. The bottom screen shows the controls.
 class FreeCameraApplication : public Application {
   MAKE_SINGLETON(FreeCameraApplication)
 
 public:
+  /// Opens the free camera.
   static void Open();
 
   void Update(sys::Controller& controller) override;

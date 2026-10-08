@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file evolution_table.h
+ * @brief The evolution table that the game loaded.
+ */
+
 #pragma once
 
 #include "core/types.h"
@@ -23,6 +28,7 @@
 
 namespace pokemon {
 
+/// The evolution data that the game loaded for one species.
 struct EvolutionTable {
   uptr vtable;
   SpeciesId species;

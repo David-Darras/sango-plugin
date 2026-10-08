@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file kaizo_painter.cc
+ * @brief Kaizo: the look of the menu (the PokéPhone).
+ */
+
 #include "kaizo/kaizo_painter.h"
 
 #include "system/native/graphics.h"

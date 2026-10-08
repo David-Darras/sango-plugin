@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file tall_grass.h
+ * @brief Shows 3D tall grass around the player.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -22,11 +27,10 @@
 
 namespace overworld {
 
-/// Covers the walkable tiles around the player with the game's own
-/// encounter grass models. The models and their textures are loaded once
-/// and every patch is a cheap instance of them.
-class FieldGrass {
-  MAKE_SINGLETON(FieldGrass)
+/// Puts tall grass models on the tiles around the player. The library loads
+/// the models one time. Each patch of grass is a copy of a model.
+class TallGrass {
+  MAKE_SINGLETON(TallGrass)
 
 public:
   enum Kind : u8 {
@@ -53,6 +57,7 @@ public:
   u32 density = 60; ///< Percent of the walkable tiles that get a patch
 
   static void Update();
+  /// Removes the grass before a battle starts.
   static void RemoveModelsBeforeBattle();
   static u32 GetPatchCount();
 

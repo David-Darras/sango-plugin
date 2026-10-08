@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file message_header.h
+ * @brief The header of a message file.
+ */
+
 #pragma once
 
 #include "core/types.h"

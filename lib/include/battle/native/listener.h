@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file listener.h
+ * @brief A listener of the battle engine.
+ */
+
 #pragma once
 #include <types.h>
 
@@ -27,50 +32,45 @@ namespace battle {
 struct Listener;
 class Controller;
 
+/// A function that can stop a reaction before it runs.
 typedef bool (*SkipPredicate)(Listener* self, Controller* controller,
                               ListenerSource source, MomentKind moment,
                               u16 source_id, UID owner_id);
 
+/// A listener: it waits for some moments and calls its reactions. See docs/concepts/battle-engine.md.
 struct Listener {
   Listener* previous_listener;
   Listener* next_listener;
+  /// The pairs {moment, reaction} of the listener.
   const ReactionTable* reaction_table;
-  ///< The {moment, reaction} pairs this listener responds to
+  /// An optional function that can stop a reaction before it runs.
   SkipPredicate skip_predicate;
-  ///< Optional callback that can veto a reaction before it runs
+  /// What registered the listener (ability, move, item...).
   ListenerSource source;
-  ///< What kind of thing registered this (ability, move, item, status, field...)
-  u32 dispatch_priority;
-  ///< Resolves the order listeners react in when several answer the same moment
+  u32 dispatch_priority; ///< The order of the listeners at the same moment.
 
+  /// The nesting depth when the listener was registered.
   u32 created_at_depth : 16;
-  ///< Dispatch-nesting depth this listener was registered at
-  u32 reaction_count : 8; ///< Number of entries in reaction_table
+  u32 reaction_count : 8; ///< The number of entries in reaction_table.
+  /// true while a reaction runs: it cannot run again inside itself.
   u32 is_reacting : 1;
-  ///< Guards against a reaction re-entering itself while it's already running
   u32 is_paused : 1;
+  /// Reacts only to the moment when an item is used.
   u32 is_temporary_item_listener : 1;
-  ///< Only reacts to the one-off "item used" moment, not the listener's normal moments
   u32 pending_removal : 1;
-  u32 allow_reentry : 1;
-  ///< Permits this listener to react again while already reacting (overrides is_reacting)
-  u32 is_active : 1;
-  ///< Whether this listener slot currently holds a live registration
+  u32 allow_reentry : 1; ///< Lets the listener react again inside a reaction.
+  u32 is_active : 1; ///< true when this listener slot is in use.
+  /// Paused because its Pokémon is not in front (Rotation Battle).
   u32 is_paused_for_rotation : 1;
-  ///< Suspended specifically because its Pokémon is benched in a Rotation Battle
+  /// Keeps the current dispatch safe when a listener is added or removed.
   u32 reserved_for_next_dispatch : 1;
-  ///< Internal bookkeeping so a concurrent registration/removal doesn't corrupt the current dispatch pass
+  /// Seven numbers that the reactions keep between calls (for example, a turn
+  /// counter).
   int local_state[7];
-  ///< Small per-listener scratch storage a reaction can persist between calls (e.g. a turn counter)
+  /// The id of the move, the ability or the item, in its source category.
   u16 source_id;
-  ///< Which specific move/ability/item/etc. this is, within its `source` category
+  /// The owner: a Pokémon id, or a position id for a battlefield listener.
   u8 owner_id;
-  ///< What this listener is tied to: a Pokémon id, or a field position id for
-  ///< field-scoped listeners - kept as a raw id (not UID) precisely
-  ///< because it isn't always a Pokémon
-  UID linked_pokemon_id;
-  ///< The Pokémon this listener is scoped to, or UID::None() if it
-  ///< isn't Pokémon-scoped at all - a cached shortcut so lookups don't need
-  ///< to check `source` first
+  UID linked_pokemon_id; ///< The Pokémon of the listener, or UID::None().
 };
 }

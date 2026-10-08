@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file kaizo_gift.cc
+ * @brief Kaizo: the legendary Pokémon cannot join the party (a hook on AddPokemonToTeam).
+ */
+
 #include "pokemon/constant/species.h"
 #include "common.h"
 #include "core/hook_manager.h"

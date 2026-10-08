@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file pokemon_team.h
+ * @brief The party of the player.
+ */
+
 #pragma once
 #include "common.h"
 #include "core/native/data_manager.h"
@@ -22,12 +27,21 @@
 
 namespace savedata {
 
+/**
+ * @brief The party of the player (6 Pokémon at most).
+ *
+ * @code
+ * auto& team = savedata::PokemonTeam::GetInstance();
+ * for (u32 i = 0; i < team.count; i++) { ... team.pokemons[i] ... }
+ * @endcode
+ */
 struct PokemonTeam {
   SINGLETON(PokemonTeam)
   STATIC_INLINE PokemonTeam& GetInstance() {
     return core::DataManager::GetInstance().GetPokemonTeam();
   }
 
+  /// Returns the highest level of the party.
   u8 GetMaxLevel() const {
     u8 max_level = 1;
     for (u32 i = 0; i < count; i++) {
@@ -45,10 +59,12 @@ struct PokemonTeam {
     return max_level;
   }
 
+  /// Heals all the Pokémon of the party.
   INLINE void HealAllPokemons() {
     ((void(*)(PokemonTeam*))pokemon::address::kHealTeam)(this);
   }
 
+  /// Removes the fainted Pokémon from the party.
   void ThrowAllDeadPokemons() {
     bool is_dead[6] = {0, 0, 0, 0, 0, 0};
     for (u32 i = 0; i < count; i++) {
@@ -71,7 +87,7 @@ struct PokemonTeam {
   static constexpr u32 kMaxSlots = 6;
 
   PokemonParam* pokemons[kMaxSlots];
-  u8 count;
+  u8 count; ///< The number of Pokémon in the party.
   u8 _0[3];
 };
 

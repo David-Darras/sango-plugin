@@ -15,12 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file party_select.h
+ * @brief Lets a script select several Pokémon of the party.
+ */
+
 #pragma once
 
 #include "common.h"
 #include "ui/address.h"
 
 namespace ui {
+/// Lets the player select several Pokémon of the party at one time.
 class PartySelect {
   MAKE_SINGLETON(PartySelect)
 
@@ -34,6 +40,7 @@ public:
   static constexpr u32 kMaxMembers = 6;
   static constexpr bool kIsSupported = address::kCallPokemonList != 0;
 
+  /// Prepares the next party screen for `count` Pokémon.
   void Arm(u32 count);
   Status GetResult(u8* order);
 

@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file script_run.h
+ * @brief The state of a running script.
+ */
+
 #pragma once
 
 #include "core/types.h"

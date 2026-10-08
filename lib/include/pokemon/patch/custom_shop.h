@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file custom_shop.h
+ * @brief Changes the items of the shops, and sells Pokémon in the shops.
+ *
+ * @see docs/tutorials/11-change-items-and-shops.md
+ */
+
 #pragma once
 
 #include "common.h"
@@ -25,6 +32,7 @@
 
 namespace pokemon {
 
+/// One Pokémon that a shop sells.
 struct ShopPokemon {
   SpeciesId species;
   FormId form;
@@ -32,8 +40,10 @@ struct ShopPokemon {
   u32 price;
 };
 
+/// The price unit of the default Pokémon list.
 constexpr u32 kCoin = 20;
 
+/// The default Pokémon of the Pokémon shop. See CustomShop::EnablePokemonShop().
 constexpr ShopPokemon kShopPokemons[] = {
     {SpeciesId::kAbra, FormId::kNormal, 9, 120 * kCoin},
     {SpeciesId::kClefairy, FormId::kNormal, 8, 750 * kCoin},
@@ -42,22 +52,54 @@ constexpr ShopPokemon kShopPokemons[] = {
     {SpeciesId::kPorygon, FormId::kNormal, 26, 9999 * kCoin},
 };
 
-/// Rewrites what a mart sells: its own item list, or Pokémon sold through a
-/// placeholder item whose name and description are patched on the fly.
+/// Changes what a shop sells: a list of items, or a list of Pokémon. A
+/// Pokémon uses the Poké Ball item; the plugin changes its name and its
+/// description.
 class CustomShop {
   MAKE_SINGLETON(CustomShop)
 
 public:
+  /// A shop id that means "all the shops".
   static constexpr u32 kAnyShop = 0xFFFFFFFF;
   static constexpr u32 kDefaultShopId = kAnyShop;
 
+  /// true: the normal Poké Marts sell Pokémon instead of items. Use
+  /// EnablePokemonShop() to change it.
+  STATIC_INLINE bool IsPokemonShopEnabled() {
+    return GetInstance().is_pokemon_shop_enabled_;
+  }
+
+  /// Makes the normal Poké Marts sell Pokémon (true) or items (false).
+  /// The cheat code CheatCodeId::kPokemonShop does the same from the menu.
+  static void EnablePokemonShop(bool is_enabled);
+
+  /// true: writes the type and the id of each shop that opens to the log.
+  bool log_shop_ids = false;
+
   static void Initialize();
-  static void SetItems(const ShopItem* items, u32 count);
+  /**
+   * @brief Replaces the items of a shop.
+   * @param items The items and their prices. The array must stay in memory.
+   * @param count The number of items (60 at most).
+   * @param shop_id The shop. The log shows the id when a shop opens.
+   */
+  static void SetItems(const ShopItem* items, u32 count,
+                       u32 shop_id = kAnyShop);
+  /**
+   * @brief Sells Pokémon in a normal Poké Mart.
+   * @param pokemons The Pokémon. The array must stay in memory. Null: sell no Pokémon.
+   * @param count The number of Pokémon.
+   * @param shop_id The shop, or kAnyShop.
+   */
   static void SetPokemons(const ShopPokemon* pokemons, u32 count,
                           u32 shop_id = kDefaultShopId);
+  /// Writes the name of the selected Pokémon instead of the item name.
   static bool PatchItemName(ItemId item, String* output);
+  /// Gives a level 100 Pokémon that holds `item`.
   static bool GiveMega(SpeciesId species, ItemId item = ItemId::kLifeOrb);
+  /// Gives a Pokémon of the list.
   static bool GivePokemon(const ShopPokemon& entry);
+  /// Writes the name of a species.
   static void GetSpeciesName(SpeciesId species, String* output);
 
 private:
@@ -89,10 +131,12 @@ private:
 
   u32 count = 0;
   const ShopItem* items = nullptr;
+  u32 items_shop_id = kAnyShop;
   const ShopPokemon* pokemons = kShopPokemons;
   u32 pokemon_count = SIZE(kShopPokemons);
   u32 pokemon_shop_id = kDefaultShopId;
   ShopData* pokemon_data = nullptr;
   bool skip_bag_add = false;
+  bool is_pokemon_shop_enabled_ = false;
 };
 } // namespace pokemon

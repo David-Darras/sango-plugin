@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file pokemon_model_table.h
+ * @brief The table of the files of the Pokémon models.
+ */
+
 #pragma once
 
 #include "core/types.h"
@@ -26,8 +31,8 @@
 
 namespace renderer {
 
-/// The table mapping a species / form / gender to its files in the game's
-/// Pokémon model archive.
+/// The table that gives the files of a species, a form and a gender in the
+/// archive of the Pokémon models.
 struct PokemonModelTable {
   static constexpr u16 kSpeciesCount = 721;
   /// Files per Pokémon in the model archive, and index of the first one.

@@ -15,15 +15,21 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file position_kind.h
+ * @brief The kinds of positions of the characters.
+ */
+
 #pragma once
 
 #include <types.h>
 
 namespace overworld {
 
+/// How a position is stored.
 enum class PositionKind : u32 {
-  kTileGrid = 0,
-  kRail = 1,
+  kTileGrid = 0, ///< A position on the tiles.
+  kRail = 1, ///< A position on a rail (some paths of the game).
 };
 
 } // namespace overworld

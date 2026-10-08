@@ -15,17 +15,24 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file misc.h
+ * @brief The money, the badges and other data of the player.
+ */
+
 #pragma once
 #include "common.h"
 #include "savedata/native/savedata.h"
 
 namespace savedata {
+/// The money, the badges, the rival name and other data of the player.
 struct Misc {
   SINGLETON(Misc)
   STATIC_INLINE Misc& GetInstance() {
     return SaveData::GetInstance().GetMisc();
   }
 
+  /// Returns the number of Gym Badges.
   INLINE u32 GetBadgesCount() {
     u32 count = 0;
     for (u32 i = 0; i < 8; i++) {

@@ -15,16 +15,25 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file trainer.h
+ * @brief The ids of the trainers.
+ *
+ * Only some trainers have a name here. Use static_cast<TrainerId>(n) for the
+ * others.
+ */
+
 #pragma once
 
 #include <types.h>
 
 namespace battle {
 
+/// The id of a trainer of the game.
 enum class TrainerId : u16 {
   kNone = 0,
 
-  // ROUTE 103
+  // Route 103
   kRoute103Brendan1 = 1,
   kRoute103Brendan2 = 2,
   kRoute103Brendan3 = 3,
@@ -32,28 +41,28 @@ enum class TrainerId : u16 {
   kRoute103May2 = 5,
   kRoute103May3 = 6,
 
-  // ROUTE 102
+  // Route 102
   kRoute102Kid1 = 7,
   kRoute102Kid2 = 8,
   kRoute102Kid3 = 301,
   kRoute102Girl = 10,
 
-  // ROUTE 104 DOWN
+  // Route 104 (south)
   kRoute104YoungsterBilly = 16,
   kRoute104RichBoyWinston = 639,
 
-  // PETALBURG WOODS
+  // Petalburg Woods
   kPetalburgWoodsBugCatcherLyle = 9,
   kPetalburgWoodsTeamAquaGrunt = 20,
   kPetalburgWoodsBugCatcherJames = 302,
 
-  // BATTLE ROUTE 104 UP
+  // Route 104 (north)
   kRoute104LadyCindy = 640,
   kRoute104LassHaley = 17,
   kRoute104TwinsGinaAndMia = 275,
   kRoute104FishermanIvan = 14,
 
-  // RUSTBORO CITY
+  // Rustboro City
   kRustboroCityYoungsterJosh = 562,
   kRustboroCityYoungsterTommy = 22,
   kRustboroCitySchoolkidGeorgia = 667,

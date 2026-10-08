@@ -15,12 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file pss_manager.h
+ * @brief The manager of the PSS.
+ */
+
 #pragma once
 
 #include "core/native/game_manager.h"
 #include "savedata/native/pss_data.h"
 
 namespace savedata {
+/// The manager of the PSS (Player Search System).
 class PssManager {
   SINGLETON(PssManager)
 
@@ -29,6 +35,7 @@ public:
     return core::GameManager::GetInstance().GetPssManager();
   }
 
+  /// Returns the profile of the player.
   INLINE PssProfilePayload& GetMyProfile() {
     return self_data_.user_data.datagram.profile;
   }

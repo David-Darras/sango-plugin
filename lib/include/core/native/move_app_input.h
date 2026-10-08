@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file move_app_input.h
+ * @brief The input of the move applications (Move Reminder, Move Deleter, move tutor).
+ */
+
 #pragma once
 
 #include "core/types.h"
@@ -26,7 +31,8 @@ struct PokemonParam;
 
 namespace core {
 
-/// What the game's move deleter / reminder / tutor apps read on start.
+/// The data that the Move Deleter, the Move Reminder and the move tutor
+/// applications read when they start.
 struct MoveAppInput {
   savedata::PokemonParam* pokemon;
   MoveId move_id;

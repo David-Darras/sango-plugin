@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file process_manager.h
+ * @brief The object of the game that runs the processes.
+ */
+
 #pragma once
 
 #include <cstring>
@@ -29,6 +34,13 @@ namespace core {
 
 class GameManager;
 
+/**
+ * @brief Runs the processes of the game: the title screen, the overworld...
+ *
+ * @code
+ * if (core::ProcessManager::IsOverworldActive()) { ... }
+ * @endcode
+ */
 class ProcessManager {
   SINGLETON(ProcessManager)
 
@@ -39,6 +51,7 @@ public:
 
   INLINE ProcessHandle& GetMainHandle() const { return *handle_; }
 
+  /// Returns the current main process, or null.
   BaseProcess* GetCurrentProcess() const {
     if (handle_ == nullptr) return nullptr;
     BaseProcess* process = handle_->GetProcess();
@@ -46,6 +59,7 @@ public:
     return process;
   }
 
+  /// Returns the class name of the current process, and writes its vtable.
   const char* GetCurrentProcessName(uptr& vtable) const {
     BaseProcess* process = GetCurrentProcess();
     if (process == nullptr) return "";
@@ -53,21 +67,25 @@ public:
     return Utils::GetClassNameFromVTable(process->vtable);
   }
 
+  /// Returns the vtable of the current process, or 0.
   uptr GetCurrentVTable() const {
     BaseProcess* process = GetCurrentProcess();
     if (process == nullptr) return 0;
     return (uptr)process->vtable;
   }
 
+  /// Returns true when the current process has this class name.
   INLINE bool IsCurrentProcess(const char* name) const {
     uptr vtable = 0;
     return std::strcmp(GetCurrentProcessName(vtable), name) == 0;
   }
 
+  /// Returns true when the current process has this vtable.
   INLINE bool IsCurrentProcess(u32 vtable) const {
     return vtable == GetCurrentVTable();
   }
 
+  /// Calls `on_load` for a process that starts, else `on_update`.
   INLINE void Patch(void (*on_load)(uptr), void (*on_update)(uptr)) {
     if (handle_ == nullptr) return;
     auto* process = handle_->process_;
@@ -80,10 +98,12 @@ public:
     }
   }
 
+  /// Returns true when the player is in the overworld.
   STATIC_INLINE bool IsOverworldActive() {
     return GetInstance().IsCurrentProcess(overworld::address::kVtable);
   }
 
+  /// Returns true during a battle.
   STATIC_INLINE bool IsBattleActive() {
     return GetInstance().IsCurrentProcess(battle::address::kVtable);
   }

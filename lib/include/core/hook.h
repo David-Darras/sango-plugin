@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file hook.h
+ * @brief One hook: the redirection of one function of the game.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -22,26 +27,38 @@
 namespace core {
 
 /**
- * @brief Handles function redirection (Hooking) via instruction overwriting.
- * This class implements an INLINE hook by replacing function headers with
- * an absolute jump. It uses a gateway (trampoline) to execute the original
- * logic.
+ * @brief Redirects one function of the game to a function of the plugin.
+ *
+ * The hook replaces the first two instructions of the game function with a
+ * jump to the plugin function. A gateway keeps the two instructions and a
+ * jump back: CallOriginal() uses it to run the original function.
+ *
+ * Use core::HookManager instead of this class.
+ *
+ * @see docs/concepts/hooks-and-addresses.md
  */
 class Hook {
 public:
   Hook() = default;
 
+  /// Sets the game function (`src`) and the plugin function (`dst`).
   void Initialize(u32 src, u32 dst);
+  /// Writes the jump. With `force`, writes it again also when it is enabled.
   void Enable(bool force = false);
+  /// Writes the original instructions back.
   void Disable();
 
+  /// Returns true when the jump is in the game code.
   INLINE bool IsEnabled() const { return is_enabled_; }
+  /// Returns true when the gateway exists.
   INLINE bool IsInitialized() const { return is_initialized_; }
+  /// Forgets the state. Use it when the game removed the code (a CRO).
   INLINE void Clear() {
     is_enabled_ = false;
     is_initialized_ = false;
   }
 
+  /// Runs the original function with the gateway.
   template <typename R, typename... Args>
   R CallOriginal(Args... args) {
     using FunctionType = R (*)(Args...);

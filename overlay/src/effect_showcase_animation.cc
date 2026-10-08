@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file effect_showcase_animation.cc
+ * @brief Example: an animation that shows the effects of the game, 10 at a time.
+ *
+ * Use it to find an effect for your animations.
+ */
+
 #include "battle/constant/effect_id.h"
 #include "battle/patch/move_animation.h"
 #include "ui/log_application.h"

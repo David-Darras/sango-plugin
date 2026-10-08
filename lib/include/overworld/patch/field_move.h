@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file field_move.h
+ * @brief Uses the field moves from the menu.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -22,12 +27,13 @@
 
 namespace overworld {
 
+/// Uses the field moves (Cut, Surf...) without a Pokémon that knows them.
 struct FieldMove {
   MAKE_SINGLETON(FieldMove)
 
   static void Initialize();
-  /// Performs a field move as if picked from the game's own menu; Fly goes
-  /// through the town map instead, see core::AppLauncher::DoFly.
+  /// Uses a field move, like the menu of the game. For Fly, use
+  /// core::AppLauncher::DoFly().
   static void Execute(FieldMoveId move);
 };
 } // namespace overworld

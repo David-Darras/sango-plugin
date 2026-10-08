@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file pss_data.h
+ * @brief The data of the PSS.
+ */
+
 #pragma once
 
 #include "common.h"

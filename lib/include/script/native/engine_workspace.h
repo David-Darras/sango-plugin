@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file engine_workspace.h
+ * @brief The work data of the script engine.
+ */
+
 #pragma once
 
 #include "core/types.h"

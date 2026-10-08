@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file model_replacement.cc
+ * @brief Lets a product change the look of a Pokémon model.
+ *
+ * The declarations are in pokemon/patch/model_replacement.h.
+ */
+
 #include "pokemon/patch/model_replacement.h"
 #include "core/hook_manager.h"
 #include "pokemon/patch/species_table.h"

@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file script_loader.h
+ * @brief Saves the game scripts to the SD card, and loads changed scripts from it.
+ */
+
 #pragma once
 
 #include <type_traits>
@@ -23,19 +28,20 @@
 
 namespace core {
 
+/// The settings of core::ScriptLoader.
 struct ScriptLoaderSettings {
-  bool dump_scripts = false;
-  bool inject_scripts = false;
-  bool log_activity = false;
-  bool no_key_press = false;
-  bool no_cutscene = false;
+  bool dump_scripts = false; ///< Saves each script that the game loads to the SD card.
+  bool inject_scripts = false; ///< Loads the changed scripts from the SD card.
+  bool log_activity = false; ///< Writes the loaded scripts to the log.
+  bool no_key_press = false; ///< The messages continue without a key press.
+  bool no_cutscene = false; ///< Skips the cutscenes.
 };
 static_assert(std::is_standard_layout<ScriptLoaderSettings>::value,
               "ScriptLoaderSettings must have standard layout");
 
-/// Dumps the field scripts the game loads to the SD card and loads edited
-/// ones back in their place; C++ scripts (script::NativeScript) take
-/// precedence over both.
+/// Saves the overworld scripts that the game loads to the SD card. Loads the
+/// changed scripts from the SD card instead. The C++ scripts
+/// (script::NativeScript) have priority over the two.
 class ScriptLoader : public ScriptLoaderSettings {
   MAKE_SINGLETON(ScriptLoader)
 

@@ -14,6 +14,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
+/**
+ * @file kaizo_model.cc
+ * @brief Kaizo: the overworld models and the Pokémon models.
+ */
 #include "common.h"
 #include "pokemon/patch/mega_evolution.h"
 #include "pokemon/patch/model_replacement.h"

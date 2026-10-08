@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file page_renderer.cc
+ * @brief The menu pages of the Renderer family.
+ */
+
 #include "renderer/patch/lighting.h"
 #include "renderer/patch/picture_filter.h"
 #include "renderer/patch/model_filter.h"

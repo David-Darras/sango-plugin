@@ -15,10 +15,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file pss_photo.h
+ * @brief The photo of the PSS profile.
+ */
+
 #pragma once
 #include "savedata/native/savedata.h"
 
 namespace savedata {
+/// The photo of the PSS profile. The kaizo product also stores its own flags in it.
 struct PssPhoto {
   SINGLETON(PssPhoto)
   STATIC_INLINE PssPhoto& GetInstance() {
@@ -31,4 +37,3 @@ struct PssPhoto {
   u8 photo[0xC80];
 };
 } // namespace savedata
-// 08C6FBC0

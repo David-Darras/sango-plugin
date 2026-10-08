@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file team.h
+ * @brief A team in battle.
+ */
+
 #pragma once
 
 #include <types.h>
@@ -22,6 +27,7 @@
 namespace battle {
 struct Pokemon;
 
+/// The Pokémon of one team in battle.
 struct Team {
   Pokemon* pokemon[6];
   u8 count;

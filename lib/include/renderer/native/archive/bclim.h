@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file bclim.h
+ * @brief The BCLIM format: an image of a 2D layout.
+ */
+
 #pragma once
 
 #include "common.h"

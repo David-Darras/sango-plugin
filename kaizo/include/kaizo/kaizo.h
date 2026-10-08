@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file kaizo.h
+ * @brief The functions and the data of Pokémon Sango Kaizo.
+ *
+ * Kaizo is a complete ROM hack made with the library. Use it as an example.
+ */
+
 #pragma once
 #include "common.h"
 #include "battle/constant/trainer.h"
@@ -41,48 +48,46 @@ class MainApplication;
 }
 
 namespace kaizo {
-/// Save flags the ROM hack keeps in the photo bits of the save.
-enum class EventFlag : u16 {
-  kRoute101PokemonCaptured = 66,
-  kRoute102PokemonCaptured = 67,
-  kRoute103PokemonCaptured = 68,
-  kRoute104PokemonCaptured = 69,
-  kPetalburgWoodsPokemonCaptured = 70,
-};
-
 struct EncounterEntry {
   const MapId map_id;
   const u16 size;
   const SpeciesId* species;
 };
 
+/// Returns the map of the current battle: the last map of the overworld.
+extern MapId GetBattleMap();
+/// Remembers the current map. Call it one time for each frame.
+extern void UpdateBattleMap();
+
+/// Remembers the maps where the player caught a Pokémon (Nuzlocke rule).
+/// It uses one bit for each map in the photo bits of the PSS save data.
 struct CapturedEvent {
-  STATIC_INLINE bool Check() {
-    // u32 id = overworld::MapManager::last_map_id;
-    u32 id = static_cast<u32>(MapId::kRoute101);
-    auto& data = savedata::PssPhoto::GetInstance();
-    u8* bits = &data.photo[0];
-    u32 index = id / 8;
-    u32 offset = id % 8;
-    return bits[index] & (1U << offset);
+  /// Returns true when the player caught a Pokémon on the map of the battle.
+  STATIC_INLINE bool Check() { return Check(GetBattleMap()); }
+
+  /// Remembers that the player caught a Pokémon on the map of the battle.
+  STATIC_INLINE void Set() { Set(GetBattleMap()); }
+
+  /// Returns true when the player caught a Pokémon on a map.
+  STATIC_INLINE bool Check(MapId map) {
+    const u32 id = static_cast<u32>(map);
+    return (GetBits()[id / 8] & (1U << (id % 8))) != 0;
   }
 
-  STATIC_INLINE void Set() {
-    // u32 id = overworld::MapManager::last_map_id;
-    u32 id = static_cast<u32>(MapId::kRoute101);
-    auto& data = savedata::PssPhoto::GetInstance();
-    u8* bits = &data.photo[0];
-    u32 index = id / 8;
-    u32 offset = id % 8;
-    bits[index] |= (1U << offset);
+  /// Remembers that the player caught a Pokémon on a map.
+  STATIC_INLINE void Set(MapId map) {
+    const u32 id = static_cast<u32>(map);
+    GetBits()[id / 8] |= (1U << (id % 8));
   }
 
+  /// Forgets the capture of a map.
   STATIC_INLINE void Reset(u32 id) {
-    auto& data = savedata::PssPhoto::GetInstance();
-    u8* bits = &data.photo[0];
-    u32 index = id / 8;
-    u32 offset = id % 8;
-    bits[index] &= ~(1U << offset);
+    GetBits()[id / 8] &= ~(1U << (id % 8));
+  }
+
+private:
+  STATIC_INLINE u8* GetBits() {
+    return &savedata::PssPhoto::GetInstance().photo[0];
   }
 };
 

@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file mega_evolution_table.h
+ * @brief The Mega Evolution table that the game loaded.
+ */
+
 #pragma once
 
 #include "core/types.h"
@@ -23,6 +28,7 @@
 
 namespace pokemon {
 
+/// The Mega Evolution data that the game loaded for one species.
 struct MegaEvolutionTable {
   uptr vtable;
   SpeciesId species;

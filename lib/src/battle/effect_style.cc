@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file effect_style.cc
+ * @brief Changes the particle effects of the battles: colors, size, life...
+ *
+ * The declarations are in battle/patch/effect_style.h.
+ */
+
 #include "battle/patch/effect_style.h"
 #include "core/constant/archive_id.h"
 

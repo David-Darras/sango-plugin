@@ -15,18 +15,27 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file animation_enums.h
+ * @brief The values of the steps of the move animations.
+ *
+ * This file is generated from the move animation data. Do not change it by hand.
+ */
+
 #pragma once
 
 #include "core/types.h"
 
 namespace battle {
 
+/// The Pokémon that a step uses.
 enum class AnimationTarget : s32 {
   kAttacker = 0,
   kDefender = 1,
   kDefenderCenter = 2,
 };
 
+/// A position in a contest.
 enum class ContestSlot : s32 {
   kFirst = 0,
   kSecond = 1,
@@ -34,11 +43,13 @@ enum class ContestSlot : s32 {
   kFourth = 3,
 };
 
+/// A trainer of the battle.
 enum class TrainerSlot : s32 {
   kFirst = 0,
   kSecond = 1,
 };
 
+/// A point of the body of a Pokémon model.
 enum class BodyPoint : s32 {
   kOrigin = 0,
   kContactPoint = 1,
@@ -60,6 +71,7 @@ enum class BodyPoint : s32 {
   kLowerJaw = 20,
 };
 
+/// An animation of a Pokémon model.
 enum class PokemonPose : s32 {
   kIdle = 0,
   kContactAttack = 1,
@@ -99,6 +111,7 @@ enum class PokemonPose : s32 {
   kAttackGuard = 42,
 };
 
+/// How a position changes with the size of the Pokémon and the side of the battlefield.
 enum class PositionAdjust : s32 {
   kUnset = 0,
   kNormal = 1,
@@ -108,6 +121,7 @@ enum class PositionAdjust : s32 {
   kNone = 8,
 };
 
+/// The speed curve of a movement.
 enum class MoveCurve : s32 {
   kLinear = 0,
   kFastStart = 1,
@@ -115,18 +129,21 @@ enum class MoveCurve : s32 {
   kEaseInOut = 3,
 };
 
+/// An axis of the 3D world (Y is the height).
 enum class Axis : s32 {
   kX = 0,
   kY = 1,
   kZ = 2,
 };
 
+/// A point of the battlefield.
 enum class FieldPoint : s32 {
   kAttackerSide = 0,
   kDefenderSide = 1,
   kDefenderCenter = 2,
 };
 
+/// The rotation axes that an object copies when it follows a model.
 enum class FollowRotation : s32 {
   kNone = 0,
   kX = 1,
@@ -138,11 +155,13 @@ enum class FollowRotation : s32 {
   kXYZ = 7,
 };
 
+/// When an effect is drawn, before or after the Pokémon.
 enum class EffectDrawOrder : s32 {
   kStandard = 0,
   kBeforePokemon = 1,
 };
 
+/// When a model is drawn.
 enum class ModelDrawMode : s32 {
   kAfterPokemon = 0,
   kWithEffects = 1,
@@ -268,6 +287,7 @@ enum class BreakKind : s32 {
   kFire = 1,
 };
 
+/// The condition of a step: the step plays only when the condition is true.
 enum class StepCondition : s32 {
   kAlways = 0,
   kDoubleBattle = 10,

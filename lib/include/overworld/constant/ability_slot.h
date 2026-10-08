@@ -15,13 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file ability_slot.h
+ * @brief The ability slots of the scripted encounters.
+ */
+
 #pragma once
 
 #include <types.h>
 
 namespace overworld {
 
-/// Which of the species' abilities a scripted encounter gets.
+/// The ability that a static encounter gives to its Pokémon.
 enum class AbilitySlot : u16 {
   kRandom = 0,
   kFirst = 1,

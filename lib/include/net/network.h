@@ -15,6 +15,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file network.h
+ * @brief The online mode: other players walk in the overworld.
+ *
+ * The plugin sends the position of the player to a relay server
+ * (tools/relay.py) and receives the positions of the other players.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -22,6 +30,7 @@
 
 namespace net {
 
+/// Another player that the relay server sends.
 struct RemotePlayer {
   bool is_active;
   u16 slot;
@@ -34,12 +43,14 @@ struct RemotePlayer {
   c8 name[wire::kNameLength + 1];
 };
 
+/// Sends the position of the player and receives the other players (16 at most).
 class Network {
   MAKE_SINGLETON(Network)
 
 public:
   static constexpr u32 kMaxRemotePlayers = 16;
 
+  /// Sends and receives. Called one time for each frame.
   static void Update();
 
   INLINE bool IsConnected() const { return local_slot_ != 0; }

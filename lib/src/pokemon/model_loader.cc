@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file model_loader.cc
+ * @brief Loads 3D models (Pokémon, characters, decorations) and shows them in the overworld.
+ *
+ * The declarations are in pokemon/patch/model_loader.h.
+ */
+
 #include "pokemon/patch/model_loader.h"
 #include "core/constant/archive_id.h"
 #include "core/native/process_manager.h"

@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file poke_info_on_action.h
+ * @brief One entry of an encounter table.
+ */
+
 #pragma once
 
 #include "core/types.h"
@@ -23,6 +28,7 @@
 
 namespace overworld {
 
+/// One entry of an encounter table: species, form and levels.
 struct PokeInfoOnAction {
   SpeciesId species : 11;
   FormId form : 5;

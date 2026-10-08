@@ -15,6 +15,11 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file model.h
+ * @brief The ids of the overworld models: the characters and the Pokémon of the overworld.
+ */
+
 #pragma once
 
 #include <types.h>

@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file background_music.h
+ * @brief The ids of the background music of the game.
+ */
+
 #pragma once
 
 #include <types.h>
@@ -22,6 +27,7 @@
 
 namespace sys {
 
+/// The id of a background music. See sys::Sound::PlayBackgroundMusic().
 enum class BackgroundMusicId : u8 {
   kPokemonTheme = 0,
   kEvolution = 1,

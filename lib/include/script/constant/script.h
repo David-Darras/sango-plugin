@@ -15,6 +15,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file script.h
+ * @brief The ids of the scripts.
+ *
+ * The ids from kFirstCustom (30500) to kLastCustom (59999) are free for the
+ * C++ scripts. See docs/concepts/scripts.md.
+ */
+
 #pragma once
 
 #include <types.h>
@@ -22,6 +30,7 @@
 
 namespace script {
 
+/// The id of a script of the game, or of a C++ script.
 enum class ScriptId : u16 {
   kNone = 0,
   kDoNothing = 2000,
@@ -379,7 +388,7 @@ enum class ScriptId : u16 {
   kFirstCustom = 30500,
   kLittlerootGreeter = 30500,
   kAquaBossWelcome = 30501,
-  kKujiraGreeter = 30502,
+  kPokemonXGreeter = 30502,
   kWhosThatPokemon = 30510,
   kHealerFollower = 30511,
   kRemotePlayer0 = 30520, // online avatars, see net::RemoteAvatars

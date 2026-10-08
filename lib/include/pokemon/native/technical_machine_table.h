@@ -15,16 +15,22 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file technical_machine_table.h
+ * @brief The moves of the TMs and HMs.
+ */
+
 #pragma once
 
 #include "common.h"
 #include "pokemon/constant/move.h"
 
 namespace pokemon {
+/// The moves of the TMs and HMs.
 class TechnicalMachineTable {
   SINGLETON(TechnicalMachineTable)
 public:
-  /// The move taught by each TM, indexed by TM number - 1.
+  /// Returns the table of the moves. The index is the TM number - 1.
   STATIC_INLINE MoveId* GetTable() {
     return (MoveId*)address::kTechnicalMachineMoveTable;
   }

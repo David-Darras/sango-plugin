@@ -15,12 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file keyboard_patch.h
+ * @brief More characters on the name keyboard of the game.
+ */
+
 #pragma once
 
 #include "common.h"
 
 namespace ui {
 
+/// Adds pages of characters to the name keyboard of the game.
 class KeyboardPatch {
   MAKE_SINGLETON(KeyboardPatch)
 

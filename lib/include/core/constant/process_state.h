@@ -15,12 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file process_state.h
+ * @brief The states of a game process.
+ */
+
 #pragma once
 
 #include <types.h>
 
 namespace core {
 
+/// The state of a process. See core::ProcessHandle.
 enum class ProcessState : u32 {
   kLoading = 0,
   kInitializing,

@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file map_tile.cc
+ * @brief Replaces the attributes of the tiles.
+ *
+ * The declarations are in overworld/patch/map_tile.h.
+ */
+
 #include "overworld/patch/map_tile.h"
 
 #include "core/hook_manager.h"

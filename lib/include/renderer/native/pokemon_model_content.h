@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file pokemon_model_content.h
+ * @brief The content of a Pokémon model file.
+ */
+
 #pragma once
 
 #include "core/types.h"
@@ -23,9 +28,8 @@
 
 namespace renderer {
 
-/// The Bch::kModelData section of a Pokémon model: the layout of that
-/// section is specific to Pokémon models, so it lives here rather than in
-/// the generic archive/bch.h.
+/// The Bch::kModelData section of a Pokémon model. Only the Pokémon models
+/// use this layout.
 struct PokemonModelContent {
   RadixMap models;
   RadixMap materials;

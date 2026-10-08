@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file encounter_animation.h
+ * @brief The animations at the start of a battle.
+ */
+
 #pragma once
 
 #include <types.h>

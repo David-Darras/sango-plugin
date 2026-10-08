@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file run_animation.cc
+ * @brief Uses the run animation when the player runs.
+ *
+ * The declarations are in overworld/patch/run_animation.h.
+ */
+
 #include "overworld/patch/run_animation.h"
 #include "core/hook_manager.h"
 

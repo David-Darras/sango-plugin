@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file page_overworld.cc
+ * @brief The menu pages of the Overworld family.
+ */
+
 #include <cmath>
 
 #include "core/native/data_manager.h"
@@ -26,8 +31,8 @@
 #include "overworld/native/weather_manager.h"
 #include "overworld/native/world_layout.h"
 #include "overworld/patch/day_care.h"
-#include "overworld/patch/field.h"
-#include "overworld/patch/field_grass.h"
+#include "overworld/patch/overworld.h"
+#include "overworld/patch/tall_grass.h"
 #include "overworld/patch/healer_follower.h"
 #include "overworld/patch/map_character.h"
 #include "overworld/patch/map_data_loader.h"
@@ -303,9 +308,9 @@ void LoadWorldLayoutPage(MainApplication& app, void* args) {
   }
 }
 
-static void PlayFieldMusic(void*) {
+static void PlayOverworldMusic(void*) {
   sys::Sound::PlayBackgroundMusic(
-      overworld::Field::GetInstance().background_music);
+      overworld::Overworld::GetInstance().background_music);
 }
 
 namespace {
@@ -326,15 +331,15 @@ static void LoadDecorationPage(MainApplication& app, void* args) {
      .Add("Clear", ClearDecorations);
 }
 
-static void LoadFieldGrassPage(MainApplication& app, void* args) {
+static void LoadTallGrassPage(MainApplication& app, void* args) {
   static const c8* kMixNames[] = {"All", "Green", "Ferns", "Ash"};
-  auto& grass = overworld::FieldGrass::GetInstance();
+  auto& grass = overworld::TallGrass::GetInstance();
   app.Add("Enabled", grass.is_enabled)
      .Add("Types", grass.mix)
      .WithArray(kMixNames, SIZE(kMixNames))
      .WithBounds(0, SIZE(kMixNames) - 1)
      .Add("Radius (tiles)", grass.radius)
-     .WithBounds(1, overworld::FieldGrass::kMaxRadius)
+     .WithBounds(1, overworld::TallGrass::kMaxRadius)
      .Add("Density (%)", grass.density)
      .WithBounds(1, 100);
 }
@@ -397,7 +402,7 @@ void LoadOverworldPage(MainApplication& app, void* args) {
   if (app.CheckProcess(overworld::address::kVtable)) return;
 
   auto& map_manager = overworld::MapManager::GetInstance();
-  auto& field = overworld::Field::GetInstance();
+  auto& music = overworld::Overworld::GetInstance();
 
   app.Add("Map Id", map_manager.GetMapId())
      .Add("Reload Map", RefreshMap)
@@ -409,7 +414,7 @@ void LoadOverworldPage(MainApplication& app, void* args) {
      .Add("Props", LoadPropModelPage)
      .Add("Decorations", LoadDecorationPage)
 #ifdef GAME_ORAS
-     .Add("Field Grass", LoadFieldGrassPage)
+     .Add("Tall Grass", LoadTallGrassPage)
      .Add("Healer Follower", overworld::HealerFollower::GetInstance().is_enabled)
 #endif
      .Add("Hidden Item", LoadHiddenItemPage)
@@ -417,9 +422,9 @@ void LoadOverworldPage(MainApplication& app, void* args) {
      .Add("Encounter", LoadOverworldEncounterPage)
      .Add("Day Care", LoadDayCarePage)
      .AddSeparator()
-     .Add("Freeze Background Music", field.freeze_background_music)
-     .Add("Background Music", field.background_music)
+     .Add("Freeze Background Music", music.freeze_background_music)
+     .Add("Background Music", music.background_music)
      .WithBounds(0, static_cast<u32>(BackgroundMusicId::kCount) - 1)
-     .WithCallback(PlayFieldMusic);
+     .WithCallback(PlayOverworldMusic);
 }
 } // namespace ui

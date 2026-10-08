@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file radix_map.h
+ * @brief A radix map of the game (a dictionary of names).
+ */
+
 #pragma once
 
 #include "core/types.h"
@@ -22,6 +27,7 @@
 
 namespace renderer {
 
+/// A dictionary of names, as the game stores it.
 struct RadixMap {
   void* elements;
   u16 count;

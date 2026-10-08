@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file weather_override.h
+ * @brief Changes the weather of the overworld.
+ */
+
 #pragma once
 
 #include <type_traits>
@@ -26,14 +31,16 @@
 namespace overworld {
 class WeatherManager;
 
+/// The settings of overworld::WeatherOverride.
 struct WeatherOverrideSettings {
-  WeatherMode mode = WeatherMode::kNormal;
-  bool keep_weather_indoors = false;
-  bool ignore_zone_weather = false;
+  WeatherMode mode = WeatherMode::kNormal; ///< The color of the rain.
+  bool keep_weather_indoors = false; ///< true: the weather continues in the buildings.
+  bool ignore_zone_weather = false; ///< true: the maps do not change the weather.
 };
 static_assert(std::is_standard_layout<WeatherOverrideSettings>::value,
               "WeatherOverrideSettings must have standard layout");
 
+/// Changes the weather of the overworld.
 struct WeatherOverride : public WeatherOverrideSettings {
   MAKE_SINGLETON(WeatherOverride)
 

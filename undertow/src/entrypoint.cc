@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file entrypoint.cc
+ * @brief Pokémon Undertow: the ROM hack where the player is a Team Aqua grunt.
+ */
+
 #include "core/native/process_manager.h"
 #include "core/patch/archive.h"
 #include "overworld/constant/map.h"
@@ -121,7 +126,6 @@ void Initialize() {
 
   undertow::InstallScripts();
 
-  plugin::LoadConfiguration();
   plugin::OpenMenu(ui::MainAppPainter::GetInstance(),
                    MainPage);
   plugin::Start(EveryFrame);

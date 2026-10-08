@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file new_game.h
+ * @brief Changes the start of a new game.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -23,14 +28,15 @@
 
 namespace ui {
 
+/// Changes the start of a new game: skip the introduction, start map.
 class NewGame {
   MAKE_SINGLETON(NewGame)
 
 public:
-  bool skip_intro = false;
+  bool skip_intro = false; ///< true: the new game starts without the introduction.
   const c16* player_name = u"Sango";
   Gender player_gender = Gender::kMale;
-  MapId start_zone = MapId::kNone;
+  MapId start_zone = MapId::kNone; ///< The first map of a new game. kNone: the map of the game.
   s16 start_tile_x = -1;
   s16 start_tile_z = -1;
   overworld::Facing start_facing = overworld::Facing::kInvalid;
@@ -48,7 +54,7 @@ private:
   static constexpr float kTileSize = 18.0f;
 
   static s32 FinishIntro(void* process, void* manager);
-  /// Layout of the game's default position, as reached from the hook.
+  /// The offsets of the default position of the game.
   static constexpr uptr kOffsetLocationFacing = 6;
   static constexpr uptr kOffsetLocationPosition = 16;
 

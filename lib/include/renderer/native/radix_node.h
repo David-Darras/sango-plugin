@@ -15,12 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file radix_node.h
+ * @brief One node of a radix map.
+ */
+
 #pragma once
 
 #include "core/types.h"
 
 namespace renderer {
 
+/// One node of a radix map.
 struct RadixNode {
   u32 bit_index;
   u16 left_child_index;

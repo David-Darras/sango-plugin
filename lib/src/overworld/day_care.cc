@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file day_care.cc
+ * @brief Faster Eggs and experience at the Day Care.
+ *
+ * The declarations are in overworld/patch/day_care.h.
+ */
+
 #include "overworld/patch/day_care.h"
 
 namespace overworld {

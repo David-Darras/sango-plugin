@@ -15,12 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file process_virtual_table.h
+ * @brief The functions of a game process.
+ */
+
 #pragma once
 
 #include "core/types.h"
 
 namespace core {
 
+/// The vtable of a process: the addresses of its functions.
 struct ProcessVirtualTable {
   uptr destructor;
   uptr destructor2;

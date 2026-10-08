@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file title_screen.cc
+ * @brief Changes the title screen.
+ *
+ * The declarations are in ui/patch/title_screen.h.
+ */
+
 #include "ui/patch/title_screen.h"
 
 #include "core/hook_manager.h"

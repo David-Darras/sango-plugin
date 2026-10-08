@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file game_event.h
+ * @brief A game event.
+ */
+
 #pragma once
 
 #include "core/constant/event_state.h"
@@ -22,6 +27,7 @@
 
 namespace core {
 
+/// A game event: an action that stops the normal play.
 struct GameEvent {
   void* vtable;
   GameEvent* parent;

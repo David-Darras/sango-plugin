@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file tile.inc
+ * @brief The names of the tile attributes for the menu pages.
+ */
+
 static const char* GROUNDS[] = {
     /* 0x00 */ "Walkable",
                /* 0x01 */ "Blocked",

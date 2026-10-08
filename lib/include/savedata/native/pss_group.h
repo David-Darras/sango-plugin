@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file pss_group.h
+ * @brief The groups of the PSS.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -23,7 +28,7 @@
 
 namespace savedata {
 
-// Friends, Acquaintances, Passerby
+/// A group of the PSS: Friends, Acquaintances or Passersby.
 struct PssGroup {
   void* vtable;
   PssUserData user_data[100];

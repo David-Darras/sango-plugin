@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file page_game_time.cc
+ * @brief The menu page of the game time.
+ */
+
 #include "core/native/time_manager.h"
 #include "ui/main_application.h"
 

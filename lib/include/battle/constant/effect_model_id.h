@@ -15,12 +15,20 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file effect_model_id.h
+ * @brief The ids of the 3D models of the move animations.
+ *
+ * This file is generated from the move animation data. Do not change it by hand.
+ */
+
 #pragma once
 
 #include "core/types.h"
 
 namespace battle {
 
+/// The id of a model of a move animation. See battle::MoveAnimation::ModelSpawn().
 enum class EffectModelId : s32 {
   kBattleScene1VisibilityAnimation = 0,
   kTopsyTurvyModel = 3,

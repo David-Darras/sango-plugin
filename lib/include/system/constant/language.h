@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file language.h
+ * @brief The languages of the game.
+ */
+
 #pragma once
 
 #include <types.h>
@@ -22,6 +27,7 @@
 
 namespace sys {
 
+/// The language of the game texts.
 enum class Language : u8 {
   kNone,
   kJapanese,

@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file move_animation_steps.cc
+ * @brief The typed functions that add the steps of a move animation.
+ *
+ * This file is generated from the move animation data. Do not change it by hand.
+ */
+
 #include "battle/patch/move_animation.h"
 
 namespace battle {

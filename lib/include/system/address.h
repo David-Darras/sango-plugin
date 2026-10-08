@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file address.h
+ * @brief The addresses of the system domain: files, buttons, sound, memory.
+ */
+
 #pragma once
 
 #include "core/game.h"
@@ -76,13 +81,14 @@ constexpr uptr kSoundPlayBackgroundMusic = GAME_ADDRESS(0x004260FC, 0x0044E6CC);
 constexpr uptr kMessageGetString = GAME_ADDRESS(0x0013A498, 0x00139A34);
 constexpr uptr kStringVtable = GAME_ADDRESS(0x0059B9F8, 0x005DE3BC);
 constexpr uptr kEntrypoint =
-    GAME_ADDRESS(0x001220D0, 0x00122938); // Render Home Button Blocked
+    GAME_ADDRESS(0x001220D0, 0x00122938); // The function of each frame that plugin::Start() hooks
 constexpr uptr kGameManager = GAME_ADDRESS(0x005EDA08, 0x0062F7C4);
 constexpr uptr kCallApp = GAME_ADDRESS(0x003B389C, 0x003CFBA8);
 constexpr uptr kOsReadOnlyKernelInfo = GAME_ADDRESS(0x1FF80000, 0x1FF80000);
 constexpr uptr kHeapTable = GAME_ADDRESS(0x08000000, 0x08000000);
 constexpr uptr kStdWcslen = GAME_ADDRESS(0x001003E4 | 1, 0x001003E8 | 1);
 constexpr uptr kStdVswprintf = GAME_ADDRESS(0x001004B4 | 1  , 0x001004B8 | 1);
+/// The size of the text buffers of the library, in characters.
 constexpr u32 kBufferSize = 128;
 constexpr uptr kGetRandomValue = GAME_ADDRESS(0x0045C358, 0x0048AF80);
 constexpr uptr kGetElapsedTime = GAME_ADDRESS(0x0012AF08, 0x0012B724);
@@ -98,10 +104,13 @@ constexpr uptr kHeapAlloc = GAME_ADDRESS(0x0012B4C0, 0x0011ED58);
 constexpr uptr kHeapFree = GAME_ADDRESS(0x0013A808, 0x00139DA4);
 constexpr uptr kGetHeapById = GAME_ADDRESS(0x0012B4D0, 0x0012BCA4);
 
+/// The first address of the game code.
 constexpr uptr kProcessMemoryStart = GAME_ADDRESS(0x00100000, 0x00100000);
 constexpr uptr kProcessMemoryEnd = GAME_ADDRESS(0x00800000, 0x00900000); // XY: CRO region ends ~0x7EC000
 
-constexpr uptr kMemoryRegionGameCode = GAME_ADDRESS(0x006A9000, 0x006F3000); // XY: field CRO base seen in the kujira dump
+/// The memory of the CRO of the current process (the overworld or a battle).
+/// The CRO code is read-only: use MEMORY_SCOPE() to change it.
+constexpr uptr kMemoryRegionCro = GAME_ADDRESS(0x006A9000, 0x006F3000); // XY: overworld CRO base in the X memory dump
 constexpr uptr kMemoryRegionAppStatus = GAME_ADDRESS(0x006C1000, 0x0070B000);
 constexpr uptr kMemoryRegionTitleScreen = GAME_ADDRESS(0x006A9000, 0x00728000);
 constexpr uptr kMemoryRegionKeyboard = GAME_ADDRESS(0x006A9000, 0x00742000);

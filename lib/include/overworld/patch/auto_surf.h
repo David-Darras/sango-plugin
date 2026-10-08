@@ -15,12 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file auto_surf.h
+ * @brief The player surfs without the Surf menu.
+ */
+
 #pragma once
 
 #include "common.h"
 
 namespace overworld {
 
+/// The player starts to surf when the player walks into water.
 struct AutoSurf {
   MAKE_SINGLETON(AutoSurf)
 

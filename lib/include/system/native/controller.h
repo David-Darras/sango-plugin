@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file controller.h
+ * @brief The buttons of the console, as the game reads them.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -23,6 +28,12 @@
 
 namespace sys {
 
+/**
+ * @brief Reads the buttons.
+ *
+ * The plugin reads the buttons on its own channel (Device::kCustomChannel):
+ * it sees the buttons also when core::DevicePatch hides them from the game.
+ */
 class Controller {
   SINGLETON(Controller)
 
@@ -31,26 +42,31 @@ public:
     return Device::GetInstance().GetController();
   }
 
+  /// Returns true at the frame when the button goes down.
   INLINE bool IsKeyPressed(Key key) {
     return ((bool (*)(Controller*, Key, u8))address::kControllerIsKeyPressed)(
         this, key, Device::kCustomChannel);
   }
 
+  /// Returns true at the frame when the button goes up.
   INLINE bool IsKeyReleased(Key key) {
     return ((bool (*)(Controller*, Key, u8))address::kControllerIsKeyReleased)(
         this, key, Device::kCustomChannel);
   }
 
+  /// Returns true when the button goes down, then again at a regular interval while it stays down.
   INLINE bool IsKeyRepeated(Key key) {
     return ((bool (*)(Controller*, Key, u8))address::kControllerIsKeyRepeated)(
         this, key, Device::kCustomChannel);
   }
 
+  /// Returns true while the button is down.
   INLINE bool IsKeyDown(Key key) {
     return ((bool (*)(Controller*, Key, u8))address::kControllerIsKeyDown)(
         this, key, Device::kCustomChannel);
   }
 
+  /// Returns the buttons that IsKeyRepeated() would accept.
   INLINE Key GetRepeatedKey() {
     return ((Key (*)(Controller*, u8))address::kControllerGetRepeatedKey)(
         this, Device::kCustomChannel);

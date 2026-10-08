@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file address.h
+ * @brief The addresses of the core domain: processes, engine, scripts and shops.
+ */
+
 #pragma once
 
 #include "core/game.h"
@@ -57,7 +62,7 @@ constexpr uptr kRecordMaxValueIndexTable = GAME_ADDRESS(0x0054D1C6, 0x0058DD4A);
 constexpr uptr kIsShiny = GAME_ADDRESS(0x00168AC8, 0x00168F48);
 constexpr uptr kTrainerModelTable = GAME_ADDRESS(0x005481C0, 0x00586B8A); // XY: unverified (content match)
 constexpr uptr kCheckRegulation =
-    GAME_ADDRESS(0x006AAF70, 0x006F4F80); // app poke list static work
+    GAME_ADDRESS(0x006AAF70, 0x006F4F80); // the static data of the party menu app
 // 0x8072520, 0x807251C, 0x8072510
 constexpr uptr kLoadCroFile = GAME_ADDRESS(0x00110EAC, 0x00110E2C);
 constexpr uptr kStartBackupThread = GAME_ADDRESS(0x00431A68, 0x0045D6BC);
@@ -69,17 +74,17 @@ constexpr uptr kScriptDescriptorSetup = GAME_ADDRESS(0x003DB430, 0x003FB594);
 constexpr uptr kScriptPawnBaseLoad = GAME_ADDRESS(0x00394924, 0x003AB0C8);
 constexpr uptr kScriptInitializeVirtualMachine = GAME_ADDRESS(0x004D01E4, 0x00505DB4);
 constexpr uptr kScriptRaiseError = GAME_ADDRESS(0x004D073C, 0x0050630C);
-constexpr uptr kScriptNativesField = GAME_ADDRESS(0x0079F2A0, 0x007EA58C);
+constexpr uptr kScriptNativesCommon = GAME_ADDRESS(0x0079F2A0, 0x007EA58C);
 constexpr uptr kScriptNativesState = GAME_ADDRESS(0x0079FC9C, 0x007EB234);
 constexpr uptr kScriptNativesInteractive = GAME_ADDRESS(0x007A0304, 0x007EB99C);
 constexpr uptr kScriptNativesPokemonCenter = GAME_ADDRESS(0x007A0364, 0x007EB9FC);
 constexpr uptr kScriptNativesMapEffects = GAME_ADDRESS(0x007A0774, 0x007EBAAC);
 constexpr uptr kScriptNativesBattleFacility = GAME_ADDRESS(0x007A0D64, 0x007EBB44);
-constexpr uptr kScriptNativesFieldServices = GAME_ADDRESS(0x007A0EFC, 0x007EBCDC);
+constexpr uptr kScriptNativesOverworldServices = GAME_ADDRESS(0x007A0EFC, 0x007EBCDC);
 constexpr uptr kScriptNativesNpcAi = GAME_ADDRESS(0x007A0FAC, 0x007EBFBC);
 constexpr uptr kScriptNativesProgram = GAME_ADDRESS(0x0054929C, 0x005885E8);
-// The four places a field script waits for a key press, and the cutscene
-// player - each returns "done" once patched.
+// The four places where an overworld script waits for a key press, and
+// the cutscene player. Each one returns "done" when it is patched.
 constexpr uptr kScriptWaitKeyPress0 = GAME_ADDRESS(0x0070189C, 0x0073E86C);
 constexpr uptr kScriptWaitKeyPress1 = GAME_ADDRESS(0x007076DC, 0x007449E0);
 constexpr uptr kScriptWaitKeyPress2 = GAME_ADDRESS(0x003F6F0C, 0x00419984);

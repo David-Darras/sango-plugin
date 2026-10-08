@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file address.h
+ * @brief The addresses of the renderer domain: 3D models, particles, 2D layouts.
+ */
+
 #pragma once
 
 #include "core/game.h"
@@ -96,7 +101,7 @@ constexpr uptr kParticleSetScale = GAME_ADDRESS(0x003869F8, 0x0039D260);
 constexpr uptr kParticleCreate = GAME_ADDRESS(0x00385D90, 0x0039C5F4);
 constexpr uptr kResourceAttachBufferAndSetup = GAME_ADDRESS(0x0038710C, 0x0039D974);
 
-// DO NOT EXIST ?
+// Not verified: the function may not exist.
 constexpr uptr kGraphicsSetMaterial = GAME_ADDRESS(0x0014E5E4, 0x0014DA94);
 
 constexpr uptr kApplyShader = GAME_ADDRESS(0x00381FE4, 0x003989B0);

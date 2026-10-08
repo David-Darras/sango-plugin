@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file trainer_data.h
+ * @brief The data of a trainer in battle.
+ */
+
 #pragma once
 
 #include "battle/constant/ai.h"
@@ -29,10 +34,11 @@ struct String;
 namespace battle {
 struct TrainerAppearance;
 
+/// The data of a trainer in battle: AI, items, name, class.
 struct TrainerData {
   u64 local_friend_code;
   u32 id;
-  AiFlags ai_flags;
+  AiFlags ai_flags; ///< The AI of the trainer.
   u8 battle_effect_id;
   u16 type;
   u8 group;
@@ -41,14 +47,14 @@ struct TrainerData {
   u8 trainer_type_grammar;
 
   u8 money_calculation_coefficient;
-  ItemId items[4];
+  ItemId items[4]; ///< The items that the trainer uses.
 
   u32 message_archive_id;
   u16 win_string_id;
   u16 lose_string_id;
 
-  String* name;
-  String* title_name;
+  String* name; ///< The name.
+  String* title_name; ///< The trainer class.
   TrainerAppearance* appearance;
 };
 } // namespace battle

@@ -15,17 +15,23 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file format.h
+ * @brief The battle formats.
+ */
+
 #pragma once
 
 #include <types.h>
 
 namespace battle {
+/// The format of a battle.
 enum class Format : u8 {
-  kSingle = 0,
-  kDouble = 1,
-  kTriple = 2,
-  kRotation = 3,
-  kHorde = 4,
+  kSingle = 0, ///< One Pokémon on each side.
+  kDouble = 1, ///< Two Pokémon on each side.
+  kTriple = 2, ///< Three Pokémon on each side.
+  kRotation = 3, ///< A rotation battle.
+  kHorde = 4, ///< One Pokémon against five wild Pokémon.
 };
 } // namespace battle
 

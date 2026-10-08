@@ -1,3 +1,25 @@
+/*
+ * Copyright (C) 2026  David Darras
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/**
+ * @file scripts.cc
+ * @brief Example C++ scripts: a greeter and a complete Battle Factory.
+ */
+
 #include "script/patch/native_script.h"
 #include "script/patch/native_table.h"
 #include "script/patch/context.h"
@@ -367,9 +389,9 @@ void LittlerootGreeter(Context& s) {
 }
 
 #ifdef GAME_XY
-void KujiraGreeter(Context& s) {
+void PokemonXGreeter(Context& s) {
   s.TalkStart();
-  s.Talk(u"This is a new script generated with ZettaD's Kujira plugin.");
+  s.Talk(u"This is a new script generated with ZettaD's Sango plugin.");
   s.Talk(u"I'm going to turn all your Pokémon into shinies.");
   s.TalkEnd();
   s.PlayJingle(kJingleItem);
@@ -391,12 +413,12 @@ void KujiraGreeter(Context& s) {
 
 void Install() {
 #ifdef GAME_XY
-  NativeScript::Register(ScriptId::kKujiraGreeter, KujiraGreeter);
+  NativeScript::Register(ScriptId::kPokemonXGreeter, PokemonXGreeter);
 
   overworld::MapCharacterRequest greeter;
   greeter.map_id = static_cast<MapId>(264);
   greeter.model_id = ModelId::kTeamFlareAdminMale;
-  greeter.script_id = ScriptId::kKujiraGreeter;
+  greeter.script_id = ScriptId::kPokemonXGreeter;
   greeter.tile_x = 593;
   greeter.tile_z = 492;
   greeter.facing = overworld::Facing::kRight;

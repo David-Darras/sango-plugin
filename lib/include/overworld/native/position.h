@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file position.h
+ * @brief A position in the overworld.
+ */
+
 #pragma once
 
 #include "core/math.h"
@@ -22,6 +27,7 @@
 
 namespace overworld {
 
+/// A position in the overworld.
 struct Position {
   u32 _0;
   Vec3 coords;

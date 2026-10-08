@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file time_override.cc
+ * @brief Sets the time of the game.
+ *
+ * The declarations are in core/patch/time_override.h.
+ */
+
 #include "core/patch/time_override.h"
 
 #include "core/hook_manager.h"

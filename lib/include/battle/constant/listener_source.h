@@ -15,25 +15,33 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file listener_source.h
+ * @brief The sources of the listeners of the battle engine.
+ */
+
 #pragma once
 
 #include <types.h>
 
 namespace battle {
 
+/// What registered a listener. See docs/concepts/battle-engine.md.
 enum class ListenerSource : u8 {
-  kActiveMove, ///< Registered by the move currently being resolved
-  kFieldPosition, ///< Registered by an effect tied to one specific field slot
-  kTeamSide, ///< Registered by a team-side effect (Light Screen, Tailwind...)
-  kField, ///< Registered by a whole-field effect (Trick Room, Gravity...)
-  kAbility, ///< Registered by an ability
-  kHeldItem, ///< Registered by a held item
+  kActiveMove, ///< The current move registered it.
+  /// An effect on one position of the battlefield registered it.
+  kFieldPosition,
+  /// An effect on one side registered it (Light Screen, Tailwind...).
+  kTeamSide,
+  /// An effect on the full battlefield registered it (Trick Room, Gravity...).
+  kField,
+  kAbility, ///< An ability registered it.
+  kHeldItem, ///< A held item registered it.
 
   kDetached,
-  ///< Converted from any of the above once it no longer depends on
-   ///< the Pokémon/item that created it - keeps reacting even if that
-   ///< Pokémon faints or that item gets consumed. All swept away
-   ///< together at the end of every turn.
+  ///< A listener that does not depend on its Pokémon or its item any more.
+  ///< It continues when the Pokémon faints. The engine removes it at the
+  ///< end of the turn.
 
   kCount,
 };

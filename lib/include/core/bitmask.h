@@ -15,18 +15,32 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file bitmask.h
+ * @brief Macros for bit fields and for enum classes of flags.
+ */
+
 #pragma once
 
 #include <type_traits>
 #include "core/types.h"
 
+/// Writes the value `v` in the `n` bits of `b` that start at bit `p`.
 #define SET_BITS(b, p, n, v) \
   ((b) = ((b) & ~(((1u << (n)) - 1) << (p))) | ((v) << (p)))
+/// Reads the `n` bits of `b` that start at bit `p`.
 #define GET_BITS(b, p, n) (((b) >> (p)) & ((1u << (n)) - 1))
 
 /**
- * @brief Macro to enable bitwise operators on scoped enum classes.
- * Compatible with C++11 (uses typename std::underlying_type<E>::type).
+ * @brief Adds the bit operators (|, &, ^, ~) and HasFlag() to an enum class.
+ *
+ * Use it after an enum class of flags:
+ * @code
+ * enum class MyFlags : u32 { kNone = 0, kFirst = 1, kSecond = 2 };
+ * ENABLE_BITMASK_OPERATORS(MyFlags)
+ *
+ * if (HasFlag(flags, MyFlags::kSecond)) { ... }
+ * @endcode
  */
 #define ENABLE_BITMASK_OPERATORS(EnumType) \
   inline EnumType operator|(EnumType a, EnumType b) { \

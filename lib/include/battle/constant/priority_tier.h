@@ -15,23 +15,30 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file priority_tier.h
+ * @brief The order of the listeners at the same moment.
+ */
+
 #pragma once
 
 #include <types.h>
 
 namespace battle {
+/// The order of the listeners. A lower tier reacts first.
 enum class PriorityTier : u8 {
-  kActiveMoveDefault, ///< Default tier for move listeners
-  kFieldPositionDefault, ///< Default tier for field-position listeners
-  kTeamSideDefault, ///< Default tier for team-side listeners
-  kFieldDefault, ///< Default tier for whole-field listeners
+  kActiveMoveDefault, ///< The default tier of the move listeners.
+  kFieldPositionDefault, ///< The default tier of the position listeners.
+  kTeamSideDefault, ///< The default tier of the side listeners.
+  kFieldDefault, ///< The default tier of the battlefield listeners.
 
+  /// The tier of Poison Touch (poison after a contact move).
   kAbilityPoisonTouch,
-  ///< Poison Touch's own tier (inflicts poison on a contact hit)
-  kAbilityDefault, ///< Default tier for ability listeners
+  kAbilityDefault, ///< The default tier of the ability listeners.
 
-  kHeldItemDefault, ///< Default tier for held-item listeners
-  kAbilityStall, ///< Stall's own tier (always resolves last, even after items)
+  kHeldItemDefault, ///< The default tier of the held item listeners.
+  /// The tier of Stall: it always reacts last, also after the items.
+  kAbilityStall,
 
   kCount,
 };

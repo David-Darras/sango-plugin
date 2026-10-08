@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file opower.inc
+ * @brief The names of the O-Powers for the menu pages.
+ */
+
 static const char* OPOWERS[] = {
     "None",
     "Hatching Power Lv. 1",

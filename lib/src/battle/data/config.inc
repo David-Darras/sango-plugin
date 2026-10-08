@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file config.inc
+ * @brief The texts of the battle settings pages.
+ */
+
 static const c8* FORMATS[] = {
     "Single", "Double", "Triple", "Rotation",
     "Horde"

@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file base_model.h
+ * @brief A 3D model of a battle.
+ */
+
 #pragma once
 
 #include "core/game.h"
@@ -27,6 +32,7 @@ struct H3dModel;
 
 namespace battle {
 
+/// A 3D model of a battle: a Pokémon, a trainer or a platform.
 struct BaseModel {
   void* vtable;
   Vec3 position;

@@ -15,11 +15,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file tile.h
+ * @brief The attributes of a tile.
+ */
+
 #pragma once
 
 #include "common.h"
 
 namespace overworld {
+/// The attributes of one tile: collision, water, encounters, reflections...
 struct Tile {
   u32 is_impassable : 1;
   u32 is_water : 1;

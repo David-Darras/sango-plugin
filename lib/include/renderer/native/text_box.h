@@ -15,11 +15,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file text_box.h
+ * @brief A text box of a 2D layout.
+ */
+
 #pragma once
 
 #include "renderer/native/pane.h"
 
 namespace renderer {
+/// A text box of a 2D layout.
 struct TextBox {
   Pane pane;
   c16* text;

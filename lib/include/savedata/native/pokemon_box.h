@@ -15,11 +15,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file pokemon_box.h
+ * @brief The Pokémon of the PC boxes.
+ */
+
 #pragma once
 #include "savedata/native/savedata.h"
 #include "pokemon/native/core_data.h"
 
 namespace savedata {
+/// The Pokémon of the PC boxes.
 struct PokemonBox {
   SINGLETON(PokemonBox)
   

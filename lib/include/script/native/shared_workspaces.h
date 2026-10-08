@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file shared_workspaces.h
+ * @brief The data that the scripts share.
+ */
+
 #pragma once
 
 #include "script/native/loaded_message.h"

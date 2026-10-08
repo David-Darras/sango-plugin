@@ -15,26 +15,30 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file static_encounter_kind.h
+ * @brief The kinds of static encounters.
+ */
+
 #pragma once
 
 #include <types.h>
 
 namespace overworld {
 
-/// How the game runs a scripted encounter (StaticEncounter).
+/// How the game runs a static encounter.
 enum class StaticEncounterKind : u16 {
   kNormal = 0, ///< A regular random wild encounter, with no visible sprite
   kOverworldEncounter = 1, ///< A regular Pokémon visible on the map
   kLegendary = 2,
-  ///< A legendary Pokémon - uses a distinct encounter message and only fights once
+  ///< A legendary Pokémon: a special message, and one battle only
   kLegendaryEndless = 3,
-  ///< Same as kLegendary, but stays on the map and can be re-fought after being defeated or caught
+  ///< Like kLegendary, but the Pokémon stays: the player can battle it again
   kRescueEvent = 4,
-  ///< The early-game scripted battle where the player saves the professor
-  ///< from a wild Pokémon (a level 3 male Poochyena) - running away is
-  ///< disabled and the messages differ
+  ///< The first battle, when the player saves the professor from a
+  ///< Poochyena. The player cannot run, and the messages are different.
   kLegendaryUnlosable = 5,
-  ///< Same as kLegendary, but the battle can't be lost
+  ///< Like kLegendary, but the player cannot lose the battle
 };
 
 } // namespace overworld

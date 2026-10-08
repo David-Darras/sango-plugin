@@ -14,6 +14,12 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
+
+/**
+ * @file main.cc
+ * @brief The entry point of CTRPluginFramework. It calls the Initialize() function of the product.
+ */
+
 #include "common.h"
 #include <CTRPluginFramework.hpp>
 

@@ -15,11 +15,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file page_item.h
+ * @brief One entry of a menu page.
+ */
+
 #pragma once
 
 #include "common.h"
 
 namespace ui {
+/// The type of an entry: it selects how the entry shows and changes its value.
 enum PageItemType : u8 {
   kTypeU8,
   kTypeU16,
@@ -47,6 +53,7 @@ enum PageItemType : u8 {
 };
 
 class MainApplication;
+/// One entry of a menu page. ui::MainApplication::Add() makes it.
 class PageItem {
 public:
   PageItem();
@@ -74,18 +81,23 @@ public:
 * @brief Formats the entry name and its value into a displayable string.
 * @param buffer The output buffer (UTF-16).
 */
+  /// Writes the text of the entry.
   void GetDisplayValue(c16* buffer) const;
 
+  /// Increases the value (Right button).
   void Increment(u32 count = 1);
 
+  /// Decreases the value (Left button).
   void Decrement(u32 count = 1);
 
   /**
 * @brief Directly sets the value or enters a sub-menu depending on type.
 * @param value Pointer to the new value or context data.
 */
+  /// Sets the value that the player typed.
   void Edit(const void* value);
 
+  /// Runs the entry (A button).
   void Execute(MainApplication& application);
 
 private:

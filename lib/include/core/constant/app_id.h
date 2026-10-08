@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file app_id.h
+ * @brief The ids of the game applications that the overworld menu opens.
+ */
+
 #pragma once
 
 #include "core/game.h"

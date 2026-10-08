@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file pss.h
+ * @brief The messages of the PSS (Player Search System).
+ */
+
 #pragma once
 
 #include "core/types.h"

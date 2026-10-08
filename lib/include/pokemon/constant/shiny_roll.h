@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file shiny_roll.h
+ * @brief How a table of the game selects the shiny state.
+ */
+
 #pragma once
 
 #include <types.h>

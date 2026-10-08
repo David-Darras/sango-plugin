@@ -15,365 +15,80 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file game_extension.cc
+ * @brief Adds new moves and new abilities to the game.
+ *
+ * The declarations are in battle/patch/game_extension.h.
+ */
+
 #include "battle/patch/game_extension.h"
 #include "battle/patch/move_animation.h"
 #include "pokemon/patch/custom_shop.h"
-#include "ui/log_application.h"
 
 #include "core/constant/archive_id.h"
 #include "core/hook_manager.h"
-#include "overworld/patch/weather_override.h"
 #include "battle/native/broadcaster.h"
-#include "battle/native/controller.h"
-#include "battle/native/mutation.h"
+#include "battle/native/listener.h"
 #include "battle/native/pokemon.h"
-#include "battle/native/situation.h"
-#include "pokemon/constant/item.h"
-#include "pokemon/constant/type.h"
 #include "battle/constant/priority_tier.h"
-#include "battle/constant/status_condition.h"
-#include "battle/constant/weather.h"
 #include "pokemon/native/move_data.h"
 
 namespace battle {
-// ----------------------------------------------------------------------
-// Ability reactions.
-// ----------------------------------------------------------------------
 
-// Toxic Drizzle: violet acid rain that poisons all Pokemon on entry.
-static void ToxicDrizzleReaction(Listener* self,
-                                 Controller* controller,
-                                 UID owner, s32* local_state) {
-  overworld::WeatherOverride::GetInstance().mode =
-      overworld::WeatherMode::kToxic;
-  controller->SetWeather(owner, Weather::kRain, ItemId::kNone, true);
+// The text files of the game that hold move and ability names. The
+// MessageGetStringHook below replaces the text of the new entries.
+namespace {
+// The game uses two text files for move names and two for item names.
+constexpr u32 kMoveNameFile1 = 14;
+constexpr u32 kMoveNameFile2 = 15;
+constexpr u32 kMoveDescriptionFile = 16;
+constexpr u32 kAbilityDescriptionFile = 36;
+constexpr u32 kAbilityNameFile = 37;
+constexpr u32 kItemNameFile1 = 113;
+constexpr u32 kItemNameFile2 = 116;
 
-  auto* poison = static_cast<InflictStatusMutation*>(
-    controller->Create(MutationKind::kInflictStatus,
-                       UID{12}));
-  poison->status = StatusCondition::kPoison;
-  poison->status_data.raw = 1;
-  poison->target_id = UID{12};
-  controller->Apply(poison);
-}
+// The move that lends its data to a new move before patch_data runs.
+constexpr u32 kTemplateMove = static_cast<u32>(MoveId::kPound);
+} // namespace
 
-// Radioactive Drizzle: green radioactive rain. Also drops both Pokemon to
-// 1 HP, turns the ability holder into Rotom Fan, and forces the opponent to
-// Ground type - kept as-is from earlier experimentation.
-static void RadioactiveDrizzleReaction(Listener* self,
-                                       Controller* controller,
-                                       UID owner,
-                                       s32* local_state) {
-  overworld::WeatherOverride::GetInstance().mode =
-      overworld::WeatherMode::kRadioactive;
-  controller->SetWeather(owner, Weather::kRain, ItemId::kNone, true);
-
-  auto* self_pkm = controller->GetPokemon(owner);
-  auto* opponent_pkm = controller->GetPokemon(UID{12});
-
-  auto* hp = static_cast<AdjustHpDirectlyMutation*>(
-    controller->Create(MutationKind::kAdjustHpDirectly, owner));
-  hp->target_count = 2;
-  hp->target_ids[0] = UID{self_pkm->uid};
-  hp->volume[0] = -(self_pkm->hp - 1);
-  hp->target_ids[1] = UID{opponent_pkm->uid};
-  hp->volume[1] = -(opponent_pkm->hp - 1);
-  controller->Apply(hp);
-
-  auto* form = static_cast<ChangeFormMutation*>(
-    controller->Create(MutationKind::kChangeForm, owner));
-  form->target_id = owner;
-  form->form = FormId::kRotomFan;
-  controller->Apply(form);
-
-  auto* type = static_cast<ChangeTypeMutation*>(
-    controller->Create(MutationKind::kChangeType, owner));
-  type->next_type = TypeId::kGround;
-  type->target_id = UID{12};
-  type->suppress_default_message = 0;
-  type->show_failure_message_if_unchanged = 0;
-  controller->Apply(type);
-
-  // imposter
-  // ((void(*)(uptr, uptr, u32, uptr))0x7B9568)(a, controller, owner.value, local_state);
-}
-
-static void CastMove(Controller* controller, UID owner,
-                     MoveId move) {
-  controller->ExecuteMove(controller->GetPokemon(owner), move);
-}
-
-// Reality Warp: casts a barrage of field-warping moves on entry.
-static void RealityWarpReaction(Listener* self,
-                                Controller* controller,
-                                UID owner, s32* local_state) {
-  s32 current_pokemon =
-      Situation::Get(SituationKey::kPokemonId);
-  if (current_pokemon != owner.value) return;
-
-  CastMove(controller, owner, MoveId::kTrickRoom);
-  CastMove(controller, owner, MoveId::kWonderRoom);
-  CastMove(controller, owner, MoveId::kMagicRoom);
-  CastMove(controller, owner, MoveId::kGravity);
-  CastMove(controller, owner, MoveId::kGrassyTerrain);
-  CastMove(controller, owner, MoveId::kStealthRock);
-}
-
-static void ElectricSurgeReaction(Listener* self,
-                                  Controller* controller,
-                                  UID owner,
-                                  s32* local_state) {
-  if (Situation::Get(SituationKey::kPokemonId) != owner.value) return;
-
-  auto* mut = static_cast<AddFieldEffectMutation*>(controller->Create(
-      MutationKind::kAddFieldEffect, owner));
-  mut->show_ability_banner = true;
-  mut->effect = FieldEffectKind::kTerrain;
-  mut->terrain = TerrainKind::kElectricTerrain;
-  mut->duration.raw = 1;
-  mut->message.id = MutationMessageId::kNone;
-  controller->Apply(mut);
-}
-
-static void PsychicSurgeReaction(Listener* self,
-                                 Controller* controller,
-                                 UID owner,
-                                 s32* local_state) {
-  if (Situation::Get(SituationKey::kPokemonId) != owner.value) return;
-
-  auto* mut = static_cast<AddFieldEffectMutation*>(controller->Create(
-      MutationKind::kAddFieldEffect, owner));
-  mut->show_ability_banner = true;
-  mut->effect = FieldEffectKind::kTerrain;
-  mut->terrain = TerrainKind::kMistyTerrain;
-  mut->duration.raw = 1;
-  mut->message.id = MutationMessageId::kNone;
-  controller->Apply(mut);
-}
-
-static void GrassySurgeReaction(Listener* self,
-                                Controller* controller,
-                                UID owner,
-                                s32* local_state) {
-  if (Situation::Get(SituationKey::kPokemonId) != owner.value) return;
-
-  auto* mut = static_cast<AddFieldEffectMutation*>(controller->Create(
-      MutationKind::kAddFieldEffect, owner));
-  mut->show_ability_banner = true;
-  mut->effect = FieldEffectKind::kTerrain;
-  mut->terrain = TerrainKind::kGrassyTerrain;
-  mut->duration.raw = 1;
-  mut->message.id = MutationMessageId::kNone;
-  controller->Apply(mut);
-}
-
-static void MistySurgeReaction(Listener* self,
-                               Controller* controller,
-                               UID owner,
-                               s32* local_state) {
-  if (Situation::Get(SituationKey::kPokemonId) != owner.value) return;
-
-  auto* mut = static_cast<AddFieldEffectMutation*>(controller->Create(
-      MutationKind::kAddFieldEffect, owner));
-  mut->show_ability_banner = true;
-  mut->effect = FieldEffectKind::kTerrain;
-  mut->terrain = TerrainKind::kMistyTerrain;
-  mut->duration.raw = 1;
-  mut->message.id = MutationMessageId::kNone;
-  controller->Apply(mut);
-}
-
-static StatStageEffectKind
-GetBeastBoostStage(Pokemon* pkm) {
-  u16 max = pkm->attack;
-  StatStageEffectKind kind = StatStageEffectKind::kAttack;
-  if (pkm->defense > max) {
-    kind = StatStageEffectKind::kDefense;
-    max = pkm->defense;
+// Registration.
+bool GameExtension::AddMove(const MoveSpec& spec) {
+  auto& self = GetInstance();
+  if (self.move_count_ >= kMaxMoves || FindMove(spec.id) != nullptr) {
+    return false;
   }
-  if (pkm->special_attack > max) {
-    kind = StatStageEffectKind::kSpecialAttack;
-    max = pkm->special_attack;
+  self.moves_[self.move_count_++] = spec;
+  return true;
+}
+
+bool GameExtension::AddAbility(const AbilitySpec& spec) {
+  auto& self = GetInstance();
+  if (self.ability_count_ >= kMaxAbilities ||
+      FindAbility(spec.id) != nullptr) {
+    return false;
   }
-  if (pkm->special_defense > max) {
-    kind = StatStageEffectKind::kSpecialDefense;
-    max = pkm->special_defense;
+  self.abilities_[self.ability_count_++] = spec;
+  return true;
+}
+
+const MoveSpec* GameExtension::FindMove(MoveId id) {
+  auto& self = GetInstance();
+  for (u32 i = 0; i < self.move_count_; i++) {
+    if (self.moves_[i].id == id) return &self.moves_[i];
   }
-  if (pkm->speed > max) {
-    kind = StatStageEffectKind::kSpecialAttack;
-    max = pkm->speed;
+  return nullptr;
+}
+
+const AbilitySpec* GameExtension::FindAbility(AbilityId id) {
+  auto& self = GetInstance();
+  for (u32 i = 0; i < self.ability_count_; i++) {
+    if (self.abilities_[i].id == id) return &self.abilities_[i];
   }
-  return kind;
+  return nullptr;
 }
 
-static void BeastBoostReaction(Listener* self,
-                               Controller* controller,
-                               UID owner,
-                               s32* local_state) {
-  if (Situation::Get(SituationKey::kMoveUserId) != owner.value) return;
-
-  s8 count = 0;
-  for (u32 i = 0; i < Situation::Get(SituationKey::kTargetCount); i++) {
-    const u32 target = static_cast<u32>(SituationKey::kTargetId1) + i;
-    UID id{(u8)Situation::Get(static_cast<SituationKey>(target))};
-    auto* pkm = controller->GetPokemon(id);
-    if (pkm->hp == 0) count++;
-  }
-
-  if (count <= 0) return;
-
-  auto* mut = static_cast<AdjustStatStageMutation*>(controller->Create(
-      MutationKind::kAdjustStatStage, owner));
-  mut->show_ability_banner = true;
-  mut->target_count = 1;
-  mut->target_ids[0] = owner;
-  mut->stage_kind = GetBeastBoostStage(controller->GetPokemon(owner));
-  mut->stage_delta = count;
-  controller->Apply(mut);
-}
-
-static const ReactionTable kToxicDrizzleReactions[] = {
-    {MomentKind::kPokemonEntered, ToxicDrizzleReaction},
-};
-static const ReactionTable kRadioactiveDrizzleReactions[] = {
-    {MomentKind::kPokemonEntered, RadioactiveDrizzleReaction},
-};
-static const ReactionTable kRealityWarpReactions[] = {
-    {MomentKind::kPokemonEntered, RealityWarpReaction},
-};
-static const ReactionTable kElectricSurgeReactions[] = {
-    {MomentKind::kPokemonEntered, ElectricSurgeReaction},
-    {MomentKind::kAfterAbilityChange, ElectricSurgeReaction},
-};
-static const ReactionTable kPsychicSurgeReactions[] = {
-    {MomentKind::kPokemonEntered, PsychicSurgeReaction},
-    {MomentKind::kAfterAbilityChange, PsychicSurgeReaction},
-};
-static const ReactionTable kGrassySurgeReactions[] = {
-    {MomentKind::kPokemonEntered, GrassySurgeReaction},
-    {MomentKind::kAfterAbilityChange, GrassySurgeReaction},
-};
-static const ReactionTable kMistySurgeReactions[] = {
-    {MomentKind::kPokemonEntered, MistySurgeReaction},
-    {MomentKind::kAfterAbilityChange, MistySurgeReaction},
-};
-static const ReactionTable kBeastBoostReactions[] = {
-    {MomentKind::kDamageSequenceEndRealHit, BeastBoostReaction},
-};
-
-// ----------------------------------------------------------------------
-// Ability table. To add a new custom ability: pick an unused id below
-// kAbilityRealityWarp, write its reaction(s) above, and add one entry here -
-// name/description/dispatch are all handled generically from this table.
-// ----------------------------------------------------------------------
-static const AbilitySpec kAbilities[] = {
-    {kAbilityToxicDrizzle, u"Toxic Drizzle",
-     u"Summons acid rain that\npoisons all Pokémon on entry.",
-     kToxicDrizzleReactions, SIZE(kToxicDrizzleReactions)},
-    {kAbilityRadioactiveDrizzle, u"Radioactive Drizzle",
-     u"Summons a radioactive rain\nthat triggers Imposter on entry.",
-     kRadioactiveDrizzleReactions, SIZE(kRadioactiveDrizzleReactions)},
-    {kAbilityRealityWarp, u"Reality Warp", u"???",
-     kRealityWarpReactions, SIZE(kRealityWarpReactions)},
-
-    {kAbilityElectricSurge, u"Electric Surge",
-     u"Turns the ground into Electric Terrain\nwhen the Pokémon enters a battle.",
-     kElectricSurgeReactions, SIZE(kElectricSurgeReactions)},
-
-    {kAbilityPsychicSurge, u"Psychic Surge",
-     u"Turns the ground into Psychic Terrain\nwhen the Pokémon enters a battle.",
-     kPsychicSurgeReactions, SIZE(kPsychicSurgeReactions)},
-
-    {kAbilityGrassySurge, u"Grassy Surge",
-     u"Turns the ground into Grassy Terrain\nwhen the Pokémon enters a battle.",
-     kGrassySurgeReactions, SIZE(kGrassySurgeReactions)},
-
-    {kAbilityMistySurge, u"Misty Surge",
-     u"Turns the ground into Misty Terrain\nwhen the Pokémon enters a battle.",
-     kMistySurgeReactions, SIZE(kMistySurgeReactions)},
-
-    {kAbilityBeastBoost, u"Beast Boost",
-     u"Boosts the Pokémon's highest stat\nwhen it knocks out a target.",
-     kBeastBoostReactions, SIZE(kBeastBoostReactions)},
-};
-
-// ----------------------------------------------------------------------
-// Move reactions and data patches.
-// ----------------------------------------------------------------------
-static void AbsoluteZeroHailReaction(Listener* self,
-                                     Controller* controller,
-                                     UID owner, s32* local_state) {
-  controller->SetWeather(owner, Weather::kHail, ItemId::kNone, true);
-}
-
-static void SolarFlareSunReaction(Listener* self,
-                                  Controller* controller,
-                                  UID owner, s32* local_state) {
-  controller->SetWeather(owner, Weather::kHarshSunlight, ItemId::kNone,
-                         true);
-}
-
-static void PatchAbsoluteZeroData(pokemon::MoveData& move) {
-  move.power = 0;
-  move.accuracy = 101;
-  move.base_pp = 50;
-  move.type = TypeId::kIce;
-  move.effect_id = StatusCondition::kFreeze;
-  move.effect_rate = 100;
-  move.effect_turn_type = 1;
-  move.flinch_rate = 0;
-  move.category = 1;
-  move.damage_category = 0;
-}
-
-static void PatchSolarFlareData(pokemon::MoveData& move) {
-  move.power = 0;
-  move.accuracy = 100;
-  move.base_pp = 50;
-  move.type = TypeId::kFire;
-  move.effect_id = StatusCondition::kBurn;
-  move.effect_rate = 100;
-  move.effect_turn_type = 1;
-  move.flinch_rate = 100;
-  move.category = 4;
-  move.damage_category = 1;
-}
-
-static void UseHailAnimation(u32& id, bool& is_move) {
-  id = 19;
-  is_move = false;
-}
-
-static void UseSunAnimation(u32& id, bool& is_move) {
-  id = 18;
-  is_move = false;
-}
-
-static const ReactionTable kAbsoluteZeroReactions[] = {
-    {MomentKind::kMoveExecutionStart, AbsoluteZeroHailReaction},
-};
-static const ReactionTable kSolarFlareReactions[] = {
-    {MomentKind::kMoveExecutionStart, SolarFlareSunReaction},
-};
-
-// ----------------------------------------------------------------------
-// Move table. To add a new custom move: pick an unused id, write its
-// reaction(s)/data patch/animation above, and add one entry here.
-// ----------------------------------------------------------------------
-static const MoveSpec kMoves[] = {
-    {kMoveAbsoluteZero, u"Absolute Zero",
-     u"Summons a hailstorm\nand instantly freezes the target solid.",
-     PatchAbsoluteZeroData, UseHailAnimation,
-     kAbsoluteZeroReactions, SIZE(kAbsoluteZeroReactions)},
-    {kMoveSolarFlare, u"Solar Flare",
-     u"Summons blinding sunlight\nand instantly leaves the target with a severe burn.",
-     PatchSolarFlareData, UseSunAnimation,
-     kSolarFlareReactions, SIZE(kSolarFlareReactions)},
-};
-
-// ----------------------------------------------------------------------
-// GameExtension.
-// ----------------------------------------------------------------------
+// Hooks.
 void GameExtension::Initialize() {
   core::HookManager::Initialize(HookId::kGetMoveName,
                                 pokemon::address::kGetMoveName,
@@ -393,6 +108,8 @@ void GameExtension::Initialize() {
   core::HookManager::Initialize(HookId::kMessageGetString,
                                 sys::address::kMessageGetString,
                                 (uptr)MessageGetStringHook);
+  // The battle code is loaded only during a battle: PatchBattleLoad()
+  // enables these hooks when a battle starts.
   core::HookManager::Initialize(HookId::kBattleRegisterAbilityListener,
                                 address::kRegisterAbilityListener,
                                 (uptr)GetBattleAbilityHandlerHook, false);
@@ -405,8 +122,6 @@ void GameExtension::Initialize() {
   core::HookManager::Initialize(HookId::kBattleLoadEffect,
                                 address::kLoadEffect,
                                 (uptr)BattleLoadEffectHook, false);
-  core::HookManager::Initialize(HookId::kBattleAddTerrain, address::kAddTerrain,
-                                (uptr)BattleAddTerrainHook, false);
   core::HookManager::Initialize(HookId::kLoadMoveData,
                                 pokemon::address::kLoadMoveData,
                                 (uptr)LoadMoveData);
@@ -419,17 +134,10 @@ void GameExtension::PatchBattleLoad() {
   if (address::kLoadEffect != 0) {
     core::HookManager::ForceEnable(HookId::kBattleLoadEffect);
   }
-  core::HookManager::ForceEnable(HookId::kBattleAddTerrain);
-}
-
-u32 GameExtension::BattleAddTerrainHook(u32 a, u32 b) {
-  u32 res = core::HookManager::Call<u32>(HookId::kBattleAddTerrain, a, b);
-  ui::LogApplication::Print(u"res=%u", res);
-  return res;
 }
 
 void GameExtension::BattleLoadEffectHook(uptr self, u32 archive_id,
-                                             u32 file_id, u32 type) {
+                                         u32 file_id, u32 type) {
   if (MoveAnimations::AreEffectsOnDemand() &&
       archive_id == static_cast<u32>(core::ArchiveId::kMoveEffectParticle)) {
     return;
@@ -443,29 +151,22 @@ void GameExtension::BattleLoadAnimationHook(uptr self, u32 id, bool is_move) {
   if (kMoveAnimationCount != 0) is_move = id < kMoveAnimationCount;
   if (is_move) MoveAnimations::Resolve(static_cast<MoveId>(id), &id, &is_move);
   if (is_move) {
-    for (auto& spec : kMoves) {
-      if (id == static_cast<u32>(spec.id) && spec.patch_animation != nullptr) {
-        spec.patch_animation(id, is_move);
-        break;
-      }
+    const MoveSpec* spec = FindMove(static_cast<MoveId>(id));
+    if (spec != nullptr && spec->patch_animation != nullptr) {
+      spec->patch_animation(id, is_move);
     }
   }
-  core::HookManager::Call<
-    void>(HookId::kBattleLoadAnimation, self, id, is_move);
+  core::HookManager::Call<void>(HookId::kBattleLoadAnimation, self, id,
+                                is_move);
 }
 
+// The game reads the data of a move into a work buffer: the data pointer is
+// at self + 8 and the move id at self + 4. For a new move, the game loads the
+// template move, then patch_data edits the copy and the id is set back.
 u32 GameExtension::LoadMoveData(uptr self, MoveId move_id) {
-  const MoveSpec* spec = nullptr;
-  for (auto& candidate : kMoves) {
-    if (candidate.id == move_id) {
-      spec = &candidate;
-      break;
-    }
-  }
+  const MoveSpec* spec = FindMove(move_id);
 
-  u32 id = static_cast<u16>(move_id);
-  if (spec != nullptr) id = 1;
-
+  u32 id = spec != nullptr ? kTemplateMove : static_cast<u16>(move_id);
   u32 result = core::HookManager::Call<u32>(HookId::kLoadMoveData, self, id);
 
   if (spec != nullptr) {
@@ -479,69 +180,57 @@ u32 GameExtension::LoadMoveData(uptr self, MoveId move_id) {
 }
 
 bool GameExtension::PatchMoveName(MoveId move, String* output) {
-  for (auto& spec : kMoves) {
-    if (spec.id == move) {
-      output->Set(spec.name);
-      return true;
-    }
-  }
-  return false;
+  const MoveSpec* spec = FindMove(move);
+  if (spec == nullptr) return false;
+  output->Set(spec->name);
+  return true;
 }
 
 bool GameExtension::PatchMoveDescription(MoveId move, String* output) {
-  for (auto& spec : kMoves) {
-    if (spec.id == move) {
-      output->Set(spec.description);
-      return true;
-    }
-  }
-  return false;
+  const MoveSpec* spec = FindMove(move);
+  if (spec == nullptr) return false;
+  output->Set(spec->description);
+  return true;
 }
 
 bool GameExtension::PatchAbilityName(AbilityId ability, String* output) {
-  for (auto& spec : kAbilities) {
-    if (spec.id == ability) {
-      output->Set(spec.name);
-      return true;
-    }
-  }
-  return false;
+  const AbilitySpec* spec = FindAbility(ability);
+  if (spec == nullptr) return false;
+  output->Set(spec->name);
+  return true;
 }
 
 bool GameExtension::PatchAbilityDescription(AbilityId ability, String* output) {
-  for (auto& spec : kAbilities) {
-    if (spec.id == ability) {
-      output->Set(spec.description);
-      return true;
-    }
-  }
-  return false;
+  const AbilitySpec* spec = FindAbility(ability);
+  if (spec == nullptr) return false;
+  output->Set(spec->description);
+  return true;
 }
 
+// The game registers one listener for the ability of each Pokemon in battle.
+// For a new ability, the listener gets the reactions of the AbilitySpec.
 uptr GameExtension::GetBattleAbilityHandlerHook(Pokemon* pkm) {
-  for (auto& spec : kAbilities) {
-    if (pkm->ability == spec.id) {
-      return (uptr)Broadcaster::Register(
-          ListenerSource::kAbility, static_cast<u32>(pkm->ability),
-          PriorityTier::kActiveMoveDefault, 1000, UID{pkm->uid},
-          const_cast<ReactionTable*>(spec.reactions),
-          spec.reaction_count);
-    }
+  const AbilitySpec* spec = FindAbility(pkm->ability);
+  if (spec != nullptr) {
+    return (uptr)Broadcaster::Register(
+        ListenerSource::kAbility, static_cast<u32>(pkm->ability),
+        PriorityTier::kActiveMoveDefault, 1000, UID{pkm->uid},
+        const_cast<ReactionTable*>(spec->reactions), spec->reaction_count);
   }
   return core::HookManager::Call<uptr>(HookId::kBattleRegisterAbilityListener,
                                        pkm);
 }
 
+// The game registers one listener for the move that a Pokemon uses. For a new
+// move, the listener gets the reactions of the MoveSpec.
 uptr GameExtension::GetBattleMoveHandlerHook(Pokemon* pkm, MoveId move,
                                              u32 x) {
-  for (auto& spec : kMoves) {
-    if (move == spec.id) {
-      return (uptr)Broadcaster::Register(
-          ListenerSource::kActiveMove, static_cast<u32>(move),
-          PriorityTier::kActiveMoveDefault, x, UID{pkm->uid},
-          const_cast<ReactionTable*>(spec.reactions),
-          spec.reaction_count);
-    }
+  const MoveSpec* spec = FindMove(move);
+  if (spec != nullptr) {
+    return (uptr)Broadcaster::Register(
+        ListenerSource::kActiveMove, static_cast<u32>(move),
+        PriorityTier::kActiveMoveDefault, x, UID{pkm->uid},
+        const_cast<ReactionTable*>(spec->reactions), spec->reaction_count);
   }
   return core::HookManager::Call<uptr>(HookId::kBattleRegisterMoveListener, pkm,
                                        move, x);
@@ -549,24 +238,24 @@ uptr GameExtension::GetBattleMoveHandlerHook(Pokemon* pkm, MoveId move,
 
 void GameExtension::MessageGetStringHook(Message* self, u32 str_id,
                                          String* output) {
-  core::HookManager::Call<
-    void>(HookId::kMessageGetString, self, str_id, output);
+  core::HookManager::Call<void>(HookId::kMessageGetString, self, str_id,
+                                output);
   switch (self->file_id) {
-    case 14:
-    case 15:
+    case kMoveNameFile1:
+    case kMoveNameFile2:
       PatchMoveName(static_cast<MoveId>(str_id), output);
       break;
-    case 16:
+    case kMoveDescriptionFile:
       PatchMoveDescription(static_cast<MoveId>(str_id), output);
       break;
-    case 36:
+    case kAbilityDescriptionFile:
       PatchAbilityDescription(static_cast<AbilityId>(str_id), output);
       break;
-    case 37:
+    case kAbilityNameFile:
       PatchAbilityName(static_cast<AbilityId>(str_id), output);
       break;
-    case 113:
-    case 116:
+    case kItemNameFile1:
+    case kItemNameFile2:
       pokemon::CustomShop::PatchItemName(static_cast<ItemId>(str_id), output);
       break;
     default:
@@ -575,8 +264,8 @@ void GameExtension::MessageGetStringHook(Message* self, u32 str_id,
 }
 
 void GameExtension::SetAbilityNameHook(uptr self, u32 archive, u32 ability) {
-  core::HookManager::Call<
-    void>(HookId::kSetAbilityName, self, archive, ability);
+  core::HookManager::Call<void>(HookId::kSetAbilityName, self, archive,
+                                ability);
   String* output = (String*)READ32(READ32(self + 8) + 12 * archive);
   PatchAbilityName(static_cast<AbilityId>(ability), output);
 }

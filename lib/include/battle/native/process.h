@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file process.h
+ * @brief The battle process.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -28,6 +33,7 @@ namespace battle {
 class Manager;
 struct Config;
 
+/// The process of a battle.
 class Process {
   SINGLETON(Process)
 public:

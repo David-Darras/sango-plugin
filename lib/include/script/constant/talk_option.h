@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file talk_option.h
+ * @brief The options of a conversation.
+ */
+
 #pragma once
 
 #include <types.h>

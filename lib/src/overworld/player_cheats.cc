@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file player_cheats.cc
+ * @brief The cheat codes of the player: Noclip and Swarm Mod.
+ *
+ * The declarations are in overworld/patch/player_cheats.h.
+ */
+
 #include "overworld/patch/player_cheats.h"
 #include <cmath>
 #include "core/cheat_code_manager.h"

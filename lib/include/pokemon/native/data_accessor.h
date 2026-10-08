@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file data_accessor.h
+ * @brief Encrypts and decrypts the data of a Pokémon.
+ */
+
 #pragma once
 #include <cstring>
 
@@ -24,6 +29,15 @@
 namespace pokemon {
 struct RuntimeData;
 
+/**
+ * @brief Encrypts and decrypts the CoreData of a Pokémon.
+ *
+ * @code
+ * pokemon->accessor->Decrypt();
+ * pokemon->core->moves[0] = MoveId::kSurf;
+ * pokemon->accessor->Encrypt();
+ * @endcode
+ */
 class DataAccessor {
 public:
   DataAccessor()
@@ -33,6 +47,7 @@ public:
       is_encrypted_(true) {
   }
 
+  /// Links the accessor to the data of a Pokémon.
   void Initialize(CoreData* pkm_core_data,
                   RuntimeData* pkm_runtime_data) {
     ((void (*)(DataAccessor*, CoreData*,
@@ -40,22 +55,27 @@ public:
         this, pkm_core_data, pkm_runtime_data);
   }
 
+  /// Encrypts the data. Call it after each change.
   void Encrypt() {
     ShuffleBlocks();
     ((void (*)(DataAccessor*))
       address::kDataAccessorEncrypt)(this);
   }
 
+  /// Decrypts the data. Call it before you read or change the data.
   void Decrypt() {
     ((void (*)(DataAccessor*))
       address::kDataAccessorDecrypt)(this);
     UnshuffleBlocks();
   }
 
+  /// Returns the saved data.
   CoreData* GetCoreData() const { return pkm_core_data_; }
 
+  /// Returns the calculated data (level, HP, stats).
   RuntimeData* GetRuntimeData() const { return pkm_runtime_data_; }
 
+  /// Returns true when the data is encrypted.
   bool IsEncrypted() const { return is_encrypted_; }
 
 private:

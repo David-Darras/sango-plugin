@@ -15,12 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file run_animation.h
+ * @brief Uses the run animation when the player runs.
+ */
+
 #pragma once
 
 #include "common.h"
 
 namespace overworld {
 
+/// Plays the run animation of the player model when the player runs.
 class RunAnimation {
   MAKE_SINGLETON(RunAnimation)
 

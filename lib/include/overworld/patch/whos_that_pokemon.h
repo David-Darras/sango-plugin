@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file whos_that_pokemon.h
+ * @brief The mini-game "Who's that Pokémon?".
+ */
+
 #pragma once
 
 #include "common.h"
@@ -23,12 +28,13 @@
 
 namespace overworld {
 
+/// A character asks the player to name a Pokémon from its shape.
 class WhosThatPokemon {
   MAKE_SINGLETON(WhosThatPokemon)
 
 public:
-  u32 reward_level = 50;
-  u32 max_species = 721;
+  u32 reward_level = 50; ///< The level of the Pokémon that the player wins.
+  u32 max_species = 721; ///< The highest species of the questions.
 
   static void Initialize();
   static bool IsSilhouetteActive() { return GetInstance().is_silhouette_; }

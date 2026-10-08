@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file string.h
+ * @brief A UTF-16 text object of the game.
+ */
+
 #pragma once
 
 #include "core/types.h"
@@ -22,13 +27,21 @@
 
 namespace sys {
 
+/**
+ * @brief A UTF-16 text object of the game.
+ *
+ * Many game functions write their result in a String.
+ */
 struct String {
+  /// A shared temporary String. core::Utils::FormatString() uses it.
   static String s_tmp;
+  /// The buffer of the shared temporary String.
   static c16 s_buffer[128];
 
   static String* GetTmpStr() { return &s_tmp; }
   static c16* GetTmpBuf() { return s_buffer; }
 
+  /// Makes a String that uses the shared buffer.
   String() {
     vtable = (void*)sys::address::kStringVtable;
     buffer = s_buffer;
@@ -37,10 +50,12 @@ struct String {
     is_initialized = true;
   }
 
+  /// Returns the characters.
   INLINE c16* GetBuffer() const {
     return buffer;
   }
 
+  /// Copies a text. The text is cut at `capacity - 1` characters.
   void Set(const c16* input) {
     if (capacity == 0) {
       is_initialized = false;
@@ -61,8 +76,8 @@ struct String {
 
   void* vtable;
   c16* buffer;
-  u16 capacity;
-  u16 size;
+  u16 capacity; ///< The size of the buffer, in characters.
+  u16 size; ///< The length of the text, in characters.
   bool is_initialized;
 };
 

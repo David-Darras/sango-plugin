@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file kaizo_battle.cc
+ * @brief Kaizo: the level caps and the battle changes.
+ */
+
 #include "battle/native/pokemon.h"
 #include "battle/patch/battle.h"
 #include "core/constant/event_flag.h"

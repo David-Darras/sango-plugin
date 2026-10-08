@@ -15,11 +15,22 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file runtime_data.h
+ * @brief The calculated data of one Pokémon: level, HP and stats.
+ */
+
 #pragma once
 #include "common.h"
 
 namespace pokemon {
 
+/**
+ * @brief The calculated data of one Pokémon: level, HP and stats.
+ *
+ * The game calculates it from the CoreData. Call
+ * savedata::PokemonParam::UpdateRuntimeData() after a change of the CoreData.
+ */
 struct RuntimeData {
   u32 status_condition;
   u8 level;

@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file core.h
+ * @brief The object of the game that owns the devices, the graphics and the fonts.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -25,15 +30,21 @@ class Device;
 class Graphics;
 class FontManager;
 
+/// The object of the game that owns the devices, the graphics and the fonts.
 class Core {
   SINGLETON(Core)
 public:
   STATIC_INLINE Core& GetInstance() { return *(Core*)core::address::kCore; }
 
+  /// Returns the input devices.
   INLINE Device& GetDevice() const { return *device_; }
+  /// Returns the graphics system.
   INLINE Graphics& GetGraphics() const { return *graphics_; }
+  /// Returns the language of the game.
   INLINE Language& GetLanguage() const { return *language; }
+  /// Returns the fonts.
   INLINE FontManager& GetFontManager() const { return *font_manager_; }
+  /// Restarts the game (soft reset).
   INLINE void ForceReset() { reset = true; }
 
 private:

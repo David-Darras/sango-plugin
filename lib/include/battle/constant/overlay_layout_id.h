@@ -15,12 +15,20 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file overlay_layout_id.h
+ * @brief The ids of the 2D layouts of the move animations.
+ *
+ * This file is generated from the move animation data. Do not change it by hand.
+ */
+
 #pragma once
 
 #include "core/types.h"
 
 namespace battle {
 
+/// The id of a 2D layout of a move animation.
 enum class OverlayLayoutId : s32 {
   kBattleIntrosIntroDemosOverlay = 0,
   kBattleIntrosOverlay0 = 2,

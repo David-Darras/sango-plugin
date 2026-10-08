@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file evolve.inc
+ * @brief The names of the evolution methods for the menu pages.
+ */
+
 static const c8* EVOLVE_CONDITIONS[] = {
   "None",
   "Happiness",

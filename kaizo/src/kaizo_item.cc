@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file kaizo_item.cc
+ * @brief Kaizo: the changes of the item data (vitamins, evolution items).
+ */
+
 #include "pokemon/constant/item.h"
 #include "pokemon/native/item_data.h"
 
@@ -54,7 +59,7 @@ void PatchItemData(pokemon::ItemData* item) {
     case ItemId::kWhippedDream:
       item->evolve = 1;
       item->use_on_pokemon = true;
-      item->field_function = 1;
+      item->overworld_function = 1;
       break;
     default:
       break;

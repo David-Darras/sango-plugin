@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file loaded_message.h
+ * @brief A message file that the script engine loaded.
+ */
+
 #pragma once
 
 namespace script {

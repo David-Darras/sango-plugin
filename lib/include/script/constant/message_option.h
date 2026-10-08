@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file message_option.h
+ * @brief The options of the message windows of the scripts.
+ */
+
 #pragma once
 
 #include <types.h>

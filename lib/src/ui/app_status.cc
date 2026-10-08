@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file app_status.cc
+ * @brief A Pokémon editor in the summary screen of the game.
+ *
+ * The declarations are in ui/patch/app_status.h.
+ */
+
 #include "ui/patch/app_status.h"
 #include "savedata/native/pokemon_team.h"
 

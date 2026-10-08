@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file renderer.h
+ * @brief The 3D scene of the overworld.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -28,6 +33,7 @@ class GameManager;
 
 namespace overworld {
 
+/// The 3D scene of the overworld.
 class Renderer {
   SINGLETON(Renderer)
 

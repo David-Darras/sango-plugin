@@ -15,19 +15,25 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file script_variable.h
+ * @brief The special script variables.
+ */
+
 #pragma once
 
 #include <types.h>
 
 namespace script {
 
+/// A special variable of the scripts. See script::Context::GetVariable().
 enum class ScriptVariable : u16 {
   kParam0 = 0x8000,
   kTemp0 = 0x8008,
-  kReturn0 = 0x800C,
-  kReturn1 = 0x800D,
-  kAnswer = 0x8010,
-  kTalkTarget = 0x8011,
+  kReturn0 = 0x800C, ///< The first result of a native.
+  kReturn1 = 0x800D, ///< The second result of a native.
+  kAnswer = 0x8010, ///< The answer of AskYesNo().
+  kTalkTarget = 0x8011, ///< The character that the player talks to.
   kTalkStartTarget = 0x8012,
   kTalkOptions = 0x8013,
   kTargetBackground = 0x8014,

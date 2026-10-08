@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file script_loader.cc
+ * @brief Saves the game scripts to the SD card, and loads changed scripts from it.
+ *
+ * The declarations are in core/patch/script_loader.h.
+ */
+
 #include "core/patch/script_loader.h"
 #include "script/patch/native_script.h"
 #include "core/hook_manager.h"

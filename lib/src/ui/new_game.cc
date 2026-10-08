@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file new_game.cc
+ * @brief Changes the start of a new game.
+ *
+ * The declarations are in ui/patch/new_game.h.
+ */
+
 #include "ui/patch/new_game.h"
 #include "core/hook_manager.h"
 #include "core/native/data_manager.h"

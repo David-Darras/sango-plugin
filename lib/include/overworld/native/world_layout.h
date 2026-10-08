@@ -15,6 +15,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file world_layout.h
+ * @brief The layout of a world: the grid of blocks of the current region.
+ *
+ * A world is a grid of blocks. A block has 40 x 40 tiles. A tile has
+ * 18 x 18 world units.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -24,6 +32,7 @@
 
 namespace overworld {
 
+/// The grid of blocks of the current region.
 struct WorldLayout {
   static constexpr u32 kMaxWidth = 32;
   static constexpr u32 kMaxHeight = 32;

@@ -15,14 +15,21 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file event_flag.h
+ * @brief The event flags of the game.
+ *
+ * An event flag remembers that something happened. The game saves the flags.
+ */
+
 #pragma once
 
 #include <types.h>
 
 namespace core {
 
-/// The game's event flags: the bits of savedata::EventTable, read and set by
-/// the field scripts (FlagGet/FlagSet).
+/// The event flags of the game: the bits of savedata::EventTable. The
+/// scripts read and set them (natives FlagGet and FlagSet).
 enum class EventFlag : u16 {
   kFirstTrainerDefeated = 1740,
 
@@ -32,10 +39,14 @@ enum class EventFlag : u16 {
   kRoute102Unlocked = 2775,
   kRoute103Unlocked = 2776,
 
-  // Flags the game never touches, free for the plugin's own scripts.
+  /// @name Free flags
+  /// The game never uses these flags. Use them for your scripts.
+  /// @{
   kFirstFree = 3026,
   kLastFree = 3039,
-  kStarterGiven = kFirstFree,
+  kStarterGiven = kFirstFree, ///< Undertow: the boss gave the starter.
+  /// @} ///< Undertow: the boss gave the starter.
+  /// @}
 };
 
 } // namespace core

@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file broadcaster.h
+ * @brief Registers the listeners of the battle engine.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -22,8 +27,19 @@
 #include "battle/native/listener.h"
 
 namespace battle {
+/// Registers and removes the listeners of the battle engine.
 class Broadcaster {
 public:
+  /**
+   * @brief Registers a listener with a reaction table.
+   * @param source What registers the listener (an ability, a move...).
+   * @param source_id The id of the ability, of the move...
+   * @param base_priority The order of the listener.
+   * @param priority_tiebreak The order inside the same tier.
+   * @param owner_id The owner of the listener.
+   * @param reaction_table The reactions.
+   * @param reaction_count The number of reactions.
+   */
   STATIC_INLINE Listener* Register(ListenerSource source, u32 source_id,
                                    PriorityTier base_priority,
                                    u32 priority_tiebreak, UID owner_id,
@@ -36,11 +52,13 @@ public:
                                      reaction_table, reaction_count);
   }
 
+  /// Returns the listener of an owner, or null.
   STATIC_INLINE Listener* FindListener(ListenerSource source, u8 owner_id) {
     return ((Listener*(*)(ListenerSource, u8))
       address::kBroadcasterFindListener)(source, owner_id);
   }
 
+  /// Removes a listener.
   STATIC_INLINE void Unregister(Listener* listener) {
     ((void(*)(Listener*))address::kBroadcasterUnregister)(listener);
   }

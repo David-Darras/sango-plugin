@@ -15,6 +15,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file address.h
+ * @brief Includes the addresses of all the domains.
+ *
+ * Each domain has its own file `<domain>/address.h`. Each address uses
+ * GAME_ADDRESS(xy, oras).
+ *
+ * @see docs/concepts/hooks-and-addresses.md
+ */
+
 #pragma once
 
 #include "core/address.h"

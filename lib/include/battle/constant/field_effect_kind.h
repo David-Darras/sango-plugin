@@ -15,22 +15,28 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file field_effect_kind.h
+ * @brief The effects that act on the full battlefield.
+ */
+
 #pragma once
 #include <types.h>
 
 namespace battle {
+/// An effect on the full battlefield: weather, Trick Room, a terrain...
 enum class FieldEffectKind : u8 {
   kWeather,
   kTrickRoom,
   kGravity,
-  kImprison, ///< Blocks the caster's opponents from using any move the caster itself knows
+  kImprison, ///< The opponents cannot use the moves that the user knows.
   kWaterSport,
   kMudSport,
   kWonderRoom,
   kMagicRoom,
-  kIonDeluge, ///< Makes Normal-type moves become Electric-type
+  kIonDeluge, ///< The Normal moves become Electric moves.
   kFairyLock,
-  kTerrain, ///< A terrain (Grassy/Misty/Electric/...) is active - see TerrainKind
+  kTerrain, ///< A terrain is active. See TerrainKind.
 
   kCount,
 };

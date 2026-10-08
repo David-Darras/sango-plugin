@@ -15,17 +15,23 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file gift_pokemon.h
+ * @brief Changes the gift Pokémon.
+ */
+
 #pragma once
 
 #include "common.h"
 
 namespace overworld {
 
+/// Changes the gift Pokémon of the game.
 class GiftPokemon {
   MAKE_SINGLETON(GiftPokemon)
 
 public:
-  bool randomize_species = false;
+  bool randomize_species = false; ///< true: each gift Pokémon gets a random species.
 
   static void Initialize();
   static void PatchLoad();

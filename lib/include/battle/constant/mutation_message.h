@@ -15,14 +15,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file mutation_message.h
+ * @brief The ids of the battle messages of the mutations.
+ */
+
 #pragma once
 
 #include <types.h>
 
 namespace battle {
+/// The id of a battle message. Only kNone is known.
 enum class MutationMessageId : u16 {
   kNone,
-  // TODO
   kCount
 };
 } // namespace battle

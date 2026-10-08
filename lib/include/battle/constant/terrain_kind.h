@@ -15,10 +15,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file terrain_kind.h
+ * @brief The terrains.
+ */
+
 #pragma once
 #include <types.h>
 
 namespace battle {
+/// A terrain. Generation VI has no Psychic Terrain.
 enum class TerrainKind : u8 {
   kNone = 0,
   kGrassyTerrain,

@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file native_table.h
+ * @brief Finds the natives of the game by their names.
+ */
+
 #pragma once
 
 #include <cstring>
@@ -26,17 +31,19 @@ namespace script {
 
 typedef PawnNativeFunction NativeFunction;
 
+/// Finds the natives of the game by their names, and calls them.
 class NativeTable {
 public:
+  /// Returns the native with this name, or null.
   static NativeFunction Find(const c8* name) {
     static const uptr kTables[] = {
-        core::address::kScriptNativesField,
+        core::address::kScriptNativesCommon,
         core::address::kScriptNativesState,
         core::address::kScriptNativesInteractive,
         core::address::kScriptNativesPokemonCenter,
         core::address::kScriptNativesMapEffects,
         core::address::kScriptNativesBattleFacility,
-        core::address::kScriptNativesFieldServices,
+        core::address::kScriptNativesOverworldServices,
         core::address::kScriptNativesNpcAi,
         core::address::kScriptNativesProgram,
     };

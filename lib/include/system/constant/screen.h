@@ -15,15 +15,21 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file screen.h
+ * @brief The two screens of the console.
+ */
+
 #pragma once
 
 #include <types.h>
 
 namespace sys {
 
+/// A screen of the console.
 enum class Screen : u8 {
-  kTop = 0,
-  kBottom = 1
+  kTop = 0, ///< The top screen: 400 x 240 pixels.
+  kBottom = 1 ///< The bottom screen (touch screen): 320 x 240 pixels.
 };
 
 } // namespace sys

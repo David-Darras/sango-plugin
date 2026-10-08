@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file page_theme.cc
+ * @brief The menu page of the theme of the plugin.
+ */
+
 #include "ui/main_application.h"
 #include "ui/page/page_common.h"
 

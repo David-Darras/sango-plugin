@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file trainer_model_manager.h
+ * @brief The table of the trainer models in battle.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -22,7 +27,7 @@
 
 namespace battle {
 
-// Load Trainer Model : 0x00458214
+/// The table of the files of the trainer models in battle.
 class TrainerModelManager {
   SINGLETON(TrainerModelManager)
 private:
@@ -37,6 +42,7 @@ public:
     return *(TrainerModelManager*)core::address::kTrainerModelTable;
   }
 
+  /// Shows the model `dst` instead of the model `src`.
   INLINE void Replace(TrainerModelId src, TrainerModelId dst) {
     const u8 s = static_cast<u8>(src);
     const u8 d = static_cast<u8>(dst);
@@ -44,7 +50,6 @@ public:
     textures[s] = 1 + d * 5;
     battle_animations[s] = 2 + d * 5;
     idle_animations[s] = 3 + d * 5;
-    // NO TPOSE
     cinematic_animations[s] = 4 + s * 5;
   }
 };

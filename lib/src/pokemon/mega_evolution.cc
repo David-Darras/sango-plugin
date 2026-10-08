@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file mega_evolution.cc
+ * @brief Adds Mega Evolutions to species.
+ *
+ * The declarations are in pokemon/patch/mega_evolution.h.
+ */
+
 #include "pokemon/patch/mega_evolution.h"
 #include "pokemon/patch/alolan_forms.h"
 #include "pokemon/patch/species_table.h"

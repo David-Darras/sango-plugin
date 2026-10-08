@@ -1,3 +1,10 @@
+  /// @name The steps of a move animation
+  /// Each function adds one step to the animation: a start frame, an end
+  /// frame, the values of the step, a group and a condition. The steps of the
+  /// same object (an effect, a model, a sound) use the same group.
+  /// This file is generated from the move animation data. Do not change it
+  /// by hand.
+  /// @{
   AnimationStep PokemonTeleport(s32 start_frame, s32 end_frame, AnimationTarget who, const Vec3& position, bool mirror, u16 group = 0, StepCondition condition = StepCondition::kAlways);
   AnimationStep PokemonShift(s32 start_frame, s32 end_frame, AnimationTarget who, const Vec3& offset, u16 group = 0, StepCondition condition = StepCondition::kAlways);
   AnimationStep PokemonGlideToPokemon(s32 start_frame, s32 end_frame, AnimationTarget who, AnimationTarget destination, BodyPoint point, const Vec3& offset, PositionAdjust adjust, bool rotate, u16 group = 0, StepCondition condition = StepCondition::kAlways);
@@ -195,3 +202,4 @@
   AnimationStep PokemonShowSpecial(s32 start_frame, s32 end_frame, AnimationTarget who, bool visible, f32 height, u16 group = 0, StepCondition condition = StepCondition::kAlways);
   AnimationStep PokemonWildCry(s32 start_frame, s32 end_frame, u16 group = 0, StepCondition condition = StepCondition::kAlways);
   AnimationStep PokemonResetAll(s32 start_frame, s32 end_frame, bool skip_in_contest, u16 group = 0, StepCondition condition = StepCondition::kAlways);
+  /// @}

@@ -15,12 +15,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file field_side.h
+ * @brief The two sides of the battlefield.
+ */
+
 #pragma once
 #include <types.h>
 
 namespace battle {
+/// A side of the battlefield.
 enum class FieldSide : u8 {
-  kFirst, ///< The player's side in single-player, the server's side in online play
+  /// The side of the player in a local battle, the side of the host online.
+  kFirst,
   kSecond,
 
   kCount,

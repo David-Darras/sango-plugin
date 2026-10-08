@@ -15,6 +15,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file map.h
+ * @brief The ids of the maps.
+ *
+ * A map is one place of the overworld: a route, a town, a building, a floor.
+ * The overlay shows the id of the current map: Overworld > Map Id.
+ */
+
 #pragma once
 
 #include <types.h>

@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file berry_tree_manager.h
+ * @brief The Berry trees.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -39,6 +44,7 @@ static const ItemId BerryIdToItemId(u16 berry_id) {
   return table[berry_id];
 }
 
+/// The state of one Berry tree.
 struct BerryTree {
   BerryTreeState state;
   u16 elapsed_minutes;
@@ -49,6 +55,7 @@ struct BerryTree {
 };
 
 
+/// The Berry trees of the overworld.
 struct BerryTreeManager {
   SINGLETON(BerryTreeManager)
   STATIC_INLINE BerryTreeManager& GetInstance() {

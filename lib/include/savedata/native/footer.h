@@ -15,18 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file footer.h
+ * @brief The checksums of the save data.
+ */
+
 #pragma once
 
 #include "savedata/native/savedata.h"
 
 namespace savedata {
-/**
-* @class Footer
-* @brief Manages save data integrity through checksums and signatures.
-* * This class is responsible for verifying that save data has not been
-* corrupted or externally tampered with by comparing checksums and
-* validating a specific signature.
-*/
+/// The checksums of the segments of the save data. The game checks them
+/// when it loads the save data.
 class Footer {
   SINGLETON(Footer)
 
@@ -40,9 +40,7 @@ private:
   u64 checksum_;
   u64 last_checksum_;
 
-  /**
-* @brief Magic signature for format identification (Expected value: "BEEF").
-*/
+  /// The signature of the format: "BEEF".
   u32 signature_;
 
   struct Entry {

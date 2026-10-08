@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file platform.h
+ * @brief The platforms under the Pokémon in battle.
+ */
+
 #pragma once
 
 #include <types.h>

@@ -15,12 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file event_state.h
+ * @brief The states of a game event.
+ */
+
 #pragma once
 
 #include <types.h>
 
 namespace core {
 
+/// The state of a core::GameEvent.
 enum class EventState : u32 {
   kLoading,
   kRunning,

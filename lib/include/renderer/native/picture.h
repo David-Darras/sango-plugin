@@ -15,11 +15,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file picture.h
+ * @brief A picture of a 2D layout.
+ */
+
 #pragma once
 
 #include "renderer/native/pane.h"
 
 namespace renderer {
+/// A picture of a 2D layout.
 struct Picture {
   Pane pane;
   bool is_initialized;

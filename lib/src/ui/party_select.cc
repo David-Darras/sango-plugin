@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file party_select.cc
+ * @brief Lets a script select several Pokémon of the party.
+ *
+ * The declarations are in ui/patch/party_select.h.
+ */
+
 #include "ui/patch/party_select.h"
 
 #include "core/hook_manager.h"

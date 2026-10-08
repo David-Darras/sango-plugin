@@ -15,15 +15,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file weather_mode.h
+ * @brief The colors of the rain of the plugin.
+ */
+
 #pragma once
 
 #include <types.h>
 
 namespace overworld {
 
-/// How the rain is drawn: the custom abilities of battle::GameExtension
-/// recolour it, renderer::ModelFilter reads the mode back when the weather
-/// particles are loaded.
+/// The color of the rain. The example abilities of the overlay (Toxic
+/// Drizzle...) set it. renderer::ModelFilter changes the rain particles.
 enum class WeatherMode : u8 {
   kNormal = 0,
   kToxic = 1,

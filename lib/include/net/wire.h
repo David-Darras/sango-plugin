@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file wire.h
+ * @brief The format of the messages between the plugin and the relay server.
+ */
+
 #pragma once
 
 #include "core/types.h"

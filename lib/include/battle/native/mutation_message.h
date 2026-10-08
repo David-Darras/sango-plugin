@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file mutation_message.h
+ * @brief A battle message of a mutation.
+ */
+
 #pragma once
 
 #include <types.h>
@@ -23,11 +28,12 @@
 
 namespace battle {
 
+/// A battle message and its values.
 struct MutationMessage {
   MutationMessageId id;
-  u16 category : 7; ///< Which message table this id is looked up in
+  u16 category : 7; ///< The message table of the id.
   u16 slot_count : 7;
-  u16 append_sound_effect : 1; ///< Store a sound-effect id as the last argument
+  u16 append_sound_effect : 1; ///< Adds a sound effect id as the last value.
   u16 is_failure_message : 1;
   s32 slots[8];
 };

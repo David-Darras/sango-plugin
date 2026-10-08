@@ -15,6 +15,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file map_graft.h
+ * @brief Joins maps together and adds warps between them.
+ *
+ * Example:
+ * @code
+ * overworld::MapGraft::Attach(MapId::kLittlerootTown, overworld::Facing::kUp,
+ *                             MapId::kOldaleTown);
+ * overworld::MapGraft::Link(MapId::kOldaleTown, overworld::Facing::kUp,
+ *                           MapId::kRustboroCity, 125, 238);
+ * @endcode
+ */
+
 #pragma once
 
 #include "common.h"
@@ -26,6 +39,7 @@
 namespace overworld {
 struct WorldLayout;
 
+/// A map to join to another map.
 struct MapGraftRequest {
   MapId anchor = MapId::kNone;
   Facing side = Facing::kUp;
@@ -33,6 +47,7 @@ struct MapGraftRequest {
   s32 shift = 0;
 };
 
+/// A warp: when the player leaves `from` on `side`, the player goes to `to`.
 struct MapLinkRequest {
   MapId from = MapId::kNone;
   Facing side = Facing::kUp;
@@ -42,22 +57,8 @@ struct MapLinkRequest {
 };
 
 
-// Example :
-// overworld::MapGraft::Attach(MapId::kLittlerootTown, overworld::Facing::kUp,
-//                           MapId::kOldaleTown);
-// overworld::MapGraft::Link(MapId::kOldaleTown, overworld::Facing::kUp,
-//                         MapId::kRustboroCity, 125, 238);
-// overworld::MapGraft::Link(MapId::kRustboroCity, overworld::Facing::kDown,
-//                         MapId::kOldaleTown, 100, 121);
-// overworld::MapGraft::Link(MapId::kRustboroCity, overworld::Facing::kRight,
-//                         MapId::kPetalburgCity, 80, 126);
-// overworld::MapGraft::Link(MapId::kPetalburgCity, overworld::Facing::kLeft,
-//                         MapId::kRustboroCity, 159, 173);
-// overworld::MapGraft::Link(MapId::kPetalburgCity, overworld::Facing::kRight,
-//                         MapId::kFallarborTown, 160, 102);
-// overworld::MapGraft::Link(MapId::kFallarborTown, overworld::Facing::kLeft,
-//                         MapId::kVerdanturfTown, 119, 102);
 
+/// Joins maps together (8 at most) and adds warps (8 at most).
 class MapGraft {
   MAKE_SINGLETON(MapGraft)
 
@@ -79,12 +80,13 @@ public:
   bool is_logging_enabled = false;
 
   static void Initialize();
-  /// Glues `map` onto the `side` (kUp/kDown/kLeft/kRight) of `anchor`.
+  /// Joins `map` to one side (kUp, kDown, kLeft or kRight) of `anchor`.
   static bool Attach(MapId anchor, Facing side, MapId map, s32 shift = 0);
   static void Clear();
   static u32 GetCount();
   static MapGraftRequest& GetRequest(u32 index);
   static Result& GetResult(u32 index);
+  /// Adds a warp to the position (tile_x, tile_z) of `to`.
   static bool Link(MapId from, Facing side, MapId to, u16 tile_x,
                    u16 tile_z);
   static u32 GetLinkCount();

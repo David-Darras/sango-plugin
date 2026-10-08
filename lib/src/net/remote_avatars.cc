@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file remote_avatars.cc
+ * @brief Shows the other players as characters in the overworld.
+ *
+ * The declarations are in net/remote_avatars.h.
+ */
+
 #include "net/remote_avatars.h"
 
 #include <cmath>
@@ -256,7 +263,7 @@ bool RemoteAvatars::ApplyLocalOutfit() {
     overworld::ModelResource& resource = models.GetResource(i);
     if (resource.model_id != player.model_id) continue;
     resource.model_id = wanted;
-    resource.dress_up_flag = 0; // outfit parts only exist on the trainers
+    resource.uses_outfit = 0; // outfit parts only exist on the trainers
     break;
   }
   self.applied_outfit_ = outfit;

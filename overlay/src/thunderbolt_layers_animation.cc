@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file thunderbolt_layers_animation.cc
+ * @brief Example: an animation that colors each layer of an effect.
+ */
+
 #include "battle/patch/move_animation.h"
 
 namespace battle {

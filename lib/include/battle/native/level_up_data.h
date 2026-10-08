@@ -15,12 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file level_up_data.h
+ * @brief The experience and the EVs that a Pokémon gets after a battle.
+ */
+
 #pragma once
 
 #include <types.h>
 
 namespace battle {
 
+/// The experience and the EVs that a Pokémon gets.
 struct LevelUpData {
   u32 exp;
   u16 ev_hp;

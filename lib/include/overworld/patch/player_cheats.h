@@ -15,15 +15,21 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file player_cheats.h
+ * @brief The cheat codes of the player: Noclip and Swarm Mod.
+ */
+
 #pragma once
 
 #include "common.h"
 
 namespace overworld {
 
+/// The cheat codes of the player.
 struct PlayerCheats {
   MAKE_SINGLETON(PlayerCheats)
-  Vec3 speed = Vec3{1, 1, 1};
+  Vec3 speed = Vec3{1, 1, 1}; ///< The speed of Noclip on each axis.
   f32 theta = 0.0f;
   f32 radius = 5.0f;
   f32 theta_speed = 1.0f;

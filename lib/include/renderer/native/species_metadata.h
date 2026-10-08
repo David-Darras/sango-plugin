@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file species_metadata.h
+ * @brief The model data of a species in the model table.
+ */
+
 #pragma once
 
 #include "core/types.h"

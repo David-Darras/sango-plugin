@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file starter_choice.cc
+ * @brief Changes the starter Pokémon.
+ *
+ * The declarations are in ui/patch/starter_choice.h.
+ */
+
 #include "ui/patch/starter_choice.h"
 
 namespace ui {

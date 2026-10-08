@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file weather_manager.h
+ * @brief The weather of the overworld.
+ */
+
 #pragma once
 
 #include "core/native/game_manager.h"
@@ -22,6 +27,7 @@
 #include "overworld/constant/weather.h"
 
 namespace overworld {
+/// The weather of the overworld.
 class WeatherManager {
   SINGLETON(WeatherManager)
 public:

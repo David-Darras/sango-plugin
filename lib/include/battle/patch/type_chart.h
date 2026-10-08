@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file type_chart.h
+ * @brief Reads and changes the type chart.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -23,6 +28,7 @@
 
 namespace battle {
 
+/// Reads and changes the type chart of the battles.
 class TypeChart {
   MAKE_SINGLETON(TypeChart)
 
@@ -32,8 +38,11 @@ public:
   typedef TypeMultiplier Row[kTypeCount];
 
   static void PatchLoad();
+  /// Returns the type chart.
   static Row* GetTable();
+  /// Changes one cell of the type chart.
   static void Set(TypeId attacking_type, TypeId defending_type, TypeMultiplier value);
+  /// Returns one cell of the type chart.
   static TypeMultiplier Get(TypeId attacking_type, TypeId defending_type);
 };
 } // namespace battle

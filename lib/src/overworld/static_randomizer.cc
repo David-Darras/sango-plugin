@@ -15,11 +15,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file static_randomizer.cc
+ * @brief Changes the static encounters.
+ *
+ * The declarations are in overworld/patch/static_randomizer.h.
+ */
+
 #include "overworld/patch/static_randomizer.h"
 #include "core/hook_manager.h"
 #include "core/native/game_manager.h"
 #include "overworld/native/static_encounter.h"
-#include "ui/log_application.h"
 #include "core/utils.h"
 
 namespace overworld {
@@ -38,7 +44,6 @@ void StaticRandomizer::RandomizeSpecies(StaticEncounterId id) {
   auto& entry = StaticEncounter::GetInstance(id);
   entry.species = core::Utils::GetRandomEnum<SpeciesId>();
   entry.form = FormId::kNormal;
-  ui::LogApplication::Print(u"static[%u]=%u", id, entry.species);
 }
 
 s32 StaticRandomizer::CallStaticEncounterHook(core::GameManager* man,

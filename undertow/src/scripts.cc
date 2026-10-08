@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file scripts.cc
+ * @brief Undertow: the C++ scripts and the characters of the Aqua Hideout.
+ */
+
 #include "script/patch/native_script.h"
 #include "overworld/patch/map_character.h"
 #include "ui/patch/starter_choice.h"

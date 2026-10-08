@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file model.h
+ * @brief A character of the overworld.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -26,27 +31,32 @@
 
 namespace overworld {
 
+/// A character of the overworld: the player, a person or a Pokémon.
 struct Model {
   static constexpr u32 kSize = GAME_CONSTANT(0xAA8, 0xAB0);
 
+  /// Returns the drawn part of the model.
   INLINE DrawModel& GetDrawModel() {
     return *((DrawModel * (*)(Model*))address::kGetDrawModel)(this);
   }
 
+  /// Returns the drawn part of the model, or null.
   INLINE DrawModel* GetDrawModelOrNull() {
     return ((DrawModel * (*)(Model*))address::kGetDrawModel)(this);
   }
 
-  INLINE ModelResource& GetObjCodeParam() {
+  /// Returns the description of the model.
+  INLINE ModelResource& GetModelResource() {
     return *(ModelResource*)((uptr)this + GAME_CONSTANT(0x87C, 0x884));
   }
 
+  /// Returns true when this slot contains a character.
   INLINE bool IsUsed() const { return (flags[0] & 1) == 1; }
 
   void* vtable;
   u32 flags[2];
 
-  u16 id; // 0xFF = player
+  u16 id; ///< The id of the character. 0xFF is the player.
   MapId map_id;
   ModelId model_id;
   u16 move_id;
@@ -61,8 +71,8 @@ struct Model {
 
   Position init_pos;
   Position prev_pos;
-  Position map_pos;
-  Position world_pos;
+  Position map_pos; ///< The position in tiles.
+  Position world_pos; ///< The position in world units.
   Vec3 draw_pos;
   Vec3 draw_offset;
 };

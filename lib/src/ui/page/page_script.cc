@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file page_script.cc
+ * @brief The menu pages of the Scripts family.
+ */
+
 #include "core/patch/script_loader.h"
 #include "script/patch/native_script.h"
 #include "ui/main_application.h"

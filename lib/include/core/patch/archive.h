@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file archive.h
+ * @brief Lets a product change the files that the game reads from its archives.
+ *
+ * @see docs/tutorials/10-replace-models.md
+ */
+
 #pragma once
 
 #include "common.h"
@@ -23,15 +30,22 @@
 
 namespace core {
 
+/**
+ * @brief Calls the callbacks of the product before the game reads a file.
+ *
+ * The game reads files in two ways: with a stream and with a queued read.
+ * Set the two callbacks.
+ */
 class Archive {
   MAKE_SINGLETON(Archive)
 
 public:
 
-  /// Lets a product redirect a file about to be streamed from an archive
-  /// (see IsArchive to tell archives apart); returns the file id to use.
+  /// Called before the game streams a file of an archive. Returns the id of
+  /// the file to load. Use IsArchive() to find the archive.
   typedef u32 (*StreamFileCallback)(const u32* archive, u32 file_id);
-  /// Same for the queued reads; the input can be rewritten in place.
+  /// Called before the game runs a queued read. Change `input->file_id` to
+  /// load a different file.
   typedef void (*ReadFileCallback)(ArchiveInput* input);
 
   StreamFileCallback on_stream_file = nullptr;
@@ -39,7 +53,9 @@ public:
 
   static void Initialize();
 
+  /// Returns true when the archive of a stream is `archive_id`.
   static bool IsArchive(const u32* archive_data, const ArchiveId archive_id);
+  /// Returns true when the archive of a queued read is `archive_id`.
   static bool IsArchive(const ArchiveInput* input, const ArchiveId archive_id);
 
 private:

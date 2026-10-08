@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file config.h
+ * @brief The settings of a battle before it starts.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -33,9 +38,10 @@ struct TrainerStatus;
 } // namespace savedata
 
 namespace battle {
+/// The settings of a battle: format, place, teams, trainers. The game fills it before the battle.
 struct Config {
-  bool is_against_trainer; // or wild
-  Format format; // solo, double, triple, rotation, horde
+  bool is_against_trainer; ///< true: a trainer battle. false: a wild battle.
+  Format format; ///< The format of the battle.
   u16 _1;
   u16 _2;
   Weather weather;
@@ -45,8 +51,8 @@ struct Config {
   PlatformId platform;
   GroundId ground;
   u32 _3[9];
-  // The game stores the animation in a 32-bit slot; the id itself fits in
-  // the low byte, the three others stay zero.
+  // The game uses 32 bits for the animation: the id is in the low byte, and
+  // the three other bytes are zero.
   EncounterAnimationId encounter_animation;
   u8 _8[3];
   u32 _4[2];
@@ -71,6 +77,7 @@ struct Config {
   bool is_capture_forced;
   bool no_money;
 
+  /// Sets the number of opponents, the format and the place. Weather::kInvalid keeps the weather.
   void Set(u8 count, Format format, BackgroundId background,
            GroundId ground, PlatformId platform,
            EncounterAnimationId anim, Weather weather) {
@@ -84,16 +91,19 @@ struct Config {
       this->weather = weather;
   }
 
+  /// Exchanges the team of the player and the team of the opponent.
   void InverseTeams() {
     savedata::PokemonTeam* team = pokemon_teams[0];
     pokemon_teams[0] = pokemon_teams[1];
     pokemon_teams[1] = team;
   }
 
+  /// Makes the battle an inverse battle.
   void InverseTypes() {
     is_inverse_battle = true;
   }
 
+  /// Returns the data of a Pokémon of the opponent.
   pokemon::CoreData& GetOpponent(u8 index) const {
     return *pokemon_teams[1]->pokemons[index]->core;
   }

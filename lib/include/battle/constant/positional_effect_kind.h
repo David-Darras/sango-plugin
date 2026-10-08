@@ -15,16 +15,25 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file positional_effect_kind.h
+ * @brief The effects that stay on one position of the battlefield.
+ */
+
 #pragma once
 #include <types.h>
 
 namespace battle {
+/// An effect on one position of the battlefield.
 enum class PositionalEffectKind : u8 {
-  kWish, ///< Heals whoever occupies this position one turn later
-  kLunarDance, ///< Fully heals and restores PP for the next Pokémon sent to this position
-  kHealingWish, ///< Same as Lunar Dance, without the PP restoration
-  kDelayedAttack, ///< Future Sight/Doom Desire-style delayed damage
-  kBatonTouchPending, ///< Stat stages waiting to be handed off to the next Pokémon sent here
+  kWish, ///< Heals the Pokémon at this position one turn later.
+  /// Fully heals the next Pokémon at this position and restores its PP.
+  kLunarDance,
+  kHealingWish, ///< Like Lunar Dance, but without the PP.
+  /// Damage one or more turns later (Future Sight, Doom Desire).
+  kDelayedAttack,
+  /// The stat stages for the next Pokémon at this position (Baton Pass).
+  kBatonTouchPending,
 
   kCount,
 };

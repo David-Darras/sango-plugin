@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file page_pokemon_data.cc
+ * @brief The menu pages of the species data and of the move data.
+ */
+
 #include "pokemon/native/move_data.h"
 #include "pokemon/native/species_data.h"
 #include "pokemon/data/move.inc"

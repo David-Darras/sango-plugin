@@ -15,6 +15,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file form.h
+ * @brief The ids of the forms.
+ *
+ * The value of a form is its number for its species: the same number can be
+ * a different form for a different species. FormId::kNormal (0) is the
+ * normal form of all the species.
+ */
+
 #pragma once
 
 #include <types.h>

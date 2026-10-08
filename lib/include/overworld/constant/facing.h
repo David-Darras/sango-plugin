@@ -15,12 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file facing.h
+ * @brief The directions of the characters.
+ */
+
 #pragma once
 
 #include <types.h>
 
 namespace overworld {
 
+/// The direction of a character.
 enum class Facing : u8 {
   kUp = 0,
   kDown = 1,

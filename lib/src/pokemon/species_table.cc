@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file species_table.cc
+ * @brief Adds the species of generations VII, VIII and IX to the game.
+ *
+ * The declarations are in pokemon/patch/species_table.h.
+ */
+
 #include "pokemon/patch/species_table.h"
 #include "pokemon/patch/alolan_forms.h"
 #include <cstring>

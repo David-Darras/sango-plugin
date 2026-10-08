@@ -15,13 +15,25 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file common.h
+ * @brief The header that every file of the project includes.
+ *
+ * It contains:
+ * - the base types (u8, u32, f32, c16...) and the macros (INLINE, SIZE...),
+ * - the memory macros (READ32, WRITE32...) and the singleton macros,
+ * - the addresses of all the domains,
+ * - the structures that all the domains use: String, Message, Bundle and
+ *   PokeInfo.
+ */
+
 #pragma once
 
 #ifdef __CLION_IDE__
 #define USE_SANGO_PLUGIN
 #endif
 
-// Modular Core includes
+// Base tools of the library.
 #include "core/bitmask.h"
 #include "core/color.h"
 #include "core/math.h"
@@ -33,16 +45,16 @@
 #include <functional>
 #include <CTRPluginFramework/System/Process.hpp>
 
-// Address definitions
+// The addresses of all the domains.
 #include "address.h"
 
-// Game constants
+// The ids that most files use.
 #include "pokemon/constant/form.h"
 #include "pokemon/constant/gender.h"
 #include "pokemon/constant/species.h"
 #include "system/constant/language.h"
 
-// Game structures shared by every domain
+// The game structures that all the domains use.
 #include "core/native/bundle.h"
 #include "pokemon/native/poke_info.h"
 #include "system/native/message.h"
@@ -52,7 +64,9 @@ namespace ui {
 class MainApplication;
 }
 
+/// A menu page: a function that adds the entries of the page.
 typedef void (*menu_callback_t)(ui::MainApplication& app, void* args);
+/// A function that the menu calls when the player selects an entry.
 typedef std::function<void(void*)> callback_t;
+/// A function that a cheat code calls when it is enabled or disabled.
 typedef std::function<void()> cheat_code_callback_t;
-

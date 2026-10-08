@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file page_model_loader.cc
+ * @brief The menu page that loads 3D models in the overworld.
+ */
+
 #include "core/native/process_manager.h"
 #include "overworld/constant/model.h"
 #include "overworld/native/model_manager.h"

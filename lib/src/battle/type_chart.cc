@@ -15,12 +15,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file type_chart.cc
+ * @brief Reads and changes the type chart.
+ *
+ * The declarations are in battle/patch/type_chart.h.
+ */
+
 #include "battle/patch/type_chart.h"
 
 namespace battle {
 
 void TypeChart::PatchLoad() {
-  // Reserved for custom type chart patches
+  // Nothing to do now: the type chart changes with TypeChart::Set().
 }
 
 TypeChart::Row* TypeChart::GetTable() {

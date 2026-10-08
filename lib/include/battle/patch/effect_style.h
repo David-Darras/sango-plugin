@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file effect_style.h
+ * @brief Changes the particle effects of the battles: colors, size, life...
+ *
+ * Use the functions of battle::MoveAnimation (ColorEffect()...) instead.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -23,6 +30,7 @@
 
 namespace battle {
 
+/// Changes the particle files of the battles when the game loads them.
 class EffectStyles {
   MAKE_SINGLETON(EffectStyles)
 

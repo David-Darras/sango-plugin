@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file whos_that_pokemon.cc
+ * @brief The mini-game "Who's that Pokémon?".
+ *
+ * The declarations are in overworld/patch/whos_that_pokemon.h.
+ */
+
 #include "overworld/patch/whos_that_pokemon.h"
 
 #include <cstring>

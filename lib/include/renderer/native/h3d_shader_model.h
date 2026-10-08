@@ -15,12 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file h3d_shader_model.h
+ * @brief A 3D model with its shaders.
+ */
+
 #pragma once
 
 #include "common.h"
 #include "renderer/native/h3d_resource.h"
 
 namespace renderer {
+/// A 3D model with its shaders. The plugin uses it to show models in the overworld.
 struct H3dShaderModel {
   u8 _0[0xE8];
   Vec3 scale;

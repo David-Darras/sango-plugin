@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file trainer_team.cc
+ * @brief New teams for the trainers.
+ *
+ * The declarations are in battle/patch/trainer_team.h.
+ */
+
 #include "battle/patch/trainer_team.h"
 #include "battle/native/config.h"
 #include "savedata/native/pokemon_team.h"

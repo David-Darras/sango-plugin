@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file device.h
+ * @brief The input devices of the console.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -25,10 +30,12 @@ class Controller;
 class TouchScreen;
 class DPad;
 
+/// The input devices: the buttons, the D-pad and the touch screen.
 class Device {
   SINGLETON(Device)
 
 public:
+  /// The input channel of the plugin. The game uses other channels.
   static constexpr u8 kCustomChannel = 0x13;
 
   STATIC_INLINE Device& GetInstance() {

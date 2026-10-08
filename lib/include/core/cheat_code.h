@@ -15,21 +15,37 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file cheat_code.h
+ * @brief A cheat code: a function that the player enables in the menu.
+ */
+
 #pragma once
 
 #include "common.h"
 
 namespace core {
 
+/**
+ * @brief A cheat code: two functions and an on/off state.
+ *
+ * When the cheat code is enabled, it calls `on_enable`. When it is disabled,
+ * it calls `on_disable`. It can call them at each frame.
+ */
 class CheatCode {
 public:
+  /// Sets the two functions. `do_each_frame`: call them at each frame.
   void Initialize(cheat_code_callback_t on_enable,
                   cheat_code_callback_t on_disable,
                   bool do_each_frame);
 
+  /// Enables or disables the cheat code.
   INLINE void Toggle() { is_enabled_ = !is_enabled_; }
+  /// Returns true when the cheat code is enabled.
   INLINE bool IsEnabled() const { return is_enabled_; }
+  /// Returns true when the cheat code runs at each frame.
   INLINE bool DoEachFrame() const { return do_each_frame_; }
+  /// Calls `on_enable` or `on_disable`, from the current state.
   void Execute() const;
 
 private:

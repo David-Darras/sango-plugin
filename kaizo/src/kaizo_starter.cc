@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https:
  */
 
+/**
+ * @file kaizo_starter.cc
+ * @brief Kaizo: the starter Pokémon.
+ */
+
 #include "common.h"
 #include "core/hook_manager.h"
 #include "core/utils.h"

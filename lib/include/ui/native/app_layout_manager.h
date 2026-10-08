@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file app_layout_manager.h
+ * @brief The 2D layouts of a game screen.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -26,8 +31,7 @@ struct TextBox;
 
 namespace ui {
 
-/// The game's app layout manager: the panes, text boxes and pictures of
-/// the layouts an app has loaded.
+/// The 2D layouts of a game screen: its panes, text boxes and pictures.
 class AppLayoutManager {
   SINGLETON(AppLayoutManager)
 public:

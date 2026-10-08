@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file auto_surf.cc
+ * @brief The player surfs without the Surf menu.
+ *
+ * The declarations are in overworld/patch/auto_surf.h.
+ */
+
 #include "overworld/patch/auto_surf.h"
 #include "core/hook_manager.h"
 #include "core/native/game_manager.h"

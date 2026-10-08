@@ -15,7 +15,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file custom_shop.cc
+ * @brief Changes the items of the shops, and sells Pokémon in the shops.
+ *
+ * The declarations are in pokemon/patch/custom_shop.h.
+ */
+
 #include "pokemon/patch/custom_shop.h"
+#include "core/cheat_code_manager.h"
 #include "core/hook_manager.h"
 #include "core/utils.h"
 #include "pokemon/native/gift_pokemon_data.h"
@@ -27,6 +35,10 @@
 namespace pokemon {
 
 void CustomShop::Initialize() {
+  core::CheatCodeManager::Initialize(
+      CheatCodeId::kPokemonShop,
+      []() { GetInstance().is_pokemon_shop_enabled_ = true; },
+      []() { GetInstance().is_pokemon_shop_enabled_ = false; }, false);
   core::HookManager::Initialize(HookId::kLoadShopItems, core::address::kLoadShopItems,
                           (uptr)LoadShopItemsHook);
   core::HookManager::Initialize(HookId::kUnloadShopItems,
@@ -48,10 +60,18 @@ void CustomShop::Initialize() {
                           (uptr)AddItemHook);
 }
 
-void CustomShop::SetItems(const ShopItem* items, u32 count) {
+void CustomShop::EnablePokemonShop(bool is_enabled) {
+  core::CheatCode* code =
+      core::CheatCodeManager::GetInstance().Get(CheatCodeId::kPokemonShop);
+  if (code != nullptr && code->IsEnabled() != is_enabled) code->Toggle();
+  GetInstance().is_pokemon_shop_enabled_ = is_enabled;
+}
+
+void CustomShop::SetItems(const ShopItem* items, u32 count, u32 shop_id) {
   auto& shop = GetInstance();
   shop.items = items;
   shop.count = count;
+  shop.items_shop_id = shop_id;
 }
 
 void CustomShop::SetPokemons(const ShopPokemon* pokemons, u32 count, u32 shop_id) {
@@ -166,9 +186,12 @@ void CustomShop::LoadShopItemsHook(ShopData* data, ShopType type, u32 id,
 
   auto& shop = GetInstance();
   shop.pokemon_data = nullptr;
-  ui::LogApplication::Print(u"shop: type=%u id=%u", type, id);
+  if (shop.log_shop_ids) {
+    ui::LogApplication::Print(u"shop: type=%u id=%u", type, id);
+  }
 
-  if (shop.pokemons != nullptr && shop.pokemon_count > 0 &&
+  if (shop.is_pokemon_shop_enabled_ && shop.pokemons != nullptr &&
+      shop.pokemon_count > 0 &&
       type == ShopType::kNormal &&
       (shop.pokemon_shop_id == kAnyShop || shop.pokemon_shop_id == id)) {
     u32 count = shop.pokemon_count < ShopData::kMaxItems
@@ -184,12 +207,15 @@ void CustomShop::LoadShopItemsHook(ShopData* data, ShopType type, u32 id,
   }
 
   if (shop.items == nullptr) return;
+  if (shop.items_shop_id != kAnyShop && shop.items_shop_id != id) return;
 
-  for (u32 i = 0; i < shop.count; i++) {
+  const u32 count =
+      shop.count < ShopData::kMaxItems ? shop.count : ShopData::kMaxItems;
+  for (u32 i = 0; i < count; i++) {
     data->items[i].id = shop.items[i].id;
     data->items[i].price = shop.items[i].price;
   }
-  data->count = shop.count;
+  data->count = count;
 }
 
 void CustomShop::UnloadShopItemsHook(ShopData* data) {
@@ -255,7 +281,6 @@ void CustomShop::PurchaseItemHook(uptr event) {
   for (u32 i = 0; i < bought; i++) {
     GivePokemon(*entry);
   }
-  ui::LogApplication::Print(u"shop: bought %u x %u", entry->species, bought);
 }
 
 bool CustomShop::AddItemHook(void* bag, ItemId item, u16 count, void* heap) {

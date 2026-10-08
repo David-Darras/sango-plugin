@@ -15,10 +15,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file stat_stage_effect_kind.h
+ * @brief The stats that a stat change can change.
+ */
+
 #pragma once
 #include <types.h>
 
 namespace battle {
+/// A stat that a stat change raises or lowers.
 enum class StatStageEffectKind : u8 {
   kNone = 0,
 
@@ -33,6 +39,7 @@ enum class StatStageEffectKind : u8 {
   kCount,
 
   kCriticalHitStage = kCount,
-  kAllStatsAtOnce, ///< Attack, Sp. Atk, Defense, Sp. Def and Speed all at once
+  /// Attack, Sp. Atk, Defense, Sp. Def and Speed at the same time.
+  kAllStatsAtOnce,
 };
 }

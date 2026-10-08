@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file item_data.h
+ * @brief The data of one item.
+ *
+ * @see docs/tutorials/11-change-items-and-shops.md
+ */
+
 #pragma once
 
 #include "common.h"
@@ -22,35 +29,38 @@
 #include "core/native/game_manager.h"
 
 namespace pokemon {
+/// The data of one item: price, effects, pockets...
 struct ItemData {
+  /// Loads the data of an item.
   INLINE ItemData(const ItemId id) {
     ((void(*)(ItemData*, ItemId, void*))address::kItemDataInitialize)
         (this, id, core::GameManager::GetInstance().GetSystemHeap());
   }
 
+  /// Writes the name of the item.
   INLINE void GetName(String* str) {
     ((void(*)(ItemData*, String*, void*))address::kItemDataGetName)
         (this, str, core::GameManager::GetInstance().GetSystemHeap());
   }
 
-  u16 price;
-  u8 hold_effect;
+  u16 price; ///< The price in a Poké Mart.
+  u8 hold_effect; ///< The effect when a Pokémon holds the item.
   u8 power;
 
   u8 pluck_effect;
   u8 fling_effect;
-  u8 fling_power;
+  u8 fling_power; ///< The power of Fling with this item.
   u8 natural_gift_power;
 
   u16 natural_gift_type : 5;
   u16 is_key_item : 1;
   u16 registered_button : 1;
-  u16 field_pocket : 4;
-  u16 battle_pocket : 5;
-  u8 field_function;
-  u8 battle_function;
+  u16 overworld_pocket : 4; ///< The pocket of the Bag.
+  u16 battle_pocket : 5; ///< The pocket of the Bag in battle.
+  u8 overworld_function; ///< The effect when the player uses the item outside of a battle.
+  u8 battle_function; ///< The effect when the player uses the item in battle.
 
-  bool use_on_pokemon;
+  bool use_on_pokemon; ///< true: the player uses the item on a Pokémon.
   u8 item_type;
   u8 battle_hold_consume : 4;
   u8 use_no_consume : 4;

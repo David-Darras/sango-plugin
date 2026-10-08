@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file database.h
+ * @brief The tables of the Pokémon data of the game.
+ */
+
 #pragma once
 
 #include <cstddef>
@@ -27,26 +32,27 @@ struct EvolutionTable;
 struct MegaEvolutionTable;
 struct SpeciesData;
 
+/// The tables of the Pokémon data: species, evolutions, Mega Evolutions and texts.
 struct Database {
   STATIC_INLINE Database& GetInstance() {
     return *(Database*)address::kDatabase;
   }
 
-  SpeciesData* species;
+  SpeciesData* species; ///< The data of all the species and forms.
   void* _0[GAME_CONSTANT(6, 2)];
-  Message* ability_names;
-  Message* ability_descriptions;
+  Message* ability_names; ///< The names of the abilities.
+  Message* ability_descriptions; ///< The descriptions of the abilities.
   void* _1[GAME_CONSTANT(7, 9)];
-  EvolutionTable* evolution;
+  EvolutionTable* evolution; ///< The evolutions of the current species.
   void* _2[2];
-  MegaEvolutionTable* mega_evolution;
+  MegaEvolutionTable* mega_evolution; ///< The Mega Evolutions of the current species.
   void* _3[GAME_CONSTANT(47, 9)];
-  Message* move_names;
+  Message* move_names; ///< The names of the moves.
 };
 
 static_assert(offsetof(Database, ability_names) == GAME_CONSTANT(0x1C, 0x0C) &&
               offsetof(Database, evolution) == GAME_CONSTANT(0x40, 0x38) &&
               offsetof(Database, mega_evolution) == GAME_CONSTANT(0x4C, 0x44) &&
               offsetof(Database, move_names) == GAME_CONSTANT(0x10C, 0x6C),
-              "Database must match the game's pml::Library layout");
+              "Database must match the layout of the game's Pokemon database");
 } // namespace pokemon

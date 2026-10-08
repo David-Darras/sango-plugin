@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file address.h
+ * @brief The addresses of the battle domain. Most of them are in the battle CRO.
+ */
+
 #pragma once
 
 #include "core/game.h"

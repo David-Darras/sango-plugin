@@ -15,29 +15,38 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file turn_marker.h
+ * @brief The markers of a Pokémon that the engine clears at the end of each turn.
+ */
+
 #pragma once
 #include <types.h>
 
 namespace battle {
-// Cleared automatically at the end of every turn.
+/// A marker that the engine clears at the end of each turn.
 enum class TurnMarker : u8 {
   kActionStarted,
   kActionFinished,
   kTookDamage,
   kMoveProcessingDone,
   kFlinched,
-  kBracingForFocusPunch, ///< Waiting to take a hit while charging Focus Punch (always flinches if hit)
+  /// The Pokémon charges Focus Punch. A hit makes it flinch.
+  kBracingForFocusPunch,
   kHitWhileBracingForFocusPunch,
   kProtectSucceeded,
   kItemConsumedAndGone,
   kItemUnusable,
-  kComboMoveReady, ///< Ready to combine into an elemental Pledge-style combo
-  kNeedsToExitHiddenState, ///< Needs to drop out of a charging-move hidden state (Fly/Dig-style)
+  kComboMoveReady, ///< The Pokémon can make a Pledge combination.
+  /// The Pokémon must come back from the sky or from underground.
+  kNeedsToExitHiddenState,
   kMovedOrSwitchedThisTurn,
-  kTurnCheckStatusPassed, ///< Already went through end-of-turn status processing
-  kAccuracyBoostedByBerry, ///< Currently benefiting from a Micle Berry-style accuracy boost
+  kTurnCheckStatusPassed, ///< The end-of-turn status check is done.
+  /// The accuracy of the Pokémon is higher (like Micle Berry).
+  kAccuracyBoostedByBerry,
   kUsingFling,
-  kProtectSucceededDamageMovesOnly, ///< Protect succeeded but only blocks damaging moves
+  /// The protection blocks only the damaging moves.
+  kProtectSucceededDamageMovesOnly,
   kItemConsumptionConfirmed,
 
   kCount,

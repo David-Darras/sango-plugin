@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file setup.h
+ * @brief Changes the battles before they start.
+ *
+ * @see docs/tutorials/08-change-trainer-teams.md
+ */
+
 #pragma once
 
 #include <type_traits>
@@ -32,9 +39,10 @@
 namespace battle {
 struct Config;
 
-/// What the wild battle setup hook overwrites when `is_enabled` is set.
+/// The settings of battle::Setup. When `is_enabled` is true, they replace
+/// the settings of the wild battles.
 struct SetupSettings {
-  bool is_enabled = false;
+  bool is_enabled = false; ///< true: the wild battles use these settings.
   Format format = Format::kSingle;
 #ifdef GAME_XY
   BackgroundId background = BackgroundId::kXerneas;
@@ -65,10 +73,11 @@ struct SetupSettings {
 static_assert(std::is_standard_layout<SetupSettings>::value,
               "SetupSettings must have standard layout");
 
+/// Changes the battles before they start.
 struct Setup : public SetupSettings {
   MAKE_SINGLETON(Setup)
-  /// Called once the game has set a trainer battle up; the trainer can
-  /// still be swapped for another one.
+  /// Called after the game prepares a trainer battle. The callback can change
+  /// the trainer and the team.
   typedef void (*TrainerBattleCallback)(Config& config, TrainerId& trainer_id);
   TrainerBattleCallback on_trainer_battle = nullptr;
 

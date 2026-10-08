@@ -15,12 +15,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file field_position.h
+ * @brief The positions on the battlefield.
+ */
+
 #pragma once
 #include <types.h>
 
 namespace battle {
+/// A position on the battlefield: a side and a slot.
 enum class FieldPosition : u8 {
-  kFirstSideSlot0, ///< The player's side in single-player, the server's side in online play
+  /// The side of the player in a local battle, the side of the host online.
+  kFirstSideSlot0,
   kSecondSideSlot0,
   kFirstSideSlot1,
   kSecondSideSlot1,

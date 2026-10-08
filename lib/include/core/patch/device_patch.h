@@ -15,15 +15,21 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file device_patch.h
+ * @brief Hides the buttons from the game when the menu of the plugin is open.
+ */
+
 #pragma once
 
 #include "common.h"
 
 namespace core {
 
+/// Hides the buttons and the touch screen from the game.
 struct DevicePatch {
   MAKE_SINGLETON(DevicePatch)
-  bool use_redirection = false;
+  bool use_redirection = false; ///< true: the game sees no button. The menu sets it when it opens.
 
   static void Initialize();
 

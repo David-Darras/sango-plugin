@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file evolution.h
+ * @brief Adds the evolutions of the new species to the evolution table.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -22,6 +27,7 @@
 
 namespace pokemon {
 
+/// Changes the evolution data when the game loads it.
 class Evolution {
   MAKE_SINGLETON(Evolution)
 

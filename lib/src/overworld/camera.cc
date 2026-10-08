@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file camera.cc
+ * @brief The camera modes of the plugin: free camera, first-person view...
+ *
+ * The declarations are in overworld/patch/camera.h.
+ */
+
 #include "overworld/patch/camera.h"
 #include "battle/native/graphics.h"
 

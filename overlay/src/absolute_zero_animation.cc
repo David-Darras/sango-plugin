@@ -15,7 +15,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "battle/patch/game_extension.h"
+/**
+ * @file absolute_zero_animation.cc
+ * @brief Example: a new animation for the move Absolute Zero (MoveAnimations::Define).
+ */
+
+#include "custom_battle.h"
 #include "battle/patch/move_animation.h"
 
 namespace battle {

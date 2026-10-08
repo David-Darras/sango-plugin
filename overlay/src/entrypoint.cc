@@ -16,18 +16,16 @@
  */
 
 /**
- * The overlay: every page of the library under one menu, for exploring and
- * editing the game while it runs.
+ * @file entrypoint.cc
+ * @brief The overlay: all the pages of the library in one menu.
+ *
+ * Use the overlay to explore and to change the game while it runs.
  */
 
 #include "plugin.h"
-#include "battle/patch/game_extension.h"
-#include "battle/patch/move_animation.h"
-#include "core/native/process_manager.h"
+#include "custom_battle.h"
 #include "net/network.h"
 #include "net/remote_avatars.h"
-#include "savedata/native/pokemon_team.h"
-#include "overworld/native/model_manager.h"
 #include "ui/page/pages.h"
 #include "ui/painter.h"
 
@@ -38,51 +36,29 @@ void Install();
 namespace battle {
 void RegisterAbsoluteZeroAnimation();
 void RegisterThunderboltAnimation();
-void RegisterThunderboltLayersAnimation();
-void RegisterEffectShowcaseAnimation();
-}
-
-static void GiveTestMovesToFirstPokemon() {
-  static bool done = false;
-  if (done || !core::ProcessManager::IsOverworldActive()) return;
-
-  auto& team = savedata::PokemonTeam::GetInstance();
-  if (team.count == 0 || team.pokemons[0] == nullptr) return;
-
-  auto& pokemon = *team.pokemons[0];
-  pokemon.accessor->Decrypt();
-  pokemon.core->moves[0] = kMoveAbsoluteZero;
-  pokemon.core->pp[0] = 50;
-  pokemon.core->pp_up_count[0] = 0;
-  pokemon.core->moves[1] = MoveId::kThunderbolt;
-  pokemon.core->pp[1] = 24;
-  pokemon.core->pp_up_count[1] = 3;
-  pokemon.accessor->Encrypt();
-  done = true;
 }
 
 static void EveryFrame() {
-  GiveTestMovesToFirstPokemon();
   net::Network::Update();
   plugin::UpdateFrame();
 #ifdef GAME_ORAS
   net::RemoteAvatars::Update();
 #endif
-  // UpdateFollowingPokemon();
   plugin::DrawFrame();
 }
 
 void Initialize() {
   plugin::InitializeEngine();
+  battle::RegisterCustomAbilities();
+  battle::RegisterCustomMoves();
+  battle::RegisterAbsoluteZeroAnimation();
+  battle::RegisterThunderboltAnimation();
 
   script::Install();
 #ifdef GAME_ORAS
   net::RemoteAvatars::Initialize();
 #endif
 
-  // battle::RegisterThunderboltLayersAnimation();
-
-  // plugin::LoadConfiguration();
   plugin::OpenMenu(ui::MainAppPainter::GetInstance(), ui::LoadTopPage);
   plugin::Start(EveryFrame);
 }

@@ -15,13 +15,20 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file battle.cc
+ * @brief Changes the battles: animations, health bars, capture rules, Mega Evolutions.
+ *
+ * The declarations are in battle/patch/battle.h.
+ */
+
 #include "battle/patch/battle.h"
 
 #include "battle/native/manager.h"
 #include "battle/patch/game_extension.h"
 #include "battle/patch/type_chart.h"
 #include "core/hook_manager.h"
-#include "overworld/patch/field.h"
+#include "overworld/patch/overworld.h"
 #include "system/native/sound.h"
 #include "pokemon/address.h"
 
@@ -111,7 +118,7 @@ void Battle::PatchUpdate() {
 }
 
 void Battle::PatchLoad() {
-  MEMORY_SCOPE(sys::address::kMemoryRegionGameCode, 0xD8000);
+  MEMORY_SCOPE(sys::address::kMemoryRegionCro, 0xD8000);
   core::HookManager::ForceEnable(HookId::kBattleUpdateView);
   core::HookManager::ForceEnable(HookId::kBattleLevelUp);
   core::HookManager::ForceEnable(HookId::kBattleStartMegaEvolutionAnimation);
@@ -221,8 +228,8 @@ void Battle::UpdateGaugeHook(uptr gauge, u16 max_hp, u32 new_hp) {
 void Battle::UpdateViewHook(uptr self) {
   if (kCameraOffset != 0) {
     u32* camera = *(u32**)(self + kCameraOffset);
-    camera[4] = 0; // don't use split view
-    camera[5] = 0x7FFFFFFF; // disable camera animation
+    camera[4] = 0; ///< Do not use the split view.
+    camera[5] = 0x7FFFFFFF; ///< Disable the camera animation.
   }
 
   core::HookManager::Call<void>(HookId::kBattleUpdateView, self);
@@ -245,7 +252,7 @@ void Battle::PlayAnimationHook(uptr view_manager, u16 id) {
 void Battle::StartBackgroundMusicHook(uptr sound_manager, u32 id, u8 p2) {
   if (GetInstance().sync_overworld_music) {
     id = sys::Sound::kBankBackgroundMusic +
-         static_cast<u32>(overworld::Field::GetInstance().background_music);
+         static_cast<u32>(overworld::Overworld::GetInstance().background_music);
   }
   return core::HookManager::Call<void>(HookId::kBattleStartBackgroundMusic,
                                        sound_manager, id, p2);

@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file native_script.h
+ * @brief Runs C++ functions as overworld scripts.
+ *
+ * @see docs/concepts/scripts.md
+ */
+
 #pragma once
 
 #include "common.h"
@@ -29,14 +36,24 @@
 
 namespace script {
 /**
- *   halt 0            ; return address 0 lands here (Pawn convention)
- *   main: proc
- *   loop: push.c 0    ; no arguments
- *         sysreq.c 0  ; native #0 -> NativeEntry
- *         stack 4
- *         jnz loop    ; keep calling while the C++ side says so
- *         zero.pri
- *         retn
+ * @brief Runs C++ functions as overworld scripts.
+ *
+ * When the game starts a registered script id, the library gives the game a
+ * small .amx program. This program calls one native again and again. The
+ * native runs the C++ function in a coroutine:
+ *
+ *     halt 0            ; return address 0 (Pawn convention)
+ *     main: proc
+ *     loop: push.c 0    ; no parameters
+ *           sysreq.c 0  ; native 0 -> NativeEntry
+ *           stack 4
+ *           jnz loop    ; continue while the C++ function runs
+ *           zero.pri
+ *           retn
+ *
+ * @code
+ * script::NativeScript::Register(kMyScript, MyScript);
+ * @endcode
  */
 class NativeScript {
   MAKE_SINGLETON(NativeScript)
@@ -47,7 +64,7 @@ public:
   static constexpr u32 kMessageCapacity = 512;
   static constexpr s32 kBorrowedScriptId = (s32)ScriptId::kDoNothing;
 
-  bool log_activity = false;
+  bool log_activity = false; ///< true: writes the start and the end of each C++ script to the log.
   u32 run_count = 0;
 
   STATIC_INLINE void Initialize() {
@@ -57,6 +74,7 @@ public:
                             (uptr)DescriptorSetupHook);
   }
 
+  /// Links a script id to a C++ function. 32 scripts at most.
   static bool Register(ScriptId id, Function function) {
     auto& ctx = GetInstance();
     if (function == nullptr || ctx.Find(id) != nullptr) return false;
@@ -65,12 +83,15 @@ public:
     return true;
   }
 
+  /// Returns true when a C++ function has this script id.
   static bool IsRegistered(ScriptId id) {
     return GetInstance().Find(id) != nullptr;
   }
 
+  /// Returns the number of registered scripts.
   static u32 GetCount() { return GetInstance().count_; }
 
+  /// Gives the small .amx program to the game. core::ScriptLoader calls it.
   static bool OnLoad(void* self, const void*& buffer, u32& size) {
     auto& ctx = GetInstance();
     auto* vm = (ScriptVm*)self;

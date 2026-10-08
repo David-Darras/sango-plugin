@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file main_application.cc
+ * @brief The menu of the plugin. See ui/main_application.h.
+ */
+
 #include "ui/main_application.h"
 
 #include "core/native/event_manager.h"

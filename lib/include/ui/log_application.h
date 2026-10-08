@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file log_application.h
+ * @brief The log window of the plugin.
+ */
+
 #pragma once
 
 #include <cstdarg>
@@ -26,6 +31,13 @@
 #include "ui/application.h"
 
 namespace ui {
+/**
+ * @brief The log window: the last 13 messages. Press L + R to show it.
+ *
+ * @code
+ * ui::LogApplication::Print(u"Species %u", static_cast<u32>(species));
+ * @endcode
+ */
 class LogApplication : public Application {
   MAKE_SINGLETON(LogApplication)
 public:
@@ -54,6 +66,7 @@ public:
   void Update(sys::Controller& controller) override {
   }
 
+  /// Adds a formatted message (64 characters at most).
   void Add(const c16* message, ...) {
     if (!message) return;
 
@@ -74,6 +87,7 @@ public:
                 sizeof(c16) * kMaxEntryLength);
   }
 
+  /// Adds a formatted message to the log of the plugin (64 characters at most).
   static void Print(const c16* message, ...) {
     if (!message)
       return;

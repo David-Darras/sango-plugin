@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file action_command.h
+ * @brief The movements of the characters in the overworld.
+ */
+
 #pragma once
 
 #include <3ds/types.h>
@@ -22,6 +27,7 @@
 
 namespace overworld {
 
+/// A movement of a character. The number in the name is the duration in frames. See script::Context::Animate().
 enum class ActionCommand : u16 {
   kNone = 0,
   kFace = 1,

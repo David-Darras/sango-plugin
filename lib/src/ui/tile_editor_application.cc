@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file tile_editor_application.cc
+ * @brief The application of the tile editor.
+ *
+ * The declarations are in ui/tile_editor_application.h.
+ */
+
 #include "ui/tile_editor_application.h"
 #include "overworld/patch/tile_editor.h"
 

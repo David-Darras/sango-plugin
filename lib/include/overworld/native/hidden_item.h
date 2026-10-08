@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file hidden_item.h
+ * @brief The hidden items of the overworld.
+ */
+
 #pragma once
 #include <3ds/types.h>
 
@@ -25,6 +30,7 @@
 #include "pokemon/constant/item.h"
 
 namespace overworld {
+/// One hidden item of the game: an item, a map and a position.
 struct HiddenItem {
   static constexpr uptr kCount = 171;
 
@@ -51,6 +57,7 @@ struct HiddenItem {
 };
 
 
+/// One random hidden item: one of six items, at a position.
 struct RandomHiddenItem {
   static constexpr uptr kCount = 33;
 

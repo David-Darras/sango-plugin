@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file friendship_effect.h
+ * @brief The effects of a high friendship in battle.
+ */
+
 #pragma once
 #include <types.h>
 

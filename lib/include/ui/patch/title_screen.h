@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file title_screen.h
+ * @brief Changes the title screen.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -24,6 +29,7 @@
 
 namespace ui {
 
+/// The settings of ui::TitleScreen.
 struct TitleScreenSettings {
   bool is_enabled = true;
   bool no_delay = false;
@@ -37,6 +43,7 @@ struct TitleScreenSettings {
 static_assert(std::is_standard_layout<TitleScreenSettings>::value,
               "TitleScreenSettings must have standard layout");
 
+/// Changes the title screen: video, cry, delay.
 class TitleScreen : public TitleScreenSettings {
   MAKE_SINGLETON(TitleScreen)
 

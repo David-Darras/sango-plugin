@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file tile_editor.cc
+ * @brief Changes the attributes of single tiles and saves them to the SD card.
+ *
+ * The declarations are in overworld/patch/tile_editor.h.
+ */
+
 #include "overworld/patch/tile_editor.h"
 #include "overworld/native/map_manager.h"
 #include <cstring>

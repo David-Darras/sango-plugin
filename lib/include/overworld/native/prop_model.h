@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file prop_model.h
+ * @brief A prop of the overworld.
+ */
+
 #pragma once
 
 #include "core/math.h"
@@ -27,6 +32,7 @@ struct H3dShaderModel;
 namespace overworld {
 struct PropModelManager;
 
+/// A prop of the overworld: a tree, a rock, a sign...
 struct PropModel {
   bool is_initialized;
   bool _0[3];

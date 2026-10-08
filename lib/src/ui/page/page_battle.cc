@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file page_battle.cc
+ * @brief The menu pages of the Battle family.
+ */
+
 #include <math.h>
 
 #include <cstring>

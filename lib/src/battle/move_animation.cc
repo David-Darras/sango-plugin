@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file move_animation.cc
+ * @brief Changes the move animations, or makes new ones.
+ *
+ * The declarations are in battle/patch/move_animation.h.
+ */
+
 #include "battle/patch/move_animation.h"
 #include <cstring>
 #include "battle/patch/effect_style.h"

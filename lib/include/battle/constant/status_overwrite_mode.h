@@ -15,13 +15,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file status_overwrite_mode.h
+ * @brief How a new status condition replaces an old one.
+ */
+
 #pragma once
 #include <types.h>
 
 namespace battle {
+/// How a new status condition replaces an existing one.
 enum class StatusOverwriteMode : u8 {
-  kNone, ///< Can't overwrite an existing status at all
-  kOverwriteBasicStatus, ///< Ignores and replaces another basic status condition
-  kForceOverwrite, ///< Overwrites absolutely anything
+  kNone, ///< Cannot replace an existing status condition.
+  kOverwriteBasicStatus, ///< Replaces a different major status condition.
+  kForceOverwrite, ///< Replaces all status conditions.
 };
 }

@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file script_vm.h
+ * @brief A virtual machine of the script engine.
+ */
+
 #pragma once
 
 #include "core/types.h"
@@ -36,10 +41,12 @@ struct ScriptVm : PawnVm {
   u32 wait_label; // 0xA4
   void* wait_work; // 0xA8
 
+  /// Returns the description of the script.
   INLINE ScriptDescriptor* GetDescriptor() const {
     return run != nullptr ? &run->descriptor : nullptr;
   }
 
+  /// Returns the virtual machine of a running Pawn program.
   STATIC_INLINE ScriptVm* FromAmx(AmxRuntime* amx) {
     return (ScriptVm*)amx->user_data_ptrs[0];
   }

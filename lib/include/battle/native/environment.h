@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file environment.h
+ * @brief The 3D environment of a battle.
+ */
+
 #pragma once
 
 #include "core/types.h"
@@ -25,6 +30,7 @@ struct H3dModel;
 
 namespace battle {
 
+/// The 3D environment of a battle: the ground and the landscape.
 struct Environment {
   uptr vtable;
   uptr _0[11];

@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file shop_data.h
+ * @brief The items of the shop that is open.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -23,10 +28,7 @@
 
 namespace pokemon {
 
-/**
- * @brief The item list a shop counter is currently selling
- * (app::shop::ItemContainer).
- */
+/// The items of the shop that is open. A shop has 60 items at most.
 struct ShopData {
   static constexpr u32 kMaxItems = 60;
 

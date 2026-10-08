@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file poke_info.h
+ * @brief The look of a Pokémon: species, form, gender, shiny state.
+ */
+
 #pragma once
 
 #include "core/types.h"
@@ -24,6 +29,11 @@
 
 namespace pokemon {
 
+/**
+ * @brief The look of a Pokémon. The game uses it to make a Pokémon model.
+ *
+ * pokemon::ModelReplacement::on_create can change it.
+ */
 struct PokeInfo {
   SpeciesId species;
   FormId form;

@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file page_common.h
+ * @brief The functions that several menu pages share.
+ */
+
 #pragma once
 
 /// Pages and callbacks several page families share.

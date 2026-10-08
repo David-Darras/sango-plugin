@@ -15,12 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file settings.h
+ * @brief The options of the game.
+ */
+
 #pragma once
 
 #include "common.h"
 #include "savedata/native/savedata.h"
 
 namespace savedata {
+/// The options of the game: text speed, battle style...
 struct Settings {
   SINGLETON(Settings)
 

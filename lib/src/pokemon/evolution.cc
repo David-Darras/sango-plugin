@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file evolution.cc
+ * @brief Adds the evolutions of the new species to the evolution table.
+ *
+ * The declarations are in pokemon/patch/evolution.h.
+ */
+
 #include "pokemon/patch/evolution.h"
 #include "core/hook_manager.h"
 #include "pokemon/patch/species_table.h"

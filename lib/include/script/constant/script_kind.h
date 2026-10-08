@@ -15,18 +15,24 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file script_kind.h
+ * @brief The kinds of scripts.
+ */
+
 #pragma once
 
 #include <types.h>
 
 namespace script {
 
+/// The kind of a script.
 enum class ScriptKind : u8 {
   kNone = 0,
-  kMap = 1,
-  kShared = 2,
-  kAi = 3,
-  kMapInit = 4,
+  kMap = 1, ///< A script of a map.
+  kShared = 2, ///< A script that all the maps share.
+  kAi = 3, ///< A script of the trainer AI.
+  kMapInit = 4, ///< A script that runs when a map loads.
 };
 
 } // namespace script

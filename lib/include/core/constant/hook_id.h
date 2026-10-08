@@ -15,12 +15,21 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file hook_id.h
+ * @brief The ids of all the hooks.
+ *
+ * Each hook has one id. The library uses the ids before kProduct0.
+ * A product uses kProduct0 to kProduct15.
+ */
+
 #pragma once
 
 #include <types.h>
 
 namespace core {
 
+/// The id of a hook. See core::HookManager.
 enum class HookId : u32 {
   kEntrypoint,
   kIsKeyPressed,
@@ -73,7 +82,6 @@ enum class HookId : u32 {
   kBattleRegisterMoveListener,
   kBattleLoadAnimation,
   kBattleLoadEffect,
-  kBattleAddTerrain,
   kSetAbilityName,
   kSetMoveName,
   kGetAbilityDescription,
@@ -88,14 +96,13 @@ enum class HookId : u32 {
   kFromShinyToNormal,
   kLoadScript,
   kGetEncounterPokemon,
-  kGetNaviDexTable,
+  kGetDexNavTable,
   kLoadMapData,
   kBattleStartMegaEvolutionAnimation,
   kBattleStartEntryAnimation,
   kBattleStartBackgroundMusic,
   kBattlePlayAnimation,
   kGetOverworldBackgroundMusic,
-  kOverworldUpdateZone,
   kReplacePokemonModel,
   kReadFileAsync,
   kReadFileAsync2,
@@ -131,7 +138,27 @@ enum class HookId : u32 {
   kCallPokemonList,
   kGetSystemDateTime,
   kPlayerCheckPushEvent,
-  kMax
+
+  /// Free ids for the hooks of a product (kaizo, undertow, your ROM hack).
+  /// The library never uses them. See docs/tutorials/03-add-a-hook.md.
+  kProduct0,
+  kProduct1,
+  kProduct2,
+  kProduct3,
+  kProduct4,
+  kProduct5,
+  kProduct6,
+  kProduct7,
+  kProduct8,
+  kProduct9,
+  kProduct10,
+  kProduct11,
+  kProduct12,
+  kProduct13,
+  kProduct14,
+  kProduct15,
+
+  kMax ///< The number of hook ids.
 };
 
 } // namespace core

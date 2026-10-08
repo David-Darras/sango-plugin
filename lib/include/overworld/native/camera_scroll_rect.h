@@ -15,12 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file camera_scroll_rect.h
+ * @brief One camera limit rectangle.
+ */
+
 #pragma once
 
 #include "core/types.h"
 
 namespace overworld {
 
+/// A rectangle where the camera moves differently.
 struct CameraScrollRect {
   f32 top;
   f32 bottom;

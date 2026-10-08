@@ -15,12 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file map_settings.h
+ * @brief The settings of a map.
+ */
+
 #pragma once
 
 #include "core/types.h"
 
 namespace overworld {
 
+/// The settings of a map: music, weather, camera, Fly position...
 struct MapSettings {
   u8 terrain_kind;
   u8 model_set_id;
@@ -46,6 +52,6 @@ struct MapSettings {
 };
 
 static_assert(sizeof(MapSettings) == 56,
-              "MapSettings must match the game's ZONEDATA layout");
+              "MapSettings must match the layout of the game structure");
 
 } // namespace overworld

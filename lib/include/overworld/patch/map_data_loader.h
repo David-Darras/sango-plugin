@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file map_data_loader.h
+ * @brief Changes the map data when the game loads it.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -25,6 +30,7 @@ class MapData;
 
 namespace overworld {
 
+/// Changes the map data when the game loads it.
 class MapDataLoader {
   MAKE_SINGLETON(MapDataLoader)
 

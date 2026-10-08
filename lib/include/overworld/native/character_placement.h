@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file character_placement.h
+ * @brief One character of a map.
+ */
+
 #pragma once
 
 #include "core/types.h"
@@ -26,14 +31,15 @@
 
 namespace overworld {
 
+/// One character of a map: model, script, position.
 struct CharacterPlacement {
   u16 local_id;
-  ModelId model_id;
-  u16 movement_id;
+  ModelId model_id; ///< The model.
+  u16 movement_id; ///< The movement code.
   u16 interaction_kind;
-  u16 hide_when_flag_set;
-  ScriptId script_id;
-  Facing facing;
+  u16 hide_when_flag_set; ///< An event flag. When it is set, the character is not there.
+  ScriptId script_id; ///< The script when the player talks to the character.
+  Facing facing; ///< The direction.
   u8 _0;
   u16 param0;
   u16 param1;

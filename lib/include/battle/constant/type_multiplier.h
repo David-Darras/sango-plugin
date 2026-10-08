@@ -15,18 +15,23 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file type_multiplier.h
+ * @brief The values of the type chart.
+ */
+
 #pragma once
 
 #include <types.h>
 
 namespace battle {
 
-/// A cell of the game's type chart (how the attacking type's damage is
-/// scaled against the defending type).
+/// One cell of the type chart: the damage multiplier of an attacking type
+/// against a defending type.
 enum class TypeMultiplier : u8 {
-  k0 = 0,
-  k05 = 1,
-  k1 = 2,
+  k0 = 0, ///< No effect.
+  k05 = 1, ///< Not very effective (x0.5).
+  k1 = 2, ///< Normal (x1).
   k2 = 4
 };
 

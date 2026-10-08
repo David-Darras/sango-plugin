@@ -16,7 +16,11 @@
  */
 
 /**
- * Pokémon Sango Kaizo: the ROM hack, built on the library.
+ * @file entrypoint.cc
+ * @brief Pokémon Sango Kaizo: a complete ROM hack made with the library.
+ *
+ * Read this file to see how a product sets the features and the callbacks
+ * of the library.
  */
 
 #include "battle/patch/battle.h"
@@ -26,7 +30,7 @@
 #include "core/utils.h"
 #include "kaizo/kaizo.h"
 #include "kaizo/kaizo_painter.h"
-#include "overworld/patch/field.h"
+#include "overworld/patch/overworld.h"
 #include "overworld/patch/gift_pokemon.h"
 #include "overworld/patch/static_randomizer.h"
 #include "overworld/patch/trade.h"
@@ -85,7 +89,7 @@ void OnWildPokemon(MapId map_id, overworld::WildPokemon* pokemons,
   }
 }
 
-void OnFieldLoad() {
+void OnOverworldLoad() {
   kaizo::PatchOverworld();
   kaizo::PatchBag();
   kaizo::RestoreTeamAfterBattle();
@@ -114,13 +118,14 @@ void InstallCallbacks() {
   encounter.on_encounter_table = kaizo::PatchEncounterTable;
   encounter.on_wild_pokemon = OnWildPokemon;
 
-  overworld::Field::GetInstance().on_field_load = OnFieldLoad;
+  overworld::Overworld::GetInstance().on_overworld_load = OnOverworldLoad;
   pokemon::ItemCustomizer::GetInstance().on_item_data = kaizo::PatchItemData;
   ui::AppStatus::GetInstance().is_restricted = true;
 }
 
 void EveryFrame() {
   plugin::UpdateFrame();
+  kaizo::UpdateBattleMap();
   kaizo::UpdateOverworldWeather();
   plugin::DrawFrame();
 }
@@ -131,7 +136,6 @@ void Initialize() {
   InstallCallbacks();
   kaizo::Initialize();
 
-  plugin::LoadConfiguration();
   plugin::OpenMenu(kaizo::Painter::GetInstance(), kaizo::LoadMenuPage);
   plugin::Start(EveryFrame);
 }

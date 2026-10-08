@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file map_graft.cc
+ * @brief Joins maps together and adds warps between them.
+ *
+ * The declarations are in overworld/patch/map_graft.h.
+ */
+
 #include "overworld/patch/map_graft.h"
 #include "core/hook_manager.h"
 #include "core/native/game_manager.h"

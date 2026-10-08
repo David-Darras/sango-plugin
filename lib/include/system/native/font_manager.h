@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file font_manager.h
+ * @brief The fonts of the game.
+ */
+
 #pragma once
 #include "common.h"
 #include "system/native/core.h"
@@ -22,6 +27,7 @@
 
 namespace sys {
 
+/// The fonts of the game.
 class FontManager {
   SINGLETON(FontManager)
 public:
@@ -29,6 +35,7 @@ public:
     return Core::GetInstance().GetFontManager();
   }
 
+  /// Returns true when the main font can draw the character.
   STATIC_INLINE bool IsPrintable(u16 c) {
     return GetInstance().font->HasGlyph(c);
   }

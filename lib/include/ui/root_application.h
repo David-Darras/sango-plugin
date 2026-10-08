@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file root_application.h
+ * @brief The first application of the plugin: the menu and the log.
+ */
+
 #pragma once
 
 #include "system/native/controller.h"
@@ -23,6 +28,7 @@
 #include "ui/main_application.h"
 
 namespace ui {
+/// Shows the menu or the log. L + R changes between them.
 class RootApplication : public Application {
   MAKE_SINGLETON(RootApplication)
 public:

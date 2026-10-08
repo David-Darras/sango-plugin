@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file encounter_data.h
+ * @brief The encounter table of a map.
+ */
+
 #pragma once
 
 #include "core/types.h"
@@ -23,6 +28,7 @@
 
 namespace overworld {
 
+/// The wild Pokémon of a map: the rates and the tables of each method.
 struct EncounterData {
   u8 rate[14];
 
@@ -42,11 +48,13 @@ struct EncounterData {
     };
   };
 
+  /// Returns the encounter rate of a method.
   INLINE u8& GetRate(EncounterMethod action) {
     return rate[static_cast<u8>(action)];
   }
 
   INLINE PokeInfoOnAction*
+  /// Returns the table of a method and its size. Only kWalk is supported.
   GetPokeInfoTable(EncounterMethod action, u32& count) {
     PokeInfoOnAction* output = nullptr;
     count = 0;

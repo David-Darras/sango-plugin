@@ -15,12 +15,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file kaizo.cc
+ * @brief The start of Pokémon Sango Kaizo: outlines, trainer models, overworld changes.
+ */
+
 #include "kaizo/kaizo.h"
 
 #include "renderer/patch/lighting.h"
 #include "overworld/patch/camera.h"
 #include "overworld/patch/map_data_loader.h"
-#include "overworld/patch/field.h"
+#include "overworld/patch/overworld.h"
 #include "pokemon/patch/shiny.h"
 #include "ui/patch/title_screen.h"
 #include "battle/native/trainer_model_manager.h"
@@ -44,8 +49,8 @@ void Initialize() {
 
   pokemon::Shiny::GetInstance().rate = pokemon::ShinyRate::k1_8;
   overworld::MapDataLoader::GetInstance().is_contact_enabled = false;
-  overworld::Field::GetInstance().freeze_background_music = true;
-  overworld::Field::GetInstance().background_music = BackgroundMusicId::kCinema;
+  overworld::Overworld::GetInstance().freeze_background_music = true;
+  overworld::Overworld::GetInstance().background_music = BackgroundMusicId::kCinema;
   overworld::Camera::GetInstance().overworld_state =
       overworld::CameraState::kTps;
 

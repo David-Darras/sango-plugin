@@ -15,6 +15,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file alolan_form.inc
+ * @brief The data of the extra forms (Alolan, Galarian, new Mega Evolutions...).
+ *
+ * Each entry: species, form, model form, and 0x50 bytes of species data.
+ * This file is generated. Do not change it by hand.
+ */
+
 #pragma once
 
 typedef struct {

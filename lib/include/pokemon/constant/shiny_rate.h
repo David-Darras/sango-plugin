@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file shiny_rate.h
+ * @brief The shiny rates of pokemon::Shiny.
+ */
+
 #pragma once
 
 #include <types.h>

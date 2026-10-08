@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file common_resource.h
+ * @brief The resources that all the maps share.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -23,22 +28,23 @@
 namespace overworld {
 struct EncounterData;
 
+/// The resources that all the maps share.
 struct CommonResource {
   SINGLETON(CommonResource)
   STATIC_INLINE CommonResource& GetInstance() {
     return core::DataManager::GetInstance().GetCommonResource();
   }
 
-  INLINE EncounterData& GetNaviDexData(u16 map_id) {
-    return *(EncounterData*)navi_dex_pack->GetResource(map_id);
+  /// Returns the DexNav encounter table of a map.
+  INLINE EncounterData& GetDexNavData(u16 map_id) {
+    return *(EncounterData*)dex_nav_pack->GetResource(map_id);
   }
 
   void* graphics_buffer;
   Bundle* graphics_pack;
 
-  void* navi_dex_buffer;
-  Bundle* navi_dex_pack;
+  void* dex_nav_buffer;
+  Bundle* dex_nav_pack;
 
-  // other data
 };
 } // namespace overworld

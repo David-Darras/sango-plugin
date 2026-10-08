@@ -15,19 +15,33 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file game.h
+ * @brief Selects the addresses and the constants of the target game.
+ *
+ * The Makefile defines GAME_ORAS (Omega Ruby and Alpha Sapphire) or
+ * GAME_XY (X and Y). Each address of the library has one value for each
+ * game. The value 0 means that nobody found the address for this game yet.
+ *
+ * @code
+ * constexpr uptr kHealTeam = GAME_ADDRESS(0x0039F2E4, 0x003B5FC0);
+ * //                                      X v1.5      Alpha Sapphire v1.4
+ * @endcode
+ */
+
 #pragma once
 
-// Which game the plugin is built for: the Makefile passes -DGAME_ORAS
-// (Omega Ruby / Alpha Sapphire) or -DGAME_XY (X / Y). Every address of the
-// library is declared once for each game through GAME_ADDRESS; 0 marks an
-// address not found yet in that game.
 #if defined(GAME_XY) && defined(GAME_ORAS)
 #error "GAME_XY and GAME_ORAS are exclusive"
 #elif defined(GAME_XY)
+/// Selects the address of the target game: the first value for X/Y.
 #define GAME_ADDRESS(xy, oras) (xy)
+/// Selects a constant of the target game: the first value for X/Y.
 #define GAME_CONSTANT(xy, oras) (xy)
 #elif defined(GAME_ORAS)
+/// Selects the address of the target game: the second value for ORAS.
 #define GAME_ADDRESS(xy, oras) (oras)
+/// Selects a constant of the target game: the second value for ORAS.
 #define GAME_CONSTANT(xy, oras) (oras)
 #else
 #error "Build with -DGAME_XY or -DGAME_ORAS"

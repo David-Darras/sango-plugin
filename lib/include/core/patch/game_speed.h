@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file game_speed.h
+ * @brief Makes the game faster or slower.
+ */
+
 #pragma once
 
 #include <type_traits>
@@ -23,14 +28,16 @@
 
 namespace core {
 
+/// The settings of core::GameSpeed.
 struct GameSpeedSettings {
-  /// Frames simulated per real frame; negative values slow the game down
-  /// (one frame every -game_speed frames).
+  /// The number of game frames for each real frame. A negative value makes
+  /// the game slower: one game frame every -game_speed real frames.
   s32 game_speed = 1;
 };
 static_assert(std::is_standard_layout<GameSpeedSettings>::value,
               "GameSpeedSettings must have standard layout");
 
+/// Makes the game faster or slower. The player changes `game_speed` in the menu.
 struct GameSpeed : public GameSpeedSettings {
   MAKE_SINGLETON(GameSpeed)
 

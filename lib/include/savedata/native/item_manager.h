@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file item_manager.h
+ * @brief The items of the Bag.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -22,6 +27,7 @@
 #include "savedata/native/savedata.h"
 
 namespace savedata {
+/// The items of the Bag, pocket by pocket.
 struct ItemManager {
   SINGLETON(ItemManager)
   struct ItemSlot {

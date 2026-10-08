@@ -15,11 +15,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file fusion.h
+ * @brief The Pokémon that the DNA Splicers fused.
+ */
+
 #pragma once
 #include "pokemon/native/core_data.h"
 #include "savedata/native/savedata.h"
 
 namespace savedata {
+/// The Pokémon that the DNA Splicers fused with Kyurem.
 struct Fusion {
   SINGLETON(Fusion)
   STATIC_INLINE Fusion& GetInstance() {

@@ -15,17 +15,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file pokemon_amie.h
+ * @brief The data of Pokémon-Amie.
+ */
+
 #pragma once
 
 #include "common.h"
 #include "savedata/native/savedata.h"
 
 namespace savedata {
-/**
-* @brief Manages the Pokémon-Amie (Kawaigari) system data.
-* * This structure handles the inventory of Poké Puffs and global
-* interaction timestamps for the Amie system in Pokémon ORAS.
-*/
+/// The data of Pokémon-Amie: the Poké Puffs and the best ratings of the
+/// mini-games.
 struct PokemonAmie {
   SINGLETON(PokemonAmie)
 
@@ -37,7 +39,7 @@ struct PokemonAmie {
   static constexpr u32 kMaxPokePuffs = 100;
 
   void* vtable;
-  u8 poke_puffs[kMaxPokePuffs];
+  u8 poke_puffs[kMaxPokePuffs]; ///< The Poké Puffs of the player.
   s32 last_opened_timestamp;
 };
 } // namespace savedata

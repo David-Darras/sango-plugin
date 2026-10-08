@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file battle.h
+ * @brief Changes the battles: animations, health bars, capture rules, Mega Evolutions.
+ */
+
 #pragma once
 
 #include <type_traits>
@@ -26,6 +31,7 @@
 
 namespace battle {
 
+/// The settings of battle::Battle.
 struct BattleSettings {
   bool is_long_mega_evolve_animation = false;
   bool is_long_encounter_animation = false;
@@ -38,34 +44,39 @@ struct BattleSettings {
   bool no_shader = false;
   bool can_use_item = true;
   bool same_ratio_for_all_pokeball = false;
-  bool fix_pokemon_size = true;
-  bool sync_overworld_music = false;
-  bool sync_team_hp = false;
-  bool inverse_stats = false;
-  bool metronome_only = false;
-  bool show_type_helper = false;
+  bool fix_pokemon_size = true; ///< Shows the Pokémon with their real sizes.
+  bool sync_overworld_music = false; ///< Keeps the overworld music in battle.
+  bool sync_team_hp = false; ///< When one Pokémon of the first team faints, all the Pokémon of this team faint.
+  bool inverse_stats = false; ///< Exchanges the physical and the special stats.
+  bool metronome_only = false; ///< All the moves are Metronome.
+  bool show_type_helper = false; ///< Shows the effectiveness of the moves.
 
-  bool mega_restriction = true;
-  bool unlimited_mega_evolution = true;
+  bool mega_restriction = true; ///< true: the rule of the game (one Mega Evolution in each battle). false: no limit.
+  bool unlimited_mega_evolution = true; ///< When mega_restriction is false: the game always accepts a Mega Evolution.
 };
 static_assert(std::is_standard_layout<BattleSettings>::value,
               "BattleSettings must have standard layout");
 
+/// Changes the battles. A product sets the settings and the callbacks.
 struct Battle : public BattleSettings {
   MAKE_SINGLETON(Battle)
 public:
+  /// Returns false to stop the capture of the wild Pokémon.
   typedef bool (*CaptureAllowedCallback)();
+  /// Called after the player catches a Pokémon.
   typedef void (*CapturedCallback)();
 
   CaptureAllowedCallback is_capture_allowed = nullptr;
   CapturedCallback on_captured = nullptr;
 
   static void Initialize();
+  /// Called at each frame of a battle.
   static void PatchUpdate();
+  /// Called when a battle starts. Enables the hooks of the battle CRO.
   static void PatchLoad();
 
 private:
-  /// Move id of the animation played when a shiny Pokémon enters the field.
+  /// The animation of a shiny Pokémon that enters the battle.
   static constexpr u16 kShinyAnimationId = 621;
   static constexpr u32 kCameraOffset = GAME_CONSTANT(0, 408);
   static constexpr u32 kModelRealHeightOffset = 0x274;

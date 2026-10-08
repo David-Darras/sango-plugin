@@ -15,12 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file window_type.h
+ * @brief The types of message windows.
+ */
+
 #pragma once
 
 #include <types.h>
 
 namespace script {
 
+/// The type of a message window: speech bubble, sign, system message...
 enum class WindowType : u16 {
   kTalk = 0,
   kTalkVariable = 1,

@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file particle.h
+ * @brief A particle effect of the game.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -22,6 +27,7 @@
 
 namespace renderer {
 
+/// A particle effect: one or more models.
 struct Particle {
   uptr vtable;
 

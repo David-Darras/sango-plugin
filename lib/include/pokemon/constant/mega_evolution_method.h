@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file mega_evolution_method.h
+ * @brief The methods of Mega Evolution.
+ */
+
 #pragma once
 
 #include <types.h>
@@ -22,10 +27,11 @@
 
 namespace pokemon {
 
+/// How a Pokémon Mega Evolves.
 enum class MegaEvolutionMethod : u8 {
   kNone = 0,
-  kItem = 1,
-  kRayquaza = 2
+  kItem = 1, ///< The Pokémon holds its Mega Stone.
+  kRayquaza = 2 ///< The Pokémon knows Dragon Ascent (Rayquaza).
 };
 
 } // namespace pokemon

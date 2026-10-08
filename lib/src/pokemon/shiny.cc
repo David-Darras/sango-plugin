@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file shiny.cc
+ * @brief Changes the shiny rate.
+ *
+ * The declarations are in pokemon/patch/shiny.h.
+ */
+
 #include "pokemon/patch/shiny.h"
 
 #include "core/hook_manager.h"

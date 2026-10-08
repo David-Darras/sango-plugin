@@ -15,6 +15,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file alolan_forms.h
+ * @brief Adds extra forms to species: Alolan, Galarian, new Mega Evolutions...
+ *
+ * A Pokémon changes into its extra form in battle, like a Mega Evolution,
+ * when it holds the item of the form (Life Orb, Choice Band, Choice Specs or
+ * Choice Scarf). The data is in lib/src/pokemon/data/alolan_form.inc.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -25,6 +34,7 @@ namespace pokemon {
 
 struct MegaEvolutionData;
 
+/// Adds extra forms to species and changes them in battle like Mega Evolutions.
 class AlolanForms {
   MAKE_SINGLETON(AlolanForms)
 
@@ -33,14 +43,22 @@ public:
   static constexpr u32 kEntrySize = 0x50;
   static constexpr u32 kFormCount = 138;
 
+  /// Adds the extra forms of a species to its Mega Evolution table.
   static bool PatchMegaTable(SpeciesId species, MegaEvolutionData* table);
   static void Initialize();
+  /// Returns true when the species has an extra form.
   static bool HasForm(u16 species);
+  /// Returns the number of extra forms of the species.
   static u32 FormCount(u16 species);
+  /// Returns the form number of an extra form.
   static u32 GetForm(u16 species, u32 rank = 0);
+  /// Returns the form of the model of an extra form.
   static u32 GetModelForm(u16 species, u32 form);
+  /// Returns the item that changes the Pokémon into its extra form number `rank`.
   static ItemId GetItem(u32 rank);
+  /// Returns the extra form of an item, or 0.
   static u32 GetFormByItem(u16 species, ItemId item);
+  /// Returns true when the Life Orb changes the species.
   static bool IsLifeOrbSpecies(u16 species);
 
 private:

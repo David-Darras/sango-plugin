@@ -15,13 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file camera_context.h
+ * @brief The camera that overworld::Camera controls.
+ */
+
 #pragma once
 
 #include <types.h>
 
 namespace overworld {
 
-/// Which of the game's two cameras the plugin is currently steering.
+/// The camera that the plugin controls: the overworld camera or the battle camera.
 enum class CameraContext : u8 {
   kNone,
   kOverworld,

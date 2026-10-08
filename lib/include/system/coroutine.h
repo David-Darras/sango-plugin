@@ -15,18 +15,36 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file coroutine.h
+ * @brief A function that can stop and continue later, on its own stack.
+ *
+ * script::NativeScript uses it: a C++ script stops when it waits for the
+ * game, and continues at the next frame.
+ */
+
 #pragma once
 
 #include "common.h"
 
 extern "C" void CoroutineSwitch(uptr* save_sp, uptr load_sp);
 
+/**
+ * @brief Runs a function on its own stack. The function can stop (Yield) and
+ * continue later (Resume).
+ *
+ * The stack is filled with a canary value: IsStackHealthy() and
+ * GetStackHighWater() check how much of the stack the function used.
+ */
 class Coroutine {
 public:
+  /// The function that the coroutine runs.
   typedef void (*Function)(void* arg);
 
+  /// Uses `stack` (`stack_size` bytes) as the stack of the function.
   Coroutine(u8* stack, u32 stack_size) : stack_(stack), stack_size_(stack_size) {}
 
+  /// Prepares the function. The function starts at the first Resume().
   void Start(Function function, void* arg) {
     function_ = function;
     arg_ = arg;
@@ -40,6 +58,7 @@ public:
     stack_pointer_ = (uptr)frame;
   }
 
+  /// Runs the function until it calls Yield() or ends. Returns false when it ended.
   bool Resume() {
     if (is_finished_ || function_ == nullptr) return false;
     if (!is_started_) {
@@ -50,13 +69,18 @@ public:
     return !is_finished_;
   }
 
+  /// Stops the function. Call it from inside the function only.
   void Yield() { CoroutineSwitch(&stack_pointer_, caller_stack_pointer_); }
 
+  /// Returns true when the function ended.
   INLINE bool IsFinished() const { return is_finished_; }
+  /// Returns true after the first Resume().
   INLINE bool IsStarted() const { return is_started_; }
+  /// Returns false when the function used all the stack (stack overflow).
   INLINE bool IsStackHealthy() const {
     return *(const u32*)stack_ == kCanary;
   }
+  /// Returns the maximum number of stack bytes that the function used.
   INLINE u32 GetStackHighWater() const {
     const u32* words = (const u32*)stack_;
     u32 untouched = 0;

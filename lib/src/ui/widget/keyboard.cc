@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file keyboard.cc
+ * @brief The keyboard of the menu on the bottom screen.
+ *
+ * The declarations are in ui/widget/keyboard.h.
+ */
+
 #include "ui/widget/keyboard.h"
 
 #include <cstring>

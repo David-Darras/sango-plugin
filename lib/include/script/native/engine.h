@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file engine.h
+ * @brief The script engine of the game.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -29,6 +34,7 @@ class GameManager;
 
 namespace script {
 
+/// The script engine of the game: it runs the overworld scripts.
 class Engine {
   SINGLETON(Engine)
 
@@ -39,9 +45,12 @@ public:
 
   INLINE core::GameManager* GetGameManager() const { return game_manager_; }
   INLINE EngineWorkspace* GetWorkspace() const { return workspace_; }
+  /// Returns the virtual machine that runs now.
   INLINE ScriptVm* GetCurrentVm() const { return current_vm_; }
+  /// Returns the map of the scripts.
   INLINE u16 GetZoneId() const { return zone_id_; }
 
+  /// Returns true while a script runs.
   INLINE bool IsScriptRunning() const {
     return current_vm_ != nullptr && current_vm_->is_loaded;
   }
@@ -52,6 +61,7 @@ public:
     return true;
   }
 
+  /// Stops the Pawn program until the next frame.
   STATIC_INLINE void RaiseSleep(AmxRuntime* amx) {
     ((s32 (*)(AmxRuntime*, s32))core::address::kScriptRaiseError)(amx, AMX_ERR_SLEEP);
   }

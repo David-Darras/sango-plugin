@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file map_character.cc
+ * @brief Adds characters with C++ scripts to the maps.
+ *
+ * The declarations are in overworld/patch/map_character.h.
+ */
+
 #include "overworld/patch/map_character.h"
 #include "core/hook_manager.h"
 #include "core/native/process_manager.h"
@@ -215,6 +222,7 @@ void MapCharacter::PlaceCharacters(MapEventData* events) {
   for (u32 i = 0; i < request_count_ && count < kMaxCharactersPerMap; i++) {
     MapCharacterRequest& request = requests_[i];
     if (request.map_id != map_id && !request.is_everywhere) continue;
+    if (request.is_enabled != nullptr && !*request.is_enabled) continue;
     request.local_id = next_local_id;
     BuildPlacement(request, next_local_id++, &placements_[count]);
     if (request.is_everywhere) {

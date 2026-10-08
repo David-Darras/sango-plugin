@@ -1,0 +1,25 @@
+#---------------------------------------------------------------------------------
+# Local settings of the Makefile.
+#
+# 1. Copy this file to config.mk (in the same folder).
+# 2. Change the paths below for your computer.
+#
+# Git ignores config.mk: your paths stay on your computer.
+# Only `make run-<product>` needs these settings. `make` works without them.
+# Use forward slashes (/) in the paths, also on Windows.
+#---------------------------------------------------------------------------------
+
+# The game to build for: ORAS (Alpha Sapphire v1.4) or XY (X v1.5, experimental).
+# GAME := ORAS
+
+# The SD card folder of your emulator.
+#   Azahar on Windows: C:/Users/<you>/AppData/Roaming/Azahar/sdmc
+#   Azahar on Linux:   /home/<you>/.local/share/azahar-emu/sdmc
+SDMC := C:/Users/<you>/AppData/Roaming/Azahar/sdmc
+
+# The emulator program. Keep the quotes if the path has spaces.
+EMULATOR := "C:/Program Files/Azahar/azahar.exe"
+
+# Your dump of the game (.3ds, .cci or .cia), one line for each game.
+ORAS_GAME_PATH := "C:/Games/3DS/alpha_sapphire.3ds"
+XY_GAME_PATH   := "C:/Games/3DS/pokemon_x.3ds"

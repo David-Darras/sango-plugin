@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file camera_scroll_area.h
+ * @brief The camera limits of a world layout.
+ */
+
 #pragma once
 
 #include "core/types.h"
@@ -22,6 +27,7 @@
 
 namespace overworld {
 
+/// The rectangles where the camera moves differently (16 at most).
 struct CameraScrollArea {
   static constexpr u32 kMaxRects = 16;
 

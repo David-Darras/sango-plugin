@@ -15,14 +15,21 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file application_manager.h
+ * @brief The stack of the applications of the plugin.
+ */
+
 #pragma once
 #include "ui/application.h"
 #include "common.h"
 
 namespace ui {
+/// The applications of the plugin. The last one receives the buttons and draws.
 class ApplicationManager {
   MAKE_SINGLETON(ApplicationManager)
 public:
+  /// Shows an application over the current one.
   void Push(Application& application) {
     if (application_ != nullptr) {
       application.SetParent(application_);
@@ -31,6 +38,7 @@ public:
     application_ = &application;
   }
 
+  /// Closes the current application and goes back to the previous one.
   void Pop() {
     if (application_ != nullptr) {
       Application* parent = application_->GetParent();

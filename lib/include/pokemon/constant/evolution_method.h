@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file evolution_method.h
+ * @brief The methods of evolution.
+ */
+
 #pragma once
 
 #include <types.h>
@@ -22,6 +27,7 @@
 
 namespace pokemon {
 
+/// How a Pokémon evolves. The comment of each value gives the condition.
 enum class EvolutionMethod : u8 {
   kNone = 0, // Does not evolve
   kFriendship = 1, // Level up with high Friendship

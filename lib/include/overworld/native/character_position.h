@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file character_position.h
+ * @brief The position of a character.
+ */
+
 #pragma once
 
 #include "core/types.h"
@@ -22,6 +27,7 @@
 
 namespace overworld {
 
+/// The position of a character: tiles and height.
 struct CharacterPosition {
   PositionKind kind;
   u16 tile_x;

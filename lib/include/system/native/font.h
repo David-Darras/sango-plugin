@@ -15,13 +15,20 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file font.h
+ * @brief A font of the game.
+ */
+
 #pragma once
 
 #include "common.h"
 
 namespace sys {
 
+/// A font of the game.
 struct Font {
+  /// Returns true when the font can draw the character.
   INLINE bool HasGlyph(u16 c) {
     return ((bool(*)(Font*, u16))ui::address::kFontHasGlyph)(this, c);
   }

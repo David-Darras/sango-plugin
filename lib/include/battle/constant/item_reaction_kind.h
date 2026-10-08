@@ -15,10 +15,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file item_reaction_kind.h
+ * @brief The changes that make a held item react.
+ */
+
 #pragma once
 #include <types.h>
 
 namespace battle {
+/// The changes that make a held item check its effect.
 enum class ItemReactionKind : u8 {
   kHpChanged = 1 << 0,
   kPpChanged = 1 << 1,

@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file data_manager.h
+ * @brief The object of the game that keeps the main game data.
+ */
+
 #pragma once
 
 #include "core/native/game_manager.h"
@@ -36,6 +41,7 @@ struct WorldLayout;
 } // namespace overworld
 
 namespace core {
+/// Gives access to the save data, the party and the overworld data.
 class DataManager {
   SINGLETON(DataManager)
 public:
@@ -43,36 +49,48 @@ public:
     return GameManager::GetInstance().GetGameData();
   }
 
+  /// Returns the save data.
   INLINE savedata::SaveData& GetSavedata() const { return *savedata_; }
+  /// Returns the party of the player.
   INLINE savedata::PokemonTeam& GetPokemonTeam() const {
     return *pokemon_team_;
   }
 
+  /// Returns the play time.
   INLINE savedata::PlayTime& GetPlayTime() const { return *play_time_; }
 
+  /// Returns the models of the overworld. Only in the overworld.
   INLINE overworld::ModelManager& GetOverworldModelManager() const {
     return *overworld_model_manager_;
   }
 
+  /// Returns the models of the overworld, or null outside of the overworld.
   INLINE overworld::ModelManager* GetOverworldModelManagerOrNull() const {
     return overworld_model_manager_;
   }
 
+  /// Returns the state of the wild encounters.
   INLINE overworld::EncounterState& GetEncounterState() const {
     return *encounter_;
   }
 
+  /// Returns the data of the current map.
   INLINE overworld::MapData& GetMapData() const { return *map_data_; }
 
+  /// Returns the layout of the current world.
   INLINE overworld::WorldLayout& GetWorldLayout() const {
     return *world_layout_;
   }
 
+  /// Returns the shared resources of the overworld.
   INLINE overworld::CommonResource& GetCommonResource() const {
     return *common_resource_;
   }
+  /// Returns the map of the player.
   INLINE MapId GetPlayerZone() const { return player_zone_id_; }
+  /// Returns the season.
   INLINE u8 GetSeason() const { return static_cast<u8>(season_); }
+  /// Returns the direction of the player.
   INLINE overworld::Facing& GetPlayerDirection() { return player_direction_; }
 
 private:

@@ -15,12 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file trainer_appearance.h
+ * @brief The look of a trainer class.
+ */
+
 #pragma once
 
 #include "core/types.h"
 #include "pokemon/constant/gender.h"
 
 namespace battle {
+/// The look of a trainer class: models, music.
 struct TrainerAppearance {
   u32 type;
   u8 battle_model_sequence : 4;

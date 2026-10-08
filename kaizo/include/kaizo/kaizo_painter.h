@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file kaizo_painter.h
+ * @brief The look of the menu of Pokémon Sango Kaizo (the PokéPhone).
+ */
+
 #pragma once
 
 #include "common.h"

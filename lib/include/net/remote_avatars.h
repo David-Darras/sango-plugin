@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file remote_avatars.h
+ * @brief Shows the other players as characters in the overworld.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -27,6 +32,7 @@ namespace net {
 
 using Facing = overworld::Facing;
 
+/// Shows the other players as characters of the current map (4 at most).
 class RemoteAvatars {
   MAKE_SINGLETON(RemoteAvatars)
 

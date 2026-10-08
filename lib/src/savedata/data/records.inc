@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file records.inc
+ * @brief The names of the records for the menu pages.
+ */
+
 static const char* RECORDS_0[] = {
     "Steps Walked",
     "Times Saved",

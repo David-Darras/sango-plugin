@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file warp_event.h
+ * @brief A warp event of a map.
+ */
+
 #pragma once
 
 #include "core/types.h"

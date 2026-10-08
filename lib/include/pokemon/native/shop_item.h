@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file shop_item.h
+ * @brief One item of a shop.
+ */
+
 #pragma once
 
 #include "core/types.h"
@@ -22,6 +27,7 @@
 
 namespace pokemon {
 
+/// One item of a shop and its price.
 struct ShopItem {
   /// The game stores the item in a 32-bit slot; the id itself fits in the
   /// low half, the high half stays zero.

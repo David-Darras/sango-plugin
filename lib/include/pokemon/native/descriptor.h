@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file descriptor.h
+ * @brief The description of a new Pokémon for the game.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -23,6 +28,11 @@
 #include "pokemon/native/core_data.h"
 
 namespace pokemon {
+/**
+ * @brief Describes a new Pokémon. Create() makes its CoreData.
+ *
+ * The constructor sets random values for the other members.
+ */
 struct Descriptor {
   static constexpr u64 kRandomId = 0xFFFFFFFFFFFFFFFFull;
   static constexpr u64 kRandomShiny = 0x00000003FFFFFFFFull;
@@ -51,6 +61,7 @@ struct Descriptor {
     perfect_iv_count = 0;
   }
 
+  /// Writes a new Pokémon with this description into `core`.
   void Create(CoreData* core) const {
     ((void (*)(CoreData*, const Descriptor*))
       address::kCreateCoreDataFromDescriptor)(

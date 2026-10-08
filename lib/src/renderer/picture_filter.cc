@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file picture_filter.cc
+ * @brief Changes the pictures of the 2D layouts (the menus).
+ *
+ * The declarations are in renderer/patch/picture_filter.h.
+ */
+
 #include "renderer/patch/picture_filter.h"
 
 #include "core/hook_manager.h"

@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file cheat_code_manager.cc
+ * @brief The cheat codes of the plugin. See core/cheat_code_manager.h.
+ */
+
 #include "core/cheat_code_manager.h"
 
 namespace core {

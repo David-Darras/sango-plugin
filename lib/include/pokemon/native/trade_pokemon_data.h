@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file trade_pokemon_data.h
+ * @brief The table of the in-game trades.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -23,7 +28,9 @@
 #include "pokemon/constant/nature.h"
 
 namespace pokemon {
+/// One in-game trade: the Pokémon that the character gives, and the Pokémon that the character wants.
 struct TradePokemonData {
+  /// Returns the trade with this index.
   STATIC_INLINE TradePokemonData& GetInstance(u32 idx) {
     return *(TradePokemonData*)(
       address::kTradePokemonTable + sizeof(TradePokemonData) * idx);
@@ -53,7 +60,7 @@ struct TradePokemonData {
 
   u8 _3[12];
 
-  SpeciesId wanted_species;
+  SpeciesId wanted_species; ///< The species that the character wants.
   Gender wanted_gender;
   u8 _4;
 };

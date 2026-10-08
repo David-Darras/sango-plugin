@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file type_helper.h
+ * @brief Shows the effectiveness of the moves during a battle.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -22,6 +27,7 @@
 
 namespace battle {
 
+/// Shows the effectiveness of the moves on the top screen during a battle.
 class TypeHelper {
   MAKE_SINGLETON(TypeHelper)
 
@@ -31,6 +37,7 @@ public:
     Color color;
   };
 
+  /// Draws the effectiveness. plugin::DrawFrame() calls it.
   static void DrawTop();
 
 private:

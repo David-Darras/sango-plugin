@@ -15,6 +15,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file memory.h
+ * @brief Reads and writes the memory of the game.
+ *
+ * - READ32(), WRITE32()... read and write a value at an address.
+ * - ARM_NOP(), ARM_RET()... replace an instruction of the game code.
+ * - MEMORY_SCOPE() makes a read-only zone (the code of a CRO) writable.
+ *
+ * @see docs/concepts/hooks-and-addresses.md
+ */
+
 #pragma once
 
 #include <3ds.h>
@@ -25,10 +36,17 @@ extern "C" s32 svcInvalidateEntireInstructionCache();
 
 namespace core {
 
+/// Changes the access rights of the memory of the game.
 class MemoryManager {
   MAKE_SINGLETON(MemoryManager);
 
 public:
+  /**
+   * @brief Makes the memory zone of an address writable, or read-only again.
+   * @param address An address in the zone.
+   * @param on true: read, write and execute. false: read and execute.
+   * @return false when the system refuses the change.
+   */
   static bool ToggleProtection(u32 address, bool on) {
     u32 pID;
     if (R_FAILED(svcGetProcessId(&pID, CUR_PROCESS_HANDLE))) {
@@ -58,15 +76,23 @@ public:
     return R_SUCCEEDED(res);
   }
 
+  /// Makes the zone of `address` writable. `size` is not used: the system
+  /// changes the full zone.
   static bool Unprotect(u32 address, u32 size) {
     return ToggleProtection(address, true);
   }
 
+  /// Makes the zone of `address` read-only again.
   static bool Protect(u32 address, u32 size) {
     return ToggleProtection(address, false);
   }
 };
 
+/**
+ * @brief Makes a memory zone writable until the object is destroyed.
+ *
+ * Use the macro MEMORY_SCOPE() instead of this class.
+ */
 class MemoryRange {
 public:
   MemoryRange(u32 address, u32 size) : address_(address), size_(size) {
@@ -85,17 +111,19 @@ private:
   u32 size_;
 };
 
-// Typed memory access helpers
+/// Reads a value of type T at an address.
 template <typename T>
 INLINE T Read(u32 address) {
   return *reinterpret_cast<volatile T*>(address);
 }
 
+/// Writes a value of type T at an address.
 template <typename T>
 INLINE void Write(u32 address, T value) {
   *reinterpret_cast<volatile T*>(address) = value;
 }
 
+/// Makes the zone writable, writes the value, then makes the zone read-only.
 template <typename T>
 INLINE void SafeWrite(u32 address, T value) {
   MemoryManager::ToggleProtection(address, true);
@@ -103,6 +131,7 @@ INLINE void SafeWrite(u32 address, T value) {
   MemoryManager::ToggleProtection(address, false);
 }
 
+/// Makes the zone readable, reads the value, then protects the zone again.
 template <typename T>
 INLINE T SafeRead(u32 address) {
   MemoryManager::ToggleProtection(address, true);
@@ -111,19 +140,24 @@ INLINE T SafeRead(u32 address) {
   return val;
 }
 
+/// Replaces the ARM instruction at `address` with "do nothing" (nop).
 INLINE void ArmNop(u32 address) {
   Write<u32>(address, 0xE1A00000);
 }
 
+/// Replaces the ARM instruction at `address` with "return" (bx lr).
 INLINE void ArmReturn(u32 address) {
   Write<u32>(address, 0xE12FFF1E); // bx lr
 }
 
+/// Replaces two ARM instructions with "return true".
 INLINE void ArmReturnTrue(u32 address) {
   Write<u32>(address, 0xE3A00001);     // mov r0, #1
   Write<u32>(address + 4, 0xE12FFF1E); // bx lr
 }
 
+/// Removes the condition of the ARM instruction at `address`: the
+/// instruction always runs.
 INLINE void ArmNoCond(u32 address) {
   Write<u32>(address, (Read<u32>(address) & 0x0FFFFFFF) | 0xE0000000);
 }
@@ -135,18 +169,35 @@ using MemoryRange = core::MemoryRange;
 
 #define CONCAT_IMPL(x, y) x##y
 #define CONCAT(x, y) CONCAT_IMPL(x, y)
+/**
+ * @brief Makes a memory zone writable until the end of the current block.
+ *
+ * @code
+ * void PatchLoad() {
+ *   MEMORY_SCOPE(sys::address::kMemoryRegionCro, 0xF1000);
+ *   ARM_NOP(address::kSomeInstruction);
+ * } // The zone is read-only again here.
+ * @endcode
+ */
 #define MEMORY_SCOPE(addr, size) ::core::MemoryRange CONCAT(mem_scope_, __COUNTER__)(addr, size)
 
+/// Makes the zone of an address writable.
 #define UNPROTECT(address) ::core::MemoryManager::ToggleProtection((address), true)
+/// Makes the zone of an address read-only again.
 #define PROTECT(address)   ::core::MemoryManager::ToggleProtection((address), false)
 
+/// @name Write a value at an address
+/// @{
 #define WRITE64(address, value) *(vu64*)(address) = (value)
 #define WRITE32(address, value) *(vu32*)(address) = (value)
 #define WRITE16(address, value) *(vu16*)(address) = (value)
 #define WRITE8(address, value)  *(vu8*)(address)  = (value)
 #define WRITEF(address, value)  *(vf32*)(address) = (value)
 #define WRITEB(address, value)  *(volatile bool*)(address) = (value)
+/// @}
 
+/// @name Read a value at an address
+/// @{
 #define READ(type, address)     *(type*)(address)
 #define READ64(address)         *(vu64*)(address)
 #define READ32(address)         *(vu32*)(address)
@@ -154,23 +205,33 @@ using MemoryRange = core::MemoryRange;
 #define READ8(address)          *(vu8*)(address)
 #define READF(address)          *(vf32*)(address)
 #define READB(address)          *(volatile bool*)(address)
+/// @}
 
+/// @name Write a value in a read-only zone
+/// @{
 #define SAFE_WRITE64(address, value) ::core::SafeWrite<u64>(address, value)
 #define SAFE_WRITE32(address, value) ::core::SafeWrite<u32>(address, value)
 #define SAFE_WRITE16(address, value) ::core::SafeWrite<u16>(address, value)
 #define SAFE_WRITE8(address, value)  ::core::SafeWrite<u8>(address, value)
 #define SAFE_WRITEF(address, value)  ::core::SafeWrite<f32>(address, value)
 #define SAFE_WRITEB(address, value)  ::core::SafeWrite<bool>(address, value)
+/// @}
 
+/// @name Read a value in a protected zone
+/// @{
 #define SAFE_READ64(address, result) do { (result) = ::core::SafeRead<u64>(address); } while(0)
 #define SAFE_READ32(address, result) do { (result) = ::core::SafeRead<u32>(address); } while(0)
 #define SAFE_READ16(address, result) do { (result) = ::core::SafeRead<u16>(address); } while(0)
 #define SAFE_READ8(address, result)  do { (result) = ::core::SafeRead<u8>(address); } while(0)
 #define SAFE_READF(address, result)  do { (result) = ::core::SafeRead<f32>(address); } while(0)
 #define SAFE_READB(address, result)  do { (result) = ::core::SafeRead<bool>(address); } while(0)
+/// @}
 
+/// @name Replace instructions of the game code
+/// @{
 #define ARM_NOP(address)         ::core::ArmNop(address)
 #define ARM_RETURN_TRUE(address) ::core::ArmReturnTrue(address)
 #define SAFE_ARM_NOP(address)    ::core::SafeWrite<u32>(address, 0xE1A00000)
 #define ARM_RET(address)         ::core::ArmReturn(address)
 #define ARM_NO_COND(address)     ::core::ArmNoCond(address)
+/// @}

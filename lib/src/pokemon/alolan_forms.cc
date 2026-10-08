@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file alolan_forms.cc
+ * @brief Adds extra forms to species: Alolan, Galarian, new Mega Evolutions...
+ *
+ * The declarations are in pokemon/patch/alolan_forms.h.
+ */
+
 #include "pokemon/patch/alolan_forms.h"
 #include "pokemon/constant/item.h"
 #include "pokemon/constant/mega_evolution_method.h"

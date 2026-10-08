@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file message.h
+ * @brief A text file of the game.
+ */
+
 #pragma once
 
 #include "core/types.h"
@@ -24,16 +29,22 @@
 
 namespace sys {
 
+/**
+ * @brief A text file of the game: for example the names of the moves.
+ *
+ * Each text has an index (`str_id`) in the file.
+ */
 struct Message {
   uptr vtable;
   uptr heap;
   u32* archive;
-  u8 kind; // 0 -> one, 1 -> all
-  u32 file_id;
-  Language language;
+  u8 kind; ///< 0: one text is loaded. 1: all the texts are loaded.
+  u32 file_id; ///< The number of the text file.
+  Language language; ///< The language of the texts.
   u8 padding[3];
   uptr _0, _1, _2;
 
+  /// Copies the text with the index `str_id` into `output`.
   INLINE void GetString(u32 str_id, String* output) {
     return ((void(*)(Message*, u32, String*))
       sys::address::kMessageGetString)(this, str_id, output);

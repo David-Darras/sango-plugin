@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file page_sound.cc
+ * @brief The menu page of the sounds and the music.
+ */
+
 #include "ui/main_application.h"
 #include "system/native/sound.h"
 

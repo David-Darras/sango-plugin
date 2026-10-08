@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file evolution_data.h
+ * @brief The evolutions of one species.
+ */
+
 #pragma once
 
 #include "core/types.h"
@@ -24,6 +29,7 @@
 
 namespace pokemon {
 
+/// The evolutions of one species: 8 at most.
 struct EvolutionData {
   struct {
     EvolutionMethod method;

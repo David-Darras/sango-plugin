@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file page_title_screen.cc
+ * @brief The menu pages of the title screen and of the new game.
+ */
+
 #include "ui/patch/new_game.h"
 #include "ui/main_application.h"
 #include "ui/page/pages.h"

@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file model_manager.h
+ * @brief The characters of the overworld.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -25,6 +30,7 @@
 
 namespace overworld {
 
+/// The characters of the current map (32 at most).
 class ModelManager {
   SINGLETON(ModelManager)
 
@@ -35,6 +41,7 @@ public:
     return core::DataManager::GetInstance().GetOverworldModelManager();
   }
 
+  /// Returns the manager, or null outside of the overworld.
   STATIC_INLINE ModelManager* GetInstanceOrNull() {
     ModelManager* manager =
         core::DataManager::GetInstance().GetOverworldModelManagerOrNull();
@@ -46,6 +53,7 @@ public:
 
   INLINE ModelResource& GetResource(u32 idx) { return resources_[idx]; }
 
+  /// Returns the character of the player.
   Model& GetPlayer() {
     for (u32 i = 0; i < kMaxModels; i++) {
       Model& model = *(Model*)((uptr)overworld_models_ + Model::kSize * i);
@@ -56,6 +64,7 @@ public:
     return overworld_models_[0];
   }
 
+  /// Returns the character in a slot.
   INLINE Model& GetModel(u32 idx) {
     return *(Model*)((uptr)overworld_models_ + Model::kSize * idx);
   }

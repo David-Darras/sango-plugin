@@ -15,13 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file encounter_state.h
+ * @brief The state of the wild encounters.
+ */
+
 #pragma once
 
 #include "common.h"
 #include "core/native/data_manager.h"
 
 namespace overworld {
-/// Where the player stands in the wild encounter cycle (steps walked, rate...).
+/// The state of the wild encounters: the steps, the rate, the fishing chain.
 struct EncounterState {
   SINGLETON(EncounterState)
 

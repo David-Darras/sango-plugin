@@ -15,12 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file pokemon_model.h
+ * @brief A Pokémon model of the game.
+ */
+
 #pragma once
 
 #include "common.h"
 #include "renderer/native/archive/bch.h"
 
 namespace renderer {
+/// A Pokémon model: its model file and its texture file.
 struct PokemonModel {
   INLINE Bch& GetModel() const {
     return *(Bch*)model->GetResource(0);

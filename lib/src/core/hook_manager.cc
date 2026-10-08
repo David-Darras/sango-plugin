@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file hook_manager.cc
+ * @brief Installs and removes the hooks. See core/hook.h and core/hook_manager.h.
+ */
+
 #include "core/hook_manager.h"
 
 namespace core {

@@ -15,12 +15,26 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file option.h
+ * @brief An optional value: a value, or nothing.
+ */
+
 #pragma once
 
 #include <utility>
 #include <type_traits>
 #include <new>
 
+/**
+ * @brief A value of type T, or nothing.
+ *
+ * @code
+ * Option<u32> level;          // Nothing.
+ * level = 5;                  // A value.
+ * if (level) { u32 v = *level; }
+ * @endcode
+ */
 template <typename T>
 class Option {
 private:
@@ -93,7 +107,9 @@ public:
     }
   }
 
+  /// Returns true when the option contains a value.
   bool is_some() const { return has_value; }
+  /// Returns true when the option contains nothing.
   bool is_none() const { return !has_value; }
 
   explicit operator bool() const { return has_value; }
@@ -104,6 +120,7 @@ public:
   T* operator->() { return ptr(); }
   const T* operator->() const { return ptr(); }
 
+  /// Returns the value, or `default_value` when the option contains nothing.
   T value_or(const T& default_value) const {
     if (has_value) {
       return *ptr();
@@ -112,7 +129,9 @@ public:
   }
 };
 
+/// The type of None.
 struct None_t {};
+/// Compares with an option: `option == None` is true when it contains nothing.
 static const None_t None{};
 
 template <typename T>

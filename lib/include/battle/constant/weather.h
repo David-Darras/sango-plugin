@@ -15,11 +15,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file weather.h
+ * @brief The weathers of a battle.
+ */
+
 #pragma once
 
 #include <types.h>
 
 namespace battle {
+/// The weather of a battle.
 enum class Weather : u8 {
   kNone = 0,
   kHarshSunlight = 1,

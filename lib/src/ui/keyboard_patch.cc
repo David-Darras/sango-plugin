@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file keyboard_patch.cc
+ * @brief More characters on the name keyboard of the game.
+ *
+ * The declarations are in ui/patch/keyboard_patch.h.
+ */
+
 #include "ui/patch/keyboard_patch.h"
 #include "core/hook_manager.h"
 #include "core/utils.h"

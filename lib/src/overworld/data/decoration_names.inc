@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file decoration_names.inc
+ * @brief The names of the Secret Base decorations for the menu pages.
+ */
+
 static const char* DECORATION_NAMES[] = {
     "Small Desk",
     "Poké Ball Desk",

@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https:
  */
 
+/**
+ * @file kaizo_move.cc
+ * @brief Kaizo: the changes of the move data.
+ */
+
 #include "pokemon/native/move_data.h"
 #include "pokemon/constant/move.h"
 

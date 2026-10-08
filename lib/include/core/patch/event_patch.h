@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file event_patch.h
+ * @brief Calls the patches of the game events when they start.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -25,6 +30,7 @@ class EventManager;
 
 namespace core {
 
+/// Calls the patches of a game event when it starts and at each frame.
 class EventPatch {
   MAKE_SINGLETON(EventPatch)
 

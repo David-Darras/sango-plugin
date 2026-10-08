@@ -15,19 +15,25 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file camera_state.h
+ * @brief The modes of the camera of the plugin.
+ */
+
 #pragma once
 
 #include <types.h>
 
 namespace overworld {
 
+/// A mode of the camera of the plugin.
 enum class CameraState : u8 {
-  kIdle,
-  kTps,
-  kRotate,
-  kTop,
-  kFpv,
-  kFree,
+  kIdle, ///< The camera of the game.
+  kTps, ///< Third-person view, behind the player.
+  kRotate, ///< The camera turns around the player.
+  kTop, ///< View from above.
+  kFpv, ///< First-person view.
+  kFree, ///< Free camera: the player moves it.
 };
 
 } // namespace overworld

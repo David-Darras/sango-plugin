@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file pss.inc
+ * @brief The names of the PSS data for the menu pages.
+ */
+
 static const char* RELATIONS[] =
 {
     "Friend",

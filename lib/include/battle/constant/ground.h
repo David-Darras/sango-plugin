@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file ground.h
+ * @brief The grounds of the battlefield.
+ */
+
 #pragma once
 
 #include <types.h>

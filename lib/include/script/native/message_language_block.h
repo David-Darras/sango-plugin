@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file message_language_block.h
+ * @brief One language block of a message file.
+ */
+
 #pragma once
 
 #include "core/types.h"

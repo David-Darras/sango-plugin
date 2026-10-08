@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file button.cc
+ * @brief A touch button of the bottom screen.
+ *
+ * The declarations are in ui/widget/button.h.
+ */
+
 #include "ui/widget/button.h"
 
 #include "system/native/graphics.h"

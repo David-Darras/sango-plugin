@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file gender.h
+ * @brief The genders of a Pokémon.
+ */
+
 #pragma once
 
 #include <types.h>
@@ -22,10 +27,11 @@
 
 namespace pokemon {
 
+/// The gender of a Pokémon.
 enum class Gender : u8 {
   kMale = 0,
   kFemale = 1,
-  kUnknown = 2,
+  kUnknown = 2, ///< A Pokémon without a gender (for example Magnemite).
   kCount = 3,
 };
 

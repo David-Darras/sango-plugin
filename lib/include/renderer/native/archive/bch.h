@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file bch.h
+ * @brief The BCH format: a compiled 3D model file.
+ */
+
 #pragma once
 
 #include "common.h"

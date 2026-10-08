@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file file.h
+ * @brief Reads and writes files on the SD card.
+ *
+ * The paths start with "sdmc:/". They are UTF-16 texts: u"sdmc:/sango/file.bin".
+ */
+
 #pragma once
 
 #include "common.h"
@@ -22,6 +29,14 @@
 
 namespace sys {
 
+/**
+ * @brief A file on the SD card.
+ *
+ * @code
+ * sys::File file(u"sdmc:/sango/log.txt", true);  // true: empty the file.
+ * file.WriteText(u"Level %u\n", level);
+ * @endcode
+ */
 class File {
 public:
   enum Mode : u32 {
@@ -30,18 +45,22 @@ public:
     kCreate = 1 << 2,
   };
 
+  /// Makes the SD card available. The library calls it at start-up.
   STATIC_INLINE void MountSdmc(const c8* archiveName = "sdmc:") {
     ((void (*)(const c8*))address::kFsMountSdmc)(archiveName);
   }
 
+  /// Makes an empty file.
   STATIC_INLINE void Create(const c16* filename, s64 size = 0) {
     ((void (*)(const c16*, s64))address::kFsCreateFile)(filename, size);
   }
 
+  /// Deletes a file.
   STATIC_INLINE void Delete(const c16* filename) {
     ((void (*)(const c16*))address::kFsDeleteFile)(filename);
   }
 
+  /// Makes a folder.
   STATIC_INLINE void CreateDirectory(const c16* path) {
     ((void (*)(const c16*))address::kFsCreateDirectory)(path);
   }
@@ -49,6 +68,7 @@ public:
   File() : handle_(nullptr), pos_(0) {
   }
 
+  /// Opens a file. `reset`: delete the file first.
   File(const c16* filename, bool reset) : handle_(nullptr), pos_(0) {
     if (reset) Delete(filename);
     Open(filename);
@@ -56,6 +76,7 @@ public:
 
   ~File() { Close(); }
 
+  /// Opens a file. By default, the file is made if it does not exist.
   INLINE void Open(const c16* filename, u32 mode = kRead | kWrite | kCreate) {
     handle_ = nullptr;
     pos_ = 0;
@@ -63,8 +84,10 @@ public:
       mode);
   }
 
+  /// Returns true when the file is open.
   INLINE bool IsOpen() const { return handle_ != nullptr; }
 
+  /// Closes the file. The destructor also closes it.
   INLINE void Close() {
     if (handle_) {
       ((void (*)(void*))address::kFileClose)(handle_);
@@ -72,6 +95,7 @@ public:
     }
   }
 
+  /// Reads `size` bytes after a jump of `offset` bytes. Returns the number of bytes read.
   INLINE s32 Read(void* buffer, u32 size, s64 offset = 0) {
     s32 out = 0;
     pos_ += offset;
@@ -81,6 +105,7 @@ public:
     return out;
   }
 
+  /// Reads a full file into `buffer`. Returns the size, or 0 when it fails.
   static u32 ReadAll(const c16* filename, void* buffer, u32 capacity) {
     File file;
     file.Open(filename, kRead);
@@ -90,6 +115,7 @@ public:
     return (u32)read;
   }
 
+  /// Writes `size` bytes after a jump of `offset` bytes.
   INLINE void Write(const void* buffer, u32 size, s64 offset = 0,
                     bool flush = true) {
     s32 out;
@@ -99,6 +125,7 @@ public:
     pos_ += size;
   }
 
+  /// Writes a formatted UTF-16 text (128 characters at most).
   void WriteText(const c16* in, ...) {
     c16 out[address::kBufferSize];
     va_list args;

@@ -15,6 +15,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file context.h
+ * @brief The functions of a C++ script: messages, items, flags, movements...
+ *
+ * @see docs/concepts/scripts.md
+ * @see docs/tutorials/09-write-an-overworld-script.md
+ */
+
 #pragma once
 
 #include "common.h"
@@ -37,13 +45,16 @@
 
 namespace script {
 
+/// One movement of a character: an action, a direction and a count.
 struct Step {
   ActionCommand action;
   overworld::Facing direction;
   u16 count;
 };
 
+/// The character that the player talks to.
 constexpr s32 kTalkTarget = -1;
+/// The player.
 constexpr s32 kPlayerObject = 0xFF;
 
 constexpr u32 kPokeSelectSimple = 1;
@@ -51,6 +62,8 @@ constexpr u32 kPokeSelectContest = 4;
 constexpr s32 kBattleResultWon = 1; // second value of the wild outcome enum
 constexpr s32 kPokeSelectCancel = 6;
 
+/// @name Sounds and short musics for PlaySound() and PlayJingle()
+/// @{
 constexpr u32 kSoundMessage = (6 << 16) + 0;
 constexpr u32 kSoundDecide = (6 << 16) + 1;
 constexpr u32 kSoundCancel = (6 << 16) + 3;
@@ -58,7 +71,16 @@ constexpr u32 kJingleLevelUp = (5 << 16) + 1;
 constexpr u32 kJingleItem = (5 << 16) + 2;
 constexpr u32 kJingleKeyItem = (5 << 16) + 3;
 constexpr u32 kJinglePokemon = (5 << 16) + 4;
+/// @}
+/// @}
 
+/**
+ * @brief The functions of a C++ script.
+ *
+ * A C++ script receives a Context. The functions that wait (Talk(),
+ * AskYesNo()...) give control back to the game: the game draws the next
+ * frames, then the script continues.
+ */
 class Context {
 public:
   static constexpr u32 kStarterChoiceFirst = 0;
@@ -71,26 +93,32 @@ public:
 
   void Bind(AmxRuntime* amx) { amx_ = amx; }
 
+  /// Waits for the next frame.
   void Yield() {
     Engine::RaiseSleep(amx_);
     coroutine_.Yield();
   }
 
+  /// Waits some frames.
   void Wait(u32 frames) {
     for (u32 i = 0; i < frames; i++) Yield();
   }
 
+  /// Runs a script of the game.
   void CallScript(ScriptId id) {
     Call(natives_.GlobalCall, (s32)id);
     Yield();
   }
 
+  /// Returns the number of Pokémon in the party.
   u32 GetPartyCount() { return (u32)Call(natives_.PokePartyGetCount); }
 
+  /// Gives a gift Pokémon of the gift table. See pokemon::GiftPokemonData.
   bool GivePokemon(u32 gift_table_id, bool add_front = false) {
     return Call(natives_.PokePartyAdd, gift_table_id, add_front) != 0;
   }
 
+  /// Opens the starter selection. Returns the selected starter (0, 1 or 2).
   u32 ChooseStarter() {
     Call(natives_._FieldClose, true, true);
     Yield();
@@ -101,8 +129,8 @@ public:
     return GetVariable(kStarterChoiceResult);
   }
 
-  /// Opens the party list on the player's team and returns the chosen slot,
-  /// or kPokeSelectCancel when the player backs out.
+  /// Opens the party. Returns the selected slot, or kPokeSelectCancel when
+  /// the player cancels.
   s32 SelectPokemon() {
     Call(natives_.CallPokeSelect, kPokeSelectSimple,
          (u32)ScriptVariable::kReturn0, 0, true);
@@ -117,13 +145,13 @@ public:
     return GetVariable(ScriptVariable::kReturn0) != 0;
   }
 
-  /// True when the player won the last battle; a loss or a draw is false.
+  /// Returns true when the player won the last battle.
   bool WonLastBattle() {
     return Call(natives_.WildBattleResultGet) == kBattleResultWon;
   }
 
-  /// Opens the party list so the player picks `count` Pokemon at once. The
-  /// chosen party slots go to `order`; kUnsupported means nothing was asked.
+  /// Opens the party: the player selects `count` Pokémon. The selected slots
+  /// go to `order`. kUnsupported: the game does not support it.
   ui::PartySelect::Status SelectParty(u32 count, u8* order) {
     if (!ui::PartySelect::kIsSupported) return ui::PartySelect::Status::kUnsupported;
     auto& party_select = ui::PartySelect::GetInstance();
@@ -134,6 +162,7 @@ public:
     return party_select.GetResult(order);
   }
 
+  /// Calls a native of the game with its parameters.
   template <typename... Args>
   INLINE s32 Call(NativeFunction native, Args... args) {
     if (native == nullptr) return 0;
@@ -144,45 +173,62 @@ public:
   INLINE const Natives& GetNatives() const { return natives_; }
   INLINE ScriptVm* GetVm() const { return ScriptVm::FromAmx(amx_); }
 
+  /// Returns a script variable.
   u16 GetVariable(u16 index) { return (u16)Call(natives_.WorkGet, index); }
   u16 GetVariable(ScriptVariable v) { return GetVariable((u16)v); }
+  /// Sets a script variable.
   void SetVariable(u16 index, u16 value) {
     Call(natives_.WorkSet, index, value);
   }
   void SetVariable(ScriptVariable v, u16 value) { SetVariable((u16)v, value); }
 
+  /// Returns true when the event flag is set.
   bool GetFlag(u16 flag_no) { return Call(natives_.FlagGet, flag_no) != 0; }
+  /// Sets an event flag.
   void SetFlag(u16 flag_no) { Call(natives_.FlagSet, flag_no); }
+  /// Clears an event flag.
   void ResetFlag(u16 flag_no) { Call(natives_.FlagReset, flag_no); }
   bool GetFlag(EventFlag f) { return GetFlag((u16)f); }
   void SetFlag(EventFlag f) { SetFlag((u16)f); }
   void ResetFlag(EventFlag f) { ResetFlag((u16)f); }
 
+  /// Returns the character that the player talks to.
   s32 GetTalkTarget() { return (s16)GetVariable(ScriptVariable::kTalkTarget); }
 
+  /// Returns true when the Bag has space for the items.
   bool CanGiveItem(ItemId item, u16 count = 1) {
     return Call(natives_.ItemAddCheck, (u16)item, count) != 0;
   }
+  /// Gives items. Returns false when the Bag is full.
   bool GiveItem(ItemId item, u16 count = 1) {
     return Call(natives_.ItemAdd, (u16)item, count) != 0;
   }
+  /// Returns the number of an item in the Bag.
   u32 CountItem(ItemId item) {
     return (u32)Call(natives_.ItemGetNum, (u16)item, 0);
   }
+  /// Returns true when the Bag has the items.
   bool HasItem(ItemId item, u32 count = 1) { return CountItem(item) >= count; }
+  /// Returns the money of the player.
   u32 GetMoney() { return (u32)Call(natives_.PlayerGetMoney); }
+  /// Gives money.
   void AddMoney(u32 amount) { Call(natives_.PlayerAddMoney, amount); }
+  /// Takes money.
   void SubMoney(u32 amount) { Call(natives_.PlayerSubMoney, amount); }
+  /// Returns true when the player is female.
   bool IsPlayerFemale() { return Call(natives_.PlayerGetSex) != 0; }
 
+  /// Plays a sound effect.
   void PlaySound(u32 sound_id) { Call(natives_.SEPlay, sound_id); }
 
+  /// Plays a short music (for example kJingleItem) and waits for its end.
   void PlayJingle(u32 sound_id) {
     Call(natives_.MEPlay, sound_id);
     while (Call(natives_.MEIsFinished, sound_id) == 0) Yield();
     Call(natives_.MEReturnBGM);
   }
 
+  /// Starts a conversation: the character turns to the player.
   void TalkStart(s32 object_id = kTalkTarget,
                  TalkOption options = TalkOption::kMotion) {
     if (object_id == kTalkTarget) object_id = GetTalkTarget();
@@ -241,6 +287,7 @@ public:
     }
   }
 
+  /// Ends a conversation: the character goes back to normal.
   void TalkEnd() {
     auto options =
         static_cast<TalkOption>(GetVariable(ScriptVariable::kTalkOptions));
@@ -278,6 +325,7 @@ public:
     SetVariable(ScriptVariable::kSmallMessageTail, 0);
   }
 
+  /// Shows a message. It does not wait for a button.
   void ShowMessage(const c16* text, WindowType type = WindowType::kTalkVariable,
                    s32 object_id = kTalkTarget,
                    MessageOption options = MessageOption::kNone,
@@ -299,20 +347,24 @@ public:
     while (Call(natives_.CheckWinAllSuspend) == 0) Yield();
   }
 
+  /// Waits for the player to press a button.
   void WaitKey() {
     Call(natives_.LastKeyWait);
     Yield();
   }
 
+  /// Waits for the player to press A or B.
   void WaitAbKey() {
     Call(natives_._ABKeyWait);
     Yield();
   }
 
+  /// Closes a message window.
   void CloseMessage(u32 window_id = 0) {
     Call(natives_.MsgWinCloseNo, window_id);
   }
 
+  /// Shows a message, waits for a button, then closes the message.
   void Talk(const c16* text, WindowType type = WindowType::kTalkVariable,
             s32 object_id = kTalkTarget) {
     ShowMessage(text, type, object_id);
@@ -320,6 +372,7 @@ public:
     CloseMessage();
   }
 
+  /// Shows Yes / No. Returns true for Yes.
   bool AskYesNo(bool cursor_on_no = false) {
     while (Call(natives_.YesNoWin_Seq, false, 0, 0, cursor_on_no ? 1 : 0) == 0) {
       Yield();
@@ -327,6 +380,7 @@ public:
     return GetVariable(ScriptVariable::kAnswer) != 0;
   }
 
+  /// Starts a list of movements for a character.
   void Animate(s32 object_id, const Step* steps, u32 count,
                bool replace_turn = false) {
     Call(natives_.MdlAcmdInit, object_id);
@@ -337,16 +391,19 @@ public:
     Call(natives_.MdlAcmdSetEnd);
   }
 
+  /// Waits for the end of the movements.
   void WaitAnimation(s32 object_id = kTalkTarget) {
     while (Call(natives_.MdlAcmdUpdate, object_id) == 0) Yield();
   }
 
+  /// Turns a character.
   void Face(s32 object_id, overworld::Facing direction) {
     const Step face[] = {{ActionCommand::kFaceRotate4Frames, direction, 1}};
     Animate(object_id, face, 1);
     WaitAnimation();
   }
 
+  /// Moves a character `count` tiles.
   void Walk(s32 object_id, overworld::Facing direction, u16 count = 1,
             ActionCommand gait = ActionCommand::kWalk8Frames) {
     const Step walk[] = {{gait, direction, count}};

@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file key.h
+ * @brief The buttons of the console.
+ */
+
 #pragma once
 
 #include <types.h>
@@ -23,6 +28,7 @@
 
 namespace sys {
 
+/// A button of the console. The values are bits: combine them with `|`.
 enum class Key : u32 {
   kNone = 0,
   kLeft = 1 << 0,

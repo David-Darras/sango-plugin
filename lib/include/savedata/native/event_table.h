@@ -15,12 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file event_table.h
+ * @brief The event flags and the script variables.
+ */
+
 #pragma once
 #include "common.h"
 #include "core/constant/event_flag.h"
 #include "savedata/native/savedata.h"
 
 namespace savedata {
+/// The event flags and the script variables of the save data.
 struct EventTable {
   SINGLETON(EventTable)
   void* vtable;
@@ -32,16 +38,19 @@ struct EventTable {
     return SaveData::GetInstance().GetEventTable();
   }
 
+  /// Returns true when the flag is set.
   INLINE bool Check(EventFlag flag) {
     return ((bool(*)(EventTable*, EventFlag))core::address::kEventTableCheckFlag)(
         this, flag);
   }
 
+  /// Clears the flag.
   INLINE void Reset(EventFlag flag) {
     ((void(*)(EventTable*, EventFlag))core::address::kEventTableResetFlag)(
         this, flag);
   }
 
+  /// Sets the flag.
   INLINE void Set(EventFlag flag) {
     ((void(*)(EventTable*, EventFlag))core::address::kEventTableSetFlag)(
         this, flag);

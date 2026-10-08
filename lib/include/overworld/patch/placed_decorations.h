@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file placed_decorations.h
+ * @brief Puts Secret Base decorations on the maps of the overworld.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -29,6 +34,7 @@
 
 namespace overworld {
 
+/// A decoration to put on a map.
 struct DecorationRequest {
   MapId map_id = MapId::kNone;
   DecorationId decoration = DecorationId::kSmallDesk;
@@ -39,6 +45,7 @@ struct DecorationRequest {
   bool is_talkable = false;
 };
 
+/// Puts Secret Base decorations on the maps (80 at most).
 class PlacedDecorations {
   MAKE_SINGLETON(PlacedDecorations)
 
@@ -51,8 +58,11 @@ public:
   u32 tall_grass_battle_chance_percent = 25;
 
   static void Initialize();
+  /// Adds a decoration. Returns false when the list is full.
   static bool Add(const DecorationRequest& request);
+  /// Adds a decoration on the tile in front of the player.
   static bool AddInFrontOfPlayer(DecorationId decoration, bool is_talkable);
+  /// Removes all the decorations.
   static void Clear();
   static u32 GetCount();
   static void Update();

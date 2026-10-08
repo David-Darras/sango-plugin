@@ -15,9 +15,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file setup.cc
+ * @brief Changes the battles before they start.
+ *
+ * The declarations are in battle/patch/setup.h.
+ */
+
 #include "battle/patch/setup.h"
 #include "core/hook_manager.h"
-#include "overworld/patch/field_grass.h"
+#include "overworld/patch/tall_grass.h"
 #include "overworld/patch/placed_decorations.h"
 #include "battle/native/config.h"
 #include "savedata/native/pokemon_team.h"
@@ -39,7 +46,7 @@ void Setup::SetupTrainerHook(Config* config, void* game_manager,
                              void* p2) {
   overworld::PlacedDecorations::RemoveModelsBeforeBattle();
 #ifdef GAME_ORAS
-  overworld::FieldGrass::RemoveModelsBeforeBattle();
+  overworld::TallGrass::RemoveModelsBeforeBattle();
 #endif
   const TrainerId forced = GetInstance().trainer_id;
   if (forced != TrainerId::kNone) trainer_id = forced;
@@ -61,7 +68,7 @@ void Setup::SetupWildHook(Config* config,
                                  void* p2) {
   overworld::PlacedDecorations::RemoveModelsBeforeBattle();
 #ifdef GAME_ORAS
-  overworld::FieldGrass::RemoveModelsBeforeBattle();
+  overworld::TallGrass::RemoveModelsBeforeBattle();
 #endif
   core::HookManager::Call<void>(HookId::kBattleConfigSetupWild, config,
                           game_manager,

@@ -15,18 +15,24 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file status_data.h
+ * @brief The duration data of a status condition.
+ */
+
 #pragma once
 #include <types.h>
 
 namespace battle {
-// Which of the layouts below `raw` should be read through, based on its low 3 bits.
+/// The layout of a StatusData. The 3 low bits of `raw` select it.
 enum class StatusDataKind : u8 {
-  kTurnBased, ///< Wears off after a fixed number of turns
-  kPokemonBound, ///< Tied to a specific Pokémon id, not a turn count
-  kPermanent, ///< Lasts until explicitly cured, optionally counting up to a max
-  kTurnAndPokemonBound, ///< Both a turn count and a bound Pokémon id
+  kTurnBased, ///< Stops after a number of turns.
+  kPokemonBound, ///< Linked to a Pokémon, not to a number of turns.
+  kPermanent, ///< Stays until a cure. It can count up to a maximum.
+  kTurnAndPokemonBound, ///< A number of turns and a linked Pokémon.
 };
 
+/// The duration of a status condition: turns, a linked Pokémon, or both.
 union StatusData {
   u32 raw;
 

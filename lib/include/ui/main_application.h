@@ -15,6 +15,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file main_application.h
+ * @brief The menu of the plugin.
+ *
+ * @see docs/concepts/menu.md
+ * @see docs/tutorials/02-add-a-menu-page.md
+ */
+
 #pragma once
 
 #include <type_traits>
@@ -35,11 +43,18 @@ class Controller;
 namespace ui {
 struct Theme;
 /**
-* @brief Singleton class representing the plugin menu system.
-*
-* Handles the display, input, and management of menu entries,
-* submenus, and context tracking using a stack-based approach.
-*/
+ * @brief The menu of the plugin.
+ *
+ * The menu shows one page at a time. A page is a function that adds entries
+ * with Add(). The With functions change the last entry.
+ *
+ * @code
+ * void LoadMyPage(ui::MainApplication& app, void* args) {
+ *   app.Add("Speed", speed).WithBounds(1, 4)
+ *      .Add("Battle", ui::LoadBattlePage);
+ * }
+ * @endcode
+ */
 class MainApplication : public Application {
 public:
   friend class Painter;
@@ -47,112 +62,101 @@ public:
 
   STATIC_INLINE MainApplication& GetInstance() { return instance_; }
 
-  /**
-* @brief Draws the top section of the menu with menu entries.
-*/
+  /// Draws the entries of the page on the top screen.
   void DrawTop(sys::Graphics& graphics) override;
 
-  /**
-* @brief Draws the bottom section of the menu (numpad or keyboard).
-*/
+  /// Draws the numpad or the keyboard on the bottom screen.
   void DrawBottom(sys::Graphics& graphics) override;
 
-  /**
-* @brief Updates the menu state and input handling.
-* Must be called once per frame.
-*/
+  /// Reads the buttons and updates the menu. Call it one time for each frame.
   void Update(sys::Controller& controller) override;
 
+  /// Returns true when the menu is open.
   bool IsOpened() const { return is_opened_; };
 
+  /// Closes the menu.
   void ForceClose();
 
   /**
-* @brief Enters a submenu with an optional initialization callback.
-* @param load_menu Function to call when entering the submenu.
-*/
+   * @brief Opens a page over the current page (8 pages at most).
+   * @param load_menu The page function.
+   * @param args A value that the page function receives.
+   */
   void Open(menu_callback_t load_menu, void* args = nullptr);
 
-  /**
-* @brief Leaves the current submenu and returns to the previous context.
-*/
+  /// Closes the current page and goes back to the previous page.
   void Close();
 
+  /// Sets the object that draws the menu.
   void SetPainter(Painter& painter) {
     painter_ = &painter;
   }
 
   /**
-* @brief Attaches an array of string labels to the last added entry.
-* * Allows mapping numerical values to human-readable strings
-* (e.g., 0 = "Off", 1 = "On") for display purposes.
-* @param array An array of C-strings containing the labels.
-* @param array_size The total number of elements in the array.
-* @return Reference to the MainApplication instance for method chaining.
-*/
+   * @brief Shows a text for each value of the last entry (0 = first text).
+   * @param array The texts.
+   * @param array_size The number of texts.
+   */
   MainApplication& WithArray(const c8* array[], u32 array_size) {
     entries_[entries_count_ - 1].WithArray(array, array_size);
     return *this;
   }
 
-  /**
-* @brief Attaches a custom callback function to the last added entry.
-* * The provided function will be triggered whenever the entry is
-* executed (e.g., by pressing the 'A' button).
-* @param callback Function pointer of type `callback_t`.
-* @return Reference to the MainApplication instance for method chaining.
-*/
+  /// Runs a function when the player changes or selects the last entry.
   MainApplication& WithCallback(callback_t callback) {
     entries_[entries_count_ - 1].WithCallback(callback);
     return *this;
   }
 
-  /**
-* @brief Enables the refresh flag for the last added entry.
-* * Useful for entries whose modification dynamically changes the
-* structure or the content of the current menu view.
-* @return Reference to the MainApplication instance for method chaining.
-*/
+  /// Builds the page again when the value of the last entry changes.
   MainApplication& WithRefresh() {
     entries_[entries_count_ - 1].WithRefresh();
     return *this;
   }
 
+  /// Sets the minimum value of the last entry.
   MainApplication& WithMin(s32 min) {
     entries_[entries_count_ - 1].WithMin(min);
     return *this;
   }
 
+  /// Sets the maximum value of the last entry.
   MainApplication& WithMax(s32 max) {
     entries_[entries_count_ - 1].WithMax(max);
     return *this;
   }
 
+  /// Sets the minimum and the maximum value of the last entry.
   MainApplication& WithBounds(u32 min, u32 max) {
     entries_[entries_count_ - 1].WithMin(min);
     entries_[entries_count_ - 1].WithMax(max);
     return *this;
   }
 
+  /// Sets the step of a decimal value.
   MainApplication& WithFactor(f32 factor) {
     entries_[entries_count_ - 1].WithFactor(factor);
     return *this;
   }
 
+  /// Hides the background of the menu on this page.
   MainApplication& WithNoBackground() {
     no_background_ = 1;
     return *this;
   }
 
+  /**
+     * @brief Checks that the game is in a process (for example the overworld).
+     * @param vtable The vtable of the process, for example overworld::address::kVtable.
+     * @return true when the game is in a different process. The page must
+     *         then return at once: the menu closes it.
+     */
   bool CheckProcess(uptr vtable);
 
-  /**
-* @brief Rebuilds the current menu by re-executing its load callback.
-* * This method updates the list of active entries without altering
-* the context stack, reflecting real-time changes in game state.
-*/
+  /// Builds the current page again. The page stays open.
   void Refresh();
 
+  /// Adds an entry that enables or disables a cheat code.
   MainApplication& Add(const c8* name, CheatCodeId id) {
     if (entries_count_ < kMaxEntries) {
       entries_[entries_count_].Initialize(
@@ -162,6 +166,7 @@ public:
     return *this;
   }
 
+  /// Adds an entry that runs a function when the player presses A.
   MainApplication& Add(const c8* name, callback_t callback = nullptr) {
     if (entries_count_ < kMaxEntries) {
       entries_[entries_count_].Initialize(name, nullptr, kTypeIdle);
@@ -177,6 +182,7 @@ public:
     return *this;
   }
 
+  /// Adds an entry that opens a page.
   MainApplication& Add(const c8* name, menu_callback_t menu,
                        void* args = nullptr) {
     if (entries_count_ < kMaxEntries) {
@@ -193,12 +199,14 @@ public:
     return *this;
   }
 
+  /// Adds an On/Off entry.
   MainApplication& Add(const c8* name, bool& addr) {
     if (entries_count_ < kMaxEntries)
       entries_[entries_count_++].Initialize(name, &addr, kTypeBoolean);
     return *this;
   }
 
+  /// Adds an entry for some bits of a value.
   MainApplication& Add(const c8* name, void* addr, u32 offset, u32 size) {
     if (entries_count_ < kMaxEntries)
       entries_[entries_count_++].Initialize(name, addr, kTypeBits, offset,
@@ -219,6 +227,7 @@ public:
     return *this;
   }
 
+  /// Adds an entry that shows the name of a species.
   MainApplication& AddSpecies(const c8* name, u16& var) {
     if (entries_count_ < kMaxEntries) {
       entries_[entries_count_++].Initialize(name, (void*)&var, kTypeSpecies);
@@ -227,6 +236,7 @@ public:
     return *this;
   }
 
+  /// Adds an entry that shows the name of a type.
   MainApplication& AddType(const c8* name, u8& var) {
     static const c8* TYPES[] = {
         "Normal", "Fighting", "Flying", "Poison", "Ground", "Rock",
@@ -240,6 +250,7 @@ public:
     return *this;
   }
 
+  /// Adds an entry that shows the name of an ability.
   MainApplication& AddAbility(const c8* name, u8& var) {
     if (entries_count_ < kMaxEntries) {
       entries_[entries_count_++].Initialize(name, (void*)&var, kTypeAbility);
@@ -248,6 +259,7 @@ public:
     return *this;
   }
 
+  /// Adds an entry that shows the name of a move.
   MainApplication& AddMove(const c8* name, u16& var) {
     if (entries_count_ < kMaxEntries) {
       entries_[entries_count_++].Initialize(name, (void*)&var, kTypeMove);
@@ -256,6 +268,7 @@ public:
     return *this;
   }
 
+  /// Adds an entry that shows the name of an item.
   MainApplication& AddItem(const c8* name, u16& var) {
     if (entries_count_ < kMaxEntries) {
       entries_[entries_count_++].Initialize(name, (void*)&var, kTypeItem);
@@ -264,6 +277,7 @@ public:
     return *this;
   }
 
+  /// Adds an empty line.
   MainApplication& AddSeparator() {
     if (entries_count_ < kMaxEntries) {
       entries_[entries_count_++].Initialize("", nullptr, kTypeSeparator);
@@ -296,9 +310,8 @@ public:
   * @brief Binds an `enum class` field directly, aliasing it to the raw
   * integer widget of its underlying type (same size/representation).
   */
-  // NB: spelled with the C++11 `typename ...::type` forms on purpose - the
-  // plugin is built with -std=gnu++11, where the `_t` alias templates
-  // (std::enable_if_t, std::underlying_type_t) are not yet available.
+  // The code uses `typename ...::type`: the `_t` aliases do not exist in
+  // C++11.
   template <typename Enum,
             typename = typename std::enable_if<std::is_enum<Enum>::value>::type>
   MainApplication& Add(const c8* name, Enum& var) {
@@ -384,11 +397,13 @@ private:
 
   static MainApplication instance_;
 
+  // The counters can reach kMaxEntries (64) and kMaxContexts (8):
+  // 7 bits and 4 bits.
   u32 is_opened_ : 1;
-  u32 entries_count_ : 6;
-  u32 contexts_count_ : 3;
+  u32 entries_count_ : 7;
+  u32 contexts_count_ : 4;
   u32 no_background_ : 1;
-  u32  : 21;
+  u32  : 19;
 
   uptr process_vtable_;
 

@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file kaizo_weather.cc
+ * @brief Kaizo: the weather of the overworld.
+ */
+
 #include "core/utils.h"
 #include "overworld/patch/weather_override.h"
 #include "overworld/constant/weather.h"

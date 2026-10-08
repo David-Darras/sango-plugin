@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file map_data.h
+ * @brief The data of the current map.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -25,16 +30,19 @@
 
 namespace overworld {
 
+/// The data of the current map: settings, encounters, name.
 struct MapData {
   SINGLETON(MapData)
   STATIC_INLINE MapData& GetInstance() {
     return core::DataManager::GetInstance().GetMapData();
   }
 
+  /// Returns the settings of the current map.
   INLINE MapSettings& GetSettings() {
     return *(MapSettings*)bundle[choice]->GetResource(0);
   }
 
+  /// Returns the encounter table of the current map.
   INLINE EncounterData& GetEncounterData() {
     return *(EncounterData*)bundle[choice]->GetResource(3);
   }

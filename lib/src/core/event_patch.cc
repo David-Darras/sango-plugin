@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file event_patch.cc
+ * @brief Calls the patches of the game events when they start.
+ *
+ * The declarations are in core/patch/event_patch.h.
+ */
+
 #include "core/patch/event_patch.h"
 #include "core/patch/script_loader.h"
 #include "core/hook_manager.h"

@@ -15,12 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file trigger_event.h
+ * @brief A trigger event of a map.
+ */
+
 #pragma once
 
 #include "core/types.h"
 
 namespace overworld {
 
+/// A trigger event: a zone that starts a script when the player walks in it.
 struct TriggerEvent {
   u16 id;
   u16 param;

@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file mega_evolution_data.h
+ * @brief The Mega Evolutions of one species.
+ */
+
 #pragma once
 
 #include "core/types.h"
@@ -24,6 +29,7 @@
 
 namespace pokemon {
 
+/// The Mega Evolutions of one species: 3 at most (for example Mega Charizard X and Y).
 struct MegaEvolutionData {
   struct {
     FormId form;

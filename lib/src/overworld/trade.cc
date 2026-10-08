@@ -15,10 +15,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file trade.cc
+ * @brief Changes the in-game trades.
+ *
+ * The declarations are in overworld/patch/trade.h.
+ */
+
 #include "overworld/patch/trade.h"
 #include "core/hook_manager.h"
 #include "pokemon/native/trade_pokemon_data.h"
-#include "ui/log_application.h"
 #include "core/utils.h"
 
 namespace overworld {
@@ -37,7 +43,6 @@ void Trade::RandomizeSpecies(u32 index) {
   entry.species = core::Utils::GetRandomEnum<SpeciesId>();
   entry.form = FormId::kNormal;
   entry.level = 1 + core::Utils::GetRandomValue(99);
-  ui::LogApplication::Print(u"trade[%u]=%u", index, entry.species);
 }
 
 s32 Trade::TradePokemonHook(u32* p1, u32* p2) {

@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file healer_follower.h
+ * @brief A nurse that follows the player and heals the party.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -23,11 +28,12 @@
 
 namespace overworld {
 
+/// A nurse character that follows the player. Talk to her to heal the party.
 class HealerFollower {
   MAKE_SINGLETON(HealerFollower)
 
 public:
-  bool is_enabled = true;
+  bool is_enabled = false;
 
   static void Initialize();
   static void Update();

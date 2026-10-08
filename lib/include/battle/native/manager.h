@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file manager.h
+ * @brief The main object of a battle.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -40,6 +45,7 @@ struct Pokemon;
 struct Config;
 class Graphics;
 
+/// The main object of a battle. It owns the teams and the graphics.
 class Manager {
   SINGLETON(Manager)
 public:
@@ -49,6 +55,7 @@ public:
 
   INLINE Graphics& GetGraphics() { return *graphics_; }
 
+  /// Returns a Pokémon of a team.
   static Pokemon* GetPokemon(bool is_server, u32 team_idx, u32 pkm_idx) {
     if (is_server) {
       return (GetInstance().server_.teams[team_idx].pokemon[pkm_idx]);
@@ -56,6 +63,7 @@ public:
     return (GetInstance().client_.teams[team_idx].pokemon[pkm_idx]);
   }
 
+  /// Returns a team.
   static Team& GetTeam(bool is_server, u32 team_idx) {
     if (is_server) {
       return (GetInstance().server_.teams[team_idx]);
@@ -63,6 +71,7 @@ public:
     return (GetInstance().client_.teams[team_idx]);
   }
 
+  /// Lets each trainer Mega Evolve again.
   INLINE void ResetMegaEvolutions() {
     *(u32*)has_mega_evolved_ = 0;
   }

@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file static_encounter.h
+ * @brief The static encounter table.
+ */
+
 #pragma once
 
 #include <cstddef>
@@ -33,8 +38,8 @@
 #include "pokemon/constant/species.h"
 
 namespace overworld {
-/// One row of the game's scripted encounter table (legendaries, the rescue
-/// event...): what to fight and how to stage the battle.
+/// One row of the static encounter table: the Pokémon and the place of the
+/// battle.
 struct StaticEncounter {
   SpeciesId species;
   FormId form;

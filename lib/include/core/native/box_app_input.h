@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file box_app_input.h
+ * @brief The input of the PC box application.
+ */
+
 #pragma once
 
 #include "core/types.h"
@@ -32,7 +37,7 @@ struct TrainerStatus;
 
 namespace core {
 
-/// What the game's box app reads on start.
+/// The data that the PC box application reads when it starts.
 struct BoxAppInput {
   savedata::BoxManager* box_manager;
   savedata::PokemonBox* pokemon_box;

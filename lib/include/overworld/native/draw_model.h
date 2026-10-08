@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file draw_model.h
+ * @brief The drawn part of an overworld model.
+ */
+
 #pragma once
 
 #include "core/game.h"
@@ -23,6 +28,7 @@
 
 namespace overworld {
 
+/// The drawn part of an overworld model: position, rotation and scale.
 struct DrawModel {
   u8 _0[GAME_CONSTANT(0x154, 0x150)];
   Vec3 position;

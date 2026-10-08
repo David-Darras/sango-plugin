@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file character_manager.h
+ * @brief The characters of the overworld.
+ */
+
 #pragma once
 
 #include <cstddef>
@@ -24,11 +29,11 @@
 
 namespace overworld {
 
+/// The maximum number of different models in one region.
 constexpr u32 kMaxModelsPerRegion = 33;
 
-/// The game's field character manager; only the tail holding the model list
-/// of the current region is mapped (the model list setup stage sits at
-/// offset 13994).
+/// The manager of the overworld characters. Only the end of the structure is
+/// known: the list of the models of the current region.
 struct CharacterManager {
   static constexpr u32 kArchiveOffset = GAME_CONSTANT(0x14A8, 14004);
   u8 _0[kArchiveOffset];
@@ -43,6 +48,6 @@ static_assert(offsetof(CharacterManager, model_param_archive) == CharacterManage
               offsetof(CharacterManager, model_count_original) == CharacterManager::kArchiveOffset + 16 &&
               offsetof(CharacterManager, model_count) == CharacterManager::kArchiveOffset + 20 &&
               offsetof(CharacterManager, models) == CharacterManager::kArchiveOffset + 24,
-              "CharacterManager must match the game's field character manager layout");
+              "CharacterManager must match the layout of the game structure");
 
 } // namespace overworld

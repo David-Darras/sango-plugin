@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https:
  */
 
+/**
+ * @file kaizo_pokemon.cc
+ * @brief Kaizo: the changes of the species data.
+ */
+
 #include "pokemon/constant/form.h"
 #include "pokemon/constant/species.h"
 #include "pokemon/constant/ability.h"

@@ -15,101 +15,106 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file mutation_kind.h
+ * @brief The kinds of mutations: the changes that a reaction asks for.
+ */
+
 #pragma once
 
 #include <types.h>
 
 namespace battle {
+/// The kind of a mutation. See battle::Controller::Create().
 enum class MutationKind : u8 {
-  kUseItem = 0, ///< Use a held/bag item
-  kShowAbilityBanner = 1, ///< Show the "ability activated" banner
-  kHideAbilityBanner = 2, ///< Hide the "ability activated" banner
+  kUseItem = 0, ///< Uses a held item or an item of the Bag.
+  kShowAbilityBanner = 1, ///< Shows the banner of the ability.
+  kHideAbilityBanner = 2, ///< Hides the banner of the ability.
   kShowMessage = 3,
 
   kRecoverHp = 4,
-  kLifestealHeal = 5, ///< Heal by absorbing part of the damage just dealt
+  kLifestealHeal = 5, ///< Restores HP with a part of the damage of the move.
   kDealDamage = 6,
+  /// Changes the HP without damage and without healing (like Pain Split).
   kAdjustHpDirectly = 7,
-  ///< Move/average HP without it counting as damage or a heal (e.g. Pain Split)
   kRecoverPp = 8,
   kReducePp = 9,
 
   kCureStatus = 10,
   kInflictStatus = 11,
+  /// Changes the parameters of a status condition that the target has.
   kSetStickyStatusParams = 12,
-  ///< Re-apply/overwrite the parameters of a status the target already has
 
   kAdjustStatStage = 13,
   kSetStatStageDirectly = 14,
   kResetAllStatStages = 15,
-  kOverwriteBaseStat = 16,
-  ///< Force-overwrite a raw stat number (Attack, Defense...)
+  kOverwriteBaseStat = 16, ///< Replaces a stat value (Attack, Defense...).
   kRemoveStatDebuffs = 17,
 
   kKnockOut = 18,
   kChangeType = 19,
-  kAddExtraType = 20, ///< Grant a 3rd type on top of the existing two
+  kAddExtraType = 20, ///< Gives a third type to the Pokémon.
 
-  kSetTurnMarker = 21, ///< Set a flag that clears automatically at end of turn
-  kClearTurnMarker = 22, ///< Force-clear a turn-scoped flag
-  kSetPersistentMarker = 23, ///< Set a flag that survives across turns
+  /// Sets a marker that the engine clears at the end of the turn.
+  kSetTurnMarker = 21,
+  kClearTurnMarker = 22, ///< Clears a turn marker.
+  kSetPersistentMarker = 23, ///< Sets a marker that stays between the turns.
   kClearPersistentMarker = 24,
 
+  /// Adds an effect on one side of the battlefield (Light Screen, Tailwind...).
   kAddTeamEffect = 25,
-  ///< Add an effect covering one whole team's side (Light Screen, Tailwind...)
   kRemoveTeamEffect = 26,
   kSetTeamEffectPaused = 27,
 
-  kAddFieldEffect = 28, ///< Add a whole-field effect (Trick Room, Gravity...)
+  /// Adds an effect on the full battlefield (Trick Room, Gravity...).
+  kAddFieldEffect = 28,
   kRemoveFieldEffect = 29,
   kChangeWeather = 30,
-  kAddPositionalEffect = 31, ///< Add an effect tied to one specific field slot
+  /// Adds an effect on one position of the battlefield.
+  kAddPositionalEffect = 31,
 
   kChangeAbility = 32,
   kSetHeldItem = 33,
-  kCheckItemActivation = 34,
-  ///< Check whether a held item's effect should trigger
+  kCheckItemActivation = 34, ///< Checks if the effect of a held item occurs.
   kActivateItemEffect = 35,
   kConsumeItem = 36,
   kSwapHeldItems = 37,
 
   kOverwriteMoveData = 38,
+  /// Sets a move counter of a Pokémon (for combination moves and
+  /// counterattacks).
   kSetMoveCounter = 39,
-  ///< Set a Pokémon's internal move-tracking counter (combo/retaliation moves)
+  /// Gives damage in a later turn (like Future Sight).
   kDelayedMoveDamage = 40,
-  ///< Schedule damage to land on a later turn (Future Sight-style)
 
   kLeaveBattle = 41,
   kSwitchInPokemon = 42,
-  kBatonTouch = 43, ///< Pass stat stages (and similar) to the incoming Pokémon
+  kBatonTouch = 43, ///< Gives the stat stages to the next Pokémon (Baton Pass).
   kFlinch = 44,
   kRevive = 45,
   kSetWeight = 46,
+  /// Makes the Pokémon leave the battle (like Roar or Whirlwind).
   kForceSwitchOut = 47,
-  ///< Forcibly remove the Pokémon from the field (Roar/Whirlwind-style)
+  /// Makes a Pokémon act now, outside of the turn order.
   kForceActImmediately = 48,
-  ///< Insert an action for a Pokémon right now, out of normal turn order
-  kInterceptPendingMove = 49,
-  ///< Intercept a Pokémon that is about to use a specific move
-  kDeferActionToTurnEnd = 50,
-  ///< Push a Pokémon's action to resolve last this turn
+  kInterceptPendingMove = 49, ///< Stops a Pokémon that is about to use a move.
+  kDeferActionToTurnEnd = 50, ///< Makes a Pokémon act last in the turn.
   kSwapActivePokemon = 51,
 
   kTransform = 52,
   kBreakIllusion = 53,
-  kCheckGravityEffects = 54,
-  ///< Run the checks triggered when Gravity activates
+  kCheckGravityEffects = 54, ///< Runs the checks of Gravity.
+  /// Brings a Pokémon back from the sky or from underground (Fly, Dig,
+  /// Dive...).
   kCancelSemiInvulnerableState = 55,
-  ///< Cancel a semi-invulnerable state (Fly, Dig, Dive...)
 
+  /// Plays a visual effect at a position of the battlefield.
   kPlayVisualEffectAtPosition = 56,
-  ///< Play a visual effect at a chosen field position
   kFadeOutMessageWindow = 57,
   kChangeForm = 58,
+  /// Selects the visual variant of the effect of a move.
   kSetMoveEffectVariant = 59,
-  ///< Choose which visual variant of a move's effect to play
-  kForcePlayMoveEffect = 60,
-  ///< Force a move's visual effect to play regardless of normal conditions
+  kForcePlayMoveEffect = 60, ///< Always plays the visual effect of a move.
   kFreefall = 61,
   kApplyFriendshipBonus = 62,
 

@@ -15,6 +15,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file savedata.h
+ * @brief The save data of the game.
+ *
+ * The save data has segments. Each structure of this folder is one segment.
+ * The plugin changes the save data in memory. The player saves the game to
+ * keep the changes.
+ */
+
 #pragma once
 
 #include "core/native/data_manager.h"
@@ -45,6 +54,7 @@ struct Fusion;
 struct HallOfFame;
 struct BerryTreeManager;
 
+/// The save data in memory. Each Get function returns one segment.
 class SaveData {
   SINGLETON(SaveData)
 

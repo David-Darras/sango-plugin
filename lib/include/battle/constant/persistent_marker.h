@@ -15,30 +15,40 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file persistent_marker.h
+ * @brief The markers of a Pokémon that stay while it is in battle.
+ */
+
 #pragma once
 #include <types.h>
 
 namespace battle {
-// Held from the moment a Pokémon enters battle until it leaves.
+/// A marker that stays from the moment a Pokémon enters the battle until it
+/// leaves.
 enum class PersistentMarker : u8 {
   kActedThisTurn,
   kCantSwitchOrFlee,
-  kCharging, ///< Mid-charge for a two-turn move
-  kFlying, ///< Vanished via Fly
-  kDiving, ///< Vanished via Dive
-  kDigging, ///< Vanished via Dig
-  kShadowForce, ///< Vanished via Shadow Force
-  kCurledUp, ///< Defense Curl-style curled state
+  kCharging, ///< The Pokémon charges a two-turn move.
+  kFlying, ///< The Pokémon is in the sky (Fly).
+  kDiving, ///< The Pokémon is under the water (Dive).
+  kDigging, ///< The Pokémon is underground (Dig).
+  kShadowForce, ///< The Pokémon is hidden (Shadow Force).
+  kCurledUp, ///< The Pokémon used Defense Curl.
   kMinimized,
-  kFocusingEnergy, ///< Mid-buildup for a Focus Energy-style critical-hit setup
+  /// The critical hit stage of the Pokémon is higher (Focus Energy).
+  kFocusingEnergy,
   kPowerTrickActive,
   kMicleBerryBoostReady,
-  kCantActFromRecoil, ///< Immobilized as a recharge cost (Hyper Beam-style)
-  kFlashFireActivated, ///< Immune to Fire and its own Fire-type moves are boosted 1.5x
+  kCantActFromRecoil, ///< The Pokémon must recharge (like Hyper Beam).
+  /// Flash Fire: the Pokémon is immune to Fire, and its Fire moves are 1.5
+  /// times stronger.
+  kFlashFireActivated,
   kBatonTouchPending,
   kLostHeldItem,
-  kElectricTerrainGuard, ///< Protected against sleep by Electric Terrain
-  kMistyTerrainGuard, ///< Protected against status by Misty Terrain
+  kElectricTerrainGuard, ///< Electric Terrain protects the Pokémon from sleep.
+  /// Misty Terrain protects the Pokémon from the status conditions.
+  kMistyTerrainGuard,
 
   kCount,
 };

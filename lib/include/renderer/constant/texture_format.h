@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file texture_format.h
+ * @brief The texture formats of the 3DS GPU.
+ */
+
 #pragma once
 
 #include <types.h>
@@ -22,6 +27,7 @@
 
 namespace renderer {
 
+/// A texture format of the 3DS GPU.
 enum class TextureFormat : u8 {
   kRgba8 = 0,
   kRgb8 = 1,

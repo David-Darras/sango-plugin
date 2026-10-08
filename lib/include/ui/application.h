@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file application.h
+ * @brief The base class of the applications of the plugin.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -26,11 +31,15 @@ class Graphics;
 }
 
 namespace ui {
+/// An application of the plugin: something that reads the buttons and draws on the screens.
 class Application {
 public:
   virtual ~Application() = default;
+  /// Reads the buttons. Called one time for each frame.
   virtual void Update(sys::Controller& controller) = 0;
+  /// Draws on the top screen.
   virtual void DrawTop(sys::Graphics& graphics) = 0;
+  /// Draws on the bottom screen.
   virtual void DrawBottom(sys::Graphics& graphics) = 0;
 
   INLINE void SetParent(Application* parent) {

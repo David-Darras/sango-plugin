@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file form.inc
+ * @brief The names of the forms for the menu pages.
+ */
+
 #pragma once
 
 typedef struct {

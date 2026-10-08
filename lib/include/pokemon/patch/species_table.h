@@ -15,6 +15,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file species_table.h
+ * @brief Adds the species of generations VII, VIII and IX to the game.
+ *
+ * The new species come after the 721 species of the game. Their data is in
+ * lib/src/pokemon/data/gen7_species.inc and gen8_species.inc. Their models
+ * use the model slots of existing species (the carriers).
+ */
+
 #pragma once
 
 #include "common.h"
@@ -26,10 +35,12 @@ namespace pokemon {
 struct PokeInfo;
 struct EvolutionData;
 
+/// Makes a bigger species table that contains the new species and the extra forms.
 class SpeciesTable {
   MAKE_SINGLETON(SpeciesTable)
 
 public:
+  /// The number of species of the game.
   static constexpr u16 kSpeciesCount = 721;
   static constexpr u32 kEntries = 826;
   static constexpr u32 kEntrySize = 0x50;
@@ -40,9 +51,13 @@ public:
   static constexpr u32 kTotalEntries = kEntries + kAlolanCount + kExtraCount;
 
   static void Initialize();
+  /// Puts the bigger table in place. The library calls it at each frame.
   static void Update();
+  /// Changes the model of a new species into the model of its carrier.
   static void PatchModelRequest(PokeInfo* info);
+  /// Returns true for a species that the plugin adds.
   static bool IsGen7(u16 species);
+  /// Writes the evolutions of a new species.
   static bool PatchEvolutionTable(u16 species, EvolutionData* table);
   static u16 kFirstGen7Species;
   static constexpr u16 kFirstGen8Species = 805;

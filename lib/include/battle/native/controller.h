@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file controller.h
+ * @brief The object that changes a battle: mutations, weather, moves.
+ *
+ * The reactions receive it. See docs/concepts/battle-engine.md.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -29,41 +36,57 @@
 namespace battle {
 struct Mutation;
 
+/// Changes the battle. A reaction receives it.
 class Controller {
 public:
+  /// Makes a mutation. Cast it to its structure, fill it, then call Apply().
   INLINE Mutation* Create(MutationKind kind, UID owner) {
     return ((Mutation*(*)(Controller*, MutationKind, UID))
       address::kControllerCreateMutation)(this, kind, owner);
   }
 
+  /// Applies a mutation: the battle changes, with its animations and messages.
   INLINE void Apply(Mutation* mutation) {
     ((void(*)(Controller*, Mutation*))
       address::kControllerApplyMutation)(this, mutation);
   }
 
+  /// Sets the text of a message.
   STATIC_INLINE void SetMessage(Message* message, u8 p0,
                                 MutationMessageId id) {
     ((void(*)(Message*, u8, MutationMessageId))
       address::kControllerSetMessage)(message, p0, id);
   }
 
+  /// Fills a value of a message.
   STATIC_INLINE void FillMessageSlot(Message* message, u8 p0,
                                      MutationMessageId id) {
     ((void(*)(Message*, u8, MutationMessageId))
       address::kControllerFillMessageSlot)(message, p0, id);
   }
 
+  /// Returns the battle data of a Pokémon.
   INLINE Pokemon* GetPokemon(UID uid) {
     return ((Pokemon*(*)(Controller*, UID))
       address::kControllerGetPokemon)(this, uid);
   }
 
+  /**
+   * @brief Changes the weather.
+   * @param owner The Pokémon that changes the weather.
+   * @param weather The new weather.
+   * @param item The item that makes the weather last 8 turns (for example
+   *        Damp Rock for the rain), or ItemId::kNone.
+   * @param infinite true: the weather never stops. false: 5 turns (8 turns
+   *        when the owner holds `item`).
+   */
   INLINE void SetWeather(UID owner, Weather weather, ItemId item,
                          bool infinite) {
     ((void(*)(Controller*, UID, Weather, ItemId, bool))
       address::kControllerSetWeather)(this, owner, weather, item, infinite);
   }
 
+  /// Makes a Pokémon use a move.
   INLINE void ExecuteMove(Pokemon* attacker, MoveId move, u8 target = 0) {
     union {
       u32 raw;

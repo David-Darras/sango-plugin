@@ -15,11 +15,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file status_condition.h
+ * @brief The status conditions.
+ */
+
 #pragma once
 
 #include <types.h>
 
 namespace battle {
+/// A status condition: the major ones (burn, freeze...) and the volatile ones (confusion, taunt...).
 enum class StatusCondition : u8 {
   kNone = 0,
   kParalysis = 1,
@@ -29,43 +35,45 @@ enum class StatusCondition : u8 {
   kPoison = 5,
   kConfusion = 6,
   kInfatuation = 7,
-  kBound = 8, ///< Wrap/Fire Spin/Bind-style multi-turn trapping damage
+  kBound = 8, ///< Damage during several turns (Wrap, Fire Spin, Bind...).
   kNightmare = 9,
   kCurse = 10,
   kTaunt = 11,
   kTorment = 12,
   kDisable = 13,
-  kYawn = 14, ///< Falls asleep next turn
+  kYawn = 14, ///< The Pokémon falls asleep at the next turn.
   kHealBlock = 15,
-  kAbilitySuppressed = 16, ///< Gastro Acid
-  kIdentified = 17,
-  ///< Foresight/Odor Sleuth - negates evasion and Ghost-type immunity
+  kAbilitySuppressed = 16, ///< The ability does not work (Gastro Acid).
+  kIdentified = 17, ///< Foresight, Odor Sleuth: no evasion, no Ghost immunity.
   kLeechSeed = 18,
-  kEmbargo = 19, ///< Can't use items
+  kEmbargo = 19, ///< The Pokémon cannot use items.
   kPerishSong = 20,
   kIngrain = 21,
-  kEscapePrevented = 22, ///< Mean Look/Block/Spider Web
+  /// The Pokémon cannot leave (Mean Look, Block, Spider Web).
+  kEscapePrevented = 22,
   kEncore = 23,
-  kRoosting = 24, ///< Temporarily loses the Flying type
+  kRoosting = 24, ///< The Pokémon loses the Flying type for this turn.
+  /// The Pokémon must use its last move again (Outrage, Rollout...). The menu
+  /// does not open.
   kMoveLockedNoSelect = 25,
-  ///< Can only repeat the last move used (Outrage, Rollout...), can't even
-  ///< open the menu
-  kLockedToChargingMove = 26, ///< Locked into an in-progress charging move
-  kChoiceLockedToFirstMove = 27, ///< Choice Band/Specs/Scarf-style lock
-  kAlwaysHits = 28, ///< This Pokémon's next attack can't miss (Lock-On/Mind Reader)
+  kLockedToChargingMove = 26, ///< The Pokémon must continue its charge move.
+  /// The Pokémon must use its first move (Choice Band, Specs, Scarf).
+  kChoiceLockedToFirstMove = 27,
+  /// The next attack of this Pokémon always hits (Lock-On, Mind Reader).
+  kAlwaysHits = 28,
+  /// A different Pokémon used Lock-On or Mind Reader on this Pokémon.
   kMarkedByLockOn = 29,
-  ///< Specifically targeted by another Pokémon's Lock-On/Mind Reader
-  kLevitating = 30, ///< Magnet Rise
+  kLevitating = 30, ///< Magnet Rise.
+  /// The Pokémon cannot float (Ingrain, Smack Down...).
   kLevitationBlocked = 31,
-  ///< Can't gain a floating/Ground-immune state (Ingrain, Smack Down...)
   kTelekinesis = 32,
-  kFreeFall = 33, ///< Sky Drop's carry state
-  kAccuracyBoosted = 34, ///< Micle Berry-style temporary accuracy boost
+  kFreeFall = 33, ///< Sky Drop carries the Pokémon.
+  kAccuracyBoosted = 34, ///< A temporary accuracy increase (like Micle Berry).
   kAquaRing = 35,
+  /// Electrify: the next move of the Pokémon becomes an Electric move.
   kForcedMoveType = 36,
-  ///< Electrify - forces the next move used to become Electric-type
+  /// Powder: a Fire move explodes, gives 25% damage and fails.
   kPowderCoated = 37,
-  ///< Explodes for 25% max HP and cancels the move if a Fire-type move is used
   kCount = 38,
 };
 

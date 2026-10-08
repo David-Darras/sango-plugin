@@ -1,19 +1,33 @@
+# IDE and local build files
 .idea
+.vscode
 bin
-cmake-build-debug
+cmake-build-*
 .clang-format
 CMakeLists.txt
+compile_commands.json
 sango_plugin.elf
 sango_plugin.txt
+
+# Build output of the Makefile
 /release-*
 /debug-*
 /release
 *.3gx
 *.elf
-*.idb 
+
+# Generated Doxygen site
+/doxygen
+
+# Local settings of the Makefile (paths of your emulator and of your game)
+/config.mk
+
+# Private reverse-engineering material: never commit or share it.
+/private
+*.idb
+*.i64
 *.id0
 *.id1
 *.id2
 *.nam
 *.til
-/docs

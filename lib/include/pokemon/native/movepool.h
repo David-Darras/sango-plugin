@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file movepool.h
+ * @brief The learnset of one species: the moves that it learns when its level increases.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -25,18 +30,22 @@
 #include "pokemon/constant/species.h"
 
 namespace pokemon {
+/// The learnset of one species and form.
 class Movepool {
   SINGLETON(Movepool)
+  /// Loads the learnset of a species and form, and returns it.
   STATIC_INLINE Movepool& GetInstance(SpeciesId species, FormId form) {
     ((void(*)(SpeciesId, FormId))address::kLoadMovepool)(species, form);
     return Object();
   }
 
+  /// Returns the learnset that the game loaded last.
   STATIC_INLINE Movepool& Object() {
     const uptr object = address::kMovepoolPointer != 0 ? READ32(address::kMovepoolPointer) : 0;
     return *(Movepool*)(object != 0 ? object : address::kMovepool);
   }
 
+  /// Returns true when the learnset contains the move.
   INLINE bool Contains(MoveId move) const {
     for (u32 i = 0; i < count; i++) {
       if (entry[i].move == move) {
@@ -47,12 +56,12 @@ class Movepool {
   }
 
 public:
-  // 0014EB80
 
   SpeciesId species;
   FormId form;
   u8 _0;
 
+  /// One move of the learnset, and its level.
   struct Entry {
     MoveId move;
     u8 level;
@@ -60,7 +69,7 @@ public:
   };
 
   Entry* entry;
-  // MAX = 26
+  /// The number of moves (26 at most).
   u8 count;
 };
 } // namespace pokemon

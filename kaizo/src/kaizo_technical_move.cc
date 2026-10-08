@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file kaizo_technical_move.cc
+ * @brief Kaizo: the moves of the TMs.
+ */
+
 #include "common.h"
 #include "pokemon/constant/move.h"
 #include "pokemon/constant/species.h"

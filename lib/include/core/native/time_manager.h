@@ -15,12 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file time_manager.h
+ * @brief The object of the game that counts the play time.
+ */
+
 #pragma once
 
 #include "core/native/game_manager.h"
 #include "common.h"
 
 namespace core {
+/// Counts the play time.
 struct TimeManager {
   SINGLETON(TimeManager)
 public:
@@ -32,8 +38,8 @@ public:
   u64 last_tick;
   u64 accumulated_seconds;
   u64 first_tick;
-  ///< Throttles calls to svcGetSystemTick()
-///< (only once every 20 frames to reduce CPU usage).
+  /// Counts the frames: the game reads the system time one time every
+  /// 20 frames only.
   u32 frame_counter;
 };
 } // namespace core

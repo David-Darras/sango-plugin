@@ -15,20 +15,31 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file base_process.h
+ * @brief The base structure of a game process.
+ */
+
 #pragma once
 
 #include "core/types.h"
 
 namespace core {
 
+/**
+ * @brief A process of the game: the title screen, the overworld, a battle...
+ *
+ * The vtable identifies the process. The `kVtable` addresses of the domains
+ * (for example battle::address::kVtable) are vtables of processes.
+ */
 class BaseProcess {
 public:
-  void* vtable;
-  u32 sub_state;
-  bool is_done;
-  BaseProcess* parent_;
-  void* ro_; ///< Pointer to the associated executable module.
-  void** ro_child_; ///< Array of child module pointers.
+  void* vtable; ///< Identifies the type of the process.
+  u32 sub_state; ///< The step of the process.
+  bool is_done; ///< true when the process ends.
+  BaseProcess* parent_; ///< The process that started this process.
+  void* ro_; ///< The CRO module of the process.
+  void** ro_child_; ///< The child CRO modules.
   u32 ro_child_count_;
 };
 

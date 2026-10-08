@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file model_filter.cc
+ * @brief Applies color filters to the 3D models in battle.
+ *
+ * The declarations are in renderer/patch/model_filter.h.
+ */
+
 #include "renderer/patch/model_filter.h"
 #include "battle/patch/effect_style.h"
 #include "core/hook_manager.h"

@@ -15,14 +15,20 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file uid.h
+ * @brief The battle id of a Pokémon.
+ */
+
 #pragma once
 
 #include <types.h>
 
 namespace battle {
 
+/// The battle id of a Pokémon: client * 6 + party slot.
 struct UID {
-  static constexpr u8 kNoneValue = 0xFF; ///< Sentinel meaning "no Pokémon"
+  static constexpr u8 kNoneValue = 0xFF; ///< The value that means "no Pokémon".
 
   u8 value;
 

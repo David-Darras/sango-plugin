@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file stereo_camera.h
+ * @brief The 3D camera of the game.
+ */
+
 #pragma once
 
 #include "core/math.h"
@@ -22,6 +27,7 @@
 
 namespace overworld {
 
+/// The 3D camera of the game (two cameras for the 3D effect).
 struct StereoCamera {
   void* vtable_;
   u32 _0[7];

@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file kaizo_trainer.cc
+ * @brief Kaizo: the teams, the levels and the AI of the trainers.
+ */
+
 #include <initializer_list>
 
 #include "core/utils.h"
@@ -37,7 +42,6 @@
 #include "pokemon/constant/species.h"
 #include "pokemon/native/species_data.h"
 #include "savedata/native/pokemon_team.h"
-#include "ui/log_application.h"
 
 namespace kaizo {
 using TrainerOpponentSpec = battle::TrainerOpponent;
@@ -506,10 +510,6 @@ void PatchTrainer_Level(battle::Config& config,
 }
 
 void PatchTrainerData(battle::Config& config, TrainerId& trainer_id) {
-  ui::LogApplication::Print(u"[%u] %ls %ls wants to battle!", trainer_id,
-                            config.trainer_data[1]->name->GetBuffer(),
-                            config.trainer_data[1]->title_name->GetBuffer());
-
   // remove items
   for (u32 i = 0; i < 4; i++) {
     config.trainer_data[1]->items[i] = ItemId::kNone;

@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file pages.h
+ * @brief The menu pages of the library.
+ *
+ * A product adds them to its own pages: app.Add("Battle", ui::LoadBattlePage).
+ */
+
 #pragma once
 #include "common.h"
 
@@ -26,7 +33,7 @@ class MainApplication;
 // Root: the quick toggles and one entry per family below.
 void LoadTopPage(MainApplication& app, void* args);
 
-// Player: what the player can do or become on the field.
+// Player: what the player can do or become in the overworld.
 void LoadPlayerPage(MainApplication& app, void* args);
 void LoadOverworldFieldMovePage(MainApplication& app, void* args);
 void LoadAppPage(MainApplication& app, void* args);

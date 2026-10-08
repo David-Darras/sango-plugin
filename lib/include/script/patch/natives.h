@@ -15,14 +15,20 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file natives.h
+ * @brief The natives that script::Context uses.
+ */
+
 #pragma once
 
 #include "script/patch/native_table.h"
 
 namespace script {
 
+/// The natives that script::Context uses. Resolve() finds them by name.
 struct Natives {
-  // state table
+  // The natives of the state table.
   NativeFunction WorkGet; // (work_no) -> value
   NativeFunction WorkSet; // (work_no, value)
   NativeFunction FlagGet; // (flag_no) -> bool
@@ -38,7 +44,7 @@ struct Natives {
   NativeFunction MdlGetDirDisp; // (obj_id) -> Dir
   NativeFunction MdlGetMoveCode; // (obj_id) -> move code
   NativeFunction MdlSetWaitAnimeReq; // (obj_id)
-  // field table
+  // The natives of the overworld table.
   NativeFunction PlayerGetReturnDir; // () -> Dir facing the player
   NativeFunction MdlIsHalfSitSkelPreset; // (obj_id) -> bool
   NativeFunction MdlCanUseTurnAcmd; // (obj_id) -> bool

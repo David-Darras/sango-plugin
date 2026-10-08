@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file app_status.h
+ * @brief A Pokémon editor in the summary screen of the game.
+ */
+
 #pragma once
 #include "common.h"
 #include "core/hook_manager.h"
@@ -28,11 +33,12 @@
 namespace ui {
 class Pane;
 
+/// Adds a Pokémon editor to the summary screen.
 class AppStatus {
   MAKE_SINGLETON(AppStatus)
 public:
-  /// Read-only variant of the editor: only what a player is meant to touch
-  /// (nature, ability among the species' own, forms) stays editable.
+  /// true: the player can change only the nature, the ability (from the
+  /// abilities of the species) and the form.
   bool is_restricted = false;
 
   STATIC_INLINE void Initialize() {

@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file static_encounter.inc
+ * @brief The names of the static encounters for the menu pages.
+ */
+
 static const c8* STATIC_ENCOUNTER_NAMES[] = {
     "Poochyena", // 0
     "Thundurus", // 1

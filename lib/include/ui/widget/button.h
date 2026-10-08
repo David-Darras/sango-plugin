@@ -15,11 +15,17 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file button.h
+ * @brief A touch button of the bottom screen.
+ */
+
 #pragma once
 
 #include "common.h"
 
 namespace ui {
+/// A touch button of the bottom screen.
 class Button {
 public:
   Button();

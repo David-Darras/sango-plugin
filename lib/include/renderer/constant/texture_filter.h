@@ -15,14 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file texture_filter.h
+ * @brief The color filters of the Pokémon models in battle.
+ */
+
 #pragma once
 
 #include <types.h>
 
 namespace renderer {
 
-/// Colour treatments applied to the Pokémon models in battle, see
-/// H3dModel::Apply*.
+/// A color filter of the Pokémon models in battle. See renderer::ModelFilter.
 enum class TextureFilter : u8 {
   kNormal,
   kPitchBlack,

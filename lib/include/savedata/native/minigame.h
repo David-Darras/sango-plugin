@@ -15,10 +15,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file minigame.h
+ * @brief The data of the mini-games.
+ */
+
 #pragma once
 #include "savedata/native/savedata.h"
 
 namespace savedata {
+/// The data of the mini-games.
 struct Minigame {
   SINGLETON(Minigame)
 
@@ -42,4 +48,3 @@ struct Minigame {
   u8 tile_puzzle_best_ratings[4];
 };
 } // namespace savedata
-// 08C6FBC0

@@ -15,12 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file day_care.h
+ * @brief The Day Care.
+ */
+
 #pragma once
 
 #include "pokemon/native/core_data.h"
 #include "savedata/native/savedata.h"
 
 namespace savedata {
+/// The Pokémon at the Day Care and the Egg.
 struct DayCare {
   SINGLETON(DayCare)
   STATIC_INLINE DayCare& GetInstance() {

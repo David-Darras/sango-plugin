@@ -15,18 +15,24 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file time_override.h
+ * @brief Sets the time of the game.
+ */
+
 #pragma once
 
 #include "common.h"
 
 namespace core {
 
+/// Replaces the time of the console with a fixed time.
 struct TimeOverride {
   MAKE_SINGLETON(TimeOverride)
 
-  bool is_enabled = false;
-  u8 hour = 12;
-  u8 minute = 0;
+  bool is_enabled = false; ///< true: the game uses `hour` and `minute`.
+  u8 hour = 12; ///< The hour, from 0 to 23.
+  u8 minute = 0; ///< The minute, from 0 to 59.
 
   static void Initialize();
 

@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file field_move.cc
+ * @brief Uses the field moves from the menu.
+ *
+ * The declarations are in overworld/patch/field_move.h.
+ */
+
 #include "overworld/patch/field_move.h"
 #include "overworld/native/map_manager.h"
 #include "ui/main_application.h"

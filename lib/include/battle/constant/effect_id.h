@@ -15,12 +15,24 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file effect_id.h
+ * @brief The ids of the particle effects of the move animations.
+ *
+ * An effect name lists the moves that use the effect: kThunderboltZapCannonDischarge
+ * is an effect of Thunderbolt, Zap Cannon and Discharge. kCommonN is an effect
+ * that more than five moves use.
+ *
+ * This file is generated from the move animation data. Do not change it by hand.
+ */
+
 #pragma once
 
 #include "core/types.h"
 
 namespace battle {
 
+/// The id of a particle effect. See battle::MoveAnimation::EffectSpawn().
 enum class EffectId : s32 {
   kNoMoveStatusVisuals = 0,
   kMegaPunchMegaKickHyperBeamEggBombFreezeShock = 2,

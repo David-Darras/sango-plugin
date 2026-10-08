@@ -15,6 +15,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file graphics.h
+ * @brief Draws on the screens: texts and rectangles.
+ *
+ * The menu of the plugin uses these functions. plugin::DrawFrame() prepares
+ * the two screens before it calls them.
+ */
+
 #pragma once
 
 #include "common.h"
@@ -23,6 +31,7 @@
 
 namespace sys {
 
+/// The graphics system of the game.
 class Graphics {
   SINGLETON(Graphics)
   static constexpr f32 kScalePrimitiveX = 25.0f;
@@ -36,29 +45,35 @@ public:
     return Core::GetInstance().GetGraphics();
   }
 
+  /// Returns the image buffer of a screen.
   INLINE void* GetFramebuffer(Screen screen) {
     return ((void* (*)(Graphics*, Screen))renderer::address::kGraphicsGetFramebuffer)(
         this, screen);
   }
 
+  /// Selects the image buffer for the next drawings.
   INLINE bool BindFramebuffer(void* framebuffer) {
     return ((bool (*)(Graphics*, void*))renderer::address::kGraphicsBindFramebuffer)(
         this, framebuffer);
   }
 
+  /// Limits the next drawings to a rectangle.
   STATIC_INLINE void EnableScissor(u32 x, u32 y, u32 width, u32 height) {
     ((void (*)(u32, u32, u32, u32))renderer::address::kGraphicsEnableScissor)(x, y, width,
       height);
   }
 
+  /// Removes the limit of EnableScissor().
   STATIC_INLINE void DisableScissor() {
     ((void (*)())renderer::address::kGraphicsDisableScissor)();
   }
 
+  /// Starts the drawings on an image buffer.
   STATIC_INLINE void BeginRender(void* framebuffer) {
     ((void (*)(void*))renderer::address::kGraphicsBeginRender)(framebuffer);
   }
 
+  /// Draws a UTF-16 text. (x, y) is the top-left corner in pixels.
   STATIC_INLINE void DrawText(s32 x, s32 y, const c16* str,
                               const Color color = {1.0f, 1.0f, 1.0f, 1.0f},
                               void* pFont = nullptr) {
@@ -67,19 +82,23 @@ public:
         x, y, str, &clr, pFont);
   }
 
+  /// Sets the size of the next texts. The menu uses 0.6.
   STATIC_INLINE void SetTextScale(f32 x, f32 y) {
     ((void (*)(f32, f32))renderer::address::kGraphicsSetTextScale)(x, y);
   }
 
+  /// Fills the screen with a color.
   STATIC_INLINE void FillScreen(f32 r, f32 g, f32 b, f32 a) {
     const Color color{r, g, b, a};
     DrawRect(0, 0, 400, 240, color);
   }
 
+  /// Fills the screen with a color.
   STATIC_INLINE void FillScreen(Color color) {
     DrawRect(0, 0, 400, 240, color);
   }
 
+  /// The drawing settings of the game. DrawRect() fills it.
   struct Material {
     u32 _0;
     u8 _1;
@@ -96,6 +115,7 @@ public:
   };
 
   STATIC_INLINE void
+  /// Draws a filled rectangle.
   DrawRect(s32 x, s32 y, s32 width, s32 height, Color color) {
     Material mat = {};
     mat._0 = 0;
@@ -120,6 +140,7 @@ public:
   }
 
   STATIC_INLINE void
+  /// Draws the border of a rectangle. `thickness` is in pixels.
   DrawRectStroke(s32 x, s32 y, s32 width, s32 height, s32 thickness,
                  Color color) {
     DrawRect(x, y, width, thickness, color);

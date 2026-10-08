@@ -15,9 +15,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file kaizo_encounter.cc
+ * @brief Kaizo: the wild Pokémon of each map and their levels.
+ */
+
 #include <cmath>
 
 #include "common.h"
+#include "core/native/process_manager.h"
 #include "core/utils.h"
 #include "kaizo/kaizo.h"
 #include "overworld/constant/map.h"
@@ -27,6 +33,15 @@
 #include "savedata/native/pokemon_team.h"
 
 namespace kaizo {
+static MapId s_battle_map = MapId::kNone;
+
+MapId GetBattleMap() { return s_battle_map; }
+
+void UpdateBattleMap() {
+  if (!core::ProcessManager::IsOverworldActive()) return;
+  s_battle_map = overworld::MapManager::GetInstance().GetMap();
+}
+
 static const SpeciesId ROUTE_101[] = {
     SpeciesId::kGrowlithe,
     SpeciesId::kPoochyena,

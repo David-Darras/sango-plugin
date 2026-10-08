@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file map_data_loader.cc
+ * @brief Changes the map data when the game loads it.
+ *
+ * The declarations are in overworld/patch/map_data_loader.h.
+ */
+
 #include "overworld/patch/map_data_loader.h"
 #include "core/hook_manager.h"
 #include "overworld/patch/map_graft.h"

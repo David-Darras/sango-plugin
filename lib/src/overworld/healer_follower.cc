@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file healer_follower.cc
+ * @brief A nurse that follows the player and heals the party.
+ *
+ * The declarations are in overworld/patch/healer_follower.h.
+ */
+
 #include "overworld/patch/healer_follower.h"
 
 #include <cmath>
@@ -44,6 +51,7 @@ void HealerFollower::Initialize() {
   nurse.script_id = ScriptId::kHealerFollower;
   nurse.is_everywhere = true;
   nurse.facing = Facing::kDown;
+  nurse.is_enabled = &GetInstance().is_enabled;
   MapCharacter::Add(nurse);
 }
 

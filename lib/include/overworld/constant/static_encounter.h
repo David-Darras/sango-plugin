@@ -15,13 +15,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file static_encounter.h
+ * @brief The rows of the static encounter table.
+ */
+
 #pragma once
 
 #include <types.h>
 
 namespace overworld {
 
-/// Rows of the game's scripted encounter table.
+/// A row of the static encounter table: the legendary Pokémon and the
+/// other Pokémon that stand in the overworld.
 enum class StaticEncounterId : u32 {
   kPoochyena = 0, ///< The rescue-event encounter, see StaticEncounterKind
   kThundurus = 1,

@@ -15,12 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file day_care.h
+ * @brief Faster Eggs and experience at the Day Care.
+ */
+
 #pragma once
 
 #include "common.h"
 
 namespace overworld {
 
+/// Makes the Eggs hatch at once, and gives the maximum experience at the Day Care.
 class DayCare {
   MAKE_SINGLETON(DayCare)
 

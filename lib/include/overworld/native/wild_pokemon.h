@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file wild_pokemon.h
+ * @brief A wild Pokémon of a battle.
+ */
+
 #pragma once
 
 #include "core/types.h"

@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file item_customizer.cc
+ * @brief Lets a product change the data of the items.
+ *
+ * The declarations are in pokemon/patch/item_customizer.h.
+ */
+
 #include "pokemon/patch/item_customizer.h"
 
 #include "core/hook_manager.h"
@@ -22,28 +29,59 @@
 
 namespace pokemon {
 
-void ItemCustomizer::Initialize() {
-  auto& feat = ItemCustomizer::GetInstance();
+namespace {
 
-  if (feat.remove_limit) {
-    WRITE32(address::kItemEvTotalLimitCheck, 0xE35000FF);
-    WRITE32(address::kItemEvTotalLimitCheck2, 0xE35000FF);
-    WRITE32(address::kItemEvTotalLimitClamp, 0x03A000FF);
-    WRITE32(address::kItemEvStatLimitCheck1, 0xE35B00FF);
-    WRITE32(address::kItemEvStatLimitCheck2, 0xE35B00FF);
-    WRITE32(address::kItemEvStatLimitCheck3, 0xE35800FF);
-    WRITE32(address::kItemEvStatLimitCheck4, 0xE35900FF);
-    WRITE32(address::kItemEvStatLimitCheck5, 0xE35A00FF);
-    WRITE32(address::kItemEvStatLimitCheck6, 0xE35A00FF);
+// The EV limit checks of the game, and the instructions that replace them:
+// each check compares with 255 instead of the limit.
+struct LimitPatch {
+  uptr address;
+  u32 instruction;
+};
+
+const LimitPatch kLimitPatches[ItemCustomizer::kLimitPatchCount] = {
+    {address::kItemEvTotalLimitCheck, 0xE35000FF},
+    {address::kItemEvTotalLimitCheck2, 0xE35000FF},
+    {address::kItemEvTotalLimitClamp, 0x03A000FF},
+    {address::kItemEvStatLimitCheck1, 0xE35B00FF},
+    {address::kItemEvStatLimitCheck2, 0xE35B00FF},
+    {address::kItemEvStatLimitCheck3, 0xE35800FF},
+    {address::kItemEvStatLimitCheck4, 0xE35900FF},
+    {address::kItemEvStatLimitCheck5, 0xE35A00FF},
+    {address::kItemEvStatLimitCheck6, 0xE35A00FF},
+};
+
+} // namespace
+
+void ItemCustomizer::Initialize() {
+  auto& feat = GetInstance();
+  for (u32 i = 0; i < kLimitPatchCount; i++) {
+    feat.original_limits_[i] = READ32(kLimitPatches[i].address);
   }
+  UpdateLimitPatch();
 
   core::HookManager::Initialize(HookId::kItemDataGetParam,
                           address::kItemDataGetParam,
                           (uptr)GetParamHook);
 }
 
+void ItemCustomizer::UpdateLimitPatch() {
+  auto& feat = GetInstance();
+  if (feat.remove_limit == feat.is_limit_removed_) return;
+
+  svcInvalidateEntireInstructionCache();
+  for (u32 i = 0; i < kLimitPatchCount; i++) {
+    const uptr address = kLimitPatches[i].address;
+    if (address == 0) continue;
+    WRITE32(address, feat.remove_limit ? kLimitPatches[i].instruction
+                                       : feat.original_limits_[i]);
+    svcFlushProcessDataCache(CUR_PROCESS_HANDLE, address, 4);
+  }
+  feat.is_limit_removed_ = feat.remove_limit;
+}
+
 u32 ItemCustomizer::GetParamHook(ItemData* item, u32 param_id) {
   if (!item) return 0;
+  UpdateLimitPatch();
 
   auto& feat = GetInstance();
   if (feat.on_item_data != nullptr) feat.on_item_data(item);
@@ -66,9 +104,9 @@ s32 ItemCustomizer::GetParam(const ItemData* item, s32 param_id) {
     case 8: return item->natural_gift_type;
     case 9: return item->is_key_item;
     case 10: return item->registered_button;
-    case 11: return item->field_pocket;
+    case 11: return item->overworld_pocket;
     case 12: return item->battle_pocket;
-    case 13: return item->field_function;
+    case 13: return item->overworld_function;
     case 14: return item->battle_function;
     case 15: return item->use_on_pokemon;
     case 16: return item->item_type;

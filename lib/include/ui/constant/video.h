@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file video.h
+ * @brief The videos of the title screen.
+ */
+
 #pragma once
 
 #include <types.h>

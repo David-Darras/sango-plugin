@@ -15,16 +15,28 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file model_replacement.h
+ * @brief Lets a product change the look of a Pokémon model.
+ *
+ * @see docs/tutorials/10-replace-models.md
+ */
+
 #pragma once
 
 #include "common.h"
 
 namespace pokemon {
 
+/// Calls a callback of the product before the game makes a Pokémon model.
 class ModelReplacement {
   MAKE_SINGLETON(ModelReplacement)
 
 public:
+  /// Called before the game makes a Pokémon model. Change `info` to change
+  /// the species, the form or the shiny state of the model.
+  /// Called before the game makes a Pokémon model. Change `info` to change
+  /// the species, the form or the shiny state of the model.
   void (*on_create)(PokeInfo* info) = nullptr;
 
   static void Initialize();

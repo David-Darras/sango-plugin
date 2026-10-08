@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file pokedex_form.inc
+ * @brief The names of the forms in the Pokédex, for the menu pages.
+ */
+
 static const char* FORMS[][30] =
 {
     {

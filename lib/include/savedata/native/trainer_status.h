@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file trainer_status.h
+ * @brief The trainer data of the player: name, id, gender, outfit.
+ */
+
 #pragma once
 
 #include "common.h"

@@ -15,6 +15,11 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file h3d_model.h
+ * @brief A 3D model of the game (H3D format).
+ */
+
 #pragma once
 
 #include "common.h"
@@ -66,6 +71,7 @@ enum BlendEquation : u8 { EQUATION_ADD = 0, EQUATION_SUBTRACT = 1 };
 
 using namespace TevCombine;
 
+/// A 3D model of the game. The functions change its meshes and its materials.
 struct H3dModel {
   uptr vtable;
 

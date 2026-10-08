@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file wild_encounter.h
+ * @brief Lets a product change the wild Pokémon.
+ *
+ * @see docs/tutorials/07-change-wild-pokemon.md
+ */
+
 #pragma once
 
 #include "common.h"
@@ -24,13 +31,15 @@
 namespace overworld {
 struct EncounterData;
 
+/// Calls the callbacks of the product when the game reads the wild Pokémon.
 struct WildEncounter {
   MAKE_SINGLETON(WildEncounter)
 
-  /// Lets a product rewrite an encounter table as the game reads it.
+  /// Called when the game reads the encounter table of a map. Change the
+  /// table: the DexNav then shows the new Pokémon.
   typedef void (*EncounterTableCallback)(EncounterData* data);
-  /// Lets a product rewrite the Pokémon the game just rolled for a wild
-  /// battle on the current map.
+  /// Called after the game selects the wild Pokémon of a battle. `count` is
+  /// 1 for a normal battle and 5 for a horde.
   typedef void (*WildPokemonCallback)(MapId map_id, WildPokemon* pokemons,
                                       u32 count);
 
@@ -40,7 +49,7 @@ struct WildEncounter {
   static void Initialize();
 
 private:
-  static u16* GetNaviDexTable(EncounterData* data, s32 data_size,
+  static u16* GetDexNavTable(EncounterData* data, s32 data_size,
                               u32* count, void* heap,
                               u8 p4, bool p5);
   static void AddMaxRepel();

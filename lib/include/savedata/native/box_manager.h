@@ -15,12 +15,18 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file box_manager.h
+ * @brief The names and the wallpapers of the PC boxes.
+ */
+
 #pragma once
 
 #include "common.h"
 #include "savedata/native/savedata.h"
 
 namespace savedata {
+/// The names and the wallpapers of the PC boxes.
 struct BoxManager {
   SINGLETON(BoxManager)
 

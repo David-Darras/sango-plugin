@@ -15,6 +15,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/**
+ * @file device_patch.cc
+ * @brief Hides the buttons from the game when the menu of the plugin is open.
+ *
+ * The declarations are in core/patch/device_patch.h.
+ */
+
 #include "core/patch/device_patch.h"
 #include "core/hook_manager.h"
 #include "system/native/device.h"
