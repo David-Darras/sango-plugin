@@ -23,6 +23,7 @@
 #pragma once
 
 #include "common.h"
+#include "system/native/graphics.h"
 
 namespace ui {
 /// The colors, the sounds and the buttons of the menu. The page Plugin Theme changes them.
@@ -42,6 +43,10 @@ struct Theme {
 
   bool text_shadow = true; ///< Draws a shadow under the texts of the menu.
   bool animations = true; ///< Moves the cursor and the pages smoothly.
+  /// Draws sdmc:/sango/menu_top.tga and menu_bottom.tga behind the menu.
+  bool background_image = true;
+  /// The opacity of the background images: 0 (hidden) to 1 (opaque).
+  f32 background_image_opacity = 1.0f;
 
   /// The ready-made looks of the Plugin Theme page.
   enum class Preset : u8 { kDefault, kDark, kLight, kRuby, kSapphire, kEmerald };
@@ -83,4 +88,12 @@ private:
     selected_text_color = selected;
   }
 };
+/// Draws a text of the menu, with a shadow when Theme::text_shadow is on.
+inline void DrawMenuText(s32 x, s32 y, const c16* text, Color color) {
+  if (Theme::GetInstance().text_shadow) {
+    sys::Graphics::DrawTextWithShadow(x, y, text, color);
+  } else {
+    sys::Graphics::DrawText(x, y, text, color);
+  }
+}
 } // namespace ui

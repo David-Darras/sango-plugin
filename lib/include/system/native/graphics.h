@@ -73,13 +73,74 @@ public:
     ((void (*)(void*))renderer::address::kGraphicsBeginRender)(framebuffer);
   }
 
+  /**
+   * @brief The texts that the GPU can draw in one frame, on the two screens.
+   *
+   * Each text adds many commands to the command list of the GPU, and the
+   * list has a fixed size: about 100 texts in one frame make the game
+   * crash, 88 texts are safe. DrawText() does not draw the texts after
+   * kTextLimit. A shadow is a text too: DrawTextWithShadow() adds it only
+   * when the texts of the frame (estimated with the last frame) and the
+   * shadows stay under kShadowLimit.
+   */
+  static constexpr u32 kTextLimit = 88;
+  static constexpr u32 kShadowLimit = 80;
+
+  /// The texts of the current frame and of the last frame.
+  struct TextBudget {
+    u32 texts; ///< The texts of this frame, without the shadows.
+    u32 shadows; ///< The shadows of this frame.
+    u32 last_texts; ///< The texts of the last frame, without the shadows.
+  };
+
+  STATIC_INLINE TextBudget& GetTextBudget() {
+    static TextBudget budget = {0, 0, 0};
+    return budget;
+  }
+
+  /// Starts the count of the texts of a new frame. plugin::DrawFrame()
+  /// calls it before the drawings.
+  STATIC_INLINE void StartFrame() {
+    TextBudget& budget = GetTextBudget();
+    budget.last_texts = budget.texts;
+    budget.texts = 0;
+    budget.shadows = 0;
+  }
+
   /// Draws a UTF-16 text. (x, y) is the top-left corner in pixels.
   STATIC_INLINE void DrawText(s32 x, s32 y, const c16* str,
                               const Color color = {1.0f, 1.0f, 1.0f, 1.0f},
                               void* pFont = nullptr) {
+    TextBudget& budget = GetTextBudget();
+    if (budget.texts + budget.shadows >= kTextLimit) return;
+    budget.texts++;
     Color clr = color;
     ((void (*)(s32, s32, const c16*, Color*, void*))renderer::address::kGraphicsDrawText)(
         x, y, str, &clr, pFont);
+  }
+
+  /**
+   * @brief Draws a text with a dark shadow under it.
+   *
+   * The shadow doubles the cost of the text. The function draws it only
+   * when the texts of the last frame and the shadows of this frame stay
+   * under kShadowLimit.
+   */
+  STATIC_INLINE void DrawTextWithShadow(s32 x, s32 y, const c16* str,
+                                        Color color) {
+    TextBudget& budget = GetTextBudget();
+    // The texts of this frame: at least the texts of the last frame. At the
+    // first frame of the menu, the last frame has no texts: no shadow.
+    const u32 texts = budget.texts > budget.last_texts ? budget.texts
+                                                       : budget.last_texts;
+    if (budget.last_texts != 0 && texts + budget.shadows < kShadowLimit) {
+      budget.shadows++;
+      Color shadow(0, 0, 0, 0.6f * color.a);
+      ((void (*)(s32, s32, const c16*, Color*, void*))
+           renderer::address::kGraphicsDrawText)(x + 1, y + 1, str, &shadow,
+                                                 nullptr);
+    }
+    DrawText(x, y, str, color);
   }
 
   /// Sets the size of the next texts. The menu uses 0.6.
@@ -103,6 +164,40 @@ public:
     return (s32)((f32 (*)(const c16*, void*))
                      renderer::address::kGraphicsGetTextWidth)(str,
                                                                   nullptr);
+  }
+
+  /**
+   * @brief Adds spaces at the end of a text, until the text reaches a
+   *        width.
+   *
+   * With it, one text can show several columns (for example the name and
+   * the value of an entry): one text costs less than several texts.
+   * @param text The text (UTF-16). It changes.
+   * @param capacity The size of `text`, in characters.
+   * @param width The width to reach, with the current text scale.
+   */
+  STATIC_INLINE void AppendSpaces(c16* text, u32 capacity, s32 width) {
+    // The width of one space: the font can trim a space at the end.
+    const s32 space = GetTextWidth(u"| |") - GetTextWidth(u"||");
+    if (space <= 0) return;
+    u32 length = 0;
+    while (text[length] != 0) length++;
+    s32 count = (width - GetTextWidth(text) + space / 2) / space;
+    while (count-- > 0 && length + 1 < capacity) text[length++] = u' ';
+    text[length] = 0;
+    // Measure again: remove the spaces that go past the width.
+    while (length > 0 && text[length - 1] == u' ' &&
+           GetTextWidth(text) > width + space / 2) {
+      text[--length] = 0;
+    }
+  }
+
+  /// Adds a text at the end of `text`, when there is space.
+  STATIC_INLINE void AppendText(c16* text, u32 capacity, const c16* add) {
+    u32 length = 0;
+    while (text[length] != 0) length++;
+    while (*add != 0 && length + 1 < capacity) text[length++] = *add++;
+    text[length] = 0;
   }
 
   /// Fills the screen with a color.
@@ -135,8 +230,44 @@ public:
   STATIC_INLINE void
   /// Draws a filled rectangle.
   DrawRect(s32 x, s32 y, s32 width, s32 height, Color color) {
+    DrawRectWithTexture(x, y, width, height, color, nullptr);
+  }
+
+  /**
+   * @brief Makes a texture from pixels (the native format of the GPU, see
+   *        ui::Image). Use it only while the plugin draws the top screen.
+   *
+   * The game function binds the command list of the drawings out of the
+   * screens, and this list does not exist in the game: the next drawings
+   * crash. So the function binds the command list of the top screen again.
+   * @param width The width: a power of 2 from 8 to 512.
+   * @param height The height: a power of 2 from 8 to 512.
+   * @param pixels The pixels. The function copies them.
+   * @return The texture, or null.
+   */
+  STATIC_INLINE void* CreateTexture(u32 width, u32 height,
+                                    const void* pixels) {
+    if (renderer::address::kGraphicsCreateTexture == 0) return nullptr;
+    constexpr u32 kFormatRgba8 = 0x8058;
+    Graphics& graphics = GetInstance();
+    void* texture = ((void* (*)(Graphics*, u32, u32, u32, const void*))
+                         renderer::address::kGraphicsCreateTexture)(
+        &graphics, kFormatRgba8, width, height, pixels);
+    graphics.BindFramebuffer(graphics.GetFramebuffer(Screen::kTop));
+    return texture;
+  }
+
+  /**
+   * @brief Draws a rectangle with a color, or with a texture.
+   * @param color The color. With a texture, it multiplies the texture.
+   * @param texture A texture of CreateTexture(), or null for a color only.
+   *        The texture fills the rectangle.
+   */
+  STATIC_INLINE void DrawRectWithTexture(s32 x, s32 y, s32 width, s32 height,
+                                         Color color, void* texture) {
     Material mat = {};
-    mat._0 = 0;
+    mat._0 = texture != nullptr ? 1 : 0; // 1: the texture shader.
+    mat._9 = texture;
     mat._1 = 1;
     mat._3 = 0x8006;
     mat._4 = 0x0302;

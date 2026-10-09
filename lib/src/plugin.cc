@@ -182,6 +182,8 @@ void UpdateFrame() {
 
 void DrawFrame() {
   auto& graphics = sys::Graphics::GetInstance();
+  // Count the texts of the new frame: see sys::Graphics::kTextLimit.
+  sys::Graphics::StartFrame();
   auto* application = ui::ApplicationManager::GetInstance().GetCurrentApplication();
 
   void* top_buffer = graphics.GetFramebuffer(Screen::kTop);

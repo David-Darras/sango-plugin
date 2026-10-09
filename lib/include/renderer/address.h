@@ -40,6 +40,8 @@ constexpr uptr kGraphicsDrawText = GAME_ADDRESS(0x0038DB54, 0x003A44C4);
 constexpr uptr kGraphicsDrawRect = GAME_ADDRESS(0x00174CA4, 0x00175BDC);
 /// Returns the width of a text (sys::Graphics::GetTextWidth).
 constexpr uptr kGraphicsGetTextWidth = GAME_ADDRESS(0, 0x003A36D8);
+/// Makes a texture from pixels (sys::Graphics::CreateTexture).
+constexpr uptr kGraphicsCreateTexture = GAME_ADDRESS(0, 0x0012B414);
 /// Draws a 3D scene with a camera (overworld::WorldOverlay).
 constexpr uptr kSceneDraw = GAME_ADDRESS(0, 0x00391FDC);
 /// Gives the view matrix and the projection matrix of a camera.

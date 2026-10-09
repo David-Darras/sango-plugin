@@ -122,15 +122,15 @@ void Keyboard::DrawKey(u32 id, const c16* label, u32 offset_x) const {
     sys::Graphics::DrawRect(button.GetX(), button.GetY(), button.GetWidth(),
                             button.GetHeight(), fill);
   }
+  if (label == nullptr) return;
   // The label is in the center of the key. `offset_x` is the margin when
   // the label is wider than the key.
   sys::Graphics::SetTextScale(0.6f, 0.6f);
   s32 label_x = button.GetX() +
                 (button.GetWidth() - sys::Graphics::GetTextWidth(label)) / 2;
   if (label_x < (s32)button.GetX() + 1) label_x = button.GetX() + offset_x;
-  sys::Graphics::DrawText(label_x,
-                          button.GetY() + (button.GetHeight() - 14) / 2, label,
-                          theme.unselected_text_color);
+  DrawMenuText(label_x, button.GetY() + (button.GetHeight() - 14) / 2, label,
+               theme.unselected_text_color);
 }
 
 void Keyboard::Draw() const {
@@ -149,20 +149,35 @@ void Keyboard::Draw() const {
   sys::Graphics::DrawRect(first.GetX(), first.GetY(), kColNum * kKeyWidth,
                           kRowNum * kKeyHeight, grid);
   sys::Graphics::SetTextScale(0.6f, 0.6f);
-  sys::Graphics::DrawText(bar.GetX() + 6, bar.GetY() + 3, input_,
-                          theme.selected_text_color);
+  DrawMenuText(bar.GetX() + 6, bar.GetY() + 3, input_,
+               theme.selected_text_color);
   c16 info[48];
   core::Utils::Format(info, u"%s U+%04X  %d/%d", kGroups[FindGroup(first_char_)].name,
                       first_char_, cursor_, capacity_ - 1);
   sys::Graphics::SetTextScale(0.4f, 0.4f);
-  sys::Graphics::DrawText(bar.GetX() + 180, bar.GetY() + 5, info,
-                          theme.unselected_text_color);
+  DrawMenuText(bar.GetX() + 180, bar.GetY() + 5, info,
+               theme.unselected_text_color);
 
-  c16 label[2] = {0, 0};
+  // The pressed key, then one text for each row of characters: one text
+  // costs less than ten (see main_application.cc).
   for (u32 i = 0; i < kPageSize; i++) {
-    if (chars_[i] == 0) continue;
-    label[0] = chars_[i];
-    DrawKey(kButtonGridStart + i, label, 10);
+    if (chars_[i] != 0) DrawKey(kButtonGridStart + i, nullptr, 0);
+  }
+  sys::Graphics::SetTextScale(0.6f, 0.6f);
+  for (u32 row = 0; row < kRowNum; row++) {
+    c16 text[96] = {0};
+    for (u32 column = 0; column < kColNum; column++) {
+      const c16 character = chars_[row * kColNum + column];
+      if (character == 0) continue;
+      const c16 label[2] = {character, 0};
+      const s32 center = column * kKeyWidth + kKeyWidth / 2;
+      sys::Graphics::AppendSpaces(
+          text, SIZE(text), center - sys::Graphics::GetTextWidth(label) / 2);
+      sys::Graphics::AppendText(text, SIZE(text), label);
+    }
+    DrawMenuText(first.GetX(),
+                 first.GetY() + row * kKeyHeight + (kKeyHeight - 14) / 2, text,
+                 theme.unselected_text_color);
   }
 
   DrawKey(kButtonPrevGroup, u"<<", 7);

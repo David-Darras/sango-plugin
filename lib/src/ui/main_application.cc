@@ -35,6 +35,7 @@
 #include "system/native/graphics.h"
 #include "system/native/sound.h"
 #include "ui/theme.h"
+#include "ui/widget/image.h"
 
 #ifndef BUFFER_SIZE
 #define BUFFER_SIZE 1024
@@ -70,20 +71,20 @@ constexpr s32 kValueGap = 16;
 const c8* const kCredit = PLUGIN_NAME " " PLUGIN_VERSION " by " PLUGIN_CREATOR
                           "  |  Build " __DATE__ " " __TIME__;
 
-// Each DrawText() and each DrawRect() adds many commands to the command
-// list of the GPU, and the list has a fixed size: too many drawings in one
-// frame make the game crash. So the menu draws each button with one
-// rectangle (not four lines for a border), and the shadows only where they
-// help: on the top screen, when the game shows behind the menu.
+// Each DrawText() adds many commands to the command list of the GPU, and
+// the list has a fixed size: about 100 texts in one frame make the game
+// crash (see sys::Graphics::kTextLimit). So the menu draws few texts: one
+// text for each row of keys. Then the shadows of the texts fit.
 
-// Draws a text with a shadow under it, when `has_shadow` is true.
-void DrawShadowText(s32 x, s32 y, const c16* text, Color color,
-                    bool has_shadow) {
-  if (has_shadow) {
-    Color shadow(0, 0, 0, 0.55f * color.a);
-    sys::Graphics::DrawText(x + 1, y + 1, text, shadow);
-  }
-  sys::Graphics::DrawText(x, y, text, color);
+// The background images of the menu (see Theme::background_image).
+Image& GetTopImage() {
+  static Image image(u"sdmc:/sango/menu_top.tga");
+  return image;
+}
+
+Image& GetBottomImage() {
+  static Image image(u"sdmc:/sango/menu_bottom.tga");
+  return image;
 }
 
 // Draws a text (UTF-8) at the position, with a maximum of `max_length`
@@ -106,7 +107,7 @@ u32 DrawPart(s32 x, s32 y, const c8* text, u32 max_length, Color color) {
   part[length] = '\0';
   c16 buffer[kWrapLength + 1];
   core::Utils::Format(buffer, u"%s", part);
-  sys::Graphics::DrawText(x, y, buffer, color);
+  DrawMenuText(x, y, buffer, color);
   return length;
 }
 
@@ -155,6 +156,12 @@ MainApplication MainApplication::instance_ = MainApplication();
 
 void MainApplication::DrawTop(sys::Graphics& graphics) {
   if (!IsOpened()) return;
+
+  // Make the textures of the background images now: only while the plugin
+  // draws the top screen, and one texture in each frame (see ui::Image).
+  if (theme_.background_image && !GetTopImage().Prepare()) {
+    GetBottomImage().Prepare();
+  }
 
   painter_->DrawPageBackground(*this);
 //   sys::Graphics::SetTextScale(1.0f, 1.0f);
@@ -251,7 +258,7 @@ MainApplication::Editor MainApplication::GetEditor(
 
 void MainApplication::DrawLabel(s32 x, s32 y, const c16* text,
                                 Color color) const {
-  sys::Graphics::DrawText(x, y, text, color);
+  DrawMenuText(x, y, text, color);
 }
 
 void MainApplication::DrawTouch(TouchId id, const c16* label,
@@ -283,6 +290,10 @@ void MainApplication::DrawBottom(sys::Graphics& graphics) {
 
   if (!IsOpened() || !painter_->ShowBottom()) return;
 
+  // The image of the theme, then the color of the theme over it.
+  if (theme_.background_image) {
+    GetBottomImage().Draw(0, -16, Color(1, 1, 1, theme_.background_image_opacity));
+  }
   sys::Graphics::FillScreen(theme_.background_color);
   if (is_radial_open_) {
     DrawRadial();
@@ -951,6 +962,9 @@ PageItem& Painter::GetEntry(MainApplication& app, u32 index) {
 
 void MainAppPainter::DrawPageBackground(MainApplication& app) {
   if (!app.no_background_) {
+    if (app.theme_.background_image) {
+      GetTopImage().Draw(0, -16, Color(1, 1, 1, app.theme_.background_image_opacity));
+    }
     sys::Graphics::FillScreen(app.theme_.background_color);
   }
 }
@@ -959,9 +973,6 @@ void MainAppPainter::DrawPageItems(MainApplication& app) {
   MainApplication::MenuContext& ctx = app.GetContext();
   const Theme& theme = app.theme_;
   const s32 line_height = MainApplication::kLineHeight;
-  // The shadows help to read the texts over the game (pages without a
-  // background). They double the number of texts: see DrawShadowText().
-  const bool has_shadow = theme.text_shadow && app.no_background_;
 
   // A new page slides in from the side and fades in.
   const f32 transition = app.transition_;
@@ -978,8 +989,7 @@ void MainAppPainter::DrawPageItems(MainApplication& app) {
   bar.a = 0.18f * fade;
   sys::Graphics::DrawRect(16, RectY(bar_y) + 1, 372, row_height, bar);
   sys::Graphics::SetTextScale(0.6f, 0.6f);
-  DrawShadowText(5 + shift, bar_y, u"", theme.selected_text_color,
-                 has_shadow);
+  DrawMenuText(5 + shift, bar_y, u"", theme.selected_text_color);
 
   c16 name[256];
   c16 value[256];
@@ -999,7 +1009,7 @@ void MainAppPainter::DrawPageItems(MainApplication& app) {
                                 accent);
         core::Utils::Format(name, u"%s", title);
         sys::Graphics::SetTextScale(0.6f, 0.6f);
-        DrawShadowText(x + 8, y, name, accent, has_shadow);
+        DrawMenuText(x + 8, y, name, accent);
       } else {
         Color line = theme.unselected_text_color;
         line.a = 0.3f * fade;
@@ -1025,7 +1035,7 @@ void MainAppPainter::DrawPageItems(MainApplication& app) {
     entry.GetNameText(name);
     entry.GetValueText(value);
     if (value[0] == 0 || entry.GetType() == kTypeIdle) {
-      DrawShadowText(x, y, name, color, has_shadow);
+      DrawMenuText(x, y, name, color);
       continue;
     }
     // The values are aligned on the right: the eyes find them faster.
@@ -1035,11 +1045,13 @@ void MainAppPainter::DrawPageItems(MainApplication& app) {
     if (x + name_width + kValueGap > value_x) {
       // No space: the value follows the name on the same line.
       entry.GetDisplayValue(name);
-      DrawShadowText(x, y, name, color, has_shadow);
-    } else {
-      DrawShadowText(x, y, name, color, has_shadow);
-      DrawShadowText(value_x, y, value, color, has_shadow);
+      DrawMenuText(x, y, name, color);
+      continue;
     }
+    // Two texts: spaces between the name and the value would add the small
+    // error of each space, and push the value out of the screen.
+    DrawMenuText(x, y, name, color);
+    DrawMenuText(value_x, y, value, color);
   }
 
   // The scroll bar: where the visible entries are in the page.

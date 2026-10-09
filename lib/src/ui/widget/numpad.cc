@@ -80,7 +80,7 @@ void Numpad::DrawKey(ButtonId id, const c16* label, bool is_enabled) const {
   const s32 width = button.GetWidth();
   const s32 height = button.GetHeight();
 
-  // One rectangle for each key: see the comment of DrawShadowText() in
+  // One rectangle for each key: see the comment at the start of
   // main_application.cc.
   Color border = theme.unselected_text_color;
   if (!is_enabled) border.a = 0.3f;
@@ -89,9 +89,10 @@ void Numpad::DrawKey(ButtonId id, const c16* label, bool is_enabled) const {
   fill.a = is_down ? 0.7f : 0.12f;
   sys::Graphics::DrawRect(x, y, width, height, fill);
 
+  if (label == nullptr) return;
   sys::Graphics::SetTextScale(0.6f, 0.6f);
-  sys::Graphics::DrawText(x + (width - sys::Graphics::GetTextWidth(label)) / 2,
-                          y + (height - 14) / 2, label, border);
+  DrawMenuText(x + (width - sys::Graphics::GetTextWidth(label)) / 2,
+               y + (height - 14) / 2, label, border);
 }
 
 void Numpad::Draw() const {
@@ -104,17 +105,42 @@ void Numpad::Draw() const {
   sys::Graphics::DrawRect(bar.GetX(), bar.GetY(), bar.GetWidth(),
                           bar.GetHeight(), bar_color);
   sys::Graphics::SetTextScale(0.6f, 0.6f);
-  sys::Graphics::DrawText(bar.GetX() + 6, bar.GetY() + 3, input_,
-                          is_edited_ ? theme.selected_text_color
-                                     : theme.unselected_text_color);
+  DrawMenuText(bar.GetX() + 6, bar.GetY() + 3, input_,
+               is_edited_ ? theme.selected_text_color
+                          : theme.unselected_text_color);
 
-  c16 label[2] = {0, 0};
+  // The rectangles of the keys, then one text for each row of keys: one
+  // text costs less than three (see main_application.cc).
   for (u32 i = 0; i <= 9; i++) {
-    label[0] = u'0' + i;
-    DrawKey((ButtonId)(kButton0 + i), label, true);
+    DrawKey((ButtonId)(kButton0 + i), nullptr, true);
   }
-  DrawKey(kButtonMinus, u"-", allow_minus_);
-  DrawKey(kButtonDot, u".", allow_dot_);
+  DrawKey(kButtonMinus, nullptr, allow_minus_);
+  DrawKey(kButtonDot, nullptr, allow_dot_);
+  sys::Graphics::SetTextScale(0.6f, 0.6f);
+  for (u32 row = 0; row < 4; row++) {
+    c16 text[64] = {0};
+    const Button& first = buttons_[kGridKeys[row * 3]];
+    for (u32 column = 0; column < 3; column++) {
+      const u8 key = kGridKeys[row * 3 + column];
+      c16 label[2] = {0, 0};
+      if (key <= 9) {
+        label[0] = u'0' + key;
+      } else if (key == kButtonMinus && allow_minus_) {
+        label[0] = u'-';
+      } else if (key == kButtonDot && allow_dot_) {
+        label[0] = u'.';
+      } else {
+        continue; // A disabled key has no label.
+      }
+      const Button& button = buttons_[key];
+      const s32 center = button.GetX() - first.GetX() + button.GetWidth() / 2;
+      sys::Graphics::AppendSpaces(
+          text, SIZE(text), center - sys::Graphics::GetTextWidth(label) / 2);
+      sys::Graphics::AppendText(text, SIZE(text), label);
+    }
+    DrawMenuText(first.GetX(), first.GetY() + (first.GetHeight() - 14) / 2,
+                 text, theme.unselected_text_color);
+  }
   DrawKey(kButtonDelete, u"DEL", true);
   DrawKey(kButtonClear, u"CLR", true);
   DrawKey(kButtonOk, u"OK  (X)", true);

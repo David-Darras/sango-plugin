@@ -99,6 +99,12 @@ void MainApplication::LoadSettings() {
     Theme& theme = theme_;
     theme.text_shadow = ini.GetBool("menu", "text_shadow", theme.text_shadow);
     theme.animations = ini.GetBool("menu", "animations", theme.animations);
+    theme.background_image =
+        ini.GetBool("menu", "background_image", theme.background_image);
+    theme.background_image_opacity =
+        ini.GetInt("menu", "background_image_opacity",
+                   (s32)(theme.background_image_opacity * 100.0f + 0.5f)) /
+        100.0f;
 
     theme.background_color = ToColor(
         ini.GetHex("theme", "background", ToHex(theme.background_color)));
@@ -162,6 +168,10 @@ void MainApplication::SaveSettings() {
   ini.AddSection("menu");
   ini.SetInt("text_shadow", theme_.text_shadow ? 1 : 0);
   ini.SetInt("animations", theme_.animations ? 1 : 0);
+  ini.SetInt("background_image", theme_.background_image ? 1 : 0);
+  ini.AddComment("The opacity of the background images, in percent.");
+  ini.SetInt("background_image_opacity",
+             (s32)(theme_.background_image_opacity * 100.0f + 0.5f));
 
   ini.AddSection("theme");
   ini.SetHex("background", ToHex(theme_.background_color));

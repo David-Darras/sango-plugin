@@ -51,8 +51,16 @@ void LoadThemePage(MainApplication& app, void* args) {
 
   app.AddSection("Effects")
       .Add("Text Shadow", theme.text_shadow)
-      .WithDescription("A shadow under the texts of the top screen, on the "
-                       "pages that show the game (camera, models).")
+      .WithDescription("A shadow under the texts. On a page with many texts, "
+                       "some texts have no shadow: the GPU has a limit.")
+      .Add("Background Image", theme.background_image)
+      .WithDescription("Shows sdmc:/sango/menu_top.tga and menu_bottom.tga "
+                       "(TGA, 400 x 240 and 320 x 240) behind the menu.")
+      .Add("Image Opacity", theme.background_image_opacity)
+      .WithFactor(0.1f)
+      .WithBounds(0, 1)
+      .WithDescription("0: no image. 1: the full image. The background color "
+                       "covers the image too: lower its alpha.")
       .Add("Animations", theme.animations)
       .WithDescription("The selection bar and the pages move smoothly. Off: "
                        "they move at once.");

@@ -253,12 +253,31 @@ A **painter** (`ui::Painter`) draws the menu. The overlay uses
 
 To change the look, make a class that inherits `ui::Painter`.
 
-**Keep the number of drawings small.** Each `DrawText()` and each
-`DrawRect()` adds many commands to the command list of the GPU, and this
-list has a fixed size: too many drawings in one frame make the game crash.
-Draw a button with one rectangle (not `DrawRectStroke()`, which draws four),
-and do not draw a shadow under each text of both screens.
-Give it to `plugin::OpenMenu(painter, root_page)`.
+**Keep the number of texts small.** Each `DrawText()` adds many commands to
+the command list of the GPU, and this list has a fixed size: about 100 texts
+in one frame (both screens) make the game crash. `sys::Graphics` counts the
+texts of each frame: it stops the shadows at 80 texts (`kShadowLimit`) and
+the texts at 88 (`kTextLimit`). To use few texts, draw one text for a full
+line: `sys::Graphics::AppendSpaces()` adds spaces up to a width, then
+`AppendText()` adds the next column. The menu draws each row of keys like
+this. Use it only for short gaps: each space adds a small error. Draw a button with one rectangle, not
+`DrawRectStroke()` (four rectangles).
+
+**Background images.** The menu shows `sdmc:/sango/menu_top.tga` and
+`sdmc:/sango/menu_bottom.tga` behind its pages (Plugin Theme > Background
+Image). Save them as TGA without compression (24 or 32 bits): 400 x 240
+pixels for the top screen, 320 x 240 for the bottom screen. A smaller image
+shows in the center of the screen. Image Opacity sets the opacity of the
+image, and the color of the theme covers it: its alpha sets how much of the
+image shows.
+`ui::Image` draws any other TGA image of 512 x 512 pixels at most. Call
+`Image::Prepare()` while the plugin draws the top screen: a new texture while
+the game draws the bottom screen makes the game crash. To make a
+TGA image from a PNG image:
+
+```bash
+python tools/png_to_tga.py menu_top.png
+```
 
 ## The pages of the library
 
