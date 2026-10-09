@@ -35,10 +35,8 @@ static void SetBits(u32* num, u32 offset, u32 size, u32 value) {
   SET_BITS(*num, offset, size, value);
 }
 
-/**
-* @brief Adds `count` to the value at `address`, wrapping back to `min`
-* if the result would exceed `max` (when a max bound is set).
-*/
+/// Adds `count` to the value at `address`. When the result is more than `max`,
+/// the value goes back to `min`. The maximum applies only when it is set.
 template <typename T>
 static void IncrementWrapped(void* address, s32 min, s32 max,
                              bool is_max_used, u32 count) {
@@ -51,10 +49,8 @@ static void IncrementWrapped(void* address, s32 min, s32 max,
   *(T*)address = val;
 }
 
-/**
-* @brief Subtracts `count` from the value at `address`, wrapping back to
-* `max` if the result would fall below `min` (when a min bound is set).
-*/
+/// Subtracts `count` from the value at `address`. When the result is less than
+/// `min`, the value goes to `max`. The minimum applies only when it is set.
 template <typename T>
 static void DecrementWrapped(void* address, s32 min, s32 max,
                              bool is_min_used, u32 count) {
@@ -67,10 +63,8 @@ static void DecrementWrapped(void* address, s32 min, s32 max,
   *(T*)address = val;
 }
 
-/**
-* @brief Writes `value` to `address`, clamped to [`min`, `max`] (each bound
-* only applied if it was set).
-*/
+/// Writes `value` to `address`, between `min` and `max`. Each limit applies
+/// only when it is set.
 template <typename T>
 static void EditClamped(const void* value, void* address, s32 min, s32 max,
                         bool is_min_used, bool is_max_used) {

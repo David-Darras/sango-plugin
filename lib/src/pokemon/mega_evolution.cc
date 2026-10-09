@@ -37,7 +37,7 @@ void MegaEvolution::Initialize() {
   core::HookManager::Initialize(HookId::kLoadMegaEvolutionTable,
                           address::kLoadMegaEvolutionTable,
                           (uptr)LoadMegaEvolutionTableHook);
-  // disable cache
+  // Disable the cache.
   ARM_RET(address::kLoadMegaEvolutionTable + 0x3C);
   ARM_RET(address::kResetMegaEvolution);
 }

@@ -30,7 +30,7 @@ namespace address {
 constexpr uptr kChangeMap = GAME_ADDRESS(0x003B9F14, 0x003D6258);
 constexpr uptr kSetDefaultPosition = GAME_ADDRESS(0x003E2B00, 0x004040E4);
 constexpr uptr kMapBlockVtable = GAME_ADDRESS(0x007B17F4, 0x007FD7DC);
-// XY: unverified (from neighbouring vtable)
+// XY: not verified (found near another vtable).
 constexpr uptr kGetMapTile = GAME_ADDRESS(0x003E28D8, 0x00403DAC);
 constexpr uptr kGetPlayerMovement = GAME_ADDRESS(0x007338E4, 0x00782A8C);
 constexpr uptr kLoadMapData = GAME_ADDRESS(0x003BCFA0, 0x003D9BD4);
@@ -41,7 +41,7 @@ constexpr uptr kGetOverworldBackgroundMusic = GAME_ADDRESS(
 constexpr uptr kUpdateZone = GAME_ADDRESS(0x0071DC34, 0x0076D6F4);
 constexpr uptr kVtable = GAME_ADDRESS(0x007AE4BC, 0x007FA2DC);
 constexpr uptr kCallScriptVtable = GAME_ADDRESS(0x0059C630, 0x005DF018);
-// XY: unverified (from neighbouring vtables)
+// XY: not verified (found near other vtables).
 constexpr uptr kUpdateZoneWeather = GAME_ADDRESS(0, 0x00491A5C);
 constexpr uptr kUpdateAreaWeather = GAME_ADDRESS(0, 0x00491A74);
 constexpr uptr kWeatherSetZone = GAME_ADDRESS(0x00462AA4, 0);

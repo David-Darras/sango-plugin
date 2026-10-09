@@ -26,7 +26,7 @@
 
 namespace script {
 
-/// Header of a message file (the game's text GARC entries).
+/// The header of a message file (a text file of the game).
 struct MessageHeader {
   u16 language_count;
   u16 string_count;

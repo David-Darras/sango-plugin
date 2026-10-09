@@ -35,9 +35,7 @@ enum class ScriptId : u16 {
   kNone = 0,
   kDoNothing = 2000,
 
-  /* ---------------------------------------------------------
-  POKEMON CENTER
-  --------------------------------------------------------- */
+  // Pokémon Center.
   kNurse = 2100,
   kNurseOnYourBirthday = 2101,
   kNurseAfterBlackout = 2102,
@@ -49,9 +47,7 @@ enum class ScriptId : u16 {
   kVolcanionGift = 10097,
   kUnknown10090 = 10090,
 
-  /* ---------------------------------------------------------
-  SAVING AND RECEIVING POKEMON
-  --------------------------------------------------------- */
+  // Leave and get back Pokémon.
   kSaveGame = 2003,
   kSaveGameAutomatically = 2004,
   kSaveGameAutomatically2 = 2005,
@@ -60,9 +56,7 @@ enum class ScriptId : u16 {
   kReceiveRibbon = 2800,
   kEggHatchingMessage = 2250,
 
-  /* ---------------------------------------------------------
-  SHOP COUNTERS
-  --------------------------------------------------------- */
+  // Shop counters.
   kShopCounter = 10117,
   kShopCounterWithoutPokeballs = 10118,
   kBattlePointShopCounter1 = 10110,
@@ -94,20 +88,15 @@ enum class ScriptId : u16 {
   kUnknown10128 = 10128,
   kUnknown10129 = 10129,
 
-  /* ---------------------------------------------------------
-  VENDING MACHINES
-  --------------------------------------------------------- */
+  // Vending machines.
   kVendingMachine = 10480,
   kVendingMachineCheap = 10481,
   kVendingMachineExpensive = 10482,
   kWaterVendingMachine = 10483,
   kSodaVendingMachine = 10484,
 
-  /* ---------------------------------------------------------
-  FIELD MOVES
-  Each move has a script for the obstacle and one for what happens once the
-  move has played out.
-  --------------------------------------------------------- */
+  // Field moves. Each move has a script for the obstacle, and a script
+  // for the result of the move.
   kRockSmash = 10050,
   kRockSmashDone = 10051,
   kCut = 10052,
@@ -137,17 +126,13 @@ enum class ScriptId : u16 {
   kSecretPowerUnusable = 10076,
   kSecretPowerDeliveryOnly = 10077,
 
-  /* ---------------------------------------------------------
-  ITEMS ON THE GROUND
-  --------------------------------------------------------- */
+  // Items on the ground.
   kMegaStonePickup = 10250,
   kHiddenItemPickup = 7999,
   kBerryTree = 10540,
   kFossilRestoration = 10280,
 
-  /* ---------------------------------------------------------
-  ITEM USED FROM THE BAG
-  --------------------------------------------------------- */
+  // Items that the player uses from the Bag.
   kItemCannotBeUsedHere = 10845,
   kExpShareOn = 10846,
   kExpShareOff = 10847,
@@ -157,9 +142,7 @@ enum class ScriptId : u16 {
   kSweetScentFailedWeather = 10164,
   kSweetScentFoundNothing = 10165,
 
-  /* ---------------------------------------------------------
-  MOVE TUTORS AND MOVE MANAGEMENT
-  --------------------------------------------------------- */
+  // Move tutors and moves.
   kMoveDeleter = 2260,
   kMoveReminder = 2261,
   kDracoMeteorTutor = 2263,
@@ -168,17 +151,13 @@ enum class ScriptId : u16 {
   kMythicalPokemonMoveTutor = 2266,
   kUnknown2262 = 2262,
 
-  /* ---------------------------------------------------------
-  DAY CARE
-  --------------------------------------------------------- */
+  // Day Care.
   kDayCareGrandmother = 2200,
   kDayCareGrandfather = 2201,
   kDayCareGirl = 2202,
   kDayCareBoy = 2203,
 
-  /* ---------------------------------------------------------
-  POKEMON APPRAISAL
-  --------------------------------------------------------- */
+  // Pokémon evaluation.
   kPokedexRating = 10380,
   kPokedexRatingFirstTime = 10381,
   kStatJudge = 10310,
@@ -186,9 +165,7 @@ enum class ScriptId : u16 {
   kPokemonMemories = 10640,
   kNameRater = 2225,
 
-  /* ---------------------------------------------------------
-  FORM CHANGES
-  --------------------------------------------------------- */
+  // Form changes.
   kRotomFormChange = 10315,
   kDeoxysFormChange = 10270,
   kCosplayPikachuTalk = 10316,
@@ -196,9 +173,7 @@ enum class ScriptId : u16 {
   kCosplayPikachuChangeFromChest = 10318,
   kCosplayPikachuReceive = 10319,
 
-  /* ---------------------------------------------------------
-  CLOTHING BOUTIQUE
-  --------------------------------------------------------- */
+  // Boutique (clothes).
   kClothingShopkeeper = 10709,
   kClothingShopkeeperFemale = 10700,
   kClothingShopkeeperMale = 10701,
@@ -213,9 +188,7 @@ enum class ScriptId : u16 {
   kClothingShopTutorialFemale = 10704,
   kClothingShopTutorialMale = 10705,
 
-  /* ---------------------------------------------------------
-  CONTESTS
-  --------------------------------------------------------- */
+  // Contests.
   kContestSingle = 10520,
   kContestMultiplayer = 10521,
   kContestPhotoBackground = 10522,
@@ -237,17 +210,13 @@ enum class ScriptId : u16 {
   kContestPortraitTough = 10538,
   kContestFlagResetOnExit = 10533,
 
-  /* ---------------------------------------------------------
-  SPECIAL BATTLE RULES
-  --------------------------------------------------------- */
+  // Special battle rules.
   kInverseBattle = 10425,
   kSkyBattle1 = 10350,
   kSkyBattle2 = 10351,
   kSkyBattle3 = 10352,
 
-  /* ---------------------------------------------------------
-  SECRET BASES
-  --------------------------------------------------------- */
+  // Secret Bases.
   kSecretBaseExit = 10865,
   kSecretBaseInvalidExit = 10868,
   kSecretBasePc = 10866,
@@ -260,9 +229,7 @@ enum class ScriptId : u16 {
   kSecretBaseFriend4 = 10884,
   kSecretBaseFriend5 = 10885,
 
-  /* ---------------------------------------------------------
-  SECRET BASE DECORATIONS
-  --------------------------------------------------------- */
+  // Secret Base decorations.
   kSandOrnament = 10900,
   kCandleStand = 10901,
   kStrawTrainingDummy = 10902,
@@ -307,9 +274,7 @@ enum class ScriptId : u16 {
   kTrackMat = 10924,
   kUnknown10916 = 10916,
 
-  /* ---------------------------------------------------------
-  SCENERY YOU CAN EXAMINE
-  --------------------------------------------------------- */
+  // Objects that the player can examine.
   kTrashCan = 2500,
   kShelf = 2501,
   kBookshelf = 2502,
@@ -320,34 +285,26 @@ enum class ScriptId : u16 {
   kVase = 2507,
   kTelevision = 10650,
 
-  /* ---------------------------------------------------------
-  LADDERS
-  --------------------------------------------------------- */
+  // Ladders.
   kLadderUpShort = 10501,
   kLadderUpTall = 10502,
   kLadderDownShort = 10503,
   kLadderDownTall = 10504,
 
-  /* ---------------------------------------------------------
-  FISHING
-  --------------------------------------------------------- */
+  // Fishing.
   kFishingQuickBite = 10166,
   kFishingSlowBite = 10167,
   kFishingGotAway1 = 10168,
   kFishingGotAway2 = 10169,
   kFishingGotAway3 = 10170,
 
-  /* ---------------------------------------------------------
-  RESTAURANTS AND JUICE STANDS
-  --------------------------------------------------------- */
+  // Restaurants and juice stands.
   kRestaurant = 10740,
   kRestaurantSoignez = 10741,
   kJuiceStandFresh = 10435,
   kJuiceStandVintage = 10436,
 
-  /* ---------------------------------------------------------
-  MISCELLANEOUS
-  --------------------------------------------------------- */
+  // Other scripts.
   kPostman = 10400,
   kGlobalLinkPostman = 10390,
   kOPower = 10840,
@@ -360,9 +317,7 @@ enum class ScriptId : u16 {
   kUnknown10325 = 10325,
   kUnknown10830 = 10830,
 
-  /* ---------------------------------------------------------
-  RUN WHEN THE MAP ITSELF IS ENTERED OR LEFT
-  --------------------------------------------------------- */
+  // The scripts when the player enters or leaves a map.
   kOnMapEnter = 60000,
   kOnMapExit = 60001,
   kUnknown60002 = 60002,
@@ -370,28 +325,22 @@ enum class ScriptId : u16 {
   kOnPostGameStart = 9602,
   kUnknown9601 = 9601,
 
-  /* ---------------------------------------------------------
-  RANGES
-  One script per trainer and per pickable item, too many and too tied to their
-  own map to be worth naming. Offset from the first of each block instead.
-  --------------------------------------------------------- */
+  // Ranges. Each trainer and each item on the ground has a script. They
+  // have no names: add the offset to the first id of the range.
   kFirstTrainerBattle = 3000,
   kFirstTrainerRematch = 5000,
   kFirstGroundItem = 7000,
 
-  /* ---------------------------------------------------------
-  CUSTOM SCRIPTS
-  Written in C++ and registered with NativeScript. The game has no
-  .amx for these: any id its script table doesn't cover, below the map
-  enter/exit ids at 60000, works.
-  --------------------------------------------------------- */
+  // C++ scripts. Register them with NativeScript. The game has no .amx
+  // file for these ids: any id that the script table of the game does
+  // not use, below the map ids (60000), works.
   kFirstCustom = 30500,
   kLittlerootGreeter = 30500,
   kAquaBossWelcome = 30501,
   kPokemonXGreeter = 30502,
   kWhosThatPokemon = 30510,
   kHealerFollower = 30511,
-  kRemotePlayer0 = 30520, // online avatars, see net::RemoteAvatars
+  kRemotePlayer0 = 30520, ///< The online players. See net::RemoteAvatars.
   kRemotePlayer1 = 30521,
   kRemotePlayer2 = 30522,
   kRemotePlayer3 = 30523,

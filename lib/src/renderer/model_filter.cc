@@ -146,12 +146,13 @@ void ModelFilter::PatchWeatherParticleColor(uptr raw) {
 
   u16 color565;
   switch (ctx.mode) {
-    case overworld::WeatherMode::kToxic: color565 = 0x90BBu; break; // violet
-    case overworld::WeatherMode::kRadioactive: color565 = 0x97E0u; break; // green
+    case overworld::WeatherMode::kToxic: color565 = 0x90BBu; break; ///< Violet.
+    /// Green.
+    case overworld::WeatherMode::kRadioactive: color565 = 0x97E0u; break;
     default: return;
   }
 
-  WRITE32(texture_ptr + 52, 3u); // RGB565
+  WRITE32(texture_ptr + 52, 3u); ///< RGB565.
   for (s32 i = 0; i < texel_count; i++) {
     WRITE16(pixels + 2 * i, color565);
   }
@@ -194,7 +195,7 @@ void ModelFilter::UpdateH3dModel(H3dModel* h3d_model) {
   if (IsBattlePokemonModel(h3d_model)) {
     using FilterFunc = void (H3dModel::*)();
     static constexpr FilterFunc kFilters[] = {
-        nullptr, // kNormal
+        nullptr, ///< kNormal.
         &H3dModel::ApplyPitchBlack,
         &H3dModel::ApplyInvert,
         &H3dModel::ApplyDarken,

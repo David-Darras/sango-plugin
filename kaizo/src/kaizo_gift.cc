@@ -27,14 +27,14 @@
 
 namespace kaizo {
 static const SpeciesId SPECIAL_POKEMON[] = {
-    // --- GENERATION 1 ---
+    // Generation I.
     SpeciesId::kArticuno,
     SpeciesId::kZapdos,
     SpeciesId::kMoltres,
     SpeciesId::kMewtwo,
     SpeciesId::kMew,
 
-    // --- GENERATION 2 ---
+    // Generation II.
     SpeciesId::kRaikou,
     SpeciesId::kEntei,
     SpeciesId::kSuicune,
@@ -42,7 +42,7 @@ static const SpeciesId SPECIAL_POKEMON[] = {
     SpeciesId::kHoOh,
     SpeciesId::kCelebi,
 
-    // --- GENERATION 3 ---
+    // Generation III.
     SpeciesId::kRegirock,
     SpeciesId::kRegice,
     SpeciesId::kRegisteel,
@@ -54,7 +54,7 @@ static const SpeciesId SPECIAL_POKEMON[] = {
     SpeciesId::kJirachi,
     SpeciesId::kDeoxys,
 
-    // --- GENERATION 4 ---
+    // Generation IV.
     SpeciesId::kUxie,
     SpeciesId::kMesprit,
     SpeciesId::kAzelf,
@@ -70,7 +70,7 @@ static const SpeciesId SPECIAL_POKEMON[] = {
     SpeciesId::kShaymin,
     SpeciesId::kArceus,
 
-    // --- GENERATION 5 ---
+    // Generation V.
     SpeciesId::kCobalion,
     SpeciesId::kTerrakion,
     SpeciesId::kVirizion,
@@ -85,7 +85,7 @@ static const SpeciesId SPECIAL_POKEMON[] = {
     SpeciesId::kMeloetta,
     SpeciesId::kGenesect,
 
-    // --- GENERATION 6 ---
+    // Generation VI.
     SpeciesId::kXerneas,
     SpeciesId::kYveltal,
     SpeciesId::kZygarde,

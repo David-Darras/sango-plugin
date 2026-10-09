@@ -29,7 +29,7 @@
 namespace core {
 namespace address {
 
-// Processes and title screen
+// The processes and the title screen.
 constexpr uptr kTitle = GAME_ADDRESS(0, 0x00740184);
 constexpr uptr kIntroVtable = GAME_ADDRESS(0x006B49F8, 0x007203C8);
 constexpr uptr kIntroFsm = GAME_ADDRESS(0, 0x0071DAE8);
@@ -37,7 +37,8 @@ constexpr uptr kCinematicVtable = GAME_ADDRESS(0x006D318C, 0x0072518C);
 constexpr uptr kTitleScreenVtable = GAME_ADDRESS(0x006C7354, 0x00747320);
 constexpr uptr kIntroductionVtable = GAME_ADDRESS(0x006B49F8, 0x007203C8);
 constexpr uptr kSelectStarterVtable = GAME_ADDRESS(0x006AF8C4, 0x006FA8DC);
-constexpr uptr kEventScriptVtable = GAME_ADDRESS(0x0059C630, 0x005DF018); // XY: unverified (from neighbouring vtables)
+/// XY: not verified (found near other vtables).
+constexpr uptr kEventScriptVtable = GAME_ADDRESS(0x0059C630, 0x005DF018);
 constexpr uptr kStarter = GAME_ADDRESS(0, 0x0804F3F0);
 constexpr uptr kStarterModel = GAME_ADDRESS(0, 0x08249898);
 
@@ -49,7 +50,7 @@ constexpr uptr kTitleScreenSequenceSync = GAME_ADDRESS(0, 0x00739778);
 constexpr uptr kTitleScreenPokemonCrySpecies = GAME_ADDRESS(0, 0x00740498);
 constexpr uptr kTitleScreenPokemonCryVolume = GAME_ADDRESS(0, 0x0074049C);
 
-// Engine, scripts, shops...
+// The engine, the scripts and the shops.
 constexpr uptr kCore = GAME_ADDRESS(0x005EF084, 0x0063106C);
 constexpr uptr kUpdateFrame = GAME_ADDRESS(0x0011E9D0, 0x0011EEA4);
 constexpr uptr kEventTableCheckFlag = GAME_ADDRESS(0x00140474, 0x0012FE90);
@@ -57,13 +58,15 @@ constexpr uptr kEventTableResetFlag = GAME_ADDRESS(0x0011F370, 0x0011FB38);
 constexpr uptr kEventTableSetFlag = GAME_ADDRESS(0x003E4A1C, 0x00406E94);
 constexpr uptr kAlloc = GAME_ADDRESS(0x00122C60, 0x001235A8);
 constexpr uptr kDoFieldMove = GAME_ADDRESS(0x003B7A8C, 0x003D40EC);
-constexpr uptr kRecordMaxValueTable = GAME_ADDRESS(0x0054D290, 0x0058DE14); // 999999999, 9999999, etc.
-constexpr uptr kRecordMaxValueIndexTable = GAME_ADDRESS(0x0054D1C6, 0x0058DD4A); // 0, 0, 0, 1, 1, etc.
+/// The maximum values of the records (999999999, 9999999...).
+constexpr uptr kRecordMaxValueTable = GAME_ADDRESS(0x0054D290, 0x0058DE14);
+/// The index of the maximum value of each record.
+constexpr uptr kRecordMaxValueIndexTable = GAME_ADDRESS(0x0054D1C6, 0x0058DD4A);
 constexpr uptr kIsShiny = GAME_ADDRESS(0x00168AC8, 0x00168F48);
-constexpr uptr kTrainerModelTable = GAME_ADDRESS(0x005481C0, 0x00586B8A); // XY: unverified (content match)
+/// XY: not verified (found by its content).
+constexpr uptr kTrainerModelTable = GAME_ADDRESS(0x005481C0, 0x00586B8A);
 constexpr uptr kCheckRegulation =
     GAME_ADDRESS(0x006AAF70, 0x006F4F80); // the static data of the party menu app
-// 0x8072520, 0x807251C, 0x8072510
 constexpr uptr kLoadCroFile = GAME_ADDRESS(0x00110EAC, 0x00110E2C);
 constexpr uptr kStartBackupThread = GAME_ADDRESS(0x00431A68, 0x0045D6BC);
 constexpr uptr kOnUpdateFrame = GAME_ADDRESS(0x0011E9D0, 0x0011EEA4);
@@ -96,11 +99,13 @@ constexpr uptr kUnloadShopItems = GAME_ADDRESS(0x003313A4, 0x00346AE0);
 constexpr uptr kShopGetItemName = GAME_ADDRESS(0x00331348, 0x00346A44);
 constexpr uptr kShopGetItemInfo = GAME_ADDRESS(0x00331324, 0x003469E0);
 constexpr uptr kShopDisplayItemInfo = GAME_ADDRESS(0x003C68AC, 0x003E6550);
-constexpr uptr kShopPurchaseItem = GAME_ADDRESS(0, 0x003E6764); // XY candidate 0x003C69BC (unverified)
+/// XY: maybe 0x003C69BC (not verified).
+constexpr uptr kShopPurchaseItem = GAME_ADDRESS(0, 0x003E6764);
 constexpr uptr kBagAddItem = GAME_ADDRESS(0x004362FC, 0x00463750);
 
 constexpr uptr kOverworldMenuAppAllocSize = GAME_ADDRESS(0x003BA6F4, 0x003D6D18);
-constexpr uptr kTopMenuAppAllocSize = GAME_ADDRESS(0x003BB9C4, 0x003D81D4); // XY: unverified (patch site, 31/40 words)
+/// XY: not verified (31 of 40 words match).
+constexpr uptr kTopMenuAppAllocSize = GAME_ADDRESS(0x003BB9C4, 0x003D81D4);
 constexpr uptr kTownMapCallback = GAME_ADDRESS(0x003CF0B0, 0x003EF898);
 
 } // namespace address

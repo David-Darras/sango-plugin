@@ -263,7 +263,7 @@ bool RemoteAvatars::ApplyLocalOutfit() {
     overworld::ModelResource& resource = models.GetResource(i);
     if (resource.model_id != player.model_id) continue;
     resource.model_id = wanted;
-    resource.uses_outfit = 0; // outfit parts only exist on the trainers
+    resource.uses_outfit = 0; ///< Only the trainer models have outfit parts.
     break;
   }
   self.applied_outfit_ = outfit;

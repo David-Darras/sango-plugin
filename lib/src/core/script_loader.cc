@@ -67,7 +67,7 @@ void ScriptLoader::LoadHook(void* self, const void* buffer, u32 size,
     ctx.ReportInjected(id, replacement_size);
   }
 
-  // Scripts written in C++ take precedence over everything on the SD card.
+  // The C++ scripts have priority over the scripts of the SD card.
   script::NativeScript::OnLoad(self, buffer, size);
 
   HookManager::Call<void>(HookId::kLoadScript, self, buffer, size, amxname);

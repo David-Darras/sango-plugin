@@ -44,8 +44,8 @@ struct GiftPokemonData {
   static constexpr s32 kRandomItem = -1;
   static constexpr s8 kRandomIv = -1;
 
-  /// The game stores the species in a 32-bit slot; the id itself fits in
-  /// the low half, the high half stays zero.
+  /// The game uses 32 bits for the species. The id is in the 16 low bits. The
+  /// 16 high bits are zero.
   SpeciesId species;
   u16 _0;
   FormId form;

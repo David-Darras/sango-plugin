@@ -38,7 +38,8 @@ struct PokemonSpec {
   pokemon::AbilityId ability;
   pokemon::Nature nature;
   pokemon::MoveId moves[4];
-  u8 evs[6]; // hp, attack, defense, special attack, special defense, speed
+  /// The EVs: HP, Attack, Defense, Sp. Atk, Sp. Def, Speed.
+  u8 evs[6];
   pokemon::Ball ball;
 };
 

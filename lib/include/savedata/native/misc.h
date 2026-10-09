@@ -61,15 +61,9 @@ struct Misc {
 #endif
   u32 battle_points;
 
-  /**
-* @brief Bitmask tracking encountered Mega Evolutions.
-* Each bit represents a specific Pokémon species from the Mega Table.
-* - Bit 0: Gengar
-* - Bit 1: Gardevoir
-* - Bit 2: Ampharos
-* - Bit 3: Venusaur
-* - etc.
-*/
+  /// The Mega Evolutions that the player saw: one bit for each species of
+  /// the Mega Evolution table (bit 0: Gengar, bit 1: Gardevoir, bit 2:
+  /// Ampharos, bit 3: Venusaur...).
   u8 has_encountered_mega_evolution[8];
 };
 } // namespace savedata

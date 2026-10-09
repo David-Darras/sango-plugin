@@ -19,35 +19,34 @@
  * @file pages.h
  * @brief The menu pages of the library.
  *
- * A product adds them to its own pages: app.Add("Battle", ui::LoadBattlePage).
+ * The overlay adds all the pages under LoadTopPage. A product adds the pages
+ * that it needs to its own pages: app.Add("Battle", ui::LoadBattlePage).
  */
 
 #pragma once
 #include "common.h"
 
-/// The menu pages the library ships. The overlay assembles them all under
-/// LoadTopPage; a product picks the ones it wants under its own root page.
 namespace ui {
 class MainApplication;
 
-// Root: the quick toggles and one entry per family below.
+// The top page: the quick settings and one entry for each family below.
 void LoadTopPage(MainApplication& app, void* args);
 
-// Player: what the player can do or become in the overworld.
+// The player: the actions and the appearance of the player in the overworld.
 void LoadPlayerPage(MainApplication& app, void* args);
 void LoadOverworldFieldMovePage(MainApplication& app, void* args);
 void LoadAppPage(MainApplication& app, void* args);
 void LoadOverworldCameraPage(MainApplication& app, void* args);
 void LoadPlayerModelPage(MainApplication& app, void* args);
 
-// Battle: the plugin's battle options, then the live battle.
+// Battles: the battle options of the plugin, then the current battle.
 void LoadBattlePage(MainApplication& app, void* args);
 void LoadBattleSettingsPage(MainApplication& app, void* args);
 void LoadBattleSetupPage(MainApplication& app, void* args);
 void LoadTypeChartPage(MainApplication& app, void* args);
 void LoadBattleLivePage(MainApplication& app, void* args);
 
-// Overworld: the map being played and its data.
+// The overworld: the current map and its data.
 void LoadOverworldPage(MainApplication& app, void* args);
 void LoadWeatherPage(MainApplication& app, void* args);
 void LoadTimeOfDayPage(MainApplication& app, void* args);
@@ -57,17 +56,17 @@ void LoadPropModelPage(MainApplication& app, void* args);
 void LoadOverworldEncounterPage(MainApplication& app, void* args);
 void LoadDayCarePage(MainApplication& app, void* args);
 
-// Pokemon: shininess, randomizers and the game's species/move tables.
+// Pokémon: shiny Pokémon, randomizers, and the species and move tables.
 void LoadPokemonPage(MainApplication& app, void* args);
 void LoadShinyPage(MainApplication& app, void* args);
 void LoadSpeciesDataPage(MainApplication& app, void* args);
 void LoadMoveDataPage(MainApplication& app, void* args);
 void LoadModelLoaderPage(MainApplication& app, void* args);
 
-// Save data, by segment.
+// The save data, one page for each part.
 void LoadSaveDataPage(MainApplication& app, void* args);
 
-// Renderer, scripts, title screen, system.
+// The renderer, the scripts, the title screen and the system.
 void LoadRendererPage(MainApplication& app, void* args);
 void LoadScriptPage(MainApplication& app, void* args);
 void LoadTitleScreenPage(MainApplication& app, void* args);
@@ -76,9 +75,9 @@ void LoadSystemPage(MainApplication& app, void* args);
 void LoadSoundPage(MainApplication& app, void* args);
 void LoadGameTimePage(MainApplication& app, void* args);
 
-// The plugin itself.
+// The plugin.
 void LoadThemePage(MainApplication& app, void* args);
 } // namespace ui
 
-/// Keeps the model spawned by the model loader page next to the player.
+/// Keeps the model of the model loader page near the player.
 void UpdateFollowingPokemon();

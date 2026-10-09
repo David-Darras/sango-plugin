@@ -28,7 +28,7 @@
 
 namespace script {
 
-/// Options of the game's TalkMdlStart / TalkMdlEnd natives.
+/// The options of a conversation (the TalkMdlStart and TalkMdlEnd natives).
 enum class TalkOption : u16 {
   kNone = 0,
   kNoZoom = 1 << 0,

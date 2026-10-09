@@ -48,7 +48,7 @@ struct Pane {
   u8 alpha;
   u8 alpha2;
   u8 _1;
-  u8 flags; // bit 0 : visible
+  u8 flags; ///< Bit 0: visible.
   char id[17];
   u8 _2[11];
 };

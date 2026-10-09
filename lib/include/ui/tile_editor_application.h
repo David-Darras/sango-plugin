@@ -55,14 +55,6 @@ private:
     kFootstep,
     kBattleBackground,
     kDiagonal,
-    // kShadow,
-    // kTrainerBlocked,
-    // kDecorations,
-    // kDecorationCursor,
-    // kReflection0,
-    // kReflection1,
-    // kReflection2,
-    // kReflection3,
     kPropertyCount
   };
 

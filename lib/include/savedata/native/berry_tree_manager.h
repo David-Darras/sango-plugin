@@ -27,20 +27,21 @@
 #include "savedata/native/savedata.h"
 
 namespace savedata {
+/// The growth state of a Berry tree.
 enum class BerryTreeState {
-  kNone = 0, ///< No berry planted
-  kSeeded, ///< A seed has been planted
-  kSprout, ///< A sprout has emerged
-  kTall, ///< The stem has grown tall
-  kFlowering, ///< The plant is in bloom
-  kBerries, ///< Berries are ready to harvest
-  kWithered, ///< The plant has withered
+  kNone = 0, ///< No Berry is planted.
+  kSeeded, ///< A seed is planted.
+  kSprout, ///< A sprout is visible.
+  kTall, ///< The stem is tall.
+  kFlowering, ///< The plant has flowers.
+  kBerries, ///< The Berries are ready.
+  kWithered, ///< The plant is dead.
   kCount
 };
 
 static const ItemId BerryIdToItemId(u16 berry_id) {
   auto* table = (ItemId*)(overworld::address::kBerryIdTable);
-  if (berry_id >= 67) return ItemId::kNone;
+  if (berry_id >= 67) return ItemId::kNone; ///< No Berry is planted.
   return table[berry_id];
 }
 

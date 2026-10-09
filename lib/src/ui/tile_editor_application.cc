@@ -37,9 +37,6 @@ namespace ui {
 
 static const c8* PROPERTY_NAMES[] = {
     "Ground", "Footstep", "Battle Background", "Diagonal",
-    // "Shadow",
-    //   "Trainer Blocked", "Decorations", "Decoration Cursor", "Reflection 0",
-    //   "Reflection 1", "Reflection 2", "Reflection 3"
 };
 
 static u32 GetProperty(const overworld::Tile& tile, u32 property) {
@@ -54,14 +51,6 @@ static u32 GetProperty(const overworld::Tile& tile, u32 property) {
       return tile.allows_diagonal_movement;
     default:
       return 0;
-      // case 4: return tile.has_shadow;
-      // case 5: return tile.blocks_trainer_movement;
-      // case 6: return tile.can_place_decorations;
-      // case 7: return tile.can_move_decoration_cursor;
-      // case 8: return tile.has_reflection_0;
-      // case 9: return tile.has_reflection_1;
-      // case 10: return tile.has_reflection_2;
-      // default: return tile.has_reflection_3;
   }
 }
 

@@ -115,7 +115,7 @@ private:
   void* map_data_; // 0xF4 / 0xE4
 
   u32 next_map_id; // 0xF8 / 0xE8
-  u32 next_map_step; // 0xFC / 0xEC 0 loading, 1 swapping models, 2 setting up
+  u32 next_map_step; ///< 0xFC / 0xEC. 0: load, 1: model change, 2: setup.
 
   Renderer* renderer_; // 0x100 / 0xF0
   void* encounter_manager_; // 0x104 / 0xF4

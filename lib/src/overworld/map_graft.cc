@@ -186,7 +186,7 @@ void MapGraft::OffsetEvents(MapEventData* events, s32 dx, s32 dz) {
     warps[i].world.z += dz * static_cast<s32>(WorldLayout::kUnitsPerTile);
   }
 
-  // Interrupts share the trigger layout.
+  // The interrupts use the layout of the triggers.
   const struct {
     TriggerEvent* triggers;
     u32 count;
@@ -387,8 +387,8 @@ void MapGraft::Warp(const MapLinkRequest& link) {
 }
 
 void MapGraft::GetSideDelta(u8 rotation, Facing side, s32& dx, s32& dz) {
-  // [layout rotation][side] -> block step; only the four cardinal sides
-  // make sense for a graft, anything else counts as kUp.
+  // [layout rotation][side] -> block step. Only the four main sides are useful
+  // for a graft. A different side counts as kUp.
   static const s8 kDelta[4][4][2] = {
       {{0, -1}, {0, 1}, {-1, 0}, {1, 0}},
       {{0, 1}, {0, -1}, {1, 0}, {-1, 0}},

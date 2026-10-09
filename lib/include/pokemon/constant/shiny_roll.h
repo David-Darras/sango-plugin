@@ -26,7 +26,7 @@
 
 namespace pokemon {
 
-/// How a table entry (gift, static encounter...) decides shininess.
+/// How an entry of a table (gift, static encounter...) selects the shiny state.
 enum class ShinyRoll : u8 {
   kRandom = 0,
   kShiny = 1,

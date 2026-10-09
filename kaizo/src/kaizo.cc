@@ -77,7 +77,7 @@ void PatchTrainerModels() {
 }
 
 void PatchOverworld() {
-  // Player's Name
+  // The name of the player.
   {
     static const c16* NICKNAME = u"STEVEN";
     auto& status = savedata::TrainerStatus::GetInstance();
@@ -86,14 +86,14 @@ void PatchOverworld() {
       if (NICKNAME[i] == '\0') break;
     }
   }
-  // Config
+  // The settings.
   {
     auto& data = savedata::Settings::GetInstance();
-    data.text_speed = 3; // Instant message
+    data.text_speed = 3; // The text shows immediately.
     data.battle_style = 1;
     data.show_battle_animations = 0;
   }
-  // After a battle
+  // After a battle.
   {
     auto& team = savedata::PokemonTeam::GetInstance();
     team.ThrowAllDeadPokemons();

@@ -63,7 +63,7 @@ static const char* FORMS[][30] =
     {"Shield", "Blade"}, // Aegislash
     {"Neutral", "Active"}, // Xerneas
 
-    // --- Mega Evolutions ---
+    // Mega Evolutions.
     {"Normal", "Mega"}, // Venusaur
     {"Normal", "Mega X", "Mega Y"}, // Charizard
     {"Normal", "Mega"}, // Blastoise

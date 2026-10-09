@@ -24,18 +24,20 @@
 
 #include "common.h"
 namespace renderer {
+/// The values of the texture combiner stages of the GPU.
 namespace TevCombine {
+/// The operation of a combiner stage. A, B and C are the three sources.
 enum Combine : u8 {
-  REPLACE = 0,        ///< A
-  MODULATE = 1,       ///< A * B
-  ADD = 2,            ///< A + B
-  ADD_SIGNED = 3,     ///< A + B - 0.5
-  INTERPOLATE = 4,    ///< A * C + B * (1 - C)
-  SUBTRACT = 5,       ///< A - B
-  DOT3_RGB = 6,       ///< dot(A, B), broadcast to rgb
-  DOT3_RGBA = 7,      ///< dot(A, B), broadcast to rgba
-  MULTIPLY_ADD = 8,   ///< A * B + C
-  ADD_MULTIPLY = 9    ///< (A + B) * C
+  REPLACE = 0, ///< A
+  MODULATE = 1, ///< A * B
+  ADD = 2, ///< A + B
+  ADD_SIGNED = 3, ///< A + B - 0.5
+  INTERPOLATE = 4, ///< A * C + B * (1 - C)
+  SUBTRACT = 5, ///< A - B
+  DOT3_RGB = 6, ///< dot(A, B), copied to R, G and B.
+  DOT3_RGBA = 7, ///< dot(A, B), copied to R, G, B and A.
+  MULTIPLY_ADD = 8, ///< A * B + C
+  ADD_MULTIPLY = 9 ///< (A + B) * C
 };
 
 enum Source : u8 {

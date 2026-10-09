@@ -25,57 +25,53 @@
 #include "ui/widget/button.h"
 
 namespace ui {
-/**
-* @brief A visual Unicode keyboard for text input using a touch interface.
-* Supports pagination, character selection, and basic editing (DEL/CLR).
-*/
+/// A Unicode keyboard on the bottom screen. The player selects a page of
+/// characters, then touches the characters. DEL and CLR edit the text.
 class Keyboard {
 public:
   Keyboard();
 
+  /// Draws the keyboard on the bottom screen.
   void Draw() const;
 
+  /// Reads the touch screen. Call it one time for each frame.
   void Update();
 
+  /// Returns true at the frame when the player releases the OK button.
   bool IsButtonOkReleased() const;
 
-  /**
-* @brief Gets the current string entered by the user.
-* @return A pointer to the UTF-16 character buffer.
-*/
+  /// Returns the typed text (UTF-16).
   const c16* GetInput() const;
 
 private:
-  /**
-* @brief Appends a character to the input buffer if space is available.
-* @param character The UTF-16 character to add.
-*/
+  /// Adds a character at the end of the text, when there is space.
   void AddChar(c16 character);
 
+  /// Removes the last character.
   void RemoveLastChar();
 
   static constexpr u32 kColNum = 15;
   static constexpr u32 kRowNum = 4;
   static constexpr u32 kPageSize = kColNum * kRowNum;
-  static constexpr u32 kBufferSize =
-      17; ///< Max string length including null terminator.
+  /// The size of the text, in characters (with the end character).
+  static constexpr u32 kBufferSize = 17;
 
   enum ButtonId : u8 {
-    kButtonInput = 0, ///< The text display bar.
-    kButtonPrev10, ///< Jump back 10 pages.
+    kButtonInput = 0, ///< The bar that shows the typed text.
+    kButtonPrev10, ///< Goes back 10 pages.
     kButtonPrev,
     kButtonNext,
-    kButtonNext10, ///< Jump forward 10 pages.
-    kButtonCancel, ///< Clear (CLR) action.
-    kButtonDelete, ///< Backspace (DEL) action.
-    kButtonOk, ///< Confirm (OK) action.
-    kButtonGridStart, ///< Start index for the character keys.
+    kButtonNext10, ///< Goes forward 10 pages.
+    kButtonCancel, ///< CLR: clears the text.
+    kButtonDelete, ///< DEL: removes the last character.
+    kButtonOk, ///< OK: confirms the text.
+    kButtonGridStart, ///< The first character button.
     kButtonMax = kButtonGridStart + kPageSize
   };
 
   Button buttons_[kButtonMax];
-  c16 input_[kBufferSize]; ///< UTF-16 input buffer.
-  u16 page_index_ : 11; ///< Current Unicode page (supports up to 2048 pages).
-  u16 cursor_ : 5; ///< Current character position (0 to 16).
+  c16 input_[kBufferSize]; ///< The typed text (UTF-16).
+  u16 page_index_ : 11; ///< The current page of characters (2048 at most).
+  u16 cursor_ : 5; ///< The position in the text (0 to 16).
 };
 } // namespace ui

@@ -35,10 +35,10 @@ struct ShopData {
   void* heap;
   ShopItem items[kMaxItems];
   ShopType type;
-  u32 count; ///< Number of entries filled in items.
+  u32 count; ///< The number of entries in `items`.
   void* item_manager;
-  String* name_buffer; ///< Buffer returned by the name getter.
-  String* info_buffer; ///< Buffer returned by the description getter.
+  String* name_buffer; ///< The text that the name function returns.
+  String* info_buffer; ///< The text that the description function returns.
   Message* move_name_message;
   Message* move_info_message;
   Message* goods_name_message;

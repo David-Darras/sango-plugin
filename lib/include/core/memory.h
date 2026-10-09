@@ -152,7 +152,7 @@ INLINE void ArmReturn(u32 address) {
 
 /// Replaces two ARM instructions with "return true".
 INLINE void ArmReturnTrue(u32 address) {
-  Write<u32>(address, 0xE3A00001);     // mov r0, #1
+  Write<u32>(address, 0xE3A00001); // mov r0, #1
   Write<u32>(address + 4, 0xE12FFF1E); // bx lr
 }
 

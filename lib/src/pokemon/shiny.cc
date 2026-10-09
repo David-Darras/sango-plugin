@@ -57,7 +57,7 @@ bool Shiny::IsShinyHook(u32 id, u32 pid) {
   if (pid == kForcedShiny) return true;
   if (pid == kForcedNormal) return false;
 
-  // k1_1 keeps no bit, k1_2 one bit, k1_4 two...
+  // k1_1 checks no bit, k1_2 checks one bit, k1_4 two bits...
   const u32 bits = static_cast<u32>(rate) - 1u;
   const u32 mask = (1u << bits) - 1u;
   return (pid & mask) == 0u;

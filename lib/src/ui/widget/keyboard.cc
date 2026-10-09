@@ -52,7 +52,7 @@ Keyboard::Keyboard() : page_index_(0), cursor_(0) {
     }
   }
 
-  // 3. Action & Navigation Buttons
+  // The action buttons and the page buttons.
   y += (kRowNum * key_height) + 5;
   s32 btn_height = 25;
   s32 nav_btn_width = 30;

@@ -41,19 +41,19 @@
 namespace core {
 
 namespace {
-/// Layout of the game's app request, as reached from the CallApp hook.
+/// The data of an app request, as the CallApp hook receives it.
 constexpr uptr kOffsetAppId = 28;
 constexpr uptr kOffsetInput = 0x20;
 constexpr uptr kOffsetCallback = 0x2C;
 constexpr uptr kOffsetTownMapCallback = 0x30;
 constexpr uptr kOffsetMenuRequestFlags = GAME_CONSTANT(0xA4, 0xB0);
 constexpr u32 kRequestPokemonList = 5;
-/// The move the Move Tutor teaches when opened from the menu.
+/// The move that the move tutor teaches when the menu opens it.
 constexpr MoveId kTutorMove = MoveId::kAquaJet;
 } // namespace
 
 void AppLauncher::Initialize() {
-  // Alloc 0x100 bytes for app hook
+  // Reserve 0x100 bytes for the app hook.
   WRITE32(address::kOverworldMenuAppAllocSize, 0xE3A01C01);
   WRITE32(address::kTopMenuAppAllocSize, 0xE3A01C01);
   HookManager::Initialize(HookId::kCallApp, sys::address::kCallApp,

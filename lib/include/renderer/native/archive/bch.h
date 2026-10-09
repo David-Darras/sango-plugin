@@ -25,50 +25,58 @@
 #include "common.h"
 
 namespace renderer {
-/// BCH = Binary CTR Hardware 3D. Top-level header of a compiled 3D model file
-/// (models, materials, meshes, textures, skeletons and animations all
-/// live inside one of its sections). Unlike Garc, sections are reached
-/// through a fixed-index table instead of named/counted blocks.
+/**
+ * @brief The header of a BCH file (Binary CTR Hardware 3D).
+ *
+ * A BCH file contains the models, the materials, the meshes, the textures,
+ * the skeletons and the animations. A fixed table of sections gives their
+ * positions. (A GARC file uses named blocks instead.)
+ */
 struct Bch {
+  /// A section of the file.
   enum SectionType : u32 {
-    // Models, materials, meshes, textures, skeletons, animations
+    /// The models, materials, meshes, textures, skeletons and animations.
     kModelData = 0,
-    // Strings referenced by kModelData (mesh/material/bone names, ...)
+    /// The names that kModelData uses (meshes, materials, bones...).
     kNameTable = 1,
-    // Precompiled GPU command lists for material/rendering setup
+    /// The GPU command lists of the materials.
     kGpuCommandList = 2,
-    // Raw vertex and index buffers used by the meshes
+    /// The vertex buffers and the index buffers of the meshes.
     kVertexIndexData = 3,
-    // Additional raw buffers, used when kVertexIndexData isn't enough
+    /// More buffers, when kVertexIndexData is not sufficient.
     kExtraBufferData = 4,
-    // Pointers to patch from file offsets to real addresses at load time
+    /// The pointers that the game changes from file offsets to addresses.
     kPointerFixupTable = 5,
-    // Sections actually stored in the file (have an entry in section_offset)
+    /// The number of sections in the file (each has a section_offset).
     kSectionCount = 6,
 
-    // These two hold no data in the file: they only reserve room for
-    // buffers the game allocates itself at load time. Don't call
-    // GetSection() with them, only GetSectionSize().
+    /// A section without data in the file: the game makes this buffer when
+    /// it loads the file. Use GetSectionSize() only, never GetSection().
     kRuntimeVertexBuffer = 6,
+    /// A section without data in the file. See kRuntimeVertexBuffer.
     kRuntimeCommandBuffer = 7,
+    /// The number of section sizes.
     kSectionSizeCount = 8,
   };
 
-  u32 signature; // Identifies the file: "BCH\0"
-  u8 format_version_min; // Both must equal 0x21 for this game's files
-  u8 format_version_max;
+  u32 signature; ///< The signature of the file: "BCH\0".
+  u8 format_version_min; ///< 0x21 for the files of this game.
+  u8 format_version_max; ///< 0x21 for the files of this game.
   u16 revision;
+  /// The offset of each section in bytes, from the start of this header.
   u32 section_offset[kSectionCount];
-  // Byte offset of each section, relative to this header
-  u32 section_size[kSectionSizeCount]; // Byte size of each section
+  u32 section_size[kSectionSizeCount]; ///< The size of each section in bytes.
   u8 flags;
   u8 _0;
-  u16 pointer_fixup_count; // Number of entries in kPointerFixupTable
+  /// The number of entries in kPointerFixupTable.
+  u16 pointer_fixup_count;
 
+  /// Returns the address of a section.
   INLINE uptr GetSection(SectionType type) const {
     return (uptr)this + section_offset[type];
   }
 
+  /// Returns the size of a section in bytes.
   INLINE u32 GetSectionSize(SectionType type) const {
     return section_size[type];
   }

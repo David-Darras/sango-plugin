@@ -26,6 +26,7 @@
 #include "savedata/native/savedata.h"
 
 namespace savedata {
+/// The trainer data of the player.
 struct TrainerStatus {
   SINGLETON(TrainerStatus)
 
@@ -33,69 +34,68 @@ struct TrainerStatus {
     return SaveData::GetInstance().GetTrainerStatus();
   }
 
+  /// The size of a name, in characters (with the end character).
   static constexpr u32 kPlayerNameLen = 13;
+  /// The size of a PSS message, in characters (with the end character).
   static constexpr u32 kPssMessageLen = 17;
 
   void* vtable;
   u32 padding;
 
-  /** @name Core Identity */
-  ///@{
-  u16 trainer_id; ///< Visible Trainer ID (TID) shown on the Trainer Card
-  u16 secret_id; ///< Secret Trainer ID (SID) used for Shiny calculations
-  u8 game_version; ///< Game version ID (e.g., 24: X, 25: Y, 26: AS, 27: OR)
+  /// @name The identity of the trainer
+  /// @{
+  u16 trainer_id; ///< The Trainer ID (TID) of the Trainer Card.
+  u16 secret_id; ///< The secret ID (SID). The shiny calculation uses it.
+  /// The game version (24: X, 25: Y, 26: Alpha Sapphire, 27: Omega Ruby).
+  u8 game_version;
   Gender gender;
   u8 unknow0;
   u8 pss_icon;
-  ///@}
+  /// @}
 
-  /** @name Network & Console Identifiers */
-  ///@{
-  u64 nex_id; ///< Unique Nintendo Network identifier (NEX)
+  /// @name The ids of the network and of the console
+  /// @{
+  u64 nex_id; ///< The Nintendo Network id (NEX).
+  /// The id of the current console (the local friend code seed).
   u64 current_console_id;
-  ///< Current hardware ID (AccountID /
-                       ///< LocalFriendCodeSeed)
-  u64 original_console_id; ///< ID of the console where the save was created
-  u32 principal_id; ///< Principal ID linked to Friend Code
-  u32 unknow3; ///< Undocumented network-related data
-  ///@}
+  u64 original_console_id; ///< The id of the console that made the save.
+  u32 principal_id; ///< The principal id of the friend code.
+  u32 unknow3; ///< Unknown network data.
+  /// @}
 
-  /** @name Geolocation & Regional Settings */
-  ///@{
-  u16 latitude; ///< Latitude used for Poke Miles distance calculation
-  u16 longitude; ///< Longitude used for Poke Miles distance calculation
-  u8 region; ///< Console region code (0: JPN, 1: USA, 2: EUR, etc.)
-  Language language; ///< Game language (1: JPN, 2: ENG, 3: FRE, etc.)
-  ///@}
+  /// @name The place and the region
+  /// @{
+  u16 latitude; ///< The latitude for the Poké Miles.
+  u16 longitude; ///< The longitude for the Poké Miles.
+  u8 region; ///< The region of the console (0: Japan, 1: America, 2: Europe...).
+  Language language; ///< The language of the game.
+  /// @}
 
-  /** @name Parental Controls & Privacy */
-  ///@{
-  /** @brief Children's Online Privacy Protection Act (COPPA) flag.
-* If true, restricts Voice Chat and Picture Exchange on the PSS. */
+  /// @name The parental controls
+  /// @{
+  /// The COPPA restriction (Children's Online Privacy Protection Act). When
+  /// it is true, the PSS has no voice chat and no picture exchange.
   bool coppa_restriction;
-  u8 coppa_value; ///< Detailed restriction levels/values
-  ///@}
+  u8 coppa_value; ///< The level of the restriction.
+  /// @}
 
-  /** @name Appearance & Strings */
-  ///@{
-  u8 style[16]; ///< Customization data (Clothing/Hair/Accessories)
-  u32 pss_flags; ///< Bitfield for PSS settings (Rejections, visibility)
+  /// @name The look and the texts
+  /// @{
+  u8 style[16]; ///< The outfit: clothes, hair, accessories.
+  u32 pss_flags; ///< The PSS options (refusals, visibility).
   u32 reserved;
   c16 name[kPlayerNameLen];
   c16 nickname[kPlayerNameLen];
-  c16 pss_messages[6][kPssMessageLen];
-  ///< Set of 6 customizable PSS shout-out
-                                   ///< messages
-  ///@}
+  c16 pss_messages[6][kPssMessageLen]; ///< The six PSS messages.
+  /// @}
 
-  /** @name Progression & Attributes */
-  ///@{
+  /// @name The progress
+  /// @{
   u16 unknow1;
-  /** @brief Special progression flags (e.g., Bit 0: Mega Ring, Bit 1: Mega
-* Rayquaza). */
+  /// The progress flags (bit 0: Mega Ring, bit 1: Mega Rayquaza).
   u16 mega_flags;
   u8 unknow2[28];
   u64 pss_id;
-  ///@}
+  /// @}
 };
 } // namespace savedata

@@ -26,42 +26,52 @@
 #include "renderer/constant/texture_format.h"
 
 namespace renderer {
-/// CLIM = CTR Layout IMage. Unlike Garc, this header sits at the END of
-/// the file as a footer: pixel data comes first, then this struct. Locate
-/// it using the file's total size (e.g. from Garc::GetFileSize):
-///   uptr file = garc->GetFileAddress(item_id);
-///   u32 size = garc->GetFileSize(item_id);
-///   auto* footer = (const BclimFooter*)(file + size - sizeof(BclimFooter));
+/**
+ * @brief The footer of a BCLIM file (CTR Layout IMage).
+ *
+ * The pixel data comes first. This structure is at the end of the file.
+ * Use the size of the file to find it:
+ *
+ * @code
+ * uptr file = garc->GetFileAddress(item_id);
+ * u32 size = garc->GetFileSize(item_id);
+ * auto* footer = (const BclimFooter*)(file + size - sizeof(BclimFooter));
+ * @endcode
+ */
 struct BclimFooter {
-  u32 signature; // Identifies the block: 'CLIM'
-  u16 byte_order; // little-endian : 0xFEFF
+  u32 signature; ///< The signature of the block: 'CLIM'.
+  u16 byte_order; ///< 0xFEFF: little-endian.
   u16 header_size;
-  u32 version; // 0x02020000
-  u32 file_size; // Size of the whole .bclim file (pixel data + this footer)
-  u16 block_count; // Always 1 (the "imag" block below)
+  u32 version; ///< 0x02020000.
+  u32 file_size; ///< The size of the full file (pixel data and footer).
+  u16 block_count; ///< Always 1 (the "imag" block).
   u16 _0;
-  u32 imag_signature; // Identifies the block: 'imag'
-  u32 imag_size; // Size of the fields below, always 0x10
+  u32 imag_signature; ///< The signature of the block: 'imag'.
+  u32 imag_size; ///< The size of the next members: always 0x10.
   u16 width;
   u16 height;
   u16 needed_alignment;
   TextureFormat format;
   u8 flags;
-  u32 pixel_data_size; // Size of the pixel data before this footer
+  u32 pixel_data_size; ///< The size of the pixel data before this footer.
 
-  // Every pixel here is 2 bytes (RGB565 or RGBA4, the only formats seen
-  // for item icons)
+  /// The size of one pixel: 2 bytes. The item icons use RGB565 or RGBA4
+  /// only.
   static constexpr u32 kBytesPerPixel = 2;
 
+  /// Returns the address of the pixel data.
   INLINE uptr GetPixelData() const {
     return (uptr)this - pixel_data_size;
   }
 
-  // PICA200 doesn't store texture data row by row: pixels are grouped in
-  // 8x8 tiles, and inside a tile they're ordered by interleaving the bits
-  // of the local x/y coordinates (Z-order / Morton order) instead of going
-  // left to right. This turns (x, y) into the right byte offset so the
-  // caller never has to think about the swizzle.
+  /**
+   * @brief Returns the byte offset of the pixel (x, y).
+   *
+   * The GPU of the 3DS (PICA200) does not store the pixels row by row. It
+   * groups them in tiles of 8 x 8 pixels. In a tile, the order mixes the bits
+   * of x and y (Z-order, or Morton order). This function does the
+   * conversion.
+   */
   INLINE u32 GetPixelOffset(u32 x, u32 y) const {
     u32 tiles_per_row = width / 8;
     u32 tile_x = x / 8, tile_y = y / 8;
@@ -77,23 +87,25 @@ struct BclimFooter {
     return (tile_index * 64 + morton) * kBytesPerPixel;
   }
 
+  /// Returns the raw value of the pixel (x, y).
   INLINE u16 GetPixel(u32 x, u32 y) const {
     return *(u16*)(GetPixelData() + GetPixelOffset(x, y));
   }
 
+  /// Sets the raw value of the pixel (x, y).
   INLINE void SetPixel(u32 x, u32 y, u16 raw_color) const {
     *(u16*)(GetPixelData() + GetPixelOffset(x, y)) = raw_color;
   }
 
-  // Packs 8-bit components down to RGB565 (5-6-5 bits). Only meaningful
-  // when format is TextureFormat::kRgb565.
+  /// Sets the pixel (x, y) from 8-bit components, in RGB565 (5-6-5 bits).
+  /// Use it only when the format is TextureFormat::kRgb565.
   INLINE void SetPixelRgb565(u32 x, u32 y, u8 r, u8 g, u8 b) const {
     u16 packed = ((r >> 3) << 11) | ((g >> 2) << 5) | (b >> 3);
     SetPixel(x, y, packed);
   }
 
-  // Packs 8-bit components down to RGBA4 (4-4-4-4 bits). Only meaningful
-  // when format is TextureFormat::kRgba4.
+  /// Sets the pixel (x, y) from 8-bit components, in RGBA4 (4-4-4-4 bits).
+  /// Use it only when the format is TextureFormat::kRgba4.
   INLINE void SetPixelRgba4(u32 x, u32 y, u8 r, u8 g, u8 b, u8 a) const {
     u16 packed = ((r >> 4) << 12) | ((g >> 4) << 8) | ((b >> 4) << 4) |
                 (a >> 4);

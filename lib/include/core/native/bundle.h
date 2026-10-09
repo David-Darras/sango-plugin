@@ -29,7 +29,7 @@ namespace core {
 /// A "PC" pack: several resources one after the other, with a table of
 /// offsets at the start. Many files of the game use this format.
 struct Bundle {
-  u16 signature; // "PC"
+  u16 signature; ///< The signature: "PC".
   u16 resource_count;
   u32 resource_offset[];
 

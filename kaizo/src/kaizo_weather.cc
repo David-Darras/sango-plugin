@@ -153,7 +153,7 @@ static Weather PickNextWeather(Weather currentWeather) {
 }
 
 void InitializeOverworldWeather() {
-  // The weather below drives the game, zones never do.
+  // This weather controls the game. The weather of the zones does not apply.
   overworld::WeatherOverride::GetInstance().ignore_zone_weather = true;
 
   sCurrentOverworldWeather = Weather::kSunny;

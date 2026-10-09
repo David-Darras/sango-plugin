@@ -28,7 +28,7 @@
 
 namespace script {
 
-/// Options of the game's message window natives (TalkMdlMsg_Seq...).
+/// The options of a message window (the TalkMdlMsg_Seq native).
 enum class MessageOption : u32 {
   kNone = 0,
   kCenter = 1 << 0,

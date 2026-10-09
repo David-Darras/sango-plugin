@@ -863,6 +863,7 @@ static const AlolanForm kAlolanForms[] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}},
 };
 
-// Species whose ORAS Mega model was replaced by the Z-A one (none: they are left alone).
+// The species with a Legends: Z-A model instead of the Mega model of the game.
+// The list is empty: the game models stay.
 static const u16 kLifeOrbSpecies[] = {0};
 static constexpr u32 kLifeOrbCount = 0;

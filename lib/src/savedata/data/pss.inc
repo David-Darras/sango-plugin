@@ -32,7 +32,7 @@ static const char* REQUESTS[] =
 {
     "None",
 
-    // Basic
+    // The basic requests.
     "Change Icon",
     "Send Happy Icon",
     "Send Screenshot",
@@ -42,7 +42,7 @@ static const char* REQUESTS[] =
     "Playing Miracle Trade",
     "Waiting for IR Battle",
 
-    // Battle
+    // The battle requests.
     "Battle Invite",
     "Cancel Battle",
     "Waiting for Battle Connection",
@@ -52,7 +52,7 @@ static const char* REQUESTS[] =
     "IR Battle Invite",
     "Join IR Battle",
 
-    // Trade
+    // The trade requests.
     "Trade Invite",
     "Cancel Trade",
     "Waiting for Trade Connection",
@@ -61,22 +61,22 @@ static const char* REQUESTS[] =
     "IR Trade Invite",
     "Join IR Trade",
 
-    // O-Power
+    // The O-Power requests.
     "Use O-Power on Self",
     "Use O-Power on Other Player",
 
-    // Messages
+    // The message requests.
     "Birthday Message",
     "Nice Message",
 
-    // Voice Chat
+    // The voice chat requests.
     "Voice Chat Invite",
     "Cancel Voice Chat",
     "Waiting for Voice Chat Connection",
     "Accept Voice Chat Invite",
     "Decline Voice Chat Invite",
 
-    // Promo Video
+    // The promo video requests.
     "Promo Video Invite",
     "Cancel Promo Video",
     "Waiting for Promo Video Connection",
@@ -84,7 +84,7 @@ static const char* REQUESTS[] =
     "Decline Promo Video Invite",
     "Watching Promo Video",
 
-    // Invalid / terminate
+    // Not valid, or the end of the list.
     "Terminate"
 };
 

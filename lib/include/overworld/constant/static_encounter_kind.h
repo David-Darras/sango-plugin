@@ -28,17 +28,16 @@ namespace overworld {
 
 /// How the game runs a static encounter.
 enum class StaticEncounterKind : u16 {
-  kNormal = 0, ///< A regular random wild encounter, with no visible sprite
-  kOverworldEncounter = 1, ///< A regular Pokémon visible on the map
+  kNormal = 0, ///< A normal wild encounter, without a visible Pokémon.
+  kOverworldEncounter = 1, ///< A Pokémon that is visible on the map.
+  /// A legendary Pokémon: a special message, and one battle only.
   kLegendary = 2,
-  ///< A legendary Pokémon: a special message, and one battle only
+  /// Like kLegendary, but the Pokémon stays: the player can battle it again.
   kLegendaryEndless = 3,
-  ///< Like kLegendary, but the Pokémon stays: the player can battle it again
+  /// The first battle, when the player saves the professor from a Poochyena.
+  /// The player cannot run, and the messages are different.
   kRescueEvent = 4,
-  ///< The first battle, when the player saves the professor from a
-  ///< Poochyena. The player cannot run, and the messages are different.
-  kLegendaryUnlosable = 5,
-  ///< Like kLegendary, but the player cannot lose the battle
+  kLegendaryUnlosable = 5, ///< Like kLegendary, but the player cannot lose.
 };
 
 } // namespace overworld

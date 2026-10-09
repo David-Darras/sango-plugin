@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2026  David Darras
+ * Copyright (C) 2026  David Darras
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -124,8 +124,8 @@ struct ItemData {
 
   u8 _1[2];
 
-  /// The game stores the item in a 32-bit slot; the id itself fits in the
-  /// low half, the high half stays zero.
+  /// The game uses 32 bits for the item. The id is in the 16 low bits. The 16
+  /// high bits are zero.
   ItemId id;
   u16 _2;
 };

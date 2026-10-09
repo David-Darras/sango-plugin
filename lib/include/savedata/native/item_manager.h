@@ -32,7 +32,7 @@ struct ItemManager {
   SINGLETON(ItemManager)
   struct ItemSlot {
     ItemId id;
-    u16 count; ///< Quantity held (max 999).
+    u16 count; ///< The quantity (999 at most).
   };
 
   STATIC_INLINE ItemManager& GetInstance() {
@@ -68,7 +68,7 @@ struct ItemManager {
 
   void ClearAll() {
     for (auto& item : items) {
-      item.count = 0;
+      item.count = 0; ///< The quantity (999 at most).
       item.id = ItemId::kNone;
     }
   }

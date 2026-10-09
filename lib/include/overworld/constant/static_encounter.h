@@ -29,7 +29,8 @@ namespace overworld {
 /// A row of the static encounter table: the legendary Pokémon and the
 /// other Pokémon that stand in the overworld.
 enum class StaticEncounterId : u32 {
-  kPoochyena = 0, ///< The rescue-event encounter, see StaticEncounterKind
+  /// The Poochyena of the first battle. See StaticEncounterKind.
+  kPoochyena = 0,
   kThundurus = 1,
   kTornadus = 2,
   kLandorus = 3,

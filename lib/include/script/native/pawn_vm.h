@@ -27,6 +27,7 @@
 
 namespace script {
 
+/// The Pawn virtual machine that runs a script.
 struct PawnVm {
   void* vtable; // 0x00
   AmxRuntime amx; // 0x04
@@ -34,7 +35,8 @@ struct PawnVm {
   u32 buffer_size; // 0x80
   void* heap; // 0x84
   s32 suspend_frames; // 0x88
-  s16 execute_result; // 0x8C AMX_ERR_NONE once the run is finished
+  /// The result of the run. AMX_ERR_NONE when the run is complete.
+  s16 execute_result; // 0x8C
   u16 is_halted; // 0x8E
 
   INLINE bool IsFinished() const { return execute_result == AMX_ERR_NONE; }

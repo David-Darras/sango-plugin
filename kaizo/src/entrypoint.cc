@@ -65,7 +65,7 @@ void OnReadFile(core::ArchiveInput* input) {
 
 void OnProcessLoad(uptr vtable) {
   kaizo::ShouldReplacePokemonModel(false);
-  // Vtables still unknown for a game read 0: never match them.
+  // An unknown vtable reads 0. Such a vtable never matches.
   if (vtable == 0) return;
   if (vtable == core::address::kIntroductionVtable ||
       vtable == core::address::kCinematicVtable) {

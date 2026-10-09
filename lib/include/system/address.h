@@ -28,7 +28,7 @@
 namespace sys {
 namespace address {
 
-// Filesystem
+// The files.
 constexpr uptr kFileOpen = GAME_ADDRESS(0x001237E8, 0x00123FA8);
 constexpr uptr kFileClose = GAME_ADDRESS(0x0012387C, 0x0012403C);
 constexpr uptr kFileRead = GAME_ADDRESS(0x0014688C, 0x00145CF0);
@@ -50,7 +50,7 @@ constexpr uptr kArchiveRead = GAME_ADDRESS(0, 0x001288DC);
 constexpr uptr kArchiveLoadFile = GAME_ADDRESS(0x00128100, 0x00128B34);
 constexpr uptr kArchiveLoadCompressedFile = GAME_ADDRESS(0x001283D8, 0x00137A30);
 
-// Input
+// The buttons and the touch screen.
 constexpr uptr kDeviceGetController = GAME_ADDRESS(0x001174D0, 0x00117550);
 constexpr uptr kControllerIsKeyPressed = GAME_ADDRESS(0x00498BBC, 0x004C86EC);
 constexpr uptr kControllerIsKeyReleased = GAME_ADDRESS(0x00498B84, 0x004C86B4);
@@ -71,13 +71,13 @@ constexpr uptr kTouchscreenIsDown = GAME_ADDRESS(0x00497CCC, 0x004C79F8);
 constexpr uptr kTouchscreenGetX = GAME_ADDRESS(0x00497C20, 0x004C794C);
 constexpr uptr kTouchscreenGetY = GAME_ADDRESS(0x00497C48, 0x004C7974);
 
-// Sound
+// The sounds.
 constexpr uptr kSoundPlayPokemonCry = GAME_ADDRESS(0x00427988, 0x004500C0);
 constexpr uptr kSoundChangePokemonCryVolume = GAME_ADDRESS(0x004265B4, 0x0044EB4C);
 constexpr uptr kSoundPlaySoundEffect = GAME_ADDRESS(0x00427550, 0x0044FC88);
 constexpr uptr kSoundPlayBackgroundMusic = GAME_ADDRESS(0x004260FC, 0x0044E6CC);
 
-// System
+// The system.
 constexpr uptr kMessageGetString = GAME_ADDRESS(0x0013A498, 0x00139A34);
 constexpr uptr kStringVtable = GAME_ADDRESS(0x0059B9F8, 0x005DE3BC);
 constexpr uptr kEntrypoint =
@@ -106,7 +106,8 @@ constexpr uptr kGetHeapById = GAME_ADDRESS(0x0012B4D0, 0x0012BCA4);
 
 /// The first address of the game code.
 constexpr uptr kProcessMemoryStart = GAME_ADDRESS(0x00100000, 0x00100000);
-constexpr uptr kProcessMemoryEnd = GAME_ADDRESS(0x00800000, 0x00900000); // XY: CRO region ends ~0x7EC000
+/// XY: the CRO memory ends near 0x7EC000.
+constexpr uptr kProcessMemoryEnd = GAME_ADDRESS(0x00800000, 0x00900000);
 
 /// The memory of the CRO of the current process (the overworld or a battle).
 /// The CRO code is read-only: use MEMORY_SCOPE() to change it.

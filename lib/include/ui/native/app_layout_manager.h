@@ -56,7 +56,7 @@ public:
   INLINE renderer::Pane* GetPane(u32 layout_id, u32 pane_id) {
     return ((renderer::Pane*(*)(u32, u32))
       ui::address::kAppLayoutManagerGetPane)(READ32(GetToken(layout_id) + 4), pane_id);
-  } // or 0x4C8C30 ?
+  }
 
   void
   SetTextBoxStringValue(u32 layout_id, u32 pane_id, const c16* str, ...) {

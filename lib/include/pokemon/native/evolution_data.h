@@ -34,7 +34,8 @@ struct EvolutionData {
   struct {
     EvolutionMethod method;
     u8 _0;
-    /// What the method needs: a level, an item, a move... see EvolutionMethod.
+    /// The value of the method: a level, an item, a move... See
+    /// EvolutionMethod.
     union {
       u16 arg;
       u16 level;

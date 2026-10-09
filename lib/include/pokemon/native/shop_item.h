@@ -29,8 +29,8 @@ namespace pokemon {
 
 /// One item of a shop and its price.
 struct ShopItem {
-  /// The game stores the item in a 32-bit slot; the id itself fits in the
-  /// low half, the high half stays zero.
+  /// The game uses 32 bits for the item. The id is in the 16 low bits. The 16
+  /// high bits are zero.
   ItemId id;
   u16 _0;
   u32 price;

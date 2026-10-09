@@ -139,7 +139,8 @@ private:
   };
 
   static constexpr u32 kStubSize = 0x80;
-  static constexpr u32 kStubStackSize = 0x1000; // like the game's scripts
+  /// The same size as for the scripts of the game.
+  static constexpr u32 kStubStackSize = 0x1000;
 
   const Entry* Find(ScriptId id) const {
     for (u32 i = 0; i < count_; i++) {

@@ -36,8 +36,8 @@ void KeyboardPatch::Initialize() {
                           core::address::kKeyboardUpdateKeys,
                           (uptr)UpdateKeys, false);
 
-  // Disables the keyboard's "No Good Word" filter to allow prohibited words,
-  // phone numbers, etc.
+  // Disable the word filter of the keyboard. The player can then type all
+  // the words and the phone numbers.
   WRITE32(address::kKeyboardWordFilter, 0xE3A00000);
   ARM_RET(address::kKeyboardWordFilterReturn);
 }
@@ -45,12 +45,12 @@ void KeyboardPatch::Initialize() {
 void KeyboardPatch::PatchLoad() {
   MEMORY_SCOPE(sys::address::kMemoryRegionKeyboard, 0x7000);
   core::HookManager::ForceEnable(HookId::kKeyboardUpdateKeys);
-  // Force to refresh when pressing L
+  // L refreshes the keyboard.
   ARM_NOP(address::kKeyboardRefreshOnL);
-  // Pressing R is like pressing L
+  // R does the same thing as L.
   WRITE32(address::kKeyboardKeyHandlerTable + 6 * 4,
           READ32(address::kKeyboardKeyHandlerTable + 4 * 4));
-  // Don't switch between the two keyboard mode
+  // The keyboard stays in the same mode.
   ARM_NOP(address::kKeyboardModeSwitch);
 
   ARM_NOP(address::kKeyboardAnimation1);

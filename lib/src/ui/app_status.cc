@@ -43,12 +43,10 @@
 #include "pokemon/data/nature.inc"
 #include "system/native/controller.h"
 
-// Cycle a Pokemon field forward/backward within [0, max).
-//
-// The arithmetic is always done on u32 and the result is cast back to
-// the field's declared type, so the same macro works for plain
-// integers, for `enum class` fields, and for bit-fields (which cannot
-// be bound to a reference, hence a macro rather than a template).
+// Moves a value of a Pokémon forward or back, from 0 to max - 1.
+// The calculation uses u32, then casts back to the type of the value. The
+// same macro works for integers, `enum class` values and bit-fields. A
+// bit-field cannot be a reference, thus a macro and not a template.
 #define NEXT(x, val, max) \
   x = static_cast<std::remove_reference<decltype(x)>::type>( \
       (static_cast<u32>(x) + (val)) % (max))
@@ -57,7 +55,7 @@
       (static_cast<u32>(x) - (val) + (max)) % (max))
 #define ENUM_NEXT(type, x, val) x = static_cast<type>(( static_cast<u32>(x) + 1) % static_cast<u32>(type::kMax))
 #define ENUM_PREV(type, x, val) x = static_cast<type>(( static_cast<u32>(x) - 1 + static_cast<u32>(type::kMax)) % static_cast<u32>(type::kMax))
-// Maximum sum of a Pokemon's 6 EVs allowed by the games' mechanics.
+// The maximum total of the six EVs of a Pokémon.
 static constexpr u32 kMaxTotalEv = 510;
 #define DEFINE_PANE(color, id0, id1, name, field, max)\
 static void next_##name(pokemon::CoreData& core, u32 value) {\
@@ -310,7 +308,7 @@ static Pane pane_item_ball
        auto& ctx = AppStatus::GetInstance();
        if (ctx.item_page_ ==
            AppStatus::ItemPage::kHeldItem) {
-         /* CHANGE NOTHING */
+         // The held item page changes nothing.
        } else if (
          ctx.item_page_ == AppStatus::ItemPage::kBall) {
          const ItemId item_id =
@@ -509,7 +507,7 @@ void AppStatus::Update(savedata::PokemonParam& pokemon,
           break;
       }
       accessor.Encrypt();
-      // To fix PP
+      // This corrects the PP.
       pokemon.UpdateRuntimeData();
       savedata::PokemonTeam::GetInstance().HealAllPokemons();
       break;
@@ -521,10 +519,10 @@ void AppStatus::Update(savedata::PokemonParam& pokemon,
                      (IsOn(&pane_species) || IsOn(&pane_gender) ||
                       (IsOn(&pane_nature_form) && item_page_ == ItemPage::kForm)
                       || IsOn(&pane_shiny));
-    // Reverse-engineered layout of the AppStatus process instance: at
-    // +kOffsetToRenderContext sits a pointer to its render context, and
-    // +kOffsetToUpdatePokemonFlag within that context is the bool that
-    // tells the game to rebuild the on-screen Pokemon model.
+    // The AppStatus process has a pointer to its render context at
+    // kOffsetToRenderContext. In the render context, the bool at
+    // kOffsetToUpdatePokemonFlag tells the game to make the Pokémon model
+    // again.
     constexpr uptr kOffsetToRenderContext = 104;
     constexpr uptr kOffsetToUpdatePokemonFlag = 284;
     core::BaseProcess* process = core::ProcessManager::GetInstance().
@@ -699,8 +697,8 @@ void AppStatus::SetupGraphicsParamsHook(uptr self,
   GetInstance().Draw(PARAMS_PANES, SIZE(PARAMS_PANES), *pokemon->accessor,
                      manager);
 
-  manager.HidePane(0, 2); // don't show /
-  manager.HidePane(0, 6); // don't show max hp
+  manager.HidePane(0, 2); // Hides the "/".
+  manager.HidePane(0, 6); // Hides the maximum HP.
 }
 
 void AppStatus::SetupGraphicsMovesHook(uptr self,

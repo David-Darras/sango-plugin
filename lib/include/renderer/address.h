@@ -42,7 +42,8 @@ constexpr uptr kStereoCameraUpdateMatrices = GAME_ADDRESS(0x003609A8, 0x00377C10
 constexpr uptr kStereoCameraUpdateLookAt = GAME_ADDRESS(0x00148FD8, 0x001483DC);
 constexpr uptr kStereoCameraSetProjectionMatrix = GAME_ADDRESS(0x0037CE5C, 0x003939CC);
 constexpr uptr kModelPlayAnimation = GAME_ADDRESS(0x003DB040, 0x003FB1B4);
-constexpr uptr kModelUpdateMotion = GAME_ADDRESS(0x006F8028, 0x00774D9C); // XY: unverified (vtable slot, 3 candidates)
+/// XY: not verified (a vtable slot, 3 candidates).
+constexpr uptr kModelUpdateMotion = GAME_ADDRESS(0x006F8028, 0x00774D9C);
 constexpr uptr kChangeOutlineScale = GAME_ADDRESS(0x00362BD4, 0x00379E3C);
 constexpr uptr kChangeOutlineColor = GAME_ADDRESS(0x00362A14, 0x00379C7C);
 constexpr uptr kChangeAmbientLightColor = GAME_ADDRESS(0x0013A140, 0x00139710);
@@ -93,7 +94,8 @@ constexpr uptr kSceneRegister0 = GAME_ADDRESS(0x00374B94, 0x0038B600);
 constexpr uptr kSceneRegister1 = GAME_ADDRESS(0x00374EBC, 0x0038B928);
 constexpr uptr kSceneUnregister = GAME_ADDRESS(0x0037AC84, 0x003917D0);
 
-constexpr uptr kWeatherEffectRain = GAME_ADDRESS(0x005EF13C, 0x00631144); // XY: unverified
+/// XY: not verified.
+constexpr uptr kWeatherEffectRain = GAME_ADDRESS(0x005EF13C, 0x00631144);
 
 constexpr uptr kParticleGetModelCount = GAME_ADDRESS(0x0049E164, 0x004CE068);
 constexpr uptr kParticleGetModel = GAME_ADDRESS(0x0049E4B4, 0x004CE3B8);

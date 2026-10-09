@@ -81,12 +81,10 @@ struct MoveSpec {
   const c16* description;
   /// Sets the data of the move (power, accuracy, PP, type...). Can be null.
   void (*patch_data)(pokemon::MoveData& move);
-  /**
-   * Selects the battle animation of the move. Can be null.
-   * Set `id` to the animation to play. Set `is_move` to false when `id` is
-   * not a move id. You can also use battle::MoveAnimations::Define() to
-   * make a new animation.
-   */
+  /// Selects the battle animation of the move. Can be null.
+  /// Set `id` to the animation to play. Set `is_move` to false when `id` is
+  /// not a move id. You can also use battle::MoveAnimations::Define() to make
+  /// a new animation.
   void (*patch_animation)(u32& id, bool& is_move);
   /// The reactions of the move: what it does in battle, and when.
   const ReactionTable* reactions;

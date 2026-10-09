@@ -30,29 +30,26 @@ class Button {
 public:
   Button();
 
+  /// Sets the position and the size of the button, in pixels.
   void Initialize(u32 x, u32 y, u32 width, u32 height);
 
   /**
-* @brief Renders the button and its label on the screen.
-* @param label The text to display (UTF-16).
-* @param offset_x Horizontal padding for the text.
-* @param offset_y Vertical padding for the text.
-*/
+   * @brief Draws the button and its label.
+   * @param label The text of the button (UTF-16).
+   * @param offset_x The horizontal space before the text.
+   * @param offset_y The vertical space before the text.
+   */
   void Draw(const c16* label, u32 offset_x, u32 offset_y) const;
 
+  /// Returns true while the player touches the button.
   bool IsDown() const;
 
-  /**
-* @brief Checks if the button was just released.
-* @note Resets the internal state to IDLE after being called.
-* @return True if the button transition from HOLD to RELEASED occurred.
-*/
+  /// Returns true at the frame when the player stops to touch the button.
+  /// The call resets the state of the button.
   bool IsReleased() const;
 
-  /**
-* @brief Updates the internal state machine based on touch input.
-* Must be called once per frame.
-*/
+  /// Reads the touch screen and updates the state. Call it one time for each
+  /// frame.
   void Update();
 
 private:

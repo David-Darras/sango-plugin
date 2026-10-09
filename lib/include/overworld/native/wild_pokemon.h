@@ -32,7 +32,7 @@
 
 namespace overworld {
 
-/// One Pokémon the game rolled for a wild battle.
+/// One Pokémon that the game selected for a wild battle.
 struct WildPokemon {
   SpeciesId species;
   ItemId item;

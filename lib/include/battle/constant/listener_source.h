@@ -38,10 +38,10 @@ enum class ListenerSource : u8 {
   kAbility, ///< An ability registered it.
   kHeldItem, ///< A held item registered it.
 
+  /// A listener that does not depend on its Pokémon or its item any more.
+  /// It continues when the Pokémon faints. The engine removes it at the end
+  /// of the turn.
   kDetached,
-  ///< A listener that does not depend on its Pokémon or its item any more.
-  ///< It continues when the Pokémon faints. The engine removes it at the
-  ///< end of the turn.
 
   kCount,
 };

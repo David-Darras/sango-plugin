@@ -28,9 +28,9 @@ namespace pokemon {
 
 /// The type of a shop: what it sells and what the player pays with.
 enum class ShopType : u32 {
-  kNormal, ///< Regular mart, pays with money.
+  kNormal, ///< A normal Poké Mart. The player pays with money.
   kBattlePoint, ///< Pays with Battle Points (BP).
-  kBattlePointMove, ///< Battle Point move tutor counter.
+  kBattlePointMove, ///< A move tutor that takes Battle Points.
   kPokeMiles, ///< Pays with Poké Miles.
   kSecretBaseGoods, ///< Sells Secret Base decorations.
 };

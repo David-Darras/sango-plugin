@@ -32,9 +32,8 @@ struct Pokedex {
     return SaveData::GetInstance().GetPokedex();
   }
 
-  /**
-* @return FormId index, or -1 if the species has no alternative forms.
-*/
+  /// Returns the index of the forms of a species, or -1 when the species
+  /// has no other forms.
   static s32 GetFormIndex(u16 species) {
     struct Entry {
       u16 species;
@@ -85,7 +84,7 @@ struct Pokedex {
   u32 past_captured_flags[21];
 #else
   u16 seen_count[722];
-  u16 captured_count[722]; // unused
+  u16 captured_count[722]; ///< Not used.
 #endif
 };
 } // namespace savedata

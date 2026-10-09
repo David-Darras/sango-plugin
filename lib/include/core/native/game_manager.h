@@ -87,7 +87,7 @@ public:
   }
 
 private:
-  // Memory Heaps
+  // The memory heaps.
   void* system_heap_;
   void* device_heap_; ///< The memory heap for the GPU.
   void* process_cell_heap_;
@@ -98,7 +98,7 @@ private:
   u8 reserved_;
   u32 unknow0;
 
-  // Sub-Managers
+  // The managers.
   ProcessManager* game_process_manager_;
   EventManager* game_event_manager_;
   DataManager* game_data_;

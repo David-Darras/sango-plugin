@@ -215,12 +215,12 @@ public:
   }
 
   /**
-* @brief Adds a Unicode string entry.
-* @param name Display name.
-* @param addr Pointer to the UTF-16 string.
-* @param size Maximum length/size of the string.
-* @return Reference to the MainApplication instance.
-*/
+   * @brief Adds an entry for a text (UTF-16).
+   * @param name The name of the entry.
+   * @param addr The address of the text.
+   * @param size The maximum number of characters.
+   * @return The menu, to add more entries.
+   */
   MainApplication& Add(const c8* name, c16* addr, u32 size) {
     if (entries_count_ < kMaxEntries)
       entries_[entries_count_++].Initialize(name, addr, kTypeUnicode, size);
@@ -306,10 +306,8 @@ public:
 
 #undef ADD
 
-  /**
-  * @brief Binds an `enum class` field directly, aliasing it to the raw
-  * integer widget of its underlying type (same size/representation).
-  */
+  /// Adds an entry for an `enum class` value. The entry uses the integer type
+  /// of the enum, with the same size.
   // The code uses `typename ...::type`: the `_t` aliases do not exist in
   // C++11.
   template <typename Enum,
@@ -320,14 +318,9 @@ public:
         reinterpret_cast<typename std::underlying_type<Enum>::type&>(var));
   }
 
-  /**
-  * @brief Same aliasing trick for the semantic widgets below.
-  *
-  * Each of them is shared by several distinct `enum class` families that
-  * happen to have the same underlying width (e.g. `AddType` serves both
-  * `MoveType` and `TypeId`), so a single template per widget replaces
-  * what would otherwise be one hand-written overload per enum.
-  */
+  // The same method for the entries below. Different enums have the same size.
+  // For example, `AddType` accepts `MoveType` and `TypeId`. One template for
+  // each entry type replaces one function for each enum.
 #define ADD_ENUM_ALIAS(method, raw)                                       \
   template <typename Enum, typename =                                     \
             typename std::enable_if<std::is_enum<Enum>::value>::type>     \

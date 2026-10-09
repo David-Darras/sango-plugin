@@ -38,7 +38,7 @@ struct BoxManager {
 
   static constexpr u32 kMaxWallpapers = 24;
 
-  /** @brief Maximum length for a box title, including the null terminator. */
+  /// The size of a box name, in characters (with the end character).
   static constexpr u32 kMaxTitleLength = 17;
 
   void* vtable;

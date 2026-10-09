@@ -57,14 +57,14 @@ void SolarFlareSunReaction(Listener* self, Controller* controller, UID owner,
 // Absolute Zero: a status move that always hits and always freezes.
 void PatchAbsoluteZeroData(pokemon::MoveData& move) {
   move.power = 0;
-  move.accuracy = 101;  // 101 = the move never misses.
+  move.accuracy = 101; // 101 = the move never misses.
   move.base_pp = 50;
   move.type = TypeId::kIce;
   move.effect_id = StatusCondition::kFreeze;
   move.effect_rate = 100;
   move.effect_turn_type = 1;
   move.flinch_rate = 0;
-  move.category = 1;  // 1 = status only.
+  move.category = 1; // 1 = status only.
   move.damage_category = 0;
 }
 
@@ -78,7 +78,7 @@ void PatchSolarFlareData(pokemon::MoveData& move) {
   move.effect_rate = 100;
   move.effect_turn_type = 1;
   move.flinch_rate = 100;
-  move.category = 4;  // 4 = damage, then a status condition.
+  move.category = 4; // 4 = damage, then a status condition.
   move.damage_category = 1;
 }
 

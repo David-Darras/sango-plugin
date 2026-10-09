@@ -26,7 +26,7 @@
 
 namespace script {
 
-/// One language block of a message file, followed by its strings.
+/// A language block of a message file. The strings follow the block.
 struct MessageLanguageBlock {
   u32 size;
   u32 string_offset;

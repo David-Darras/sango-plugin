@@ -26,8 +26,8 @@
 
 namespace pokemon {
 
-/// Odds of a Pokémon being shiny: 1 chance out of 2^(n-1), kOff leaves the
-/// game's own roll untouched.
+/// The chance of a shiny Pokémon: 1 out of 2^(n-1). kOff keeps the chance of
+/// the game.
 enum class ShinyRate : u32 {
   kOff,
   k1_1,

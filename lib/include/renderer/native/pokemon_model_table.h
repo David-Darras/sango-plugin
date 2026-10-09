@@ -35,7 +35,8 @@ namespace renderer {
 /// archive of the Pokémon models.
 struct PokemonModelTable {
   static constexpr u16 kSpeciesCount = 721;
-  /// Files per Pokémon in the model archive, and index of the first one.
+  /// The number of files of each Pokémon in the model archive, and the index of
+  /// the first file.
   static constexpr u32 kFileSectionCount = 8;
   static constexpr u32 kPackFirstFile = 3;
   static constexpr u32 kInvalidPack = 0xFFFFFFFF;

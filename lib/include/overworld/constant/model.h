@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2026 David Darras
+ * Copyright (C) 2026  David Darras
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -8,11 +8,11 @@
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 /**
@@ -30,33 +30,31 @@
 namespace overworld {
 
 enum class ModelId : u16 {
-  /* ---------------------------------------------------------
-  CHARACTER MODELS (X/Y base engine)
-  --------------------------------------------------------- */
-  kNone = 0x0, /* No model drawn */
-  kSerena = 0x1, /* Female protagonist (X/Y) */
-  kCalem = 0x2, /* Male protagonist (X/Y) */
-  kShauna = 0x3, /* Friend B */
-  kTierno = 0x4, /* Friend C */
-  kTrevor = 0x5, /* Friend D */
+  // The character models of X and Y.
+  kNone = 0x0, ///< No model.
+  kSerena = 0x1, ///< The female player character of X and Y.
+  kCalem = 0x2, ///< The male player character of X and Y.
+  kShauna = 0x3, ///< A friend of the player.
+  kTierno = 0x4, ///< A friend of the player.
+  kTrevor = 0x5, ///< A friend of the player.
   kProfessorSycamore = 0x6,
   kMom = 0x7,
-  kMysteriousWoman = 0x8, /* Masked woman */
-  kMysteriousMan = 0x9, /* Masked man */
-  kDiantha = 0xa, /* Champion */
-  kWikstrom = 0xb, /* Elite Four - Steel */
-  kMalva = 0xc, /* Elite Four - Fire */
-  kDrasna = 0xd, /* Elite Four - Dragon */
-  kSiebold = 0xe, /* Elite Four - Water */
-  kViola = 0xf, /* Gym Leader - Bug */
-  kGrant = 0x10, /* Gym Leader - Rock */
-  kKorrina = 0x11, /* Gym Leader - Fighting */
-  kRamos = 0x12, /* Gym Leader - Grass */
-  kClemont = 0x13, /* Gym Leader - Electric */
-  kValerie = 0x14, /* Gym Leader - Fairy */
-  kOlympia = 0x15, /* Gym Leader - Psychic */
-  kWulfric = 0x16, /* Gym Leader - Ice */
-  kLysandre = 0x17, /* Team Flare boss */
+  kMysteriousWoman = 0x8, ///< A woman with a mask.
+  kMysteriousMan = 0x9, ///< A man with a mask.
+  kDiantha = 0xa, ///< The Champion.
+  kWikstrom = 0xb, ///< A member of the Elite Four (Steel type).
+  kMalva = 0xc, ///< A member of the Elite Four (Fire type).
+  kDrasna = 0xd, ///< A member of the Elite Four (Dragon type).
+  kSiebold = 0xe, ///< A member of the Elite Four (Water type).
+  kViola = 0xf, ///< A Gym Leader (Bug type).
+  kGrant = 0x10, ///< A Gym Leader (Rock type).
+  kKorrina = 0x11, ///< A Gym Leader (Fighting type).
+  kRamos = 0x12, ///< A Gym Leader (Grass type).
+  kClemont = 0x13, ///< A Gym Leader (Electric type).
+  kValerie = 0x14, ///< A Gym Leader (Fairy type).
+  kOlympia = 0x15, ///< A Gym Leader (Psychic type).
+  kWulfric = 0x16, ///< A Gym Leader (Ice type).
+  kLysandre = 0x17, ///< The boss of Team Flare.
   kTeamFlareAdminMale = 0x18,
   kTeamFlareAdminFemale = 0x19,
   kTeamFlareGruntMale = 0x1a,
@@ -71,7 +69,7 @@ enum class ModelId : u16 {
   kBattleChateauNobleB = 0x23,
   kBattleChateauNobleC = 0x24,
   kBattleChateauNobleD = 0x25,
-  kLooker = 0x26, /* "Handsome" alias */
+  kLooker = 0x26,
   kLass = 0x27,
   kToddlerGirl = 0x28,
   kYoungster = 0x29,
@@ -79,7 +77,7 @@ enum class ModelId : u16 {
   kYoungGirl = 0x2b,
   kSchoolgirl = 0x2c,
   kYoungBoy = 0x2d,
-  kYoungLady = 0x2e, /* rich girl */
+  kYoungLady = 0x2e,
   kWoman = 0x2f,
   kSchoolboy = 0x30,
   kYoungMan = 0x31,
@@ -87,14 +85,14 @@ enum class ModelId : u16 {
   kTouristMale = 0x33,
   kTouristFemale = 0x34,
   kBackpacker = 0x35,
-  kSocialite = 0x36, /* Madame */
+  kSocialite = 0x36,
   kGentleman = 0x37,
   kBeauty = 0x38,
-  kPunkGuy = 0x39, /* skinhead */
+  kPunkGuy = 0x39,
   kPunkGirl = 0x3a,
-  kPcClerk = 0x3b, /* PC box counter staff */
+  kPcClerk = 0x3b,
   kShopClerk = 0x3c,
-  kGymGuideDanpei = 0x3d,
+  kGymGuide = 0x3d,
   kReceptionist = 0x3e,
   kBoutiqueClerk = 0x3f,
   kDeliveryMan = 0x40,
@@ -104,7 +102,7 @@ enum class ModelId : u16 {
   kPokefanMale = 0x44,
   kPokefanFemale = 0x45,
   kTwins = 0x46,
-  kFashionista = 0x47, /* miniskirt */
+  kFashionista = 0x47,
   kShopOwner = 0x48,
   kWaitress = 0x49,
   kBattleGirl = 0x4a,
@@ -147,15 +145,16 @@ enum class ModelId : u16 {
   kSurfingEliteFemale = 0x6f,
   kHiker = 0x70,
   kBlackBelt = 0x71,
-  kWaiter = 0x72, /* garcon */
+  kWaiter = 0x72,
   kApprenticeMale = 0x73,
   kApprenticeFemale = 0x74,
   kCyclist = 0x75,
   kTvCrew = 0x76,
-  kMonsieurKizuna = 0x77,
+  kMrBonding = 0x77,
   kSerenaMannequin = 0x78,
   kSerenaMultiplayer = 0x79,
-  kWorkRef00 = 0x7a, /* variable-reference slots */
+  /// From kWorkRef00 to kWorkRef15, a script variable gives the model.
+  kWorkRef00 = 0x7a,
   kWorkRef01 = 0x7b,
   kWorkRef02 = 0x7c,
   kWorkRef03 = 0x7d,
@@ -187,8 +186,8 @@ enum class ModelId : u16 {
   kMegaEvolutionGuru = 0x97,
   kGameDirectorCameo = 0x98,
   kTallMan = 0x99,
-  kViolasSister = 0x9a, /* Alexa */
-  kClemontsSister = 0x9b, /* Bonnie */
+  kViolasSister = 0x9a, ///< Alexa, the sister of Viola.
+  kClemontsSister = 0x9b, ///< Bonnie, the sister of Clemont.
   kLysandreAlt = 0x9c,
   kC02NpcGirl = 0x9d,
   kC02NpcGirlEx = 0x9e,
@@ -200,14 +199,12 @@ enum class ModelId : u16 {
   kSwimmerFemale2 = 0xa4,
   kFisherman2 = 0xa5,
   kMiddleAgedMan2 = 0xa6,
-  kFlutePlayer = 0xa7, /* Black Belt with flute */
+  kFlutePlayer = 0xa7, ///< A Black Belt with a flute.
   kGentlemanWithBook = 0xa8,
   kWomanWithBook = 0xa9,
   kReserveChar4 = 0xaa,
 
-  /* ---------------------------------------------------------
-  CHARACTER MODELS (Ruby/Sapphire -> ORAS remake)
-  --------------------------------------------------------- */
+  // The character models of Omega Ruby and Alpha Sapphire.
   kMay = 0xab,
   kBrendan = 0xac,
   kMayContest = 0xad,
@@ -220,10 +217,10 @@ enum class ModelId : u16 {
   kWally = 0xb4,
   kWallyWithBag = 0xb5,
   kStevenStone = 0xb6,
-  kSidney = 0xb7, /* Elite Four - Dark */
-  kPhoebe = 0xb8, /* Elite Four - Ghost */
-  kGlacia = 0xb9, /* Elite Four - Ice */
-  kDrake = 0xba, /* Elite Four - Dragon */
+  kSidney = 0xb7, ///< A member of the Elite Four (Dark type).
+  kPhoebe = 0xb8, ///< A member of the Elite Four (Ghost type).
+  kGlacia = 0xb9, ///< A member of the Elite Four (Ice type).
+  kDrake = 0xba, ///< A member of the Elite Four (Dragon type).
   kRoxanne = 0xbb,
   kBrawly = 0xbc,
   kWattson = 0xbd,
@@ -264,7 +261,7 @@ enum class ModelId : u16 {
   kPicnicker = 0xe0,
   kRichBoyOras = 0xe1,
   kRichGirlOras = 0xe2,
-  kTubeKidMale = 0xe3, /* inflatable ring */
+  kTubeKidMale = 0xe3, ///< A Tuber with an inflatable ring.
   kTubeKidFemale = 0xe4,
   kSwimmerMaleOras = 0xe5,
   kSwimmerFemaleOras = 0xe6,
@@ -307,8 +304,8 @@ enum class ModelId : u16 {
   kTwins2Oras = 0x10b,
   kLoveyDoveyCoupleMale = 0x10c,
   kLoveyDoveyCoupleFemale = 0x10d,
-  kSenior = 0x10e, /* sempai */
-  kJunior = 0x10f, /* kohai */
+  kSenior = 0x10e,
+  kJunior = 0x10f,
   kFairyTaleGirlOras = 0x110,
   kSurfingEliteMaleOras = 0x111,
   kSurfingEliteFemaleOras = 0x112,
@@ -319,7 +316,7 @@ enum class ModelId : u16 {
   kDiverFemale = 0x117,
   kMomOras = 0x118,
   kMax = 0x119,
-  kMrStone = 0x11a, /* Steven's father */
+  kMrStone = 0x11a, ///< Mr. Stone, the father of Steven.
   kOldManHagi = 0x11b,
   kToddlerBoyOras = 0x11c,
   kToddlerGirlOras = 0x11d,
@@ -332,26 +329,26 @@ enum class ModelId : u16 {
   kSingerSongwriterOldMan = 0x124,
   kItemTraderOldMan = 0x125,
   kLegendaryOldMan = 0x126,
-  kMechanicalKing = 0x127, /* karakuri daiou */
+  kTrickMaster = 0x127,
   kMiddleAgedWoman = 0x128,
   kSunglassesGuy = 0x129,
   kPcLady = 0x12a,
   kShopClerkOras = 0x12b,
   kReceptionistOras = 0x12c,
-  kGymGuideDanpeiOras = 0x12d,
+  kGymGuideOras = 0x12d,
   kDeliveryMan1 = 0x12e,
   kDeliveryMan2 = 0x12f,
   kContestMc = 0x130,
   kYoungGirlOras = 0x131,
   kYoungManOras = 0x132,
   kResearcherMaleOras = 0x133,
-  kMonsieurKizunaOras = 0x134,
-  kCaptainKusunoki = 0x135,
-  kProfessorSoraishi = 0x136,
+  kMrBondingOras = 0x134,
+  kCaptainStern = 0x135,
+  kProfessorCozmo = 0x136,
   kFurisodeFlowerOras = 0x137,
   kStopper3 = 0x138,
   kGameDirectorCameoOras = 0x139,
-  kSupportMay = 0x13a, /* multiplayer helper */
+  kSupportMay = 0x13a, ///< May when she is the rival of the player.
   kSupportBrendan = 0x13b,
   kSupportMayBike = 0x13c,
   kSupportBrendanBike = 0x13d,
@@ -390,11 +387,9 @@ enum class ModelId : u16 {
   kPhoebeAltPose = 0x15e,
   kWinonaAltPose = 0x15f,
   kSidneyAltPose = 0x160,
-  kMayumi = 0x161,
+  kLanette = 0x161,
 
-  /* ---------------------------------------------------------
-  OBJECTS / ITEMS / SCENERY
-  --------------------------------------------------------- */
+  // The objects, the items and the scenery.
   kPokeball = 0x162,
   kPokeballRare = 0x163,
   kGrassRustleEffect = 0x164,
@@ -488,9 +483,7 @@ enum class ModelId : u16 {
   kNatureStopper = 0x1bc,
   kStevensLetter = 0x1bd,
 
-  /* ---------------------------------------------------------
-  COMPANION / RIDE POKEMON
-  --------------------------------------------------------- */
+  // The Pokémon models of the overworld.
   kPumpkabooStage1 = 0x1be,
   kDiggersbyStage2 = 0x1bf,
   kPackagePokemonZygarde = 0x1c0,
@@ -556,9 +549,8 @@ enum class ModelId : u16 {
   kPetrifiedKyogre = 0x1fc,
   kMachokeAlt = 0x1fd,
 
-  /* ---------------------------------------------------------
-  SUB-OBJECTS (held items / mounts shown on characters)
-  --------------------------------------------------------- */
+  // The extra models of a character: the items that it holds, and the
+  // bikes or the Pokémon that it rides.
   kSubBase = 0x1fe,
   kSubBicycle = 0x1fe,
   kSubWailmerWhale = 0x1ff,

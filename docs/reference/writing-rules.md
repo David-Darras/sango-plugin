@@ -110,10 +110,47 @@ u8 GetCount() const;
 
 ### A member or an enum value
 
+Put the comment at the end of the line with `///<`:
+
 ```cpp
-u8 level;          ///< The level, from 1 to 100.
+u8 level; ///< The level, from 1 to 100.
 SpeciesId species; ///< The species.
 ```
+
+When the line becomes longer than 80 columns, put the comment on the line
+before, with `///`:
+
+```cpp
+/// Checks if a delayed move (like Future Sight) is ready.
+kCheckDelayedMoveReady = 6,
+```
+
+Never put a `///<` comment alone on the next line.
+
+### A comment inside a function
+
+Inside a function (in a `.cc` file), use `//` and full sentences:
+
+```cpp
+// The data of a Pokemon is encrypted: decrypt it, read it, encrypt it.
+pokemon->accessor->Decrypt();
+```
+
+A short title of a group of lines is also a `//` comment: `// Hooks.`
+
+### The same format everywhere
+
+| Where | Format |
+|---|---|
+| The top of a file | `/** @file ... @brief ... */` after the license. |
+| A type, a function, a constant | `///` lines before it. `/** @brief ... */` when it has `@param`, `@return`, `@code` or several paragraphs. |
+| A member, an enum value | `///<` at the end of the line, or `///` before it when the line is too long. |
+| The code of a function | `//` full sentences. |
+| A list of values (`// 0x2D`, `// 12`) | A number or a name only. These labels stay as they are. |
+| The end of a namespace | `} // namespace battle` |
+
+Do not keep code in comments, separator lines (`// ------`), `TODO` notes or
+addresses that nobody uses.
 
 ### What to write
 

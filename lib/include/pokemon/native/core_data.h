@@ -44,7 +44,7 @@ namespace pokemon {
  * and changes the order of the blocks: see DataAccessor.
  */
 struct CoreData {
-  // HEADER [0x08 bytes]
+  // The header (0x08 bytes).
   u32 encryption_key; // 04
   union {
     u16 _0; // 06
@@ -57,7 +57,7 @@ struct CoreData {
   };
   u16 checksum; // 08
 
-  // BLOCK 1 [0x38 bytes]
+  // Block 1 (0x38 bytes).
   SpeciesId species; // 02
   ItemId item; // 04
 
@@ -105,14 +105,14 @@ struct CoreData {
 
   u32 super_training_flags; // 28
 
-  u32 ribbon_flags[2]; // 2C, 30
+  u32 ribbon_flags[2];
 
   u16 other_ribbon_flags; // 32
   u16 other_super_ribbon_flags; // 34
 
   u32 furfrou_remaining_trim_days; // 38
 
-  // BLOCK 2  [0x38 bytes]
+  // Block 2 (0x38 bytes).
   c16 nickname[13]; // 1A
   MoveId moves[4]; // 22
   u8 pp[4]; // 26
@@ -135,7 +135,7 @@ struct CoreData {
     };
   };
 
-  // BLOCK 3 [0x38 bytes]
+  // Block 3 (0x38 bytes).
   c16 first_trainer_name[13]; // 1A
   u8 first_trainer_gender; // 1B
   u8 __0;
@@ -144,7 +144,7 @@ struct CoreData {
   u8 happiness;
   u16 __4[6];
 
-  // BLOCK 4 [0x38 bytes]
+  // Block 4 (0x38 bytes).
   c16 original_trainer_name[13]; // 1A
   union {
     u8 training_friendship; // 1B

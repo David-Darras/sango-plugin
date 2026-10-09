@@ -26,7 +26,7 @@
 
 namespace pokemon {
 
-/// How a table entry (gift, static encounter...) decides the gender.
+/// How an entry of a table (gift, static encounter...) selects the gender.
 enum class GenderRoll : u8 {
   kRandom = 0,
   kMale = 1,

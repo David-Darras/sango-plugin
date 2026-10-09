@@ -29,45 +29,87 @@ namespace script {
 /// The natives that script::Context uses. Resolve() finds them by name.
 struct Natives {
   // The natives of the state table.
-  NativeFunction WorkGet; // (work_no) -> value
-  NativeFunction WorkSet; // (work_no, value)
-  NativeFunction FlagGet; // (flag_no) -> bool
-  NativeFunction FlagSet; // (flag_no)
-  NativeFunction FlagReset; // (flag_no)
-  NativeFunction ItemAdd; // (item_id, count) -> bool
-  NativeFunction ItemAddCheck; // (item_id, count) -> bool
-  NativeFunction ItemGetNum; // (item_id, unused) -> count in the bag
-  NativeFunction PlayerGetMoney; // () -> money
-  NativeFunction PlayerAddMoney; // (money)
-  NativeFunction PlayerSubMoney; // (money)
-  NativeFunction PlayerGetSex; // () -> 0 male, 1 female
-  NativeFunction MdlGetDirDisp; // (obj_id) -> Dir
-  NativeFunction MdlGetMoveCode; // (obj_id) -> move code
-  NativeFunction MdlSetWaitAnimeReq; // (obj_id)
+  /// Reads a script variable. Arguments: (variable). Returns: the value.
+  NativeFunction WorkGet;
+  /// Writes a script variable. Arguments: (variable, value).
+  NativeFunction WorkSet;
+  /// Reads an event flag. Arguments: (flag). Returns: true when the flag is
+  /// set.
+  NativeFunction FlagGet;
+  NativeFunction FlagSet; ///< Sets an event flag. Arguments: (flag).
+  NativeFunction FlagReset; ///< Clears an event flag. Arguments: (flag).
+  /// Adds items to the Bag. Arguments: (item, count). Returns: true when the
+  /// items go into the Bag.
+  NativeFunction ItemAdd;
+  /// Checks the space in the Bag. Arguments: (item, count). Returns: true when
+  /// the items fit.
+  NativeFunction ItemAddCheck;
+  /// Counts an item in the Bag. Arguments: (item, 0). Returns: the count.
+  NativeFunction ItemGetNum;
+  NativeFunction PlayerGetMoney; ///< Returns the money of the player.
+  /// Gives money to the player. Arguments: (money).
+  NativeFunction PlayerAddMoney;
+  /// Removes money from the player. Arguments: (money).
+  NativeFunction PlayerSubMoney;
+  /// Returns the gender of the player: 0 for male, 1 for female.
+  NativeFunction PlayerGetSex;
+  /// Arguments: (character). Returns: the direction of the character.
+  NativeFunction MdlGetDirDisp;
+  /// Arguments: (character). Returns: the movement type of the character.
+  NativeFunction MdlGetMoveCode;
+  /// Puts a character back in its idle animation. Arguments: (character).
+  NativeFunction MdlSetWaitAnimeReq;
   // The natives of the overworld table.
-  NativeFunction PlayerGetReturnDir; // () -> Dir facing the player
-  NativeFunction MdlIsHalfSitSkelPreset; // (obj_id) -> bool
-  NativeFunction MdlCanUseTurnAcmd; // (obj_id) -> bool
-  NativeFunction MdlAcmdInit; // (obj_id)
-  NativeFunction MdlAcmdSet; // (acmd, dir, count, replace_turn)
-  NativeFunction MdlAcmdSetEnd; // ()
-  NativeFunction MdlAcmdUpdate; // (obj_id or -1) -> bool finished
-  NativeFunction _TalkMdlStartInit; // (obj_id, mode, dir, half_sit) -> mode
-  NativeFunction _TalkMdlEndInit; // (obj_id, mode) -> mode
-  NativeFunction TalkMdlSetEyeToEye; // (obj_id)
-  NativeFunction TalkMdlClearEyeToEye; // (obj_id)
-  NativeFunction TalkMdlSetTalkMotion; // (obj_id)
-  NativeFunction TalkMdlMsg_Seq; // (19 params, see Context::ShowMessage)
-  NativeFunction CheckWinAllSuspend; // () -> bool every window is waiting
-  NativeFunction LastKeyWait; // () sleeps until A/B/stick/touch
-  NativeFunction _ABKeyWait; // () sleeps until A/B/touch
-  NativeFunction MsgWinCloseNo; // (window_id)
-  NativeFunction YesNoWin_Seq; // (is_ctrl_str, str1, str2, init_pos) -> done
-  NativeFunction SEPlay; // (sound_item_id)
-  NativeFunction MEPlay; // (sound_item_id)
-  NativeFunction MEIsFinished; // (sound_item_id) -> bool
-  NativeFunction MEReturnBGM; // () brings the map music back after a jingle
-  NativeFunction GlobalCall; // (script_id) runs a child script
+  /// Returns the direction from the player to the character in front.
+  NativeFunction PlayerGetReturnDir;
+  /// Arguments: (character). Returns: true when the player must crouch to talk
+  /// to the character.
+  NativeFunction MdlIsHalfSitSkelPreset;
+  /// Arguments: (character). Returns: true when the character can turn with an
+  /// animation.
+  NativeFunction MdlCanUseTurnAcmd;
+  /// Starts a list of movements. Arguments: (character).
+  NativeFunction MdlAcmdInit;
+  /// Adds a movement to the list. Arguments: (movement, direction, count,
+  /// replace_turn).
+  NativeFunction MdlAcmdSet;
+  NativeFunction MdlAcmdSetEnd; ///< Closes the list of movements.
+  /// Arguments: (character, or -1). Returns: true when the movements are
+  /// complete.
+  NativeFunction MdlAcmdUpdate;
+  /// Prepares a conversation. Arguments: (character, options, direction,
+  /// crouch). Returns: the options.
+  NativeFunction _TalkMdlStartInit;
+  /// Prepares the end of a conversation. Arguments: (character, options).
+  /// Returns: the options.
+  NativeFunction _TalkMdlEndInit;
+  /// The character looks at the player. Arguments: (character).
+  NativeFunction TalkMdlSetEyeToEye;
+  /// The character stops to look at the player. Arguments: (character).
+  NativeFunction TalkMdlClearEyeToEye;
+  /// Starts the talk animation of a character. Arguments: (character).
+  NativeFunction TalkMdlSetTalkMotion;
+  /// Shows a message. It has 19 arguments. See Context::ShowMessage.
+  NativeFunction TalkMdlMsg_Seq;
+  /// Returns true when all the message windows wait.
+  NativeFunction CheckWinAllSuspend;
+  /// Waits for A, B, the Circle Pad or the touch screen.
+  NativeFunction LastKeyWait;
+  NativeFunction _ABKeyWait; ///< Waits for A, B or the touch screen.
+  /// Closes a message window. Arguments: (window).
+  NativeFunction MsgWinCloseNo;
+  /// Shows Yes / No. Arguments: (is_ctrl_str, str1, str2, init_pos). Returns:
+  /// true when the player answers.
+  NativeFunction YesNoWin_Seq;
+  NativeFunction SEPlay; ///< Plays a sound effect. Arguments: (sound).
+  /// Plays a short music (a jingle). Arguments: (sound).
+  NativeFunction MEPlay;
+  /// Arguments: (sound). Returns: true when the jingle is complete.
+  NativeFunction MEIsFinished;
+  /// Plays the music of the map again after a jingle.
+  NativeFunction MEReturnBGM;
+  /// Runs a different script, then comes back. Arguments: (script).
+  NativeFunction GlobalCall;
   NativeFunction PokePartyGetCount;
   NativeFunction PokePartyAdd;
   NativeFunction _FieldClose;

@@ -30,7 +30,7 @@ void Hook::Initialize(u32 src, u32 dst) {
 }
 
 void Hook::Enable(bool force) {
-  if (src_addr_ == 0) return; // address not found for this game yet
+  if (src_addr_ == 0) return; ///< The address is not known for this game yet.
   if (!force && is_enabled_) return;
 
   if (!is_initialized_) {
@@ -40,7 +40,7 @@ void Hook::Enable(bool force) {
 
     gateway_[0] = READ32(src_addr_);
     gateway_[1] = READ32(src_addr_ + 4);
-    gateway_[2] = 0xE51FF004; // ARM opcode for: ldr pc, [pc, #-4]
+    gateway_[2] = 0xE51FF004; ///< ARM instruction: ldr pc, [pc, #-4]
     gateway_[3] = src_addr_ + 8;
     svcFlushProcessDataCache(CUR_PROCESS_HANDLE, (uptr)gateway_, 0x10);
 
@@ -70,7 +70,7 @@ void Hook::Disable() {
 
 void HookManager::Add(HookId id, u32 src, u32 dst, bool enable) {
   if (id >= HookId::kMax) return;
-  if (src == 0) return; // address not found for this game yet
+  if (src == 0) return; ///< The address is not known for this game yet.
   if (hooks_[(u32)id].IsEnabled()) return;
   hooks_[(u32)id].Initialize(src, dst);
   if (enable) {

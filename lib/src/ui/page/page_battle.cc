@@ -48,7 +48,7 @@ static void StartBattle(void*) {
       -1);
 }
 
-// --- Options ---------------------------------------------------------------
+// The battle options.
 
 void LoadBattleSettingsPage(MainApplication& app, void* args) {
   auto& ctx = battle::Battle::GetInstance();
@@ -112,7 +112,7 @@ namespace {
 struct TypeChartEdit {
   TypeId attacking = TypeId::kNormal;
   TypeId defending = TypeId::kNormal;
-  u8 multiplier = 2; ///< Index in kMultipliers
+  u8 multiplier = 2; ///< The index in kMultipliers.
 };
 
 TypeChartEdit& GetTypeChartEdit() {
@@ -154,7 +154,7 @@ void LoadTypeChartPage(MainApplication& app, void* args) {
      .WithCallback(ApplyTypeChart);
 }
 
-// --- Live battle -----------------------------------------------------------
+// The current battle.
 
 static battle::Pokemon* pkm_server = nullptr;
 static battle::Pokemon* pkm_client = nullptr;
@@ -334,7 +334,7 @@ void LoadBattleLivePage(MainApplication& app, void* args) {
       .Add("Pokemon Model", LoadBattlePokemonModelPage);
 }
 
-// --- Family root -----------------------------------------------------------
+// The top page of the battle pages.
 
 void LoadBattlePage(MainApplication& app, void* args) {
   app.Add("Static Encounter", static_encounter_id)

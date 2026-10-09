@@ -49,8 +49,8 @@ u32 ProcessPatch::MainProcessLoopHook(ProcessManager* manager) {
 
 void ProcessPatch::OnUpdate(uptr vtable) {
   ui::NewGame::OnProcessUpdate(vtable);
-  // Vtables still unknown for a game read 0, so no `switch` here: a process
-  // whose vtable is unknown must never match anything.
+  // An unknown vtable reads 0. A process with an unknown vtable must never
+  // match, so the code does not use a switch.
   if (vtable == 0) return;
   if (vtable == ui::address::kAppStatusVtable) {
     ui::AppStatus::PatchUpdate();

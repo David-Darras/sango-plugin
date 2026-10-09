@@ -43,7 +43,7 @@ Numpad::Numpad() : cursor_(0) {
 
   buttons_[kButtonInput].Initialize(x, y_start, bar_width, bar_height);
 
-  // Numeric buttons 0-9
+  // The digit buttons, 0 to 9.
   s32 current_y = y_start + bar_height - 1;
   for (int i = 0; i < 10; ++i) {
     buttons_[kButton0 + i].Initialize(x + i * width, current_y, width, height);

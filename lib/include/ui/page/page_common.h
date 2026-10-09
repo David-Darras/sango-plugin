@@ -22,12 +22,11 @@
 
 #pragma once
 
-/// Pages and callbacks several page families share.
 namespace ui {
 class MainApplication;
 void LoadColorPage(MainApplication& app, void* args);
 void LoadColor8Page(MainApplication& app, void* args);
 
-/// Reloads the current map in place, closing the menu.
+/// Closes the menu and loads the current map again.
 void RefreshMap(void* args);
 } // namespace ui

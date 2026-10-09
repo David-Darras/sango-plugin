@@ -59,7 +59,7 @@ constexpr s32 kPlayerObject = 0xFF;
 
 constexpr u32 kPokeSelectSimple = 1;
 constexpr u32 kPokeSelectContest = 4;
-constexpr s32 kBattleResultWon = 1; // second value of the wild outcome enum
+constexpr s32 kBattleResultWon = 1; ///< The battle result when the player wins.
 constexpr s32 kPokeSelectCancel = 6;
 
 /// @name Sounds and short musics for PlaySound() and PlayJingle()

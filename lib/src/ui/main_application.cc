@@ -114,12 +114,6 @@ void MainApplication::Update(sys::Controller& controller) {
 
   if (!IsOpened()) return;
 
-  // if (process_vtable_ != 0 && !core::ProcessManager::GetInstance().
-  //     IsCurrentProcess(process_vtable_)) {
-  //   Close();
-  //   return;
-  // }
-
   MenuContext& ctx = GetContext();
   PageItem& entry = GetSelectedEntry();
 

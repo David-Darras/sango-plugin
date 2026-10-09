@@ -56,7 +56,7 @@ void LoadOverworldFieldMovePage(MainApplication& app, void* args) {
 #endif
   };
 
-  // Fly goes through the town map, not through the field move menu.
+  // Fly opens the Town Map. It does not use the field move menu.
   app.Add("Fly", [](void*) { core::AppLauncher::DoFly(); });
   for (const auto& move : kMoves) {
     app.Add(move.first, [move](void*) {
@@ -77,7 +77,7 @@ void LoadAppPage(MainApplication& app, void* args) {
 
   auto& launcher = core::AppLauncher::GetInstance();
 
-  // The move tutor is left out: it teaches one hardcoded move.
+  // The list does not have the move tutor. It teaches only one move.
   static const std::pair<const c8*, AppId> kApps[] = {
       {"PC", AppId::kBox},
       {"Move Reminder", AppId::kMoveReminder},
@@ -129,8 +129,9 @@ void LoadOverworldCameraPage(MainApplication& app, void* args) {
 }
 
 #ifdef GAME_XY
-// The draw code reads the player's own ObjCodeParam copy, not the area list:
-// push the edited copy into the list entry too, then rebuild the map.
+// The draw code reads the copy of the model resource of the player, not the
+// area list. Copy the change into the list entry too, then load the map
+// again.
 static void ApplyPlayerModel(void*) {
   auto& cheats = overworld::PlayerCheats::GetInstance();
   auto& man = overworld::ModelManager::GetInstance();

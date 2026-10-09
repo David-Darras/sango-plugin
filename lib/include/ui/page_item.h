@@ -77,11 +77,7 @@ public:
 
   u8 GetType() const;
 
-  /**
-* @brief Formats the entry name and its value into a displayable string.
-* @param buffer The output buffer (UTF-16).
-*/
-  /// Writes the text of the entry.
+  /// Writes the name and the value of the entry into `buffer` (UTF-16).
   void GetDisplayValue(c16* buffer) const;
 
   /// Increases the value (Right button).
@@ -90,11 +86,7 @@ public:
   /// Decreases the value (Left button).
   void Decrement(u32 count = 1);
 
-  /**
-* @brief Directly sets the value or enters a sub-menu depending on type.
-* @param value Pointer to the new value or context data.
-*/
-  /// Sets the value that the player typed.
+  /// Sets the value that the player typed. `value` points to the new value.
   void Edit(const void* value);
 
   /// Runs the entry (A button).
@@ -112,7 +104,7 @@ private:
   void* args_;
 
   u32 type_ : 6;
-  u32 bit_offset_ : 6; ///< Bit position or string capacity.
+  u32 bit_offset_ : 6; ///< The first bit, or the size of a text.
   u32 bit_size_ : 6;
   u32 array_size_ : 13;
   u32 refresh_ : 1;

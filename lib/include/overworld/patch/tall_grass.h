@@ -34,9 +34,9 @@ class TallGrass {
 
 public:
   enum Kind : u8 {
-    kGreen, ///< Plain grass
-    kFern, ///< Tall grass / ferns
-    kAsh, ///< Ash-covered grass
+    kGreen, ///< Short grass.
+    kFern, ///< Tall grass and ferns.
+    kAsh, ///< Grass under ash.
     kKindCount,
   };
 
@@ -53,8 +53,8 @@ public:
 
   bool is_enabled = false;
   u32 mix = kMixAll;
-  u32 radius = 5; ///< Tiles around the player that get grass
-  u32 density = 60; ///< Percent of the walkable tiles that get a patch
+  u32 radius = 5; ///< The distance in tiles around the player.
+  u32 density = 60; ///< The percent of the walkable tiles that get grass.
 
   static void Update();
   /// Removes the grass before a battle starts.

@@ -30,7 +30,7 @@ enum class SituationKey : u8 {
   /// A marker between nested situations. Situation::Begin() writes it.
   kScopeBoundary = 1,
 
-  // The Pokémon
+  // The Pokémon.
   kPokemonId = 2, ///< The Pokémon of the moment.
   kMoveUserId = 3, ///< The Pokémon that uses the current move.
   kMoveRecipientId = 4, ///< The Pokémon that receives the current move.
@@ -38,18 +38,18 @@ enum class SituationKey : u8 {
   kTargetId1 = 6, kTargetId2 = 7, kTargetId3 = 8,
   kTargetId4 = 9, kTargetId5 = 10, kTargetId6 = 11,
 
-  // The selected action
+  // The selected action.
   /// The kind of the selected action (fight, item, switch...).
   kActionKind = 12,
   kFieldPosition = 13,
   /// The position on the battlefield before the action.
   kOriginalFieldPosition = 14,
 
-  // Ability
+  // The ability.
   kPreviousAbility = 15,
   kNextAbility = 16,
 
-  // The current move
+  // The current move.
   /// A priority increase from a different source (like Quick Claw).
   kSpecialPriorityBonus = 17,
   kMoveId = 18,
@@ -70,7 +70,7 @@ enum class SituationKey : u8 {
   /// The type of the user, for the same-type attack bonus (STAB).
   kMoveUserType = 29,
 
-  // Status conditions
+  // The status conditions.
   kStatusId = 30,
   /// The packed data of the status condition (turns, duration...).
   kStatusData = 31,
@@ -83,26 +83,26 @@ enum class SituationKey : u8 {
   kFailureReason = 35,
   kTurnCount = 36,
 
-  // Accuracy and evasion
+  // Accuracy and evasion.
   kBaseAccuracyPercent = 37,
   kBonusAccuracyPercent = 38,
   kAccuracyStage = 39,
   kEvasionStage = 40,
   kFinalAccuracyPercent = 41,
 
-  // Multi-hit
+  // Multi-strike moves.
   kMaxHitCount = 42,
   kHitCount = 43,
 
   kCriticalHitStage = 44,
 
-  // Item
+  // The held item.
   kItemId = 45,
   kItemReactionEnabled = 46, ///< true when the held items can react.
 
   kSpeedValue = 47,
 
-  // Damage calculation
+  // The damage calculation.
   kMovePower = 48,
   kMovePowerMultiplier = 49,
   kDamageAmount = 50,
@@ -126,7 +126,7 @@ enum class SituationKey : u8 {
   /// message).
   kExtraDataPointer = 63,
 
-  // Result flags
+  // The result flags.
   kNoEffectFlag = 64,
   kFailedFlag = 65,
   kMissedFlag = 66,

@@ -27,7 +27,7 @@
 
 namespace core {
 
-/// The in-game applications the overworld menu can call (`CallApp`).
+/// The applications of the game that the overworld menu opens (`CallApp`).
 enum class AppId : u32 {
   kMoveTutor = 7,
   kMoveDeleter = 8,

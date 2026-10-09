@@ -56,8 +56,8 @@ struct PssProfilePayload {
 
   u8 birth_month;
   u8 birth_day;
-  u8 game_version; // (X, Y, OR, AS)
-  u8 console_region; // EUR, USA, etc.
+  u8 game_version; ///< The game: X, Y, Omega Ruby or Alpha Sapphire.
+  u8 console_region; ///< The region of the console (Europe, America...).
 
   union {
     u32 flags2;
@@ -83,8 +83,8 @@ struct PssBattleSendPayload {
   u32 is_wifi_connection : 1;
   u32 confirmed_users_bitmask : 3;
   u32 has_handicap : 1;
-  u32 battle_format : 8; // battle::Format
-  u32 battle_ruleset : 8; // Normal, Flat, Strict, etc.
+  u32 battle_format : 8; ///< A battle::Format value.
+  u32 battle_ruleset : 8; ///< The rules: normal, flat, strict...
   u32 is_voice_chat_enabled : 1;
   u32 padding : 8;
 
@@ -229,7 +229,7 @@ struct PssGameDataPayload {
   u8 is_initialized_flag;
 };
 
-// 40 Bytes
+// 40 bytes.
 typedef union {
   PssBattleSendPayload battle_send;
   PssBattleReceivePayload battle_receive;

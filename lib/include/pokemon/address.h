@@ -47,9 +47,11 @@ constexpr uptr kGetAbilityName = GAME_ADDRESS(0x00399E50, 0x003B0D1C);
 constexpr uptr kGetAbilityDescription = GAME_ADDRESS(0x00399E24, 0x003B0CF0);
 constexpr uptr kGetMoveName = GAME_ADDRESS(0x0039EF68, 0x003B5C54);
 constexpr uptr kLoadMoveData = GAME_ADDRESS(0x00175130, 0x00175FB4);
-constexpr uptr kItemDataGetName = GAME_ADDRESS(0x003A0CAC, 0x003B7A64); // Description : 003B79D8
+/// The description function is at 0x003B79D8.
+constexpr uptr kItemDataGetName = GAME_ADDRESS(0x003A0CAC, 0x003B7A64);
 constexpr uptr kMoveDataTable = GAME_ADDRESS(0x005E8EB0, 0x0062B3A0);
-constexpr uptr kCreatePokemon = GAME_ADDRESS(0x004424C4, 0x0046FE44); // XY: unverified (2 call sites)
+/// XY: not verified (2 calls).
+constexpr uptr kCreatePokemon = GAME_ADDRESS(0x004424C4, 0x0046FE44);
 constexpr uptr kAddPokemonToTeam = GAME_ADDRESS(0x0039FA78, 0x003B6754);
 constexpr uptr kAppStatusUpdatePokemon = GAME_ADDRESS(0x006C64F8, 0x007122B4);
 constexpr uptr kGetStats = GAME_ADDRESS(0x004A3174, 0x004D30BC);
@@ -62,7 +64,8 @@ constexpr uptr kDayCareUpdate = GAME_ADDRESS(0, 0x007111F8);
 constexpr uptr kEggHatch = GAME_ADDRESS(0x006D7D14, 0x00715EF0);
 constexpr uptr kEggGeneration = GAME_ADDRESS(0, 0x00711364);
 constexpr uptr kDayCareMaxExp = GAME_ADDRESS(0x00438DBC, 0x00465A34);
-constexpr uptr kReplacePokemonModel = GAME_ADDRESS(0x00443818, 0x004713FC); // XY: unverified (4 branch sites)
+/// XY: not verified (4 branches).
+constexpr uptr kReplacePokemonModel = GAME_ADDRESS(0x00443818, 0x004713FC);
 constexpr uptr kPokemonModelSettings = GAME_ADDRESS(0x00442000, 0x0046F950);
 constexpr uptr kEncounterSetPokemon = GAME_ADDRESS(0, 0x0078DB30);
 constexpr uptr kItemDataInitialize = GAME_ADDRESS(0x003A0DE8, 0x003B7B9C);

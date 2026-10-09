@@ -389,7 +389,7 @@ static const TrainerEntry TRAINERS[] = {
 };
 
 void PatchTrainer_AI(battle::Config& config) {
-  // Best AI
+  // The best AI.
   AiFlags flags;
   switch (config.format) {
     case Format::kDouble:
@@ -510,7 +510,7 @@ void PatchTrainer_Level(battle::Config& config,
 }
 
 void PatchTrainerData(battle::Config& config, TrainerId& trainer_id) {
-  // remove items
+  // Remove the items of the trainer.
   for (u32 i = 0; i < 4; i++) {
     config.trainer_data[1]->items[i] = ItemId::kNone;
   }
@@ -521,7 +521,7 @@ void PatchTrainerData(battle::Config& config, TrainerId& trainer_id) {
   battle.inverse_stats = false;
   battle.metronome_only = false;
 
-  // Useful to have 6 pokemon
+  // Copy the first Pokémon to make a team of six Pokémon.
   for (u32 i = 1; i < 6; i++) {
     *config.pokemon_teams[1]->pokemons[i]->core = *config.pokemon_teams[1]->
         pokemons[0]->core;
