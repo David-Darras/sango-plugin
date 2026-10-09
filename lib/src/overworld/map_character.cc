@@ -28,6 +28,10 @@
 #include "overworld/native/character_placement.h"
 #include "overworld/native/map_manager.h"
 #include "overworld/native/model_manager.h"
+#include "overworld/native/map_event_data.h"
+#include "overworld/native/warp_event.h"
+#include "overworld/native/world_layout.h"
+#include "overworld/constant/position_kind.h"
 #include "overworld/patch/map_graft.h"
 #include "overworld/patch/placed_decorations.h"
 #include "ui/log_application.h"
@@ -42,6 +46,33 @@ core::Hook<void(CharacterManager*, u32, const CharacterPlacement*, u32,
 core::Hook<void(core::GameManager*, MapId, const Position*, Facing, u8, bool,
                 s32, s32, s32, bool)>
     change_map_hook;
+
+// Finds a tile that is surely inside the map: the tile of a character of
+// the map, or else the tile of an exit. The player tile is not safe: when
+// the game changes the map with a door or a connection, it is still the
+// tile of the previous map, and a smaller map does not contain it.
+bool FindTileInMap(const MapEventData* events, u16& tile_x, u16& tile_z) {
+  const u32 grid = static_cast<u32>(PositionKind::kTileGrid);
+  for (u32 i = 0; events->characters != nullptr && i < events->character_count;
+       i++) {
+    const CharacterPlacement& character = events->characters[i];
+    if (character.position.kind != PositionKind::kTileGrid) continue;
+    tile_x = character.position.tile_x;
+    tile_z = character.position.tile_z;
+    return true;
+  }
+  const s32 tile_size = static_cast<s32>(WorldLayout::kUnitsPerTile);
+  for (u32 i = 0; events->warps != nullptr && i < events->warp_count; i++) {
+    const WarpEvent& warp = events->warps[i];
+    if (warp.position_kind != grid || warp.world.x < 0 || warp.world.z < 0) {
+      continue;
+    }
+    tile_x = static_cast<u16>(warp.world.x / tile_size);
+    tile_z = static_cast<u16>(warp.world.z / tile_size);
+    return true;
+  }
+  return false;
+}
 } // namespace
 
 void MapCharacter::Initialize() {
@@ -209,6 +240,18 @@ void MapCharacter::PlaceCharacters(MapEventData* events) {
   s32 graft_dz = 0;
   const bool is_grafted = MapGraft::GetTileOffset(map_id, graft_dx, graft_dz);
 
+  // The tile of the characters that are on all the maps: the arrival tile
+  // of the player (see ChangeMapHook()), or a tile of the map.
+  u16 everywhere_x = 0;
+  u16 everywhere_z = 0;
+  if (arrival_map_ == map_id && arrival_tile_x_ >= 0 &&
+      arrival_tile_z_ >= 0) {
+    everywhere_x = static_cast<u16>(arrival_tile_x_);
+    everywhere_z = static_cast<u16>(arrival_tile_z_);
+  } else {
+    FindTileInMap(events, everywhere_x, everywhere_z);
+  }
+
   if (IsEmptied(map_id)) shipped_count = 0;
 
   u32 count = 0;
@@ -231,15 +274,11 @@ void MapCharacter::PlaceCharacters(MapEventData* events) {
     request.local_id = next_local_id;
     BuildPlacement(request, next_local_id++, &placements_[count]);
     if (request.is_everywhere) {
-      const auto& player = ModelManager::GetInstance().GetPlayer();
-      const bool has_arrival = arrival_map_ == map_id && arrival_tile_x_ >= 0;
       placements_[count].map_id = map_id;
       placements_[count].displayed_on_map_id = map_id;
       placements_[count].owned_by_map_id = map_id;
-      placements_[count].position.tile_x = static_cast<u16>(
-          has_arrival ? arrival_tile_x_ : (s32)player.map_pos.coords.x);
-      placements_[count].position.tile_z = static_cast<u16>(
-          has_arrival ? arrival_tile_z_ : (s32)player.map_pos.coords.z);
+      placements_[count].position.tile_x = everywhere_x;
+      placements_[count].position.tile_z = everywhere_z;
     }
     count++;
     added++;

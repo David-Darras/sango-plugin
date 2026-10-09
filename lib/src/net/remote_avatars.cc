@@ -90,6 +90,8 @@ void RemoteAvatars::Initialize() {
     request.script_id = ScriptFor(i);
     request.is_everywhere = true;
     request.facing = Facing::kDown;
+    // Only with a connection: without it, the maps keep their characters.
+    request.is_enabled = &self.has_connection_;
     MapCharacter::Add(request);
   }
 }
@@ -300,6 +302,8 @@ void RemoteAvatars::Assign(u16 zone) {
 
 void RemoteAvatars::Update() {
   auto& self = GetInstance();
+  // The next map load adds the avatars only when this value is true.
+  self.has_connection_ = self.is_enabled && Network::GetInstance().IsConnected();
   if (!self.is_enabled) return;
 
   auto& maps = MapManager::GetInstance();

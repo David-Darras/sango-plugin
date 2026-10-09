@@ -90,6 +90,7 @@ private:
   u16 last_zone_ = 0xFFFF;
   u32 settle_frames_ = 0;
   s32 applied_outfit_ = -1;
+  bool has_connection_ = false; ///< The avatars are on the next maps.
 };
 
 } // namespace net

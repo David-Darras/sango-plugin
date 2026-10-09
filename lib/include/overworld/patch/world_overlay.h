@@ -30,7 +30,7 @@ namespace overworld {
  * @brief Draws marks on the overworld, on the top screen (ORAS only).
  *
  * The overlay keeps the camera that draws the overworld
- * (gfl::grp::g3d::Scene::Draw). It projects the points of the world on the
+ * (renderer::address::kSceneDraw). It projects the points of the world on the
  * screen with the matrices of this camera, then draws small rectangles with
  * sys::Graphics. The colors of the tiles: red = wall, blue = water,
  * green = wild Pokémon. A yellow mark shows a hidden item, a white mark the

@@ -40,7 +40,7 @@ namespace overworld {
 namespace {
 core::Hook<void(void*, void*, u32, void*, u32)> draw_scene_hook;
 
-// gfl::grp::DisplayType: the top screen (the left eye in 3D).
+// The value of the top screen (the left eye in 3D).
 constexpr u32 kDisplayUpper = 0;
 constexpr s32 kMarkSize = 6;
 
@@ -86,8 +86,7 @@ bool WorldOverlay::Project(const Vec3& world, s32& x, s32& y) const {
   }
   if (clip[3] <= 0.001f) return false; // Behind the camera.
 
-  // -1 to 1 on the screen. The same method as
-  // gfl::grp::g3d::Camera::ConvertWorldPointToScreenPoint().
+  // -1 to 1 on the screen.
   f32 screen_x;
   f32 screen_y;
   if (pivot == 0) {
@@ -108,12 +107,12 @@ void WorldOverlay::DrawTop() {
   // The next frame needs a new camera: the overworld can end at any time.
   self.camera_ = nullptr;
   if (!self.is_enabled || camera == nullptr) return;
-  if (renderer::address::kCameraGetViewAndProjection == 0) return;
+  if (renderer::address::kCameraGetMatrices == 0) return;
   if (!core::ProcessManager::IsOverworldActive()) return;
   if (ui::MainApplication::GetInstance().IsOpened()) return;
 
   ((void (*)(void*, Mtx34*, Mtx44*))
-       renderer::address::kCameraGetViewAndProjection)(camera, &self.view_,
+       renderer::address::kCameraGetMatrices)(camera, &self.view_,
                                                        &self.projection_);
 
   auto& player = ModelManager::GetInstance().GetPlayer();

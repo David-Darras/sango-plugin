@@ -38,12 +38,12 @@ constexpr uptr kGraphicsBeginRender = GAME_ADDRESS(0x00174B20, 0x00175A58);
 constexpr uptr kGraphicsSetTextScale = GAME_ADDRESS(0x0038CBA0, 0x003A3498);
 constexpr uptr kGraphicsDrawText = GAME_ADDRESS(0x0038DB54, 0x003A44C4);
 constexpr uptr kGraphicsDrawRect = GAME_ADDRESS(0x00174CA4, 0x00175BDC);
-/// gfl::grp::util::DrawUtil::CalcStringWidth(const wchar_t*, nw::font::Font*).
-constexpr uptr kGraphicsCalcStringWidth = GAME_ADDRESS(0, 0x003A36D8);
-/// gfl::grp::g3d::Scene::Draw(GraphicsSystem*, DisplayType, Camera*, bool).
+/// Returns the width of a text (sys::Graphics::GetTextWidth).
+constexpr uptr kGraphicsGetTextWidth = GAME_ADDRESS(0, 0x003A36D8);
+/// Draws a 3D scene with a camera (overworld::WorldOverlay).
 constexpr uptr kSceneDraw = GAME_ADDRESS(0, 0x00391FDC);
-/// gfl::grp::g3d::Camera::GetViewAndProjectionMatrix(MTX34*, MTX44*) const.
-constexpr uptr kCameraGetViewAndProjection = GAME_ADDRESS(0, 0x004CBDD4);
+/// Gives the view matrix and the projection matrix of a camera.
+constexpr uptr kCameraGetMatrices = GAME_ADDRESS(0, 0x004CBDD4);
 constexpr uptr kStereoCameraUpdateMatrices = GAME_ADDRESS(0x003609A8, 0x00377C10);
 constexpr uptr kStereoCameraUpdateLookAt = GAME_ADDRESS(0x00148FD8, 0x001483DC);
 constexpr uptr kStereoCameraSetProjectionMatrix = GAME_ADDRESS(0x0037CE5C, 0x003939CC);

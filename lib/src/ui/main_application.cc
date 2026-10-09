@@ -976,7 +976,7 @@ void MainAppPainter::DrawPageItems(MainApplication& app) {
   const s32 row_height = RectY(line_height);
   Color bar = theme.selected_text_color;
   bar.a = 0.18f * fade;
-  sys::Graphics::DrawRect(16, RectY(bar_y) + 2, 372, row_height, bar);
+  sys::Graphics::DrawRect(16, RectY(bar_y) + 1, 372, row_height, bar);
   sys::Graphics::SetTextScale(0.6f, 0.6f);
   DrawShadowText(5 + shift, bar_y, u"", theme.selected_text_color,
                  has_shadow);
@@ -1013,7 +1013,7 @@ void MainAppPainter::DrawPageItems(MainApplication& app) {
     if (app.flash_frames_ != 0 && app.flash_index_ == index) {
       Color flash = theme.selected_text_color;
       flash.a = 0.4f * app.flash_frames_ / MainApplication::kFlashFrames;
-      sys::Graphics::DrawRect(16, RectY(y) + 2, 372, row_height, flash);
+      sys::Graphics::DrawRect(16, RectY(y) + 1, 372, row_height, flash);
     }
 
     Color color = ctx.cursor == i ? theme.selected_text_color

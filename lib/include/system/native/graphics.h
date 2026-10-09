@@ -95,13 +95,13 @@ public:
    * When the address is not known (XY), it returns an estimate.
    */
   STATIC_INLINE s32 GetTextWidth(const c16* str) {
-    if (renderer::address::kGraphicsCalcStringWidth == 0) {
+    if (renderer::address::kGraphicsGetTextWidth == 0) {
       s32 length = 0;
       while (str[length] != 0) length++;
       return length * 9;
     }
     return (s32)((f32 (*)(const c16*, void*))
-                     renderer::address::kGraphicsCalcStringWidth)(str,
+                     renderer::address::kGraphicsGetTextWidth)(str,
                                                                   nullptr);
   }
 
