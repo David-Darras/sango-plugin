@@ -30,22 +30,17 @@
 
 namespace ui {
 void LoadTopPage(MainApplication& app, void* args) {
-  app
-      .Add("Player", LoadPlayerPage)
-      .Add("Pokemon", LoadPokemonPage)
-      .Add("Battle", LoadBattlePage)
-      .Add("Game Speed", core::GameSpeed::GetInstance().game_speed)
-      .WithMin(-10)
-      .WithMax(10)
-      .Add("Repel", CheatCodeId::kNoEncounter)
-      .AddSeparator()
-      .Add("Overworld", LoadOverworldPage)
-      .Add("Save Data", LoadSaveDataPage)
-      .Add("Renderer", LoadRendererPage)
-      .Add("Scripts", LoadScriptPage)
-      .Add("Title Screen", LoadTitleScreenPage)
-      .Add("System", LoadSystemPage)
-      .AddSeparator()
-      .Add("Plugin Theme", LoadThemePage);
+  app.Add("Game Speed", core::GameSpeed::GetInstance().game_speed)
+     .WithBounds(-5, 5)
+     .Add("Player", LoadPlayerPage)
+     .Add("Overworld", LoadOverworldPage)
+     .Add("Save Data", LoadSaveDataPage)
+     .Add("Battle", LoadBattlePage)
+     .Add("Pokemon", LoadPokemonPage)
+     .Add("Renderer", LoadRendererPage)
+     .Add("System", LoadSystemPage)
+     .Add("Title Screen", LoadTitleScreenPage)
+     .Add("Scripts", LoadScriptPage)
+     .Add("Plugin Theme", LoadThemePage);
 }
 } // namespace ui

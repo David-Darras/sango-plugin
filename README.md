@@ -10,7 +10,7 @@
 ![Platform](https://img.shields.io/badge/platform-3DS%20%7C%20Azahar-red.svg)
 ![Game](https://img.shields.io/badge/game-Alpha%20Sapphire%20v1.4-9cf.svg)
 
-<img src="assets/readme/hero.png" width="720" alt="The Sango Plugin menu over the overworld of Alpha Sapphire">
+<img src="assets/readme/sango-plugin.png" width="720" alt="The Sango Plugin menu over the overworld of Alpha Sapphire">
 
 **[Documentation](docs/README.md)** ·
 **[Install the tools](docs/getting-started/01-install-the-tools.md)** ·
@@ -127,11 +127,11 @@ script::NativeScript::Register(kCandyGiver, CandyGiver);
 
 ## ROM hacks made with Sango Plugin
 
-| | Product | Description |
-|---|---|---|
-| <img src="assets/kaizo/title-screen.jpg" width="200"> | **[Pokémon Sango Kaizo](kaizo.md)** (`kaizo/`) | A difficult version of Alpha Sapphire: Nuzlocke rules, level caps, competitive trainers, custom moves and abilities, quality-of-life features. |
-| <img src="assets/readme/undertow.png" width="200"> | **Pokémon Undertow** (`undertow/`) | Play as a Team Aqua grunt. Work in progress. |
+|                                                        | Product | Description |
+|--------------------------------------------------------|---|---|
 | <img src="assets/readme/overlay-menu.png" width="200"> | **The overlay** (`overlay/`) | Every page of the library in one menu. Explore and test the game. |
+| <img src="assets/kaizo/battle-triple.jpg" width="200"> | **[Pokémon Sango Kaizo](kaizo.md)** (`kaizo/`) | A difficult version of Alpha Sapphire: Nuzlocke rules, level caps, competitive trainers, custom moves and abilities, quality-of-life features. |
+|      | **Pokémon Undertow** (`undertow/`) | Play as a Team Aqua grunt. Work in progress. |
 
 Your ROM hack is the next line of this table. **[Start here.](docs/tutorials/01-create-your-rom-hack.md)**
 

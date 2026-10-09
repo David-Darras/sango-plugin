@@ -405,6 +405,7 @@ void LoadOverworldPage(MainApplication& app, void* args) {
   auto& music = overworld::Overworld::GetInstance();
 
   app.Add("Map Id", map_manager.GetMapId())
+     .Add("Repel", CheatCodeId::kNoEncounter)
      .Add("Reload Map", RefreshMap)
      .AddSeparator()
      .Add("Weather", LoadWeatherPage)
@@ -414,17 +415,18 @@ void LoadOverworldPage(MainApplication& app, void* args) {
      .Add("Props", LoadPropModelPage)
      .Add("Decorations", LoadDecorationPage)
 #ifdef GAME_ORAS
-     .Add("Tall Grass", LoadTallGrassPage)
-     .Add("Healer Follower", overworld::HealerFollower::GetInstance().is_enabled)
+      .Add("Tall Grass", LoadTallGrassPage)
+      .Add("Healer Follower",
+           overworld::HealerFollower::GetInstance().is_enabled)
 #endif
-     .Add("Hidden Item", LoadHiddenItemPage)
-     .Add("Random Hidden Item", LoadRandomHiddenItemPage)
-     .Add("Encounter", LoadOverworldEncounterPage)
-     .Add("Day Care", LoadDayCarePage)
-     .AddSeparator()
-     .Add("Freeze Background Music", music.freeze_background_music)
-     .Add("Background Music", music.background_music)
-     .WithBounds(0, static_cast<u32>(BackgroundMusicId::kCount) - 1)
-     .WithCallback(PlayOverworldMusic);
+      .Add("Hidden Item", LoadHiddenItemPage)
+      .Add("Random Hidden Item", LoadRandomHiddenItemPage)
+      .Add("Encounter", LoadOverworldEncounterPage)
+      .Add("Day Care", LoadDayCarePage)
+      .AddSeparator()
+      .Add("Freeze Background Music", music.freeze_background_music)
+      .Add("Background Music", music.background_music)
+      .WithBounds(0, static_cast<u32>(BackgroundMusicId::kCount) - 1)
+      .WithCallback(PlayOverworldMusic);
 }
 } // namespace ui
