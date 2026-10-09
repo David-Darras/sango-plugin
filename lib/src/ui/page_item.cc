@@ -25,6 +25,7 @@
 #include "core/cheat_code.h"
 #include "ui/main_application.h"
 #include "core/utils.h"
+#include <cstring>
 #include "pokemon/native/item_data.h"
 
 namespace ui {
@@ -81,6 +82,7 @@ PageItem::PageItem()
     type_(kTypeMax),
     bit_offset_(0),
     bit_size_(0),
+    description_(nullptr),
     array_size_(0),
     refresh_(0),
     min_(0),
@@ -99,6 +101,8 @@ void PageItem::Initialize(const c8* name, void* addr, u8 type, u32 bit_offset,
   bit_size_ = bit_size;
   array_ = nullptr;
   callback_ = nullptr;
+  args_ = nullptr;
+  description_ = nullptr;
   array_size_ = 0;
   refresh_ = 0;
   min_ = 0;
@@ -146,6 +150,68 @@ PageItem& PageItem::WithArgs(void* args) {
 PageItem& PageItem::WithFactor(f32 factor) {
   factor_ = factor;
   return *this;
+}
+
+PageItem& PageItem::WithDescription(const c8* description) {
+  description_ = description;
+  return *this;
+}
+
+bool PageItem::HasValue() const {
+  switch (type_) {
+    case kTypeMenu:
+    case kTypeIdle:
+    case kTypeSeparator:
+      return false;
+    default:
+      return address_ != nullptr;
+  }
+}
+
+s32 PageItem::GetIndex() const {
+  switch (type_) {
+    case kTypeU8:
+    case kTypeAbility:
+      return *(u8*)address_;
+    case kTypeS8:
+      return *(s8*)address_;
+    case kTypeU16:
+    case kTypeSpecies:
+    case kTypeMove:
+    case kTypeItem:
+      return *(u16*)address_;
+    case kTypeS16:
+      return *(s16*)address_;
+    case kTypeU32:
+    case kTypePointer:
+      return *(u32*)address_;
+    case kTypeS32:
+      return *(s32*)address_;
+    case kTypeU64:
+      return (s32)*(u64*)address_;
+    case kTypeS64:
+      return (s32)*(s64*)address_;
+    case kTypeBits:
+      return GET_BITS(*(u32*)address_, bit_offset_, bit_size_);
+    case kTypeBoolean:
+      return *(bool*)address_;
+    case kTypeCheatCode:
+      return ((core::CheatCode*)address_)->IsEnabled();
+    default:
+      return 0;
+  }
+}
+
+bool PageItem::IsSameAs(const PageItem& other) const {
+  // A std::function cannot be compared: the name tells the actions apart.
+  if (type_ != other.type_ || address_ != other.address_ ||
+      args_ != other.args_ ||
+      (callback_ == nullptr) != (other.callback_ == nullptr)) {
+    return false;
+  }
+  if (name_ == other.name_) return true;
+  if (name_ == nullptr || other.name_ == nullptr) return false;
+  return strcmp(name_, other.name_) == 0;
 }
 
 u8 PageItem::GetType() const { return type_; }
@@ -256,6 +322,10 @@ void PageItem::GetDefaultDisplayValue(c16* buffer) const {
     break;
 
     case kTypeSeparator: {
+      if (name_ != nullptr && name_[0] != '\0') {
+        core::Utils::Format(buffer, u"\u2015\u2015 %s \u2015\u2015\u2015\u2015", name_);
+        break;
+      }
       u32 i;
       for (i = 0; i < 16; i++) {
         buffer[i] = 0x2015;
@@ -520,7 +590,8 @@ void PageItem::Edit(const void* value) {
       break;
 
     case kTypeMenu:
-      MainApplication::GetInstance().Open((menu_callback_t)address_, args_);
+      MainApplication::GetInstance().Open((menu_callback_t)address_, args_,
+                                          name_);
       break;
 
     case kTypeUnicode:
@@ -544,7 +615,7 @@ void PageItem::Edit(const void* value) {
 
 void PageItem::Execute(MainApplication& application) {
   if (kTypeMenu == type_) {
-    application.Open((menu_callback_t)address_, args_);
+    application.Open((menu_callback_t)address_, args_, name_);
   } else if (callback_ != nullptr) {
     callback_(args_);
   }

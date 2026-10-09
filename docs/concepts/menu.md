@@ -20,13 +20,74 @@ void LoadMyPage(ui::MainApplication& app, void* args) {
 `app.Add(...)` adds one entry. It returns `app`, so you can add the next entry
 on the next line.
 
+## The controls
+
+| Button | What it does |
+|---|---|
+| **START** | Opens and closes the menu (the Plugin Theme page can change it). |
+| **Up / Down** | Selects an entry. Hold the button to go faster. A new press at the end of the page goes back to the start. |
+| **L / R** | Goes to the previous / next section. A page without sections moves one screen. |
+| **Left / Right** | Changes the value. |
+| **A** | Opens the page, runs the action, or switches On / Off. |
+| **Y** | Pins the entry to the quick access, or removes the pin. |
+| **X** | Applies the number of the numpad. |
+| **B** | Goes back to the previous page. |
+
+The menu does not use SELECT, HOME, ZL or ZR: SELECT and START are the same
+button on some consoles, and ZL / ZR do not exist on a standard 3DS.
+
+The bottom screen (`ui::MainAppPainter`) shows:
+
+- the path of the open pages and the description of the selected entry;
+- a touch editor for the value: On / Off buttons, a grid of the texts of
+  the entry (12 at most), or the numpad and the -10 / -1 / +1 / +10 buttons;
+- four large buttons at the bottom edge: previous section, next section,
+  pin, back. Each button also shows its key.
+
+## Sections, descriptions and quick access
+
+```cpp
+void LoadMyPage(ui::MainApplication& app, void* args) {
+  app.AddQuickAccess()   // The pinned entries and the recent entries.
+     .AddSection("Play")
+     .Add("Game Speed", core::GameSpeed::GetInstance().game_speed)
+     .WithDescription("1 is the normal speed.")
+     .AddSection("Advanced")
+     .Add("Save Data", ui::LoadSaveDataPage);
+}
+```
+
+| Function | What it does |
+|---|---|
+| `AddSection(name)` | Adds a section title. L and R jump between the sections. |
+| `WithDescription(text)` | Sets the text of the bottom screen for the last entry. Use one or two short sentences. |
+| `AddQuickAccess()` | Adds the pinned entries (Y, 8 at most) and the 4 recent entries. Use it at the start of the first page. |
+
+A pinned entry is a copy of the entry: the player changes its value directly
+on the first page. When the page of the entry needs a part of the game
+(`CheckProcess`), the copy works only in this part of the game. The pins and
+the recent entries stay until the game closes.
+
+### Why the menu works like this
+
+- **Sections** (L / R) reduce the number of entries to look through.
+- **Pinned entries in a fixed zone** at the top are faster than a long
+  list. The menu never moves the other entries: the player keeps the
+  positions in memory.
+- **Large touch buttons near the edges** are faster to reach than many
+  presses of the +Control Pad.
+- **Choices that the player sees** (a grid of texts) are faster than values
+  that the player must remember.
+- **The description** of the selected entry tells what it does, without a
+  manual.
+
 ## The types of entries
 
 The type of the second parameter selects the type of the entry:
 
 | Second parameter | The entry | The player |
 |---|---|---|
-| `bool&` | Shows On or Off. | Changes it with Left / Right. |
+| `bool&` | Shows On or Off. | Changes it with A, Left / Right or the touch screen. |
 | `u8&`, `u16&`, `u32&`, `s32&`, `f32&`... | Shows a number. | Changes it with Left / Right, or types it on the bottom screen. |
 | An `enum class` variable | Shows the number of the value. | Changes it with Left / Right. |
 | A page function | Shows the name. | Opens the page with **A**. |
@@ -43,7 +104,8 @@ Special entries:
 | `AddItem(name, variable)` | Shows the name of an item. |
 | `AddAbility(name, variable)` | Shows the name of an ability. |
 | `AddType(name, variable)` | Shows the name of a type. |
-| `AddSeparator()` | Shows an empty line. |
+| `AddSeparator()` | Shows a line. L and R also jump between separators. |
+| `AddSection(name)` | Shows a section title. |
 
 ## Options of an entry
 

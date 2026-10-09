@@ -31,9 +31,10 @@
 namespace ui {
 Numpad::Numpad() : cursor_(0) {
   memset(input_, 0, sizeof(input_));
+  Initialize(10, 10);
+}
 
-  constexpr s32 x = 10;
-  constexpr s32 y_start = 10;
+void Numpad::Initialize(s32 x, s32 y_start) {
   constexpr s32 width = 30;
   constexpr s32 height = 30;
   constexpr s32 bar_width = 300;

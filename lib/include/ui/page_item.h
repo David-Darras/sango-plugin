@@ -75,7 +75,31 @@ public:
 
   PageItem& WithFactor(f32 factor);
 
+  /// Sets the text that the bottom screen shows for the entry.
+  PageItem& WithDescription(const c8* description);
+
   u8 GetType() const;
+
+  /// Returns the name of the entry.
+  const c8* GetName() const { return name_; }
+  /// Changes the name of the entry. The text must stay in memory.
+  void SetName(const c8* name) { name_ = name; }
+  /// Returns the description of the entry, or null.
+  const c8* GetDescription() const { return description_; }
+  /// Returns true when A runs a function.
+  bool HasCallback() const { return callback_ != nullptr; }
+  /// Returns the texts of WithArray(), or null.
+  const c8** GetArray() const { return array_; }
+  /// Returns the number of texts of WithArray().
+  u32 GetArraySize() const { return array_size_; }
+  /// Returns false for a separator and a section title.
+  bool IsSelectable() const { return type_ != kTypeSeparator; }
+  /// Returns true when the entry shows a value that the player changes.
+  bool HasValue() const;
+  /// Returns the current value as an index (for an entry with texts).
+  s32 GetIndex() const;
+  /// Returns true when both entries show the same data.
+  bool IsSameAs(const PageItem& other) const;
 
   /// Writes the name and the value of the entry into `buffer` (UTF-16).
   void GetDisplayValue(c16* buffer) const;
@@ -102,6 +126,7 @@ private:
   const c8** array_;
   callback_t callback_;
   void* args_;
+  const c8* description_;
 
   u32 type_ : 6;
   u32 bit_offset_ : 6; ///< The first bit, or the size of a text.

@@ -48,6 +48,12 @@ struct Theme;
  * The menu shows one page at a time. A page is a function that adds entries
  * with Add(). The With functions change the last entry.
  *
+ * The controls: Up / Down select an entry (hold to go faster), L / R jump
+ * to the previous / next section, Left / Right change the value, A runs the
+ * entry (or switches On / Off), Y pins the entry to the quick access, X
+ * applies the number of the numpad, B goes back. The bottom screen shows
+ * the description of the entry and a touch editor for its value.
+ *
  * @code
  * void LoadMyPage(ui::MainApplication& app, void* args) {
  *   app.Add("Speed", speed).WithBounds(1, 4)
@@ -81,8 +87,10 @@ public:
    * @brief Opens a page over the current page (8 pages at most).
    * @param load_menu The page function.
    * @param args A value that the page function receives.
+   * @param title The name of the page. The bottom screen shows it.
    */
-  void Open(menu_callback_t load_menu, void* args = nullptr);
+  void Open(menu_callback_t load_menu, void* args = nullptr,
+            const c8* title = nullptr);
 
   /// Closes the current page and goes back to the previous page.
   void Close();
@@ -136,6 +144,15 @@ public:
   /// Sets the step of a decimal value.
   MainApplication& WithFactor(f32 factor) {
     entries_[entries_count_ - 1].WithFactor(factor);
+    return *this;
+  }
+
+  /// Sets the text that the bottom screen shows for the last entry. Use
+  /// one or two short sentences.
+  MainApplication& WithDescription(const c8* description) {
+    if (entries_count_ > 0) {
+      entries_[entries_count_ - 1].WithDescription(description);
+    }
     return *this;
   }
 
@@ -277,13 +294,25 @@ public:
     return *this;
   }
 
-  /// Adds an empty line.
+  /// Adds an empty line. L and R jump from one separator to the next.
   MainApplication& AddSeparator() {
     if (entries_count_ < kMaxEntries) {
       entries_[entries_count_++].Initialize("", nullptr, kTypeSeparator);
     }
     return *this;
   }
+
+  /// Adds a section title. L and R jump from one section to the next.
+  MainApplication& AddSection(const c8* name) {
+    if (entries_count_ < kMaxEntries) {
+      entries_[entries_count_++].Initialize(name, nullptr, kTypeSeparator);
+    }
+    return *this;
+  }
+
+  /// Adds the pinned entries and the recent entries. The player pins an
+  /// entry with Y. Use it at the start of the first page.
+  MainApplication& AddQuickAccess();
 
 #define ADD(type, type_id)                                      \
   MainApplication &Add(const c8 *name, type &var) {                  \
@@ -345,22 +374,59 @@ private:
     u8 display_count;
     menu_callback_t load_menu;
     void* args;
+    const c8* title; ///< The name of the entry that opened the page.
 
     MenuContext()
       : cursor(0),
         offset(0),
         display_count(0),
         load_menu(nullptr),
-        args(nullptr) {
+        args(nullptr),
+        title(nullptr) {
     }
 
-    void Initialize(menu_callback_t menu, void* args) {
+    void Initialize(menu_callback_t menu, void* args, const c8* title) {
       cursor = 0;
       offset = 0;
       display_count = 0;
       this->load_menu = menu;
       this->args = args;
+      this->title = title;
     }
+  };
+
+  /// A copy of an entry for the quick access (a pinned or a recent entry).
+  struct Shortcut {
+    PageItem item;
+    c8 name[32]; ///< A copy of the name: the page can reuse its texts.
+    uptr vtable; ///< The process that the page needs (CheckProcess), or 0.
+  };
+
+  /// The touch buttons of the bottom screen.
+  enum TouchId : u8 {
+    kTouchSectionUp,
+    kTouchSectionDown,
+    kTouchPin,
+    kTouchBack,
+    kTouchOff, ///< The two buttons of an On / Off entry.
+    kTouchOn,
+    kTouchRun, ///< The button of a page or of an action.
+    kTouchMinus10,
+    kTouchMinus1,
+    kTouchPlus1,
+    kTouchPlus10,
+    kTouchChoice0, ///< The first of the kMaxChoices buttons of a list.
+    kTouchMax = kTouchChoice0 + 12,
+  };
+
+  /// The editor of the bottom screen for the selected entry.
+  enum class Editor : u8 {
+    kNone,
+    kRun, ///< A page or an action.
+    kSwitch, ///< On / Off.
+    kChoices, ///< A short list of texts.
+    kNumber, ///< The numpad and the step buttons.
+    kText, ///< The keyboard.
   };
 
   MainApplication()
@@ -368,8 +434,10 @@ private:
       entries_count_(0),
       contexts_count_(0),
       no_background_(0),
+      is_quick_access_(0),
       process_vtable_(0),
       theme_(Theme::GetInstance()) {
+    InitializeTouch();
   }
 
   MenuContext& GetContext() {
@@ -383,10 +451,56 @@ private:
 
   bool AreKeysReleased(sys::Controller& ctrl);
 
+  /// Selects the entry at `index` and scrolls to show it.
+  void Select(u32 index);
+  /// Moves the cursor by `delta` selectable entries.
+  void MoveCursor(s32 delta, bool wrap);
+  /// Moves the cursor to the next (1) or previous (-1) section.
+  void JumpSection(s32 direction);
+  /// Moves the cursor to a selectable entry after a page loads.
+  void FinishLoad();
+  /// Pins or unpins an entry.
+  void TogglePin(const PageItem& entry);
+  /// Returns the pin of an entry, or -1.
+  s32 FindPin(const PageItem& entry) const;
+  /// Adds an entry to the list of the recent entries.
+  void AddRecent(const PageItem& entry);
+  /// Adds the entries of a shortcut list to the page.
+  void AddShortcuts(Shortcut* list, u32 count);
+  /// Copies an entry into a shortcut.
+  void Store(Shortcut& shortcut, const PageItem& entry, uptr vtable);
+  /// Returns the editor of the bottom screen for an entry.
+  Editor GetEditor(const PageItem& entry) const;
+  /// Places the touch buttons of the bottom screen.
+  void InitializeTouch();
+  /// The actions that the buttons and the touch screen ask for in one frame.
+  struct Input {
+    s32 move = 0; ///< The number of entries to move (Up / Down).
+    s32 section = 0; ///< -1: previous section, 1: next section.
+    s32 step = 0; ///< The change of the value (Left / Right, -10 / +10).
+    s32 choice = -1; ///< The index that the player touched, or -1.
+    bool back = false;
+    bool pin = false;
+    bool run = false;
+    bool apply = false; ///< Applies the numpad or the keyboard.
+  };
+
+  /// Reads the touch buttons of the bottom screen into `input`.
+  void ReadTouch(const PageItem& entry, Input& input);
+  /// Removes a shortcut from a list.
+  static void Remove(Shortcut* list, u8& count, u32 index);
+  /// Draws one touch button.
+  void DrawTouch(TouchId id, const c16* label, bool is_active) const;
+
   static constexpr u32 kMaxEntries = 64;
   static constexpr u32 kMaxContexts = 8;
   static constexpr u32 kMaxDisplayCount = 15;
   static constexpr u32 kLineHeight = 16;
+  static constexpr u32 kMaxPins = 8;
+  static constexpr u32 kMaxRecents = 4;
+  static constexpr u32 kMaxChoices = 12;
+  /// After this number of frames, Up and Down move faster.
+  static constexpr u32 kFastScrollFrames = 45;
 
   static MainApplication instance_;
 
@@ -396,7 +510,8 @@ private:
   u32 entries_count_ : 7;
   u32 contexts_count_ : 4;
   u32 no_background_ : 1;
-  u32  : 19;
+  u32 is_quick_access_ : 1; ///< The page shows the quick access.
+  u32  : 18;
 
   uptr process_vtable_;
 
@@ -404,6 +519,17 @@ private:
   MenuContext contexts_[kMaxContexts];
   Numpad numpad_;
   Keyboard keyboard_;
+  Button touch_[kTouchMax];
+  Editor editor_ = Editor::kNone; ///< The editor of the last frame.
+  u32 hold_frames_ = 0; ///< The frames that Up or Down stays pressed.
+
+  Shortcut pins_[kMaxPins];
+  Shortcut recents_[kMaxRecents];
+  u8 pin_count_ = 0;
+  u8 recent_count_ = 0;
+  u8 touch_index_ = 0; ///< The selected entry when the buttons were reset.
+  u8 first_pin_ = 0xFF; ///< The index of the first pin in the page.
+  u8 first_recent_ = 0xFF; ///< The index of the first recent entry.
 
   Theme& theme_;
   Painter* painter_ = nullptr;

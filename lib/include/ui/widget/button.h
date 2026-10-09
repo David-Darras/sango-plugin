@@ -52,6 +52,14 @@ public:
   /// frame.
   void Update();
 
+  /// Forgets a touch that started before. Use it when the button appears.
+  void Reset() { state_ = kIdle; }
+
+  u32 GetX() const { return x_; }
+  u32 GetY() const { return y_; }
+  u32 GetWidth() const { return width_; }
+  u32 GetHeight() const { return height_; }
+
 private:
   enum State : u8 {
     kIdle,

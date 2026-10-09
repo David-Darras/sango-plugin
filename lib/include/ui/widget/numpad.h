@@ -31,6 +31,9 @@ class Numpad {
 public:
   Numpad();
 
+  /// Places the numpad: (x, y) is its top-left corner, in pixels.
+  void Initialize(s32 x, s32 y);
+
   /// Draws the numpad on the bottom screen.
   void Draw() const;
 
