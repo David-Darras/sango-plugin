@@ -47,13 +47,18 @@ void PlayBackgroundMusic(void*) {
 
 void LoadSoundPage(MainApplication& app, void* args) {
   app.Add("Pokemon Cry Volume", pokemon_cry_volume)
+      .WithFactor(0.1f)
       .WithCallback(ChangePokemonCryVolume)
+      .WithDescription("Press A to use this volume. 1 is the normal volume.")
       .AddSpecies("Pokemon Cry", pokemon_cry_species)
       .WithCallback(PlayPokemonCry)
-      .Add("Sound Effect Id", sound_effect_id)
+      .WithDescription("Press A to play the cry.")
+      .Add("Sound Effect", sound_effect_id)
       .WithCallback(PlaySoundEffect)
-      .Add("Background Music Id", background_music)
+      .WithDescription("Press A to play the sound effect.")
+      .Add("Background Music", background_music)
       .WithBounds(0, static_cast<u32>(BackgroundMusicId::kCount) - 1)
-      .WithCallback(PlayBackgroundMusic);
+      .WithCallback(PlayBackgroundMusic)
+      .WithDescription("Press A to play the music.");
 }
 } // namespace ui

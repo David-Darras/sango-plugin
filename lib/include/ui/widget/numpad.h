@@ -25,58 +25,75 @@
 #include "ui/widget/button.h"
 
 namespace ui {
-/// A numpad on the bottom screen. The player types decimal or hexadecimal
-/// numbers.
+/**
+ * @brief A numpad on the bottom screen, for integers and decimal numbers.
+ *
+ * The keys are in the layout of a phone (1 2 3 at the top), with a minus key
+ * and a decimal point. The numpad starts with the current value. The first
+ * key replaces this value; DEL edits it.
+ */
 class Numpad {
 public:
+  /// The width of the keys, in pixels. The menu places its buttons next to
+  /// the keys.
+  static constexpr s32 kKeysWidth = 160;
+  /// The height of one row of keys, with the space under it.
+  static constexpr s32 kRowHeight = 27;
+
   Numpad();
 
-  /// Places the numpad: (x, y) is its top-left corner, in pixels.
+  /// Places the numpad: (x, y) is the top-left corner of the text bar.
   void Initialize(s32 x, s32 y);
 
   /// Draws the numpad on the bottom screen.
   void Draw() const;
 
-  /// Reads the touch screen and the digits. Call it one time for each frame.
+  /// Reads the touch screen. Call it one time for each frame.
   void Update();
 
   /// Returns true at the frame when the player releases the OK button.
   bool IsButtonOkReleased() const;
 
-  /// Returns the typed number. A number that starts with "0x" is
+  /**
+   * @brief Starts a new number.
+   * @param text The current value (UTF-16). The first key replaces it.
+   * @param allow_minus true when the value can be less than 0.
+   * @param allow_dot true for a decimal value.
+   */
+  void SetInput(const c16* text, bool allow_minus, bool allow_dot);
+
+  /// Returns the typed number (UTF-16). A number that starts with "0x" is
   /// hexadecimal.
-  u32 GetInput() const;
+  const c16* GetInput() const { return input_; }
 
 private:
   enum ButtonId : u8 {
-    kButton0 = 0, ///< The digit 0.
-    kButton1, ///< The digit 1.
-    kButton2, ///< The digit 2.
-    kButton3, ///< The digit 3.
-    kButton4, ///< The digit 4.
-    kButton5, ///< The digit 5.
-    kButton6, ///< The digit 6.
-    kButton7, ///< The digit 7.
-    kButton8, ///< The digit 8.
-    kButton9, ///< The digit 9.
-    kButtonInput, ///< The bar that shows the typed number.
-    kButtonCancel, ///< CLR: clears the number.
-    kButtonDelete, ///< DEL: removes the last digit.
+    kButton0 = 0, ///< The digit 0. The digits 1 to 9 follow.
+    kButtonMinus = 10, ///< "-": changes the sign of the number.
+    kButtonDot, ///< ".": the decimal point.
+    kButtonInput, ///< The bar that shows the number.
+    kButtonDelete, ///< DEL: removes the last character.
+    kButtonClear, ///< CLR: clears the number.
     kButtonOk, ///< OK: confirms the number.
     kButtonMax
   };
 
-  /// Adds a digit (0 to 9) at the end of the number.
-  void AddDigit(u32 digit);
+  static constexpr u32 kMaxLength = 15;
 
-  /// Removes the last digit.
-  void RemoveLastDigit();
+  /// Adds a character at the end of the number.
+  void AddChar(c16 character);
 
-  /// Converts a UTF-16 text into a number.
-  static u32 UnicodeToInteger(const c16* str);
+  /// Removes the last character.
+  void RemoveLastChar();
+
+  /// Draws one key with its border.
+  void DrawKey(ButtonId id, const c16* label, bool is_enabled) const;
 
   Button buttons_[kButtonMax];
-  c16 input_[16]; ///< The typed digits (UTF-16).
-  s8 cursor_;
+  c16 input_[kMaxLength + 1]; ///< The typed number (UTF-16).
+  u8 cursor_; ///< The number of characters.
+  bool is_edited_; ///< false: the bar shows the value of the entry.
+  bool allow_minus_;
+  bool allow_dot_;
 };
 } // namespace ui

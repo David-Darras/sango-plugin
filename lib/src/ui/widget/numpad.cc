@@ -26,72 +26,150 @@
 
 #include <string.h>
 
+#include "system/native/graphics.h"
 #include "system/native/sound.h"
+#include "ui/theme.h"
 
 namespace ui {
-Numpad::Numpad() : cursor_(0) {
+namespace {
+constexpr s32 kKeyWidth = 52;
+constexpr s32 kKeyHeight = 25;
+constexpr s32 kGap = 2;
+constexpr s32 kBarHeight = 20;
+constexpr u16 kKeySound = 4;
+
+// The keys of the grid, from the top-left corner: the layout of a phone.
+const u8 kGridKeys[12] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 0, 11};
+} // namespace
+
+Numpad::Numpad()
+  : cursor_(0), is_edited_(false), allow_minus_(false), allow_dot_(false) {
   memset(input_, 0, sizeof(input_));
   Initialize(10, 10);
 }
 
-void Numpad::Initialize(s32 x, s32 y_start) {
-  constexpr s32 width = 30;
-  constexpr s32 height = 30;
-  constexpr s32 bar_width = 300;
-  constexpr s32 bar_height = 18;
-  constexpr s32 btn_width = 100;
-  constexpr s32 btn_height = 18;
+void Numpad::Initialize(s32 x, s32 y) {
+  buttons_[kButtonInput].Initialize(x, y, 300, kBarHeight);
 
-  buttons_[kButtonInput].Initialize(x, y_start, bar_width, bar_height);
-
-  // The digit buttons, 0 to 9.
-  s32 current_y = y_start + bar_height - 1;
-  for (int i = 0; i < 10; ++i) {
-    buttons_[kButton0 + i].Initialize(x + i * width, current_y, width, height);
+  const s32 keys_y = y + kBarHeight + 4;
+  for (u32 i = 0; i < SIZE(kGridKeys); i++) {
+    const s32 column = i % 3;
+    const s32 row = i / 3;
+    buttons_[kGridKeys[i]].Initialize(x + column * (kKeyWidth + kGap),
+                                      keys_y + row * kRowHeight, kKeyWidth,
+                                      kKeyHeight);
   }
 
-  current_y += height - 1;
-  buttons_[kButtonCancel].Initialize(x, current_y, btn_width, btn_height);
-  buttons_[kButtonDelete].Initialize(x + btn_width, current_y, btn_width,
-                                     btn_height);
-  buttons_[kButtonOk].Initialize(x + btn_width * 2, current_y, btn_width,
-                                 btn_height);
+  // DEL, CLR and OK are on the right of the keys, in the two last rows.
+  const s32 right_x = x + kKeysWidth + 6;
+  const s32 right_width = 300 - kKeysWidth - 6;
+  const s32 half = (right_width - kGap) / 2;
+  buttons_[kButtonDelete].Initialize(right_x, keys_y + 2 * kRowHeight, half,
+                                     kKeyHeight);
+  buttons_[kButtonClear].Initialize(right_x + half + kGap,
+                                    keys_y + 2 * kRowHeight, half, kKeyHeight);
+  buttons_[kButtonOk].Initialize(right_x, keys_y + 3 * kRowHeight, right_width,
+                                 kKeyHeight);
+}
+
+void Numpad::DrawKey(ButtonId id, const c16* label, bool is_enabled) const {
+  const Theme& theme = Theme::GetInstance();
+  const Button& button = buttons_[id];
+  const s32 x = button.GetX();
+  const s32 y = button.GetY();
+  const s32 width = button.GetWidth();
+  const s32 height = button.GetHeight();
+
+  // One rectangle for each key: see the comment of DrawShadowText() in
+  // main_application.cc.
+  Color border = theme.unselected_text_color;
+  if (!is_enabled) border.a = 0.3f;
+  const bool is_down = is_enabled && button.IsDown();
+  Color fill = is_down ? theme.selected_text_color : border;
+  fill.a = is_down ? 0.7f : 0.12f;
+  sys::Graphics::DrawRect(x, y, width, height, fill);
+
+  sys::Graphics::SetTextScale(0.6f, 0.6f);
+  sys::Graphics::DrawText(x + (width - sys::Graphics::GetTextWidth(label)) / 2,
+                          y + (height - 14) / 2, label, border);
 }
 
 void Numpad::Draw() const {
-  c16 buffer[2] = {0, 0};
+  const Theme& theme = Theme::GetInstance();
 
-  buttons_[kButtonInput].Draw(input_, 2, 0);
+  // The bar: the value of the entry is grey until the player types.
+  const Button& bar = buttons_[kButtonInput];
+  Color bar_color = theme.selected_text_color;
+  bar_color.a = 0.2f;
+  sys::Graphics::DrawRect(bar.GetX(), bar.GetY(), bar.GetWidth(),
+                          bar.GetHeight(), bar_color);
+  sys::Graphics::SetTextScale(0.6f, 0.6f);
+  sys::Graphics::DrawText(bar.GetX() + 6, bar.GetY() + 3, input_,
+                          is_edited_ ? theme.selected_text_color
+                                     : theme.unselected_text_color);
 
-  for (int i = 0; i < 10; ++i) {
-    buffer[0] = u'0' + i;
-    buttons_[kButton0 + i].Draw(buffer, 10, 6);
+  c16 label[2] = {0, 0};
+  for (u32 i = 0; i <= 9; i++) {
+    label[0] = u'0' + i;
+    DrawKey((ButtonId)(kButton0 + i), label, true);
   }
-
-  buttons_[kButtonCancel].Draw(u"CANCEL", 19, 0);
-  buttons_[kButtonDelete].Draw(u"DELETE", 20, 0);
-  buttons_[kButtonOk].Draw(u"OK", 39, 0);
+  DrawKey(kButtonMinus, u"-", allow_minus_);
+  DrawKey(kButtonDot, u".", allow_dot_);
+  DrawKey(kButtonDelete, u"DEL", true);
+  DrawKey(kButtonClear, u"CLR", true);
+  DrawKey(kButtonOk, u"OK  (X)", true);
 }
 
 void Numpad::Update() {
-  for (u32 i = 0; i < kButtonMax; ++i) {
+  for (u32 i = 0; i < kButtonMax; i++) {
     buttons_[i].Update();
   }
 
-  for (u32 i = 0; i <= 9; ++i) {
+  for (u32 i = 0; i <= 9; i++) {
     if (buttons_[kButton0 + i].IsReleased()) {
-      sys::Sound::PlaySoundEffect(4);
-      AddDigit(i);
+      sys::Sound::PlaySoundEffect(kKeySound);
+      AddChar(u'0' + i);
+    }
+  }
+
+  if (allow_dot_ && buttons_[kButtonDot].IsReleased()) {
+    sys::Sound::PlaySoundEffect(kKeySound);
+    bool has_dot = false;
+    for (u32 i = 0; is_edited_ && i < cursor_; i++) {
+      if (input_[i] == u'.') has_dot = true;
+    }
+    if (!has_dot) {
+      if (!is_edited_ || cursor_ == 0 ||
+          (cursor_ == 1 && input_[0] == u'-')) {
+        AddChar(u'0');
+      }
+      AddChar(u'.');
+    }
+  }
+
+  if (allow_minus_ && buttons_[kButtonMinus].IsReleased()) {
+    sys::Sound::PlaySoundEffect(kKeySound);
+    // The minus key changes the sign of the number, at any time.
+    is_edited_ = true;
+    if (input_[0] == u'-') {
+      memmove(input_, input_ + 1, cursor_ * sizeof(c16));
+      cursor_--;
+    } else if (cursor_ < kMaxLength) {
+      memmove(input_ + 1, input_, (cursor_ + 1) * sizeof(c16));
+      input_[0] = u'-';
+      cursor_++;
     }
   }
 
   if (buttons_[kButtonDelete].IsReleased()) {
-    sys::Sound::PlaySoundEffect(4);
-    RemoveLastDigit();
+    sys::Sound::PlaySoundEffect(kKeySound);
+    is_edited_ = true;
+    RemoveLastChar();
   }
 
-  if (buttons_[kButtonCancel].IsReleased()) {
-    sys::Sound::PlaySoundEffect(4);
+  if (buttons_[kButtonClear].IsReleased()) {
+    sys::Sound::PlaySoundEffect(kKeySound);
+    is_edited_ = true;
     cursor_ = 0;
     memset(input_, 0, sizeof(input_));
   }
@@ -101,53 +179,35 @@ bool Numpad::IsButtonOkReleased() const {
   return buttons_[kButtonOk].IsReleased();
 }
 
-u32 Numpad::GetInput() const { return UnicodeToInteger(input_); }
+void Numpad::SetInput(const c16* text, bool allow_minus, bool allow_dot) {
+  memset(input_, 0, sizeof(input_));
+  cursor_ = 0;
+  while (text[cursor_] != 0 && cursor_ < kMaxLength) {
+    input_[cursor_] = text[cursor_];
+    cursor_++;
+  }
+  is_edited_ = false;
+  allow_minus_ = allow_minus;
+  allow_dot_ = allow_dot;
+  for (u32 i = 0; i < kButtonMax; i++) buttons_[i].Reset();
+}
 
-void Numpad::AddDigit(u32 digit) {
-  if (cursor_ >= 12) return;
-  input_[cursor_] = u'0' + digit;
+void Numpad::AddChar(c16 character) {
+  // The first key replaces the value of the entry.
+  if (!is_edited_) {
+    cursor_ = 0;
+    memset(input_, 0, sizeof(input_));
+    is_edited_ = true;
+  }
+  if (cursor_ >= kMaxLength) return;
+  input_[cursor_] = character;
   cursor_++;
   input_[cursor_] = 0;
 }
 
-void Numpad::RemoveLastDigit() {
-  if (cursor_ <= 0) return;
+void Numpad::RemoveLastChar() {
+  if (cursor_ == 0) return;
   cursor_--;
   input_[cursor_] = 0;
-}
-
-u32 Numpad::UnicodeToInteger(const c16* str) {
-  if (*str == 0) {
-    return 0;
-  }
-
-  u32 result = 0;
-  u32 base = 10;
-  const c16* current = str;
-
-  if (current[0] == u'0' && (current[1] == u'x' || current[1] == u'X')) {
-    base = 16;
-    current += 2;
-  }
-
-  while (*current != 0) {
-    u32 digit_value;
-    c16 c = *current;
-
-    if (c >= u'0' && c <= u'9') {
-      digit_value = c - u'0';
-    } else if (base == 16 && c >= u'A' && c <= u'F') {
-      digit_value = 10 + (c - u'A');
-    } else if (base == 16 && c >= u'a' && c <= u'f') {
-      digit_value = 10 + (c - u'a');
-    } else {
-      break;
-    }
-
-    result = result * base + digit_value;
-    current++;
-  }
-
-  return result;
 }
 } // namespace ui

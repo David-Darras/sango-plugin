@@ -42,7 +42,8 @@ void LoadTopPage(MainApplication& app, void* args) {
      .Add("Player", LoadPlayerPage)
      .WithDescription("Field moves, apps, camera and look of the player.")
      .Add("Pokemon", LoadPokemonPage)
-     .WithDescription("Shiny Pokemon, randomizers, species and moves.")
+     .WithDescription("Shiny Pokemon, randomizers, species, moves and "
+                      "TMs.")
      .Add("Battle", LoadBattlePage)
      .WithDescription("Battle options, and the Pokemon of the current "
                       "battle.")

@@ -39,5 +39,48 @@ struct Theme {
   u16 error_sound = 21;
 
   u8 keys[3] = {};
+
+  bool text_shadow = true; ///< Draws a shadow under the texts of the menu.
+  bool animations = true; ///< Moves the cursor and the pages smoothly.
+
+  /// The ready-made looks of the Plugin Theme page.
+  enum class Preset : u8 { kDefault, kDark, kLight, kRuby, kSapphire, kEmerald };
+
+  /// Sets the three colors of a ready-made look.
+  void ApplyPreset(Preset preset) {
+    switch (preset) {
+      case Preset::kDefault:
+        SetColors(Color{0, 0, 0, 0.75f}, Color{1, 1, 1, 1},
+                  Color{1, 0.1f, 0.5f, 1});
+        break;
+      case Preset::kDark:
+        SetColors(Color{0.05f, 0.05f, 0.08f, 0.92f},
+                  Color{0.85f, 0.85f, 0.9f, 1}, Color{0.4f, 0.8f, 1, 1});
+        break;
+      case Preset::kLight:
+        SetColors(Color{0.95f, 0.95f, 0.92f, 0.92f},
+                  Color{0.15f, 0.15f, 0.2f, 1}, Color{0.85f, 0.2f, 0.1f, 1});
+        break;
+      case Preset::kRuby:
+        SetColors(Color{0.25f, 0.02f, 0.05f, 0.85f}, Color{1, 0.9f, 0.9f, 1},
+                  Color{1, 0.35f, 0.3f, 1});
+        break;
+      case Preset::kSapphire:
+        SetColors(Color{0.02f, 0.06f, 0.25f, 0.85f},
+                  Color{0.9f, 0.93f, 1, 1}, Color{0.35f, 0.7f, 1, 1});
+        break;
+      case Preset::kEmerald:
+        SetColors(Color{0.02f, 0.18f, 0.08f, 0.85f},
+                  Color{0.9f, 1, 0.92f, 1}, Color{0.4f, 1, 0.55f, 1});
+        break;
+    }
+  }
+
+private:
+  void SetColors(Color background, Color text, Color selected) {
+    background_color = background;
+    unselected_text_color = text;
+    selected_text_color = selected;
+  }
 };
 } // namespace ui

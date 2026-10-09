@@ -44,6 +44,8 @@ void LoadBattlePage(MainApplication& app, void* args);
 void LoadBattleSettingsPage(MainApplication& app, void* args);
 void LoadBattleSetupPage(MainApplication& app, void* args);
 void LoadTypeChartPage(MainApplication& app, void* args);
+// ORAS only: the table of the static encounters (legendary Pokémon...).
+void LoadStaticEncounterPage(MainApplication& app, void* args);
 void LoadBattleLivePage(MainApplication& app, void* args);
 
 // The overworld: the current map and its data.
@@ -61,6 +63,7 @@ void LoadPokemonPage(MainApplication& app, void* args);
 void LoadShinyPage(MainApplication& app, void* args);
 void LoadSpeciesDataPage(MainApplication& app, void* args);
 void LoadMoveDataPage(MainApplication& app, void* args);
+void LoadTechnicalMachinePage(MainApplication& app, void* args);
 void LoadModelLoaderPage(MainApplication& app, void* args);
 
 // The save data, one page for each part.

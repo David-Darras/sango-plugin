@@ -51,19 +51,25 @@ void LoadPokemonTexturePage(MainApplication& app, void* args) {
 
   app.Add("Filter", ctx.filter)
      .WithArray(FILTERS, SIZE(FILTERS))
+     .WithDescription("A color filter on the Pokemon models in battle.")
      .Add("Mesh", ctx.mesh);
 }
 
 void LoadLightPage(MainApplication& app, void* args) {
   auto& ctx = renderer::Lighting::GetInstance();
 
-  app.Add("Use Outline", ctx.use_outline)
+  app.AddSection("Outlines")
+     .Add("Use Outline", ctx.use_outline)
+     .WithDescription("Off: the 3D models have no outlines.")
      .Add("Outline Scale", ctx.outline_scale)
+     .WithFactor(0.1f)
+     .WithDescription("The width of the outlines. 0: the width of the "
+                      "game.")
      .Add("Outline Color", LoadColorPage, &ctx.outline_color)
-     .AddSeparator()
+     .AddSection("Ambient Light")
      .Add("Use Ambient Light", ctx.use_ambient_light)
      .Add("Ambient Light Color", LoadColorPage, &ctx.ambient_color)
-     .AddSeparator()
+     .AddSection("Diffuse Light")
      .Add("Use Diffuse Light", ctx.use_diffuse_light)
      .Add("Diffuse Light Color", LoadColorPage, &ctx.diffuse_color);
 }
@@ -72,12 +78,12 @@ void LoadLayoutTextBoxPage(MainApplication& app, void* args) {
   auto& ctx = renderer::TextBoxFilter::GetInstance();
 
   app.Add("Is Enabled", ctx.is_enabled)
-     .AddSeparator()
+     .AddSection("Scale")
      .Add("Scale X", ctx.scale.x)
      .WithFactor(0.1f)
      .Add("Scale Y", ctx.scale.y)
      .WithFactor(0.1f)
-     .AddSeparator()
+     .AddSection("Colors")
      .Add("Top Color", LoadColor8Page, &ctx.top_color)
      .Add("Bottom Color", LoadColor8Page, &ctx.bottom_color);
 }
@@ -86,12 +92,12 @@ void LoadLayoutPicturePage(MainApplication& app, void* args) {
   auto& ctx = renderer::PictureFilter::GetInstance();
 
   app.Add("Is Enabled", ctx.is_enabled)
-     .AddSeparator()
+     .AddSection("Scale")
      .Add("Scale X", ctx.scale.x)
      .WithFactor(0.1f)
      .Add("Scale Y", ctx.scale.y)
      .WithFactor(0.1f)
-     .AddSeparator()
+     .AddSection("Colors")
      .Add("Alpha", ctx.alpha)
      .Add("Top Left Color", LoadColor8Page, &ctx.top_left_color)
      .Add("Top Right Color", LoadColor8Page, &ctx.top_right_color)
@@ -100,9 +106,17 @@ void LoadLayoutPicturePage(MainApplication& app, void* args) {
 }
 
 void LoadRendererPage(MainApplication& app, void* args) {
-  app.Add("Lighting", LoadLightPage)
+  app.AddSection("3D Models")
+     .Add("Lighting", LoadLightPage)
+     .WithDescription("The outlines, the ambient light and the diffuse "
+                      "light of the 3D models.")
      .Add("Battle Pokemon Filter", LoadPokemonTexturePage)
+     .WithDescription("A color filter on the Pokemon models in battle.")
+     .AddSection("2D Layouts")
      .Add("Text Box", LoadLayoutTextBoxPage)
-     .Add("Picture", LoadLayoutPicturePage);
+     .WithDescription("The size and the colors of the message boxes.")
+     .Add("Picture", LoadLayoutPicturePage)
+     .WithDescription("The size and the colors of the pictures of the "
+                      "layouts.");
 }
 } // namespace ui

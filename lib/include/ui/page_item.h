@@ -78,12 +78,17 @@ public:
   /// Sets the text that the bottom screen shows for the entry.
   PageItem& WithDescription(const c8* description);
 
+  /// The player can see the value, but cannot change it.
+  PageItem& WithReadOnly();
+
   u8 GetType() const;
 
   /// Returns the name of the entry.
   const c8* GetName() const { return name_; }
   /// Changes the name of the entry. The text must stay in memory.
   void SetName(const c8* name) { name_ = name; }
+  /// Returns the address of the value of the entry.
+  void* GetAddress() const { return address_; }
   /// Returns the description of the entry, or null.
   const c8* GetDescription() const { return description_; }
   /// Returns true when A runs a function.
@@ -96,6 +101,20 @@ public:
   bool IsSelectable() const { return type_ != kTypeSeparator; }
   /// Returns true when the entry shows a value that the player changes.
   bool HasValue() const;
+  /// Returns true when the player cannot change the value.
+  bool IsReadOnly() const { return is_read_only_ != 0; }
+  /// Returns true when the page must be built again after a change.
+  bool NeedsRefresh() const { return refresh_ != 0; }
+  /// Returns true for a value that can be less than 0.
+  bool IsSigned() const;
+  /// Returns true for a decimal value (f32, f64).
+  bool IsDecimal() const;
+  /// Returns the maximum number of characters of a text entry.
+  u32 GetTextCapacity() const { return bit_offset_; }
+  /// Returns the minimum value, or false when there is no minimum.
+  bool GetMin(s32& min) const { min = min_; return is_min_used_ != 0; }
+  /// Returns the maximum value, or false when there is no maximum.
+  bool GetMax(s32& max) const { max = max_; return is_max_used_ != 0; }
   /// Returns the current value as an index (for an entry with texts).
   s32 GetIndex() const;
   /// Returns true when both entries show the same data.
@@ -103,6 +122,18 @@ public:
 
   /// Writes the name and the value of the entry into `buffer` (UTF-16).
   void GetDisplayValue(c16* buffer) const;
+
+  /// Writes the name of the entry (UTF-16), with the A icon for an action.
+  void GetNameText(c16* buffer) const;
+
+  /// Writes only the value of the entry (UTF-16), or an empty text.
+  void GetValueText(c16* buffer) const;
+
+  /// Returns the size of the value in bytes (0 for a page or an action).
+  u32 GetValueSize() const;
+
+  /// Returns the value that the page function or the action receives.
+  void* GetArgs() const { return args_; }
 
   /// Increases the value (Right button).
   void Increment(u32 count = 1);
@@ -113,14 +144,20 @@ public:
   /// Sets the value that the player typed. `value` points to the new value.
   void Edit(const void* value);
 
+  /**
+   * @brief Sets a number that the player typed on the numpad.
+   * @param text The number (UTF-16), for example "-12" or "0.25". A number
+   *        that starts with "0x" is hexadecimal.
+   */
+  void EditNumber(const c16* text);
+
+  /// Writes the current value as a number that the numpad can show.
+  void GetNumberText(c16* buffer) const;
+
   /// Runs the entry (A button).
   void Execute(MainApplication& application);
 
 private:
-  void GetDefaultDisplayValue(c16* buffer) const;
-
-  void GetArrayDisplayValue(c16* buffer) const;
-
   const c8* name_;
   void* address_;
   const c8** array_;
@@ -140,5 +177,6 @@ private:
   s32 is_max_used_ : 1;
 
   f32 factor_;
+  u8 is_read_only_;
 };
 } // namespace ui

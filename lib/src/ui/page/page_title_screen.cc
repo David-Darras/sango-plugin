@@ -126,12 +126,15 @@ void LoadNewGamePage(MainApplication& app, void* args) {
 
   auto& new_game = NewGame::GetInstance();
 
-  app.Add("Skip Intro", new_game.skip_intro)
+  app.AddSection("Introduction")
+     .Add("Skip Intro", new_game.skip_intro)
+     .WithDescription("The new game starts without the introduction.")
      .Add("Player Gender", new_game.player_gender)
      .WithArray(GENDERS, SIZE(GENDERS))
-     .WithBounds(0, SIZE(GENDERS) - 1)
-     .AddSeparator()
+     .AddSection("Start Place")
      .Add("Start Zone", new_game.start_zone)
+     .WithDescription("The first map of a new game. 65535: the map of the "
+                      "game.")
      .Add("Start Tile X (-1: default)", new_game.start_tile_x)
      .WithMin(-1)
      .Add("Start Tile Z (-1: default)", new_game.start_tile_z)
@@ -144,11 +147,13 @@ void LoadNewGamePage(MainApplication& app, void* args) {
 void LoadTitleScreenPage(MainApplication& app, void* args) {
   auto& title_screen = TitleScreen::GetInstance();
 
-  app.Add("Custom Title Screen", title_screen.is_enabled)
+  app.AddSection("Title Screen")
+     .Add("Custom Title Screen", title_screen.is_enabled)
+     .WithDescription("On: the title screen uses the settings of this page.")
      .Add("No Delay", title_screen.no_delay)
      .Add("No Shadow", title_screen.no_shadow)
      .Add("Skip To Frame", title_screen.skip_to_frame)
-     .AddSeparator()
+     .AddSection("Videos and Cry")
      .Add("Top Video", title_screen.top_video)
      .WithArray(VIDEO_NAMES, SIZE(VIDEO_NAMES))
      .WithBounds(0, SIZE(VIDEO_NAMES) - 1)
@@ -159,7 +164,9 @@ void LoadTitleScreenPage(MainApplication& app, void* args) {
      .Add("Pokemon Cry Volume", title_screen.pokemon_cry_volume)
      .WithFactor(0.1f)
      .WithBounds(0, 1)
-     .AddSeparator()
-     .Add("New Game", LoadNewGamePage);
+     .AddSection("New Game")
+     .Add("New Game", LoadNewGamePage)
+     .WithDescription("Skips the introduction and changes the start place "
+                      "of a new game.");
 }
 } // namespace ui

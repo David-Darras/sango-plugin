@@ -25,7 +25,9 @@
 
 namespace ui {
 void LoadSystemPage(MainApplication& app, void* args) {
-  app.Add("Sound", LoadSoundPage)
-     .Add("Game Time", LoadGameTimePage);
+  app.AddSection("Sound");
+  LoadSoundPage(app, args);
+  app.AddSection("Game Time");
+  LoadGameTimePage(app, args);
 }
 } // namespace ui

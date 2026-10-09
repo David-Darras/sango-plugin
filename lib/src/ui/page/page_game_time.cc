@@ -28,7 +28,6 @@ void LoadGameTimePage(MainApplication& app, void* args) {
   auto& data = core::TimeManager::GetInstance();
 
   app.Add("Date Time (ms)", *(s64*)sys::address::kDateTime)
-      .AddSeparator()
       .Add("Is Game Time Enabled", data.is_enabled)
       .Add("Last Tick", data.last_tick)
       .Add("First Tick", data.first_tick)

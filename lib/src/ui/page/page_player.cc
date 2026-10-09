@@ -93,15 +93,17 @@ void LoadAppPage(MainApplication& app, void* args) {
 void LoadOverworldCameraPage(MainApplication& app, void* args) {
   if (app.CheckProcess(overworld::address::kVtable)) return;
 
-  static const c8* STATES[] = {"Idle", "Tps", "Rotate", "Top", "Fpv", "Free"};
+  static const c8* STATES[] = {"Idle", "Third Person", "Rotate",
+                               "Top",  "First Person", "Free"};
   auto& ctx = overworld::Camera::GetInstance();
 
   app.WithNoBackground()
      .Add("Free Camera", [](void*) { FreeCameraApplication::Open(); })
-     .AddSeparator()
+     .WithDescription("Moves the camera with the buttons. The bottom screen "
+                      "shows the controls.")
      .Add("State", ctx.overworld_state)
      .WithArray(STATES, SIZE(STATES))
-     .AddSeparator()
+     .AddSection("Free Position")
      .Add("Free Pos X (Left/Right)", ctx.pos.x)
      .WithFactor(5.0f)
      .Add("Free Pos Y (Up/Down)", ctx.pos.y)
@@ -112,14 +114,14 @@ void LoadOverworldCameraPage(MainApplication& app, void* args) {
      .WithFactor(0.05f)
      .Add("Free Pitch (Look)", ctx.rot.x)
      .WithFactor(0.05f)
-     .AddSeparator()
-     .Add("TPS Distance", ctx.tps_dist)
-     .Add("TPS Height", ctx.tps_height)
-     .Add("TPS Shoulder Offset", ctx.tps_offset)
-     .AddSeparator()
-     .Add("FPV Height", ctx.fpv_height)
-     .Add("FPV Offset", ctx.fpv_offset)
-     .AddSeparator()
+     .AddSection("Third Person")
+     .Add("Distance", ctx.tps_dist)
+     .Add("Height", ctx.tps_height)
+     .Add("Shoulder Offset", ctx.tps_offset)
+     .AddSection("First Person")
+     .Add("Eye Height", ctx.fpv_height)
+     .Add("Eye Offset", ctx.fpv_offset)
+     .AddSection("Orbit")
      .Add("Orbit Radius", ctx.radius)
      .WithFactor(3.0f)
      .Add("Orbit Height", ctx.height)
@@ -164,17 +166,20 @@ void LoadPlayerModelPage(MainApplication& app, void* args) {
 #endif
      .Add("Animation", cheats.model_animation)
      .WithCallback(overworld::PlayerCheats::PlayAnimation)
-     .AddSeparator()
+     .WithDescription("Select an animation, then press A to play it.")
+     .AddSection("Scale")
      .Add("Scale X", draw_model.scale.x)
      .WithFactor(0.2f)
      .Add("Scale Y", draw_model.scale.y)
      .WithFactor(0.2f)
      .Add("Scale Z", draw_model.scale.z)
      .WithFactor(0.2f)
-     .AddSeparator()
+     .AddSection("Advanced")
      .Add("Model Index", cheats.model_idx)
      .WithBounds(0, overworld::ModelManager::kMaxModels - 1)
-     .WithRefresh();
+     .WithRefresh()
+     .WithDescription("The model of the map that this page changes. 0 is "
+                      "usually the player.");
 }
 
 void LoadPlayerPage(MainApplication& app, void* args) {
@@ -183,23 +188,36 @@ void LoadPlayerPage(MainApplication& app, void* args) {
   auto& cheats = overworld::PlayerCheats::GetInstance();
   auto& player = overworld::ModelManager::GetInstance().GetPlayer();
 
-  app.Add("Apps", LoadAppPage)
+  app.AddSection("Actions")
+     .Add("Apps", LoadAppPage)
+     .WithDescription("Opens the PC, the Move Reminder or the Move Deleter "
+                      "from anywhere.")
      .Add("Field Moves", LoadOverworldFieldMovePage)
+     .WithDescription("Uses Surf, Cut, Fly... without a Pokemon that knows "
+                      "the move.")
      .Add("Wonder Trade", WonderTrade)
-     .Add("Camera", LoadOverworldCameraPage)
-     .Add("Model", LoadPlayerModelPage)
-     .AddSeparator()
+     .AddSection("Movement")
+     .Add("Auto Surf", overworld::AutoSurf::GetInstance().is_enabled)
+     .WithDescription("The player surfs at once when walking into water.")
      .Add("Noclip", CheatCodeId::kNoclip)
+     .WithDescription("The player walks through the walls.")
      .Add("Noclip Speed X", cheats.speed.x)
      .Add("Noclip Speed Y", cheats.speed.y)
      .Add("Noclip Speed Z", cheats.speed.z)
-     .AddSeparator()
+     .AddSection("Look")
+     .Add("Camera", LoadOverworldCameraPage)
+     .Add("Model", LoadPlayerModelPage)
+     .WithDescription("The model, the animation and the size of the "
+                      "player.")
+     .Add("Run Animation", overworld::RunAnimation::GetInstance().enabled)
+     .WithDescription("The player model plays its run animation when the "
+                      "player runs.")
      .Add("Swarm Mod", CheatCodeId::kSwarmMod)
+     .WithDescription("The Pokemon of the team follow the player in a "
+                      "circle.")
      .Add("Swarm Radius", cheats.radius)
      .Add("Swarm Rotation Speed", cheats.theta_speed)
-     .AddSeparator()
-     .Add("Run Animation", overworld::RunAnimation::GetInstance().enabled)
-     .Add("Auto Surf", overworld::AutoSurf::GetInstance().is_enabled)
+     .AddSection("Position")
      .Add("Tile X", player.map_pos.coords.x)
      .Add("Tile Y", player.map_pos.coords.y)
      .Add("Tile Z", player.map_pos.coords.z);

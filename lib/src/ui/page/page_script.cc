@@ -29,16 +29,27 @@ void LoadScriptPage(MainApplication& app, void* args) {
   auto& loader = core::ScriptLoader::GetInstance();
   auto& native = script::NativeScript::GetInstance();
 
-  app.Add("Dump Scripts", loader.dump_scripts)
+  app.AddSection("Overworld Scripts")
+     .Add("Dump Scripts", loader.dump_scripts)
+     .WithDescription("Saves each script that the game loads to the SD "
+                      "card.")
      .Add("Load Edited Scripts", loader.inject_scripts)
+     .WithDescription("Loads the changed scripts from the SD card.")
      .Add("Log To Screen", loader.log_activity)
+     .WithDescription("Writes the name of each loaded script to the log.")
      .Add("Scripts Dumped", loader.dumped_count)
+     .WithReadOnly()
      .Add("Scripts Replaced", loader.injected_count)
-     .AddSeparator()
+     .WithReadOnly()
+     .AddSection("Skip")
      .Add("Skip Key Presses", loader.no_key_press)
+     .WithDescription("The messages continue without a key press.")
      .Add("Skip Cutscenes", loader.no_cutscene)
-     .AddSeparator()
+     .AddSection("C++ Scripts")
      .Add("Log C++ Scripts", native.log_activity)
-     .Add("C++ Scripts Run", native.run_count);
+     .WithDescription("Writes the start and the end of each C++ script to "
+                      "the log.")
+     .Add("C++ Scripts Run", native.run_count)
+     .WithReadOnly();
 }
 } // namespace ui

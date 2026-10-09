@@ -42,6 +42,7 @@
 #include "overworld/patch/placed_decorations.h"
 #include "overworld/patch/tile_editor.h"
 #include "overworld/patch/weather_override.h"
+#include "overworld/patch/world_overlay.h"
 #include "pokemon/patch/model_loader.h"
 #include "core/patch/time_override.h"
 #include "overworld/native/hidden_item.h"
@@ -96,18 +97,21 @@ void LoadWeatherPage(MainApplication& app, void* args) {
        .WithArray(WEATHERS, SIZE(WEATHERS))
        .WithBounds(0, SIZE(WEATHERS) - 1)
        .WithCallback(ApplyForcedWeather)
-       .AddSeparator();
+       .WithDescription("Select a weather, then press A to show it.");
 #else
     app.Add("Current Weather", manager.GetRequestedWeather())
        .WithArray(WEATHERS, SIZE(WEATHERS))
-       .WithBounds(0, SIZE(WEATHERS) - 1)
-       .AddSeparator();
+       .WithBounds(0, SIZE(WEATHERS) - 1);
 #endif
   }
 
-  app.Add("Keep Weather Indoors", ctx.keep_weather_indoors)
+  app.AddSection("Options")
+     .Add("Keep Weather Indoors", ctx.keep_weather_indoors)
+     .WithDescription("The weather continues in the buildings.")
      .Add("Ignore Zone Weather", ctx.ignore_zone_weather)
+     .WithDescription("The maps do not change the weather.")
      .Add("Rain Mode", ctx.mode)
+     .WithDescription("The color of the rain.")
      .WithArray(RAIN_MODES, SIZE(RAIN_MODES))
      .WithBounds(0, SIZE(RAIN_MODES) - 1);
 }
@@ -122,12 +126,15 @@ static void SetTimeOfDay(u8 hour) {
 void LoadTimeOfDayPage(MainApplication& app, void* args) {
   auto& ctx = core::TimeOverride::GetInstance();
 
-  app.Add("Override Time", ctx.is_enabled)
+  app.AddSection("Time")
+     .Add("Override Time", ctx.is_enabled)
+     .WithDescription("On: the game uses this time, not the time of the "
+                      "console.")
      .Add("Hour", ctx.hour)
      .WithBounds(0, 23)
      .Add("Minute", ctx.minute)
      .WithBounds(0, 59)
-     .AddSeparator()
+     .AddSection("Quick Times")
      .Add("Morning (7:00)", [](void*) { SetTimeOfDay(7); })
      .Add("Day (12:00)", [](void*) { SetTimeOfDay(12); })
      .Add("Evening (18:00)", [](void*) { SetTimeOfDay(18); })
@@ -141,21 +148,23 @@ void LoadOverworldMapTilePage(MainApplication& app, void* args) {
   auto& ctx = overworld::MapTile::GetInstance();
 
   app.Add("Override Tiles", ctx.is_enabled)
-     .AddSeparator()
+     .WithDescription("On: all the tiles of the map use the attributes of "
+                      "this page.")
+     .AddSection("Movement")
      .Add("Is Impassable", ctx.is_impassable)
      .Add("Is Water", ctx.is_water)
      .Add("Permits Encounters", ctx.permits_encounters)
      .Add("Allows Diagonal Movement", ctx.allows_diagonal_movement)
-     .Add("Has Shadow", ctx.has_shadow)
      .Add("Blocks Trainer Movement", ctx.blocks_trainer_movement)
      .Add("Can Place Decorations", ctx.can_place_decorations)
      .Add("Can Move Decoration Cursor", ctx.can_move_decoration_cursor)
-     .AddSeparator()
+     .AddSection("Look")
+     .Add("Has Shadow", ctx.has_shadow)
      .Add("Reflection 0", ctx.has_reflection_0)
      .Add("Reflection 1", ctx.has_reflection_1)
      .Add("Reflection 2", ctx.has_reflection_2)
      .Add("Reflection 3", ctx.has_reflection_3)
-     .AddSeparator()
+     .AddSection("Types")
      .Add("Footstep Sound Type", ctx.foot_step_id)
      .WithArray(FOOT_STEPS, SIZE(FOOT_STEPS))
      .Add("Battle Background Type", ctx.battle_background_id)
@@ -170,7 +179,7 @@ void LoadOverworldEncounterPage(MainApplication& app, void* args) {
 
   app.Add("Contact Encounters",
           overworld::MapDataLoader::GetInstance().is_contact_enabled)
-     .AddSeparator()
+     .AddSection("Current State")
      .Add("Walk Count", state.walk_count)
      .Add("Encounter Rate", state.encounter_rate)
      .Add("Fishing Chain", state.fishing_chain_count);
@@ -180,7 +189,7 @@ void LoadPropModelPage(MainApplication& app, void* args) {
   if (app.CheckProcess(overworld::address::kVtable)) return;
   auto& manager = overworld::PropModelManager::GetInstance();
   if (manager.count == 0) {
-    app.Add("There is no prop here...");
+    app.Add("There is no prop on this map.");
     return;
   }
 
@@ -199,7 +208,8 @@ void LoadPropModelPage(MainApplication& app, void* args) {
 
   static u32 choice = 0;
 
-  app.Add("Prop Index", choice)
+  if (choice >= manager.count) choice = 0;
+  app.Add("Prop", choice)
      .WithBounds(0, manager.count - 1)
      .WithRefresh();
 
@@ -208,25 +218,25 @@ void LoadPropModelPage(MainApplication& app, void* args) {
 
   auto* shader = manager.prop_models[choice].shader;
 
-  app.AddSeparator()
-     .Add("Is Visible", shader->_0[0xE4])
+  app.Add("Is Visible", shader->_0[0xE4])
+     .WithBounds(0, 1)
      .Add("Sound Effect", prop.sound_effect)
      .WithArray(PROP_SOUND_EFFECTS, SIZE(PROP_SOUND_EFFECTS))
-     .AddSeparator()
+     .AddSection("Scale")
      .Add("Scale X", shader->scale.x)
      .WithFactor(0.2f)
      .Add("Scale Y", shader->scale.y)
      .WithFactor(0.2f)
      .Add("Scale Z", shader->scale.z)
      .WithFactor(0.2f)
-     .AddSeparator()
+     .AddSection("Rotation")
      .Add("Rotation X", shader->rotation.x)
      .WithFactor(M_PI / 12.0f)
      .Add("Rotation Y", shader->rotation.y)
      .WithFactor(M_PI / 12.0f)
      .Add("Rotation Z", shader->rotation.z)
      .WithFactor(M_PI / 12.0f)
-     .AddSeparator()
+     .AddSection("Position")
      .Add("Position X", shader->position.x)
      .Add("Position Y", shader->position.y)
      .Add("Position Z", shader->position.z);
@@ -239,15 +249,17 @@ void LoadDayCarePage(MainApplication& app, void* args) {
 
   app.Add("Instant Egg Hatch", day_care.instant_egg_hatch)
      .WithCallback(overworld::DayCare::ApplyEggHatch)
+     .WithDescription("Press A to switch it. The Eggs hatch at once.")
      .Add("Instant Max Exp", day_care.instant_max_exp)
-     .WithCallback(overworld::DayCare::ApplyMaxExp);
+     .WithCallback(overworld::DayCare::ApplyMaxExp)
+     .WithDescription("Press A to switch it. The Pokemon of the Day Care get "
+                      "the maximum experience.");
 }
 
 void LoadWorldLayoutPage(MainApplication& app, void* args) {
   using overworld::WorldLayout;
   if (app.CheckProcess(overworld::address::kVtable)) return;
 
-  static const c8* SIDES[] = {"Up", "Down", "Left", "Right"};
   static const c8* GRAFT_NAMES[overworld::MapGraft::kMaxRequests] = {
       "Graft 0", "Graft 1", "Graft 2", "Graft 3",
       "Graft 4", "Graft 5", "Graft 6", "Graft 7"
@@ -260,14 +272,15 @@ void LoadWorldLayoutPage(MainApplication& app, void* args) {
   auto& layout = WorldLayout::GetInstance();
   auto& graft = overworld::MapGraft::GetInstance();
 
-  app.Add("Layout Id", layout.id)
+  app.AddSection("Layout")
+     .Add("Layout ID", layout.id)
      .Add("Graft Enabled", graft.is_enabled)
      .Add("Graft Logging", graft.is_logging_enabled)
      .Add("Character Logging",
           overworld::MapCharacter::GetInstance().is_logging_enabled)
      .Add("Apply Grafts (Reload Map)", RefreshMap);
 
-  app.AddSeparator()
+  app.AddSection("Tile Editor")
      .Add("Tile Editor", [](void*) { TileEditorApplication::Open(); })
      .Add("Tile Edits Enabled", overworld::TileEditor::GetInstance().is_enabled)
      .Add("Save Tile Edits", [](void*) { overworld::TileEditor::Save(); })
@@ -277,12 +290,12 @@ void LoadWorldLayoutPage(MainApplication& app, void* args) {
   for (u32 i = 0; i < overworld::MapGraft::GetCount(); i++) {
     auto& request = overworld::MapGraft::GetRequest(i);
     auto& result = overworld::MapGraft::GetResult(i);
-    app.AddSeparator()
-       .Add(GRAFT_NAMES[i], result.is_applied)
+    app.AddSection(GRAFT_NAMES[i])
+       .Add("Is Applied", result.is_applied)
+       .WithReadOnly()
        .Add("Anchor Map", request.anchor)
        .Add("Side", request.side)
-       .WithArray(SIDES, SIZE(SIDES))
-       .WithBounds(0, SIZE(SIDES) - 1)
+       .WithArray(kSideNames, SIZE(kSideNames))
        .Add("Grafted Map", request.map)
        .Add("Shift (blocks)", request.shift)
        .WithMin(-31)
@@ -293,12 +306,10 @@ void LoadWorldLayoutPage(MainApplication& app, void* args) {
 
   for (u32 i = 0; i < overworld::MapGraft::GetLinkCount(); i++) {
     auto& link = overworld::MapGraft::GetLink(i);
-    app.AddSeparator()
-       .Add(LINK_NAMES[i])
+    app.AddSection(LINK_NAMES[i])
        .Add("Leaving Map", link.from)
        .Add("Through Side", link.side)
-       .WithArray(SIDES, SIZE(SIDES))
-       .WithBounds(0, SIZE(SIDES) - 1)
+       .WithArray(kSideNames, SIZE(kSideNames))
        .Add("Lands On Map", link.to)
        .Add("Tile X", link.tile_x)
        .WithBounds(0, WorldLayout::kMaxWidth * WorldLayout::kTilesPerBlockSide)
@@ -325,16 +336,20 @@ void ClearDecorations(void*) { overworld::PlacedDecorations::Clear(); }
 } // namespace
 
 static void LoadDecorationPage(MainApplication& app, void* args) {
-  app.Add("Item", selected_decoration)
+  app.Add("Decoration", selected_decoration)
      .WithArray(DECORATION_NAMES, SIZE(DECORATION_NAMES))
      .WithCallback(PlaceSelectedDecoration)
-     .Add("Clear", ClearDecorations);
+     .WithDescription("Select a decoration, then press A to place it in "
+                      "front of the player.")
+     .Add("Remove All", ClearDecorations)
+     .WithDescription("Removes all the decorations that the menu placed.");
 }
 
 static void LoadTallGrassPage(MainApplication& app, void* args) {
   static const c8* kMixNames[] = {"All", "Green", "Ferns", "Ash"};
   auto& grass = overworld::TallGrass::GetInstance();
   app.Add("Enabled", grass.is_enabled)
+     .WithDescription("Shows 3D tall grass on the tiles around the player.")
      .Add("Types", grass.mix)
      .WithArray(kMixNames, SIZE(kMixNames))
      .WithBounds(0, SIZE(kMixNames) - 1)
@@ -349,21 +364,21 @@ void LoadHiddenItemPage(MainApplication& app, void* args) {
 
   static u32 hidden_item_index = 0;
 
-  app.Add("Index", hidden_item_index)
+  app.Add("Hidden Item", hidden_item_index)
      .WithBounds(0, overworld::HiddenItem::kCount - 1)
      .WithRefresh();
 
   auto& hidden_item = overworld::HiddenItem::GetInstance(hidden_item_index);
 
-  app.AddSeparator()
-     .AddItem("Item ID", hidden_item.item_id)
+  app.AddSection("Item")
+     .AddItem("Item", hidden_item.item_id)
      .Add("UID", hidden_item.uid)
-     .AddSeparator()
+     .AddSection("Place")
      .Add("Tile X", hidden_item.tile_x)
      .Add("Height", hidden_item.height)
      .Add("Tile Z", hidden_item.tile_z)
      .Add("Map ID", hidden_item.map_id)
-     .AddSeparator()
+     .AddSection("Respawn")
      .Add("Respawn Rate", &hidden_item.flags, 0, 7)
      .WithBounds(0, 127)
      .Add("Initially Placed", &hidden_item.flags, 7, 1);
@@ -374,22 +389,21 @@ void LoadRandomHiddenItemPage(MainApplication& app, void* args) {
 
   static u32 random_hidden_item_index = 0;
 
-  app.Add("Index", random_hidden_item_index)
+  app.Add("Random Hidden Item", random_hidden_item_index)
      .WithBounds(0, overworld::RandomHiddenItem::kCount - 1)
      .WithRefresh();
 
   auto& random_item = overworld::RandomHiddenItem::GetInstance(
       random_hidden_item_index);
 
-  app.AddSeparator()
+  app.AddSection("Place")
      .Add("Map ID", random_item.map_id)
      .Add("UID", &random_item.flags, 0, 15)
      .Add("Is Mirage Spot", &random_item.flags, 15, 1)
-     .AddSeparator()
      .Add("Tile X", random_item.tile_x)
      .Add("Height", random_item.height)
      .Add("Tile Z", random_item.tile_z)
-     .AddSeparator()
+     .AddSection("Possible Items")
      .AddItem("Item ID 0", random_item.item_id[0])
      .AddItem("Item ID 1", random_item.item_id[1])
      .AddItem("Item ID 2", random_item.item_id[2])
@@ -398,35 +412,86 @@ void LoadRandomHiddenItemPage(MainApplication& app, void* args) {
      .AddItem("Item ID 5", random_item.item_id[5]);
 }
 
+#ifdef GAME_ORAS
+static void LoadWorldOverlayPage(MainApplication& app, void* args) {
+  static const c8* PIVOTS[] = {"Turned (3DS)", "Not Turned"};
+  auto& overlay = overworld::WorldOverlay::GetInstance();
+
+  app.Add("Enabled", overlay.is_enabled)
+     .WithDescription("Shows marks on the map when the menu is closed. Red: "
+                      "wall. Blue: water. Green: wild Pokemon.")
+     .AddSection("Marks")
+     .Add("Tiles", overlay.show_tiles)
+     .Add("Radius (tiles)", overlay.radius)
+     .WithBounds(1, overworld::WorldOverlay::kMaxRadius)
+     .Add("Hidden Items", overlay.show_hidden_items)
+     .WithDescription("A yellow mark on each hidden item of the map.")
+     .Add("Player", overlay.show_player)
+     .WithDescription("A white mark on the player. If it is not on the "
+                      "player, change Screen Pivot.")
+     .AddSection("Advanced")
+     .Add("Screen Pivot", overlay.pivot)
+     .WithArray(PIVOTS, SIZE(PIVOTS))
+     .WithDescription("How the camera turns the image for the screen of the "
+                      "3DS.");
+}
+#endif
+
 void LoadOverworldPage(MainApplication& app, void* args) {
   if (app.CheckProcess(overworld::address::kVtable)) return;
 
   auto& map_manager = overworld::MapManager::GetInstance();
   auto& music = overworld::Overworld::GetInstance();
 
-  app.Add("Map Id", map_manager.GetMapId())
-     .Add("Repel", CheatCodeId::kNoEncounter)
+  app.AddSection("Map")
+     .Add("Map ID", map_manager.GetMapId())
      .Add("Reload Map", RefreshMap)
-     .AddSeparator()
+     .WithDescription("Closes the menu and loads the current map again.")
      .Add("Weather", LoadWeatherPage)
      .Add("Time of Day", LoadTimeOfDayPage)
-     .Add("World Layout", LoadWorldLayoutPage)
-     .Add("Map Tile", LoadOverworldMapTilePage)
-     .Add("Props", LoadPropModelPage)
-     .Add("Decorations", LoadDecorationPage)
+     .WithDescription("Sets a fixed time: morning, day, evening or night.")
+     .AddSection("Wild Pokemon")
+     .Add("Repel", CheatCodeId::kNoEncounter)
+     .WithDescription("No wild Pokemon appear: an infinite Repel.")
+     .Add("Encounters", LoadOverworldEncounterPage)
+     .WithDescription("The walk counter, the encounter rate and the "
+                      "Pokemon that move on the map.")
 #ifdef GAME_ORAS
-      .Add("Tall Grass", LoadTallGrassPage)
-      .Add("Healer Follower",
-           overworld::HealerFollower::GetInstance().is_enabled)
+     .Add("Tall Grass", LoadTallGrassPage)
+     .WithDescription("Shows 3D tall grass around the player.")
 #endif
-      .Add("Hidden Item", LoadHiddenItemPage)
-      .Add("Random Hidden Item", LoadRandomHiddenItemPage)
-      .Add("Encounter", LoadOverworldEncounterPage)
-      .Add("Day Care", LoadDayCarePage)
-      .AddSeparator()
-      .Add("Freeze Background Music", music.freeze_background_music)
-      .Add("Background Music", music.background_music)
-      .WithBounds(0, static_cast<u32>(BackgroundMusicId::kCount) - 1)
-      .WithCallback(PlayOverworldMusic);
+     .AddSection("Objects")
+     .Add("Decorations", LoadDecorationPage)
+     .WithDescription("Places Secret Base decorations in the overworld.")
+     .Add("Props", LoadPropModelPage)
+     .WithDescription("The doors and the other objects of the map: size, "
+                      "rotation, position.")
+     .Add("Hidden Items", LoadHiddenItemPage)
+     .Add("Random Hidden Items", LoadRandomHiddenItemPage)
+     .Add("Day Care", LoadDayCarePage)
+#ifdef GAME_ORAS
+     .Add("Healer Follower",
+          overworld::HealerFollower::GetInstance().is_enabled)
+     .WithDescription("A nurse follows the player. Talk to her to heal the "
+                      "team.")
+#endif
+     .AddSection("Music")
+     .Add("Freeze Background Music", music.freeze_background_music)
+     .WithDescription("On: the overworld always plays the music below.")
+     .Add("Background Music", music.background_music)
+     .WithBounds(0, static_cast<u32>(BackgroundMusicId::kCount) - 1)
+     .WithCallback(PlayOverworldMusic)
+     .WithDescription("Press A to play this music now.")
+     .AddSection("Map Editing")
+#ifdef GAME_ORAS
+     .Add("World Overlay", LoadWorldOverlayPage)
+     .WithDescription("Shows the walls, the water, the grass and the hidden "
+                      "items on the map (experimental).")
+#endif
+     .Add("World Layout", LoadWorldLayoutPage)
+     .WithDescription("Joins maps together (grafts) and edits the tiles.")
+     .Add("Map Tile", LoadOverworldMapTilePage)
+     .WithDescription("Replaces the attributes of all the tiles: water, "
+                      "walls, encounters...");
 }
 } // namespace ui

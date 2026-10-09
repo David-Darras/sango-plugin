@@ -75,6 +75,75 @@ static void EditClamped(const void* value, void* address, s32 min, s32 max,
   *(T*)address = val;
 }
 
+/// Reads a number that the player typed. Returns false when the text has no
+/// digit. `integer` gets the whole part, `decimal` gets the full value.
+static bool ParseNumber(const c16* text, s64& integer, f64& decimal) {
+  const bool is_negative = *text == u'-';
+  if (is_negative) text++;
+  u32 base = 10;
+  if (text[0] == u'0' && (text[1] == u'x' || text[1] == u'X')) {
+    base = 16;
+    text += 2;
+  }
+
+  u64 whole = 0;
+  f64 fraction = 0.0;
+  f64 scale = 0.1;
+  bool has_digit = false;
+  bool has_dot = false;
+  for (; *text != 0; text++) {
+    const c16 c = *text;
+    u32 digit;
+    if (c == u'.' && base == 10 && !has_dot) {
+      has_dot = true;
+      continue;
+    }
+    if (c >= u'0' && c <= u'9') {
+      digit = c - u'0';
+    } else if (base == 16 && c >= u'a' && c <= u'f') {
+      digit = 10 + (c - u'a');
+    } else if (base == 16 && c >= u'A' && c <= u'F') {
+      digit = 10 + (c - u'A');
+    } else {
+      break;
+    }
+    has_digit = true;
+    if (has_dot) {
+      fraction += digit * scale;
+      scale /= 10.0;
+    } else {
+      whole = whole * base + digit;
+    }
+  }
+
+  integer = is_negative ? -(s64)whole : (s64)whole;
+  decimal = ((f64)whole + fraction) * (is_negative ? -1.0 : 1.0);
+  return has_digit;
+}
+
+/// Writes `value` to `address`, between `min` and `max`. Each limit applies
+/// only when it is set.
+template <typename T>
+static void StoreClamped(void* address, s64 value, s32 min, s32 max,
+                         bool is_min_used, bool is_max_used) {
+  if (is_min_used && value < min) value = min;
+  if (is_max_used && value > max) value = max;
+  *(T*)address = (T)value;
+}
+
+/// Removes the zeros at the end of a decimal number ("1.500" -> "1.5").
+static void TrimZeros(c16* buffer) {
+  c16* dot = nullptr;
+  c16* end = buffer;
+  for (; *end != 0; end++) {
+    if (*end == u'.') dot = end;
+  }
+  if (dot == nullptr) return;
+  while (end > dot + 1 && end[-1] == u'0') end--;
+  if (end == dot + 1) end--;
+  *end = 0;
+}
+
 PageItem::PageItem()
   : name_(nullptr),
     address_(nullptr),
@@ -89,7 +158,8 @@ PageItem::PageItem()
     max_(0),
     is_min_used_(0),
     factor_(1.0f),
-    is_max_used_(0) {
+    is_max_used_(0),
+    is_read_only_(0) {
 }
 
 void PageItem::Initialize(const c8* name, void* addr, u8 type, u32 bit_offset,
@@ -110,6 +180,7 @@ void PageItem::Initialize(const c8* name, void* addr, u8 type, u32 bit_offset,
   is_min_used_ = 0;
   factor_ = 1.0f;
   is_max_used_ = 0;
+  is_read_only_ = 0;
 }
 
 PageItem& PageItem::WithArray(const c8* array[], u32 array_size) {
@@ -155,6 +226,29 @@ PageItem& PageItem::WithFactor(f32 factor) {
 PageItem& PageItem::WithDescription(const c8* description) {
   description_ = description;
   return *this;
+}
+
+PageItem& PageItem::WithReadOnly() {
+  is_read_only_ = 1;
+  return *this;
+}
+
+bool PageItem::IsSigned() const {
+  switch (type_) {
+    case kTypeS8:
+    case kTypeS16:
+    case kTypeS32:
+    case kTypeS64:
+    case kTypeF32:
+    case kTypeF64:
+      return true;
+    default:
+      return is_min_used_ && min_ < 0;
+  }
+}
+
+bool PageItem::IsDecimal() const {
+  return type_ == kTypeF32 || type_ == kTypeF64;
 }
 
 bool PageItem::HasValue() const {
@@ -216,181 +310,107 @@ bool PageItem::IsSameAs(const PageItem& other) const {
 
 u8 PageItem::GetType() const { return type_; }
 
-void PageItem::GetDefaultDisplayValue(c16* buffer) const {
-  const c16* prefix = (callback_ == nullptr) ? u"" : u"\uE000 ";
+void PageItem::GetValueText(c16* buffer) const {
+  buffer[0] = 0;
+  if (array_size_ != 0 && HasValue()) {
+    const u32 index = (u32)GetIndex() % array_size_;
+    core::Utils::Format(buffer, u"< %s >", array_[index]);
+    return;
+  }
 
   switch (type_) {
     case kTypeU8:
-      core::Utils::Format(buffer, u"%ls%s : %u", prefix, name_, *(u8*)address_);
+      core::Utils::Format(buffer, u"%u", *(u8*)address_);
       break;
-
     case kTypeS8:
-      core::Utils::Format(buffer, u"%ls%s : %d", prefix, name_, *(s8*)address_);
+      core::Utils::Format(buffer, u"%d", *(s8*)address_);
       break;
-
     case kTypeU16:
-      core::Utils::Format(buffer, u"%ls%s : %u", prefix, name_, *(u16*)address_);
+      core::Utils::Format(buffer, u"%u", *(u16*)address_);
       break;
-
     case kTypeS16:
-      core::Utils::Format(buffer, u"%ls%s : %d", prefix, name_, *(s16*)address_);
+      core::Utils::Format(buffer, u"%d", *(s16*)address_);
       break;
-
     case kTypePointer:
-      core::Utils::Format(buffer, u"%ls%s : 0x%08X", prefix, name_, address_);
+      core::Utils::Format(buffer, u"0x%08X", address_);
       break;
-
     case kTypeU32:
-      core::Utils::Format(buffer, u"%ls%s : %u", prefix, name_, *(u32*)address_);
+      core::Utils::Format(buffer, u"%u", *(u32*)address_);
       break;
-
     case kTypeS32:
-      core::Utils::Format(buffer, u"%ls%s : %d", prefix, name_, *(s32*)address_);
+      core::Utils::Format(buffer, u"%d", *(s32*)address_);
       break;
-
     case kTypeU64:
-      core::Utils::Format(buffer, u"%ls%s : %llu", prefix, name_, *(u64*)address_);
+      core::Utils::Format(buffer, u"%llu", *(u64*)address_);
       break;
-
     case kTypeS64:
-      core::Utils::Format(buffer, u"%ls%s : %lld", prefix, name_, *(s64*)address_);
+      core::Utils::Format(buffer, u"%lld", *(s64*)address_);
       break;
-
     case kTypeF32:
-      core::Utils::Format(buffer, u"%ls%s : %.2f", prefix, name_, *(f32*)address_);
+      core::Utils::Format(buffer, u"%.2f", *(f32*)address_);
       break;
-
     case kTypeF64:
-      core::Utils::Format(buffer, u"%ls%s : %.2f", prefix, name_, *(f64*)address_);
+      core::Utils::Format(buffer, u"%.2f", *(f64*)address_);
       break;
-
     case kTypeBits:
-      core::Utils::Format(buffer, u"%ls%s : %u", prefix, name_,
-                    GET_BITS(*(u32*)address_, bit_offset_, bit_size_));
+      core::Utils::Format(buffer, u"%u",
+                          GET_BITS(*(u32*)address_, bit_offset_, bit_size_));
       break;
-
     case kTypeBoolean:
-      core::Utils::Format(buffer, u"%ls%s : %s", prefix, name_,
-                    *(bool*)address_ ? "On" : "Off");
+      core::Utils::Format(buffer, u"%s", *(bool*)address_ ? "On" : "Off");
       break;
-
     case kTypeCheatCode:
-      core::Utils::Format(buffer, u"%ls%s : %s", prefix, name_,
-                    ((core::CheatCode*)address_)->IsEnabled() ? "On" : "Off");
+      core::Utils::Format(
+          buffer, u"%s",
+          ((core::CheatCode*)address_)->IsEnabled() ? "On" : "Off");
       break;
-
     case kTypeUnicode: {
-      c16 temp_buf[64];
-      u32 max_len = (bit_offset_ < 64) ? bit_offset_ : 63;
-      for (u32 i = 0; i < max_len; i++) {
-        temp_buf[i] = ((c16*)address_)[i];
+      c16 text[64];
+      const u32 length = (bit_offset_ < 64) ? bit_offset_ : 63;
+      for (u32 i = 0; i < length; i++) {
+        text[i] = ((c16*)address_)[i];
       }
-      temp_buf[max_len] = 0;
-      core::Utils::Format(buffer, u"%ls%s : \"%ls\"", prefix, name_, temp_buf);
+      text[length] = 0;
+      core::Utils::Format(buffer, u"\"%ls\"", text);
       break;
     }
-
-    case kTypeIdle:
-      core::Utils::Format(buffer, u"%ls%s", prefix, name_);
-      break;
-
     case kTypeAbility:
-      ((void (*)(String*, u8))pokemon::address::kGetAbilityName)(String::GetTmpStr(),
-        *(u8*)address_);
-      core::Utils::Format(buffer, u"%ls%s : %ls", prefix, name_, String::GetTmpBuf());
+      ((void (*)(String*, u8))pokemon::address::kGetAbilityName)(
+          String::GetTmpStr(), *(u8*)address_);
+      core::Utils::Format(buffer, u"%ls", String::GetTmpBuf());
       break;
-
     case kTypeSpecies:
-      ((void (*)(String*, u16))pokemon::address::kGetSpeciesName)(String::GetTmpStr(),
-        *(u16*)address_);
-      core::Utils::Format(buffer, u"%ls%s : N°%03d %ls", prefix, name_,
-                    *(u16*)address_,
-                    String::GetTmpBuf());
+      ((void (*)(String*, u16))pokemon::address::kGetSpeciesName)(
+          String::GetTmpStr(), *(u16*)address_);
+      core::Utils::Format(buffer, u"N°%03d %ls", *(u16*)address_,
+                          String::GetTmpBuf());
       break;
-
     case kTypeMove:
-      ((void (*)(u16, String*))pokemon::address::kGetMoveName)(*(u16*)address_,
-        String::GetTmpStr());
-      core::Utils::Format(buffer, u"%ls%s : %ls", prefix, name_, String::GetTmpBuf());
+      ((void (*)(u16, String*))pokemon::address::kGetMoveName)(
+          *(u16*)address_, String::GetTmpStr());
+      core::Utils::Format(buffer, u"%ls", String::GetTmpBuf());
       break;
-
     case kTypeItem: {
       pokemon::ItemData item(*(ItemId*)address_);
       item.GetName(String::GetTmpStr());
-      core::Utils::Format(buffer, u"%ls%s : %ls", prefix, name_, String::GetTmpBuf());
+      core::Utils::Format(buffer, u"%ls", String::GetTmpBuf());
+      break;
     }
-    break;
-
-    case kTypeSeparator: {
-      if (name_ != nullptr && name_[0] != '\0') {
-        core::Utils::Format(buffer, u"\u2015\u2015 %s \u2015\u2015\u2015\u2015", name_);
-        break;
-      }
-      u32 i;
-      for (i = 0; i < 16; i++) {
-        buffer[i] = 0x2015;
-      }
-      buffer[i] = 0;
-    }
-    break;
-
+    case kTypeMenu:
+      core::Utils::Format(buffer, u">");
+      break;
     default:
-      core::Utils::Format(buffer, u"%ls%s : ???", prefix, name_);
       break;
   }
 }
 
-void PageItem::GetArrayDisplayValue(c16* buffer) const {
-  const c16* prefix = (callback_ == nullptr) ? u"" : u"\uE000 ";
-  u32 index = 0;
-
-  switch (type_) {
-    case kTypeU8:
-    case kTypeAbility:
-      index = *(u8*)address_;
-      break;
-    case kTypeS8:
-      index = *(s8*)address_;
-      break;
-    case kTypeU16:
-    case kTypeSpecies:
-    case kTypeMove:
-    case kTypeItem:
-      index = *(u16*)address_;
-      break;
-    case kTypeS16:
-      index = *(s16*)address_;
-      break;
-    case kTypeU32:
-      index = *(u32*)address_;
-      break;
-    case kTypeS32:
-      index = *(s32*)address_;
-      break;
-    case kTypeU64:
-      index = *(u64*)address_;
-      break;
-    case kTypeS64:
-      index = *(s64*)address_;
-      break;
-    case kTypePointer:
-      index = *(u32*)address_;
-      break;
-    case kTypeBits:
-      index = GET_BITS(*(u32*)address_, bit_offset_, bit_size_);
-      break;
-    case kTypeBoolean:
-      index = *(bool*)address_;
-      break;
-    default:
-      core::Utils::Format(buffer, u"%ls%s : ???", prefix, name_);
-      return;
-  }
-
-  index %= array_size_;
-  core::Utils::Format(buffer, u"%ls%s : <%s> [%d/%d]", prefix, name_, array_[index],
-                index + 1,
-                array_size_);
+void PageItem::GetNameText(c16* buffer) const {
+  // An entry that runs a function with A starts with the icon of the A
+  // button.
+  const c16* prefix =
+      (callback_ == nullptr || type_ == kTypeMenu) ? u"" : u" ";
+  core::Utils::Format(buffer, u"%ls%s", prefix,
+                      name_ != nullptr ? name_ : "");
 }
 
 void PageItem::GetDisplayValue(c16* buffer) const {
@@ -398,31 +418,85 @@ void PageItem::GetDisplayValue(c16* buffer) const {
     core::Utils::Format(buffer, u"[%s]", name_);
     return;
   }
-  if (array_size_ != 0) {
-    GetArrayDisplayValue(buffer);
+  if (type_ == kTypeSeparator) {
+    if (name_ != nullptr && name_[0] != '\0') {
+      core::Utils::Format(buffer, u"―― %s ――――",
+                          name_);
+      return;
+    }
+    u32 i;
+    for (i = 0; i < 16; i++) buffer[i] = 0x2015;
+    buffer[i] = 0;
     return;
   }
-  GetDefaultDisplayValue(buffer);
+
+  c16 name[96];
+  GetNameText(name);
+  if (type_ == kTypeIdle || !HasValue()) {
+    core::Utils::Format(buffer, u"%ls", name);
+    return;
+  }
+  c16 value[96];
+  GetValueText(value);
+  core::Utils::Format(buffer, u"%ls : %ls", name, value);
+}
+
+u32 PageItem::GetValueSize() const {
+  if (!HasValue()) return 0;
+  switch (type_) {
+    case kTypeU8:
+    case kTypeS8:
+    case kTypeAbility:
+    case kTypeBoolean:
+      return 1;
+    case kTypeU16:
+    case kTypeS16:
+    case kTypeSpecies:
+    case kTypeMove:
+    case kTypeItem:
+      return 2;
+    case kTypeU32:
+    case kTypeS32:
+    case kTypeF32:
+    case kTypePointer:
+    case kTypeBits:
+      return 4;
+    case kTypeU64:
+    case kTypeS64:
+    case kTypeF64:
+      return 8;
+    case kTypeUnicode:
+      return bit_offset_ * sizeof(c16);
+    default:
+      return 0;
+  }
 }
 
 void PageItem::Increment(u32 count) {
+  if (is_read_only_) return;
   switch (type_) {
     case kTypeU8:
     case kTypeAbility:
-    case kTypeS8:
       IncrementWrapped<u8>(address_, min_, max_, is_max_used_, count);
+      break;
+    case kTypeS8:
+      IncrementWrapped<s8>(address_, min_, max_, is_max_used_, count);
       break;
     case kTypeU16:
     case kTypeSpecies:
-    case kTypeS16:
     case kTypeMove:
     case kTypeItem:
       IncrementWrapped<u16>(address_, min_, max_, is_max_used_, count);
       break;
+    case kTypeS16:
+      IncrementWrapped<s16>(address_, min_, max_, is_max_used_, count);
+      break;
     case kTypeU32:
-    case kTypeS32:
     case kTypePointer:
       IncrementWrapped<u32>(address_, min_, max_, is_max_used_, count);
+      break;
+    case kTypeS32:
+      IncrementWrapped<s32>(address_, min_, max_, is_max_used_, count);
       break;
 
     case kTypeU64:
@@ -471,28 +545,33 @@ void PageItem::Increment(u32 count) {
     default:
       break;
   }
-
-  if (refresh_) MainApplication::GetInstance().Refresh();
 }
 
 void PageItem::Decrement(u32 count) {
+  if (is_read_only_) return;
   switch (type_) {
     case kTypeU8:
     case kTypeAbility:
-    case kTypeS8:
       DecrementWrapped<u8>(address_, min_, max_, is_min_used_, count);
+      break;
+    case kTypeS8:
+      DecrementWrapped<s8>(address_, min_, max_, is_min_used_, count);
       break;
     case kTypeU16:
     case kTypeSpecies:
-    case kTypeS16:
     case kTypeMove:
     case kTypeItem:
       DecrementWrapped<u16>(address_, min_, max_, is_min_used_, count);
       break;
+    case kTypeS16:
+      DecrementWrapped<s16>(address_, min_, max_, is_min_used_, count);
+      break;
     case kTypeU32:
-    case kTypeS32:
     case kTypePointer:
       DecrementWrapped<u32>(address_, min_, max_, is_min_used_, count);
+      break;
+    case kTypeS32:
+      DecrementWrapped<s32>(address_, min_, max_, is_min_used_, count);
       break;
 
     case kTypeU64:
@@ -535,11 +614,10 @@ void PageItem::Decrement(u32 count) {
     default:
       break;
   }
-
-  if (refresh_) MainApplication::GetInstance().Refresh();
 }
 
 void PageItem::Edit(const void* value) {
+  if (is_read_only_ && type_ != kTypeMenu) return;
   switch (type_) {
     case kTypeU8:
     case kTypeAbility:
@@ -609,8 +687,100 @@ void PageItem::Edit(const void* value) {
     default:
       break;
   }
+}
 
-  if (refresh_) MainApplication::GetInstance().Refresh();
+void PageItem::EditNumber(const c16* text) {
+  s64 integer;
+  f64 decimal;
+  if (is_read_only_ || !ParseNumber(text, integer, decimal)) return;
+
+  switch (type_) {
+    case kTypeU8:
+    case kTypeAbility:
+      StoreClamped<u8>(address_, integer, min_, max_, is_min_used_,
+                       is_max_used_);
+      break;
+    case kTypeS8:
+      StoreClamped<s8>(address_, integer, min_, max_, is_min_used_,
+                       is_max_used_);
+      break;
+    case kTypeU16:
+    case kTypeSpecies:
+    case kTypeMove:
+    case kTypeItem:
+      StoreClamped<u16>(address_, integer, min_, max_, is_min_used_,
+                        is_max_used_);
+      break;
+    case kTypeS16:
+      StoreClamped<s16>(address_, integer, min_, max_, is_min_used_,
+                        is_max_used_);
+      break;
+    case kTypeU32:
+    case kTypePointer:
+      StoreClamped<u32>(address_, integer, min_, max_, is_min_used_,
+                        is_max_used_);
+      break;
+    case kTypeS32:
+      StoreClamped<s32>(address_, integer, min_, max_, is_min_used_,
+                        is_max_used_);
+      break;
+    case kTypeU64:
+      *(u64*)address_ = (u64)integer;
+      break;
+    case kTypeS64:
+      *(s64*)address_ = integer;
+      break;
+    case kTypeBits: {
+      s64 value = integer;
+      if (is_min_used_ && value < min_) value = min_;
+      if (is_max_used_ && value > max_) value = max_;
+      SetBits((u32*)address_, bit_offset_, bit_size_, (u32)value);
+      break;
+    }
+    case kTypeF32:
+    case kTypeF64: {
+      f64 value = decimal;
+      if (is_min_used_ && value < min_) value = min_;
+      if (is_max_used_ && value > max_) value = max_;
+      if (type_ == kTypeF32) {
+        *(f32*)address_ = (f32)value;
+      } else {
+        *(f64*)address_ = value;
+      }
+      break;
+    }
+    case kTypeBoolean:
+      *(bool*)address_ = integer != 0;
+      break;
+    default:
+      break;
+  }
+}
+
+void PageItem::GetNumberText(c16* buffer) const {
+  switch (type_) {
+    case kTypeF32:
+      core::Utils::Format(buffer, u"%.3f", *(f32*)address_);
+      TrimZeros(buffer);
+      break;
+    case kTypeF64:
+      core::Utils::Format(buffer, u"%.3f", *(f64*)address_);
+      TrimZeros(buffer);
+      break;
+    case kTypeU32:
+    case kTypePointer:
+      core::Utils::Format(buffer, u"%u", *(u32*)address_);
+      break;
+    case kTypeU64:
+      core::Utils::Format(buffer, u"%llu", *(u64*)address_);
+      break;
+    case kTypeS64:
+      core::Utils::Format(buffer, u"%lld", *(s64*)address_);
+      break;
+    default:
+      core::Utils::Format(buffer, u"%d", GetIndex());
+      break;
+  }
 }
 
 void PageItem::Execute(MainApplication& application) {

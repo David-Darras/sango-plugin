@@ -87,6 +87,24 @@ public:
     ((void (*)(f32, f32))renderer::address::kGraphicsSetTextScale)(x, y);
   }
 
+  /**
+   * @brief Returns the width of a text with the current text scale.
+   *
+   * The width is in the units of DrawText(): pixels on the bottom screen,
+   * and a space of 512 x 256 on the top screen. The function draws nothing.
+   * When the address is not known (XY), it returns an estimate.
+   */
+  STATIC_INLINE s32 GetTextWidth(const c16* str) {
+    if (renderer::address::kGraphicsCalcStringWidth == 0) {
+      s32 length = 0;
+      while (str[length] != 0) length++;
+      return length * 9;
+    }
+    return (s32)((f32 (*)(const c16*, void*))
+                     renderer::address::kGraphicsCalcStringWidth)(str,
+                                                                  nullptr);
+  }
+
   /// Fills the screen with a color.
   STATIC_INLINE void FillScreen(f32 r, f32 g, f32 b, f32 a) {
     const Color color{r, g, b, a};

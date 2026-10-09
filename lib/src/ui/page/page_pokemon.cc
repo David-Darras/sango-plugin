@@ -36,6 +36,8 @@
 #include "overworld/patch/static_randomizer.h"
 #include "overworld/patch/trade.h"
 #include "pokemon/patch/shiny.h"
+#include "overworld/patch/whos_that_pokemon.h"
+#include "pokemon/patch/item_customizer.h"
 #include "ui/main_application.h"
 #include "ui/page/pages.h"
 #include "ui/patch/app_status.h"
@@ -209,22 +211,84 @@ static void FillBoxesWithZaMegaForms(void*) {
   }
 }
 
+// The Mega Evolutions of Pokemon Legends: Z-A: give them to the team or put
+// them in the boxes.
+static void LoadZaMegaPage(MainApplication& app, void* args) {
+  static const c8* names[SIZE(kZaMegas)] = {};
+  if (names[0] == nullptr) {
+    for (u32 i = 0; i < SIZE(kZaMegas); i++) names[i] = kZaMegas[i].name;
+  }
+
+  app.AddSection("One Pokemon")
+     .Add("Mega Evolution", za_index)
+     .WithArray(names, SIZE(names))
+     .Add("Give To The Team", GiveZaMegaToTeam)
+     .WithDescription("Gives the Pokemon and its item. When the team is "
+                      "full, it replaces the last Pokemon.")
+     .AddSection("All The Pokemon")
+     .Add("Fill The Team", FillTeamWithZaMegas)
+     .WithDescription("Replaces the team with 6 Pokemon of the list, from "
+                      "the selected one.")
+     .Add("Fill The Boxes", FillBoxesWithZaMegas)
+     .WithDescription("Puts all the Pokemon of the list in the boxes. It "
+                      "replaces the Pokemon in the first boxes!")
+     .Add("Fill The Boxes (Mega Forms)", FillBoxesWithZaMegaForms)
+     .WithDescription("The same, with the Mega forms. It replaces the "
+                      "Pokemon in the first boxes!");
+}
+
 void LoadPokemonPage(MainApplication& app, void* args) {
+  auto& who = overworld::WhosThatPokemon::GetInstance();
+
+  app.AddSection("Shiny");
   LoadShinyPage(app, args);
-#ifdef GAME_ORAS
-  app.Add("Fill Boxes With All New (Lv. 100)", FillBoxesWithAll);
-#endif
-  app.Add("Randomize Gift Pokemon",
+  app.WithDescription("The chance that a new Pokemon is shiny. Off: the "
+                      "normal rate of the game.")
+     .AddSection("Randomizers")
+     .Add("Randomize Gift Pokemon",
           overworld::GiftPokemon::GetInstance().randomize_species)
+     .WithDescription("The Pokemon that characters give are random.")
      .Add("Randomize Static Encounters",
           overworld::StaticRandomizer::GetInstance().randomize_species)
+     .WithDescription("The legendary Pokemon and the other fixed encounters "
+                      "are random.")
      .Add("Randomize Trades",
           overworld::Trade::GetInstance().randomize_species)
+     .WithDescription("The Pokemon of the in-game trades are random.")
+     .AddSection("Rules")
+     .Add("No EV Limit", pokemon::ItemCustomizer::GetInstance().remove_limit)
+     .WithDescription("The items that raise the EVs (vitamins, wings) work "
+                      "up to 255 for each stat.")
      .Add("Restricted Summary Editor", AppStatus::GetInstance().is_restricted)
+     .WithDescription("On: the summary editor changes only the nature, the "
+                      "ability and the form.")
      .Add("Pokemon Shop", CheatCodeId::kPokemonShop)
-     .AddSeparator()
+     .WithDescription("The normal Poke Marts sell Pokemon.")
+     .AddSection("Data")
      .Add("Species Data", LoadSpeciesDataPage)
+     .WithDescription("Base stats, types, abilities and TMs of each species.")
      .Add("Move Data", LoadMoveDataPage)
-     .Add("Model Loader (Unstable)", LoadModelLoaderPage);
+     .WithDescription("Type, power, accuracy and effects of each move.")
+     .Add("TMs and HMs", LoadTechnicalMachinePage)
+     .WithDescription("The move of each TM and HM.")
+     .AddSection("Tools")
+     .Add("Z-A Mega Evolutions", LoadZaMegaPage)
+     .WithDescription("Gives the Mega Evolutions of Pokemon Legends: Z-A.")
+#ifdef GAME_ORAS
+     .Add("Fill Boxes With All New (Lv. 100)", FillBoxesWithAll)
+     .WithDescription("Puts each new species and form in the boxes. It "
+                      "replaces the Pokemon in the boxes!")
+#endif
+     .Add("Model Loader (Unstable)", LoadModelLoaderPage)
+     .WithDescription("Shows a model of a character or a Pokemon near the "
+                      "player.")
+     .AddSection("Who's That Pokemon?")
+     .Add("Reward Level", who.reward_level)
+     .WithBounds(1, 100)
+     .WithDescription("The level of the Pokemon that the player wins.")
+     .Add("Highest Species", who.max_species)
+     .WithBounds(1, static_cast<u32>(SpeciesId::kCount) - 1)
+     .WithDescription("The questions use the species from 1 to this "
+                      "number.");
 }
 } // namespace ui

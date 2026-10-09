@@ -75,6 +75,7 @@
 #include "ui/main_application.h"
 #include "ui/patch/app_status.h"
 #include "ui/patch/keyboard_patch.h"
+#include "overworld/patch/world_overlay.h"
 #include "ui/patch/new_game.h"
 #include "ui/patch/party_select.h"
 #include "ui/patch/title_screen.h"
@@ -135,6 +136,7 @@ void InitializeEngine() {
 #ifndef GAME_XY
   overworld::MapGraft::Initialize();
   overworld::TileEditor::Initialize();
+  overworld::WorldOverlay::Initialize();
   pokemon::CustomShop::Initialize();
   overworld::RunAnimation::Initialize();
 #endif
@@ -186,6 +188,7 @@ void DrawFrame() {
   if (graphics.BindFramebuffer(top_buffer)) {
     sys::Graphics::EnableScissor(0, 0, 400, 240);
     sys::Graphics::BeginRender(top_buffer);
+    overworld::WorldOverlay::DrawTop();
     application->DrawTop(graphics);
     ui::KeyboardPatch::DrawTop();
     battle::TypeHelper::DrawTop();
