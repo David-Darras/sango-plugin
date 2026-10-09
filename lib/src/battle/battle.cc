@@ -27,41 +27,45 @@
 #include "battle/native/manager.h"
 #include "battle/patch/game_extension.h"
 #include "battle/patch/type_chart.h"
-#include "core/hook_manager.h"
+#include "core/hook.h"
 #include "overworld/patch/overworld.h"
 #include "system/native/sound.h"
 #include "pokemon/address.h"
 
 namespace battle {
+
+namespace {
+core::Hook<bool(void*, Team*, LevelUpData*)> level_up_hook;
+core::Hook<void(void*, u8, bool)> start_mega_evolution_animation_hook;
+core::Hook<void(void*, EntryAnimationData*)> start_entry_animation_hook;
+core::Hook<void(uptr, u32, u8)> start_background_music_hook;
+core::Hook<void(uptr, u16)> play_animation_hook;
+core::Hook<void(uptr)> update_view_hook;
+core::Hook<void(uptr, uptr, uptr)> pokemon_model_settings_hook;
+core::Hook<bool(u32, u32, u32, u32, u32, u32)> check_pokemon_captured_hook;
+core::Hook<void(uptr, u16, u32)> update_gauge_hook;
+} // namespace
+
 void Battle::Initialize() {
-  core::HookManager::Initialize(HookId::kBattleLevelUp, address::kLevelUp,
-                                (uptr)LevelUpHook, false);
-  core::HookManager::Initialize(HookId::kBattleStartMegaEvolutionAnimation,
-                                address::kStartMegaEvolutionAnimation,
-                                (uptr)StartMegaEvolutionAnimationHook, false);
-  core::HookManager::Initialize(HookId::kBattleStartEntryAnimation,
-                                address::kStartEntryAnimation,
-                                (uptr)StartEntryAnimationHook, false);
-  core::HookManager::Initialize(HookId::kBattleStartBackgroundMusic,
-                                address::kStartBackgroundMusic,
-                                (uptr)StartBackgroundMusicHook);
-  core::HookManager::Initialize(HookId::kBattlePlayAnimation,
-                                address::kPlayAnimation,
-                                (uptr)PlayAnimationHook, false);
-  core::HookManager::Initialize(HookId::kBattleUpdateView,
-                                address::kUpdateView,
-                                (uptr)UpdateViewHook, false);
-  core::HookManager::Initialize(HookId::kPokemonModelSettings,
-                                pokemon::address::kPokemonModelSettings,
-                                (uptr)PokemonModelSettingsHook);
-  core::HookManager::Initialize(HookId::kBattleCheckPokemonCaptured,
-                                pokemon::address::kBattleCheckPokemonCaptured,
-                                (uptr)CheckPokemonCapturedHook,
-                                false);
-  core::HookManager::Initialize(HookId::kBattleUpdateGauge,
-                                address::kUpdateGauge,
-                                (uptr)UpdateGaugeHook,
-                                false);
+  level_up_hook.Install(address::kLevelUp, LevelUpHook, address::kVtable);
+  start_mega_evolution_animation_hook.Install(
+      address::kStartMegaEvolutionAnimation, StartMegaEvolutionAnimationHook,
+      address::kVtable);
+  start_entry_animation_hook.Install(address::kStartEntryAnimation,
+                                     StartEntryAnimationHook, address::kVtable);
+  start_background_music_hook.Install(address::kStartBackgroundMusic,
+                                      StartBackgroundMusicHook);
+  play_animation_hook.Install(address::kPlayAnimation, PlayAnimationHook,
+                              address::kVtable);
+  update_view_hook.Install(address::kUpdateView, UpdateViewHook,
+                           address::kVtable);
+  pokemon_model_settings_hook.Install(pokemon::address::kPokemonModelSettings,
+                                      PokemonModelSettingsHook);
+  check_pokemon_captured_hook.Install(
+      pokemon::address::kBattleCheckPokemonCaptured, CheckPokemonCapturedHook,
+      address::kVtable);
+  update_gauge_hook.Install(address::kUpdateGauge, UpdateGaugeHook,
+                            address::kVtable);
 }
 
 void Battle::PatchUpdate() {
@@ -119,14 +123,6 @@ void Battle::PatchUpdate() {
 
 void Battle::PatchLoad() {
   MEMORY_SCOPE(sys::address::kMemoryRegionCro, 0xD8000);
-  core::HookManager::ForceEnable(HookId::kBattleUpdateView);
-  core::HookManager::ForceEnable(HookId::kBattleLevelUp);
-  core::HookManager::ForceEnable(HookId::kBattleStartMegaEvolutionAnimation);
-  core::HookManager::ForceEnable(HookId::kBattleStartEntryAnimation);
-  core::HookManager::ForceEnable(HookId::kBattlePlayAnimation);
-  core::HookManager::ForceEnable(HookId::kBattleCheckPokemonCaptured);
-  core::HookManager::ForceEnable(HookId::kBattleUpdateGauge);
-  GameExtension::PatchBattleLoad();
   TypeChart::PatchLoad();
 
   auto& feat = GetInstance();
@@ -168,9 +164,7 @@ bool Battle::CheckPokemonCapturedHook(u32 p0, u32 p1, u32 p2, u32 p3, u32 p4,
   if (feat.is_capture_allowed != nullptr && !feat.is_capture_allowed()) {
     *battle_type = 1;
   }
-  bool result = core::HookManager::Call<bool>(
-      HookId::kBattleCheckPokemonCaptured,
-      p0, p1, p2, p3, p4, p5);
+  bool result = check_pokemon_captured_hook(p0, p1, p2, p3, p4, p5);
   if (result) {
     if (feat.on_captured != nullptr) feat.on_captured();
   } else {
@@ -214,8 +208,7 @@ Color8 Battle::GetHpGaugeColor(f32 ratio) {
 }
 
 void Battle::UpdateGaugeHook(uptr gauge, u16 max_hp, u32 new_hp) {
-  core::HookManager::Call<void>(HookId::kBattleUpdateGauge, gauge, max_hp,
-                                new_hp);
+  update_gauge_hook(gauge, max_hp, new_hp);
   uptr res = ((uptr(*)(uptr))address::kGetHpGaugePane)(
       READ32(gauge + 48));
 
@@ -232,11 +225,11 @@ void Battle::UpdateViewHook(uptr self) {
     camera[5] = 0x7FFFFFFF; ///< Disable the camera animation.
   }
 
-  core::HookManager::Call<void>(HookId::kBattleUpdateView, self);
+  update_view_hook(self);
 }
 
 void Battle::PokemonModelSettingsHook(uptr model, uptr p0, uptr p1) {
-  core::HookManager::Call<void>(HookId::kPokemonModelSettings, model, p0, p1);
+  pokemon_model_settings_hook(model, p0, p1);
   if (!GetInstance().fix_pokemon_size) return;
 
   WRITE32(model + kModelShownHeightOffset, READ32(model + kModelRealHeightOffset));
@@ -245,8 +238,7 @@ void Battle::PokemonModelSettingsHook(uptr model, uptr p0, uptr p1) {
 
 void Battle::PlayAnimationHook(uptr view_manager, u16 id) {
   if (id == kShinyAnimationId && !GetInstance().show_shiny_animation) return;
-  return core::HookManager::Call<void>(HookId::kBattlePlayAnimation,
-                                       view_manager, id);
+  return play_animation_hook(view_manager, id);
 }
 
 void Battle::StartBackgroundMusicHook(uptr sound_manager, u32 id, u8 p2) {
@@ -254,8 +246,7 @@ void Battle::StartBackgroundMusicHook(uptr sound_manager, u32 id, u8 p2) {
     id = sys::Sound::kBankBackgroundMusic +
          static_cast<u32>(overworld::Overworld::GetInstance().background_music);
   }
-  return core::HookManager::Call<void>(HookId::kBattleStartBackgroundMusic,
-                                       sound_manager, id, p2);
+  return start_background_music_hook(sound_manager, id, p2);
 }
 
 void Battle::StartEntryAnimationHook(void* p0, EntryAnimationData* data) {
@@ -269,20 +260,17 @@ void Battle::StartEntryAnimationHook(void* p0, EntryAnimationData* data) {
   if (kHasTrainerVisibilityFlag)
     data->dont_show_trainer = !config.show_trainer_animation;
 
-  core::HookManager::Call<void>(HookId::kBattleStartEntryAnimation, p0, data);
+  start_entry_animation_hook(p0, data);
 }
 
 void Battle::StartMegaEvolutionAnimationHook(void* view, u8 target,
                                              bool is_long_animation) {
-  core::HookManager::Call<void>(HookId::kBattleStartMegaEvolutionAnimation,
-                                view,
-                                target,
-                                GetInstance().is_long_mega_evolve_animation);
+  start_mega_evolution_animation_hook(
+      view, target, GetInstance().is_long_mega_evolve_animation);
 }
 
 bool Battle::LevelUpHook(void* self, Team* team,
                          LevelUpData* data) {
-  return core::HookManager::Call<
-    bool>(HookId::kBattleLevelUp, self, team, data);
+  return level_up_hook(self, team, data);
 }
 } // namespace battle

@@ -23,7 +23,7 @@
  */
 
 #include "ui/patch/keyboard_patch.h"
-#include "core/hook_manager.h"
+#include "core/hook.h"
 #include "core/utils.h"
 #include "system/native/controller.h"
 #include "system/native/font_manager.h"
@@ -31,10 +31,13 @@
 
 namespace ui {
 
+namespace {
+core::Hook<void(uptr, u32, bool, u32)> update_keys_hook;
+} // namespace
+
 void KeyboardPatch::Initialize() {
-  core::HookManager::Initialize(HookId::kKeyboardUpdateKeys,
-                          core::address::kKeyboardUpdateKeys,
-                          (uptr)UpdateKeys, false);
+  update_keys_hook.Install(core::address::kKeyboardUpdateKeys, UpdateKeys,
+                           address::kKeyboardVtable);
 
   // Disable the word filter of the keyboard. The player can then type all
   // the words and the phone numbers.
@@ -44,7 +47,6 @@ void KeyboardPatch::Initialize() {
 
 void KeyboardPatch::PatchLoad() {
   MEMORY_SCOPE(sys::address::kMemoryRegionKeyboard, 0x7000);
-  core::HookManager::ForceEnable(HookId::kKeyboardUpdateKeys);
   // L refreshes the keyboard.
   ARM_NOP(address::kKeyboardRefreshOnL);
   // R does the same thing as L.
@@ -139,8 +141,7 @@ void KeyboardPatch::UpdateKeys(uptr self, u32 layout_id, bool is_qwerty,
     current_char++;
   }
 
-  return core::HookManager::Call<void>(HookId::kKeyboardUpdateKeys, self, layout_id,
-                                 is_qwerty, key_count);
+  return update_keys_hook(self, layout_id, is_qwerty, key_count);
 }
 
 } // namespace ui

@@ -24,22 +24,29 @@
 
 #include "overworld/patch/map_tile.h"
 
-#include "core/hook_manager.h"
+#include "core/hook.h"
 #include "overworld/patch/tile_editor.h"
 
 namespace overworld {
 
+namespace {
+core::Hook<Tile(void*, Vec3*)> get_map_tile_hook;
+} // namespace
+
 void MapTile::Initialize() {
-  core::HookManager::Initialize(HookId::kGetMapTile, address::kGetMapTile,
-                          (uptr)GetMapTileHook);
+  get_map_tile_hook.Install(address::kGetMapTile, GetMapTileHook);
+}
+
+Tile MapTile::GetOriginalTile(void* data, Vec3* pos) {
+  if (get_map_tile_hook.IsInitialized()) return get_map_tile_hook(data, pos);
+  return ((Tile (*)(void*, Vec3*))address::kGetMapTile)(data, pos);
 }
 
 Tile MapTile::GetMapTileHook(void* data, Vec3* pos) {
   auto& ctx = GetInstance();
   TileEditor::OnAttrQuery(data, pos);
 
-  Tile tile = core::HookManager::GetInstance().Get(HookId::kGetMapTile)->
-      CallOriginal<Tile>(data, pos);
+  Tile tile = get_map_tile_hook(data, pos);
 
   if (ctx.is_enabled) {
     tile.is_impassable = ctx.is_impassable;

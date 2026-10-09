@@ -132,11 +132,12 @@ A product can also react to a new process with the callback
 `core::ProcessPatch::GetInstance().on_process_load`.
 
 The battle code is a **CRO**: the game loads it only during a battle.
-Hooks in a CRO are installed disabled. The library enables them when the CRO is in memory.
+A hook in a CRO knows the vtable of its process. `core::ProcessPatch` writes
+the hook again each time that the process starts.
 
 ## How a product talks to the library
 
-A product never changes the files of `lib/`. It uses four tools:
+A product never changes the files of `lib/`. It uses five tools:
 
 | Tool | Example |
 |---|---|
@@ -144,6 +145,7 @@ A product never changes the files of `lib/`. It uses four tools:
 | **Callbacks** of a feature | `overworld::WildEncounter::GetInstance().on_wild_pokemon = MyFunction;` |
 | **Add / Register** functions | `battle::GameExtension::AddMove(...)`, `script::NativeScript::Register(...)` |
 | **Pages** of the menu | `app.Add("Battle", ui::LoadBattlePage);` |
+| **Hooks** | `HOOK(bool, AddPokemonToTeam, (...), pokemon::address::kAddPokemonToTeam) { ... }` |
 
 If the library does not have the tool that you need, add a feature to the library.
 See [Add a hook](../tutorials/03-add-a-hook.md).

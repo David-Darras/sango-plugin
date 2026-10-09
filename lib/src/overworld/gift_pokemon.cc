@@ -23,20 +23,28 @@
  */
 
 #include "overworld/patch/gift_pokemon.h"
-#include "core/hook_manager.h"
+#include "core/hook.h"
 #include "pokemon/native/gift_pokemon_data.h"
 #include "core/utils.h"
 
 namespace overworld {
 
+namespace {
+core::Hook<s32(u32*, u32*)> script_add_pokemon_to_team_hook;
+} // namespace
+
 void GiftPokemon::Initialize() {
-  core::HookManager::Initialize(HookId::kScriptAddPokemonToTeam,
-                          pokemon::address::kScriptAddPokemonToTeam,
-                          (uptr)ScriptAddPokemonToTeamHook, false);
+  script_add_pokemon_to_team_hook.Install(
+      pokemon::address::kScriptAddPokemonToTeam, ScriptAddPokemonToTeamHook,
+      address::kVtable);
 }
 
-void GiftPokemon::PatchLoad() {
-  core::HookManager::ForceEnable(HookId::kScriptAddPokemonToTeam);
+s32 GiftPokemon::AddPokemonWithoutRandomizer(u32* a1, u32* a2) {
+  if (script_add_pokemon_to_team_hook.IsInitialized()) {
+    return script_add_pokemon_to_team_hook(a1, a2);
+  }
+  return ((s32(*)(u32*, u32*))pokemon::address::kScriptAddPokemonToTeam)(
+      a1, a2);
 }
 
 void GiftPokemon::RandomizeSpecies(u32 idx) {
@@ -47,7 +55,7 @@ void GiftPokemon::RandomizeSpecies(u32 idx) {
 
 s32 GiftPokemon::ScriptAddPokemonToTeamHook(u32* a1, u32* a2) {
   if (GetInstance().randomize_species) RandomizeSpecies(a2[1]);
-  return core::HookManager::Call<s32>(HookId::kScriptAddPokemonToTeam, a1, a2);
+  return script_add_pokemon_to_team_hook(a1, a2);
 }
 
 } // namespace overworld

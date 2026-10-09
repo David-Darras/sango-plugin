@@ -25,7 +25,7 @@
 #include "pokemon/patch/mega_evolution.h"
 #include "pokemon/patch/alolan_forms.h"
 #include "pokemon/patch/species_table.h"
-#include "core/hook_manager.h"
+#include "core/hook.h"
 #include "pokemon/constant/item.h"
 #include "pokemon/constant/mega_evolution_method.h"
 #include "pokemon/native/database.h"
@@ -33,10 +33,13 @@
 
 namespace pokemon {
 
+namespace {
+core::Hook<void(SpeciesId)> load_mega_evolution_table_hook;
+} // namespace
+
 void MegaEvolution::Initialize() {
-  core::HookManager::Initialize(HookId::kLoadMegaEvolutionTable,
-                          address::kLoadMegaEvolutionTable,
-                          (uptr)LoadMegaEvolutionTableHook);
+  load_mega_evolution_table_hook.Install(address::kLoadMegaEvolutionTable,
+                                         LoadMegaEvolutionTableHook);
   // Disable the cache.
   ARM_RET(address::kLoadMegaEvolutionTable + 0x3C);
   ARM_RET(address::kResetMegaEvolution);
@@ -44,8 +47,7 @@ void MegaEvolution::Initialize() {
 
 void MegaEvolution::LoadMegaEvolutionTableHook(SpeciesId species) {
   const bool extra = SpeciesTable::IsGen7(static_cast<u16>(species));
-  core::HookManager::Call<void>(HookId::kLoadMegaEvolutionTable,
-                                extra ? static_cast<SpeciesId>(1) : species);
+  load_mega_evolution_table_hook(extra ? static_cast<SpeciesId>(1) : species);
 
   auto& mega_evolve_table = *Database::GetInstance().mega_evolution;
   auto& table = *mega_evolve_table.data;

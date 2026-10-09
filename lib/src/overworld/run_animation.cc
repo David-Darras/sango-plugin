@@ -23,28 +23,27 @@
  */
 
 #include "overworld/patch/run_animation.h"
-#include "core/hook_manager.h"
+#include "core/hook.h"
 
 namespace overworld {
 
-void RunAnimation::Initialize() {
-  core::HookManager::Initialize(HookId::kModelPlayAnimation,
-                          renderer::address::kModelPlayAnimation, (uptr)PlayAnimationHook);
-  core::HookManager::Initialize(HookId::kModelUpdateMotion,
-                          renderer::address::kModelUpdateMotion, (uptr)UpdateMotionHook,
-                          false);
-}
+namespace {
+core::Hook<u32(void*, u32, u32)> play_animation_hook;
+core::Hook<u32(void*, bool)> update_motion_hook;
+} // namespace
 
-void RunAnimation::PatchLoad() {
-  core::HookManager::ForceEnable(HookId::kModelUpdateMotion);
+void RunAnimation::Initialize() {
+  play_animation_hook.Install(renderer::address::kModelPlayAnimation,
+                              PlayAnimationHook);
+  update_motion_hook.Install(renderer::address::kModelUpdateMotion,
+                             UpdateMotionHook, address::kVtable);
 }
 
 u32 RunAnimation::PlayAnimationHook(void* model, u32 action, u32 direction) {
   auto& feat = GetInstance();
   feat.running_ = feat.enabled && action == kRunAction;
   if (feat.running_) action = kWalkAction;
-  return core::HookManager::Call<u32>(HookId::kModelPlayAnimation, model, action,
-                                direction);
+  return play_animation_hook(model, action, direction);
 }
 
 u32 RunAnimation::UpdateMotionHook(void* model, bool flag) {
@@ -54,7 +53,7 @@ u32 RunAnimation::UpdateMotionHook(void* model, bool flag) {
     *(u8*)((uptr)model + kFrameStepOffset) = kRunFrameStep;
     feat.remaining_frames_--;
   }
-  return core::HookManager::Call<u32>(HookId::kModelUpdateMotion, model, flag);
+  return update_motion_hook(model, flag);
 }
 
 } // namespace overworld

@@ -33,7 +33,9 @@ namespace core {
 /**
  * @brief Calls the patches of a process when it starts and at each frame.
  *
- * For example, it calls battle::Battle::PatchLoad() when a battle starts.
+ * When a process starts, it writes again the hooks of the process (see
+ * core::Hook). Then it calls the patches, for example
+ * battle::Battle::PatchLoad() when a battle starts.
  */
 class ProcessPatch {
   MAKE_SINGLETON(ProcessPatch)

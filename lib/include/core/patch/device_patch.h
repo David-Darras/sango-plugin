@@ -26,25 +26,11 @@
 
 namespace core {
 
-/// Hides the buttons and the touch screen from the game.
+/// Hides the buttons and the touch screen from the game. The hooks are in
+/// device_patch.cc: the plugin installs them at the start.
 struct DevicePatch {
   MAKE_SINGLETON(DevicePatch)
   bool use_redirection = false; ///< true: the game sees no button. The menu sets it when it opens.
-
-  static void Initialize();
-
-private:
-  static u32 GetRepeatKeyHook(uptr button, u8 channel);
-
-  static bool HookkIsKeyPressed(void* pDevice, u32 key, u8 channel);
-  static bool HookkIsKeyReleased(void* pDevice, u32 key, u8 channel);
-  static bool HookkIsKeyDown(void* pDevice, u32 key, u8 channel);
-  static bool HookkIsKeyRepeated(void* pDevice, u32 key, u8 channel);
-  static bool HookkIsDPadDown(void* pDevice, u32 key, u8 channel);
-  static bool HookkIsDPadRepeated(void* pDevice, u32 key, u8 channel);
-
-  static bool HookkIsTouchDown(void* pTouch, u8 channel);
-  static bool HookkIsTouchReleased(void* pTouch, u8 channel);
 };
 
 } // namespace core

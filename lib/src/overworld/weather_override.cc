@@ -24,22 +24,25 @@
 
 #include "overworld/patch/weather_override.h"
 
-#include "core/hook_manager.h"
+#include "core/hook.h"
 #include "overworld/native/weather_manager.h"
 
 namespace overworld {
 
+namespace {
+core::Hook<void(WeatherManager*, u16, u32, u32, u32)> set_zone_hook; ///< XY.
+core::Hook<void(WeatherManager*, u16, Weather)> update_zone_weather_hook;
+core::Hook<void(WeatherManager*, u16, Weather)> update_area_weather_hook;
+} // namespace
+
 void WeatherOverride::Initialize() {
 #ifdef GAME_XY
-  core::HookManager::Initialize(HookId::kUpdateZoneWeather,
-                          address::kWeatherSetZone, (uptr)SetZoneHook);
+  set_zone_hook.Install(address::kWeatherSetZone, SetZoneHook);
 #else
-  core::HookManager::Initialize(HookId::kUpdateZoneWeather,
-                          address::kUpdateZoneWeather,
-                          (uptr)UpdateZoneWeatherHook);
-  core::HookManager::Initialize(HookId::kUpdateAreaWeather,
-                          address::kUpdateAreaWeather,
-                          (uptr)UpdateAreaWeatherHook);
+  update_zone_weather_hook.Install(address::kUpdateZoneWeather,
+                                   UpdateZoneWeatherHook);
+  update_area_weather_hook.Install(address::kUpdateAreaWeather,
+                                   UpdateAreaWeatherHook);
 #endif
 }
 
@@ -52,8 +55,7 @@ void WeatherOverride::SetZoneHook(WeatherManager* self, u16 zone_id,
       (indoors && feat.keep_weather_indoors)) {
     list_idx = self->GetZoneListIndex();
   }
-  core::HookManager::Call<void>(HookId::kUpdateZoneWeather, self, zone_id,
-                                list_idx, wind_id, arg4);
+  set_zone_hook(self, zone_id, list_idx, wind_id, arg4);
 }
 #endif
 
@@ -69,14 +71,12 @@ Weather WeatherOverride::PickWeather(WeatherManager* manager,
 
 void WeatherOverride::UpdateZoneWeatherHook(WeatherManager* self,
                                             u16 zone_id, Weather weather) {
-  core::HookManager::Call<void>(HookId::kUpdateZoneWeather, self, zone_id,
-                          PickWeather(self, weather));
+  update_zone_weather_hook(self, zone_id, PickWeather(self, weather));
 }
 
 void WeatherOverride::UpdateAreaWeatherHook(WeatherManager* self,
                                             u16 zone_id, Weather weather) {
-  core::HookManager::Call<void>(HookId::kUpdateAreaWeather, self, zone_id,
-                          PickWeather(self, weather));
+  update_area_weather_hook(self, zone_id, PickWeather(self, weather));
 }
 
 } // namespace overworld

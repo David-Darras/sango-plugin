@@ -23,7 +23,7 @@
  */
 
 #include "battle/patch/setup.h"
-#include "core/hook_manager.h"
+#include "core/hook.h"
 #include "overworld/patch/tall_grass.h"
 #include "overworld/patch/placed_decorations.h"
 #include "battle/native/config.h"
@@ -31,14 +31,17 @@
 
 namespace battle {
 
-void Setup::Initialize() {
-  core::HookManager::Initialize(HookId::kBattleConfigSetupWild,
-                          address::kConfigSetupWild,
-                          (uptr)SetupWildHook);
+namespace {
+core::Hook<void(Config*, void*, void*, void*, Format, u32, void*)>
+    setup_wild_hook;
+core::Hook<void(Config*, void*, TrainerId, void*, Format, void*)>
+    setup_trainer_hook;
+} // namespace
 
-  core::HookManager::Initialize(HookId::kBattleConfigSetupTrainer,
-                          address::kConfigSetupTrainer,
-                          (uptr)SetupTrainerHook);
+void Setup::Initialize() {
+  setup_wild_hook.Install(address::kConfigSetupWild, SetupWildHook);
+
+  setup_trainer_hook.Install(address::kConfigSetupTrainer, SetupTrainerHook);
 }
 
 void Setup::SetupTrainerHook(Config* config, void* game_manager,
@@ -50,10 +53,7 @@ void Setup::SetupTrainerHook(Config* config, void* game_manager,
 #endif
   const TrainerId forced = GetInstance().trainer_id;
   if (forced != TrainerId::kNone) trainer_id = forced;
-  core::HookManager::Call<void>(HookId::kBattleConfigSetupTrainer,
-                          config, game_manager, trainer_id, p1,
-                          format,
-                          p2);
+  setup_trainer_hook(config, game_manager, trainer_id, p1, format, p2);
   auto& feat = GetInstance();
   if (feat.on_trainer_battle != nullptr) {
     feat.on_trainer_battle(*config, trainer_id);
@@ -70,10 +70,8 @@ void Setup::SetupWildHook(Config* config,
 #ifdef GAME_ORAS
   overworld::TallGrass::RemoveModelsBeforeBattle();
 #endif
-  core::HookManager::Call<void>(HookId::kBattleConfigSetupWild, config,
-                          game_manager,
-                          opponent_team, p1,
-                          format, effect_id, p2);
+  setup_wild_hook(config, game_manager, opponent_team, p1, format, effect_id,
+                  p2);
 
   auto& ctx = GetInstance();
 

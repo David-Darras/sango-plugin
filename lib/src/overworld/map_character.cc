@@ -23,7 +23,7 @@
  */
 
 #include "overworld/patch/map_character.h"
-#include "core/hook_manager.h"
+#include "core/hook.h"
 #include "core/native/process_manager.h"
 #include "overworld/native/character_placement.h"
 #include "overworld/native/map_manager.h"
@@ -34,16 +34,23 @@
 
 namespace overworld {
 
+namespace {
+core::Hook<u32(MapEventData*, u32)> load_map_characters_hook;
+core::Hook<void(CharacterManager*, u32, const CharacterPlacement*, u32,
+                void*, void*)>
+    complete_region_model_list_hook;
+core::Hook<void(core::GameManager*, MapId, const Position*, Facing, u8, bool,
+                s32, s32, s32, bool)>
+    change_map_hook;
+} // namespace
+
 void MapCharacter::Initialize() {
-  core::HookManager::Initialize(HookId::kLoadMapCharacters,
-                          address::kLoadMapCharacters,
-                          (uptr)LoadMapCharacters);
-  core::HookManager::Initialize(HookId::kCompleteRegionModelList,
-                          address::kCompleteRegionModelList,
-                          (uptr)CompleteRegionModelList);
+  load_map_characters_hook.Install(address::kLoadMapCharacters,
+                                   LoadMapCharacters);
+  complete_region_model_list_hook.Install(address::kCompleteRegionModelList,
+                                          CompleteRegionModelList);
 #ifdef GAME_ORAS
-  core::HookManager::Initialize(HookId::kChangeMap, address::kChangeMap,
-                          (uptr)ChangeMapHook);
+  change_map_hook.Install(address::kChangeMap, ChangeMapHook);
 #endif
 }
 
@@ -65,8 +72,7 @@ void MapCharacter::ChangeMapHook(core::GameManager* manager, MapId map_id,
     ctx.arrival_tile_z_ =
         static_cast<s32>(position->coords.z / ctx.world_per_tile_);
   }
-  core::HookManager::Call<void>(HookId::kChangeMap, manager, map_id, position,
-                                facing, p0, p1, p2, p3, p4, p5);
+  change_map_hook(manager, map_id, position, facing, p0, p1, p2, p3, p4, p5);
 }
 #endif
 
@@ -150,8 +156,7 @@ void MapCharacter::ReloadCurrentMap() {
 }
 
 u32 MapCharacter::LoadMapCharacters(MapEventData* events, u32 buffer_id) {
-  u32 result = core::HookManager::Call<u32>(HookId::kLoadMapCharacters,
-                                            events, buffer_id);
+  u32 result = load_map_characters_hook(events, buffer_id);
   auto& ctx = GetInstance();
   if (ctx.is_logging_enabled) ctx.LogShippedCharacters(events);
   ctx.MoveGraftedEvents(events);
@@ -171,9 +176,9 @@ void MapCharacter::CompleteRegionModelList(
     CharacterManager* manager, u32 player_sex,
     const CharacterPlacement* placements, u32 placement_count,
     void* player_outfit, void* character_outfits) {
-  core::HookManager::Call<void>(HookId::kCompleteRegionModelList, manager,
-                                player_sex, placements, placement_count,
-                                player_outfit, character_outfits);
+  complete_region_model_list_hook(manager, player_sex, placements,
+                                  placement_count, player_outfit,
+                                  character_outfits);
   GetInstance().AddMissingModels(manager, placements, placement_count);
 }
 

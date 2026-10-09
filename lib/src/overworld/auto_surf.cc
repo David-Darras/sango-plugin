@@ -23,11 +23,15 @@
  */
 
 #include "overworld/patch/auto_surf.h"
-#include "core/hook_manager.h"
+#include "core/hook.h"
 #include "core/native/game_manager.h"
 #include "overworld/address.h"
 
 namespace overworld {
+
+namespace {
+core::Hook<u32(uptr, uptr, const u8*)> check_push_event_hook;
+} // namespace
 
 namespace {
 constexpr u32 kGameManagerEventManager = 0x18;
@@ -38,19 +42,13 @@ constexpr u32 kRequestKeyDirection = 0x34;
 } // namespace
 
 void AutoSurf::Initialize() {
-  core::HookManager::Initialize(HookId::kPlayerCheckPushEvent,
-                                address::kPlayerCheckPushEvent,
-                                (uptr)CheckPushEventHook, false);
-}
-
-void AutoSurf::PatchLoad() {
-  core::HookManager::ForceEnable(HookId::kPlayerCheckPushEvent);
+  check_push_event_hook.Install(address::kPlayerCheckPushEvent,
+                                CheckPushEventHook, address::kVtable);
 }
 
 u32 AutoSurf::CheckPushEventHook(uptr player, uptr event_manager,
                                  const u8* request) {
-  const u32 handled = core::HookManager::Call<u32>(
-      HookId::kPlayerCheckPushEvent, player, event_manager, request);
+  const u32 handled = check_push_event_hook(player, event_manager, request);
   if (handled || !GetInstance().is_enabled) return handled;
 
   const u32 facing = ((u32(*)(uptr))address::kMoveModelGetFacing)(

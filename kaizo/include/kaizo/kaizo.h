@@ -100,8 +100,6 @@ extern void PatchOutline();
 extern void PatchTrainerModels();
 extern void InitializeOverworldWeather();
 extern void UpdateOverworldWeather();
-extern void InitializeStarterHook();
-extern void InitializeGiftHook();
 extern void PatchEncounterTable(overworld::EncounterData* data);
 extern const EncounterEntry* GetEncounterEntry(MapId map_id);
 extern void PatchTrainerData(battle::Config& config, TrainerId& trainer_id);

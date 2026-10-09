@@ -25,7 +25,7 @@
 #include "overworld/patch/wild_encounter.h"
 
 #include "core/cheat_code_manager.h"
-#include "core/hook_manager.h"
+#include "core/hook.h"
 #include "core/native/process_manager.h"
 #include "overworld/patch/placed_decorations.h"
 #include "overworld/native/map_manager.h"
@@ -33,15 +33,18 @@
 
 namespace overworld {
 
+namespace {
+core::Hook<bool(u32, u32)> get_encounter_pokemon_hook;
+core::Hook<u16*(EncounterData*, s32, u32*, void*, u8, bool)>
+    get_dex_nav_table_hook;
+} // namespace
+
 void WildEncounter::Initialize() {
   core::CheatCodeManager::Initialize(CheatCodeId::kNoEncounter, AddMaxRepel,
                                RemoveMaxRepel, true);
-  core::HookManager::Initialize(HookId::kGetEncounterPokemon,
-                          pokemon::address::kEncounterSetPokemon,
-                          (uptr)GetEncounterPokemonHook, false);
-  core::HookManager::Initialize(HookId::kGetDexNavTable,
-                          address::kGetDexNavTable,
-                          (uptr)GetDexNavTable, true);
+  get_encounter_pokemon_hook.Install(pokemon::address::kEncounterSetPokemon,
+                                     GetEncounterPokemonHook, address::kVtable);
+  get_dex_nav_table_hook.Install(address::kGetDexNavTable, GetDexNavTable);
 }
 
 u16* WildEncounter::GetDexNavTable(EncounterData* data, s32 data_size,
@@ -52,8 +55,7 @@ u16* WildEncounter::GetDexNavTable(EncounterData* data, s32 data_size,
   auto& feat = GetInstance();
   if (feat.on_encounter_table != nullptr) feat.on_encounter_table(data);
 
-  return core::HookManager::Call<u16*>(HookId::kGetDexNavTable, data,
-                                 data_size, count, heap, p4, p5);
+  return get_dex_nav_table_hook(data, data_size, count, heap, p4, p5);
 }
 
 void WildEncounter::AddMaxRepel() {
@@ -65,7 +67,7 @@ void WildEncounter::RemoveMaxRepel() {
 }
 
 bool WildEncounter::GetEncounterPokemonHook(u32 p0, u32 p1) {
-  bool result = core::HookManager::Call<bool>(HookId::kGetEncounterPokemon, p0, p1);
+  bool result = get_encounter_pokemon_hook(p0, p1);
 
   if (!core::ProcessManager::GetInstance().IsCurrentProcess(address::kVtable))
     return result;

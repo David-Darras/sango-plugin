@@ -27,11 +27,15 @@
 #include "pokemon/constant/mega_evolution_method.h"
 #include "pokemon/native/mega_evolution_data.h"
 #include <cstring>
-#include "core/hook_manager.h"
+#include "core/hook.h"
 #include "pokemon/patch/species_table.h"
 #include "pokemon/data/alolan_form.inc"
 
 namespace pokemon {
+
+namespace {
+core::Hook<u32(void*, void*)> get_mega_evolved_form_no_hook;
+} // namespace
 
 static constexpr ItemId kFormItems[] = {ItemId::kLifeOrb, ItemId::kChoiceBand,
                                         ItemId::kChoiceSpecs, ItemId::kChoiceScarf};
@@ -39,9 +43,8 @@ static constexpr u32 kMaxRoutes = 3;
 
 void AlolanForms::Initialize() {
   if (address::kGetMegaEvolvedFormNo == 0) return;
-  core::HookManager::Initialize(HookId::kGetMegaEvolvedFormNo,
-                                address::kGetMegaEvolvedFormNo,
-                                (uptr)GetMegaEvolvedFormNoHook);
+  get_mega_evolved_form_no_hook.Install(address::kGetMegaEvolvedFormNo,
+                                        GetMegaEvolvedFormNoHook);
 }
 
 bool AlolanForms::HasForm(u16 species) {
@@ -103,8 +106,7 @@ u32 AlolanForms::GetMegaEvolvedFormNoHook(void* manager, void* poke) {
       if (form != 0) return form;
     }
   }
-  return core::HookManager::Call<u32>(HookId::kGetMegaEvolvedFormNo, manager,
-                                      poke);
+  return get_mega_evolved_form_no_hook(manager, poke);
 }
 
 bool AlolanForms::PatchMegaTable(SpeciesId species, MegaEvolutionData* table) {

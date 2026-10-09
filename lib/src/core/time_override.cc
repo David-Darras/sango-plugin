@@ -24,19 +24,22 @@
 
 #include "core/patch/time_override.h"
 
-#include "core/hook_manager.h"
+#include "core/hook.h"
 #include "system/address.h"
 
 namespace core {
 
+namespace {
+core::Hook<void(s64*)> get_system_date_time_hook;
+} // namespace
+
 void TimeOverride::Initialize() {
-  HookManager::Initialize(HookId::kGetSystemDateTime,
-                          sys::address::kGetSystemDateTime,
-                          (uptr)GetSystemDateTimeHook);
+  get_system_date_time_hook.Install(sys::address::kGetSystemDateTime,
+                                    GetSystemDateTimeHook);
 }
 
 void TimeOverride::GetSystemDateTimeHook(s64* date_time) {
-  HookManager::Call<void>(HookId::kGetSystemDateTime, date_time);
+  get_system_date_time_hook(date_time);
 
   auto& feat = GetInstance();
   if (!feat.is_enabled) return;

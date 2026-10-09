@@ -22,7 +22,7 @@
 
 #include "pokemon/constant/species.h"
 #include "common.h"
-#include "core/hook_manager.h"
+#include "core/hook.h"
 #include "savedata/native/pokemon_team.h"
 
 namespace kaizo {
@@ -103,8 +103,10 @@ bool IsSpecialPokemon(SpeciesId species) {
   return false;
 }
 
-static bool AddPokemonToTeamHook(savedata::PokemonTeam* team,
-                                 savedata::PokemonParam* pokemon) {
+// The legendary Pokémon cannot join the party of the player.
+bool, AddPokemonToTeam,
+     (savedata::PokemonTeam* team, savedata::PokemonParam* pokemon),
+     pokemon::address::kAddPokemonToTeam) {
   if (team == &savedata::PokemonTeam::GetInstance()) {
     pokemon->accessor->Decrypt();
     SpeciesId species = pokemon->core->species;
@@ -115,12 +117,6 @@ static bool AddPokemonToTeamHook(savedata::PokemonTeam* team,
     }
   }
 
-  return core::HookManager::Call<bool>(HookId::kAddPokemonToTeam, team, pokemon);
+  return original(team, pokemon);
 }
-
-void InitializeGiftHook() {
-  core::HookManager::Initialize(HookId::kAddPokemonToTeam,
-                          pokemon::address::kAddPokemonToTeam,
-                          (uptr)AddPokemonToTeamHook);
-}
-}
+} // namespace kaizo

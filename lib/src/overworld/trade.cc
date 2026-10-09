@@ -23,19 +23,19 @@
  */
 
 #include "overworld/patch/trade.h"
-#include "core/hook_manager.h"
+#include "core/hook.h"
 #include "pokemon/native/trade_pokemon_data.h"
 #include "core/utils.h"
 
 namespace overworld {
 
-void Trade::Initialize() {
-  core::HookManager::Initialize(HookId::kTradePokemon, address::kTradePokemon,
-                          (uptr)TradePokemonHook, false);
-}
+namespace {
+core::Hook<s32(u32*, u32*)> trade_pokemon_hook;
+} // namespace
 
-void Trade::PatchLoad() {
-  core::HookManager::ForceEnable(HookId::kTradePokemon);
+void Trade::Initialize() {
+  trade_pokemon_hook.Install(address::kTradePokemon, TradePokemonHook,
+                             address::kVtable);
 }
 
 void Trade::RandomizeSpecies(u32 index) {
@@ -47,7 +47,7 @@ void Trade::RandomizeSpecies(u32 index) {
 
 s32 Trade::TradePokemonHook(u32* p1, u32* p2) {
   if (GetInstance().randomize_species) RandomizeSpecies(p2[1]);
-  return core::HookManager::Call<s32>(HookId::kTradePokemon, p1, p2);
+  return trade_pokemon_hook(p1, p2);
 }
 
 } // namespace overworld

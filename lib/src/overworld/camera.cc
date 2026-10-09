@@ -27,7 +27,7 @@
 
 #include <cmath>
 #include "battle/native/manager.h"
-#include "core/hook_manager.h"
+#include "core/hook.h"
 #include "core/native/process_manager.h"
 #include "overworld/constant/facing.h"
 #include "overworld/native/model_manager.h"
@@ -35,6 +35,12 @@
 #include "system/native/controller.h"
 
 namespace overworld {
+
+namespace {
+core::Hook<u32(StereoCamera*, bool)> update_matrices_hook;
+core::Hook<Mtx34*(Mtx34*, Vec3*, Vec3*, Vec3*)> update_look_at_hook;
+core::Hook<u32(uptr, Vec3*, f32*, Facing*, u8*)> get_player_movement_hook;
+} // namespace
 
 void Camera::SetCameraIdle(bool is_battle) {
   (is_battle ? battle_state : overworld_state) = CameraState::kIdle;
@@ -69,21 +75,17 @@ void Camera::SetCameraTPS(bool is_battle, f32 dist, f32 height, f32 offset) {
 }
 
 void Camera::Initialize() {
-  core::HookManager::Initialize(HookId::kUpdateMatrices,
-                          renderer::address::kStereoCameraUpdateMatrices,
-                          (uptr)UpdateMatricesHook);
-  core::HookManager::Initialize(HookId::kUpdateLookAt,
-                          renderer::address::kStereoCameraUpdateLookAt,
-                          (uptr)UpdateLookAtHook);
-  core::HookManager::Initialize(HookId::kGetPlayerMovement,
-                          address::kGetPlayerMovement,
-                          (uptr)GetPlayerMovement, false);
+  update_matrices_hook.Install(renderer::address::kStereoCameraUpdateMatrices,
+                               UpdateMatricesHook);
+  update_look_at_hook.Install(renderer::address::kStereoCameraUpdateLookAt,
+                              UpdateLookAtHook);
+  get_player_movement_hook.Install(address::kGetPlayerMovement,
+                                   GetPlayerMovement, address::kVtable);
 }
 
 u32 Camera::GetPlayerMovement(uptr self, Vec3* dir_vec, f32* speed,
                               Facing* dir, u8* x) {
-  u32 result = core::HookManager::Call<u32>(HookId::kGetPlayerMovement,
-                                      self, dir_vec, speed, dir, x);
+  u32 result = get_player_movement_hook(self, dir_vec, speed, dir, x);
 
   auto& ctx = GetInstance();
   if (ctx.overworld_state != CameraState::kFpv) return result;
@@ -165,15 +167,14 @@ u32 Camera::UpdateMatricesHook(StereoCamera* stereo_camera,
     ctx.active_context = CameraContext::kBattle;
   }
 
-  return core::HookManager::Call<u32>(HookId::kUpdateMatrices, stereo_camera, update);
+  return update_matrices_hook(stereo_camera, update);
 }
 
 Mtx34* Camera::UpdateLookAtHook(Mtx34* output, Vec3* pos, Vec3* up,
                                Vec3* target) {
   auto& ctx = GetInstance();
   if (!ctx.is_updating_camera) {
-    return core::HookManager::Call<Mtx34*>(HookId::kUpdateLookAt, output, pos, up,
-                                     target);
+    return update_look_at_hook(output, pos, up, target);
   }
   ctx.is_updating_camera = false;
 
@@ -291,8 +292,7 @@ Mtx34* Camera::UpdateLookAtHook(Mtx34* output, Vec3* pos, Vec3* up,
       break;
   }
 
-  return core::HookManager::Call<Mtx34*>(HookId::kUpdateLookAt, output, pos, up,
-                                   target);
+  return update_look_at_hook(output, pos, up, target);
 }
 
 } // namespace overworld

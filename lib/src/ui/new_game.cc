@@ -23,16 +23,19 @@
  */
 
 #include "ui/patch/new_game.h"
-#include "core/hook_manager.h"
+#include "core/hook.h"
 #include "core/native/data_manager.h"
 #include "savedata/native/trainer_status.h"
 
 namespace ui {
 
+namespace {
+core::Hook<void(void*, MapId, void*)> overworld_set_default_position_hook;
+} // namespace
+
 void NewGame::Initialize() {
-  core::HookManager::Initialize(HookId::kOverworldSetDefaultPosition,
-                          overworld::address::kSetDefaultPosition,
-                          (uptr)OverworldSetDefaultPositionHook);
+  overworld_set_default_position_hook.Install(
+      overworld::address::kSetDefaultPosition, OverworldSetDefaultPositionHook);
 }
 
 void NewGame::OnProcessUpdate(uptr vtable) {
@@ -76,8 +79,7 @@ void NewGame::OverworldSetDefaultPositionHook(void* location, MapId zone_id,
   if (feat.start_zone != MapId::kNone && zone_id == MapId::kInsideOfTruck) {
     zone_id = feat.start_zone;
   }
-  core::HookManager::Call<void>(HookId::kOverworldSetDefaultPosition, location,
-                          zone_id, heap);
+  overworld_set_default_position_hook(location, zone_id, heap);
   if (zone_id != feat.start_zone) return;
   if (feat.start_facing != overworld::Facing::kInvalid) {
     READ(overworld::Facing, (uptr)location + kOffsetLocationFacing) =

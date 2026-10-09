@@ -23,14 +23,17 @@
  */
 
 #include "pokemon/patch/model_replacement.h"
-#include "core/hook_manager.h"
+#include "core/hook.h"
 #include "pokemon/patch/species_table.h"
 
 namespace pokemon {
 
+namespace {
+core::Hook<void(void*, PokeInfo*, void*, void*, void*, void*)> create_hook;
+} // namespace
+
 void ModelReplacement::Initialize() {
-  core::HookManager::Initialize(HookId::kReplacePokemonModel,
-                          address::kReplacePokemonModel, (uptr)CreateHook);
+  create_hook.Install(address::kReplacePokemonModel, CreateHook);
 }
 
 void ModelReplacement::CreateHook(void* model, PokeInfo* info, void* p0, void* p1,
@@ -38,8 +41,7 @@ void ModelReplacement::CreateHook(void* model, PokeInfo* info, void* p0, void* p
   auto& feat = GetInstance();
   SpeciesTable::PatchModelRequest(info);
   if (feat.on_create != nullptr) feat.on_create(info);
-  core::HookManager::Call<void>(HookId::kReplacePokemonModel, model, info, p0, p1,
-                          p2, p3);
+  create_hook(model, info, p0, p1, p2, p3);
 }
 
 } // namespace pokemon

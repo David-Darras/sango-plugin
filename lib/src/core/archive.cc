@@ -26,40 +26,40 @@
 #include <cstring>
 #include "battle/patch/move_animation.h"
 #include "battle/patch/effect_style.h"
-#include "core/hook_manager.h"
+#include "core/hook.h"
 #include "core/utils.h"
-#include "renderer/native/archive/bclim.h"
 #include "system/native/file.h"
 
 namespace core {
 
+namespace {
+core::Hook<bool(void*, ArchiveInput*)> read_file_async_hook;
+core::Hook<bool(u32*, void*, u32, void*, u32, u32, u32)> read_file_async2_hook;
+core::Hook<void*(u32*, u32, void*, void*, s32, u32*)> load_compressed_hook;
+core::Hook<u32(u32*, u32)> get_file_size_hook;
+core::Hook<u32(u32*, u32, void*)> load_data2_hook;
+core::Hook<u32(u32*, u32)> get_file_size2_hook;
+core::Hook<void(u32*, u32, u32*)> get_info_hook;
+core::Hook<void(u32*, u32, u32, void*, u32*)> read_hook;
+} // namespace
+
 void Archive::Initialize() {
-  HookManager::Initialize(HookId::kReadFileAsync,
-                          sys::address::kArchiveReadFileAsync,
-                          (uptr)ReadFileAsync);
-  HookManager::Initialize(HookId::kReadFileAsync2,
-                          sys::address::kArchiveReadFileAsync2,
-                          (uptr)ReadFileAsync2);
-  HookManager::Initialize(HookId::kArchiveLoadCompressedFile,
-                          sys::address::kArchiveLoadCompressedFile,
-                          (uptr)LoadCompressedHook);
-  HookManager::Initialize(HookId::kArchiveGetFileSize,
-                          sys::address::kArchiveGetFileSize,
-                          (uptr)GetFileSizeHook);
-  HookManager::Initialize(HookId::kArchiveLoadData2,
-                          sys::address::kArchiveLoadData2, (uptr)LoadDataHook2);
+  read_file_async_hook.Install(sys::address::kArchiveReadFileAsync,
+                               ReadFileAsync);
+  read_file_async2_hook.Install(sys::address::kArchiveReadFileAsync2,
+                                ReadFileAsync2);
+  load_compressed_hook.Install(sys::address::kArchiveLoadCompressedFile,
+                               LoadCompressedHook);
+  get_file_size_hook.Install(sys::address::kArchiveGetFileSize,
+                             GetFileSizeHook);
+  load_data2_hook.Install(sys::address::kArchiveLoadData2, LoadDataHook2);
   if (sys::address::kArchiveGetFileSize2) {
-    HookManager::Initialize(HookId::kArchiveGetFileSize2,
-                            sys::address::kArchiveGetFileSize2,
-                            (uptr)GetFileSizeHook2);
+    get_file_size2_hook.Install(sys::address::kArchiveGetFileSize2,
+                                GetFileSizeHook2);
   }
   if (sys::address::kArchiveGetInfo) {
-    HookManager::Initialize(HookId::kArchiveGetInfo,
-                            sys::address::kArchiveGetInfo,
-                            (uptr)GetInfoHook);
-    HookManager::Initialize(HookId::kArchiveRead,
-                            sys::address::kArchiveRead,
-                            (uptr)ReadHook);
+    get_info_hook.Install(sys::address::kArchiveGetInfo, GetInfoHook);
+    read_hook.Install(sys::address::kArchiveRead, ReadHook);
   }
 }
 
@@ -188,7 +188,7 @@ u32 Archive::GetFileSizeHook(u32* archive, u32 file_id) {
     const u32 size = OverrideSize(file_id);
     if (size) return LzStoreSize(size);
   }
-  return HookManager::Call<u32>(HookId::kArchiveGetFileSize, archive, file_id);
+  return get_file_size_hook(archive, file_id);
 }
 
 u32 Archive::GetFileSizeHook2(u32* archive, u32 file_id) {
@@ -201,7 +201,7 @@ u32 Archive::GetFileSizeHook2(u32* archive, u32 file_id) {
     const u32 size = OverrideSize(file_id);
     if (size) return LzStoreSize(size);
   }
-  return HookManager::Call<u32>(HookId::kArchiveGetFileSize2, archive, file_id);
+  return get_file_size2_hook(archive, file_id);
 }
 
 void Archive::GetInfoHook(u32* archive, u32 file_id, u32* info) {
@@ -215,7 +215,7 @@ void Archive::GetInfoHook(u32* archive, u32 file_id, u32* info) {
       return;
     }
   }
-  HookManager::Call<void>(HookId::kArchiveGetInfo, archive, file_id, info);
+  get_info_hook(archive, file_id, info);
 }
 
 void Archive::ReadHook(u32* archive, u32 offset, u32 size,
@@ -230,8 +230,7 @@ void Archive::ReadHook(u32* archive, u32 offset, u32 size,
     if (read != nullptr) *read = size;
     return;
   }
-  HookManager::Call<void>(HookId::kArchiveRead, archive, offset, size,
-                          buffer, read);
+  read_hook(archive, offset, size, buffer, read);
 }
 
 u32 Archive::LoadDataHook2(u32* archive, u32 file_id, void* buffer) {
@@ -252,8 +251,7 @@ u32 Archive::LoadDataHook2(u32* archive, u32 file_id, void* buffer) {
       return LzStoreSize(size);
     }
   }
-  return HookManager::Call<u32>(HookId::kArchiveLoadData2, archive, file_id,
-                                buffer);
+  return load_data2_hook(archive, file_id, buffer);
 }
 
 void* Archive::LoadCompressedHook(u32* archive, u32 file_id, void* heap_work,
@@ -279,23 +277,16 @@ void* Archive::LoadCompressedHook(u32* archive, u32 file_id, void* heap_work,
       }
     }
   }
-  return HookManager::Call<void*>(HookId::kArchiveLoadCompressedFile, archive,
-                                  file_id, heap_work, heap_data, align,
-                                  out_size);
+  return load_compressed_hook(archive, file_id, heap_work, heap_data, align,
+                              out_size);
 }
 
-void Archive::LoadDataHook(uptr self, u32 id, uptr heap, uptr buffer,
-                                uptr buffer_size, u32* size) {
-  HookManager::Call<void>(HookId::kArchiveLoadData, self, id,
-                          heap, buffer, buffer_size, size);
-  auto* footer = (renderer::BclimFooter*)(buffer + buffer_size);
-  footer--;
-  if (footer->signature != 0x4D494C43) return;
+u32 Archive::GetOriginalFileSize(u32* archive, u32 file_id) {
+  return get_file_size_hook(archive, file_id);
+}
 
-  u8* p = (u8*)buffer;
-  for (u32 i = 0; i < footer->pixel_data_size; i++) {
-    p[i] = 0xFF;
-  }
+u32 Archive::LoadOriginalData(u32* archive, u32 file_id, void* buffer) {
+  return load_data2_hook(archive, file_id, buffer);
 }
 
 bool Archive::IsArchive(const u32* archive_data,
@@ -315,16 +306,14 @@ bool Archive::ReadFileAsync2(u32* archive, void* heap, u32 file_id,
   if (feat.on_stream_file != nullptr) {
     file_id = feat.on_stream_file(archive, file_id);
   }
-  return HookManager::Call<bool>(HookId::kReadFileAsync2, archive, heap,
-                                 file_id,
-                                 buffer, p4, p5, p6);
+  return read_file_async2_hook(archive, heap, file_id, buffer, p4, p5, p6);
 }
 
 bool Archive::ReadFileAsync(void* file_manager, ArchiveInput* input) {
   auto& feat = GetInstance();
   battle::EffectStyles::TrackRead(input);
   if (feat.on_read_file != nullptr) feat.on_read_file(input);
-  return HookManager::Call<bool>(HookId::kReadFileAsync, file_manager, input);
+  return read_file_async_hook(file_manager, input);
 }
 
 } // namespace core

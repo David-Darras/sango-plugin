@@ -24,35 +24,38 @@
 
 #include "pokemon/patch/shiny.h"
 
-#include "core/hook_manager.h"
+#include "core/hook.h"
 
 namespace pokemon {
 
+namespace {
+core::Hook<bool(u32, u32)> is_shiny_hook;
+core::Hook<u32(u32, u32)> to_shiny_hook;
+core::Hook<u32(u32, u32)> to_normal_hook;
+} // namespace
+
 void Shiny::Initialize() {
-  core::HookManager::Initialize(HookId::kIsShiny, core::address::kIsShiny,
-                          (uptr)IsShinyHook);
-  core::HookManager::Initialize(HookId::kFromNormalToShiny,
-                          address::kUtilsToShiny, (uptr)ToShinyHook);
-  core::HookManager::Initialize(HookId::kFromShinyToNormal,
-                          address::kUtilsToNormal, (uptr)ToNormalHook);
+  is_shiny_hook.Install(core::address::kIsShiny, IsShinyHook);
+  to_shiny_hook.Install(address::kUtilsToShiny, ToShinyHook);
+  to_normal_hook.Install(address::kUtilsToNormal, ToNormalHook);
 }
 
 u32 Shiny::ToShinyHook(u32 id, u32 pid) {
   if (GetInstance().rate == ShinyRate::kOff)
-    return core::HookManager::Call<u32>(HookId::kFromNormalToShiny, id, pid);
+    return to_shiny_hook(id, pid);
   return kForcedShiny;
 }
 
 u32 Shiny::ToNormalHook(u32 id, u32 pid) {
   if (GetInstance().rate == ShinyRate::kOff)
-    return core::HookManager::Call<u32>(HookId::kFromShinyToNormal, id, pid);
+    return to_normal_hook(id, pid);
   return kForcedNormal;
 }
 
 bool Shiny::IsShinyHook(u32 id, u32 pid) {
   const ShinyRate rate = GetInstance().rate;
   if (rate == ShinyRate::kOff)
-    return core::HookManager::Call<bool>(HookId::kIsShiny, id, pid);
+    return is_shiny_hook(id, pid);
 
   if (pid == kForcedShiny) return true;
   if (pid == kForcedNormal) return false;

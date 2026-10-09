@@ -34,7 +34,9 @@ public:
   bool randomize_species = false; ///< true: each gift Pokémon gets a random species.
 
   static void Initialize();
-  static void PatchLoad();
+
+  /// Runs the script function that gives a Pokémon, without the randomizer.
+  static s32 AddPokemonWithoutRandomizer(u32* a1, u32* a2);
 
 private:
   static void RandomizeSpecies(u32 idx);

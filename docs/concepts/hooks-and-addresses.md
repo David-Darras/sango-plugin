@@ -34,9 +34,9 @@ The library ignores a hook or a patch at the address `0`.
 | `0x006F3000` and above (ORAS) | The **CRO** modules: code that the game loads only when it needs it. The overworld code and the battle code use the same memory, one at a time. |
 | `0x08000000` and above | The heap: the objects that the game makes while it runs. |
 
-A hook in a CRO works only when the CRO is in memory. The library installs
-these hooks disabled. It enables them when the process of the CRO starts.
-For example, `battle::Battle::PatchLoad()` enables the battle hooks.
+A hook in a CRO works only when the CRO is in memory. Give the hook the
+**vtable** of the process of the CRO (for example `battle::address::kVtable`).
+The plugin then enables the hook each time that the game loads the process.
 
 ## Hooks
 
@@ -46,7 +46,7 @@ A **hook** redirects a function of the game to a function of the plugin.
 flowchart LR
     Caller["Game code<br/>calls the function"] --> Start["Start of the game function<br/>(replaced: jump)"]
     Start --> Hook["Your hook function"]
-    Hook -- "HookManager::Call()" --> Gateway["Gateway<br/>(2 original instructions + jump back)"]
+    Hook -- "original()" --> Gateway["Gateway<br/>(2 original instructions + jump back)"]
     Gateway --> Rest["Rest of the game function"]
     Rest --> Hook
     Hook --> Caller
@@ -58,42 +58,76 @@ When the plugin installs a hook:
 2. It writes a jump to your function at the start of the game function.
 3. It makes a **gateway**: the two copied instructions, then a jump back to the game function.
 
-When your function calls `core::HookManager::Call()`, the gateway runs the
-**original function**.
+When your function calls `original(...)`, the gateway runs the **original
+function**.
 
-### Use a hook
+### Declare a hook with HOOK()
+
+The macro `HOOK()` (in `core/hook.h`) declares the hook and its function in
+one place. You do not change other files: the plugin installs the hook at the
+start (`plugin::InitializeEngine()`).
 
 ```cpp
-#include "core/hook_manager.h"
+#include "core/hook.h"
+#include "pokemon/address.h"
+#include "savedata/native/pokemon_team.h"
 
-// 1. The hook function. It has the same parameters and the same return
-//    type as the game function.
-static bool AddPokemonToTeamHook(savedata::PokemonTeam* team,
-                                 savedata::PokemonParam* pokemon) {
+HOOK(bool, AddPokemonToTeam,
+     (savedata::PokemonTeam* team, savedata::PokemonParam* pokemon),
+     pokemon::address::kAddPokemonToTeam) {
   // Your code before the original function.
-  bool result = core::HookManager::Call<bool>(HookId::kProduct0, team, pokemon);
+  bool result = original(team, pokemon);
   // Your code after the original function.
   return result;
 }
+```
 
-// 2. Install the hook one time, at the start of the plugin.
-void InstallMyHooks() {
-  core::HookManager::Initialize(HookId::kProduct0,
-                                pokemon::address::kAddPokemonToTeam,
-                                (uptr)AddPokemonToTeamHook);
+The parameters of `HOOK()` are:
+
+1. The return type of the game function.
+2. The name of the hook. It must be unique in the namespace.
+3. The parameters of the game function, in parentheses.
+4. The address of the game function.
+5. For a function in a CRO only: the vtable of its process.
+
+```cpp
+// A hook in the battle CRO: the plugin enables it at the start of each battle.
+HOOK(void, UpdateGauge, (uptr gauge, u16 max_hp, u32 new_hp),
+     battle::address::kUpdateGauge, battle::address::kVtable) {
+  original(gauge, max_hp, new_hp);
 }
 ```
 
+The hook is a `core::Hook` object: `UpdateGauge::original`.
+
 | Function | What it does |
 |---|---|
-| `HookManager::Initialize(id, address, function, enable = true)` | Prepares the hook. When `enable` is `true`, it also installs the hook. |
-| `HookManager::Call<R>(id, args...)` | Calls the original function. `R` is the return type. |
-| `HookManager::Enable(id)` | Installs the hook if it is not installed. |
-| `HookManager::ForceEnable(id)` | Installs the hook again. Use it when the game loads a CRO again. |
-| `HookManager::Disable(id)` | Removes the hook. The game function is normal again. |
+| `original(args...)` | Runs the original function. The compiler checks the types of the arguments. |
+| `Name::original.Disable()` | Removes the hook. The game function is normal again. |
+| `Name::original.Enable()` | Installs the hook again. |
+| `Name::original.IsEnabled()` | Returns `true` when the hook is in the game code. |
 
-Each hook needs a **hook id** (`core::HookId`). A product uses the free ids
-`HookId::kProduct0` to `HookId::kProduct15`.
+### A hook in a class of the library
+
+A feature of the library keeps its hook functions as private members of its
+class. It uses a `core::Hook` object and installs it in its `Initialize()`:
+
+```cpp
+namespace {
+core::Hook<bool(u32, u32)> is_shiny_hook;  // The type of the game function.
+}
+
+void Shiny::Initialize() {
+  is_shiny_hook.Install(core::address::kIsShiny, IsShinyHook);
+}
+
+bool Shiny::IsShinyHook(u32 id, u32 pid) {
+  return is_shiny_hook(id, pid);  // Runs the original function.
+}
+```
+
+For a function in a CRO, add the vtable of the process:
+`Install(address, function, battle::address::kVtable)`.
 
 ### The rules of a hook
 
@@ -106,6 +140,10 @@ Each hook needs a **hook id** (`core::HookId`). A product uses the free ids
 5. **The first two instructions must not use the `pc` register.** The gateway
    moves these instructions to a different address. An instruction that reads
    `pc` then reads a wrong value. Look at the disassembly before you hook.
+6. **A hook in a CRO needs the vtable of its process.** Without it, the plugin
+   writes the hook when the code is not in memory, and the game stops.
+7. **Two hooks on the same function both run.** The second hook calls the
+   first one with `original(...)`. Do not disable the first hook then.
 
 ## Patches
 

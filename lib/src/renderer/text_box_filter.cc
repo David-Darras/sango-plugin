@@ -24,18 +24,21 @@
 
 #include "renderer/patch/text_box_filter.h"
 
-#include "core/hook_manager.h"
+#include "core/hook.h"
 #include "renderer/native/text_box.h"
 
 namespace renderer {
 
+namespace {
+core::Hook<u32(TextBox*, u32)> draw_hook;
+} // namespace
+
 void TextBoxFilter::Initialize() {
-  core::HookManager::Initialize(HookId::kDrawTextBox,
-                          address::kDrawTextBox, (uptr)DrawHook);
+  draw_hook.Install(address::kDrawTextBox, DrawHook);
 }
 
 u32 TextBoxFilter::DrawHook(TextBox* text_box, u32 writer) {
-  u32 res = core::HookManager::Call<u32>(HookId::kDrawTextBox, text_box, writer);
+  u32 res = draw_hook(text_box, writer);
 
   auto& ctx = GetInstance();
   if (ctx.is_enabled) {

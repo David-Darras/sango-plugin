@@ -59,9 +59,10 @@ The plugin runs inside the memory of the game. It must stay small.
 - **Features** are in `<domain>/patch/`. A feature is a singleton.
   Its settings are in a `...Settings` structure. Its callbacks start with `on_`.
 - **Addresses** are in `<domain>/address.h`, with `GAME_ADDRESS(xy, oras)`.
-- **Hook ids** are in `core/constant/hook_id.h`.
+- **Hooks** are in the `.cc` file of their feature: a `core::Hook` object in
+  an anonymous namespace, or `HOOK()`. See [Hooks and addresses](../concepts/hooks-and-addresses.md).
 - **Pages** are in `lib/src/ui/page/`, declared in `ui/page/pages.h`.
-- **Products** never change `lib/`. They use the settings, the callbacks and the `Add`/`Register` functions.
+- **Products** never change `lib/`. They use the settings, the callbacks, the `Add`/`Register` functions and `HOOK()`.
 
 ## The Doxygen comments
 

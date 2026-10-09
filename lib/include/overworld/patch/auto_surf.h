@@ -33,7 +33,6 @@ struct AutoSurf {
   bool is_enabled = true;
 
   static void Initialize();
-  static void PatchLoad();
 
 private:
   static u32 CheckPushEventHook(uptr player, uptr event_manager,

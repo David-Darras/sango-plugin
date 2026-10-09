@@ -72,7 +72,7 @@ public:
   static void Initialize();
   /// Called at each frame of a battle.
   static void PatchUpdate();
-  /// Called when a battle starts. Enables the hooks of the battle CRO.
+  /// Called when a battle starts. Patches the code of the battle CRO.
   static void PatchLoad();
 
 private:

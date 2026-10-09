@@ -24,19 +24,22 @@
 
 #include "core/patch/event_patch.h"
 #include "core/patch/script_loader.h"
-#include "core/hook_manager.h"
+#include "core/hook.h"
 #include "core/native/event_manager.h"
 
 namespace core {
 
+namespace {
+core::Hook<u32(EventManager*)> main_event_loop_hook;
+} // namespace
+
 void EventPatch::Initialize() {
-  HookManager::Initialize(HookId::kMainEventLoop, sys::address::kMainEventLoop,
-                          (uptr)MainEventLoopHook);
+  main_event_loop_hook.Install(sys::address::kMainEventLoop, MainEventLoopHook);
 }
 
 u32 EventPatch::MainEventLoopHook(EventManager* manager) {
   manager->Patch(OnLoad, OnUpdate);
-  return HookManager::Call<u32>(HookId::kMainEventLoop, manager);
+  return main_event_loop_hook(manager);
 }
 
 void EventPatch::OnUpdate(uptr vtable) {

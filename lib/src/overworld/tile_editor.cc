@@ -24,8 +24,8 @@
 
 #include "overworld/patch/tile_editor.h"
 #include "overworld/native/map_manager.h"
+#include "overworld/patch/map_tile.h"
 #include <cstring>
-#include "core/hook_manager.h"
 #include "core/native/game_manager.h"
 #include "core/native/process_manager.h"
 #include "overworld/native/model_manager.h"
@@ -239,14 +239,7 @@ bool TileEditor::Read(const Block* blocks, u32 count, s32 tile_x, s32 tile_z,
   const Vec3 local((tile_x - block->x * tiles) * unit + unit / 2.0f, 0.0f,
                    (tile_z - block->z * tiles) * unit + unit / 2.0f);
   const void* attr_data = block->header;
-  core::Hook* hook = core::HookManager::GetInstance().Get(HookId::kGetMapTile);
-  if (hook != nullptr && hook->IsInitialized()) {
-    *tile = hook->CallOriginal<Tile>((void*)&attr_data,
-                                                (Vec3*)&local);
-  } else {
-    *tile = ((Tile (*)(const void*, const Vec3*))
-        address::kGetMapTile)(&attr_data, &local);
-  }
+  *tile = MapTile::GetOriginalTile((void*)&attr_data, (Vec3*)&local);
   return true;
 }
 

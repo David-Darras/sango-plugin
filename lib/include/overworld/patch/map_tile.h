@@ -56,6 +56,9 @@ struct MapTile : public MapTileSettings {
 
   static void Initialize();
 
+  /// Returns the attributes of a tile without the changes of the plugin.
+  static Tile GetOriginalTile(void* data, Vec3* pos);
+
 private:
   static Tile GetMapTileHook(void* data, Vec3* pos);
 };

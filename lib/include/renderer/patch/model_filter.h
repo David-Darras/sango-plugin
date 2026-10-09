@@ -56,6 +56,6 @@ struct ModelFilter : public ModelFilterSettings {
                                              uptr p_buff, uptr desc,
                                              u32 flag_a, u32 flag_b);
   static void UpdateH3dModel(H3dModel* h3d_model);
-  static void AddH3dModel(uptr scene, H3dModel* model, u32 idx);
+  static bool AddH3dModel(uptr scene, H3dModel* model, u32 idx);
 };
 } // namespace renderer

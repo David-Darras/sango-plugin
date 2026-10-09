@@ -34,7 +34,6 @@ public:
   bool randomize_species = false; ///< true: each trade gives a random species.
 
   static void Initialize();
-  static void PatchLoad();
 
 private:
   static void RandomizeSpecies(u32 index);

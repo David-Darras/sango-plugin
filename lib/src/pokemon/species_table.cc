@@ -31,7 +31,7 @@
 #include "pokemon/native/evolution_data.h"
 #include "pokemon/native/movepool.h"
 #include "pokemon/native/species_data.h"
-#include "core/hook_manager.h"
+#include "core/hook.h"
 #include "core/memory.h"
 #include "overworld/patch/whos_that_pokemon.h"
 #include "pokemon/data/alolan_form.inc"
@@ -39,6 +39,11 @@
 #include "pokemon/data/gen8_species.inc"
 
 namespace pokemon {
+
+namespace {
+core::Hook<void(String*, u16)> get_species_name_hook;
+core::Hook<void(u16, u8)> load_movepool_hook;
+} // namespace
 
 static constexpr u16 kGen9Carrier = 721;
 static constexpr u32 kSecondCarrierBase = 256;
@@ -167,13 +172,13 @@ void SpeciesTable::GetSpeciesNameHook(String* output, u16 species) {
     if (output != nullptr) output->Set(Extra(i).name);
     return;
   }
-  core::HookManager::Call<void>(HookId::kGetSpeciesName, output, species);
+  get_species_name_hook(output, species);
 }
 
 void SpeciesTable::LoadMovepoolHook(u16 species, u8 form) {
   for (u32 i = 0; i < SpeciesTable::kExtraCount; i++) {
     if (Extra(i).species != species) continue;
-    core::HookManager::Call<void>(HookId::kLoadMovepool, 1, 0);
+    load_movepool_hook(1, 0);
     auto& pool = Movepool::Object();
     pool.species = static_cast<SpeciesId>(species);
     pool.form = static_cast<FormId>(form);
@@ -190,7 +195,7 @@ void SpeciesTable::LoadMovepoolHook(u16 species, u8 form) {
     pool.count = count;
     return;
   }
-  core::HookManager::Call<void>(HookId::kLoadMovepool, species, form);
+  load_movepool_hook(species, form);
 }
 
 bool SpeciesTable::PatchEvolutionTable(u16 species, EvolutionData* table) {
@@ -213,11 +218,8 @@ void SpeciesTable::Initialize() {
     if (address::kSpeciesBound[i] == 0) continue;
     WRITE32(address::kSpeciesBound[i], kTotalEntries - 1);
   }
-  core::HookManager::Initialize(HookId::kGetSpeciesName,
-                                address::kGetSpeciesName,
-                                (uptr)GetSpeciesNameHook);
-  core::HookManager::Initialize(HookId::kLoadMovepool, address::kLoadMovepool,
-                                (uptr)LoadMovepoolHook);
+  get_species_name_hook.Install(address::kGetSpeciesName, GetSpeciesNameHook);
+  load_movepool_hook.Install(address::kLoadMovepool, LoadMovepoolHook);
 }
 
 } // namespace pokemon

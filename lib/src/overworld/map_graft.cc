@@ -23,7 +23,7 @@
  */
 
 #include "overworld/patch/map_graft.h"
-#include "core/hook_manager.h"
+#include "core/hook.h"
 #include "core/native/game_manager.h"
 #include "core/native/process_manager.h"
 #include "overworld/native/character_placement.h"
@@ -36,6 +36,10 @@
 #include "ui/log_application.h"
 
 namespace overworld {
+
+namespace {
+core::Hook<void(WorldLayout*, Bundle*)> load_world_layout_hook;
+} // namespace
 
 struct MapGraft::File {
   u16 has_map_table;
@@ -82,8 +86,7 @@ struct MapGraft::BlockRect {
 };
 
 void MapGraft::Initialize() {
-  core::HookManager::Initialize(HookId::kLoadWorldLayout,
-                          address::kLoadWorldLayout, (uptr)LoadWorldLayout);
+  load_world_layout_hook.Install(address::kLoadWorldLayout, LoadWorldLayout);
 }
 
 bool MapGraft::Attach(MapId anchor, Facing side, MapId map, s32 shift) {
@@ -343,7 +346,7 @@ void MapGraft::UpdateProps() {
 }
 
 void MapGraft::LoadWorldLayout(WorldLayout* layout, Bundle* pack) {
-  core::HookManager::Call<void>(HookId::kLoadWorldLayout, layout, pack);
+  load_world_layout_hook(layout, pack);
   GetInstance().pending_frames_ = 0;
   GetInstance().has_previous_cell_ = false;
   GetInstance().Apply(*layout, pack);

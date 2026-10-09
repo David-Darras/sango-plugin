@@ -26,6 +26,7 @@
 #include "battle/patch/game_extension.h"
 #include "battle/patch/setup.h"
 #include "battle/patch/type_helper.h"
+#include "core/hook.h"
 #include "core/patch/app_launcher.h"
 #include "core/patch/archive.h"
 #include "core/patch/device_patch.h"
@@ -83,10 +84,13 @@ sys::String sys::String::s_tmp;
 c16 sys::String::s_buffer[128];
 
 namespace plugin {
+namespace {
+core::Hook<void()> entrypoint_hook;
+} // namespace
+
 void InitializeEngine() {
   sys::File::MountSdmc();
 
-  core::DevicePatch::Initialize();
   core::GameSpeed::Initialize();
   renderer::Lighting::Initialize();
   renderer::TextBoxFilter::Initialize();
@@ -134,12 +138,14 @@ void InitializeEngine() {
   pokemon::CustomShop::Initialize();
   overworld::RunAnimation::Initialize();
 #endif
-   overworld::WeatherOverride::Initialize();
-   core::TimeOverride::Initialize();
-   ui::NewGame::Initialize();
-   pokemon::ModelReplacement::Initialize();
-   ui::TitleScreen::Initialize();
-   ui::PartySelect::Initialize();
+  overworld::WeatherOverride::Initialize();
+  core::TimeOverride::Initialize();
+  ui::NewGame::Initialize();
+  pokemon::ModelReplacement::Initialize();
+  ui::TitleScreen::Initialize();
+  ui::PartySelect::Initialize();
+  // The hooks of HOOK(), in the library and in the product.
+  core::HookBase::InstallAll();
 }
 
 void OpenMenu(ui::Painter& painter, PageLoader root_page) {
@@ -150,8 +156,7 @@ void OpenMenu(ui::Painter& painter, PageLoader root_page) {
 }
 
 void Start(void (*every_frame)()) {
-  core::HookManager::Initialize(HookId::kEntrypoint, sys::address::kEntrypoint,
-                          (uptr)every_frame);
+  entrypoint_hook.Install(sys::address::kEntrypoint, every_frame);
 }
 
 void UpdateFrame() {

@@ -23,65 +23,66 @@
  */
 
 #include "core/patch/device_patch.h"
-#include "core/hook_manager.h"
+#include "core/hook.h"
 #include "system/native/device.h"
 
 namespace core {
+namespace {
 
-#define ADD_HOOK(ID, Address) HookManager::Initialize(HookId::ID, Address, (uptr)Hook##ID)
-
-void DevicePatch::Initialize() {
-  ADD_HOOK(kIsKeyPressed, sys::address::kControllerIsKeyPressed);
-  ADD_HOOK(kIsKeyReleased, sys::address::kControllerIsKeyReleased);
-  ADD_HOOK(kIsKeyDown, sys::address::kControllerIsKeyDown);
-  ADD_HOOK(kIsKeyRepeated, sys::address::kControllerIsKeyRepeated);
-  ADD_HOOK(kIsDPadDown, sys::address::kDpadIsDown2);
-  ADD_HOOK(kIsTouchDown, sys::address::kTouchscreenIsDown);
-  ADD_HOOK(kIsTouchReleased, sys::address::kTouchscreenIsReleased);
-
-  HookManager::Initialize(HookId::kGetRepeatedKey,
-                          sys::address::kControllerGetRepeatedKey,
-                          (uptr)GetRepeatKeyHook);
+// Returns true when the game must not see the buttons of this channel.
+bool IsHidden(u8 channel) {
+  return DevicePatch::GetInstance().use_redirection &&
+         channel != sys::Device::kCustomChannel;
 }
 
-#undef ADD_HOOK
+} // namespace
 
-u32 DevicePatch::GetRepeatKeyHook(uptr button, u8 channel) {
-  if (GetInstance().use_redirection &&
-      channel != sys::Device::kCustomChannel)
-    return 0;
-
-  return HookManager::Call<u32>(HookId::kGetRepeatedKey, button, channel);
+HOOK(bool, IsKeyPressed, (void* device, u32 key, u8 channel),
+     sys::address::kControllerIsKeyPressed) {
+  if (IsHidden(channel)) return false;
+  return original(device, key, channel);
 }
 
-#define DEFINE_INPUT_HOOK(FuncName)                         \
-bool DevicePatch::Hook##FuncName(void *pDevice, u32 key, u8 channel) { \
-  if (DevicePatch::GetInstance().use_redirection &&       \
-      channel != sys::Device::kCustomChannel)                  \
-    return false;                                         \
-  return HookManager::Call<bool>(HookId::FuncName, pDevice, key, channel);\
+HOOK(bool, IsKeyReleased, (void* device, u32 key, u8 channel),
+     sys::address::kControllerIsKeyReleased) {
+  if (IsHidden(channel)) return false;
+  return original(device, key, channel);
 }
 
-DEFINE_INPUT_HOOK(kIsKeyPressed)
-DEFINE_INPUT_HOOK(kIsKeyReleased)
-DEFINE_INPUT_HOOK(kIsKeyDown)
-DEFINE_INPUT_HOOK(kIsKeyRepeated)
-DEFINE_INPUT_HOOK(kIsDPadDown)
-DEFINE_INPUT_HOOK(kIsDPadRepeated)
-
-#undef DEFINE_INPUT_HOOK
-
-#define DEFINE_TOUCH_HOOK(FuncName)                   \
-bool DevicePatch::Hook##FuncName(void *pTouch, u8 channel) {     \
-  if (DevicePatch::GetInstance().use_redirection && \
-      channel != sys::Device::kCustomChannel)            \
-    return false;                                   \
-  return HookManager::Call<bool>(HookId::FuncName, pTouch, channel);        \
+HOOK(bool, IsKeyDown, (void* device, u32 key, u8 channel),
+     sys::address::kControllerIsKeyDown) {
+  if (IsHidden(channel)) return false;
+  return original(device, key, channel);
 }
 
-DEFINE_TOUCH_HOOK(kIsTouchDown)
-DEFINE_TOUCH_HOOK(kIsTouchReleased)
+HOOK(bool, IsKeyRepeated, (void* device, u32 key, u8 channel),
+     sys::address::kControllerIsKeyRepeated) {
+  if (IsHidden(channel)) return false;
+  return original(device, key, channel);
+}
 
-#undef DEFINE_TOUCH_HOOK
+HOOK(bool, IsDPadDown, (void* device, u32 key, u8 channel),
+     sys::address::kDpadIsDown2) {
+  if (IsHidden(channel)) return false;
+  return original(device, key, channel);
+}
+
+HOOK(bool, IsTouchDown, (void* touch, u8 channel),
+     sys::address::kTouchscreenIsDown) {
+  if (IsHidden(channel)) return false;
+  return original(touch, channel);
+}
+
+HOOK(bool, IsTouchReleased, (void* touch, u8 channel),
+     sys::address::kTouchscreenIsReleased) {
+  if (IsHidden(channel)) return false;
+  return original(touch, channel);
+}
+
+HOOK(u32, GetRepeatedKey, (uptr button, u8 channel),
+     sys::address::kControllerGetRepeatedKey) {
+  if (IsHidden(channel)) return 0;
+  return original(button, channel);
+}
 
 } // namespace core

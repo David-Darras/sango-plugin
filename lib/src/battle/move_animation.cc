@@ -25,7 +25,7 @@
 #include "battle/patch/move_animation.h"
 #include <cstring>
 #include "battle/patch/effect_style.h"
-#include "core/hook_manager.h"
+#include "core/patch/archive.h"
 #include "ui/log_application.h"
 
 namespace battle {
@@ -656,13 +656,10 @@ static Slot* PrepareSlot(u32* archive, u32 file_id) {
   if (owner != MoveAnimations::kMaxDefinitions) {
     used = MoveAnimation::WriteEmpty(slot.data);
   } else {
-    const u32 original =
-        core::HookManager::Call<u32>(HookId::kArchiveGetFileSize, archive,
-                                     file_id);
+    const u32 original = core::Archive::GetOriginalFileSize(archive, file_id);
     if (original > kSlotCapacity) return nullptr;
 
-    core::HookManager::Call<u32>(HookId::kArchiveLoadData2, archive, file_id,
-                                 (void*)slot.data);
+    core::Archive::LoadOriginalData(archive, file_id, (void*)slot.data);
 
     if (!MoveAnimation::Validate(slot.data, original, &used)) return nullptr;
   }

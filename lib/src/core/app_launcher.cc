@@ -23,7 +23,7 @@
  */
 
 #include "core/patch/app_launcher.h"
-#include "core/hook_manager.h"
+#include "core/hook.h"
 #include "core/native/box_app_input.h"
 #include "core/native/game_manager.h"
 #include "core/native/move_app_input.h"
@@ -41,6 +41,11 @@
 namespace core {
 
 namespace {
+core::Hook<void(uptr, GameManager*)> call_app_hook;
+core::Hook<bool(uptr, u32)> check_app_request_hook;
+} // namespace
+
+namespace {
 /// The data of an app request, as the CallApp hook receives it.
 constexpr uptr kOffsetAppId = 28;
 constexpr uptr kOffsetInput = 0x20;
@@ -56,11 +61,10 @@ void AppLauncher::Initialize() {
   // Reserve 0x100 bytes for the app hook.
   WRITE32(address::kOverworldMenuAppAllocSize, 0xE3A01C01);
   WRITE32(address::kTopMenuAppAllocSize, 0xE3A01C01);
-  HookManager::Initialize(HookId::kCallApp, sys::address::kCallApp,
-                          (uptr)CallAppHook);
-  HookManager::Initialize(HookId::kCheckAppRequest,
-                          sys::address::kCheckAppRequest,
-                          (uptr)CheckAppRequestHook, false);
+  call_app_hook.Install(sys::address::kCallApp, CallAppHook);
+  check_app_request_hook.Install(sys::address::kCheckAppRequest,
+                                 CheckAppRequestHook,
+                                 overworld::address::kVtable);
 }
 
 void AppLauncher::TriggerApp(AppId id) {
@@ -79,7 +83,7 @@ bool AppLauncher::CheckAppRequestHook(uptr menu, u32 id) {
     WRITE32(menu + 4 * (kRequestPokemonList >> 5) + kOffsetMenuRequestFlags,
             1 << (kRequestPokemonList % 32));
   }
-  return HookManager::Call<bool>(HookId::kCheckAppRequest, menu, id);
+  return check_app_request_hook(menu, id);
 }
 
 void AppLauncher::MoveDeleterCallback(uptr* data, GameManager* manager) {
@@ -125,7 +129,7 @@ void AppLauncher::CallAppHook(uptr self, GameManager* manager) {
 
   u8 choice = READ8(self + kOffsetAppId);
   if (choice != 0 || !ctx.open_app) {
-    HookManager::Call<void>(HookId::kCallApp, self, manager);
+    call_app_hook(self, manager);
     return;
   }
 
@@ -178,7 +182,7 @@ void AppLauncher::CallAppHook(uptr self, GameManager* manager) {
 
   ctx.open_app = false;
 
-  HookManager::Call<void>(HookId::kCallApp, self, manager);
+  call_app_hook(self, manager);
 }
 
 } // namespace core

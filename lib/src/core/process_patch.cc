@@ -24,7 +24,7 @@
 
 #include "core/patch/process_patch.h"
 #include "battle/patch/battle.h"
-#include "core/hook_manager.h"
+#include "core/hook.h"
 #include "overworld/patch/overworld.h"
 #include "ui/patch/app_status.h"
 #include "ui/patch/keyboard_patch.h"
@@ -36,15 +36,19 @@
 
 namespace core {
 
+namespace {
+core::Hook<u32(ProcessManager*)> main_process_loop_hook;
+} // namespace
+
 void ProcessPatch::Initialize() {
-  HookManager::Initialize(HookId::kMainProcessLoop, sys::address::kMainProcessLoop,
-                          (uptr)MainProcessLoopHook);
+  main_process_loop_hook.Install(sys::address::kMainProcessLoop,
+                                 MainProcessLoopHook);
 }
 
 u32 ProcessPatch::MainProcessLoopHook(ProcessManager* manager) {
   pokemon::SpeciesTable::Update();
   manager->Patch(OnLoad, OnUpdate);
-  return HookManager::Call<u32>(HookId::kMainProcessLoop, manager);
+  return main_process_loop_hook(manager);
 }
 
 void ProcessPatch::OnUpdate(uptr vtable) {
@@ -64,14 +68,13 @@ void ProcessPatch::OnLoad(uptr vtable) {
   if (feat.on_process_load != nullptr) feat.on_process_load(vtable);
   ui::NewGame::OnProcessLoad(vtable);
 
-  if (vtable != overworld::address::kVtable) {
-    HookManager::Clear(HookId::kGetEncounterPokemon);
-  }
   if (vtable != ui::address::kKeyboardVtable) {
     ui::KeyboardPatch::GetInstance().is_opened = false;
   }
 
   if (vtable == 0) return;
+  // The game loaded the code of the process again: write the hooks again.
+  HookBase::OnProcessLoad(vtable);
   if (vtable == address::kTitleScreenVtable) {
     ui::TitleScreen::PatchLoad();
   } else if (vtable == battle::address::kVtable) {

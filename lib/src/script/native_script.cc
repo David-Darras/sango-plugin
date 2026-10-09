@@ -24,7 +24,30 @@
 
 #include "script/patch/native_script.h"
 
+#include "core/hook.h"
+
 Coroutine* Coroutine::self_ = nullptr;
+
+namespace script {
+namespace {
+core::Hook<void(ScriptDescriptor*, u16, s32, void*)> descriptor_setup_hook;
+} // namespace
+
+void NativeScript::Initialize() {
+  GetInstance().BuildStub();
+  descriptor_setup_hook.Install(core::address::kScriptDescriptorSetup,
+                                DescriptorSetupHook);
+}
+
+void NativeScript::DescriptorSetupHook(ScriptDescriptor* descriptor,
+                                       u16 zone_id, s32 script_id,
+                                       void* zone_data) {
+  const bool custom = IsRegistered((ScriptId)script_id);
+  descriptor_setup_hook(descriptor, zone_id,
+                        custom ? kBorrowedScriptId : script_id, zone_data);
+  if (custom) descriptor->script_id = script_id;
+}
+} // namespace script
 
 asm(R"(
   .text

@@ -25,7 +25,6 @@
 #pragma once
 
 #include "common.h"
-#include "core/hook_manager.h"
 #include "script/constant/script.h"
 #include "script/native/amx.h"
 #include "script/native/engine.h"
@@ -67,12 +66,7 @@ public:
   bool log_activity = false; ///< true: writes the start and the end of each C++ script to the log.
   u32 run_count = 0;
 
-  STATIC_INLINE void Initialize() {
-    GetInstance().BuildStub();
-    core::HookManager::Initialize(HookId::kScriptDescriptorSetup,
-                            core::address::kScriptDescriptorSetup,
-                            (uptr)DescriptorSetupHook);
-  }
+  static void Initialize();
 
   /// Links a script id to a C++ function. 32 scripts at most.
   static bool Register(ScriptId id, Function function) {
@@ -158,13 +152,7 @@ private:
 
   static void DescriptorSetupHook(ScriptDescriptor* descriptor,
                                   u16 zone_id, s32 script_id,
-                                  void* zone_data) {
-    const bool custom = IsRegistered((ScriptId)script_id);
-    core::HookManager::Call<void>(HookId::kScriptDescriptorSetup, descriptor,
-                            zone_id, custom ? kBorrowedScriptId : script_id,
-                            zone_data);
-    if (custom) descriptor->script_id = script_id;
-  }
+                                  void* zone_data);
 
   static PawnCell NativeEntry(AmxRuntime* amx, const PawnCell*) {
     auto& ctx = GetInstance();

@@ -42,9 +42,7 @@ void Initialize() {
   PatchBattle();
   PatchTrainerModels();
   InitializeOverworldWeather();
-  InitializeGiftHook();
   InitializeModelHook();
-  InitializeStarterHook();
   InitializeTrainerTeams();
 
   pokemon::Shiny::GetInstance().rate = pokemon::ShinyRate::k1_8;

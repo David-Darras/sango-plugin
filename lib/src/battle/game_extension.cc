@@ -27,7 +27,7 @@
 #include "pokemon/patch/custom_shop.h"
 
 #include "core/constant/archive_id.h"
-#include "core/hook_manager.h"
+#include "core/hook.h"
 #include "battle/native/broadcaster.h"
 #include "battle/native/listener.h"
 #include "battle/native/pokemon.h"
@@ -35,6 +35,20 @@
 #include "pokemon/native/move_data.h"
 
 namespace battle {
+
+namespace {
+core::Hook<void(MoveId, String*)> get_move_name_hook;
+core::Hook<void(String*, AbilityId)> get_ability_name_hook;
+core::Hook<void(String*, AbilityId)> get_ability_description_hook;
+core::Hook<void(uptr, u32, u32)> set_ability_name_hook;
+core::Hook<void(uptr, u32, u32)> set_move_name_hook;
+core::Hook<void(Message*, u32, String*)> message_get_string_hook;
+core::Hook<uptr(Pokemon*)> get_battle_ability_handler_hook;
+core::Hook<uptr(Pokemon*, MoveId, u32)> get_battle_move_handler_hook;
+core::Hook<void(uptr, u32, bool)> battle_load_animation_hook;
+core::Hook<void(uptr, u32, u32, u32)> battle_load_effect_hook;
+core::Hook<u32(uptr, MoveId)> load_move_data_hook;
+} // namespace
 
 // The text files of the game that hold move and ability names. The
 // MessageGetStringHook below replaces the text of the new entries.
@@ -90,50 +104,29 @@ const AbilitySpec* GameExtension::FindAbility(AbilityId id) {
 
 // Hooks.
 void GameExtension::Initialize() {
-  core::HookManager::Initialize(HookId::kGetMoveName,
-                                pokemon::address::kGetMoveName,
-                                (uptr)GetMoveNameHook);
-  core::HookManager::Initialize(HookId::kGetAbilityName,
-                                pokemon::address::kGetAbilityName,
-                                (uptr)GetAbilityNameHook);
-  core::HookManager::Initialize(HookId::kGetAbilityDescription,
-                                pokemon::address::kGetAbilityDescription,
-                                (uptr)GetAbilityDescriptionHook);
-  core::HookManager::Initialize(HookId::kSetAbilityName,
-                                pokemon::address::kSetAbilityName,
-                                (uptr)SetAbilityNameHook);
-  core::HookManager::Initialize(HookId::kSetMoveName,
-                                pokemon::address::kSetMoveName,
-                                (uptr)SetMoveNameHook);
-  core::HookManager::Initialize(HookId::kMessageGetString,
-                                sys::address::kMessageGetString,
-                                (uptr)MessageGetStringHook);
+  get_move_name_hook.Install(pokemon::address::kGetMoveName, GetMoveNameHook);
+  get_ability_name_hook.Install(pokemon::address::kGetAbilityName,
+                                GetAbilityNameHook);
+  get_ability_description_hook.Install(pokemon::address::kGetAbilityDescription,
+                                       GetAbilityDescriptionHook);
+  set_ability_name_hook.Install(pokemon::address::kSetAbilityName,
+                                SetAbilityNameHook);
+  set_move_name_hook.Install(pokemon::address::kSetMoveName, SetMoveNameHook);
+  message_get_string_hook.Install(sys::address::kMessageGetString,
+                                  MessageGetStringHook);
   // The battle code is loaded only during a battle: PatchBattleLoad()
   // enables these hooks when a battle starts.
-  core::HookManager::Initialize(HookId::kBattleRegisterAbilityListener,
-                                address::kRegisterAbilityListener,
-                                (uptr)GetBattleAbilityHandlerHook, false);
-  core::HookManager::Initialize(HookId::kBattleRegisterMoveListener,
-                                address::kRegisterMoveListener,
-                                (uptr)GetBattleMoveHandlerHook, false);
-  core::HookManager::Initialize(HookId::kBattleLoadAnimation,
-                                address::kLoadAnimation,
-                                (uptr)BattleLoadAnimationHook, false);
-  core::HookManager::Initialize(HookId::kBattleLoadEffect,
-                                address::kLoadEffect,
-                                (uptr)BattleLoadEffectHook, false);
-  core::HookManager::Initialize(HookId::kLoadMoveData,
-                                pokemon::address::kLoadMoveData,
-                                (uptr)LoadMoveData);
-}
-
-void GameExtension::PatchBattleLoad() {
-  core::HookManager::ForceEnable(HookId::kBattleRegisterAbilityListener);
-  core::HookManager::ForceEnable(HookId::kBattleRegisterMoveListener);
-  core::HookManager::ForceEnable(HookId::kBattleLoadAnimation);
-  if (address::kLoadEffect != 0) {
-    core::HookManager::ForceEnable(HookId::kBattleLoadEffect);
-  }
+  get_battle_ability_handler_hook.Install(address::kRegisterAbilityListener,
+                                          GetBattleAbilityHandlerHook,
+                                          address::kVtable);
+  get_battle_move_handler_hook.Install(address::kRegisterMoveListener,
+                                       GetBattleMoveHandlerHook,
+                                       address::kVtable);
+  battle_load_animation_hook.Install(address::kLoadAnimation,
+                                     BattleLoadAnimationHook, address::kVtable);
+  battle_load_effect_hook.Install(address::kLoadEffect, BattleLoadEffectHook,
+                                  address::kVtable);
+  load_move_data_hook.Install(pokemon::address::kLoadMoveData, LoadMoveData);
 }
 
 void GameExtension::BattleLoadEffectHook(uptr self, u32 archive_id,
@@ -142,8 +135,7 @@ void GameExtension::BattleLoadEffectHook(uptr self, u32 archive_id,
       archive_id == static_cast<u32>(core::ArchiveId::kMoveEffectParticle)) {
     return;
   }
-  core::HookManager::Call<void>(HookId::kBattleLoadEffect, self,
-                                archive_id, file_id, type);
+  battle_load_effect_hook(self, archive_id, file_id, type);
 }
 
 void GameExtension::BattleLoadAnimationHook(uptr self, u32 id, bool is_move) {
@@ -156,8 +148,7 @@ void GameExtension::BattleLoadAnimationHook(uptr self, u32 id, bool is_move) {
       spec->patch_animation(id, is_move);
     }
   }
-  core::HookManager::Call<void>(HookId::kBattleLoadAnimation, self, id,
-                                is_move);
+  battle_load_animation_hook(self, id, is_move);
 }
 
 // The game reads the data of a move into a work buffer: the data pointer is
@@ -166,8 +157,9 @@ void GameExtension::BattleLoadAnimationHook(uptr self, u32 id, bool is_move) {
 u32 GameExtension::LoadMoveData(uptr self, MoveId move_id) {
   const MoveSpec* spec = FindMove(move_id);
 
-  u32 id = spec != nullptr ? kTemplateMove : static_cast<u16>(move_id);
-  u32 result = core::HookManager::Call<u32>(HookId::kLoadMoveData, self, id);
+  const MoveId id =
+      spec != nullptr ? static_cast<MoveId>(kTemplateMove) : move_id;
+  u32 result = load_move_data_hook(self, id);
 
   if (spec != nullptr) {
     if (spec->patch_data != nullptr) {
@@ -217,8 +209,7 @@ uptr GameExtension::GetBattleAbilityHandlerHook(Pokemon* pkm) {
         PriorityTier::kActiveMoveDefault, 1000, UID{pkm->uid},
         const_cast<ReactionTable*>(spec->reactions), spec->reaction_count);
   }
-  return core::HookManager::Call<uptr>(HookId::kBattleRegisterAbilityListener,
-                                       pkm);
+  return get_battle_ability_handler_hook(pkm);
 }
 
 // The game registers one listener for the move that a Pokemon uses. For a new
@@ -232,14 +223,12 @@ uptr GameExtension::GetBattleMoveHandlerHook(Pokemon* pkm, MoveId move,
         PriorityTier::kActiveMoveDefault, x, UID{pkm->uid},
         const_cast<ReactionTable*>(spec->reactions), spec->reaction_count);
   }
-  return core::HookManager::Call<uptr>(HookId::kBattleRegisterMoveListener, pkm,
-                                       move, x);
+  return get_battle_move_handler_hook(pkm, move, x);
 }
 
 void GameExtension::MessageGetStringHook(Message* self, u32 str_id,
                                          String* output) {
-  core::HookManager::Call<void>(HookId::kMessageGetString, self, str_id,
-                                output);
+  message_get_string_hook(self, str_id, output);
   switch (self->file_id) {
     case kMoveNameFile1:
     case kMoveNameFile2:
@@ -264,14 +253,13 @@ void GameExtension::MessageGetStringHook(Message* self, u32 str_id,
 }
 
 void GameExtension::SetAbilityNameHook(uptr self, u32 archive, u32 ability) {
-  core::HookManager::Call<void>(HookId::kSetAbilityName, self, archive,
-                                ability);
+  set_ability_name_hook(self, archive, ability);
   String* output = (String*)READ32(READ32(self + 8) + 12 * archive);
   PatchAbilityName(static_cast<AbilityId>(ability), output);
 }
 
 void GameExtension::SetMoveNameHook(uptr self, u32 archive, u32 move) {
-  core::HookManager::Call<void>(HookId::kSetMoveName, self, archive, move);
+  set_move_name_hook(self, archive, move);
   String* output = (String*)READ32(READ32(self + 8) + 12 * archive);
   PatchMoveName(static_cast<MoveId>(move), output);
 }

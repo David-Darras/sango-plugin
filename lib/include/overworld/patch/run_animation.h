@@ -34,7 +34,6 @@ public:
   bool enabled = true;
 
   static void Initialize();
-  static void PatchLoad();
 
 private:
   static constexpr u32 kRunAction = 0x0E;

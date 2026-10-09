@@ -20,7 +20,8 @@
  * @brief The functions that a product calls to start the plugin.
  *
  * A product calls them in this order, in its Initialize() function:
- * 1. InitializeEngine(): installs the features of the library.
+ * 1. InitializeEngine(): installs the features of the library and the hooks
+ *    of HOOK().
  * 2. (The product sets its settings and its callbacks.)
  * 3. OpenMenu(): prepares the menu.
  * 4. Start(): runs a function of the product at each frame.
@@ -44,6 +45,7 @@ namespace plugin {
 typedef void (*PageLoader)(ui::MainApplication& app, void* args);
 
 /// Installs the hooks and the patches of all the features of the library.
+/// Then installs the hooks of HOOK(), also the hooks of the product.
 void InitializeEngine();
 
 /**

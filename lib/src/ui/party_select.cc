@@ -24,15 +24,17 @@
 
 #include "ui/patch/party_select.h"
 
-#include "core/hook_manager.h"
+#include "core/hook.h"
 
 namespace ui {
 
+namespace {
+core::Hook<void(void*, u8*, u8*)> call_hook;
+} // namespace
+
 void PartySelect::Initialize() {
   if (!kIsSupported) return;
-  core::HookManager::Initialize(HookId::kCallPokemonList,
-                                address::kCallPokemonList,
-                                (uptr)CallHook);
+  call_hook.Install(address::kCallPokemonList, CallHook);
 }
 
 void PartySelect::Arm(u32 count) {
@@ -58,8 +60,7 @@ void PartySelect::CallHook(void* process_manager, u8* context, u8* result) {
       }
     }
   }
-  core::HookManager::Call<void>(HookId::kCallPokemonList, process_manager,
-                                context, result);
+  call_hook(process_manager, context, result);
 }
 
 PartySelect::Status PartySelect::GetResult(u8* order) {

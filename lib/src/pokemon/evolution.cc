@@ -23,7 +23,7 @@
  */
 
 #include "pokemon/patch/evolution.h"
-#include "core/hook_manager.h"
+#include "core/hook.h"
 #include "pokemon/patch/species_table.h"
 #include "pokemon/constant/evolution_method.h"
 #include "pokemon/constant/item.h"
@@ -32,16 +32,18 @@
 
 namespace pokemon {
 
+namespace {
+core::Hook<void(SpeciesId, u32, u32, u32)> load_evolve_table_hook;
+} // namespace
+
 void Evolution::Initialize() {
-  core::HookManager::Initialize(HookId::kLoadEvolutionTable,
-                          address::kLoadEvolutionTable,
-                          (uptr)LoadEvolveTableHook);
+  load_evolve_table_hook.Install(address::kLoadEvolutionTable,
+                                 LoadEvolveTableHook);
 }
 
 void Evolution::LoadEvolveTableHook(SpeciesId species, u32 b, u32 c, u32 d) {
   const bool extra = SpeciesTable::IsGen7(static_cast<u16>(species));
-  core::HookManager::Call<void>(HookId::kLoadEvolutionTable,
-                                extra ? static_cast<SpeciesId>(1) : species, b, c, d);
+  load_evolve_table_hook(extra ? static_cast<SpeciesId>(1) : species, b, c, d);
   PatchEvolve(species);
 }
 

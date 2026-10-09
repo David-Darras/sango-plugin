@@ -24,14 +24,18 @@
 
 #include "ui/patch/title_screen.h"
 
-#include "core/hook_manager.h"
+#include "core/hook.h"
 
 namespace ui {
 
+namespace {
+core::Hook<void(uptr)> sequence_sync_hook;
+} // namespace
+
 void TitleScreen::Initialize() {
-  core::HookManager::Initialize(HookId::kTitleSequenceSync,
-                          core::address::kTitleScreenSequenceSync,
-                          (uptr)SequenceSyncHook, false);
+  sequence_sync_hook.Install(core::address::kTitleScreenSequenceSync,
+                             SequenceSyncHook,
+                             core::address::kTitleScreenVtable);
 }
 
 void TitleScreen::PatchLoad() {
@@ -40,7 +44,6 @@ void TitleScreen::PatchLoad() {
 
   MEMORY_SCOPE(sys::address::kMemoryRegionTitleScreen, 0x1E000);
   title.skipped_ = false;
-  core::HookManager::ForceEnable(HookId::kTitleSequenceSync);
   WRITE32(core::address::kTitleScreenTopVideoId,
           0xE3A02000 | static_cast<u8>(title.top_video));
   WRITE32(core::address::kTitleScreenBottomVideoId,
@@ -56,7 +59,10 @@ void TitleScreen::PatchLoad() {
 
 void TitleScreen::SequenceSyncHook(uptr display) {
   auto& title = GetInstance();
-  if (title.skip_to_frame != 0 && !title.skipped_ &&
+  // PatchLoad() prepares the title screen only for these conditions.
+  const bool is_active =
+      title.is_enabled && core::address::kTitleScreenTopVideoId != 0;
+  if (is_active && title.skip_to_frame != 0 && !title.skipped_ &&
       READ32(display + kTopFrameOffset) > 0) {
     title.skipped_ = true;
     WRITE32(display + kTopFrameOffset,
@@ -64,7 +70,7 @@ void TitleScreen::SequenceSyncHook(uptr display) {
     WRITE32(display + kBottomFrameOffset,
             READ32(display + kBottomFrameOffset) + title.skip_to_frame);
   }
-  core::HookManager::Call<void>(HookId::kTitleSequenceSync, display);
+  sequence_sync_hook(display);
 }
 
 } // namespace ui

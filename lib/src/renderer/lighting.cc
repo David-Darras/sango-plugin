@@ -24,20 +24,23 @@
 
 #include "renderer/patch/lighting.h"
 
-#include "core/hook_manager.h"
+#include "core/hook.h"
 
 namespace renderer {
 
+namespace {
+core::Hook<void(void*, f32, f32, f32)> change_outline_scale_hook;
+core::Hook<void(void*, Color*)> change_ambient_light_color_hook;
+core::Hook<void(void*, Color*)> change_diffuse_light_color_hook;
+} // namespace
+
 void Lighting::Initialize() {
-  core::HookManager::Initialize(HookId::kChangeOutlineScale,
-                          address::kChangeOutlineScale,
-                          (uptr)ChangeOutlineScaleHook);
-  core::HookManager::Initialize(HookId::kChangeAmbientLightColor,
-                          address::kChangeAmbientLightColor,
-                          (uptr)ChangeAmbientLightColorHook);
-  core::HookManager::Initialize(HookId::kChangeDiffuseLightColor,
-                          address::kChangeDiffuseLightColor,
-                          (uptr)ChangeDiffuseLightColorHook);
+  change_outline_scale_hook.Install(address::kChangeOutlineScale,
+                                    ChangeOutlineScaleHook);
+  change_ambient_light_color_hook.Install(address::kChangeAmbientLightColor,
+                                          ChangeAmbientLightColorHook);
+  change_diffuse_light_color_hook.Install(address::kChangeDiffuseLightColor,
+                                          ChangeDiffuseLightColorHook);
 }
 
 void Lighting::ChangeOutlineScaleHook(void* outline_manager, f32 screen_width,
@@ -55,9 +58,8 @@ void Lighting::ChangeOutlineScaleHook(void* outline_manager, f32 screen_width,
   }
   was_enabled = ctx.use_outline;
 
-  core::HookManager::Call<void>(HookId::kChangeOutlineScale, outline_manager,
-                          screen_width, screen_height,
-                          ctx.outline_scale);
+  change_outline_scale_hook(outline_manager, screen_width, screen_height,
+                            ctx.outline_scale);
 }
 
 void Lighting::ChangeAmbientLightColorHook(void* light_manager, Color* color) {
@@ -67,8 +69,7 @@ void Lighting::ChangeAmbientLightColorHook(void* light_manager, Color* color) {
     ctx.ambient_color = *color;
   }
 
-  core::HookManager::Call<void>(HookId::kChangeAmbientLightColor, light_manager,
-                          &ctx.ambient_color);
+  change_ambient_light_color_hook(light_manager, &ctx.ambient_color);
 }
 
 void Lighting::ChangeDiffuseLightColorHook(void* light_manager, Color* color) {
@@ -78,8 +79,7 @@ void Lighting::ChangeDiffuseLightColorHook(void* light_manager, Color* color) {
     ctx.diffuse_color = *color;
   }
 
-  core::HookManager::Call<void>(HookId::kChangeDiffuseLightColor, light_manager,
-                          &ctx.diffuse_color);
+  change_diffuse_light_color_hook(light_manager, &ctx.diffuse_color);
 }
 
 } // namespace renderer

@@ -23,21 +23,21 @@
  */
 
 #include "overworld/patch/static_randomizer.h"
-#include "core/hook_manager.h"
+#include "core/hook.h"
 #include "core/native/game_manager.h"
 #include "overworld/native/static_encounter.h"
 #include "core/utils.h"
 
 namespace overworld {
 
-void StaticRandomizer::Initialize() {
-  core::HookManager::Initialize(HookId::kCallStaticEncounter,
-                          address::kCallStaticEncounter,
-                          (uptr)CallStaticEncounterHook, false);
-}
+namespace {
+core::Hook<s32(core::GameManager*, StaticEncounterId, u32, u32)>
+    call_static_encounter_hook;
+} // namespace
 
-void StaticRandomizer::PatchLoad() {
-  core::HookManager::ForceEnable(HookId::kCallStaticEncounter);
+void StaticRandomizer::Initialize() {
+  call_static_encounter_hook.Install(address::kCallStaticEncounter,
+                                     CallStaticEncounterHook, address::kVtable);
 }
 
 void StaticRandomizer::RandomizeSpecies(StaticEncounterId id) {
@@ -50,8 +50,7 @@ s32 StaticRandomizer::CallStaticEncounterHook(core::GameManager* man,
                                               StaticEncounterId id, u32 p3,
                                               u32 p4) {
   if (GetInstance().randomize_species) RandomizeSpecies(id);
-  return core::HookManager::Call<s32>(HookId::kCallStaticEncounter, man, id, p3,
-                                p4);
+  return call_static_encounter_hook(man, id, p3, p4);
 }
 
 } // namespace overworld

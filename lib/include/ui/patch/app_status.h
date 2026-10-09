@@ -22,7 +22,6 @@
 
 #pragma once
 #include "common.h"
-#include "core/hook_manager.h"
 #include "core/native/process_manager.h"
 #include "core/patch/device_patch.h"
 #include "pokemon/native/data_accessor.h"
@@ -41,20 +40,7 @@ public:
   /// abilities of the species) and the form.
   bool is_restricted = false;
 
-  STATIC_INLINE void Initialize() {
-    core::HookManager::Initialize(HookId::kAppStatusSetupGraphicsParams,
-                            renderer::address::kAppStatusSetupGraphicsParams,
-                            (uptr)SetupGraphicsParamsHook, false);
-    core::HookManager::Initialize(HookId::kAppStatusSetupGraphicsMoves,
-                            renderer::address::kAppStatusSetupGraphicsMoves,
-                            (uptr)SetupGraphicsMovesHook, false);
-    core::HookManager::Initialize(HookId::kAppStatusSetupGraphicsContest,
-                            renderer::address::kAppStatusSetupGraphicsContest,
-                            (uptr)SetupGraphicsContestHook, false);
-    core::HookManager::Initialize(HookId::kAppStatusSetupGraphicsInfos,
-                            renderer::address::kAppStatusSetupGraphicsInfos,
-                            (uptr)SetupGraphicsInfosHook, false);
-  }
+  static void Initialize();
 
   static void PatchLoad();
   static void PatchUpdate();

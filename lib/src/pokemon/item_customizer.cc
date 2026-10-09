@@ -24,10 +24,14 @@
 
 #include "pokemon/patch/item_customizer.h"
 
-#include "core/hook_manager.h"
+#include "core/hook.h"
 #include "pokemon/native/item_data.h"
 
 namespace pokemon {
+
+namespace {
+core::Hook<u32(ItemData*, u32)> get_param_hook;
+} // namespace
 
 namespace {
 
@@ -59,9 +63,7 @@ void ItemCustomizer::Initialize() {
   }
   UpdateLimitPatch();
 
-  core::HookManager::Initialize(HookId::kItemDataGetParam,
-                          address::kItemDataGetParam,
-                          (uptr)GetParamHook);
+  get_param_hook.Install(address::kItemDataGetParam, GetParamHook);
 }
 
 void ItemCustomizer::UpdateLimitPatch() {

@@ -24,20 +24,22 @@
 
 #include "core/patch/script_loader.h"
 #include "script/patch/native_script.h"
-#include "core/hook_manager.h"
+#include "core/hook.h"
 #include "script/native/amx.h"
 #include "system/native/file.h"
 #include "ui/log_application.h"
 
 namespace core {
 
+namespace {
+core::Hook<void(void*, const void*, u32, const c8*)> load_hook;
+} // namespace
+
 void ScriptLoader::Initialize() {
   sys::File::CreateDirectory(u"sdmc:/pkpawn");
   sys::File::CreateDirectory(u"sdmc:/pkpawn/dump");
 
-  HookManager::Initialize(HookId::kLoadScript,
-                          address::kScriptPawnBaseLoad,
-                          (uptr)LoadHook);
+  load_hook.Install(address::kScriptPawnBaseLoad, LoadHook);
 }
 
 void ScriptLoader::PatchLoad() {
@@ -70,7 +72,7 @@ void ScriptLoader::LoadHook(void* self, const void* buffer, u32 size,
   // The C++ scripts have priority over the scripts of the SD card.
   script::NativeScript::OnLoad(self, buffer, size);
 
-  HookManager::Call<void>(HookId::kLoadScript, self, buffer, size, amxname);
+  load_hook(self, buffer, size, amxname);
 }
 
 u32 ScriptLoader::ComputeId(const void* data, u32 size) {

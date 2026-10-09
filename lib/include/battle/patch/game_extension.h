@@ -119,10 +119,6 @@ public:
   /// Installs the hooks. The library calls this function at start-up.
   static void Initialize();
 
-  /// Enables the battle hooks. The library calls this function when a
-  /// battle loads.
-  static void PatchBattleLoad();
-
   /**
    * @brief Adds a new move.
    * @param spec The description of the move. The function keeps a copy.

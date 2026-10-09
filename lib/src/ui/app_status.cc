@@ -27,6 +27,7 @@
 
 #include <type_traits>
 
+#include "core/hook.h"
 #include "core/native/process_manager.h"
 #include "pokemon/constant/ability.h"
 #include "pokemon/constant/ball.h"
@@ -104,6 +105,13 @@ pane->SetIntegerValue(manager, (u32)runtime.stat_field, 3);\
 static Pane pane_##name(true, id0, id1, id2, prev_##name, next_##name, print_##name);
 
 namespace ui {
+namespace {
+core::Hook<void(uptr, savedata::PokemonParam*)> setup_graphics_params_hook;
+core::Hook<void(uptr, savedata::PokemonParam*, u8)> setup_graphics_moves_hook;
+core::Hook<void(uptr, savedata::PokemonParam*)> setup_graphics_contest_hook;
+core::Hook<void(uptr, savedata::PokemonParam*)> setup_graphics_infos_hook;
+} // namespace
+
 class Pane {
 public:
   using UpdatePokemonDataFunc = std::function<void(
@@ -685,7 +693,7 @@ void AppStatus::Draw(Pane* panes[], u32 pane_count,
 
 void AppStatus::SetupGraphicsParamsHook(uptr self,
                                         savedata::PokemonParam* pokemon) {
-  core::HookManager::Call<void>(HookId::kAppStatusSetupGraphicsParams, self, pokemon);
+  setup_graphics_params_hook(self, pokemon);
 
   static Pane* PARAMS_PANES[] = {
       &pane_species, &pane_nature_form, &pane_shiny,
@@ -704,8 +712,7 @@ void AppStatus::SetupGraphicsParamsHook(uptr self,
 void AppStatus::SetupGraphicsMovesHook(uptr self,
                                        savedata::PokemonParam* pokemon,
                                        u8 move_index) {
-  core::HookManager::Call<void>(HookId::kAppStatusSetupGraphicsMoves, self, pokemon,
-                          move_index);
+  setup_graphics_moves_hook(self, pokemon, move_index);
 
   static Pane* MOVES_PANES[] = {
       &pane_move_0, &pane_move_1, &pane_move_2, &pane_move_3
@@ -717,7 +724,7 @@ void AppStatus::SetupGraphicsMovesHook(uptr self,
 
 void AppStatus::SetupGraphicsInfosHook(uptr self,
                                        savedata::PokemonParam* pokemon) {
-  core::HookManager::Call<void>(HookId::kAppStatusSetupGraphicsInfos, self, pokemon);
+  setup_graphics_infos_hook(self, pokemon);
 
   static Pane* INFOS_PANES[] = {
       &pane_level, &pane_gender, &pane_item_ball
@@ -745,8 +752,7 @@ void AppStatus::SetupGraphicsContestHook(uptr self,
       &pane_contest_tough,
   };
 
-  core::HookManager::Call<void>(HookId::kAppStatusSetupGraphicsContest, self,
-                          pokemon);
+  setup_graphics_contest_hook(self, pokemon);
 
   auto& ctx = GetInstance();
   auto& manager = *(AppLayoutManager*)(READ32(self + 8 + 16));
@@ -768,6 +774,21 @@ void AppStatus::SetupGraphicsContestHook(uptr self,
   }
 }
 
+void AppStatus::Initialize() {
+  setup_graphics_params_hook.Install(
+      renderer::address::kAppStatusSetupGraphicsParams, SetupGraphicsParamsHook,
+      address::kAppStatusVtable);
+  setup_graphics_moves_hook.Install(
+      renderer::address::kAppStatusSetupGraphicsMoves, SetupGraphicsMovesHook,
+      address::kAppStatusVtable);
+  setup_graphics_contest_hook.Install(
+      renderer::address::kAppStatusSetupGraphicsContest,
+      SetupGraphicsContestHook, address::kAppStatusVtable);
+  setup_graphics_infos_hook.Install(
+      renderer::address::kAppStatusSetupGraphicsInfos, SetupGraphicsInfosHook,
+      address::kAppStatusVtable);
+}
+
 void AppStatus::PatchUpdate() {
   auto& pokemon = *savedata::PokemonTeam::GetInstance().pokemons[GetSlot()];
   auto& controller = sys::Controller::GetInstance();
@@ -776,10 +797,6 @@ void AppStatus::PatchUpdate() {
 
 void AppStatus::PatchLoad() {
   MEMORY_SCOPE(sys::address::kMemoryRegionAppStatus, 0x10000);
-  core::HookManager::ForceEnable(HookId::kAppStatusSetupGraphicsParams);
-  core::HookManager::ForceEnable(HookId::kAppStatusSetupGraphicsMoves);
-  core::HookManager::ForceEnable(HookId::kAppStatusSetupGraphicsContest);
-  core::HookManager::ForceEnable(HookId::kAppStatusSetupGraphicsInfos);
   GetInstance().Reset();
   if (GetInstance().is_restricted) {
     pane_level.Disable();

@@ -24,26 +24,28 @@
 
 #include "renderer/patch/model_filter.h"
 #include "battle/patch/effect_style.h"
-#include "core/hook_manager.h"
+#include "core/hook.h"
 #include "core/native/process_manager.h"
 #include "overworld/patch/weather_override.h"
 #include "overworld/patch/whos_that_pokemon.h"
 #include "renderer/native/h3d_model.h"
 #include "battle/native/graphics.h"
 #include "renderer/native/particle.h"
+#include "renderer/native/scene.h"
 
 namespace renderer {
 
+namespace {
+core::Hook<bool(uptr, H3dModel*, u32)> add_h3d_model_hook;
+core::Hook<void(Particle*, uptr, uptr, uptr, uptr)> on_particle_create_hook;
+core::Hook<void(uptr, uptr, uptr, uptr, u32, u32)> attach_buffer_hook;
+} // namespace
+
 void ModelFilter::Initialize() {
-  core::HookManager::Initialize(HookId::kSceneRegister0,
-                          address::kSceneRegister0,
-                          (uptr)AddH3dModel);
-  core::HookManager::Initialize(HookId::kParticleCreate,
-                          address::kParticleCreate,
-                          (uptr)OnParticleCreate);
-  core::HookManager::Initialize(HookId::kResourceAttachBufferAndSetup,
-                          address::kResourceAttachBufferAndSetup,
-                          (uptr)OnResourceAttachBufferAndSetup);
+  add_h3d_model_hook.Install(address::kSceneRegister0, AddH3dModel);
+  on_particle_create_hook.Install(address::kParticleCreate, OnParticleCreate);
+  attach_buffer_hook.Install(address::kResourceAttachBufferAndSetup,
+                             OnResourceAttachBufferAndSetup);
 }
 
 bool ModelFilter::IsInBattle() {
@@ -162,8 +164,7 @@ void ModelFilter::OnParticleCreate(Particle* self, uptr heap_alloc,
                                uptr device_alloc, uptr resource, uptr desc) {
   bool in_battle = IsInBattle();
 
-  core::HookManager::Call<void>(HookId::kParticleCreate, self, heap_alloc,
-                          device_alloc, resource, desc);
+  on_particle_create_hook(self, heap_alloc, device_alloc, resource, desc);
 
   if (!in_battle || self == nullptr) return;
 }
@@ -175,8 +176,7 @@ void ModelFilter::OnResourceAttachBufferAndSetup(uptr self, uptr allocator,
     PatchWeatherParticleColor(p_buff);
     battle::EffectStyles::Apply(p_buff);
   }
-  core::HookManager::Call<void>(HookId::kResourceAttachBufferAndSetup, self,
-                          allocator, p_buff, desc, flag_a, flag_b);
+  attach_buffer_hook(self, allocator, p_buff, desc, flag_a, flag_b);
 }
 
 void ModelFilter::UpdateH3dModel(H3dModel* h3d_model) {
@@ -221,9 +221,13 @@ void ModelFilter::UpdateH3dModel(H3dModel* h3d_model) {
   }
 }
 
-void ModelFilter::AddH3dModel(uptr scene, H3dModel* model, u32 idx) {
+bool ModelFilter::AddH3dModel(uptr scene, H3dModel* model, u32 idx) {
   UpdateH3dModel(model);
-  core::HookManager::Call<void>(HookId::kSceneRegister0, scene, model, idx);
+  return add_h3d_model_hook(scene, model, idx);
+}
+
+bool Scene::Register0(void* scene, H3dShaderModel* model, s32 x) {
+  return add_h3d_model_hook((uptr)scene, (H3dModel*)model, (u32)x);
 }
 
 } // namespace renderer

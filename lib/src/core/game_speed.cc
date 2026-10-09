@@ -23,33 +23,34 @@
  */
 
 #include "core/patch/game_speed.h"
-#include "core/hook_manager.h"
+#include "core/hook.h"
 
 namespace core {
 
+namespace {
+core::Hook<s32(uptr)> update_frame_hook;
+core::Hook<void(uptr, u32, u32, u32, u32)> start_backup_thread_hook;
+} // namespace
+
 void GameSpeed::Initialize() {
-  HookManager::Initialize(HookId::kUpdateFrame, address::kUpdateFrame,
-                          (uptr)UpdateFrameHook);
-  HookManager::Initialize(HookId::kStartBackupThread,
-                          address::kStartBackupThread,
-                          (uptr)StartBackupThread);
+  update_frame_hook.Install(address::kUpdateFrame, UpdateFrameHook);
+  start_backup_thread_hook.Install(address::kStartBackupThread,
+                                   StartBackupThread);
 }
 
 void GameSpeed::StartBackupThread(uptr self, u32 a, u32 b, u32 c, u32 d) {
   GetInstance().game_speed = 1;
-  HookManager::Call<void>(HookId::kStartBackupThread, self, a, b, c, d);
+  start_backup_thread_hook(self, a, b, c, d);
 }
 
 s32 GameSpeed::UpdateFrameHook(uptr addr) {
-  Hook* hook = HookManager::GetInstance().Get(HookId::kUpdateFrame);
-
   auto& ctx = GetInstance();
   ctx.frame_count++;
 
   if (ctx.game_speed >= 1) {
     s32 res = 0;
     for (s32 i = 0; i < ctx.game_speed; i++) {
-      res = hook->CallOriginal<s32>(addr);
+      res = update_frame_hook(addr);
     }
     return res;
   }
@@ -57,12 +58,12 @@ s32 GameSpeed::UpdateFrameHook(uptr addr) {
   if (ctx.game_speed < 0) {
     s32 divider = -ctx.game_speed;
     if (ctx.frame_count % divider == 0) {
-      return hook->CallOriginal<s32>(addr);
+      return update_frame_hook(addr);
     }
     return 1;
   }
 
-  return hook->CallOriginal<s32>(addr);
+  return update_frame_hook(addr);
 }
 
 } // namespace core

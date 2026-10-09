@@ -58,9 +58,12 @@ public:
   /// Returns true when the archive of a queued read is `archive_id`.
   static bool IsArchive(const ArchiveInput* input, const ArchiveId archive_id);
 
+  /// Returns the size of a file, without the changes of the plugin.
+  static u32 GetOriginalFileSize(u32* archive, u32 file_id);
+  /// Reads a file into `buffer`, without the changes of the plugin.
+  static u32 LoadOriginalData(u32* archive, u32 file_id, void* buffer);
+
 private:
-  static void LoadDataHook(uptr self, u32 id, uptr heap, uptr buffer,
-                           uptr buffer_size, u32* size);
   static void* LoadCompressedHook(u32* archive, u32 file_id, void* heap_work,
                                   void* heap_data, s32 align, u32* out_size);
   static u32 GetFileSizeHook(u32* archive, u32 file_id);

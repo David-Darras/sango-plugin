@@ -39,7 +39,6 @@ public:
   bool randomize_species = false; ///< true: each static encounter gets a random species.
 
   static void Initialize();
-  static void PatchLoad();
 
 private:
   static void RandomizeSpecies(StaticEncounterId id);

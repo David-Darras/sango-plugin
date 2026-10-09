@@ -21,7 +21,7 @@
  */
 
 #include "common.h"
-#include "core/hook_manager.h"
+#include "core/hook.h"
 #include "core/utils.h"
 #include "pokemon/constant/species.h"
 #include "savedata/native/pokemon_param.h"
@@ -75,16 +75,11 @@ void PatchStarter(uptr pkm) {
   }
 }
 
-static u32 InitializePokemonHook(savedata::PokemonParam* param, u32 heap,
-                                 uptr pkm) {
+// The game makes a Pokémon: replaces the starter Pokémon.
+HOOK(u32, InitializePokemon,
+     (savedata::PokemonParam* param, u32 heap, uptr pkm),
+     pokemon::address::kInitializePokemon) {
   PatchStarter(pkm);
-  return core::HookManager::Call<u32>(HookId::kInitializePokemon, param, heap,
-                                      pkm);
-}
-
-void InitializeStarterHook() {
-  core::HookManager::Initialize(HookId::kInitializePokemon,
-                                pokemon::address::kInitializePokemon,
-                                (uptr)InitializePokemonHook);
+  return original(param, heap, pkm);
 }
 } // namespace kaizo

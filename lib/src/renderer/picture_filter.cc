@@ -24,14 +24,17 @@
 
 #include "renderer/patch/picture_filter.h"
 
-#include "core/hook_manager.h"
+#include "core/hook.h"
 #include "renderer/native/picture.h"
 
 namespace renderer {
 
+namespace {
+core::Hook<u32(Picture*, u32, u32, u32)> draw_hook;
+} // namespace
+
 void PictureFilter::Initialize() {
-  core::HookManager::Initialize(HookId::kDrawPicture,
-                          address::kDrawPicture, (uptr)DrawHook);
+  draw_hook.Install(address::kDrawPicture, DrawHook);
 }
 
 u32 PictureFilter::DrawHook(Picture* picture, u32 p0, u32 p1, u32 p2) {
@@ -58,7 +61,7 @@ u32 PictureFilter::DrawHook(Picture* picture, u32 p0, u32 p1, u32 p2) {
     picture->bottom_right_color.b = ctx.bottom_right_color.b;
   }
 
-  return core::HookManager::Call<u32>(HookId::kDrawPicture, picture, p0, p1, p2);
+  return draw_hook(picture, p0, p1, p2);
 }
 
 } // namespace renderer

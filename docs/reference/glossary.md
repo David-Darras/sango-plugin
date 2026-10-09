@@ -33,8 +33,7 @@ When you do not know a game term, search it on Bulbapedia.
 | **Address** | The location of a function or of a variable in the memory of the game. The addresses are in the `address.h` file of each domain. |
 | **`GAME_ADDRESS(xy, oras)`** | A macro that selects the address for the game of the build. The first value is for X, the second value is for Alpha Sapphire. The value `0` means "not found yet". |
 | **Hook** | A redirection. When the game calls a function, the plugin function runs instead. |
-| **Original function** | The game function that a hook replaces. `core::HookManager::Call()` calls it. |
-| **Hook id** | The name of a hook in `core::HookId`. Each hook has one id. |
+| **Original function** | The game function that a hook replaces. In a hook, `original(...)` calls it. |
 | **Patch** | A change to the code or to the data of the game in memory. A hook is one type of patch. |
 | **Game structure** | A C++ structure with the same memory layout as a structure of the game. The game structures are in the `native/` folders. Also called a *native structure*. |
 | **Offset** | The distance in bytes from the start of a structure to one of its members. |
@@ -110,5 +109,6 @@ When you do not know a game term, search it on Bulbapedia.
 | `..._` | A private member of a class. |
 | `_0`, `_1`... | Bytes of a game structure that nobody understands yet. |
 | `...Hook` | A function that replaces a game function. |
+| `..._hook` | A `core::Hook` object. Call it to run the original function. |
 | `...Settings` | The settings of a feature. |
 | `on_...` | A callback. |

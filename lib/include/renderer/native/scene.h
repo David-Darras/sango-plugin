@@ -23,17 +23,14 @@
 #pragma once
 
 #include "common.h"
-#include "core/hook_manager.h"
 #include "renderer/native/h3d_shader_model.h"
 
 namespace renderer {
 /// Adds models to the 3D scene and removes them.
 struct Scene {
-  STATIC_INLINE bool Register0(void* scene, H3dShaderModel* model,
-                               s32 x = 0) {
-    return core::HookManager::GetInstance().Get(HookId::kSceneRegister0)
-                                     ->CallOriginal<bool>(scene, model, x);
-  }
+  /// Adds a model to the scene, without the changes of
+  /// renderer::ModelFilter.
+  static bool Register0(void* scene, H3dShaderModel* model, s32 x = 0);
 
   STATIC_INLINE bool Register1(void* scene, H3dShaderModel* model,
                                s32 x = 0) {

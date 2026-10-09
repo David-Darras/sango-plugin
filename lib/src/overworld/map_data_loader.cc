@@ -23,19 +23,22 @@
  */
 
 #include "overworld/patch/map_data_loader.h"
-#include "core/hook_manager.h"
+#include "core/hook.h"
 #include "overworld/patch/map_graft.h"
 #include "overworld/native/map_data.h"
 
 namespace overworld {
 
+namespace {
+core::Hook<bool(MapData*)> load_map_data_hook;
+} // namespace
+
 void MapDataLoader::Initialize() {
-  core::HookManager::Initialize(HookId::kLoadMapData, address::kLoadMapData,
-                          (uptr)LoadMapData);
+  load_map_data_hook.Install(address::kLoadMapData, LoadMapData);
 }
 
 bool MapDataLoader::LoadMapData(MapData* map_data) {
-  bool result = core::HookManager::Call<bool>(HookId::kLoadMapData, map_data);
+  bool result = load_map_data_hook(map_data);
   if (!result) return result;
 
   const MapId loaded_map_id = map_data->next_map_id != MapId::kNone

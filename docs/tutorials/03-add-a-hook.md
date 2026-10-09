@@ -5,7 +5,7 @@ The game calls `AddPokemonToTeam` when a Pokémon joins a party.
 Your hook writes the species to the log. It also stops Wurmple: Wurmple cannot
 join the party of the player.
 
-**Time:** 20 minutes.
+**Time:** 15 minutes.
 **You need:** [Tutorial 1](01-create-your-rom-hack.md).
 **Read first:** [Hooks and addresses](../concepts/hooks-and-addresses.md).
 
@@ -42,18 +42,18 @@ Make the file `myhack/src/my_hooks.cc`:
  */
 
 #include "common.h"
-#include "core/hook_manager.h"
+#include "core/hook.h"
 #include "pokemon/address.h"
 #include "savedata/native/pokemon_team.h"
 #include "ui/log_application.h"
 
 namespace myhack {
-namespace {
 
-// The hook. It has the same parameters and the same return type as the
-// game function.
-bool AddPokemonToTeamHook(savedata::PokemonTeam* team,
-                          savedata::PokemonParam* pokemon) {
+// The return type, the name of the hook, the parameters of the game
+// function, then its address.
+HOOK(bool, AddPokemonToTeam,
+     (savedata::PokemonTeam* team, savedata::PokemonParam* pokemon),
+     pokemon::address::kAddPokemonToTeam) {
   // The data of a Pokemon is encrypted: decrypt it, read it, encrypt it.
   pokemon->accessor->Decrypt();
   const SpeciesId species = pokemon->core->species;
@@ -69,48 +69,20 @@ bool AddPokemonToTeamHook(savedata::PokemonTeam* team,
   }
 
   // Run the original function of the game.
-  return core::HookManager::Call<bool>(HookId::kProduct0, team, pokemon);
-}
-
-} // namespace
-
-void InstallHooks() {
-  core::HookManager::Initialize(HookId::kProduct0,
-                                pokemon::address::kAddPokemonToTeam,
-                                (uptr)AddPokemonToTeamHook);
+  return original(team, pokemon);
 }
 
 } // namespace myhack
 ```
 
-Each hook needs its own hook id. A product uses `HookId::kProduct0` to
-`HookId::kProduct15`. Do not use the same id two times.
+You do not change other files, not even `entrypoint.cc`:
+`plugin::InitializeEngine()` installs all the hooks of `HOOK()`.
 
-## Step 3: Install the hook
+The compiler checks `original(team, pokemon)`: the arguments must have the
+types of the parameters. The name of the hook (`AddPokemonToTeam`) must be
+unique in the namespace.
 
-In `myhack/src/entrypoint.cc`:
-
-1. Declare the function before `InstallCallbacks`:
-
-   ```cpp
-   namespace myhack {
-   void InstallHooks();
-   }
-   ```
-
-2. Call it in `Initialize()`, after `plugin::InitializeEngine()`:
-
-   ```cpp
-   void Initialize() {
-     plugin::InitializeEngine();
-     InstallCallbacks();
-     myhack::InstallHooks();
-     plugin::OpenMenu(ui::MainAppPainter::GetInstance(), LoadRootPage);
-     plugin::Start(EveryFrame);
-   }
-   ```
-
-## Step 4: Build and test
+## Step 3: Build and test
 
 ```bash
 make myhack
@@ -128,35 +100,53 @@ A hook can do three things:
 
 | What | How |
 |---|---|
-| Change the parameters | Change them before `HookManager::Call`. |
-| Change the result | Change the value that `HookManager::Call` returns, then return it. |
-| Replace the function | Do not call `HookManager::Call`. Return your own value. |
+| Change the parameters | Change them before you call `original(...)`. |
+| Change the result | Change the value that `original(...)` returns, then return it. |
+| Replace the function | Do not call `original(...)`. Return your own value. |
 
 ## Hooks in the battle code
 
 The battle code is a CRO: it is in memory only during a battle.
-For a hook in the battle code:
+For a hook in the battle code, add the vtable of the battle process after
+the address:
 
-1. Install it disabled: `HookManager::Initialize(id, address, function, false)`.
-2. Enable it when a battle starts: `HookManager::ForceEnable(id)`.
-   Use the callback `core::ProcessPatch::GetInstance().on_process_load`
-   and compare the vtable with `battle::address::kVtable`.
+```cpp
+HOOK(void, UpdateGauge, (uptr gauge, u16 max_hp, u32 new_hp),
+     battle::address::kUpdateGauge, battle::address::kVtable) {
+  original(gauge, max_hp, new_hp);
+}
+```
+
+The plugin writes the hook again at the start of each battle.
+
+## Disable a hook
+
+The hook is an object: `AddPokemonToTeam::original`.
+
+```cpp
+AddPokemonToTeam::original.Disable();  // The game function is normal again.
+AddPokemonToTeam::original.Enable();   // The hook works again.
+```
 
 ## Add a hook to the library
 
 When a hook is useful for all the products, add a feature to the library:
 
 1. Add the address to `lib/include/<domain>/address.h`.
-2. Add a hook id to `lib/include/core/constant/hook_id.h` (before `kProduct0`).
-3. Make the feature in `lib/include/<domain>/patch/` and `lib/src/<domain>/`.
-4. Call its `Initialize()` in `plugin::InitializeEngine()` (`lib/src/plugin.cc`).
+2. Make the feature in `lib/include/<domain>/patch/` and `lib/src/<domain>/`.
+3. Write the hook in the `.cc` file of the feature. Use `HOOK()`, or a
+   `core::Hook` object and `Install()` when the hook function is a private
+   member of the class (see [Hooks and addresses](../concepts/hooks-and-addresses.md#a-hook-in-a-class-of-the-library)).
+4. Call the `Initialize()` of the feature in `plugin::InitializeEngine()`
+   (`lib/src/plugin.cc`) if the feature has one.
 5. Give the feature callbacks or settings. The products use them.
 
 ## What you learned
 
 - A hook has the same signature as the game function.
-- `HookManager::Initialize` installs a hook, `HookManager::Call` runs the original function.
-- A product uses the hook ids `kProduct0` to `kProduct15`.
+- `HOOK()` declares a hook. The plugin installs it at the start.
+- `original(...)` runs the original function.
+- A hook in a CRO needs the vtable of its process.
 - The data of a Pokémon is encrypted.
 
 **Next:** [Tutorial 4: Add a move](04-add-a-move.md)

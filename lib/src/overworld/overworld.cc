@@ -23,21 +23,19 @@
  */
 
 #include "overworld/patch/overworld.h"
-#include "overworld/patch/auto_surf.h"
-#include "core/hook_manager.h"
+#include "core/hook.h"
 #include "overworld/patch/day_care.h"
-#include "overworld/patch/gift_pokemon.h"
-#include "overworld/patch/run_animation.h"
-#include "overworld/patch/static_randomizer.h"
-#include "overworld/patch/trade.h"
 #include "system/native/sound.h"
 
 namespace overworld {
 
+namespace {
+core::Hook<u32(u32, u32, u32)> get_background_music_hook;
+} // namespace
+
 void Overworld::Initialize() {
-  core::HookManager::Initialize(HookId::kGetOverworldBackgroundMusic,
-                          address::kGetOverworldBackgroundMusic,
-                          (uptr)GetBackgroundMusic);
+  get_background_music_hook.Install(address::kGetOverworldBackgroundMusic,
+                                    GetBackgroundMusic);
 }
 
 void Overworld::PatchLoad() {
@@ -46,15 +44,6 @@ void Overworld::PatchLoad() {
   if (feat.on_overworld_load != nullptr) feat.on_overworld_load();
 
   DayCare::PatchLoad();
-  GiftPokemon::PatchLoad();
-  StaticRandomizer::PatchLoad();
-  Trade::PatchLoad();
-
-  core::HookManager::Enable(HookId::kGetEncounterPokemon);
-  core::HookManager::ForceEnable(HookId::kCheckAppRequest);
-  core::HookManager::ForceEnable(HookId::kGetPlayerMovement);
-  RunAnimation::PatchLoad();
-  AutoSurf::PatchLoad();
 
   if (address::kSimulateButtonPress) {
     WRITE32(address::kSimulateButtonPress, 0xE1A00000);
@@ -67,8 +56,7 @@ u32 Overworld::GetBackgroundMusic(u32 sound_manager, u32 map_id, u32 player_form
     return sys::Sound::kBankBackgroundMusic +
            static_cast<u32>(instance.background_music);
   }
-  return core::HookManager::Call<u32>(HookId::kGetOverworldBackgroundMusic,
-                                sound_manager, map_id, player_form);
+  return get_background_music_hook(sound_manager, map_id, player_form);
 }
 
 } // namespace overworld
