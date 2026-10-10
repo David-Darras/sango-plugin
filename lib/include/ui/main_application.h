@@ -163,6 +163,15 @@ public:
     return *this;
   }
 
+  /// The menu shows the icons of the game for the value (see
+  /// PageItem::WithIcons()).
+  MainApplication& WithIcons(IconKind kind, const u16* ids = nullptr) {
+    if (entries_count_ > 0) {
+      entries_[entries_count_ - 1].WithIcons(kind, ids);
+    }
+    return *this;
+  }
+
   /**
    * @brief Runs a function after each change of a value on this page.
    *
@@ -268,6 +277,7 @@ public:
     if (entries_count_ < kMaxEntries) {
       entries_[entries_count_++].Initialize(name, (void*)&var, kTypeSpecies);
       WithBounds(0, static_cast<u32>(pokemon::SpeciesId::kCount)-1);
+      WithIcons(IconKind::kPokemon);
     }
     return *this;
   }
@@ -282,6 +292,7 @@ public:
     if (entries_count_ < kMaxEntries) {
       entries_[entries_count_++].Initialize(name, (void*)&var, kTypeU8);
       WithArray(TYPES, SIZE(TYPES));
+      WithIcons(IconKind::kType);
     }
     return *this;
   }
@@ -309,6 +320,7 @@ public:
     if (entries_count_ < kMaxEntries) {
       entries_[entries_count_++].Initialize(name, (void*)&var, kTypeItem);
       WithBounds(0, 775);
+      WithIcons(IconKind::kItem);
     }
     return *this;
   }
@@ -468,7 +480,11 @@ private:
     kTouchPlus10,
     kTouchRadial0, ///< The 8 buttons of the radial menu of the pins.
     kTouchChoice0 = kTouchRadial0 + 8, ///< The kMaxChoices buttons of a list.
-    kTouchMax = kTouchChoice0 + 12,
+    /// The kPickerCells cells of the grid of icons.
+    kTouchPicker0 = kTouchChoice0 + 12,
+    kTouchPagePrevious = kTouchPicker0 + IconPool::kGridSlotCount, ///< Pages.
+    kTouchPageNext,
+    kTouchMax,
   };
 
   /// The editor of the bottom screen for the selected entry.
@@ -479,6 +495,7 @@ private:
     kChoices, ///< A short list of texts.
     kNumber, ///< The numpad and the step buttons.
     kText, ///< The keyboard.
+    kPicker, ///< The grid of icons (see PageItem::WithIcons()).
   };
 
   MainApplication()
@@ -615,6 +632,12 @@ private:
   void ReadTouch(const PageItem& entry, Input& input);
   /// Draws one touch button.
   void DrawTouch(TouchId id, const c16* label, bool is_active) const;
+  /**
+   * @brief Draws the grid of icons of an entry (Editor::kPicker): the page
+   *        that contains the value, and the page buttons.
+   * @param value The current value of the entry.
+   */
+  void DrawPicker(const PageItem& entry, s32 value) const;
   /// Draws a text, with a shadow when the theme asks for it.
   void DrawLabel(s32 x, s32 y, const c16* text, Color color) const;
 
@@ -625,6 +648,9 @@ private:
   static constexpr u32 kMaxPins = 8;
   static constexpr u32 kMaxRecents = 4;
   static constexpr u32 kMaxChoices = 12;
+  /// The cells of the grid of icons: 6 columns, 3 rows.
+  static constexpr u32 kPickerColumns = 6;
+  static constexpr u32 kPickerCells = IconPool::kGridSlotCount;
   static constexpr u32 kMaxResults = 16;
   static constexpr u32 kQueryLength = 24;
   static constexpr u32 kSectionLength = 24;

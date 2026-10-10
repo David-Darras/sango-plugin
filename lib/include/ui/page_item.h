@@ -23,6 +23,7 @@
 #pragma once
 
 #include "common.h"
+#include "ui/widget/icon.h"
 
 namespace ui {
 /// The type of an entry: it selects how the entry shows and changes its value.
@@ -80,6 +81,17 @@ public:
 
   /// The player can see the value, but cannot change it.
   PageItem& WithReadOnly();
+  /**
+   * @brief The menu shows the icons of the game for the value: a grid of
+   *        icons on the bottom screen (in place of the numpad), and the
+   *        icon of the value on the top screen.
+   * @param kind The set of icons.
+   * @param ids The icon of each value, or null: then the value is the icon
+   *        (for example the item). For example, the species of each slot of
+   *        a team. The array must stay in memory and contain one icon for
+   *        each value.
+   */
+  PageItem& WithIcons(IconKind kind, const u16* ids = nullptr);
 
   u8 GetType() const;
 
@@ -103,6 +115,12 @@ public:
   bool HasValue() const;
   /// Returns true when the player cannot change the value.
   bool IsReadOnly() const { return is_read_only_ != 0; }
+  /// Returns the icons of WithIcons(), or IconKind::kNone.
+  IconKind GetIconKind() const { return icon_kind_; }
+  /// Returns the icon of a value (see WithIcons()).
+  u32 GetIconId(u32 value) const {
+    return icon_ids_ != nullptr ? icon_ids_[value] : value;
+  }
   /// Returns true when the page must be built again after a change.
   bool NeedsRefresh() const { return refresh_ != 0; }
   /// Returns true for a value that can be less than 0.
@@ -178,5 +196,7 @@ private:
 
   f32 factor_;
   u8 is_read_only_;
+  IconKind icon_kind_; ///< See WithIcons().
+  const u16* icon_ids_; ///< See WithIcons().
 };
 } // namespace ui

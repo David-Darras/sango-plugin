@@ -66,6 +66,17 @@ static struct {
   pokemon::CoreData* core_data;
 } ctx;
 
+// Returns the species of a Pokemon of the save data. The function decrypts
+// a copy: the data does not change.
+static u16 GetSpecies(const pokemon::CoreData* core_data) {
+  static pokemon::CoreData copy;
+  static pokemon::DataAccessor accessor;
+  std::memcpy(&copy, core_data, sizeof(copy));
+  accessor.Initialize(&copy, nullptr);
+  accessor.Decrypt();
+  return static_cast<u16>(copy.species);
+}
+
 static void SavePokemon(void*) {
   pokemon::CoreData* pkm = ctx.accessor.GetCoreData();
 
@@ -160,9 +171,11 @@ void LoadSaveDataPokemonPage(MainApplication& app, void* args) {
   app.AddSection("Origin")
      .Add("Poke Ball", pkm->ball)
      .WithArray(kBallNames, SIZE(kBallNames))
+     .WithIcons(IconKind::kBall)
      .Add("Original Trainer", pkm->original_trainer_name, 13)
      .Add("Language", pkm->language)
-     .WithArray(kLanguageNames, SIZE(kLanguageNames));
+     .WithArray(kLanguageNames, SIZE(kLanguageNames))
+     .WithIcons(IconKind::kLanguage);
 
   app.AddSection("Contest")
      .Add("Cool", pkm->contest.cool)
@@ -175,11 +188,16 @@ void LoadSaveDataPokemonPage(MainApplication& app, void* args) {
 
 void LoadSaveDataTeamPage(MainApplication& app, void* args) {
   static u8 slot_idx = 0;
+  static u16 species[6];
   auto& data = savedata::PokemonTeam::GetInstance();
+  for (u32 i = 0; i < 6; i++) {
+    species[i] = i < data.count ? GetSpecies(data.pokemons[i]->core) : 0;
+  }
 
   app.AddSection("Team")
      .Add("Slot", slot_idx)
      .WithArray(GetNumberedNames("Slot %u", 6), 6)
+     .WithIcons(IconKind::kPokemon, species)
      .WithRefresh()
      .Add("Pokemon Count", data.count)
      .WithBounds(0, 6)
@@ -191,12 +209,17 @@ void LoadSaveDataTeamPage(MainApplication& app, void* args) {
 
 void LoadSaveDataBattleBoxPage(MainApplication& app, void* args) {
   static u8 slot_idx = 0;
+  static u16 species[savedata::BattleBox::kMaxSlots];
   auto& data = savedata::BattleBox::GetInstance();
+  for (u32 i = 0; i < savedata::BattleBox::kMaxSlots; i++) {
+    species[i] = GetSpecies(&data.pokemons[i]);
+  }
 
   app.AddSection("Battle Box")
      .Add("Slot", slot_idx)
      .WithArray(GetNumberedNames("Slot %u", savedata::BattleBox::kMaxSlots),
                 savedata::BattleBox::kMaxSlots)
+     .WithIcons(IconKind::kPokemon, species)
      .WithRefresh();
 
   LoadSaveDataPokemonPage(app, &data.pokemons[slot_idx]);
@@ -208,13 +231,18 @@ void LoadSaveDataPokemonBoxPage(MainApplication& app, void* args) {
   constexpr u32 kBoxes = savedata::PokemonBox::kMaxBoxes;
   constexpr u32 kSlots = savedata::PokemonBox::kMaxSlotsPerBox;
 
+  static u16 species[kSlots];
   auto& data = savedata::PokemonBox::GetInstance();
+  for (u32 i = 0; i < kSlots; i++) {
+    species[i] = GetSpecies(&data.boxes[box_idx].pokemons[i]);
+  }
   app.AddSection("PC Box")
      .Add("Box", box_idx)
      .WithArray(GetNumberedNames("Box %u", kBoxes), kBoxes)
      .WithRefresh()
      .Add("Slot", slot_idx)
      .WithArray(GetNumberedNames("Slot %u", kSlots), kSlots)
+     .WithIcons(IconKind::kPokemon, species)
      .WithRefresh();
 
   LoadSaveDataPokemonPage(app, &data.boxes[box_idx].pokemons[slot_idx]);
@@ -676,6 +704,7 @@ void LoadSaveDataSettingsPage(MainApplication& app, void* args) {
      .WithArray(TEXT_SPEED, SIZE(TEXT_SPEED))
      .Add("Language", &settings.core, 4, 4)
      .WithArray(kLanguageNames, SIZE(kLanguageNames))
+     .WithIcons(IconKind::kLanguage)
      .WithCallback(OnUpdateLanguage)
      .WithDescription("Select the language, then press A to use it. The "
                       "next texts use the new language.")
@@ -768,9 +797,13 @@ void LoadSaveDataHallOfFamePage(MainApplication& app, void* args) {
   static u8 entry_idx = 0;
   static u8 slot_idx = 0;
 
+  static u16 species[6];
   auto& data = savedata::HallOfFame::GetInstance();
   auto& entry = data.entries[entry_idx];
   auto* pkm = &entry.pokemon[slot_idx];
+  for (u32 i = 0; i < 6; i++) {
+    species[i] = static_cast<u16>(entry.pokemon[i].species);
+  }
 
   app.AddSection("Hall of Fame")
      .Add("Entry", entry_idx)
@@ -785,6 +818,7 @@ void LoadSaveDataHallOfFamePage(MainApplication& app, void* args) {
      .WithBounds(1, 31)
      .Add("Slot", slot_idx)
      .WithArray(GetNumberedNames("Slot %u", 6), 6)
+     .WithIcons(IconKind::kPokemon, species)
      .WithRefresh();
 
   if (pkm->species == SpeciesId::kNone) {

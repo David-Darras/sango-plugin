@@ -432,6 +432,14 @@ void LoadBattleLivePage(MainApplication& app, void* args) {
   // the second opponent of a Multi Battle.
   static const c8* SIDES[] = {"Player", "Opponent", "Partner", "Opponent 2"};
 
+  // The species of each slot of the team, for the icons.
+  static u16 species[6];
+  for (u32 i = 0; i < 6; i++) {
+    const battle::Pokemon* pokemon =
+        battle::Manager::GetPokemon(true, team_idx, i);
+    species[i] = pokemon != nullptr ? static_cast<u16>(pokemon->species) : 0;
+  }
+
   pkm_server = battle::Manager::GetPokemon(true, team_idx, pokemon_idx);
   pkm_client = battle::Manager::GetPokemon(false, team_idx, pokemon_idx);
 
@@ -441,6 +449,7 @@ void LoadBattleLivePage(MainApplication& app, void* args) {
      .WithRefresh()
      .Add("Slot", pokemon_idx)
      .WithArray(GetNumberedNames("Slot %u", 6), 6)
+     .WithIcons(IconKind::kPokemon, species)
      .WithRefresh();
   if (pkm_server != nullptr) {
     app.AddSpecies("Selected", pkm_server->species)

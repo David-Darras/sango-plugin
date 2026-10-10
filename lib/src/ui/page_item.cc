@@ -159,7 +159,9 @@ PageItem::PageItem()
     is_min_used_(0),
     factor_(1.0f),
     is_max_used_(0),
-    is_read_only_(0) {
+    is_read_only_(0),
+    icon_kind_(IconKind::kNone),
+    icon_ids_(nullptr) {
 }
 
 void PageItem::Initialize(const c8* name, void* addr, u8 type, u32 bit_offset,
@@ -181,6 +183,8 @@ void PageItem::Initialize(const c8* name, void* addr, u8 type, u32 bit_offset,
   factor_ = 1.0f;
   is_max_used_ = 0;
   is_read_only_ = 0;
+  icon_kind_ = IconKind::kNone;
+  icon_ids_ = nullptr;
 }
 
 PageItem& PageItem::WithArray(const c8* array[], u32 array_size) {
@@ -225,6 +229,12 @@ PageItem& PageItem::WithFactor(f32 factor) {
 
 PageItem& PageItem::WithDescription(const c8* description) {
   description_ = description;
+  return *this;
+}
+
+PageItem& PageItem::WithIcons(IconKind kind, const u16* ids) {
+  icon_kind_ = kind;
+  icon_ids_ = ids;
   return *this;
 }
 

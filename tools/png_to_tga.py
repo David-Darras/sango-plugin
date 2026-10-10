@@ -7,7 +7,7 @@ menu_top.tga (400 x 240) and menu_bottom.tga (320 x 240).
 Usage:
     python tools/png_to_tga.py menu_top.png             -> menu_top.tga
     python tools/png_to_tga.py menu_top.png out.tga     -> out.tga
-    python tools/png_to_tga.py photo.jpg --size 400x240 -> canvas 400x240, image en bas à gauche
+    python tools/png_to_tga.py photo.jpg --size 400x240 -> canvas 400x240, image at the top-left
 
 The script needs Pillow: pip install pillow
 """
@@ -32,8 +32,6 @@ def main():
     args = parser.parse_args()
 
     image = Image.open(args.input).convert("RGBA")
-    
-    image = image.transpose(Image.FLIP_TOP_BOTTOM)
 
     if args.size:
         width, height = (int(v) for v in args.size.lower().split("x"))

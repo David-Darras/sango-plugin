@@ -72,6 +72,18 @@ public:
   static bool LoadShared(LoadedModel* out, renderer::H3dResource* resource,
                          const Vec3& position);
   static void FreeBuffer(void* buffer);
+  /**
+   * @brief Reads one file of an archive of the game into the device heap
+   *        of the overworld.
+   * @param archive_id The archive.
+   * @param file_id The file in the archive.
+   * @param compressed true for a file with LZ compression: the function
+   *        gives the file after decompression.
+   * @param out_size Receives the size of the file, or null.
+   * @return The file, or null. Release it with FreeBuffer().
+   */
+  static void* ReadFile(ArchiveId archive_id, u32 file_id, bool compressed,
+                        u32* out_size = nullptr);
   /// Removes a model.
   static void Drop(LoadedModel* entry);
   static void Untrack(LoadedModel* entry);
@@ -85,8 +97,6 @@ private:
   static void* DeviceAllocator();
   static void* Scene();
   static void* OpenArchive(ArchiveId archive_id);
-  static void* ReadFile(ArchiveId archive_id, u32 file_id, bool compressed,
-                        u32* out_size = nullptr);
   static renderer::H3dResource* AttachPackEntry(void* pack, u32 index);
   static void* GetPokemonTable();
   static void LinkPokemonCommonResources(renderer::H3dResource* target);

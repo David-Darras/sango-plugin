@@ -216,6 +216,7 @@ These functions change the last entry that you added:
 | `WithReadOnly()` | The player cannot change the value. |
 | `WithFactor(factor)` | Changes the step of a decimal value. |
 | `WithRefresh()` | Builds the page again when the value changes. |
+| `WithIcons(kind)` | Shows a grid of icons of the game to choose the value (see below). |
 
 Example with texts:
 
@@ -223,6 +224,45 @@ Example with texts:
 static const c8* kModes[] = {"Off", "Slow", "Fast"};
 app.Add("Mode", my_mode).WithArray(kModes, SIZE(kModes));
 ```
+
+### Icons
+
+An entry with icons shows a grid of 6 x 3 icons on the bottom screen in
+place of the numpad. The player touches an icon to choose its value.
+**Left** / **Right** change the value one by one, and the page buttons move
+18 values. `AddItem()`, `AddSpecies()` and `AddType()` add the icons
+automatically. For the other sets, add them yourself:
+
+```cpp
+app.Add("Poke Ball", pkm->ball)
+   .WithArray(kBallNames, SIZE(kBallNames))
+   .WithIcons(ui::IconKind::kBall);
+```
+
+The top screen also shows the icon of the value, at half size, on the left
+of the value. A value without an icon shows its text in the grid.
+
+The sets of icons (`ui::IconKind`): items, Pokémon, types, Poké Balls,
+damage categories, status conditions and languages. When the value is not
+the icon, give the icon of each value. For example, a slot shows the
+species in this slot:
+
+```cpp
+static u16 species[6]; // Fill it when the page loads.
+app.Add("Slot", slot_idx)
+   .WithArray(GetNumberedNames("Slot %u", 6), 6)
+   .WithIcons(ui::IconKind::kPokemon, species)
+   .WithRefresh();
+```
+
+The icons come from the archives of the game (`ui::IconPool`): the item
+icons, the Pokémon icons, and the small icons of the layouts (types,
+damage categories, status conditions, languages) in the language of the
+game. The pool makes a texture for each slot (18 for the grid, 15 for the
+lines) the first time that the slot shows an icon. Then a new icon
+replaces the pixels of the texture: the game cannot release a texture. The
+archives load in the heaps of the overworld. ORAS only: XY has no address
+to make a texture.
 
 ## Pages that need a part of the game
 

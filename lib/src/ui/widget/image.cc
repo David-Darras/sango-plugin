@@ -81,7 +81,7 @@ bool Image::Load() {
 
   // The texture: the image at its top-left corner, and transparent pixels
   // on the right and at the bottom, up to the next sizes that are powers of
-  // 2. The GPU format: 8 x 8 tiles, the first tile row at the bottom of the
+  // 2. The GPU format: 8 x 8 tiles, the first tile row at the top of the
   // rectangle of sys::Graphics::DrawRectWithTexture(), and the bytes A, B,
   // G, R for each pixel.
   const u32 texture_width = GetTextureSize(width);
@@ -94,10 +94,8 @@ bool Image::Load() {
   }
   for (u32 i = 0; i < texture_bytes; i++) pixels[i] = 0;
   for (u32 row = 0; row < height; row++) {
-    // The row from the top of the image, then from the bottom of the
-    // texture: the top row of the image is the last row of the texture.
-    const u32 top_row = is_top_origin ? row : height - 1 - row;
-    const u32 y = texture_height - 1 - top_row;
+    // The row from the top of the image: it is also the row of the texture.
+    const u32 y = is_top_origin ? row : height - 1 - row;
     const u8* source = file_pixels + row * width * bytes_per_pixel;
     for (u32 x = 0; x < width; x++, source += bytes_per_pixel) {
       const u32 tile = (y / 8) * (texture_width / 8) + x / 8;
