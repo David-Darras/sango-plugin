@@ -24,6 +24,7 @@
 #pragma once
 
 #include "common.h"
+#include "ui/widget/texture.h"
 
 namespace ui {
 /// The set of icons that an entry of the menu shows.
@@ -56,9 +57,12 @@ enum class IconState : u8 {
  * status conditions, languages), in the language of the game. Each slot is
  * one texture of 64 x 32 pixels, with the icon in its center.
  *
- * The pool makes the texture of a slot the first time that the menu asks
- * for an icon in this slot: the game cannot release a texture. After that,
- * a new icon replaces the pixels of the texture.
+ * The pool makes the texture of a slot (ui::Texture) the first time that
+ * the menu asks for an icon in this slot. After that, a new icon replaces
+ * the pixels of the texture.
+ *
+ * The files of the icons load with core::GameFile: in all the parts of the
+ * game.
  *
  * @code
  * IconPool& icons = IconPool::GetInstance();
@@ -81,16 +85,9 @@ public:
 
   static IconPool& GetInstance();
 
-  /**
-   * @brief Makes the textures and loads the icons that the menu asks for.
-   *
-   * Call it one time for each frame, while the plugin draws the top screen:
-   * a new texture at another time makes the game crash. The function makes
-   * one texture in each frame at most.
-   * @param can_create_texture false when an other texture was made in this
-   *        frame.
-   */
-  void Prepare(bool can_create_texture);
+  /// Makes the textures and loads the icons that the menu asks for. Call
+  /// it one time for each frame.
+  void Prepare();
 
   /**
    * @brief Asks for an icon in a slot. The icon loads at the next Prepare().
@@ -99,6 +96,23 @@ public:
    * @param id The item, the species, the type...
    */
   void Request(u32 slot, IconKind kind, u32 id);
+
+  /**
+   * @brief Finds the slot of an icon in a range of slots, or gives the icon
+   *        a slot: the slot that the menu used the least recently.
+   *
+   * An icon stays in its slot while it shows: when a list scrolls, only the
+   * new icons load.
+   * @param first The first slot of the range.
+   * @param count The number of slots of the range.
+   * @param kind The set of icons.
+   * @param id The item, the species, the type...
+   * @param can_load false: only an icon that is already in a slot. Use it
+   *        while the player holds a button to scroll: the list moves fast.
+   * @return The slot, or -1.
+   */
+  s32 Acquire(u32 first, u32 count, IconKind kind, u32 id,
+              bool can_load = true);
 
   /**
    * @brief Draws the icon of a slot: the 64 x 32 texture in the rectangle
@@ -110,12 +124,13 @@ public:
 
 private:
   struct Slot {
-    void* texture = nullptr;
+    Texture* texture = nullptr;
     IconKind kind = IconKind::kNone; ///< The icon in the texture.
     u16 id = 0;
     bool has_image = false; ///< false: the icon does not exist.
     IconKind wanted_kind = IconKind::kNone; ///< The icon of Request().
     u16 wanted_id = 0;
+    u32 last_frame = 0; ///< The last frame of Acquire() for this slot.
 
     /// Returns true when the texture shows the icon of Request().
     bool IsDone() const { return kind == wanted_kind && id == wanted_id; }
@@ -145,5 +160,6 @@ private:
 
   Slot slots_[kSlotCount];
   bool is_used_ = false; ///< Request() was called one time.
+  u32 frame_ = 1; ///< The number of the frame (see Prepare()).
 };
 } // namespace ui

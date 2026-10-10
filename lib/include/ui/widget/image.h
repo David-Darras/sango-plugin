@@ -23,6 +23,7 @@
 #pragma once
 
 #include "common.h"
+#include "ui/widget/texture.h"
 
 namespace ui {
 /**
@@ -35,11 +36,8 @@ namespace ui {
  * goes at the top-left corner of the texture, with transparent pixels
  * around it. tools/png_to_tga.py makes a TGA image from a PNG image.
  *
- * Prepare() reads the file and makes the texture of the GPU. Call it only
- * while the plugin draws the top screen: the game draws the bottom screen
- * with saved GPU commands, and a new texture at this time makes the game
- * crash. Draw() draws nothing before Prepare(), or when the file does not
- * exist.
+ * Prepare() reads the file and makes the texture (ui::Texture). Draw()
+ * draws nothing before Prepare(), or when the file does not exist.
  *
  * @code
  * static ui::Image background(u"sdmc:/sango/menu_top.tga");
@@ -55,10 +53,7 @@ public:
 
   /**
    * @brief Reads the file and makes the texture, the first time only.
-   *
-   * Call it while the plugin draws the top screen (see the class).
-   * @return true when it read the file now: then do not make other
-   *         textures in the same frame.
+   * @return true when it read the file now.
    */
   bool Prepare();
 
@@ -88,8 +83,7 @@ private:
 
 
   const c16* path_;
-  void* texture_ = nullptr;
-  u8* pixels_ = nullptr; ///< The pixels of the texture. They stay in memory.
+  Texture* texture_ = nullptr;
   u16 width_ = 0; ///< The width of the image.
   u16 height_ = 0; ///< The height of the image.
   u16 texture_width_ = 0; ///< The width of the texture (a power of 2).

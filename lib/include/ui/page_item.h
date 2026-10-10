@@ -54,6 +54,15 @@ enum PageItemType : u8 {
 };
 
 class MainApplication;
+
+/**
+ * @brief A function that gives the suggested values of an entry (see
+ *        PageItem::WithSuggestions()).
+ * @param ids Receives the values, the best first.
+ * @param capacity The size of `ids`.
+ * @return The number of values.
+ */
+typedef u32 (*suggest_t)(u16* ids, u32 capacity);
 /// One entry of a menu page. ui::MainApplication::Add() makes it.
 class PageItem {
 public:
@@ -92,6 +101,15 @@ public:
    *        each value.
    */
   PageItem& WithIcons(IconKind kind, const u16* ids = nullptr);
+  /**
+   * @brief Sets the function that gives the suggested values: for example
+   *        the abilities of the species. The grid and the filter show these
+   *        values first, with a mark. The player can still choose any value.
+   *
+   * The menu calls the function only when the player edits the entry: it
+   * can read the game data.
+   */
+  PageItem& WithSuggestions(suggest_t suggest);
 
   u8 GetType() const;
 
@@ -117,6 +135,10 @@ public:
   bool IsReadOnly() const { return is_read_only_ != 0; }
   /// Returns the icons of WithIcons(), or IconKind::kNone.
   IconKind GetIconKind() const { return icon_kind_; }
+  /// Returns true when WithIcons() received an icon for each value.
+  bool HasIconIds() const { return icon_ids_ != nullptr; }
+  /// Returns the function of WithSuggestions(), or null.
+  suggest_t GetSuggest() const { return suggest_; }
   /// Returns the icon of a value (see WithIcons()).
   u32 GetIconId(u32 value) const {
     return icon_ids_ != nullptr ? icon_ids_[value] : value;
@@ -153,6 +175,16 @@ public:
   /// Returns the value that the page function or the action receives.
   void* GetArgs() const { return args_; }
 
+  /**
+   * @brief Returns the value as a number: the bits of a kTypeBits entry, the
+   *        bytes of the other values (8 at most). For a text, returns a hash
+   *        of the text.
+   */
+  u64 ReadValue() const;
+  /// Returns true when WriteValue() can write the value (not for a text).
+  bool CanWriteValue() const;
+  /// Writes a value of ReadValue() back. The limits do not apply.
+  void WriteValue(u64 value);
   /// Increases the value (Right button).
   void Increment(u32 count = 1);
 
@@ -198,5 +230,6 @@ private:
   u8 is_read_only_;
   IconKind icon_kind_; ///< See WithIcons().
   const u16* icon_ids_; ///< See WithIcons().
+  suggest_t suggest_; ///< See WithSuggestions().
 };
 } // namespace ui

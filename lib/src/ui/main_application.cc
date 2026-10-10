@@ -35,6 +35,7 @@
 #include "system/native/graphics.h"
 #include "system/native/sound.h"
 #include "ui/theme.h"
+#include "ui/menu_layout.h"
 #include "ui/widget/image.h"
 
 #ifndef BUFFER_SIZE
@@ -42,37 +43,12 @@
 #endif
 
 namespace ui {
+using namespace layout;
+
 namespace {
 
-// The layout of the bottom screen (320 x 240 pixels).
-constexpr s32 kEditorY = 58; // The top of the editor.
-constexpr s32 kFooterY = 193; // The line of the process and the event.
-constexpr s32 kNavY = 206; // The top of the navigation buttons.
-constexpr s32 kNavHeight = 30;
-constexpr u32 kNavCount = 5; // The buttons of the navigation bar.
-constexpr u32 kWrapLength = 58; // The characters of a description line.
-// The cells of the grid of icons (see MainApplication::DrawPicker()). An
-// icon is a texture of 64 x 32 pixels in the center of its cell: the
-// transparent sides of the texture go over the next cells.
-constexpr s32 kPickerCellWidth = 50;
-constexpr s32 kPickerCellHeight = 33;
-// The icon of a line of the top screen: the texture at half size.
-constexpr s32 kLineIconWidth = IconPool::kWidth / 2;
-constexpr s32 kLineIconHeight = IconPool::kHeight / 2;
 // Left / Right change a number 10 times faster after this number of frames.
 constexpr u32 kFastStepFrames = 45;
-// The top screen. Its texts use a space of 512 x 256 (the size of the
-// texture of the screen), but its rectangles use the 400 x 240 pixels. The
-// layout of the lines is in the space of the texts; RectX() and RectY()
-// give the pixels of the same place.
-constexpr s32 kTextWidth = 512;
-constexpr s32 kTextHeight = 256;
-s32 RectX(s32 x) { return x * 400 / kTextWidth; }
-s32 RectY(s32 y) { return y * 240 / kTextHeight; }
-// The right edge of the values (381 pixels), and the space between a name
-// and its value.
-constexpr s32 kValueRight = 488;
-constexpr s32 kValueGap = 16;
 
 // The name, the version and the author of the plugin, and the date of the
 // build. The first page shows it.
@@ -151,15 +127,6 @@ const c8* GetHint(u8 type, bool has_texts) {
   }
 }
 
-// Returns the number of values of an entry with icons, or 0.
-u32 GetPickerCount(const PageItem& entry) {
-  if (!entry.HasValue()) return 0;
-  if (entry.GetArraySize() != 0) return entry.GetArraySize();
-  s32 max;
-  if (entry.GetMax(max) && max >= 0) return (u32)max + 1;
-  return 0;
-}
-
 // Returns the number of characters of a UTF-16 text.
 u32 GetLength(const c16* text) {
   u32 length = 0;
@@ -174,13 +141,11 @@ MainApplication MainApplication::instance_ = MainApplication();
 void MainApplication::DrawTop(sys::Graphics& graphics) {
   if (!IsOpened()) return;
 
-  // Make the textures of the background images and of the icons now: only
-  // while the plugin draws the top screen, and one texture in each frame
-  // (see ui::Image).
-  const bool is_texture_made =
-      theme_.background_image &&
-      (GetTopImage().Prepare() || GetBottomImage().Prepare());
-  IconPool::GetInstance().Prepare(!is_texture_made);
+  // Read the background images (one file in each frame), and the icons.
+  if (theme_.background_image && !GetTopImage().Prepare()) {
+    GetBottomImage().Prepare();
+  }
+  IconPool::GetInstance().Prepare();
 
   painter_->DrawPageBackground(*this);
 //   sys::Graphics::SetTextScale(1.0f, 1.0f);
@@ -229,17 +194,21 @@ void MainApplication::InitializeTouch() {
     touch_[kTouchChoice0 + i].Initialize(10 + (i % 3) * 101,
                                          kEditorY + (i / 3) * 32, 98, 29);
   }
-  // The grid of icons: 6 columns and 3 rows, then the page buttons.
+  // The grid of values, then its bar: <, the views, the filter, >.
   for (u32 i = 0; i < kPickerCells; i++) {
     touch_[kTouchPicker0 + i].Initialize(
-        10 + (i % kPickerColumns) * kPickerCellWidth,
+        kPickerX + (i % kPickerColumns) * kPickerCellWidth,
         kEditorY + (i / kPickerColumns) * kPickerCellHeight, kPickerCellWidth,
         kPickerCellHeight);
   }
-  const s32 page_y =
-      kEditorY + (kPickerCells / kPickerColumns) * kPickerCellHeight + 3;
-  touch_[kTouchPagePrevious].Initialize(10, page_y, 90, 28);
-  touch_[kTouchPageNext].Initialize(220, page_y, 90, 28);
+  touch_[kTouchPagePrevious].Initialize(10, kPickerBarY, 40,
+                                        kPickerBarHeight);
+  touch_[kTouchPickerView].Initialize(54, kPickerBarY, 128, kPickerBarHeight);
+  touch_[kTouchPickerFilter].Initialize(186, kPickerBarY, 80,
+                                        kPickerBarHeight);
+  touch_[kTouchPageNext].Initialize(270, kPickerBarY, 40, kPickerBarHeight);
+  // Reset: on the left of Undo.
+  touch_[kTouchReset].Initialize(204, 2, 54, 24);
   numpad_.Initialize(10, kEditorY);
   keyboard_.Initialize(10, kEditorY);
 }
@@ -255,6 +224,9 @@ void MainApplication::PrepareEditor(const PageItem& entry) {
     case Editor::kText:
       keyboard_.SetInput((const c16*)entry.GetAddress(),
                          entry.GetTextCapacity());
+      break;
+    case Editor::kPicker:
+      PreparePicker(entry, GetSelectedIndex());
       break;
     default:
       break;
@@ -281,9 +253,7 @@ MainApplication::Editor MainApplication::GetEditor(
     default:
       break;
   }
-  if (entry.GetIconKind() != IconKind::kNone && GetPickerCount(entry) != 0) {
-    return Editor::kPicker;
-  }
+  if (UsesPicker(entry)) return Editor::kPicker;
   const u32 size = entry.GetArraySize();
   if (size != 0 && size <= kMaxChoices) return Editor::kChoices;
   return entry.HasValue() ? Editor::kNumber : Editor::kNone;
@@ -318,69 +288,6 @@ void MainApplication::DrawTouch(TouchId id, const c16* label,
             theme_.unselected_text_color);
 }
 
-void MainApplication::DrawPicker(const PageItem& entry, s32 value) const {
-  const u32 count = GetPickerCount(entry);
-  const IconKind kind = entry.GetIconKind();
-  const u32 selected = (u32)value % count;
-  // The page of the grid that shows the value.
-  const u32 first = selected / kPickerCells * kPickerCells;
-  IconPool& icons = IconPool::GetInstance();
-
-  for (u32 i = 0; i < kPickerCells; i++) {
-    const u32 id = first + i;
-    if (id >= count) break;
-    const Button& cell = touch_[kTouchPicker0 + i];
-    const s32 x = cell.GetX();
-    const s32 y = cell.GetY();
-    // The selected value and the touched cell have a background.
-    if (id == selected || cell.IsDown()) {
-      Color fill = theme_.selected_text_color;
-      fill.a = cell.IsDown() ? 0.7f : 0.4f;
-      sys::Graphics::DrawRect(x, y, kPickerCellWidth - 1,
-                              kPickerCellHeight - 1, fill);
-    }
-    const u32 icon = entry.GetIconId(id);
-    icons.Request(i, kind, icon);
-    const IconState state = icons.Draw(
-        i, kind, icon, x + (kPickerCellWidth - IconPool::kWidth) / 2,
-        y + (kPickerCellHeight - IconPool::kHeight) / 2, IconPool::kWidth,
-        IconPool::kHeight, Color(1, 1, 1, 1));
-    if (state != IconState::kEmpty) continue;
-    // A value without an icon: its text, or its number.
-    c16 label[16];
-    if (entry.GetArraySize() != 0) {
-      // 9 characters at most: the text stays in the cell.
-      const c8* text = entry.GetArray()[id];
-      u32 length = 0;
-      while (length < 9 && text[length] != 0) {
-        label[length] = (c16)(u8)text[length];
-        length++;
-      }
-      label[length] = 0;
-    } else {
-      core::Utils::Format(label, u"%u", id);
-    }
-    sys::Graphics::SetTextScale(0.35f, 0.35f);
-    DrawLabel(x + (kPickerCellWidth - sys::Graphics::GetTextWidth(label)) / 2,
-              y + (kPickerCellHeight - 9) / 2, label,
-              theme_.unselected_text_color);
-  }
-
-  // The page buttons and the values of the page.
-  c16 buffer[48];
-  core::Utils::Format(buffer, u"%u-%u / %u", first,
-                      first + kPickerCells < count ? first + kPickerCells - 1
-                                                   : count - 1,
-                      count - 1);
-  sys::Graphics::SetTextScale(0.45f, 0.45f);
-  const Button& previous = touch_[kTouchPagePrevious];
-  const s32 label_x = 160 - sys::Graphics::GetTextWidth(buffer) / 2;
-  DrawLabel(label_x, previous.GetY() + 8, buffer,
-            theme_.unselected_text_color);
-  DrawTouch(kTouchPagePrevious, u"< Page", false);
-  DrawTouch(kTouchPageNext, u"Page >", false);
-}
-
 void MainApplication::DrawBottom(sys::Graphics& graphics) {
   painter_->DrawBottomOverlay(graphics);
 
@@ -401,6 +308,10 @@ void MainApplication::DrawBottom(sys::Graphics& graphics) {
   const u32 index = GetSelectedIndex();
   const PageItem& entry = entries_[index];
   const Editor editor = GetEditor(entry);
+  if (is_filtering_) {
+    DrawFilterKeyboard(entry);
+    return;
+  }
 
   c16 buffer[BUFFER_SIZE];
 
@@ -413,10 +324,17 @@ void MainApplication::DrawBottom(sys::Graphics& graphics) {
     strncat(path, " > ", sizeof(path) - strlen(path) - 1);
     strncat(path, title, sizeof(path) - strlen(path) - 1);
   }
+  // Undo, and Reset when the value changed since the page opened.
+  const bool has_reset = IsChanged(index) && entry.CanWriteValue();
   sys::Graphics::SetTextScale(0.45f, 0.45f);
   DrawPart(6, 3, contexts_count_ <= 1 ? kCredit : path,
-           undo_.is_valid ? 46 : kWrapLength, theme_.unselected_text_color);
-  if (undo_.is_valid) DrawTouch(kTouchUndo, u"Undo", false);
+           has_reset ? 36 : (undo_count_ != 0 ? 46 : kWrapLength),
+           theme_.unselected_text_color);
+  if (undo_count_ != 0) {
+    core::Utils::Format(buffer, u"Undo %u", undo_count_);
+    DrawTouch(kTouchUndo, buffer, false);
+  }
+  if (has_reset) DrawTouch(kTouchReset, u"Reset", false);
 
   // The selected entry and its description.
   c8 entry_path[128];
@@ -428,16 +346,26 @@ void MainApplication::DrawBottom(sys::Graphics& graphics) {
     is_pinned = FindPin(entry_path) >= 0;
   }
   sys::Graphics::SetTextScale(0.6f, 0.6f);
-  core::Utils::Format(buffer, u"%s%s", entry.GetName(),
-                      is_pinned ? "  [Pinned]" : "");
+  if (editor == Editor::kPicker && picker_hover_ >= 0) {
+    // The value under the stylus: the player sees it before the choice.
+    c16 name[48];
+    NameList::GetName(entry, picker_hover_, name, SIZE(name));
+    core::Utils::Format(buffer, u"> %ls  (%d)", name, picker_hover_);
+  } else {
+    core::Utils::Format(buffer, u"%s%s", entry.GetName(),
+                        is_pinned ? "  [Pinned]" : "");
+  }
   DrawLabel(6, 15, buffer, theme_.selected_text_color);
   const c8* description = entry.GetDescription();
   if (description == nullptr) {
-    description = entry.IsReadOnly()
-                    ? "This value is for information only."
-                    : GetHint(entry.GetType(),
-                              entry.GetArraySize() != 0 ||
-                                  entry.GetIconKind() != IconKind::kNone);
+    if (entry.IsReadOnly()) {
+      description = "This value is for information only.";
+    } else if (editor == Editor::kPicker) {
+      description = "Touch a value, then lift the stylus. Filter: type a "
+                    "part of its name.";
+    } else {
+      description = GetHint(entry.GetType(), entry.GetArraySize() != 0);
+    }
   }
   DrawWrapped(6, 33, description, theme_.unselected_text_color);
 
@@ -555,9 +483,13 @@ void MainApplication::ReadTouch(const PageItem& entry, Input& input) {
   if (touch_[kTouchPin].IsReleased()) input.pin = true;
   if (touch_[kTouchSearch].IsReleased()) input.search = true;
   if (touch_[kTouchBack].IsReleased()) input.back = true;
-  if (undo_.is_valid) {
+  if (undo_count_ != 0) {
     touch_[kTouchUndo].Update();
     if (touch_[kTouchUndo].IsReleased()) input.undo = true;
+  }
+  if (IsChanged(index) && entry.CanWriteValue()) {
+    touch_[kTouchReset].Update();
+    if (touch_[kTouchReset].IsReleased()) input.reset = true;
   }
 
   switch (editor) {
@@ -577,22 +509,9 @@ void MainApplication::ReadTouch(const PageItem& entry, Input& input) {
         if (touch_[kTouchChoice0 + i].IsReleased()) input.choice = i;
       }
       break;
-    case Editor::kPicker: {
-      const u32 count = GetPickerCount(entry);
-      const u32 first = ((u32)entry.GetIndex() % count) / kPickerCells *
-                        kPickerCells;
-      for (u32 i = 0; i < kPickerCells && first + i < count; i++) {
-        touch_[kTouchPicker0 + i].Update();
-        if (touch_[kTouchPicker0 + i].IsReleased()) input.choice = first + i;
-      }
-      touch_[kTouchPagePrevious].Update();
-      touch_[kTouchPageNext].Update();
-      if (touch_[kTouchPagePrevious].IsReleased()) {
-        input.step = -(s32)kPickerCells;
-      }
-      if (touch_[kTouchPageNext].IsReleased()) input.step = kPickerCells;
+    case Editor::kPicker:
+      ReadPickerTouch(entry, input);
       break;
-    }
     case Editor::kNumber: {
       static const s32 kSteps[] = {-10, -1, 1, 10};
       for (u32 i = 0; i < 4; i++) {
@@ -622,6 +541,7 @@ void MainApplication::Update(sys::Controller& controller) {
 
   if (!IsOpened()) return;
   StepAnimations();
+  ItemCategories::Step();
 
   if (is_radial_open_) {
     UpdateRadial(controller);
@@ -629,6 +549,10 @@ void MainApplication::Update(sys::Controller& controller) {
   }
   if (entries_count_ == 0) {
     if (controller.IsKeyReleased(Key::kB)) Close();
+    return;
+  }
+  if (is_filtering_) {
+    UpdateFilter(controller);
     return;
   }
 
@@ -738,6 +662,16 @@ void MainApplication::Update(sys::Controller& controller) {
     return;
   }
 
+  // The grid and Reset write the value at once.
+  if (input.reset) {
+    if (index < snapshot_count_) ApplyValue(index, snapshot_[index], false);
+    return;
+  }
+  if (editor == Editor::kPicker && input.choice >= 0) {
+    ApplyValue(index, (u32)input.choice, true);
+    return;
+  }
+
   bool is_changed = false;
   const u8 type = entry.GetType();
   const bool is_switch = type == kTypeBoolean || type == kTypeCheatCode;
@@ -769,6 +703,8 @@ void MainApplication::Update(sys::Controller& controller) {
     } else {
       entry.Decrement(-input.step);
     }
+    // The grid shows the page of the new value.
+    if (editor == Editor::kPicker) picker_view_ = kViewAll;
     is_changed = true;
   } else if (input.choice >= 0 && can_change) {
     sys::Sound::PlaySoundEffect(theme_.confirm_sound);
@@ -821,38 +757,80 @@ void MainApplication::RunOnChange(u32 index) {
 
 void MainApplication::SaveUndo(const PageItem& entry, u32 index) {
   const u32 size = entry.GetValueSize();
-  undo_.is_valid = false;
-  if (size == 0 || size > sizeof(undo_.bytes)) return;
-  undo_.item = entry;
-  undo_.index = index;
-  undo_.size = size;
-  memcpy(undo_.bytes, entry.GetAddress(), size);
-  undo_.is_valid = true;
+  if (size == 0 || size > sizeof(undo_[0].bytes)) return;
+  // A full list forgets the oldest change.
+  if (undo_count_ == kMaxUndo) {
+    for (u32 i = 0; i + 1 < kMaxUndo; i++) undo_[i] = undo_[i + 1];
+    undo_count_--;
+  }
+  UndoState& state = undo_[undo_count_++];
+  state.item = entry;
+  state.index = index;
+  state.size = size;
+  memcpy(state.bytes, entry.GetAddress(), size);
 }
 
 void MainApplication::Undo() {
-  if (!undo_.is_valid) {
+  if (undo_count_ == 0) {
     sys::Sound::PlaySoundEffect(theme_.error_sound);
     return;
   }
   sys::Sound::PlaySoundEffect(theme_.close_sound);
-  PageItem& item = undo_.item;
+  // The last change first: the changes go back in the opposite order, so
+  // each entry finds the data of its time (for example the same slot).
+  UndoState& state = undo_[--undo_count_];
+  PageItem& item = state.item;
   if (item.GetType() == kTypeCheatCode) {
     // A cheat code runs its code: switch it again.
     item.Increment();
   } else {
-    // Exchange the old value and the new value: a second undo puts the new
-    // value back.
-    u8 current[sizeof(undo_.bytes)];
-    memcpy(current, item.GetAddress(), undo_.size);
-    memcpy(item.GetAddress(), undo_.bytes, undo_.size);
-    memcpy(undo_.bytes, current, undo_.size);
+    memcpy(item.GetAddress(), state.bytes, state.size);
   }
-  flash_index_ = undo_.index;
+  flash_index_ = state.index;
   flash_frames_ = kFlashFrames;
-  RunOnChange(undo_.index);
+  RunOnChange(state.index);
   if (item.NeedsRefresh()) Refresh();
   needs_prepare_ = true;
+}
+
+void MainApplication::ApplyValue(u32 index, u64 value, bool is_choice) {
+  if (index >= entries_count_) return;
+  PageItem& entry = entries_[index];
+  if (entry.IsReadOnly() || !entry.CanWriteValue()) {
+    sys::Sound::PlaySoundEffect(theme_.error_sound);
+    return;
+  }
+  // A copy: the page can load again.
+  const PageItem selected = entry;
+  SaveUndo(entry, index);
+  entry.WriteValue(value);
+  sys::Sound::PlaySoundEffect(theme_.confirm_sound);
+  if (is_choice) AddValueRecent(selected, (u32)value);
+  flash_index_ = index;
+  flash_frames_ = kFlashFrames;
+  // First write the data back (OnChange), then build the page again.
+  AddRecent(index);
+  RunOnChange(index);
+  if (selected.NeedsRefresh()) Refresh();
+  needs_prepare_ = true;
+}
+
+void MainApplication::TakeSnapshot() {
+  snapshot_count_ = entries_count_;
+  for (u32 i = 0; i < entries_count_; i++) {
+    snapshot_[i] = entries_[i].ReadValue();
+  }
+}
+
+bool MainApplication::IsChanged(u32 index) const {
+  if (index >= snapshot_count_ || index >= entries_count_) return false;
+  const PageItem& entry = entries_[index];
+  // An entry that builds the page again selects the data of the page (a
+  // slot, a box): it is not a change of the data.
+  if (!entry.HasValue() || entry.IsReadOnly() || entry.NeedsRefresh()) {
+    return false;
+  }
+  return entry.ReadValue() != snapshot_[index];
 }
 
 void MainApplication::Select(u32 index) {
@@ -940,6 +918,9 @@ void MainApplication::JumpSection(s32 direction) {
 
 void MainApplication::FinishLoad() {
   needs_prepare_ = true;
+  is_filtering_ = false;
+  picker_index_ = 0xFF;
+  TakeSnapshot();
   MenuContext& ctx = GetContext();
   ctx.display_count =
       entries_count_ > kMaxDisplayCount ? kMaxDisplayCount : entries_count_;
@@ -998,7 +979,7 @@ void MainApplication::Open(menu_callback_t load_menu, void* args,
   is_search_page_ = 0;
   on_change_ = nullptr;
   process_vtable_ = 0;
-  undo_.is_valid = false;
+  undo_count_ = 0;
   flash_frames_ = 0;
   load_menu(*this, args);
   FinishLoad();
@@ -1018,7 +999,7 @@ void MainApplication::Close() {
   is_search_page_ = 0;
   on_change_ = nullptr;
   process_vtable_ = 0;
-  undo_.is_valid = false;
+  undo_count_ = 0;
   flash_frames_ = 0;
   ctx.load_menu(*this, ctx.args);
   FinishLoad();
@@ -1089,6 +1070,11 @@ void MainAppPainter::DrawPageBackground(MainApplication& app) {
 }
 
 void MainAppPainter::DrawPageItems(MainApplication& app) {
+  // The filter shows its results in place of the page.
+  if (app.is_filtering_) {
+    app.DrawFilterResults();
+    return;
+  }
   MainApplication::MenuContext& ctx = app.GetContext();
   const Theme& theme = app.theme_;
   const s32 line_height = MainApplication::kLineHeight;
@@ -1152,6 +1138,11 @@ void MainAppPainter::DrawPageItems(MainApplication& app) {
     color.a *= fade;
     if (entry.IsReadOnly()) color.a *= 0.65f;
 
+    // A mark on the left of a value that changed since the page opened.
+    if (app.IsChanged(index)) {
+      sys::Graphics::DrawRect(RectX(x) - 7, RectY(y) + 5, 4, 5, accent);
+    }
+
     sys::Graphics::SetTextScale(0.6f, 0.6f);
     entry.GetNameText(name);
     entry.GetValueText(value);
@@ -1179,13 +1170,16 @@ void MainAppPainter::DrawPageItems(MainApplication& app) {
     if (kind == IconKind::kNone) continue;
     const s32 icon_x = RectX(value_x) - kLineIconWidth - 2;
     if (icon_x < RectX(x + name_width)) continue;
-    const u32 slot = IconPool::kFirstLineSlot + i;
+    // While Up / Down stay pressed, only the icons that are ready show.
     const u32 icon = entry.GetIconId((u32)entry.GetIndex());
-    IconPool::GetInstance().Request(slot, kind, icon);
-    IconPool::GetInstance().Draw(slot, kind, icon, icon_x,
-                                 RectY(y) + (row_height - kLineIconHeight) / 2,
-                                 kLineIconWidth, kLineIconHeight,
-                                 Color(1, 1, 1, fade));
+    IconPool& icons = IconPool::GetInstance();
+    const s32 slot = icons.Acquire(IconPool::kFirstLineSlot,
+                                   IconPool::kLineSlotCount, kind, icon,
+                                   app.hold_frames_ < kHoldNoLoadFrames);
+    if (slot < 0) continue;
+    icons.Draw(slot, kind, icon, icon_x,
+               RectY(y) + (row_height - kLineIconHeight) / 2, kLineIconWidth,
+               kLineIconHeight, Color(1, 1, 1, fade));
   }
 
   // The scroll bar: where the visible entries are in the page.

@@ -25,13 +25,13 @@
 
 #include "ui/widget/icon.h"
 
-#include <3ds.h>
 #include <cstdio>
 #include <cstring>
 
 #include "core/constant/archive_id.h"
-#include "pokemon/patch/model_loader.h"
+#include "core/game_file.h"
 #include "system/native/graphics.h"
+#include "ui/log_application.h"
 
 namespace ui {
 namespace {
@@ -50,10 +50,6 @@ constexpr u32 kFormatEtc1a4 = 11;
 // A layout archive: the number of files, a list of names (64 bytes each),
 // then the files. The BCLIM images are in the order of the names.
 constexpr u32 kLayoutNameSize = 64;
-
-// The texture of the GPU keeps the physical address of its pixels at this
-// offset (the address that the GPU reads).
-constexpr uptr kTexturePixelsOffset = 0x8;
 
 // The pixels of one texture: 64 x 32, 4 bytes each (A, B, G, R).
 constexpr u32 kTextureBytes = IconPool::kWidth * IconPool::kHeight * 4;
@@ -254,19 +250,6 @@ u32 GetTextureSize(u32 value) {
   return size;
 }
 
-// Returns the address that the CPU uses for a physical address of the
-// pixels of a texture, or null. The pixels are in FCRAM (the linear memory)
-// or in VRAM.
-u8* GetPixelAddress(u32 physical) {
-  if (physical >= 0x20000000 && physical < 0x28000000) {
-    return (u8*)(physical - 0x0C000000); // FCRAM: 0x14000000 for the CPU.
-  }
-  if (physical >= 0x18000000 && physical < 0x18600000) {
-    return (u8*)(physical + 0x07000000); // VRAM: 0x1F000000 for the CPU.
-  }
-  return nullptr;
-}
-
 u16 ReadU16(const u8* data) { return data[0] | (data[1] << 8); }
 
 u32 ReadU32(const u8* data) {
@@ -411,6 +394,33 @@ void IconPool::Request(u32 slot, IconKind kind, u32 id) {
   is_used_ = true;
 }
 
+s32 IconPool::Acquire(u32 first, u32 count, IconKind kind, u32 id,
+                      bool can_load) {
+  if (first >= kSlotCount) return -1;
+  if (first + count > kSlotCount) count = kSlotCount - first;
+  // A slot that shows (or loads) this icon.
+  for (u32 i = first; i < first + count; i++) {
+    Slot& slot = slots_[i];
+    if (slot.wanted_kind == kind && slot.wanted_id == id) {
+      slot.last_frame = frame_;
+      return (s32)i;
+    }
+  }
+  if (!can_load) return -1;
+  // Else the slot that the menu used the least recently, not in this frame.
+  s32 oldest = -1;
+  for (u32 i = first; i < first + count; i++) {
+    if (slots_[i].last_frame == frame_) continue;
+    if (oldest < 0 || slots_[i].last_frame < slots_[oldest].last_frame) {
+      oldest = (s32)i;
+    }
+  }
+  if (oldest < 0) return -1;
+  Request(oldest, kind, id);
+  slots_[oldest].last_frame = frame_;
+  return oldest;
+}
+
 IconState IconPool::Draw(u32 slot, IconKind kind, u32 id, s32 x, s32 y,
                          s32 width, s32 height, Color color) const {
   if (slot >= kSlotCount) return IconState::kEmpty;
@@ -424,18 +434,16 @@ IconState IconPool::Draw(u32 slot, IconKind kind, u32 id, s32 x, s32 y,
   return IconState::kReady;
 }
 
-void IconPool::Prepare(bool can_create_texture) {
+void IconPool::Prepare() {
+  frame_++;
   if (!is_used_) return;
 
-  // Make the texture of a slot that the menu uses: one in each frame.
+  // Make the texture of each slot that the menu uses.
   for (Slot& slot : slots_) {
     if (slot.texture != nullptr || slot.wanted_kind == IconKind::kNone) {
       continue;
     }
-    if (!can_create_texture) break;
-    memset(g_pixels, 0, sizeof(g_pixels));
-    slot.texture = sys::Graphics::CreateTexture(kWidth, kHeight, g_pixels);
-    break;
+    slot.texture = Texture::Create(kWidth, kHeight);
   }
 
   // Load the icons that changed.
@@ -493,13 +501,21 @@ void IconPool::LoadFileIcon(Slot& slot) {
       return;
   }
 
+  // The first errors go in the log.
+  static u32 error_count = 0;
   u32 size = 0;
-  auto* file = (u8*)pokemon::ModelLoader::ReadFile(archive, file_id, true,
+  auto* file = core::GameFile::Read(archive, file_id, true,
                                                    &size);
   if (file == nullptr || !WriteImage(slot, file, size, true)) {
+    if (error_count++ < 4) {
+      LogApplication::Print(u"Icon %u/%lu: %s", (unsigned)archive, file_id,
+                            file == nullptr       ? "no file"
+                            : slot.texture == nullptr ? "no texture"
+                                                      : "bad image");
+    }
     slot.SetEmpty();
   }
-  if (file != nullptr) pokemon::ModelLoader::FreeBuffer(file);
+  if (file != nullptr) delete[] file;
 }
 
 void IconPool::LoadLayoutIcons(IconKind kind) {
@@ -518,14 +534,14 @@ void IconPool::LoadLayoutIcons(IconKind kind) {
   if (!has_archive) return;
 
   u32 size = 0;
-  auto* file = (u8*)pokemon::ModelLoader::ReadFile(archive, 0, true, &size);
+  auto* file = core::GameFile::Read(archive, 0, true, &size);
   const u32 name_count = file != nullptr && size >= 4 ? ReadU32(file) : 0;
   const u32 names_end = 4 + name_count * kLayoutNameSize;
   if (names_end > size) {
     for (Slot& slot : slots_) {
       if (slot.wanted_kind == kind && !slot.IsDone()) slot.SetEmpty();
     }
-    if (file != nullptr) pokemon::ModelLoader::FreeBuffer(file);
+    if (file != nullptr) delete[] file;
     return;
   }
 
@@ -557,7 +573,7 @@ void IconPool::LoadLayoutIcons(IconKind kind) {
     }
     if (!is_written) slot.SetEmpty();
   }
-  pokemon::ModelLoader::FreeBuffer(file);
+  delete[] file;
 }
 
 bool IconPool::WriteImage(Slot& slot, const u8* file, u32 size,
@@ -643,13 +659,9 @@ bool IconPool::WriteImage(Slot& slot, const u8* file, u32 size,
     return false;
   }
 
-  // Replace the pixels of the texture, then write the cache of the CPU to
-  // the memory: the GPU reads the memory.
-  u8* pixels = GetPixelAddress(
-      *(u32*)((uptr)slot.texture + kTexturePixelsOffset));
-  if (pixels == nullptr) return false;
-  memcpy(pixels, g_pixels, kTextureBytes);
-  svcFlushProcessDataCache(CUR_PROCESS_HANDLE, (u32)pixels, kTextureBytes);
+  // Replace the pixels of the texture: the GPU reads them at the next draw.
+  memcpy(slot.texture->pixels, g_pixels, kTextureBytes);
+  slot.texture->Flush();
   slot.kind = slot.wanted_kind;
   slot.id = slot.wanted_id;
   slot.has_image = true;

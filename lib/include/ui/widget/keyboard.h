@@ -60,6 +60,12 @@ public:
   /// Returns the typed text (UTF-16).
   const c16* GetInput() const;
 
+  /**
+   * @brief Shows the page of characters that starts at `first`. For
+   *        example u'a' shows the small letters first.
+   */
+  void ShowCharacters(c16 first) { ShowPage(first); }
+
 private:
   static constexpr u32 kColNum = 10;
   static constexpr u32 kRowNum = 3;

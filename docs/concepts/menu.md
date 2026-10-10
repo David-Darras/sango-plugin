@@ -46,9 +46,11 @@ The bottom screen (`ui::MainAppPainter`) shows:
 - the current process and the current event of the game;
 - five large buttons at the bottom edge: previous section, next section,
   pin, search, back. Each button also shows its key;
-- after a change, an **Undo** button in the top-right corner. It puts the
-  old value back. A second touch puts the new value back. It works until
-  the player leaves the page.
+- after a change, an **Undo** button in the top-right corner, with the
+  number of changes that it can cancel (8 at most). It puts the old values
+  back, the last change first. It works until the player leaves the page;
+- **Reset**, on the left of Undo, when the value changed since the page
+  opened: it puts the value of the page opening back.
 
 **Search**: the Search button opens a page with a text and a list of
 results. The results show while the player types: the menu reads all the
@@ -225,13 +227,47 @@ static const c8* kModes[] = {"Off", "Slow", "Fast"};
 app.Add("Mode", my_mode).WithArray(kModes, SIZE(kModes));
 ```
 
+### The grid of values
+
+An entry with icons or names (`AddItem()`, `AddSpecies()`, `AddMove()`,
+`AddAbility()`, `WithIcons()`, or `WithArray()` with more than 12 texts)
+shows a grid of 6 x 3 values on the bottom screen in place of the numpad.
+
+- The player touches a value: its name shows at the top of the bottom
+  screen. The value changes when the stylus leaves the screen. Out of the
+  grid, the stylus cancels (the "take-off" choice: fewer errors).
+- **Left** / **Right** change the value one by one. `<` and `>` change the
+  page.
+- The views: **Quick** (the 6 last values of this set, then the suggested
+  values), **All**, and the pockets of the Bag for the items (Balls,
+  Medicine, Held, Berries, TMs, Key, Other). The pockets come from the data
+  of each item: the menu reads them a few items in each frame, the first
+  time.
+- **Filter** opens the keyboard. The top screen shows the values whose name
+  contains the text, without accents and capital letters: "eclat" finds
+  "Éclat Météorite". A number finds the values that start with it. Up /
+  Down choose, A applies, B goes back.
+- A suggested value has a mark. `WithSuggestions(function)` gives them: for
+  example the abilities and the moves of the species
+  (`GetSpeciesAbilities()`, `GetSpeciesMoves()` in page_common.h). The
+  player can still choose any value.
+
+The names of the game come from the text archive of the language of the
+game (ORAS). The last values of each set go in the `[values]` section of
+`menu.ini`.
+
+### Changes and Undo
+
+- A mark on the left of an entry shows that its value changed since the
+  page opened. **Reset** puts the value of the page opening back. An entry
+  with `WithRefresh()` selects the data of the page (a slot, a box): the
+  marks start again when it changes.
+- **Undo** cancels the 8 last changes of the page, the last first.
+
 ### Icons
 
-An entry with icons shows a grid of 6 x 3 icons on the bottom screen in
-place of the numpad. The player touches an icon to choose its value.
-**Left** / **Right** change the value one by one, and the page buttons move
-18 values. `AddItem()`, `AddSpecies()` and `AddType()` add the icons
-automatically. For the other sets, add them yourself:
+`AddItem()`, `AddSpecies()` and `AddType()` add the icons automatically.
+For the other sets, add them yourself:
 
 ```cpp
 app.Add("Poke Ball", pkm->ball)
@@ -260,9 +296,23 @@ icons, the Pokémon icons, and the small icons of the layouts (types,
 damage categories, status conditions, languages) in the language of the
 game. The pool makes a texture for each slot (18 for the grid, 15 for the
 lines) the first time that the slot shows an icon. Then a new icon
-replaces the pixels of the texture: the game cannot release a texture. The
-archives load in the heaps of the overworld. ORAS only: XY has no address
-to make a texture.
+replaces the pixels of the texture.
+
+**Files of the game.** `core::GameFile::Read()` reads a file of an archive
+into the memory of the plugin (and decompresses LZ): it works in all the
+parts of the game. The heaps of the overworld do not exist in a battle.
+
+**Textures.** `ui::Texture` is a texture of the plugin. To draw a
+rectangle with a texture, the game reads only four values of the texture
+object: the physical address of the pixels, the width, the height and the
+format. The plugin fills these values itself, and puts the pixels in a
+resident GPU heap of the game (`core::GameFile::AllocateDevice()`). A
+failed allocation of the game stops the game: the function checks the free
+memory first, keeps 512 KB free for the game, and writes the free memory
+in the log when it fails. Do not use
+the texture functions of the game: they put the texture object in a heap
+that the game empties, then the next texture takes the same memory (an
+image shows the pixels of an other texture).
 
 ## Pages that need a part of the game
 
@@ -310,10 +360,9 @@ pixels for the top screen, 320 x 240 for the bottom screen. A smaller image
 shows in the center of the screen. Image Opacity sets the opacity of the
 image, and the color of the theme covers it: its alpha sets how much of the
 image shows.
-`ui::Image` draws any other TGA image of 512 x 512 pixels at most. Call
-`Image::Prepare()` while the plugin draws the top screen: a new texture while
-the game draws the bottom screen makes the game crash. To make a
-TGA image from a PNG image:
+`ui::Image` draws any other TGA image of 512 x 512 pixels at most.
+`Image::Prepare()` reads the file the first time. To make a TGA image from a
+PNG image:
 
 ```bash
 python tools/png_to_tga.py menu_top.png

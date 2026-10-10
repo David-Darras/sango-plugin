@@ -23,6 +23,8 @@
 #pragma once
 
 #include "common.h"
+#include "pokemon/constant/form.h"
+#include "pokemon/constant/species.h"
 
 namespace ui {
 class MainApplication;
@@ -41,6 +43,24 @@ void RefreshMap(void* args);
  * @return The texts. They stay in memory.
  */
 const c8** GetNumberedNames(const c8* format, u32 count);
+
+/**
+ * @brief Writes the abilities of a species and form: the first ability, the
+ *        second ability and the hidden ability. For WithSuggestions().
+ * @return The number of abilities (without the same ability two times).
+ */
+u32 GetSpeciesAbilities(SpeciesId species, FormId form, u16* ids,
+                        u32 capacity);
+
+/**
+ * @brief Writes the moves that a species and form can learn: the moves of
+ *        its levels, then its TMs. For WithSuggestions().
+ *
+ * The function loads the level moves of the species: call it only when the
+ * player edits an entry, not when the page loads.
+ * @return The number of moves.
+ */
+u32 GetSpeciesMoves(SpeciesId species, FormId form, u16* ids, u32 capacity);
 
 // The texts of the values of the game, for WithArray(). The index is the
 // value. Use SIZE() for the number of texts.

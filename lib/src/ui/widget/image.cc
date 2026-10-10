@@ -86,13 +86,12 @@ bool Image::Load() {
   // G, R for each pixel.
   const u32 texture_width = GetTextureSize(width);
   const u32 texture_height = GetTextureSize(height);
-  const u32 texture_bytes = texture_width * texture_height * 4;
-  u8* pixels = new u8[texture_bytes];
-  if (pixels == nullptr) {
+  texture_ = Texture::Create(texture_width, texture_height);
+  if (texture_ == nullptr) {
     delete[] file_pixels;
     return false;
   }
-  for (u32 i = 0; i < texture_bytes; i++) pixels[i] = 0;
+  u8* pixels = texture_->pixels;
   for (u32 row = 0; row < height; row++) {
     // The row from the top of the image: it is also the row of the texture.
     const u32 y = is_top_origin ? row : height - 1 - row;
@@ -108,22 +107,12 @@ bool Image::Load() {
     }
   }
   delete[] file_pixels;
-
-  // The GPU reads the pixels from memory, maybe after this function: keep
-  // them, and write the cache of the CPU to the memory first.
-  svcFlushProcessDataCache(CUR_PROCESS_HANDLE, (u32)pixels, texture_bytes);
-  texture_ = sys::Graphics::CreateTexture(texture_width, texture_height,
-                                         pixels);
-  if (texture_ == nullptr) {
-    delete[] pixels;
-    return false;
-  }
-  pixels_ = pixels;
+  texture_->Flush();
   width_ = width;
   height_ = height;
   texture_width_ = texture_width;
   texture_height_ = texture_height;
-  return texture_ != nullptr;
+  return true;
 }
 
 bool Image::Prepare() {

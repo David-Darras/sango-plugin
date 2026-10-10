@@ -30,6 +30,8 @@
 #include "core/cheat_code_manager.h"
 #include "system/native/controller.h"
 #include "ui/application.h"
+#include "ui/item_category.h"
+#include "ui/name_list.h"
 #include "ui/page_item.h"
 #include "ui/painter.h"
 #include "ui/theme.h"
@@ -160,6 +162,15 @@ public:
   /// The player can see the value of the last entry, but cannot change it.
   MainApplication& WithReadOnly() {
     if (entries_count_ > 0) entries_[entries_count_ - 1].WithReadOnly();
+    return *this;
+  }
+
+  /// Sets the function that gives the suggested values of the last entry
+  /// (see PageItem::WithSuggestions()).
+  MainApplication& WithSuggestions(suggest_t suggest) {
+    if (entries_count_ > 0) {
+      entries_[entries_count_ - 1].WithSuggestions(suggest);
+    }
     return *this;
   }
 
@@ -454,12 +465,11 @@ private:
     c8 where[64]; ///< The names of the pages, for the description.
   };
 
-  /// The last change, to cancel it.
+  /// A change, to cancel it.
   struct UndoState {
     PageItem item; ///< The entry that changed.
     u8 index; ///< Its index in the page.
     u8 size; ///< The size of the old value, in bytes.
-    bool is_valid;
     u8 bytes[128]; ///< The old value.
   };
 
@@ -484,6 +494,9 @@ private:
     kTouchPicker0 = kTouchChoice0 + 12,
     kTouchPagePrevious = kTouchPicker0 + IconPool::kGridSlotCount, ///< Pages.
     kTouchPageNext,
+    kTouchPickerView, ///< Opens the list of the views of the grid.
+    kTouchPickerFilter, ///< Opens the filter (the keyboard).
+    kTouchReset, ///< Puts the value of the page opening back.
     kTouchMax,
   };
 
@@ -495,7 +508,27 @@ private:
     kChoices, ///< A short list of texts.
     kNumber, ///< The numpad and the step buttons.
     kText, ///< The keyboard.
-    kPicker, ///< The grid of icons (see PageItem::WithIcons()).
+    kPicker, ///< The grid of the values, with icons or names.
+  };
+
+  /// The views of the grid of values.
+  enum PickerView : u8 {
+    kViewQuick, ///< The recent values, then the suggested values.
+    kViewAll, ///< All the values.
+    kViewCategory, ///< The first category of items (+ ItemCategory).
+    kViewCount = kViewCategory + (u8)ItemCategory::kCount,
+  };
+
+  /// The sets of values that keep their recent values.
+  enum ValueKind : u8 {
+    kValueSpecies,
+    kValueItem,
+    kValueMove,
+    kValueAbility,
+    kValueType,
+    kValueBall,
+    kValueKindCount,
+    kValueNone = 0xFF,
   };
 
   MainApplication()
@@ -602,10 +635,62 @@ private:
   /// Writes sdmc:/sango/menu.ini when a setting changed.
   void SaveSettings();
 
-  /// Keeps the old value of an entry before a change.
+  /// Keeps the old value of an entry before a change (kMaxUndo changes).
   void SaveUndo(const PageItem& entry, u32 index);
-  /// Puts the old value back. A second undo puts the new value back.
+  /// Puts the old value of the last change back.
   void Undo();
+  /**
+   * @brief Changes the value of an entry, like the player: keeps the old
+   *        value for Undo, writes the data back (OnChange) and builds the
+   *        page again when the entry asks for it.
+   * @param is_choice true when the player chose the value in a list: the
+   *        value goes in the recent values.
+   */
+  void ApplyValue(u32 index, u64 value, bool is_choice);
+
+  // The changes since the page opened (main_application.cc).
+
+  /// Keeps the values of the entries of the page.
+  void TakeSnapshot();
+  /// Returns true when the value of an entry changed since TakeSnapshot().
+  bool IsChanged(u32 index) const;
+
+  // The grid of values and the filter (menu_picker.cc).
+
+  /// Returns true when the bottom screen shows the grid for the entry.
+  bool UsesPicker(const PageItem& entry) const;
+  /// Returns the number of values of the grid of an entry, or 0.
+  u32 GetPickerCount(const PageItem& entry) const;
+  /// Prepares the grid for the selected entry: the suggestions, the view.
+  void PreparePicker(const PageItem& entry, u32 index);
+  /// Fills the values of the current view (not for kViewAll).
+  void BuildPickerView(const PageItem& entry);
+  /// Returns true when a view of the grid has values for the entry.
+  bool IsPickerViewAvailable(const PageItem& entry, u8 view) const;
+  /// Returns the number of values of the current view.
+  u32 GetViewCount(const PageItem& entry) const;
+  /// Returns a value of the current view.
+  u32 GetViewValue(u32 position) const;
+  /// Returns the value under a cell of the grid, or -1.
+  s32 GetCellValue(const PageItem& entry, s32 cell) const;
+  /// Draws the list of the views of the grid.
+  void DrawPickerViews(const PageItem& entry) const;
+  /// Returns true when the value is in the suggestions of the entry.
+  bool IsSuggested(u32 value) const;
+  /// Returns the set of recent values of an entry, or kValueNone.
+  ValueKind GetValueKind(const PageItem& entry) const;
+  /// Adds a value to the recent values of its set.
+  void AddValueRecent(const PageItem& entry, u32 value);
+  /// Opens the filter for the selected entry.
+  void OpenFilter(const PageItem& entry);
+  /// Finds the values for the text of the filter.
+  void RunFilter(const PageItem& entry);
+  /// Reads the buttons while the filter is open.
+  void UpdateFilter(sys::Controller& controller);
+  /// Draws the results of the filter on the top screen.
+  void DrawFilterResults();
+  /// Draws the keyboard of the filter on the bottom screen.
+  void DrawFilterKeyboard(const PageItem& entry);
   /// Runs the OnChange() function of the entry at `index`, when there is one.
   void RunOnChange(u32 index);
   /// Shows the value of the selected entry in the numpad or the keyboard.
@@ -626,10 +711,15 @@ private:
     bool apply = false; ///< Applies the numpad or the keyboard.
     bool search = false;
     bool undo = false;
+    bool reset = false; ///< Puts the value of the page opening back.
   };
 
   /// Reads the touch buttons of the bottom screen into `input`.
   void ReadTouch(const PageItem& entry, Input& input);
+  /// Reads the grid: the cells, the pages, the views and the filter.
+  void ReadPickerTouch(const PageItem& entry, Input& input);
+  /// Returns the name of a view of the grid.
+  static const c8* GetViewName(u8 view);
   /// Draws one touch button.
   void DrawTouch(TouchId id, const c16* label, bool is_active) const;
   /**
@@ -648,8 +738,15 @@ private:
   static constexpr u32 kMaxPins = 8;
   static constexpr u32 kMaxRecents = 4;
   static constexpr u32 kMaxChoices = 12;
-  /// The cells of the grid of icons: 6 columns, 3 rows.
-  static constexpr u32 kPickerColumns = 6;
+  /// The changes that Undo can cancel.
+  static constexpr u32 kMaxUndo = 8;
+  /// The recent values of each ValueKind.
+  static constexpr u32 kMaxValueRecents = 6;
+  /// The suggested values of an entry.
+  static constexpr u32 kMaxSuggestions = 160;
+  /// The lines of the results of the filter on the top screen.
+  static constexpr u32 kFilterLines = 14;
+  /// The cells of the grid of values: 6 columns, 3 rows.
   static constexpr u32 kPickerCells = IconPool::kGridSlotCount;
   static constexpr u32 kMaxResults = 16;
   static constexpr u32 kQueryLength = 24;
@@ -709,7 +806,37 @@ private:
   SearchResult results_[kMaxResults];
   u8 result_count_ = 0;
 
-  UndoState undo_;
+  UndoState undo_[kMaxUndo]; ///< The changes, the oldest first.
+  u8 undo_count_ = 0;
+
+  /// The values of the entries when the page loaded (see TakeSnapshot()).
+  u64 snapshot_[kMaxEntries];
+  u8 snapshot_count_ = 0;
+
+  // The grid of values (menu_picker.cc).
+  u16 picker_list_[NameList::kMaxResults]; ///< The values of the view.
+  u16 picker_list_count_ = 0;
+  u16 picker_page_ = 0;
+  u8 picker_view_ = kViewAll;
+  u8 picker_index_ = 0xFF; ///< The entry of the grid.
+  void* picker_address_ = nullptr; ///< The data of the entry of the grid.
+  bool is_picker_views_open_ = false; ///< The list of the views shows.
+  bool is_picker_touch_ = false; ///< A touch started in the grid.
+  s16 picker_hover_ = -1; ///< The value under the stylus, or -1.
+  bool picker_was_down_ = false; ///< The stylus touched the last frame.
+  u16 suggestions_[kMaxSuggestions];
+  u8 suggestion_count_ = 0;
+  u16 value_recents_[kValueKindCount][kMaxValueRecents] = {};
+  u8 value_recent_counts_[kValueKindCount] = {};
+
+  // The filter (menu_picker.cc).
+  bool is_filtering_ = false;
+  c16 filter_query_[kQueryLength] = {};
+  u16 filter_results_[NameList::kMaxResults];
+  u16 filter_count_ = 0;
+  u16 filter_cursor_ = 0;
+  u16 filter_offset_ = 0; ///< The first result on the screen.
+  u32 filter_hold_frames_ = 0; ///< The frames that a scroll button stays down.
 
   // The animations. The values go to 0 (or to the target) frame by frame.
   f32 cursor_y_ = -1; ///< The y of the selection bar on the top screen.

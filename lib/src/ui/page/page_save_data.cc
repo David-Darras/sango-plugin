@@ -52,6 +52,8 @@
 
 #include "savedata/native/pss_group.h"
 #include "system/native/core.h"
+#include "system/native/sound.h"
+#include "ui/theme.h"
 #include "ui/page/page_common.h"
 #include "ui/page/pages.h"
 
@@ -75,6 +77,64 @@ static u16 GetSpecies(const pokemon::CoreData* core_data) {
   accessor.Initialize(&copy, nullptr);
   accessor.Decrypt();
   return static_cast<u16>(copy.species);
+}
+
+// The Pokemon of "Copy Pokemon": encrypted, like the save data.
+static pokemon::CoreData clipboard;
+static bool has_clipboard = false;
+
+// Returns the slot of the team that holds the data, or -1.
+static s32 FindTeamSlot(const pokemon::CoreData* core_data) {
+  auto& team = savedata::PokemonTeam::GetInstance();
+  for (u32 i = 0; i < savedata::PokemonTeam::kMaxSlots; i++) {
+    if (team.pokemons[i] != nullptr && team.pokemons[i]->core == core_data) {
+      return (s32)i;
+    }
+  }
+  return -1;
+}
+
+static void CopyPokemon(void*) {
+  std::memcpy(&clipboard, ctx.core_data, sizeof(clipboard));
+  has_clipboard = true;
+}
+
+static void PastePokemon(void*) {
+  auto& team = savedata::PokemonTeam::GetInstance();
+  const s32 team_slot = FindTeamSlot(ctx.core_data);
+  // A slot of the team after the last Pokemon has no data of the battles.
+  if (!has_clipboard || team_slot >= (s32)team.count) {
+    sys::Sound::PlaySoundEffect(Theme::GetInstance().error_sound);
+    return;
+  }
+  std::memcpy(ctx.core_data, &clipboard, sizeof(clipboard));
+  if (team_slot >= 0) team.pokemons[team_slot]->UpdateRuntimeData();
+  // The page reads the new Pokemon.
+  MainApplication::GetInstance().Refresh();
+}
+
+// Adds Copy Pokemon and Paste Pokemon.
+static void AddClipboard(MainApplication& app) {
+  app.AddSection("Copy")
+     .Add("Copy Pokemon", CopyPokemon)
+     .WithDescription("Keeps a copy of this Pokemon. Then paste it in an "
+                      "other slot: team, PC box, Battle Box...")
+     .Add("Paste Pokemon", PastePokemon)
+     .WithDescription(has_clipboard
+                          ? "Puts the copy in this slot. The Pokemon of the "
+                            "slot goes away: Undo cannot bring it back."
+                          : "Copy a Pokemon first.");
+}
+
+// The suggestions of the entries of the Pokemon of the page.
+static u32 SuggestAbilities(u16* ids, u32 capacity) {
+  const pokemon::CoreData* pkm = ctx.accessor.GetCoreData();
+  return GetSpeciesAbilities(pkm->species, pkm->form, ids, capacity);
+}
+
+static u32 SuggestMoves(u16* ids, u32 capacity) {
+  const pokemon::CoreData* pkm = ctx.accessor.GetCoreData();
+  return GetSpeciesMoves(pkm->species, pkm->form, ids, capacity);
 }
 
 static void SavePokemon(void*) {
@@ -113,6 +173,7 @@ void LoadSaveDataPokemonPage(MainApplication& app, void* args) {
 
   if (pkm->species == SpeciesId::kNone) {
     app.Add("There is no Pokemon in this slot.");
+    AddClipboard(app);
     return;
   }
 
@@ -133,6 +194,7 @@ void LoadSaveDataPokemonPage(MainApplication& app, void* args) {
      .Add("Nature", pkm->nature)
      .WithArray(kNatureNames, SIZE(kNatureNames))
      .AddAbility("Ability", pkm->ability)
+     .WithSuggestions(SuggestAbilities)
      .AddItem("Held Item", pkm->item)
      .Add("Is Egg", &pkm->iv_flags, 30, 1)
      .WithRefresh();
@@ -144,13 +206,18 @@ void LoadSaveDataPokemonPage(MainApplication& app, void* args) {
 
   app.AddSection("Moves")
      .AddMove("Move 1", pkm->moves[0])
+     .WithSuggestions(SuggestMoves)
      .Add("PP 1", pkm->pp[0])
      .AddMove("Move 2", pkm->moves[1])
+     .WithSuggestions(SuggestMoves)
      .Add("PP 2", pkm->pp[1])
      .AddMove("Move 3", pkm->moves[2])
+     .WithSuggestions(SuggestMoves)
      .Add("PP 3", pkm->pp[2])
      .AddMove("Move 4", pkm->moves[3])
+     .WithSuggestions(SuggestMoves)
      .Add("PP 4", pkm->pp[3]);
+  AddClipboard(app);
 
   app.AddSection("Effort Values")
      .Add("EV HP", pkm->ev_hp)

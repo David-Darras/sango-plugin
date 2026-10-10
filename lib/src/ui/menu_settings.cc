@@ -28,6 +28,7 @@
  */
 
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 
 #include "core/ini.h"
@@ -40,6 +41,10 @@ const c16* const kSettingsFolder = u"sdmc:/sango";
 const c16* const kSettingsPath = u"sdmc:/sango/menu.ini";
 
 // The names of the buttons of Theme::keys. The index is the value.
+// The keys of the recent values (MainApplication::ValueKind).
+const c8* const kValueKindNames[] = {"species", "items", "moves",
+                                     "abilities", "types", "balls"};
+
 const c8* const kKeyNames[] = {"None", "Left", "Right", "Up", "Down",
                                "A",    "B",    "X",     "Y",  "L",
                                "R",    "ZL",   "ZR",    "Start"};
@@ -148,6 +153,20 @@ void MainApplication::LoadSettings() {
       SplitPath(shortcut.path, section, shortcut.name);
       shortcut.is_available = false;
     }
+
+    // The recent values: numbers with a comma between them.
+    for (u32 kind = 0; kind < kValueKindCount; kind++) {
+      value_recent_counts_[kind] = 0;
+      const c8* text = ini.Get("values", kValueKindNames[kind]);
+      while (text != nullptr && *text != '\0' &&
+             value_recent_counts_[kind] < kMaxValueRecents) {
+        c8* end = nullptr;
+        const unsigned long value = strtoul(text, &end, 10);
+        if (end == text) break;
+        value_recents_[kind][value_recent_counts_[kind]++] = (u16)value;
+        text = *end == ',' ? end + 1 : end;
+      }
+    }
   }
 
   // Measure the current settings: the menu writes the file only after a
@@ -205,6 +224,18 @@ void MainApplication::SaveSettings() {
     c8 key[16];
     snprintf(key, sizeof(key), "recent%lu", (unsigned long)(i + 1));
     ini.Set(key, recents_[i].path);
+  }
+
+  ini.AddSection("values");
+  ini.AddComment("The last values of the grids, the last first (numbers).");
+  for (u32 kind = 0; kind < kValueKindCount; kind++) {
+    c8 text[64] = "";
+    for (u32 i = 0; i < value_recent_counts_[kind]; i++) {
+      const u32 length = strlen(text);
+      snprintf(text + length, sizeof(text) - length, i == 0 ? "%u" : ",%u",
+               (unsigned)value_recents_[kind][i]);
+    }
+    ini.Set(kValueKindNames[kind], text);
   }
 
   const u32 checksum = GetChecksum(ini.GetText(), ini.GetSize());

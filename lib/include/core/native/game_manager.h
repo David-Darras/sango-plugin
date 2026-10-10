@@ -86,6 +86,11 @@ public:
     return system_heap_;
   }
 
+  /// Returns the memory heap for the GPU. It exists for all the game.
+  INLINE void* GetDeviceHeap() const {
+    return device_heap_;
+  }
+
 private:
   // The memory heaps.
   void* system_heap_;

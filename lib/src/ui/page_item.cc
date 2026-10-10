@@ -27,6 +27,7 @@
 #include "core/utils.h"
 #include <cstring>
 #include "pokemon/native/item_data.h"
+#include "ui/name_list.h"
 
 namespace ui {
 static void SetBits(u32* num, u32 offset, u32 size, u32 value) {
@@ -161,7 +162,8 @@ PageItem::PageItem()
     is_max_used_(0),
     is_read_only_(0),
     icon_kind_(IconKind::kNone),
-    icon_ids_(nullptr) {
+    icon_ids_(nullptr),
+    suggest_(nullptr) {
 }
 
 void PageItem::Initialize(const c8* name, void* addr, u8 type, u32 bit_offset,
@@ -185,6 +187,7 @@ void PageItem::Initialize(const c8* name, void* addr, u8 type, u32 bit_offset,
   is_read_only_ = 0;
   icon_kind_ = IconKind::kNone;
   icon_ids_ = nullptr;
+  suggest_ = nullptr;
 }
 
 PageItem& PageItem::WithArray(const c8* array[], u32 array_size) {
@@ -236,6 +239,48 @@ PageItem& PageItem::WithIcons(IconKind kind, const u16* ids) {
   icon_kind_ = kind;
   icon_ids_ = ids;
   return *this;
+}
+
+PageItem& PageItem::WithSuggestions(suggest_t suggest) {
+  suggest_ = suggest;
+  return *this;
+}
+
+u64 PageItem::ReadValue() const {
+  if (!HasValue()) return 0;
+  if (type_ == kTypeBits) {
+    return GET_BITS(*(u32*)address_, bit_offset_, bit_size_);
+  }
+  if (type_ == kTypeCheatCode) {
+    return ((core::CheatCode*)address_)->IsEnabled() ? 1 : 0;
+  }
+  const u32 size = GetValueSize();
+  if (size <= sizeof(u64)) {
+    u64 value = 0;
+    memcpy(&value, address_, size);
+    return value;
+  }
+  // A text: a hash of its bytes (FNV-1a).
+  u64 hash = 14695981039346656037ull;
+  const u8* bytes = (const u8*)address_;
+  for (u32 i = 0; i < size; i++) {
+    hash = (hash ^ bytes[i]) * 1099511628211ull;
+  }
+  return hash;
+}
+
+bool PageItem::CanWriteValue() const {
+  return HasValue() && type_ != kTypeCheatCode &&
+         GetValueSize() <= sizeof(u64);
+}
+
+void PageItem::WriteValue(u64 value) {
+  if (!CanWriteValue()) return;
+  if (type_ == kTypeBits) {
+    SetBits((u32*)address_, bit_offset_, bit_size_, (u32)value);
+    return;
+  }
+  memcpy(address_, &value, GetValueSize());
 }
 
 PageItem& PageItem::WithReadOnly() {
@@ -401,9 +446,11 @@ void PageItem::GetValueText(c16* buffer) const {
       core::Utils::Format(buffer, u"%ls", String::GetTmpBuf());
       break;
     case kTypeItem: {
-      pokemon::ItemData item(*(ItemId*)address_);
-      item.GetName(String::GetTmpStr());
-      core::Utils::Format(buffer, u"%ls", String::GetTmpBuf());
+      // The names that the menu keeps: the name of an item from the game
+      // reads two files, and the menu draws the value in each frame.
+      c16 name[64];
+      NameList::GetName(*this, *(u16*)address_, name, SIZE(name));
+      core::Utils::Format(buffer, u"%ls", name);
       break;
     }
     case kTypeMenu:

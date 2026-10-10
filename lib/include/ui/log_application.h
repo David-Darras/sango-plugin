@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include <3ds.h>
 #include <cstdarg>
 #include <cstring>
 
@@ -113,6 +114,15 @@ public:
     std::memcpy(log.log_entries_[kMaxEntries - 1],
                 buffer,
                 sizeof(c16) * kMaxEntryLength);
+
+    // The debug output too: an emulator writes it in its log file.
+    c8 text[kMaxEntryLength];
+    u32 length = 0;
+    for (; length + 1 < kMaxEntryLength && buffer[length] != 0; length++) {
+      text[length] = buffer[length] < 0x80 ? (c8)buffer[length] : '?';
+    }
+    text[length] = '\0';
+    svcOutputDebugString(text, length);
   }
 
 private:

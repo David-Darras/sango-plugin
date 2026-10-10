@@ -234,34 +234,10 @@ public:
   }
 
   /**
-   * @brief Makes a texture from pixels (the native format of the GPU, see
-   *        ui::Image). Use it only while the plugin draws the top screen.
-   *
-   * The game function binds the command list of the drawings out of the
-   * screens, and this list does not exist in the game: the next drawings
-   * crash. So the function binds the command list of the top screen again.
-   * @param width The width: a power of 2 from 8 to 512.
-   * @param height The height: a power of 2 from 8 to 512.
-   * @param pixels The pixels. The function copies them.
-   * @return The texture, or null.
-   */
-  STATIC_INLINE void* CreateTexture(u32 width, u32 height,
-                                    const void* pixels) {
-    if (renderer::address::kGraphicsCreateTexture == 0) return nullptr;
-    constexpr u32 kFormatRgba8 = 0x8058;
-    Graphics& graphics = GetInstance();
-    void* texture = ((void* (*)(Graphics*, u32, u32, u32, const void*))
-                         renderer::address::kGraphicsCreateTexture)(
-        &graphics, kFormatRgba8, width, height, pixels);
-    graphics.BindFramebuffer(graphics.GetFramebuffer(Screen::kTop));
-    return texture;
-  }
-
-  /**
    * @brief Draws a rectangle with a color, or with a texture.
    * @param color The color. With a texture, it multiplies the texture.
-   * @param texture A texture of CreateTexture(), or null for a color only.
-   *        The texture fills the rectangle.
+   * @param texture A texture (ui::Texture), or null for a color only. The
+   *        texture fills the rectangle.
    */
   STATIC_INLINE void DrawRectWithTexture(s32 x, s32 y, s32 width, s32 height,
                                          Color color, void* texture) {

@@ -381,7 +381,7 @@ void MainApplication::NavigateTo(const Frame* frames, u32 depth,
   // Go back to the first page, then open the pages of the way.
   contexts_count_ = 1;
   if (depth == 0) {
-    undo_.is_valid = false;
+    undo_count_ = 0;
     Refresh();
     StartTransition(1);
   }

@@ -272,6 +272,19 @@ static void SavePokemon(void*) {
   memcpy(pkm_client, pkm_server, sizeof(battle::Pokemon));
 }
 
+// The suggestions of the entries of the Pokemon of the page.
+static u32 SuggestAbilities(u16* ids, u32 capacity) {
+  if (pkm_server == nullptr) return 0;
+  return GetSpeciesAbilities(pkm_server->species, pkm_server->form, ids,
+                             capacity);
+}
+
+static u32 SuggestMoves(u16* ids, u32 capacity) {
+  if (pkm_server == nullptr) return 0;
+  return GetSpeciesMoves(pkm_server->species, pkm_server->form, ids,
+                         capacity);
+}
+
 void LoadBattlePokemonDataPage(MainApplication& app, void* args) {
   if (app.CheckProcess(battle::address::kVtable)) return;
   if (pkm_server == nullptr) {
@@ -290,6 +303,7 @@ void LoadBattlePokemonDataPage(MainApplication& app, void* args) {
      .Add("Gender", pkm.gender)
      .WithArray(kGenderNames, SIZE(kGenderNames))
      .AddAbility("Ability", pkm.ability)
+     .WithSuggestions(SuggestAbilities)
      .AddItem("Held Item", pkm.item)
      .Add("Friendship", pkm.friendship)
      .Add("Experience", pkm.experience)
@@ -320,12 +334,16 @@ void LoadBattlePokemonDataPage(MainApplication& app, void* args) {
      .WithArray(kStatStageNames, SIZE(kStatStageNames))
      .AddSection("Moves")
      .AddMove("Move 1", pkm.moves[0].view.id)
+     .WithSuggestions(SuggestMoves)
      .Add("PP 1", pkm.moves[0].view.pp)
      .AddMove("Move 2", pkm.moves[1].view.id)
+     .WithSuggestions(SuggestMoves)
      .Add("PP 2", pkm.moves[1].view.pp)
      .AddMove("Move 3", pkm.moves[2].view.id)
+     .WithSuggestions(SuggestMoves)
      .Add("PP 3", pkm.moves[2].view.pp)
      .AddMove("Move 4", pkm.moves[3].view.id)
+     .WithSuggestions(SuggestMoves)
      .Add("PP 4", pkm.moves[3].view.pp)
      .AddSection("Types")
      .AddType("Type 1", pkm.types[0])
