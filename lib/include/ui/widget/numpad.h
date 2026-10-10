@@ -30,7 +30,8 @@ namespace ui {
  *
  * The keys are in the layout of a phone (1 2 3 at the top), with a minus key
  * and a decimal point. The numpad starts with the current value. The first
- * key replaces this value; DEL edits it.
+ * key replaces this value; DEL edits it. In the hexadecimal mode, the numpad
+ * shows the keys 0 to F in four columns, and the number starts with "0x".
  */
 class Numpad {
 public:
@@ -42,7 +43,8 @@ public:
 
   Numpad();
 
-  /// Places the numpad: (x, y) is the top-left corner of the text bar.
+  /// Places the numpad: (x, y) is the top-left corner of the text bar. The
+  /// bar has the width of the keys (kKeysWidth).
   void Initialize(s32 x, s32 y);
 
   /// Draws the numpad on the bottom screen.
@@ -66,6 +68,15 @@ public:
   /// hexadecimal.
   const c16* GetInput() const { return input_; }
 
+  /// Shows the keys 0 to F (true) or the decimal keys (false). Call
+  /// SetInput() after it: the text of the number does not change.
+  void SetHex(bool is_hex);
+  /// Returns true in the hexadecimal mode.
+  bool IsHex() const { return is_hex_; }
+
+  /// Returns the bar that shows the number: the menu uses it as a slider.
+  const Button& GetBar() const { return buttons_[kButtonInput]; }
+
 private:
   enum ButtonId : u8 {
     kButton0 = 0, ///< The digit 0. The digits 1 to 9 follow.
@@ -75,7 +86,8 @@ private:
     kButtonDelete, ///< DEL: removes the last character.
     kButtonClear, ///< CLR: clears the number.
     kButtonOk, ///< OK: confirms the number.
-    kButtonMax
+    kButtonHexA, ///< The digit A of the hexadecimal mode. B to F follow.
+    kButtonMax = kButtonHexA + 6
   };
 
   static constexpr u32 kMaxLength = 15;
@@ -89,11 +101,20 @@ private:
   /// Draws one key with its border.
   void DrawKey(ButtonId id, const c16* label, bool is_enabled) const;
 
+  /// Places the keys of the digits for the current mode.
+  void PlaceKeys();
+
+  /// Draws the keys of the decimal mode.
+  void DrawDecimalKeys() const;
+
   Button buttons_[kButtonMax];
   c16 input_[kMaxLength + 1]; ///< The typed number (UTF-16).
   u8 cursor_; ///< The number of characters.
   bool is_edited_; ///< false: the bar shows the value of the entry.
   bool allow_minus_;
   bool allow_dot_;
+  bool is_hex_ = false; ///< The keys 0 to F show.
+  s16 x_ = 0; ///< The top-left corner of the bar.
+  s16 y_ = 0;
 };
 } // namespace ui

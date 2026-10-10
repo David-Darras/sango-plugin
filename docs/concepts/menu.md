@@ -30,6 +30,7 @@ on the next line.
 | **Left / Right** | Changes the value. Hold the button: a number changes 10 times faster. |
 | **A** | Opens the page, runs the action, or switches On / Off. |
 | **Y** | Pins the entry to the quick access, or removes the pin. |
+| **Hold Y** | Opens the menu of the entry: Copy, Paste, Reset, Pin, Undo, Help. A long press on the description does the same. |
 | **X** | Opens the pinned entries in a circle (see below). In the numpad and the keyboard: applies the value. |
 | **B** | Goes back to the previous page. |
 
@@ -46,11 +47,17 @@ The bottom screen (`ui::MainAppPainter`) shows:
 - the current process and the current event of the game;
 - five large buttons at the bottom edge: previous section, next section,
   pin, search, back. Each button also shows its key;
-- after a change, an **Undo** button in the top-right corner, with the
+- **?** in the top-right corner: the help of the controls, with a line for
+  the editor of the selected entry;
+- after a change, an **Undo** button on the left of **?**, with the
   number of changes that it can cancel (8 at most). It puts the old values
   back, the last change first. It works until the player leaves the page;
 - **Reset**, on the left of Undo, when the value changed since the page
-  opened: it puts the value of the page opening back.
+  opened: it puts the value of the page opening back. The name line shows
+  this value ("before: ..."), and the line of the top screen shows it while
+  the stylus holds Reset;
+- the messages of the menu ("Copied: 120", "Undo: Level") for two seconds,
+  in place of the line of the process.
 
 **Search**: the Search button opens a page with a text and a list of
 results. The results show while the player types: the menu reads all the
@@ -66,7 +73,21 @@ With practice, the player remembers the directions and does not look.
 The **numpad** has the layout of a phone (1 2 3 at the top), a minus key and
 a decimal point. It starts with the current value: the first key replaces
 the value, DEL edits it. The -1 / +1 / -10 / +10 buttons are next to the
-keys, and the limits of the value are at the right of the text bar.
+keys, and the limits of the value are at the right of the text bar. For a
+whole number:
+
+- **Min** and **Max** write the smallest and the largest value at once;
+- **Hex** shows the keys 0 to F: the number is hexadecimal ("0x1F"). The
+  mode stays for the next entries;
+- the text bar is a **slider** when the range has 65536 values at most: move
+  the stylus on the bar, and the value applies when the stylus leaves the
+  screen. The bar fills to the place of the value.
+
+**The menu of an entry** (hold Y): **Copy** keeps the value (a number, a
+decimal number or a text), **Paste** writes it into an other entry of the
+same kind (a number goes into the limits of the entry), **Reset**, **Pin**,
+**Undo** and **Help**. The +Control Pad and A, or the stylus, choose a
+button. B closes the menu.
 
 The **keyboard** shows only the characters that the font of the game can
 draw. < and > show the previous and the next page. << and >> jump to the
@@ -90,7 +111,7 @@ void LoadMyPage(ui::MainApplication& app, void* args) {
 |---|---|
 | `AddSection(name)` | Adds a section title. L and R jump between the sections. |
 | `WithDescription(text)` | Sets the text of the bottom screen for the last entry. Use one or two short sentences. |
-| `AddQuickAccess()` | Adds the pinned entries (Y, 8 at most) and the 4 recent entries. Use it at the start of the first page. |
+| `AddQuickAccess()` | Adds the pinned entries (Y, 8 at most), the 4 recent entries and the 4 recent pages. Use it at the start of the first page. A pinned or a recent page opens with the pages before it: B goes back through them. |
 | `WithReadOnly()` | The player sees the value of the last entry, but cannot change it. |
 | `OnChange(function)` | Runs the function after each change of a value on the page. |
 
@@ -175,8 +196,10 @@ pin1 = Battle > Settings > [Display] Type Helper
 pin2 = [Play] Game Speed
 ```
 
-The colors are `RRGGBBAA` in hexadecimal. Other features can use the same
-format with `core::Ini` (`lib/include/core/ini.h`).
+The colors are `RRGGBBAA` in hexadecimal. `[menu]` also keeps `sounds`
+(0: no sound) and `fast_delay` (the frames before a held button goes
+faster). The section `[recent_pages]` keeps the recent pages. Other features
+can use the same format with `core::Ini` (`lib/include/core/ini.h`).
 
 ## The types of entries
 
@@ -219,6 +242,7 @@ These functions change the last entry that you added:
 | `WithFactor(factor)` | Changes the step of a decimal value. |
 | `WithRefresh()` | Builds the page again when the value changes. |
 | `WithIcons(kind)` | Shows a grid of icons of the game to choose the value (see below). |
+| `WithConfirm()` | The action runs only after the player holds **A** (or the button) for one second. A bar shows the progress. Use it for an action that Undo cannot cancel (for example "Fill The Boxes"). |
 
 Example with texts:
 
@@ -263,6 +287,8 @@ game (ORAS). The last values of each set go in the `[values]` section of
   with `WithRefresh()` selects the data of the page (a slot, a box): the
   marks start again when it changes.
 - **Undo** cancels the 8 last changes of the page, the last first.
+- `app.ShowToast("Pokemon copied.")` shows a short message on the bottom
+  screen. Use it after an action that shows no change on the page.
 
 ### Icons
 
@@ -352,6 +378,10 @@ line: `sys::Graphics::AppendSpaces()` adds spaces up to a width, then
 `AppendText()` adds the next column. The menu draws each row of keys like
 this. Use it only for short gaps: each space adds a small error. Draw a button with one rectangle, not
 `DrawRectStroke()` (four rectangles).
+
+**Accessibility.** Plugin Theme has the High Contrast look (black, white,
+yellow), Menu Sounds (On / Off) and Fast Scroll Delay (the frames before a
+held button goes faster).
 
 **Background images.** The menu shows `sdmc:/sango/menu_top.tga` and
 `sdmc:/sango/menu_bottom.tga` behind its pages (Plugin Theme > Background

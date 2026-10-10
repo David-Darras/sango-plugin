@@ -58,6 +58,23 @@ void LoadBattleSettingsPage(MainApplication& app, void* args) {
      .Add("Same Catch Rate For Every Ball", ctx.same_ratio_for_all_pokeball)
      .WithDescription("All the Poke Balls have the same catch rate, the "
                       "Master Ball too.")
+     .AddSection("Multipliers")
+     .Add("Experience", ctx.exp_multiplier)
+     .WithFactor(0.5f)
+     .WithBounds(0, 20)
+     .WithDescription("Multiplies the experience after each battle. 1: the "
+                      "normal experience. 0: no experience.")
+     .Add("Catch Rate", ctx.catch_multiplier)
+     .WithFactor(0.5f)
+     .WithBounds(0, 20)
+     .WithDescription("Multiplies the catch rate of the Poke Balls. The "
+                      "change applies at the next battle.")
+     .Add("Money", ctx.money_multiplier)
+     .WithFactor(0.5f)
+     .WithBounds(0, 20)
+     .WithDescription("Multiplies the money after each battle. The change "
+                      "applies at the next battle.")
+     .AddSection("Other Rules")
      .Add("One Mega Evolution", ctx.mega_restriction)
      .WithDescription("On: the rule of the game, one Mega Evolution in each "
                       "battle. Off: no limit.")

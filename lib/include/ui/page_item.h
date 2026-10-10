@@ -110,6 +110,11 @@ public:
    * can read the game data.
    */
   PageItem& WithSuggestions(suggest_t suggest);
+  /**
+   * @brief The action changes much data, and Undo cannot cancel it: the
+   *        player holds A (or the button) for one second to run it.
+   */
+  PageItem& WithConfirm();
 
   u8 GetType() const;
 
@@ -119,6 +124,11 @@ public:
   void SetName(const c8* name) { name_ = name; }
   /// Returns the address of the value of the entry.
   void* GetAddress() const { return address_; }
+  /// Changes the address of the value. The menu uses it on a copy of an
+  /// entry, to show an other value.
+  void SetAddress(void* address) { address_ = address; }
+  /// Returns true when the player holds A to run the action (WithConfirm()).
+  bool NeedsConfirm() const { return needs_confirm_ != 0; }
   /// Returns the description of the entry, or null.
   const c8* GetDescription() const { return description_; }
   /// Returns true when A runs a function.
@@ -159,6 +169,17 @@ public:
   s32 GetIndex() const;
   /// Returns true when both entries show the same data.
   bool IsSameAs(const PageItem& other) const;
+  /// Returns true for a whole number of 32 bits at most (not a decimal
+  /// number, not a text).
+  bool IsInteger() const;
+  /**
+   * @brief Gives the smallest and the largest value of a whole number: the
+   *        limits of the entry, else the limits of its type.
+   * @return false when the entry is not a whole number of 32 bits at most.
+   */
+  bool GetRange(s64& min, s64& max) const;
+  /// Returns the value of a whole number, with its sign.
+  s64 ReadNumber() const;
 
   /// Writes the name and the value of the entry into `buffer` (UTF-16).
   void GetDisplayValue(c16* buffer) const;
@@ -228,6 +249,7 @@ private:
 
   f32 factor_;
   u8 is_read_only_;
+  u8 needs_confirm_; ///< See WithConfirm().
   IconKind icon_kind_; ///< See WithIcons().
   const u16* icon_ids_; ///< See WithIcons().
   suggest_t suggest_; ///< See WithSuggestions().

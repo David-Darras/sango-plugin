@@ -26,6 +26,7 @@
 #include "battle/patch/game_extension.h"
 #include "battle/patch/setup.h"
 #include "battle/patch/type_helper.h"
+#include "ui/performance_overlay.h"
 #include "core/hook.h"
 #include "core/patch/app_launcher.h"
 #include "core/patch/archive.h"
@@ -194,6 +195,7 @@ void DrawFrame() {
     application->DrawTop(graphics);
     ui::KeyboardPatch::DrawTop();
     battle::TypeHelper::DrawTop();
+    ui::PerformanceOverlay::DrawTop();
     sys::Graphics::DisableScissor();
   }
 

@@ -44,6 +44,13 @@ core::Hook<void(uptr)> update_view_hook;
 core::Hook<void(uptr, uptr, uptr)> pokemon_model_settings_hook;
 core::Hook<bool(u32, u32, u32, u32, u32, u32)> check_pokemon_captured_hook;
 core::Hook<void(uptr, u16, u32)> update_gauge_hook;
+core::Hook<u32(u32, u32, u32, u32, u32, u32)> ball_catch_rate_hook;
+
+// The catch rate of a Poke Ball is a fixed-point number: 0x1000 is 1.
+constexpr u32 kCatchRateOne = 0x1000;
+// The experience of the Pokemon of the team after a battle: one LevelUpData
+// for each slot.
+constexpr u32 kLevelUpSlots = 6;
 } // namespace
 
 void Battle::Initialize() {
@@ -66,6 +73,8 @@ void Battle::Initialize() {
       address::kVtable);
   update_gauge_hook.Install(address::kUpdateGauge, UpdateGaugeHook,
                             address::kVtable);
+  ball_catch_rate_hook.Install(address::kBallCatchRate, BallCatchRateHook,
+                               address::kVtable);
 }
 
 void Battle::PatchUpdate() {
@@ -133,11 +142,9 @@ void Battle::PatchLoad() {
   }
 
   if (feat.same_ratio_for_all_pokeball) {
+    // BallCatchRateHook() gives the same rate to all the balls.
     ARM_NOP(address::kMasterBallCheck);
     ARM_NO_COND(address::kMasterBallBranch);
-
-    WRITE32(address::kBallCatchRate, 0xE3A00A01); // mov r0, #0x1000
-    ARM_RET(address::kBallCatchRate + 4);
   }
 
   if (feat.no_shader) {
@@ -271,6 +278,27 @@ void Battle::StartMegaEvolutionAnimationHook(void* view, u8 target,
 
 bool Battle::LevelUpHook(void* self, Team* team,
                          LevelUpData* data) {
+  // The game adds the experience of all the opponents into the table, then
+  // gives it to the Pokemon.
+  const f32 multiplier = GetInstance().exp_multiplier;
+  if (multiplier != 1.0f && multiplier >= 0.0f && data != nullptr) {
+    for (u32 i = 0; i < kLevelUpSlots; i++) {
+      const f32 exp = (f32)data[i].exp * multiplier;
+      data[i].exp = exp > 4000000000.0f ? 4000000000u : (u32)exp;
+    }
+  }
   return level_up_hook(self, team, data);
+}
+
+u32 Battle::BallCatchRateHook(u32 p0, u32 p1, u32 p2, u32 p3, u32 ball,
+                              u32 p5) {
+  auto& feat = GetInstance();
+  u32 rate = feat.same_ratio_for_all_pokeball
+                 ? kCatchRateOne
+                 : ball_catch_rate_hook(p0, p1, p2, p3, ball, p5);
+  if (feat.catch_multiplier != 1.0f && feat.catch_multiplier >= 0.0f) {
+    rate = (u32)((f32)rate * feat.catch_multiplier);
+  }
+  return rate;
 }
 } // namespace battle

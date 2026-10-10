@@ -20,6 +20,7 @@
  * @brief The menu pages of the Save Data family.
  */
 
+#include <cstdio>
 #include <cstring>
 
 #include "overworld/native/berry_tree_location.h"
@@ -97,20 +98,142 @@ static s32 FindTeamSlot(const pokemon::CoreData* core_data) {
 static void CopyPokemon(void*) {
   std::memcpy(&clipboard, ctx.core_data, sizeof(clipboard));
   has_clipboard = true;
+  MainApplication::GetInstance().ShowToast("Pokemon copied. Paste it in an "
+                                           "other slot.");
 }
 
 static void PastePokemon(void*) {
   auto& team = savedata::PokemonTeam::GetInstance();
+  auto& app = MainApplication::GetInstance();
   const s32 team_slot = FindTeamSlot(ctx.core_data);
   // A slot of the team after the last Pokemon has no data of the battles.
   if (!has_clipboard || team_slot >= (s32)team.count) {
-    sys::Sound::PlaySoundEffect(Theme::GetInstance().error_sound);
+    Theme::GetInstance().Play(Theme::GetInstance().error_sound);
+    app.ShowToast(has_clipboard ? "Paste it in a slot of the team that has "
+                                  "a Pokemon, or in a box."
+                                : "Copy a Pokemon first.");
     return;
   }
   std::memcpy(ctx.core_data, &clipboard, sizeof(clipboard));
   if (team_slot >= 0) team.pokemons[team_slot]->UpdateRuntimeData();
   // The page reads the new Pokemon.
+  app.Refresh();
+  app.ShowToast("Pokemon pasted.");
+}
+
+// The changes of the sections "Whole Team" and "Whole Box".
+enum class BatchChange : u8 { kLevel100, kShiny, kMaxIvs, kClearEvs };
+
+// Changes one Pokemon of the save data. Returns false for an empty slot and
+// for an Egg: the change does not apply to them.
+static bool ChangePokemon(pokemon::CoreData* core_data, BatchChange change) {
+  static pokemon::DataAccessor accessor;
+  accessor.Initialize(core_data, nullptr);
+  accessor.Decrypt();
+  pokemon::CoreData* pkm = accessor.GetCoreData();
+  const bool is_changed = pkm->species != SpeciesId::kNone && !pkm->is_egg;
+  if (is_changed) {
+    switch (change) {
+      case BatchChange::kLevel100:
+        pkm->SetLevel(100);
+        break;
+      case BatchChange::kShiny:
+        pkm->SetShiny(true);
+        break;
+      case BatchChange::kMaxIvs:
+        pkm->SetMaxIVs();
+        break;
+      case BatchChange::kClearEvs:
+        pkm->ev_hp = 0;
+        pkm->ev_attack = 0;
+        pkm->ev_defense = 0;
+        pkm->ev_speed = 0;
+        pkm->ev_special_attack = 0;
+        pkm->ev_special_defense = 0;
+        break;
+    }
+  }
+  accessor.Encrypt();
+  return is_changed;
+}
+
+// Shows the number of changed Pokemon, and builds the page again.
+static void FinishBatch(u32 count) {
+  auto& app = MainApplication::GetInstance();
+  app.Refresh();
+  c8 message[48];
+  snprintf(message, sizeof(message), "%lu Pokemon changed.",
+           (unsigned long)count);
+  app.ShowToast(message);
+}
+
+static void ChangeTeam(BatchChange change) {
+  auto& team = savedata::PokemonTeam::GetInstance();
+  u32 count = 0;
+  for (u32 i = 0; i < team.count; i++) {
+    if (ChangePokemon(team.pokemons[i]->core, change)) count++;
+    // The level and the stats of the team come from the saved data.
+    team.pokemons[i]->UpdateRuntimeData();
+  }
+  FinishBatch(count);
+}
+
+static void HealTeam(void*) {
+  savedata::PokemonTeam::GetInstance().HealAllPokemons();
   MainApplication::GetInstance().Refresh();
+  MainApplication::GetInstance().ShowToast("The team is healed.");
+}
+
+// Adds the changes of all the Pokemon of the team.
+static void AddWholeTeam(MainApplication& app) {
+  app.AddSection("Whole Team")
+     .Add("Heal The Team", HealTeam)
+     .WithDescription("Restores the HP and the PP, and removes the status "
+                      "conditions of all the team.")
+     .Add("All To Level 100",
+          [](void*) { ChangeTeam(BatchChange::kLevel100); })
+     .WithConfirm()
+     .WithDescription("All the Pokemon of the team (not the Eggs). Undo "
+                      "cannot cancel it: hold A.")
+     .Add("All Shiny", [](void*) { ChangeTeam(BatchChange::kShiny); })
+     .WithConfirm()
+     .WithDescription("All the Pokemon of the team become shiny. Hold A.")
+     .Add("All IVs To 31", [](void*) { ChangeTeam(BatchChange::kMaxIvs); })
+     .WithConfirm()
+     .WithDescription("The six IVs of all the team. Hold A.")
+     .Add("Clear All EVs", [](void*) { ChangeTeam(BatchChange::kClearEvs); })
+     .WithConfirm()
+     .WithDescription("The six EVs of all the team go to 0. Hold A.");
+}
+
+// The box of the page of the PC boxes.
+static u8 box_index = 0;
+
+static void ChangeBox(BatchChange change) {
+  auto& data = savedata::PokemonBox::GetInstance();
+  u32 count = 0;
+  for (u32 i = 0; i < savedata::PokemonBox::kMaxSlotsPerBox; i++) {
+    if (ChangePokemon(&data.boxes[box_index].pokemons[i], change)) count++;
+  }
+  FinishBatch(count);
+}
+
+// Adds the changes of all the Pokemon of the selected box.
+static void AddWholeBox(MainApplication& app) {
+  app.AddSection("Whole Box")
+     .Add("All To Level 100", [](void*) { ChangeBox(BatchChange::kLevel100); })
+     .WithConfirm()
+     .WithDescription("All the Pokemon of this box (not the Eggs). Undo "
+                      "cannot cancel it: hold A.")
+     .Add("All Shiny", [](void*) { ChangeBox(BatchChange::kShiny); })
+     .WithConfirm()
+     .WithDescription("All the Pokemon of this box become shiny. Hold A.")
+     .Add("All IVs To 31", [](void*) { ChangeBox(BatchChange::kMaxIvs); })
+     .WithConfirm()
+     .WithDescription("The six IVs of all the box. Hold A.")
+     .Add("Clear All EVs", [](void*) { ChangeBox(BatchChange::kClearEvs); })
+     .WithConfirm()
+     .WithDescription("The six EVs of all the box go to 0. Hold A.");
 }
 
 // Adds Copy Pokemon and Paste Pokemon.
@@ -120,9 +243,10 @@ static void AddClipboard(MainApplication& app) {
      .WithDescription("Keeps a copy of this Pokemon. Then paste it in an "
                       "other slot: team, PC box, Battle Box...")
      .Add("Paste Pokemon", PastePokemon)
+     .WithConfirm()
      .WithDescription(has_clipboard
-                          ? "Puts the copy in this slot. The Pokemon of the "
-                            "slot goes away: Undo cannot bring it back."
+                          ? "Hold A: puts the copy in this slot. The Pokemon "
+                            "of the slot goes away, Undo cannot bring it back."
                           : "Copy a Pokemon first.");
 }
 
@@ -272,6 +396,7 @@ void LoadSaveDataTeamPage(MainApplication& app, void* args) {
                       "care.");
 
   LoadSaveDataPokemonPage(app, data.pokemons[slot_idx]->core);
+  AddWholeTeam(app);
 }
 
 void LoadSaveDataBattleBoxPage(MainApplication& app, void* args) {
@@ -293,7 +418,7 @@ void LoadSaveDataBattleBoxPage(MainApplication& app, void* args) {
 }
 
 void LoadSaveDataPokemonBoxPage(MainApplication& app, void* args) {
-  static u8 box_idx = 0;
+  u8& box_idx = box_index;
   static u8 slot_idx = 0;
   constexpr u32 kBoxes = savedata::PokemonBox::kMaxBoxes;
   constexpr u32 kSlots = savedata::PokemonBox::kMaxSlotsPerBox;
@@ -313,6 +438,7 @@ void LoadSaveDataPokemonBoxPage(MainApplication& app, void* args) {
      .WithRefresh();
 
   LoadSaveDataPokemonPage(app, &data.boxes[box_idx].pokemons[slot_idx]);
+  AddWholeBox(app);
 }
 
 void LoadSaveDataDayCarePage(MainApplication& app, void* args) {

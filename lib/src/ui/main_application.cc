@@ -34,6 +34,7 @@
 #include "system/native/controller.h"
 #include "system/native/graphics.h"
 #include "system/native/sound.h"
+#include "system/native/touch_screen.h"
 #include "ui/theme.h"
 #include "ui/menu_layout.h"
 #include "ui/widget/image.h"
@@ -46,9 +47,6 @@ namespace ui {
 using namespace layout;
 
 namespace {
-
-// Left / Right change a number 10 times faster after this number of frames.
-constexpr u32 kFastStepFrames = 45;
 
 // The name, the version and the author of the plugin, and the date of the
 // build. The first page shows it.
@@ -165,8 +163,10 @@ void MainApplication::InitializeTouch() {
   for (u32 i = 0; i < kNavCount; i++) {
     touch_[kTouchSectionUp + i].Initialize(4 + i * 63, kNavY, 59, kNavHeight);
   }
-  // Undo: the top-right corner, easy to reach with the stylus.
-  touch_[kTouchUndo].Initialize(262, 2, 54, 24);
+  // The help: the top-right corner. Undo and Reset: on its left, easy to
+  // reach with the stylus.
+  touch_[kTouchHelp].Initialize(294, 2, 22, 24);
+  touch_[kTouchUndo].Initialize(238, 2, 52, 24);
   touch_[kTouchOff].Initialize(10, kEditorY + 10, 145, 50);
   touch_[kTouchOn].Initialize(165, kEditorY + 10, 145, 50);
   touch_[kTouchRun].Initialize(10, kEditorY + 10, 300, 50);
@@ -207,8 +207,15 @@ void MainApplication::InitializeTouch() {
   touch_[kTouchPickerFilter].Initialize(186, kPickerBarY, 80,
                                         kPickerBarHeight);
   touch_[kTouchPageNext].Initialize(270, kPickerBarY, 40, kPickerBarHeight);
-  // Reset: on the left of Undo.
-  touch_[kTouchReset].Initialize(204, 2, 54, 24);
+  touch_[kTouchReset].Initialize(182, 2, 52, 24);
+  // Min, Max and Hex: on the right of the bar of the numpad.
+  const s32 tool_x = 10 + Numpad::kKeysWidth + 6;
+  const s32 tool_width = (300 - Numpad::kKeysWidth - 6 - 4) / 3;
+  touch_[kTouchToMin].Initialize(tool_x, kEditorY, tool_width, 20);
+  touch_[kTouchToMax].Initialize(tool_x + tool_width + 2, kEditorY,
+                                 tool_width, 20);
+  touch_[kTouchHex].Initialize(tool_x + 2 * (tool_width + 2), kEditorY,
+                               tool_width, 20);
   numpad_.Initialize(10, kEditorY);
   keyboard_.Initialize(10, kEditorY);
 }
@@ -216,9 +223,17 @@ void MainApplication::InitializeTouch() {
 void MainApplication::PrepareEditor(const PageItem& entry) {
   switch (GetEditor(entry)) {
     case Editor::kNumber: {
+      // The hexadecimal mode stays for the next entries, but only for the
+      // whole numbers. It shows the bytes of the value.
+      if (!entry.IsInteger()) numpad_.SetHex(false);
       c16 text[32];
-      entry.GetNumberText(text);
+      if (numpad_.IsHex()) {
+        core::Utils::Format(text, u"0x%lX", (u32)entry.ReadValue());
+      } else {
+        entry.GetNumberText(text);
+      }
       numpad_.SetInput(text, entry.IsSigned(), entry.IsDecimal());
+      is_sliding_ = false;
       break;
     }
     case Editor::kText:
@@ -264,14 +279,14 @@ void MainApplication::DrawLabel(s32 x, s32 y, const c16* text,
   DrawMenuText(x, y, text, color);
 }
 
-void MainApplication::DrawTouch(TouchId id, const c16* label,
-                                bool is_active) const {
+void MainApplication::DrawTouch(TouchId id, const c16* label, bool is_active,
+                                bool is_enabled) const {
   const Button& button = touch_[id];
   const s32 x = button.GetX();
   const s32 y = button.GetY();
   const s32 width = button.GetWidth();
   const s32 height = button.GetHeight();
-  const bool is_down = button.IsDown();
+  const bool is_down = is_enabled && button.IsDown();
 
   // One rectangle for each button. A pressed button sinks by one pixel.
   Color fill = is_active || is_down ? theme_.selected_text_color
@@ -284,8 +299,9 @@ void MainApplication::DrawTouch(TouchId id, const c16* label,
   sys::Graphics::SetTextScale(0.5f, 0.5f);
   s32 label_x = x + (width - sys::Graphics::GetTextWidth(label)) / 2;
   if (label_x < x + 2) label_x = x + 2;
-  DrawLabel(label_x, y + (height - 12) / 2, label,
-            theme_.unselected_text_color);
+  Color text = theme_.unselected_text_color;
+  if (!is_enabled) text.a *= 0.35f;
+  DrawLabel(label_x, y + (height - 12) / 2, label, text);
 }
 
 void MainApplication::DrawBottom(sys::Graphics& graphics) {
@@ -312,6 +328,10 @@ void MainApplication::DrawBottom(sys::Graphics& graphics) {
     DrawFilterKeyboard(entry);
     return;
   }
+  if (is_help_open_) {
+    DrawHelp(editor);
+    return;
+  }
 
   c16 buffer[BUFFER_SIZE];
 
@@ -324,12 +344,14 @@ void MainApplication::DrawBottom(sys::Graphics& graphics) {
     strncat(path, " > ", sizeof(path) - strlen(path) - 1);
     strncat(path, title, sizeof(path) - strlen(path) - 1);
   }
-  // Undo, and Reset when the value changed since the page opened.
+  // The help, Undo, and Reset when the value changed since the page opened.
   const bool has_reset = IsChanged(index) && entry.CanWriteValue();
   sys::Graphics::SetTextScale(0.45f, 0.45f);
+  // The text stops before the first button.
   DrawPart(6, 3, contexts_count_ <= 1 ? kCredit : path,
-           has_reset ? 36 : (undo_count_ != 0 ? 46 : kWrapLength),
+           has_reset ? 32 : (undo_count_ != 0 ? 42 : 54),
            theme_.unselected_text_color);
+  DrawTouch(kTouchHelp, u"?", false);
   if (undo_count_ != 0) {
     core::Utils::Format(buffer, u"Undo %u", undo_count_);
     DrawTouch(kTouchUndo, buffer, false);
@@ -351,6 +373,12 @@ void MainApplication::DrawBottom(sys::Graphics& graphics) {
     c16 name[48];
     NameList::GetName(entry, picker_hover_, name, SIZE(name));
     core::Utils::Format(buffer, u"> %ls  (%d)", name, picker_hover_);
+  } else if (has_reset && index < snapshot_count_) {
+    // The value of the page opening: the player compares before Reset.
+    c16 before[256];
+    GetValueTextOf(entry, snapshot_[index], before);
+    core::Utils::Format(buffer, u"%s%s   (before: %ls)", entry.GetName(),
+                        is_pinned ? "  [Pinned]" : "", before);
   } else {
     core::Utils::Format(buffer, u"%s%s", entry.GetName(),
                         is_pinned ? "  [Pinned]" : "");
@@ -369,15 +397,28 @@ void MainApplication::DrawBottom(sys::Graphics& graphics) {
   }
   DrawWrapped(6, 33, description, theme_.unselected_text_color);
 
-  // The editor of the value.
+  // The editor of the value, or the menu of the entry.
   const s32 value_index = entry.HasValue() ? entry.GetIndex() : -1;
-  switch (editor) {
-    case Editor::kRun:
+  switch (is_context_open_ ? Editor::kNone : editor) {
+    case Editor::kRun: {
+      const bool needs_confirm = entry.NeedsConfirm();
       DrawTouch(kTouchRun,
-                entry.GetType() == kTypeMenu ? u"Open the page   (A)"
-                                             : u"Run   (A)",
+                entry.GetType() == kTypeMenu
+                    ? u"Open the page   (A)"
+                    : (needs_confirm ? u"Hold to run   (hold A)"
+                                     : u"Run   (A)"),
                 false);
+      // The progress of the long press.
+      if (needs_confirm && confirm_frames_ != 0 && confirm_index_ == index) {
+        const Button& run = touch_[kTouchRun];
+        Color fill = theme_.selected_text_color;
+        fill.a = 0.5f;
+        sys::Graphics::DrawRect(
+            run.GetX(), run.GetY() + run.GetHeight() - 6,
+            run.GetWidth() * confirm_frames_ / kConfirmFrames, 6, fill);
+      }
       break;
+    }
     case Editor::kSwitch: {
       const bool has_texts = entry.GetArraySize() == 2;
       core::Utils::Format(buffer, u"%s", has_texts ? entry.GetArray()[0] : "Off");
@@ -401,22 +442,42 @@ void MainApplication::DrawBottom(sys::Graphics& graphics) {
       DrawTouch(kTouchPlus1, u"+1", false);
       DrawTouch(kTouchMinus10, u"-10", false);
       DrawTouch(kTouchPlus10, u"+10", false);
+      const bool is_integer = entry.IsInteger();
+      DrawTouch(kTouchToMin, u"Min", false, is_integer);
+      DrawTouch(kTouchToMax, u"Max", false, is_integer);
+      DrawTouch(kTouchHex, u"Hex", numpad_.IsHex(), is_integer);
+      // The slider: the bar of the numpad fills to the place of the value.
+      s64 min;
+      s64 max;
+      const Button& bar = numpad_.GetBar();
+      if (HasSlider(entry) && entry.GetRange(min, max) && max > min) {
+        s64 value = is_sliding_ ? slide_value_ : entry.ReadNumber();
+        if (value < min) value = min;
+        if (value > max) value = max;
+        Color fill = theme_.selected_text_color;
+        fill.a = is_sliding_ ? 0.45f : 0.25f;
+        sys::Graphics::DrawRect(
+            bar.GetX(), bar.GetY() + bar.GetHeight() - 4,
+            (s32)(bar.GetWidth() * (value - min) / (max - min)), 4, fill);
+      }
       // The limits of the value, at the right of the bar.
-      s32 min;
-      s32 max;
-      const bool has_min = entry.GetMin(min);
-      const bool has_max = entry.GetMax(max);
+      s32 limit_min;
+      s32 limit_max;
+      const bool has_min = entry.GetMin(limit_min);
+      const bool has_max = entry.GetMax(limit_max);
       if (has_min && has_max) {
-        core::Utils::Format(buffer, u"%d to %d", min, max);
+        core::Utils::Format(buffer, u"%d-%d", limit_min, limit_max);
       } else if (has_min) {
-        core::Utils::Format(buffer, u"%d or more", min);
+        core::Utils::Format(buffer, u"%d+", limit_min);
       } else if (has_max) {
-        core::Utils::Format(buffer, u"%d or less", max);
+        core::Utils::Format(buffer, u"<= %d", limit_max);
       }
       if (has_min || has_max) {
         sys::Graphics::SetTextScale(0.4f, 0.4f);
-        sys::Graphics::DrawText(230, kEditorY + 5, buffer,
-                                theme_.unselected_text_color);
+        sys::Graphics::DrawText(
+            bar.GetX() + bar.GetWidth() - 4 -
+                sys::Graphics::GetTextWidth(buffer),
+            bar.GetY() + 5, buffer, theme_.unselected_text_color);
       }
       break;
     }
@@ -429,7 +490,23 @@ void MainApplication::DrawBottom(sys::Graphics& graphics) {
     default:
       break;
   }
+  if (is_context_open_) DrawContext(entry);
 
+  // The message of ShowToast() goes over the state of the game.
+  if (toast_frames_ != 0) {
+    Color fill = theme_.selected_text_color;
+    fill.a = toast_frames_ < 20 ? 0.03f * toast_frames_ : 0.6f;
+    sys::Graphics::DrawRect(0, kFooterY - 1, 320, 13, fill);
+    sys::Graphics::SetTextScale(0.45f, 0.45f);
+    DrawLabel(6, kFooterY, toast_, theme_.unselected_text_color);
+  } else {
+    DrawFooter();
+  }
+  DrawNavigation(is_pinned);
+}
+
+void MainApplication::DrawFooter() const {
+  c16 buffer[160];
   // The state of the game, for the developers. Unmangle() returns the same
   // buffer each time: copy the name of the process before the next call.
   uptr vtable = 0;
@@ -446,7 +523,9 @@ void MainApplication::DrawBottom(sys::Graphics& graphics) {
                       event_name);
   sys::Graphics::SetTextScale(0.4f, 0.4f);
   sys::Graphics::DrawText(6, kFooterY, buffer, theme_.unselected_text_color);
+}
 
+void MainApplication::DrawNavigation(bool is_pinned) const {
   // The navigation bar. Each button also shows its key.
   DrawTouch(kTouchSectionUp, u"L Prev.", false);
   DrawTouch(kTouchSectionDown, u"R Next", false);
@@ -456,9 +535,7 @@ void MainApplication::DrawBottom(sys::Graphics& graphics) {
 }
 
 void MainApplication::ForceClose() {
-  sys::Sound::PlaySoundEffect(IsOpened()
-                                ? theme_.close_sound
-                                : theme_.open_sound);
+  theme_.Play(IsOpened() ? theme_.close_sound : theme_.open_sound);
   if (IsOpened()) SaveSettings();
   is_opened_ = false;
   is_radial_open_ = 0;
@@ -478,6 +555,16 @@ void MainApplication::ReadTouch(const PageItem& entry, Input& input) {
   }
 
   for (u32 i = kTouchSectionUp; i <= kTouchBack; i++) touch_[i].Update();
+  touch_[kTouchHelp].Update();
+  if (touch_[kTouchHelp].IsReleased()) input.help = true;
+  // A long press on the description opens the menu of the entry.
+  sys::TouchScreen& touch_screen = sys::TouchScreen::GetInstance();
+  if (touch_screen.IsDown() && touch_screen.GetY() >= 28 &&
+      touch_screen.GetY() < kEditorY) {
+    if (++header_hold_frames_ == kLongPressFrames) input.context = true;
+  } else {
+    header_hold_frames_ = 0;
+  }
   if (touch_[kTouchSectionUp].IsReleased()) input.section = -1;
   if (touch_[kTouchSectionDown].IsReleased()) input.section = 1;
   if (touch_[kTouchPin].IsReleased()) input.pin = true;
@@ -518,11 +605,78 @@ void MainApplication::ReadTouch(const PageItem& entry, Input& input) {
         touch_[kTouchMinus10 + i].Update();
         if (touch_[kTouchMinus10 + i].IsReleased()) input.step = kSteps[i];
       }
+      ReadNumberTouch(entry, input);
       break;
     }
     default:
       break;
   }
+}
+
+void MainApplication::ReadNumberTouch(const PageItem& entry, Input& input) {
+  s64 min;
+  s64 max;
+  if (!entry.GetRange(min, max)) return;
+  touch_[kTouchToMin].Update();
+  touch_[kTouchToMax].Update();
+  touch_[kTouchHex].Update();
+  if (touch_[kTouchToMin].IsReleased()) {
+    input.has_number = true;
+    input.number = min;
+  }
+  if (touch_[kTouchToMax].IsReleased()) {
+    input.has_number = true;
+    input.number = max;
+  }
+  if (touch_[kTouchHex].IsReleased()) {
+    theme_.Play(theme_.next_sound);
+    numpad_.SetHex(!numpad_.IsHex());
+    needs_prepare_ = true;
+  }
+
+  // The slider: the stylus moves on the bar, and the value applies when the
+  // stylus leaves the screen. The bar shows the value under the stylus.
+  sys::TouchScreen& touch_screen = sys::TouchScreen::GetInstance();
+  const bool is_down = touch_screen.IsDown();
+  const Button& bar = numpad_.GetBar();
+  if (!HasSlider(entry) || max <= min) {
+    slider_was_down_ = is_down;
+    return;
+  }
+  if (is_down) {
+    const s32 x = touch_screen.GetX();
+    const s32 y = touch_screen.GetY();
+    if (!slider_was_down_) {
+      is_sliding_ = x >= (s32)bar.GetX() &&
+                    x <= (s32)(bar.GetX() + bar.GetWidth()) &&
+                    y >= (s32)bar.GetY() &&
+                    y <= (s32)(bar.GetY() + bar.GetHeight());
+    }
+    if (is_sliding_) {
+      s32 position = x - (s32)bar.GetX();
+      if (position < 0) position = 0;
+      if (position > (s32)bar.GetWidth()) position = bar.GetWidth();
+      const s64 value = min + (max - min) * position / (s32)bar.GetWidth();
+      if (value != slide_value_ || !slider_was_down_) {
+        slide_value_ = value;
+        c16 text[32];
+        core::Utils::Format(text, u"%lld", value);
+        numpad_.SetInput(text, entry.IsSigned(), entry.IsDecimal());
+      }
+    }
+  } else if (slider_was_down_ && is_sliding_) {
+    is_sliding_ = false;
+    input.has_number = true;
+    input.number = slide_value_;
+  }
+  slider_was_down_ = is_down;
+}
+
+bool MainApplication::HasSlider(const PageItem& entry) {
+  s64 min;
+  s64 max;
+  // A wide range moves too fast under the stylus: the numpad is better.
+  return entry.GetRange(min, max) && max - min <= 0xFFFF && !entry.IsReadOnly();
 }
 
 void MainApplication::Update(sys::Controller& controller) {
@@ -531,7 +685,7 @@ void MainApplication::Update(sys::Controller& controller) {
   if (!are_settings_loaded_) LoadSettings();
 
   if (AreKeysReleased(controller)) {
-    sys::Sound::PlaySoundEffect(IsOpened() ? theme_.close_sound : theme_.open_sound);
+    theme_.Play(IsOpened() ? theme_.close_sound : theme_.open_sound);
     if (IsOpened()) SaveSettings();
     is_opened_ ^= 1;
     is_radial_open_ = 0;
@@ -553,6 +707,24 @@ void MainApplication::Update(sys::Controller& controller) {
   }
   if (is_filtering_) {
     UpdateFilter(controller);
+    return;
+  }
+  if (is_help_open_) {
+    // B, A or a touch closes the help.
+    sys::TouchScreen& touch_screen = sys::TouchScreen::GetInstance();
+    static bool was_down = false;
+    const bool is_down = touch_screen.IsDown();
+    if (controller.IsKeyReleased(Key::kB) ||
+        controller.IsKeyReleased(Key::kA) || (was_down && !is_down)) {
+      theme_.Play(theme_.close_sound);
+      is_help_open_ = false;
+      for (u32 i = 0; i < kTouchMax; i++) touch_[i].Reset();
+    }
+    was_down = is_down;
+    return;
+  }
+  if (is_context_open_) {
+    UpdateContext(controller);
     return;
   }
 
@@ -606,9 +778,9 @@ void MainApplication::Update(sys::Controller& controller) {
   } else {
     hold_step_frames_ = 0;
   }
-  const s32 speed = hold_frames_ > kFastScrollFrames ? 3 : 1;
+  const s32 speed = hold_frames_ > theme_.fast_delay ? 3 : 1;
   // A held Left / Right changes a number faster. A list of texts stays slow.
-  const s32 step = (hold_step_frames_ > kFastStepFrames &&
+  const s32 step = (hold_step_frames_ > theme_.fast_delay &&
                     editor == Editor::kNumber)
                      ? 10
                      : 1;
@@ -621,7 +793,18 @@ void MainApplication::Update(sys::Controller& controller) {
   if (controller.IsKeyRepeated(Key::kLeft)) input.step = -step;
   if (controller.IsKeyReleased(Key::kB)) input.back = true;
   if (controller.IsKeyReleased(Key::kA)) input.run = true;
-  if (controller.IsKeyReleased(Key::kY)) input.pin = true;
+  if (controller.IsKeyDown(Key::kY)) {
+    if (++y_hold_frames_ == kLongPressFrames) {
+      OpenContext();
+      return;
+    }
+  } else {
+    if (controller.IsKeyReleased(Key::kY) &&
+        y_hold_frames_ < kLongPressFrames) {
+      input.pin = true;
+    }
+    y_hold_frames_ = 0;
+  }
   if ((controller.IsKeyReleased(Key::kX) && is_typing) ||
       (editor == Editor::kNumber && numpad_.IsButtonOkReleased()) ||
       (editor == Editor::kText && keyboard_.IsButtonOkReleased())) {
@@ -636,12 +819,44 @@ void MainApplication::Update(sys::Controller& controller) {
     is_radial_held_ = 1;
     radial_direction_ = -1;
     for (u32 i = 0; i < 8; i++) touch_[kTouchRadial0 + i].Reset();
-    sys::Sound::PlaySoundEffect(theme_.next_sound);
+    theme_.Play(theme_.next_sound);
     return;
   }
   ReadTouch(entry, input);
 
+  // An action of WithConfirm() runs after a long press of A (or of the
+  // button): the release does not run it.
+  if (editor == Editor::kRun && entry.NeedsConfirm()) {
+    if (index != confirm_index_) {
+      confirm_index_ = index;
+      confirm_frames_ = 0;
+      is_confirm_done_ = false;
+    }
+    const bool is_held =
+        controller.IsKeyDown(Key::kA) || touch_[kTouchRun].IsDown();
+    input.run = false;
+    if (!is_held) {
+      if (confirm_frames_ != 0 && !is_confirm_done_) {
+        ShowToast("Hold A (or the button) for one second to run it.");
+      }
+      confirm_frames_ = 0;
+      is_confirm_done_ = false;
+    } else if (!is_confirm_done_ && ++confirm_frames_ >= kConfirmFrames) {
+      is_confirm_done_ = true;
+      input.run = true;
+    }
+  }
+
   // Do the actions.
+  if (input.help) {
+    theme_.Play(theme_.next_sound);
+    is_help_open_ = true;
+    return;
+  }
+  if (input.context) {
+    OpenContext();
+    return;
+  }
   if (input.back) {
     Close();
     return;
@@ -656,15 +871,25 @@ void MainApplication::Update(sys::Controller& controller) {
   }
   if (input.search) {
     if (!is_search_page_) {
-      sys::Sound::PlaySoundEffect(theme_.confirm_sound);
+      theme_.Play(theme_.confirm_sound);
       Open(LoadSearchPage, nullptr, "Search");
     }
     return;
   }
 
-  // The grid and Reset write the value at once.
+  // The grid, Reset, Min, Max and the slider write the value at once.
   if (input.reset) {
-    if (index < snapshot_count_) ApplyValue(index, snapshot_[index], false);
+    ResetEntry(index);
+    return;
+  }
+  if (input.has_number) {
+    s64 min;
+    s64 max;
+    if (entry.GetRange(min, max)) {
+      if (input.number < min) input.number = min;
+      if (input.number > max) input.number = max;
+      ApplyValue(index, (u64)input.number, false);
+    }
     return;
   }
   if (editor == Editor::kPicker && input.choice >= 0) {
@@ -684,20 +909,30 @@ void MainApplication::Update(sys::Controller& controller) {
   if (input.run) {
     if (is_switch && !entry.HasCallback()) {
       if (can_change) {
-        sys::Sound::PlaySoundEffect(theme_.confirm_sound);
+        theme_.Play(theme_.confirm_sound);
         entry.Increment();
         is_changed = true;
       } else {
-        sys::Sound::PlaySoundEffect(theme_.error_sound);
+        theme_.Play(theme_.error_sound);
       }
     } else if (type == kTypeMenu || entry.HasCallback()) {
-      sys::Sound::PlaySoundEffect(theme_.confirm_sound);
-      if (type != kTypeMenu) AddRecent(index);
+      theme_.Play(theme_.confirm_sound);
+      const Shortcut* shortcut = GetShortcut(index);
+      if (type == kTypeMenu && shortcut != nullptr) {
+        // A pinned or a recent page opens with the pages before it.
+        OpenPageShortcut(*shortcut);
+        return;
+      }
+      if (type == kTypeMenu) {
+        AddRecentPage(index);
+      } else {
+        AddRecent(index);
+      }
       entry.Execute(*this);
       return;
     }
   } else if (input.step != 0 && can_change) {
-    sys::Sound::PlaySoundEffect(theme_.next_sound);
+    theme_.Play(theme_.next_sound);
     if (input.step > 0) {
       entry.Increment(input.step);
     } else {
@@ -707,7 +942,7 @@ void MainApplication::Update(sys::Controller& controller) {
     if (editor == Editor::kPicker) picker_view_ = kViewAll;
     is_changed = true;
   } else if (input.choice >= 0 && can_change) {
-    sys::Sound::PlaySoundEffect(theme_.confirm_sound);
+    theme_.Play(theme_.confirm_sound);
     const s32 delta = input.choice - entry.GetIndex();
     if (is_switch) {
       if (delta != 0) entry.Increment();
@@ -718,7 +953,7 @@ void MainApplication::Update(sys::Controller& controller) {
     }
     is_changed = true;
   } else if (input.apply && can_change) {
-    sys::Sound::PlaySoundEffect(theme_.confirm_sound);
+    theme_.Play(theme_.confirm_sound);
     if (type == kTypeUnicode) {
       entry.Edit(keyboard_.GetInput());
     } else {
@@ -739,11 +974,11 @@ void MainApplication::Update(sys::Controller& controller) {
   }
 
   if (input.move != 0) {
-    sys::Sound::PlaySoundEffect(theme_.next_sound);
+    theme_.Play(theme_.next_sound);
     // Wrap only for a new press: a held button stops at the end of the page.
     MoveCursor(input.move, hold_frames_ == 1);
   } else if (input.section != 0) {
-    sys::Sound::PlaySoundEffect(theme_.next_sound);
+    theme_.Play(theme_.next_sound);
     JumpSection(input.section);
   }
 }
@@ -772,14 +1007,18 @@ void MainApplication::SaveUndo(const PageItem& entry, u32 index) {
 
 void MainApplication::Undo() {
   if (undo_count_ == 0) {
-    sys::Sound::PlaySoundEffect(theme_.error_sound);
+    theme_.Play(theme_.error_sound);
     return;
   }
-  sys::Sound::PlaySoundEffect(theme_.close_sound);
+  theme_.Play(theme_.close_sound);
   // The last change first: the changes go back in the opposite order, so
   // each entry finds the data of its time (for example the same slot).
   UndoState& state = undo_[--undo_count_];
   PageItem& item = state.item;
+  c16 message[256];
+  core::Utils::Format(message, u"Undo: %s  (%u more)", item.GetName(),
+                      undo_count_);
+  ShowToastText(message);
   if (item.GetType() == kTypeCheatCode) {
     // A cheat code runs its code: switch it again.
     item.Increment();
@@ -797,15 +1036,19 @@ void MainApplication::ApplyValue(u32 index, u64 value, bool is_choice) {
   if (index >= entries_count_) return;
   PageItem& entry = entries_[index];
   if (entry.IsReadOnly() || !entry.CanWriteValue()) {
-    sys::Sound::PlaySoundEffect(theme_.error_sound);
+    theme_.Play(theme_.error_sound);
     return;
   }
   // A copy: the page can load again.
   const PageItem selected = entry;
   SaveUndo(entry, index);
   entry.WriteValue(value);
-  sys::Sound::PlaySoundEffect(theme_.confirm_sound);
+  theme_.Play(theme_.confirm_sound);
   if (is_choice) AddValueRecent(selected, (u32)value);
+  FinishChange(index, selected);
+}
+
+void MainApplication::FinishChange(u32 index, const PageItem& selected) {
   flash_index_ = index;
   flash_frames_ = kFlashFrames;
   // First write the data back (OnChange), then build the page again.
@@ -813,6 +1056,17 @@ void MainApplication::ApplyValue(u32 index, u64 value, bool is_choice) {
   RunOnChange(index);
   if (selected.NeedsRefresh()) Refresh();
   needs_prepare_ = true;
+}
+
+void MainApplication::ResetEntry(u32 index) {
+  if (index >= snapshot_count_ || !IsChanged(index)) {
+    theme_.Play(theme_.error_sound);
+    return;
+  }
+  c16 message[256];
+  core::Utils::Format(message, u"Reset: %s", entries_[index].GetName());
+  ApplyValue(index, snapshot_[index], false);
+  ShowToastText(message);
 }
 
 void MainApplication::TakeSnapshot() {
@@ -964,6 +1218,7 @@ void MainApplication::StepAnimations() {
     transition_ = 0;
   }
   if (flash_frames_ > 0) flash_frames_--;
+  if (toast_frames_ > 0) toast_frames_--;
 }
 
 void MainApplication::Open(menu_callback_t load_menu, void* args,
@@ -972,6 +1227,8 @@ void MainApplication::Open(menu_callback_t load_menu, void* args,
 
   contexts_[contexts_count_].Initialize(load_menu, args, title);
   contexts_count_++;
+  is_context_open_ = false;
+  is_help_open_ = false;
 
   entries_count_ = 0;
   no_background_ = 0;
@@ -990,6 +1247,8 @@ void MainApplication::Close() {
   if (contexts_count_ <= 1) return;
 
   contexts_count_--;
+  is_context_open_ = false;
+  is_help_open_ = false;
 
   MenuContext& ctx = GetContext();
 
@@ -1027,7 +1286,7 @@ bool MainApplication::CheckProcess(uptr vtable) {
     while (contexts_count_ > 1) {
       Close();
     }
-    sys::Sound::PlaySoundEffect(theme_.error_sound);
+    theme_.Play(theme_.error_sound);
     return true;
   }
   process_vtable_ = vtable;
@@ -1145,7 +1404,15 @@ void MainAppPainter::DrawPageItems(MainApplication& app) {
 
     sys::Graphics::SetTextScale(0.6f, 0.6f);
     entry.GetNameText(name);
-    entry.GetValueText(value);
+    if (index == app.GetSelectedIndex() && index < app.snapshot_count_ &&
+        app.touch_[MainApplication::kTouchReset].IsDown() &&
+        app.IsChanged(index)) {
+      // The stylus holds Reset: the line shows the value of the page opening.
+      MainApplication::GetValueTextOf(entry, app.snapshot_[index], value);
+      color = theme.selected_text_color;
+    } else {
+      entry.GetValueText(value);
+    }
     if (value[0] == 0 || entry.GetType() == kTypeIdle) {
       DrawMenuText(x, y, name, color);
       continue;

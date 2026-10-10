@@ -161,6 +161,7 @@ PageItem::PageItem()
     factor_(1.0f),
     is_max_used_(0),
     is_read_only_(0),
+    needs_confirm_(0),
     icon_kind_(IconKind::kNone),
     icon_ids_(nullptr),
     suggest_(nullptr) {
@@ -185,6 +186,7 @@ void PageItem::Initialize(const c8* name, void* addr, u8 type, u32 bit_offset,
   factor_ = 1.0f;
   is_max_used_ = 0;
   is_read_only_ = 0;
+  needs_confirm_ = 0;
   icon_kind_ = IconKind::kNone;
   icon_ids_ = nullptr;
   suggest_ = nullptr;
@@ -244,6 +246,86 @@ PageItem& PageItem::WithIcons(IconKind kind, const u16* ids) {
 PageItem& PageItem::WithSuggestions(suggest_t suggest) {
   suggest_ = suggest;
   return *this;
+}
+
+PageItem& PageItem::WithConfirm() {
+  needs_confirm_ = 1;
+  return *this;
+}
+
+bool PageItem::IsInteger() const {
+  switch (type_) {
+    case kTypeU8:
+    case kTypeS8:
+    case kTypeU16:
+    case kTypeS16:
+    case kTypeU32:
+    case kTypeS32:
+    case kTypeBits:
+    case kTypeSpecies:
+    case kTypeAbility:
+    case kTypeMove:
+    case kTypeItem:
+      return HasValue();
+    default:
+      return false;
+  }
+}
+
+bool PageItem::GetRange(s64& min, s64& max) const {
+  if (!IsInteger()) return false;
+  switch (type_) {
+    case kTypeS8:
+      min = -128;
+      max = 127;
+      break;
+    case kTypeS16:
+      min = -32768;
+      max = 32767;
+      break;
+    case kTypeS32:
+      min = -2147483648ll;
+      max = 2147483647ll;
+      break;
+    case kTypeU32:
+      min = 0;
+      max = 0xFFFFFFFFll;
+      break;
+    case kTypeBits:
+      min = 0;
+      max = bit_size_ >= 32 ? 0xFFFFFFFFll : (1ll << bit_size_) - 1;
+      break;
+    case kTypeU16:
+    case kTypeSpecies:
+    case kTypeMove:
+    case kTypeItem:
+      min = 0;
+      max = 0xFFFF;
+      break;
+    default:
+      min = 0;
+      max = 0xFF;
+      break;
+  }
+  if (is_min_used_ && min_ > min) min = min_;
+  if (is_max_used_ && max_ < max) max = max_;
+  if (max < min) max = min;
+  return true;
+}
+
+s64 PageItem::ReadNumber() const {
+  switch (type_) {
+    case kTypeS8:
+      return *(s8*)address_;
+    case kTypeS16:
+      return *(s16*)address_;
+    case kTypeS32:
+      return *(s32*)address_;
+    case kTypeU32:
+      return *(u32*)address_;
+    default:
+      return (s64)ReadValue();
+  }
 }
 
 u64 PageItem::ReadValue() const {

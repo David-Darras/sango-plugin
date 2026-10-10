@@ -24,6 +24,7 @@
 
 #include "common.h"
 #include "system/native/graphics.h"
+#include "system/native/sound.h"
 
 namespace ui {
 /// The colors, the sounds and the buttons of the menu. The page Plugin Theme changes them.
@@ -47,9 +48,26 @@ struct Theme {
   bool background_image = true;
   /// The opacity of the background images: 0 (hidden) to 1 (opaque).
   f32 background_image_opacity = 1.0f;
+  bool sounds = true; ///< Plays the sounds of the menu.
+  /// The frames that Up / Down or Left / Right stay pressed before the menu
+  /// moves faster.
+  u8 fast_delay = 45;
+
+  /// Plays a sound of the menu, when Theme::sounds is on.
+  void Play(u16 sound) const {
+    if (sounds) sys::Sound::PlaySoundEffect(sound);
+  }
 
   /// The ready-made looks of the Plugin Theme page.
-  enum class Preset : u8 { kDefault, kDark, kLight, kRuby, kSapphire, kEmerald };
+  enum class Preset : u8 {
+    kDefault,
+    kDark,
+    kLight,
+    kRuby,
+    kSapphire,
+    kEmerald,
+    kHighContrast, ///< Black, white and yellow: easy to read.
+  };
 
   /// Sets the three colors of a ready-made look.
   void ApplyPreset(Preset preset) {
@@ -77,6 +95,10 @@ struct Theme {
       case Preset::kEmerald:
         SetColors(Color{0.02f, 0.18f, 0.08f, 0.85f},
                   Color{0.9f, 1, 0.92f, 1}, Color{0.4f, 1, 0.55f, 1});
+        break;
+      case Preset::kHighContrast:
+        SetColors(Color{0, 0, 0, 0.97f}, Color{1, 1, 1, 1},
+                  Color{1, 0.9f, 0, 1});
         break;
     }
   }

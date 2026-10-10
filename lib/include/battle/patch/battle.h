@@ -53,6 +53,10 @@ struct BattleSettings {
 
   bool mega_restriction = true; ///< true: the rule of the game (one Mega Evolution in each battle). false: no limit.
   bool unlimited_mega_evolution = true; ///< When mega_restriction is false: the game always accepts a Mega Evolution.
+
+  f32 exp_multiplier = 1.0f; ///< Multiplies the experience after a battle.
+  f32 catch_multiplier = 1.0f; ///< Multiplies the catch rate of the Poke Balls.
+  f32 money_multiplier = 1.0f; ///< Multiplies the money after a battle.
 };
 static_assert(std::is_standard_layout<BattleSettings>::value,
               "BattleSettings must have standard layout");
@@ -97,5 +101,7 @@ private:
   static void StartMegaEvolutionAnimationHook(void* view, u8 target,
                                               bool is_long_animation);
   static bool LevelUpHook(void* self, Team* team, LevelUpData* data);
+  static u32 BallCatchRateHook(u32 p0, u32 p1, u32 p2, u32 p3, u32 ball,
+                               u32 p5);
 };
 } // namespace battle

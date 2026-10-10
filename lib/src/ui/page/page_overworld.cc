@@ -285,7 +285,9 @@ void LoadWorldLayoutPage(MainApplication& app, void* args) {
      .Add("Tile Edits Enabled", overworld::TileEditor::GetInstance().is_enabled)
      .Add("Save Tile Edits", [](void*) { overworld::TileEditor::Save(); })
      .Add("Clear Tile Edits",
-          [](void*) { overworld::TileEditor::ClearEdits(); });
+          [](void*) { overworld::TileEditor::ClearEdits(); })
+     .WithConfirm()
+     .WithDescription("Removes all the tile edits. Hold A to confirm.");
 
   for (u32 i = 0; i < overworld::MapGraft::GetCount(); i++) {
     auto& request = overworld::MapGraft::GetRequest(i);
@@ -342,7 +344,9 @@ static void LoadDecorationPage(MainApplication& app, void* args) {
      .WithDescription("Select a decoration, then press A to place it in "
                       "front of the player.")
      .Add("Remove All", ClearDecorations)
-     .WithDescription("Removes all the decorations that the menu placed.");
+     .WithConfirm()
+     .WithDescription("Removes all the decorations that the menu placed. "
+                      "Hold A to confirm.");
 }
 
 static void LoadTallGrassPage(MainApplication& app, void* args) {

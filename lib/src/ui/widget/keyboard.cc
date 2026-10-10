@@ -198,36 +198,36 @@ void Keyboard::Update() {
 
   for (u32 i = 0; i < kPageSize; i++) {
     if (chars_[i] != 0 && buttons_[kButtonGridStart + i].IsReleased()) {
-      sys::Sound::PlaySoundEffect(kKeySound);
+      Theme::GetInstance().Play(kKeySound);
       AddChar(chars_[i]);
     }
   }
 
   if (buttons_[kButtonPrev].IsReleased()) {
-    sys::Sound::PlaySoundEffect(kKeySound);
+    Theme::GetInstance().Play(kKeySound);
     ShowPreviousPage();
   }
   if (buttons_[kButtonNext].IsReleased()) {
-    sys::Sound::PlaySoundEffect(kKeySound);
+    Theme::GetInstance().Play(kKeySound);
     const c16 last = chars_[kPageSize - 1];
     // After the last page, go back to the first page.
     ShowPage(last == 0 ? 0x20 : last + 1);
   }
   if (buttons_[kButtonPrevGroup].IsReleased()) {
-    sys::Sound::PlaySoundEffect(kKeySound);
+    Theme::GetInstance().Play(kKeySound);
     JumpGroup(-1);
   }
   if (buttons_[kButtonNextGroup].IsReleased()) {
-    sys::Sound::PlaySoundEffect(kKeySound);
+    Theme::GetInstance().Play(kKeySound);
     JumpGroup(1);
   }
 
   if (buttons_[kButtonDelete].IsReleased()) {
-    sys::Sound::PlaySoundEffect(kKeySound);
+    Theme::GetInstance().Play(kKeySound);
     RemoveLastChar();
   }
   if (buttons_[kButtonClear].IsReleased()) {
-    sys::Sound::PlaySoundEffect(kKeySound);
+    Theme::GetInstance().Play(kKeySound);
     cursor_ = 0;
     memset(input_, 0, sizeof(input_));
   }

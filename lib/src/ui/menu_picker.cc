@@ -240,15 +240,15 @@ void MainApplication::ReadPickerTouch(const PageItem& entry, Input& input) {
   touch_[kTouchPickerView].Update();
   touch_[kTouchPickerFilter].Update();
   if (touch_[kTouchPagePrevious].IsReleased()) {
-    sys::Sound::PlaySoundEffect(theme_.next_sound);
+    theme_.Play(theme_.next_sound);
     picker_page_ = picker_page_ > 0 ? picker_page_ - 1 : pages - 1;
   }
   if (touch_[kTouchPageNext].IsReleased()) {
-    sys::Sound::PlaySoundEffect(theme_.next_sound);
+    theme_.Play(theme_.next_sound);
     picker_page_ = picker_page_ + 1 < pages ? picker_page_ + 1 : 0;
   }
   if (touch_[kTouchPickerView].IsReleased()) {
-    sys::Sound::PlaySoundEffect(theme_.next_sound);
+    theme_.Play(theme_.next_sound);
     is_picker_views_open_ = !is_picker_views_open_;
     // The pockets of the items: the menu reads them now (the first time).
     if (GetValueKind(entry) == kValueItem) ItemCategories::Request();
@@ -267,7 +267,7 @@ void MainApplication::ReadPickerTouch(const PageItem& entry, Input& input) {
       Button& touch = touch_[kTouchChoice0 + button++];
       touch.Update();
       if (!touch.IsReleased()) continue;
-      sys::Sound::PlaySoundEffect(theme_.confirm_sound);
+      theme_.Play(theme_.confirm_sound);
       picker_view_ = view;
       is_picker_views_open_ = false;
       BuildPickerView(entry);
@@ -290,7 +290,7 @@ void MainApplication::ReadPickerTouch(const PageItem& entry, Input& input) {
     if (is_picker_touch_) {
       const s32 value = GetCellValue(entry, cell);
       if (value != picker_hover_ && value >= 0) {
-        sys::Sound::PlaySoundEffect(theme_.next_sound);
+        theme_.Play(theme_.next_sound);
       }
       picker_hover_ = (s16)value;
     }
@@ -390,7 +390,7 @@ void MainApplication::DrawPicker(const PageItem& entry, s32 value) const {
 }
 
 void MainApplication::OpenFilter(const PageItem& entry) {
-  sys::Sound::PlaySoundEffect(theme_.confirm_sound);
+  theme_.Play(theme_.confirm_sound);
   is_filtering_ = true;
   is_picker_views_open_ = false;
   picker_hover_ = -1;
@@ -440,14 +440,14 @@ void MainApplication::UpdateFilter(sys::Controller& controller) {
   }
 
   if (controller.IsKeyReleased(Key::kB)) {
-    sys::Sound::PlaySoundEffect(theme_.close_sound);
+    theme_.Play(theme_.close_sound);
     is_filtering_ = false;
     return;
   }
   if (controller.IsKeyReleased(Key::kA) ||
       controller.IsKeyReleased(Key::kX) || keyboard_.IsButtonOkReleased()) {
     if (filter_count_ == 0) {
-      sys::Sound::PlaySoundEffect(theme_.error_sound);
+      theme_.Play(theme_.error_sound);
       return;
     }
     is_filtering_ = false;
@@ -468,7 +468,7 @@ void MainApplication::UpdateFilter(sys::Controller& controller) {
   if (controller.IsKeyRepeated(Key::kR)) move = kFilterLines;
   if (controller.IsKeyRepeated(Key::kL)) move = -(s32)kFilterLines;
   if (move != 0 && filter_count_ != 0) {
-    sys::Sound::PlaySoundEffect(theme_.next_sound);
+    theme_.Play(theme_.next_sound);
     s32 cursor = (s32)filter_cursor_ + move;
     if (cursor < 0) cursor = move == -1 ? filter_count_ - 1 : 0;
     if (cursor >= (s32)filter_count_) {

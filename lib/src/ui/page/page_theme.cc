@@ -47,7 +47,12 @@ void LoadThemePage(MainApplication& app, void* args) {
       })
       .Add("Emerald", [](void*) {
         Theme::GetInstance().ApplyPreset(Theme::Preset::kEmerald);
-      });
+      })
+      .Add("High Contrast", [](void*) {
+        Theme::GetInstance().ApplyPreset(Theme::Preset::kHighContrast);
+      })
+      .WithDescription("Black, white and yellow: the texts are easy to "
+                       "read. Turn off the background image too.");
 
   app.AddSection("Effects")
       .Add("Text Shadow", theme.text_shadow)
@@ -64,6 +69,14 @@ void LoadThemePage(MainApplication& app, void* args) {
       .Add("Animations", theme.animations)
       .WithDescription("The selection bar and the pages move smoothly. Off: "
                        "they move at once.");
+
+  app.AddSection("Controls")
+      .Add("Menu Sounds", theme.sounds)
+      .WithDescription("Off: the menu plays no sound.")
+      .Add("Fast Scroll Delay", theme.fast_delay)
+      .WithBounds(5, 120)
+      .WithDescription("The frames (60 = 1 second) that a held button waits "
+                       "before the menu moves faster.");
 
   app.AddSection("Colors")
       .Add("Background Color", LoadColorPage, &theme.background_color)

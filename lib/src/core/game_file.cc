@@ -221,6 +221,11 @@ u8* GameFile::Read(ArchiveId archive_id, u32 file_id, bool compressed,
   return file;
 }
 
+u32 GameFile::GetFreeHeapMemory(s32 heap_id) {
+  void* heap = GetHeap(heap_id);
+  return heap != nullptr ? GetAllocatableSize(heap) : 0;
+}
+
 void* GameFile::AllocateDevice(u32 size, u32 alignment) {
   // New linear memory of the system first: it is not in a heap of the game,
   // so the game keeps all its memory. Its pages are aligned on 4 KB.

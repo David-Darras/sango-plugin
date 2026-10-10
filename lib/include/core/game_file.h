@@ -68,5 +68,13 @@ public:
    *         heap has enough free memory.
    */
   static void* AllocateDevice(u32 size, u32 alignment);
+
+  /**
+   * @brief Returns the size of the largest free block of a heap of the game.
+   * @param heap_id The id of the heap: 0 for the system heap, 1 for the
+   *        device heap.
+   * @return The size in bytes, or 0 when the heap does not exist.
+   */
+  static u32 GetFreeHeapMemory(s32 heap_id);
 };
 } // namespace core

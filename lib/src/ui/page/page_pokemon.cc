@@ -227,12 +227,15 @@ static void LoadZaMegaPage(MainApplication& app, void* args) {
                       "full, it replaces the last Pokemon.")
      .AddSection("All The Pokemon")
      .Add("Fill The Team", FillTeamWithZaMegas)
+     .WithConfirm()
      .WithDescription("Replaces the team with 6 Pokemon of the list, from "
                       "the selected one.")
      .Add("Fill The Boxes", FillBoxesWithZaMegas)
+     .WithConfirm()
      .WithDescription("Puts all the Pokemon of the list in the boxes. It "
                       "replaces the Pokemon in the first boxes!")
      .Add("Fill The Boxes (Mega Forms)", FillBoxesWithZaMegaForms)
+     .WithConfirm()
      .WithDescription("The same, with the Mega forms. It replaces the "
                       "Pokemon in the first boxes!");
 }
@@ -276,6 +279,7 @@ void LoadPokemonPage(MainApplication& app, void* args) {
      .WithDescription("Gives the Mega Evolutions of Pokemon Legends: Z-A.")
 #ifdef GAME_ORAS
      .Add("Fill Boxes With All New (Lv. 100)", FillBoxesWithAll)
+     .WithConfirm()
      .WithDescription("Puts each new species and form in the boxes. It "
                       "replaces the Pokemon in the boxes!")
 #endif

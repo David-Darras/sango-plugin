@@ -123,6 +123,12 @@ MainApplication& MainApplication::AddQuickAccess() {
     first_recent_ = entries_count_;
     AddShortcuts(recents_, recent_count_);
   }
+  first_recent_page_ = 0xFF;
+  if (recent_page_count_ != 0) {
+    AddSection("Recent Pages");
+    first_recent_page_ = entries_count_;
+    AddShortcuts(recent_pages_, recent_page_count_);
+  }
   return *this;
 }
 
@@ -157,6 +163,10 @@ MainApplication::Shortcut* MainApplication::GetShortcut(u32 index) {
   if (first_recent_ != 0xFF && index >= first_recent_ &&
       index < first_recent_ + recent_count_) {
     return &recents_[index - first_recent_];
+  }
+  if (first_recent_page_ != 0xFF && index >= first_recent_page_ &&
+      index < first_recent_page_ + recent_page_count_) {
+    return &recent_pages_[index - first_recent_page_];
   }
   return nullptr;
 }
@@ -222,18 +232,25 @@ void MainApplication::TogglePin(u32 index) {
   if (shortcut != nullptr) {
     Copy(path, sizeof(path), shortcut->path);
   } else if (!BuildPath(index, path, sizeof(path))) {
-    sys::Sound::PlaySoundEffect(theme_.error_sound);
+    theme_.Play(theme_.error_sound);
     return;
   }
 
   const s32 pin = FindPin(path);
   const PageItem& entry = entries_[index];
+  c16 message[256];
   if (pin >= 0) {
+    core::Utils::Format(message, u"Unpinned: %s", pins_[pin].name);
     Remove(pins_, pin_count_, pin);
-    sys::Sound::PlaySoundEffect(theme_.close_sound);
-  } else if (!entry.IsSelectable() || pin_count_ >= kMaxPins ||
+    theme_.Play(theme_.close_sound);
+    ShowToastText(message);
+  } else if (!entry.IsSelectable() ||
              (entry.GetType() == kTypeIdle && !entry.HasCallback())) {
-    sys::Sound::PlaySoundEffect(theme_.error_sound);
+    theme_.Play(theme_.error_sound);
+    return;
+  } else if (pin_count_ >= kMaxPins) {
+    theme_.Play(theme_.error_sound);
+    ShowToast("8 pins at most: unpin an entry first.");
     return;
   } else {
     Shortcut& added = pins_[pin_count_++];
@@ -243,7 +260,10 @@ void MainApplication::TogglePin(u32 index) {
     added.item = shortcut != nullptr ? shortcut->item : entry;
     added.on_change = shortcut != nullptr ? shortcut->on_change : on_change_;
     added.is_available = true;
-    sys::Sound::PlaySoundEffect(theme_.confirm_sound);
+    theme_.Play(theme_.confirm_sound);
+    core::Utils::Format(message, u"Pinned: %s  (X shows the pins)",
+                        added.name);
+    ShowToastText(message);
   }
   if (is_quick_access_) Refresh();
 }
@@ -274,6 +294,53 @@ void MainApplication::AddRecent(u32 index) {
   recent_count_++;
 }
 
+void MainApplication::AddRecentPage(u32 index) {
+  // The first page shows the quick access: its pages count, but not the
+  // shortcuts themselves.
+  if (is_search_page_ || is_indexing_ || GetShortcut(index) != nullptr) {
+    return;
+  }
+  const PageItem& entry = entries_[index];
+  if (entry.GetType() != kTypeMenu) return;
+  c8 path[sizeof(Shortcut::path)];
+  if (!BuildPath(index, path, sizeof(path))) return;
+
+  // The same page moves to the top of the list.
+  for (u32 i = 0; i < recent_page_count_; i++) {
+    if (strcmp(recent_pages_[i].path, path) == 0) {
+      Remove(recent_pages_, recent_page_count_, i);
+      break;
+    }
+  }
+  if (recent_page_count_ >= kMaxRecents) recent_page_count_ = kMaxRecents - 1;
+  for (u32 i = recent_page_count_; i > 0; i--) {
+    recent_pages_[i] = recent_pages_[i - 1];
+  }
+  Shortcut& added = recent_pages_[0];
+  Copy(added.path, sizeof(added.path), path);
+  c8 section[kSectionLength];
+  SplitPath(path, section, added.name);
+  added.item = entry;
+  added.on_change = nullptr;
+  added.is_available = true;
+  recent_page_count_++;
+}
+
+void MainApplication::OpenPageShortcut(const Shortcut& shortcut) {
+  // A copy: the lists of the shortcuts change below.
+  const Shortcut page = shortcut;
+  OpenShortcut(page);
+  // OpenShortcut() selected the entry of the page in the page before it.
+  if (entries_count_ == 0) return;
+  PageItem& entry = GetSelectedEntry();
+  if (entry.GetType() != kTypeMenu || entry.GetName() == nullptr ||
+      strcmp(entry.GetName(), page.name) != 0) {
+    return;
+  }
+  AddRecentPage(GetSelectedIndex());
+  entry.Execute(*this);
+}
+
 void MainApplication::Remove(Shortcut* list, u8& count, u32 index) {
   if (index >= count) return;
   for (u32 i = index; i + 1 < count; i++) list[i] = list[i + 1];
@@ -293,6 +360,7 @@ bool MainApplication::LoadScratch(menu_callback_t load, void* args) {
   const uptr saved_vtable = process_vtable_;
   const u8 saved_first_pin = first_pin_;
   const u8 saved_first_recent = first_recent_;
+  const u8 saved_first_recent_page = first_recent_page_;
   const callback_t saved_on_change = on_change_;
 
   entries_ = scratch_entries_;
@@ -314,6 +382,7 @@ bool MainApplication::LoadScratch(menu_callback_t load, void* args) {
   process_vtable_ = saved_vtable;
   first_pin_ = saved_first_pin;
   first_recent_ = saved_first_recent;
+  first_recent_page_ = saved_first_recent_page;
   on_change_ = saved_on_change;
   index_failed_ = 0;
   return is_loaded;
@@ -417,13 +486,13 @@ void MainApplication::OpenShortcut(const Shortcut& shortcut) {
   Frame frames[kMaxContexts];
   u32 depth = 0;
   if (!Resolve(shortcut.path, frames, depth, nullptr, nullptr)) {
-    sys::Sound::PlaySoundEffect(theme_.error_sound);
+    theme_.Play(theme_.error_sound);
     return;
   }
   c8 section[kSectionLength];
   c8 name[kNameLength];
   SplitPath(shortcut.path, section, name);
-  sys::Sound::PlaySoundEffect(theme_.confirm_sound);
+  theme_.Play(theme_.confirm_sound);
   NavigateTo(frames, depth, section, name);
 }
 
@@ -563,7 +632,7 @@ void MainApplication::UpdateRadial(sys::Controller& controller) {
   else if (left) direction = 6;
   if (direction >= 0 && direction != radial_direction_) {
     radial_direction_ = direction;
-    sys::Sound::PlaySoundEffect(theme_.next_sound);
+    theme_.Play(theme_.next_sound);
   }
 
   s32 selected = -1;
@@ -580,14 +649,14 @@ void MainApplication::UpdateRadial(sys::Controller& controller) {
       selected = radial_direction_;
     } else if (!is_radial_held_) {
       is_radial_open_ = 0;
-      sys::Sound::PlaySoundEffect(theme_.close_sound);
+      theme_.Play(theme_.close_sound);
       return;
     }
     is_radial_held_ = 0;
   }
   if (controller.IsKeyReleased(Key::kB)) {
     is_radial_open_ = 0;
-    sys::Sound::PlaySoundEffect(theme_.close_sound);
+    theme_.Play(theme_.close_sound);
     return;
   }
   if (selected < 0) return;
@@ -595,7 +664,7 @@ void MainApplication::UpdateRadial(sys::Controller& controller) {
   is_radial_open_ = 0;
   for (u32 i = 0; i < kTouchMax; i++) touch_[i].Reset();
   if ((u32)selected >= pin_count_) {
-    sys::Sound::PlaySoundEffect(theme_.error_sound);
+    theme_.Play(theme_.error_sound);
     return;
   }
   OpenShortcut(pins_[selected]);

@@ -52,6 +52,12 @@ void LoadTopPage(MainApplication& app, void* args) {
      .AddSection("Create")
      .Add("Scripts", LoadScriptPage)
      .WithDescription("The overworld scripts and the C++ scripts.")
+     .Add("Event Flags", LoadEventFlagsPage)
+     .WithDescription("The flags of the story: On / Off, 16 at a time. Name "
+                      "them in sdmc:/sango/event_names.ini.")
+     .Add("Event Variables", LoadEventVariablesPage)
+     .WithDescription("The variables of the scripts, 16 at a time. Name "
+                      "them in sdmc:/sango/event_names.ini.")
      .Add("Renderer", LoadRendererPage)
      .WithDescription("Lighting, outlines and color filters.")
      .Add("Title Screen", LoadTitleScreenPage)

@@ -23,6 +23,7 @@
  */
 
 #include "battle/patch/setup.h"
+#include "battle/patch/battle.h"
 #include "core/hook.h"
 #include "overworld/patch/tall_grass.h"
 #include "overworld/patch/placed_decorations.h"
@@ -54,6 +55,7 @@ void Setup::SetupTrainerHook(Config* config, void* game_manager,
   const TrainerId forced = GetInstance().trainer_id;
   if (forced != TrainerId::kNone) trainer_id = forced;
   setup_trainer_hook(config, game_manager, trainer_id, p1, format, p2);
+  config->money_rate *= Battle::GetInstance().money_multiplier;
   auto& feat = GetInstance();
   if (feat.on_trainer_battle != nullptr) {
     feat.on_trainer_battle(*config, trainer_id);
@@ -105,6 +107,7 @@ void Setup::SetupWildHook(Config* config,
     config->pokemon_teams[1]->pokemons[0]->core->form = ctx.form;
     config->pokemon_teams[1]->pokemons[0]->accessor->Encrypt();
   }
+  config->money_rate *= Battle::GetInstance().money_multiplier;
 }
 
 } // namespace battle

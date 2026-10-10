@@ -53,9 +53,10 @@ struct Theme;
  * The controls: Up / Down select an entry (hold to go faster), L / R jump
  * to the previous / next section, Left / Right change the value (hold to go
  * faster), A runs the entry (or switches On / Off), Y pins the entry to the
- * quick access, X applies the numpad or the keyboard, B goes back. The
- * bottom screen shows the description of the entry and a touch editor for
- * its value. OnChange() writes the data back after each change.
+ * quick access, a long press on Y opens the menu of the entry (copy, paste,
+ * reset), X applies the numpad or the keyboard, B goes back. The bottom
+ * screen shows the description of the entry and a touch editor for its
+ * value. OnChange() writes the data back after each change.
  *
  * @code
  * void LoadMyPage(ui::MainApplication& app, void* args) {
@@ -97,6 +98,14 @@ public:
 
   /// Closes the current page and goes back to the previous page.
   void Close();
+
+  /**
+   * @brief Shows a short message on the bottom screen for two seconds, for
+   *        example "Pokemon copied". Use it after an action that shows no
+   *        change on the page.
+   * @param message The message (UTF-8). The menu keeps a copy.
+   */
+  void ShowToast(const c8* message);
 
   /// Sets the object that draws the menu.
   void SetPainter(Painter& painter) {
@@ -171,6 +180,13 @@ public:
     if (entries_count_ > 0) {
       entries_[entries_count_ - 1].WithSuggestions(suggest);
     }
+    return *this;
+  }
+
+  /// The player holds A for one second to run the last entry (see
+  /// PageItem::WithConfirm()). Use it for an action that Undo cannot cancel.
+  MainApplication& WithConfirm() {
+    if (entries_count_ > 0) entries_[entries_count_ - 1].WithConfirm();
     return *this;
   }
 
@@ -497,7 +513,22 @@ private:
     kTouchPickerView, ///< Opens the list of the views of the grid.
     kTouchPickerFilter, ///< Opens the filter (the keyboard).
     kTouchReset, ///< Puts the value of the page opening back.
+    kTouchHelp, ///< "?": the help of the controls.
+    kTouchToMin, ///< The numpad: the smallest value.
+    kTouchToMax, ///< The numpad: the largest value.
+    kTouchHex, ///< The numpad: the hexadecimal keys.
     kTouchMax,
+  };
+
+  /// The actions of the menu of an entry (a long press on Y).
+  enum ContextAction : u8 {
+    kContextCopy,
+    kContextPaste,
+    kContextReset,
+    kContextPin,
+    kContextUndo,
+    kContextHelp,
+    kContextCount,
   };
 
   /// The editor of the bottom screen for the selected entry.
@@ -585,6 +616,10 @@ private:
   s32 FindPin(const c8* path) const;
   /// Adds the entry at `index` to the list of the recent entries.
   void AddRecent(u32 index);
+  /// Adds the page of the entry at `index` to the list of the recent pages.
+  void AddRecentPage(u32 index);
+  /// Opens the page of a pinned or a recent page, with the pages before it.
+  void OpenPageShortcut(const Shortcut& shortcut);
   /// Adds the entries of a shortcut list to the page.
   void AddShortcuts(Shortcut* list, u32 count);
   /// Writes the way to the entry at `index`. Returns false when a page has
@@ -647,6 +682,39 @@ private:
    *        value goes in the recent values.
    */
   void ApplyValue(u32 index, u64 value, bool is_choice);
+  /// The end of a change of the entry at `index`: the flash, the recent
+  /// entries, OnChange() and the new page. `selected` is a copy of the entry.
+  void FinishChange(u32 index, const PageItem& selected);
+  /// Puts the value of the page opening back (Reset).
+  void ResetEntry(u32 index);
+
+  // The tools of the entries (menu_tools.cc).
+
+  /// Shows a message (UTF-16) on the bottom screen. See ShowToast().
+  void ShowToastText(const c16* message);
+  /// Writes the text of `value` for an entry, as GetValueText() would show
+  /// it. `value` is a value of PageItem::ReadValue().
+  static void GetValueTextOf(const PageItem& entry, u64 value, c16* buffer);
+  /// Keeps the value of the entry at `index` (Copy).
+  void CopyValue(u32 index);
+  /// Returns true when the copied value fits the entry.
+  bool CanPaste(const PageItem& entry) const;
+  /// Writes the copied value into the entry at `index` (Paste).
+  void PasteValue(u32 index);
+  /// Opens the menu of the selected entry.
+  void OpenContext();
+  /// Returns true when the action of the menu of the entry can run.
+  bool IsContextActionEnabled(u32 action);
+  /// Runs an action of the menu of the entry.
+  void RunContextAction(u32 action);
+  /// Reads the buttons while the menu of the entry is open.
+  void UpdateContext(sys::Controller& controller);
+  /// Draws the menu of the entry in place of the editor.
+  void DrawContext(const PageItem& entry);
+  /// Draws the help of the controls on the bottom screen.
+  void DrawHelp(Editor editor);
+  /// Returns true when the bar of the numpad is a slider for the entry.
+  static bool HasSlider(const PageItem& entry);
 
   // The changes since the page opened (main_application.cc).
 
@@ -712,16 +780,27 @@ private:
     bool search = false;
     bool undo = false;
     bool reset = false; ///< Puts the value of the page opening back.
+    bool help = false; ///< Shows the help of the controls.
+    bool context = false; ///< Opens the menu of the entry.
+    bool has_number = false; ///< Writes `number` (Min, Max, the slider).
+    s64 number = 0;
   };
 
   /// Reads the touch buttons of the bottom screen into `input`.
   void ReadTouch(const PageItem& entry, Input& input);
+  /// Reads Min, Max, Hex and the slider of the numpad.
+  void ReadNumberTouch(const PageItem& entry, Input& input);
+  /// Draws the state of the game at the bottom of the bottom screen.
+  void DrawFooter() const;
+  /// Draws the navigation bar.
+  void DrawNavigation(bool is_pinned) const;
   /// Reads the grid: the cells, the pages, the views and the filter.
   void ReadPickerTouch(const PageItem& entry, Input& input);
   /// Returns the name of a view of the grid.
   static const c8* GetViewName(u8 view);
   /// Draws one touch button.
-  void DrawTouch(TouchId id, const c16* label, bool is_active) const;
+  void DrawTouch(TouchId id, const c16* label, bool is_active,
+                 bool is_enabled = true) const;
   /**
    * @brief Draws the grid of icons of an entry (Editor::kPicker): the page
    *        that contains the value, and the page buttons.
@@ -752,10 +831,16 @@ private:
   static constexpr u32 kQueryLength = 24;
   static constexpr u32 kSectionLength = 24;
   static constexpr u32 kNameLength = 32;
-  /// After this number of frames, Up and Down move faster.
-  static constexpr u32 kFastScrollFrames = 45;
   /// The number of frames of the flash after a change.
   static constexpr u32 kFlashFrames = 12;
+  /// A long press: the frames that Y (or the stylus) stays down.
+  static constexpr u32 kLongPressFrames = 30;
+  /// The frames that the player holds A to run an action of WithConfirm().
+  static constexpr u32 kConfirmFrames = 50;
+  /// The frames that a message of ShowToast() stays.
+  static constexpr u32 kToastFrames = 120;
+  /// The characters of a message of ShowToast().
+  static constexpr u32 kToastLength = 64;
 
   static MainApplication instance_;
 
@@ -795,8 +880,11 @@ private:
 
   Shortcut pins_[kMaxPins];
   Shortcut recents_[kMaxRecents];
+  Shortcut recent_pages_[kMaxRecents];
   u8 pin_count_ = 0;
   u8 recent_count_ = 0;
+  u8 recent_page_count_ = 0;
+  u8 first_recent_page_ = 0xFF; ///< The index of the first recent page.
   u8 touch_index_ = 0; ///< The selected entry when the buttons were reset.
   u8 first_pin_ = 0xFF; ///< The index of the first pin in the page.
   u8 first_recent_ = 0xFF; ///< The index of the first recent entry.
@@ -837,6 +925,30 @@ private:
   u16 filter_cursor_ = 0;
   u16 filter_offset_ = 0; ///< The first result on the screen.
   u32 filter_hold_frames_ = 0; ///< The frames that a scroll button stays down.
+
+  // The tools of the entries (menu_tools.cc).
+  bool is_context_open_ = false; ///< The menu of the entry shows.
+  u8 context_cursor_ = 0; ///< The selected action (ContextAction).
+  bool is_help_open_ = false; ///< The help of the controls shows.
+  u32 y_hold_frames_ = 0; ///< The frames that Y stays down.
+  /// The frames that the stylus stays on the description.
+  u32 header_hold_frames_ = 0;
+  bool has_clip_ = false; ///< Copy kept a value.
+  bool is_clip_text_ = false; ///< The copied value is a text.
+  bool is_clip_integer_ = false; ///< The copied value is a whole number.
+  u8 clip_type_ = 0; ///< The type of the copied entry (PageItemType).
+  s64 clip_number_ = 0; ///< A whole number (ReadNumber()).
+  u64 clip_raw_ = 0; ///< A decimal number (ReadValue()).
+  c16 clip_text_[64] = {}; ///< A text.
+  c16 clip_label_[48] = {}; ///< The copied value, as the menu shows it.
+  c16 toast_[kToastLength] = {};
+  u8 toast_frames_ = 0;
+  u8 confirm_frames_ = 0; ///< The frames that A stays down (WithConfirm()).
+  u8 confirm_index_ = 0xFF; ///< The entry of confirm_frames_.
+  bool is_confirm_done_ = false; ///< The action ran: wait for the release.
+  bool is_sliding_ = false; ///< The stylus moves on the bar of the numpad.
+  bool slider_was_down_ = false; ///< The stylus touched the last frame.
+  s64 slide_value_ = 0; ///< The value under the stylus.
 
   // The animations. The values go to 0 (or to the target) frame by frame.
   f32 cursor_y_ = -1; ///< The y of the selection bar on the top screen.

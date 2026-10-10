@@ -110,6 +110,9 @@ void MainApplication::LoadSettings() {
         ini.GetInt("menu", "background_image_opacity",
                    (s32)(theme.background_image_opacity * 100.0f + 0.5f)) /
         100.0f;
+    theme.sounds = ini.GetBool("menu", "sounds", theme.sounds);
+    const s32 fast_delay = ini.GetInt("menu", "fast_delay", theme.fast_delay);
+    if (fast_delay >= 5 && fast_delay <= 120) theme.fast_delay = fast_delay;
 
     theme.background_color = ToColor(
         ini.GetHex("theme", "background", ToHex(theme.background_color)));
@@ -153,6 +156,17 @@ void MainApplication::LoadSettings() {
       SplitPath(shortcut.path, section, shortcut.name);
       shortcut.is_available = false;
     }
+    recent_page_count_ = 0;
+    for (u32 i = 0; i < kMaxRecents; i++) {
+      snprintf(key, sizeof(key), "page%lu", (unsigned long)(i + 1));
+      const c8* path = ini.Get("recent_pages", key);
+      if (path == nullptr || path[0] == '\0') continue;
+      Shortcut& shortcut = recent_pages_[recent_page_count_++];
+      strncpy(shortcut.path, path, sizeof(shortcut.path) - 1);
+      shortcut.path[sizeof(shortcut.path) - 1] = '\0';
+      SplitPath(shortcut.path, section, shortcut.name);
+      shortcut.is_available = false;
+    }
 
     // The recent values: numbers with a comma between them.
     for (u32 kind = 0; kind < kValueKindCount; kind++) {
@@ -191,6 +205,10 @@ void MainApplication::SaveSettings() {
   ini.AddComment("The opacity of the background images, in percent.");
   ini.SetInt("background_image_opacity",
              (s32)(theme_.background_image_opacity * 100.0f + 0.5f));
+  ini.SetInt("sounds", theme_.sounds ? 1 : 0);
+  ini.AddComment("The frames (60 = 1 second) before a held button goes "
+                 "faster: 5 to 120.");
+  ini.SetInt("fast_delay", theme_.fast_delay);
 
   ini.AddSection("theme");
   ini.SetHex("background", ToHex(theme_.background_color));
@@ -224,6 +242,13 @@ void MainApplication::SaveSettings() {
     c8 key[16];
     snprintf(key, sizeof(key), "recent%lu", (unsigned long)(i + 1));
     ini.Set(key, recents_[i].path);
+  }
+
+  ini.AddSection("recent_pages");
+  for (u32 i = 0; i < recent_page_count_; i++) {
+    c8 key[16];
+    snprintf(key, sizeof(key), "page%lu", (unsigned long)(i + 1));
+    ini.Set(key, recent_pages_[i].path);
   }
 
   ini.AddSection("values");

@@ -75,6 +75,12 @@ void LoadScriptPage(MainApplication& app, void* args);
 void LoadTitleScreenPage(MainApplication& app, void* args);
 void LoadNewGamePage(MainApplication& app, void* args);
 void LoadSystemPage(MainApplication& app, void* args);
+/// The last messages of the log of the plugin.
+void LoadLogPage(MainApplication& app, void* args);
+/// The event flags of the save data, 16 at a time, with their names.
+void LoadEventFlagsPage(MainApplication& app, void* args);
+/// The script variables of the save data, 16 at a time, with their names.
+void LoadEventVariablesPage(MainApplication& app, void* args);
 void LoadSoundPage(MainApplication& app, void* args);
 void LoadGameTimePage(MainApplication& app, void* args);
 

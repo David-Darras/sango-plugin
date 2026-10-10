@@ -88,6 +88,20 @@ public:
                 sizeof(c16) * kMaxEntryLength);
   }
 
+  /// Returns the number of lines of the log (kMaxEntries).
+  static constexpr u32 GetLineCount() { return kMaxEntries; }
+
+  /// Returns a line of the log, the oldest first. An empty line has no text.
+  static const c16* GetLine(u32 index) {
+    return GetInstance().log_entries_[index < kMaxEntries ? index : 0];
+  }
+
+  /// Removes all the messages.
+  static void Clear() {
+    std::memset(GetInstance().log_entries_, 0,
+                sizeof(GetInstance().log_entries_));
+  }
+
   /// Adds a formatted message to the log of the plugin (64 characters at most).
   static void Print(const c16* message, ...) {
     if (!message)
