@@ -38,6 +38,12 @@ constexpr uptr kGraphicsBeginRender = GAME_ADDRESS(0x00174B20, 0x00175A58);
 constexpr uptr kGraphicsSetTextScale = GAME_ADDRESS(0x0038CBA0, 0x003A3498);
 constexpr uptr kGraphicsDrawText = GAME_ADDRESS(0x0038DB54, 0x003A44C4);
 constexpr uptr kGraphicsDrawRect = GAME_ADDRESS(0x00174CA4, 0x00175BDC);
+/// The drawing state of the 2D functions above. Its command list (at
+/// +0x9C) is valid only in the parts of the game that draw with it (the
+/// overworld, the battles...): not in the menus of the Pokemon and the Bag.
+constexpr uptr kGraphicsState = GAME_ADDRESS(0, 0x0066E008);
+/// The address of the next command of the current command list.
+constexpr uptr kGraphicsCommandCursor = GAME_ADDRESS(0, 0x0061E0BC);
 /// Returns the width of a text (sys::Graphics::GetTextWidth).
 constexpr uptr kGraphicsGetTextWidth = GAME_ADDRESS(0, 0x003A36D8);
 /// Draws a 3D scene with a camera (overworld::WorldOverlay).

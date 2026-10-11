@@ -70,7 +70,7 @@ void PerformanceOverlay::DrawTop() {
 
   // A dark box at the bottom-left corner, then two lines. The texts of the
   // top screen use a space of 512 x 256.
-  sys::Graphics::DrawRect(0, 214, 230, 26, Color(0, 0, 0, 0.6f));
+  sys::Graphics::DrawRect(0, 214, 240, 26, Color(0, 0, 0, 0.6f));
   const f32 fps = overlay.frame_ms_ > 0 ? 1000.0f / overlay.frame_ms_ : 0;
   c16 text[96];
   sys::Graphics::SetTextScale(0.45f, 0.45f);

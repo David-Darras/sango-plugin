@@ -185,6 +185,9 @@ void DrawFrame() {
   auto& graphics = sys::Graphics::GetInstance();
   // Count the texts of the new frame: see sys::Graphics::kTextLimit.
   sys::Graphics::StartFrame();
+  // Some parts of the game do not use the command list of the 2D drawings:
+  // nothing draws there (the menu closes, see ui::MainApplication).
+  if (!sys::Graphics::CanDraw()) return;
   auto* application = ui::ApplicationManager::GetInstance().GetCurrentApplication();
 
   void* top_buffer = graphics.GetFramebuffer(Screen::kTop);

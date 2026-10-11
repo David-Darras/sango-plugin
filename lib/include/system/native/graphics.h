@@ -68,6 +68,25 @@ public:
     ((void (*)())renderer::address::kGraphicsDisableScissor)();
   }
 
+  /**
+   * @brief Returns true when the 2D functions of the game can draw now.
+   *
+   * The drawings add commands to the command list of the game. Some parts
+   * of the game (the menus of the Pokemon and the Bag) do not use this list:
+   * its address is not valid, and a drawing writes into random memory.
+   * The function checks the list and the address of its next command.
+   */
+  STATIC_INLINE bool CanDraw() {
+    if (renderer::address::kGraphicsState == 0) return true;
+    const uptr list =
+        *(const uptr*)(renderer::address::kGraphicsState + kStateListOffset);
+    if (!IsDataAddress(list)) return false;
+    const uptr start = *(const uptr*)(list + kListStartOffset);
+    const uptr cursor = *(const uptr*)renderer::address::kGraphicsCommandCursor;
+    return IsDataAddress(start) && IsDataAddress(cursor) && cursor >= start &&
+           cursor - start < kMaxListSize && (cursor & 3) == 0;
+  }
+
   /// Starts the drawings on an image buffer.
   STATIC_INLINE void BeginRender(void* framebuffer) {
     ((void (*)(void*))renderer::address::kGraphicsBeginRender)(framebuffer);
@@ -84,6 +103,22 @@ public:
    * shadows stay under kShadowLimit.
    */
   static constexpr u32 kTextLimit = 88;
+
+  /// The command list in the drawing state, and the start of its buffer in
+  /// the command list.
+  static constexpr u32 kStateListOffset = 0x9C;
+  static constexpr u32 kListStartOffset = 0x4;
+  /// The largest size of a command list that CanDraw() accepts.
+  static constexpr u32 kMaxListSize = 0x100000;
+
+  /// Returns true for an address in the heap or in the linear memory (FCRAM
+  /// or VRAM) of the game.
+  STATIC_INLINE bool IsDataAddress(uptr address) {
+    return (address >= 0x08000000 && address < 0x10000000) ||
+           (address >= 0x14000000 && address < 0x1C000000) ||
+           (address >= 0x1F000000 && address < 0x1F600000) ||
+           (address >= 0x30000000 && address < 0x38000000);
+  }
   static constexpr u32 kShadowLimit = 80;
 
   /// The texts of the current frame and of the last frame.

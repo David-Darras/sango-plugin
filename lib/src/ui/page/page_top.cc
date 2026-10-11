@@ -33,20 +33,19 @@ namespace ui {
 // recent entries. Then the pages, grouped by what the player wants to do.
 // The pages for the creators of ROM hacks and the expert pages come last.
 void LoadTopPage(MainApplication& app, void* args) {
-  app.AddQuickAccess()
-     .AddSection("Play")
+  app.AddSection("Play")
      .Add("Game Speed", core::GameSpeed::GetInstance().game_speed)
      .WithBounds(-5, 5)
      .WithDescription("1 is the normal speed. 2 to 5 make the game faster. "
-                      "-2 to -5 make it slower.")
+         "-2 to -5 make it slower.")
      .Add("Player", LoadPlayerPage)
      .WithDescription("Field moves, apps, camera and look of the player.")
      .Add("Pokemon", LoadPokemonPage)
      .WithDescription("Shiny Pokemon, randomizers, species, moves and "
-                      "TMs.")
+         "TMs.")
      .Add("Battle", LoadBattlePage)
      .WithDescription("Battle options, and the Pokemon of the current "
-                      "battle.")
+         "battle.")
      .Add("Overworld", LoadOverworldPage)
      .WithDescription("Weather, time of day, wild Pokemon and the map.")
      .AddSection("Create")
@@ -54,23 +53,24 @@ void LoadTopPage(MainApplication& app, void* args) {
      .WithDescription("The overworld scripts and the C++ scripts.")
      .Add("Event Flags", LoadEventFlagsPage)
      .WithDescription("The flags of the story: On / Off, 16 at a time. Name "
-                      "them in sdmc:/sango/event_names.ini.")
+         "them in sdmc:/sango/event_names.ini.")
      .Add("Event Variables", LoadEventVariablesPage)
      .WithDescription("The variables of the scripts, 16 at a time. Name "
-                      "them in sdmc:/sango/event_names.ini.")
+         "them in sdmc:/sango/event_names.ini.")
      .Add("Renderer", LoadRendererPage)
      .WithDescription("Lighting, outlines and color filters.")
      .Add("Title Screen", LoadTitleScreenPage)
      .WithDescription("The videos, the cry and the timing of the title "
-                      "screen.")
+         "screen.")
      .AddSection("Advanced")
      .Add("Save Data", LoadSaveDataPage)
      .WithDescription("The raw data of the save file. Change it with "
-                      "care.")
+         "care.")
      .Add("System", LoadSystemPage)
      .WithDescription("Sounds and the clock of the game.")
      .Add("Plugin Theme", LoadThemePage)
      .WithDescription("The colors, the sounds and the button of the "
-                      "menu.");
+         "menu.")
+     .AddQuickAccess();
 }
 } // namespace ui

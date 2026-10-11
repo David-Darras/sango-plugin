@@ -118,17 +118,17 @@ MainApplication& MainApplication::AddQuickAccess() {
     first_pin_ = entries_count_;
     AddShortcuts(pins_, pin_count_);
   }
-  if (recent_count_ != 0) {
-    AddSection("Recent");
-    first_recent_ = entries_count_;
-    AddShortcuts(recents_, recent_count_);
-  }
-  first_recent_page_ = 0xFF;
-  if (recent_page_count_ != 0) {
-    AddSection("Recent Pages");
-    first_recent_page_ = entries_count_;
-    AddShortcuts(recent_pages_, recent_page_count_);
-  }
+  // if (recent_count_ != 0) {
+  //   AddSection("Recent");
+  //   first_recent_ = entries_count_;
+  //   AddShortcuts(recents_, recent_count_);
+  // }
+  // first_recent_page_ = 0xFF;
+  // if (recent_page_count_ != 0) {
+  //   AddSection("Recent Pages");
+  //   first_recent_page_ = entries_count_;
+  //   AddShortcuts(recent_pages_, recent_page_count_);
+  // }
   return *this;
 }
 

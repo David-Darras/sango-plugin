@@ -684,6 +684,20 @@ void MainApplication::Update(sys::Controller& controller) {
   // before the first frame of the menu.
   if (!are_settings_loaded_) LoadSettings();
 
+  // The menu cannot draw in this part of the game (for example the menu of
+  // the Pokemon): it stays closed, and the buttons go to the game.
+  if (!sys::Graphics::CanDraw()) {
+    if (IsOpened()) {
+      SaveSettings();
+      is_opened_ = 0;
+      is_radial_open_ = 0;
+      core::DevicePatch::GetInstance().use_redirection = false;
+    } else if (AreKeysReleased(controller)) {
+      theme_.Play(theme_.error_sound);
+    }
+    return;
+  }
+
   if (AreKeysReleased(controller)) {
     theme_.Play(IsOpened() ? theme_.close_sound : theme_.open_sound);
     if (IsOpened()) SaveSettings();
