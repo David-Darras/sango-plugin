@@ -50,6 +50,7 @@
 #include "system/native/sound.h"
 #include "ui/log_application.h"
 #include "ui/main_application.h"
+#include "ui/page/enum_names.h"
 #include "ui/page/page_common.h"
 #include "ui/page/pages.h"
 #include "ui/tile_editor_application.h"
@@ -483,7 +484,7 @@ void LoadOverworldPage(MainApplication& app, void* args) {
      .Add("Freeze Background Music", music.freeze_background_music)
      .WithDescription("On: the overworld always plays the music below.")
      .Add("Background Music", music.background_music)
-     .WithBounds(0, static_cast<u32>(BackgroundMusicId::kCount) - 1)
+     .WithArray(kBackgroundMusicNames, SIZE(kBackgroundMusicNames))
      .WithCallback(PlayOverworldMusic)
      .WithDescription("Press A to play this music now.")
      .AddSection("Map Editing")

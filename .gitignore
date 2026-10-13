@@ -31,3 +31,10 @@ sango_plugin.txt
 *.id2
 *.nam
 *.til
+
+# Music files: protected by copyright, never commit them
+/assets/bgm/
+/sdmc/
+*.bcstm
+*.mp3
+*.aac

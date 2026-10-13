@@ -30,6 +30,7 @@
 #include "savedata/native/pokemon_team.h"
 #include "ui/log_application.h"
 #include "ui/main_application.h"
+#include "ui/page/enum_names.h"
 #include "ui/page/pages.h"
 
 pokemon::LoadedModel g_my_1st_pokemon;
@@ -119,6 +120,7 @@ void LoadModelLoaderPage(MainApplication& app, void* args) {
      .AddSection("Character")
      .Add("Spawn Model", SpawnOverworldModel)
      .Add("Model", settings.model_id)
+     .WithArray(kModelNames, SIZE(kModelNames))
      .WithBounds(0, static_cast<u32>(ModelId::kLastCharacter))
      .AddSection("Pokemon")
      .Add("Spawn Pokemon", SpawnPokemon)

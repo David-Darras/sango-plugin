@@ -20,6 +20,8 @@
  * @brief The menu page of the sounds and the music.
  */
 
+#include "core/patch/music_files.h"
+#include "ui/page/enum_names.h"
 #include "ui/main_application.h"
 #include "system/native/sound.h"
 
@@ -27,7 +29,10 @@ namespace ui {
 static f32 pokemon_cry_volume = 1.0f;
 static SpeciesId pokemon_cry_species = SpeciesId::kNone;
 static u16 sound_effect_id = 0;
-static BackgroundMusicId background_music = BackgroundMusicId::kPokemonTheme;
+static BackgroundMusicId background_music = BackgroundMusicId::kDefault;
+static u32 sd_music = 0;
+static u32 sd_music_count = 0;
+static const c8* sd_music_names[core::MusicFiles::kMaxFiles];
 
 void ChangePokemonCryVolume(void*) {
   sys::Sound::ChangePokemonCryVolume(pokemon_cry_volume);
@@ -45,7 +50,17 @@ void PlayBackgroundMusic(void*) {
   sys::Sound::PlayBackgroundMusic(background_music);
 }
 
+void PlaySdMusic(void*) {
+  auto& files = core::MusicFiles::GetInstance();
+  files.PlayFile(sd_music);
+}
+
 void LoadSoundPage(MainApplication& app, void* args) {
+  auto& files = core::MusicFiles::GetInstance();
+  sd_music_count = files.LoadList();
+  for (u32 i = 0; i < sd_music_count; i++) {
+    sd_music_names[i] = files.GetTitle(i);
+  }
   app.Add("Pokemon Cry Volume", pokemon_cry_volume)
       .WithFactor(0.1f)
       .WithCallback(ChangePokemonCryVolume)
@@ -57,8 +72,14 @@ void LoadSoundPage(MainApplication& app, void* args) {
       .WithCallback(PlaySoundEffect)
       .WithDescription("Press A to play the sound effect.")
       .Add("Background Music", background_music)
-      .WithBounds(0, static_cast<u32>(BackgroundMusicId::kCount) - 1)
+      .WithArray(kBackgroundMusicNames, SIZE(kBackgroundMusicNames))
       .WithCallback(PlayBackgroundMusic)
       .WithDescription("Press A to play the music.");
+  if (sd_music_count > 0) {
+    app.Add("SD Music", sd_music)
+        .WithArray(sd_music_names, sd_music_count)
+        .WithCallback(PlaySdMusic)
+        .WithDescription("Press A to play a file of sdmc:/sango/bgm/list.txt.");
+  }
 }
 } // namespace ui

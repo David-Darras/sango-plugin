@@ -76,6 +76,8 @@ constexpr uptr kSoundPlayPokemonCry = GAME_ADDRESS(0x00427988, 0x004500C0);
 constexpr uptr kSoundChangePokemonCryVolume = GAME_ADDRESS(0x004265B4, 0x0044EB4C);
 constexpr uptr kSoundPlaySoundEffect = GAME_ADDRESS(0x00427550, 0x0044FC88);
 constexpr uptr kSoundPlayBackgroundMusic = GAME_ADDRESS(0x004260FC, 0x0044E6CC);
+/// Opens a file of the sound archive by its path (a music file).
+constexpr uptr kSoundOpenStreamFile = GAME_ADDRESS(0x0031B3B4, 0x0032FCE8);
 
 // The system.
 constexpr uptr kMessageGetString = GAME_ADDRESS(0x0013A498, 0x00139A34);

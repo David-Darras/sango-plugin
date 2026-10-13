@@ -20,6 +20,7 @@ Before you start, build the plugin one time:
 | 10 | [Replace models](10-replace-models.md) | Change the look of the player and of the Pokémon. |
 | 11 | [Change items and shops](11-change-items-and-shops.md) | Change the data of items and the stock of a Poké Mart. |
 | 12 | [Add a new Pokémon](12-add-a-new-pokemon.md) | (coming soon) |
+| 13 | [Add your own music](13-add-your-own-music.md) | Play your own music files in the game. |
 
 ## Conventions of the tutorials
 

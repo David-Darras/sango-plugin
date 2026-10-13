@@ -31,6 +31,7 @@
 #include "overworld/patch/run_animation.h"
 #include "ui/free_camera_application.h"
 #include "ui/main_application.h"
+#include "ui/page/enum_names.h"
 #include "ui/page/page_common.h"
 #include "ui/page/pages.h"
 
@@ -157,12 +158,14 @@ void LoadPlayerModelPage(MainApplication& app, void* args) {
   app.WithNoBackground()
 #ifdef GAME_XY
      .Add("Model", man.GetPlayer().GetModelResource().model_id)
+      .WithArray(kModelNames, SIZE(kModelNames))
       .WithCallback(ApplyPlayerModel)
       .Add("Use Outfit", man.GetPlayer().GetModelResource().uses_outfit)
       .WithBounds(0, 1)
       .WithCallback(ApplyPlayerModel)
 #else
       .Add("Model", resource.model_id)
+      .WithArray(kModelNames, SIZE(kModelNames))
       .WithCallback(RefreshMap)
 #endif
       .Add("Animation", cheats.model_animation)

@@ -24,11 +24,16 @@
 
 #include <types.h>
 
+#ifdef GAME_XY
+#include "system/constant/background_music_xy.h"
+#else
+
 
 namespace sys {
 
 /// The id of a background music. See sys::Sound::PlayBackgroundMusic().
 enum class BackgroundMusicId : u8 {
+  kDefault = 0, ///< The title theme.
   kPokemonTheme = 0,
   kEvolution = 1,
   kTrade = 2,
@@ -251,3 +256,5 @@ enum class BackgroundMusicId : u8 {
 } // namespace sys
 
 using sys::BackgroundMusicId;
+
+#endif

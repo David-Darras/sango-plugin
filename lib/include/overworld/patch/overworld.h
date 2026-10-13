@@ -32,7 +32,7 @@ namespace overworld {
 /// The settings of overworld::Overworld.
 struct OverworldSettings {
   bool freeze_background_music = false; ///< true: always play `background_music`.
-  BackgroundMusicId background_music = BackgroundMusicId::kPokemonTheme; ///< The music when freeze_background_music is true.
+  BackgroundMusicId background_music = BackgroundMusicId::kDefault; ///< The music when freeze_background_music is true.
 };
 static_assert(std::is_standard_layout<OverworldSettings>::value,
               "OverworldSettings must have standard layout");
