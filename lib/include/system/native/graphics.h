@@ -121,16 +121,49 @@ public:
   }
   static constexpr u32 kShadowLimit = 80;
 
-  /// The texts of the current frame and of the last frame.
+  /**
+   * @brief The size of the command list, in bytes, after which the drawings
+   *        stop. The list has a fixed size (about 256 KB). core::FrameTrace
+   *        showed the bottom screen at 255 672 bytes with only 88 texts: the
+   *        count of texts is not enough, because a text costs from 1 KB to
+   *        4 KB. A drawing past the end of the list freezes the game.
+   *
+   * The shadows stop first, then the texts, then the rectangles: the menu
+   * loses its shadows before its words.
+   */
+  static constexpr u32 kShadowBytesLimit = 190000;
+  static constexpr u32 kTextBytesLimit = 215000;
+  static constexpr u32 kRectBytesLimit = 240000;
+
+  /// The texts and the rectangles of the current frame, and the texts of the
+  /// last frame.
   struct TextBudget {
     u32 texts; ///< The texts of this frame, without the shadows.
     u32 shadows; ///< The shadows of this frame.
     u32 last_texts; ///< The texts of the last frame, without the shadows.
+    u32 rects; ///< The rectangles of this frame (core::FrameTrace shows it).
   };
 
   STATIC_INLINE TextBudget& GetTextBudget() {
-    static TextBudget budget = {0, 0, 0};
+    static TextBudget budget = {0, 0, 0, 0};
     return budget;
+  }
+
+  /**
+   * @brief Returns the number of bytes in the command list of the GPU.
+   *
+   * Each drawing adds commands to the list, and the list has a fixed size.
+   * core::FrameTrace writes the value to the SD card: it shows how near the
+   * list is to its end. The function returns 0 when the address is not known
+   * (XY) or when the game does not draw with the list (see CanDraw()).
+   */
+  STATIC_INLINE u32 GetCommandBytes() {
+    if (renderer::address::kGraphicsState == 0 || !CanDraw()) return 0;
+    const uptr list =
+        *(const uptr*)(renderer::address::kGraphicsState + kStateListOffset);
+    const uptr start = *(const uptr*)(list + kListStartOffset);
+    const uptr cursor = *(const uptr*)renderer::address::kGraphicsCommandCursor;
+    return (u32)(cursor - start);
   }
 
   /// Starts the count of the texts of a new frame. plugin::DrawFrame()
@@ -140,6 +173,7 @@ public:
     budget.last_texts = budget.texts;
     budget.texts = 0;
     budget.shadows = 0;
+    budget.rects = 0;
   }
 
   /// Draws a UTF-16 text. (x, y) is the top-left corner in pixels.
@@ -148,6 +182,7 @@ public:
                               void* pFont = nullptr) {
     TextBudget& budget = GetTextBudget();
     if (budget.texts + budget.shadows >= kTextLimit) return;
+    if (GetCommandBytes() > kTextBytesLimit) return;
     budget.texts++;
     Color clr = color;
     ((void (*)(s32, s32, const c16*, Color*, void*))renderer::address::kGraphicsDrawText)(
@@ -168,7 +203,8 @@ public:
     // first frame of the menu, the last frame has no texts: no shadow.
     const u32 texts = budget.texts > budget.last_texts ? budget.texts
                                                        : budget.last_texts;
-    if (budget.last_texts != 0 && texts + budget.shadows < kShadowLimit) {
+    if (budget.last_texts != 0 && texts + budget.shadows < kShadowLimit &&
+        GetCommandBytes() < kShadowBytesLimit) {
       budget.shadows++;
       Color shadow(0, 0, 0, 0.6f * color.a);
       ((void (*)(s32, s32, const c16*, Color*, void*))
@@ -276,6 +312,8 @@ public:
    */
   STATIC_INLINE void DrawRectWithTexture(s32 x, s32 y, s32 width, s32 height,
                                          Color color, void* texture) {
+    if (GetCommandBytes() > kRectBytesLimit) return;
+    GetTextBudget().rects++;
     Material mat = {};
     mat._0 = texture != nullptr ? 1 : 0; // 1: the texture shader.
     mat._9 = texture;

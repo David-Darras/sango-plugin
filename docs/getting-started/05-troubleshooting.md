@@ -58,6 +58,15 @@ Make sure that the size of each member is correct. Read [Game structures](../con
 The page reads memory that does not exist yet. Some pages work only in one part of the game.
 For your own pages, use `app.CheckProcess(...)`. Read [Add a menu page](../tutorials/02-add-a-menu-page.md).
 
+### The game crashes while the menu is open
+
+While the menu is open, the plugin writes the file `sdmc:/sango/frame_trace.txt`
+three times each second. After a crash, read this file on the SD card. It shows
+the last page and the last entry of the menu, the number of texts and
+rectangles of the frame, the size of the command list of the GPU, and the free
+memory with its lowest value. A command list that is almost full, or a memory
+that is almost empty, points to the cause.
+
 ## Find the cause of a problem
 
 - Use the log window. Add `ui::LogApplication::Print(u"value: %d", value);` to your code.

@@ -25,6 +25,7 @@
 
 #include "ui/main_application.h"
 
+#include <cstdio>
 #include <cstring>
 
 #include "core/native/event_manager.h"
@@ -37,6 +38,7 @@
 #include "system/native/touch_screen.h"
 #include "ui/theme.h"
 #include "ui/menu_layout.h"
+#include "ui/page/page_common.h"
 #include "ui/widget/image.h"
 
 #ifndef BUFFER_SIZE
@@ -216,6 +218,9 @@ void MainApplication::InitializeTouch() {
                                  tool_width, 20);
   touch_[kTouchHex].Initialize(tool_x + 2 * (tool_width + 2), kEditorY,
                                tool_width, 20);
+  touch_[kTouchColorKeys].Initialize(
+      ColorPicker::kSwitchX, ColorPicker::kSwitchY, ColorPicker::kSwitchWidth,
+      ColorPicker::kSwitchHeight);
   numpad_.Initialize(10, kEditorY);
   keyboard_.Initialize(10, kEditorY);
 }
@@ -243,9 +248,67 @@ void MainApplication::PrepareEditor(const PageItem& entry) {
     case Editor::kPicker:
       PreparePicker(entry, GetSelectedIndex());
       break;
+    case Editor::kColor: {
+      void* color;
+      bool is_byte;
+      if (GetColorTarget(entry, color, is_byte)) {
+        color_picker_.Sync(ReadColor(color, is_byte));
+      }
+      color_picker_.ResetTouch();
+      break;
+    }
     default:
       break;
   }
+}
+
+bool MainApplication::GetColorTarget(const PageItem& entry, void*& color,
+                                     bool& is_byte) const {
+  if (contexts_count_ == 0) return false;
+  const MenuContext& ctx = contexts_[contexts_count_ - 1];
+  if (ctx.args == nullptr) return false;
+  uptr size;
+  if (ctx.load_menu == LoadColorPage) {
+    is_byte = false;
+    size = sizeof(Color);
+  } else if (ctx.load_menu == LoadColor8Page) {
+    is_byte = true;
+    size = sizeof(Color8);
+  } else {
+    return false;
+  }
+  // The four values of the color are the entries of the page.
+  const uptr offset = (uptr)entry.GetAddress() - (uptr)ctx.args;
+  if (offset >= size) return false;
+  color = ctx.args;
+  return true;
+}
+
+Color MainApplication::ReadColor(const void* color, bool is_byte) {
+  if (!is_byte) return *static_cast<const Color*>(color);
+  const Color8& bytes = *static_cast<const Color8*>(color);
+  return Color(bytes.r / 255.0f, bytes.g / 255.0f, bytes.b / 255.0f,
+               bytes.a / 255.0f);
+}
+
+void MainApplication::WriteColor(void* color, bool is_byte,
+                                 const Color& value) {
+  if (!is_byte) {
+    *static_cast<Color*>(color) = value;
+    return;
+  }
+  Color8& bytes = *static_cast<Color8*>(color);
+  bytes.r = (u8)(value.r * 255.0f + 0.5f);
+  bytes.g = (u8)(value.g * 255.0f + 0.5f);
+  bytes.b = (u8)(value.b * 255.0f + 0.5f);
+  bytes.a = (u8)(value.a * 255.0f + 0.5f);
+}
+
+void MainApplication::SaveColorUndo(const PageItem& entry, u32 index) {
+  void* color;
+  bool is_byte;
+  if (!GetColorTarget(entry, color, is_byte)) return;
+  PushUndo(entry, index, color, is_byte ? sizeof(Color8) : sizeof(Color));
 }
 
 MainApplication::Editor MainApplication::GetEditor(
@@ -267,6 +330,11 @@ MainApplication::Editor MainApplication::GetEditor(
       return Editor::kSwitch;
     default:
       break;
+  }
+  if (!is_color_numpad_) {
+    void* color;
+    bool is_byte;
+    if (GetColorTarget(entry, color, is_byte)) return Editor::kColor;
   }
   if (UsesPicker(entry)) return Editor::kPicker;
   const u32 size = entry.GetArraySize();
@@ -391,6 +459,9 @@ void MainApplication::DrawBottom(sys::Graphics& graphics) {
     } else if (editor == Editor::kPicker) {
       description = "Touch a value, then lift the stylus. Filter: type a "
                     "part of its name.";
+    } else if (editor == Editor::kColor) {
+      description = "Drag in the square or on the bars, or touch a color. "
+                    "Left / Right: change this value.";
     } else {
       description = GetHint(entry.GetType(), entry.GetArraySize() != 0);
     }
@@ -443,9 +514,17 @@ void MainApplication::DrawBottom(sys::Graphics& graphics) {
       DrawTouch(kTouchMinus10, u"-10", false);
       DrawTouch(kTouchPlus10, u"+10", false);
       const bool is_integer = entry.IsInteger();
+      void* color;
+      bool is_byte;
+      // On a page of colors, the Hex key goes back to the color picker.
+      const bool is_color = GetColorTarget(entry, color, is_byte);
       DrawTouch(kTouchToMin, u"Min", false, is_integer);
       DrawTouch(kTouchToMax, u"Max", false, is_integer);
-      DrawTouch(kTouchHex, u"Hex", numpad_.IsHex(), is_integer);
+      if (is_color) {
+        DrawTouch(kTouchHex, u"Picker", false);
+      } else {
+        DrawTouch(kTouchHex, u"Hex", numpad_.IsHex(), is_integer);
+      }
       // The slider: the bar of the numpad fills to the place of the value.
       s64 min;
       s64 max;
@@ -487,6 +566,10 @@ void MainApplication::DrawBottom(sys::Graphics& graphics) {
     case Editor::kPicker:
       DrawPicker(entry, value_index);
       break;
+    case Editor::kColor:
+      color_picker_.Draw();
+      DrawTouch(kTouchColorKeys, u"Type the values", false);
+      break;
     default:
       break;
   }
@@ -503,6 +586,29 @@ void MainApplication::DrawBottom(sys::Graphics& graphics) {
     DrawFooter();
   }
   DrawNavigation(is_pinned);
+}
+
+void MainApplication::DescribeState(c8* out, u32 size) const {
+  if (size == 0) return;
+  out[0] = '\0';
+  strncat(out, "Menu", size - 1);
+  for (u32 i = 1; i < contexts_count_; i++) {
+    const c8* title = contexts_[i].title;
+    if (title == nullptr) continue;
+    strncat(out, " > ", size - strlen(out) - 1);
+    strncat(out, title, size - strlen(out) - 1);
+  }
+  if (entries_count_ == 0) return;
+  const MenuContext& ctx = contexts_[contexts_count_ > 0 ? contexts_count_ - 1
+                                                         : 0];
+  const u32 index = ctx.cursor + ctx.offset;
+  if (index >= entries_count_) return;
+  const PageItem& entry = entries_[index];
+  const c8* name = entry.GetName();
+  const u32 used = strlen(out);
+  snprintf(out + used, size - used, " | entry %u/%u \"%s\" | editor %u",
+           (unsigned)index, (unsigned)entries_count_,
+           name != nullptr ? name : "", (unsigned)GetEditor(entry));
 }
 
 void MainApplication::DrawFooter() const {
@@ -599,6 +705,14 @@ void MainApplication::ReadTouch(const PageItem& entry, Input& input) {
     case Editor::kPicker:
       ReadPickerTouch(entry, input);
       break;
+    case Editor::kColor:
+      touch_[kTouchColorKeys].Update();
+      if (touch_[kTouchColorKeys].IsReleased()) {
+        theme_.Play(theme_.next_sound);
+        is_color_numpad_ = true;
+        needs_prepare_ = true;
+      }
+      break;
     case Editor::kNumber: {
       static const s32 kSteps[] = {-10, -1, 1, 10};
       for (u32 i = 0; i < 4; i++) {
@@ -614,12 +728,21 @@ void MainApplication::ReadTouch(const PageItem& entry, Input& input) {
 }
 
 void MainApplication::ReadNumberTouch(const PageItem& entry, Input& input) {
+  // On a page of colors, the Hex key goes back to the color picker.
+  touch_[kTouchHex].Update();
+  void* color;
+  bool is_byte;
+  if (touch_[kTouchHex].IsReleased() && GetColorTarget(entry, color, is_byte)) {
+    theme_.Play(theme_.next_sound);
+    is_color_numpad_ = false;
+    needs_prepare_ = true;
+    return;
+  }
   s64 min;
   s64 max;
   if (!entry.GetRange(min, max)) return;
   touch_[kTouchToMin].Update();
   touch_[kTouchToMax].Update();
-  touch_[kTouchHex].Update();
   if (touch_[kTouchToMin].IsReleased()) {
     input.has_number = true;
     input.number = min;
@@ -777,6 +900,18 @@ void MainApplication::Update(sys::Controller& controller) {
       }
     } else if (editor == Editor::kNumber) {
       numpad_.Update();
+    } else if (editor == Editor::kColor) {
+      void* color;
+      bool is_byte;
+      if (GetColorTarget(entry, color, is_byte)) {
+        color_picker_.Sync(ReadColor(color, is_byte));
+        if (color_picker_.Update()) {
+          // One Undo cancels the whole touch of the stylus.
+          if (color_picker_.IsStarted()) SaveColorUndo(entry, index);
+          WriteColor(color, is_byte, color_picker_.GetColor());
+          RunOnChange(index);
+        }
+      }
     }
   }
 
@@ -1007,6 +1142,12 @@ void MainApplication::RunOnChange(u32 index) {
 void MainApplication::SaveUndo(const PageItem& entry, u32 index) {
   const u32 size = entry.GetValueSize();
   if (size == 0 || size > sizeof(undo_[0].bytes)) return;
+  PushUndo(entry, index, entry.GetAddress(), size);
+}
+
+void MainApplication::PushUndo(const PageItem& entry, u32 index, void* data,
+                               u32 size) {
+  if (size == 0 || size > sizeof(undo_[0].bytes)) return;
   // A full list forgets the oldest change.
   if (undo_count_ == kMaxUndo) {
     for (u32 i = 0; i + 1 < kMaxUndo; i++) undo_[i] = undo_[i + 1];
@@ -1014,9 +1155,11 @@ void MainApplication::SaveUndo(const PageItem& entry, u32 index) {
   }
   UndoState& state = undo_[undo_count_++];
   state.item = entry;
+  // Undo writes the old bytes to the address of the item.
+  state.item.SetAddress(data);
   state.index = index;
   state.size = size;
-  memcpy(state.bytes, entry.GetAddress(), size);
+  memcpy(state.bytes, data, size);
 }
 
 void MainApplication::Undo() {
@@ -1252,9 +1395,15 @@ void MainApplication::Open(menu_callback_t load_menu, void* args,
   process_vtable_ = 0;
   undo_count_ = 0;
   flash_frames_ = 0;
+  is_color_numpad_ = false;
   load_menu(*this, args);
   FinishLoad();
   StartTransition(1);
+  // The old swatch of the color picker shows the color of the page opening.
+  if (args != nullptr && (load_menu == LoadColorPage ||
+                          load_menu == LoadColor8Page)) {
+    color_picker_.Begin(ReadColor(args, load_menu == LoadColor8Page));
+  }
 }
 
 void MainApplication::Close() {

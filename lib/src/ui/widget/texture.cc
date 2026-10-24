@@ -73,6 +73,18 @@ Texture* Texture::Create(u32 width, u32 height) {
   return texture;
 }
 
+void Texture::SetPixel(u32 x, u32 y, u8 r, u8 g, u8 b, u8 a) {
+  // The bits of x and y alternate inside a tile of 8 x 8 pixels.
+  const u32 in_tile = (x & 1) | ((y & 1) << 1) | ((x & 2) << 1) |
+                      ((y & 2) << 2) | ((x & 4) << 2) | ((y & 4) << 3);
+  const u32 tile = (y / 8) * (width / 8) + x / 8;
+  u8* target = pixels + (tile * 64 + in_tile) * 4;
+  target[0] = a;
+  target[1] = b;
+  target[2] = g;
+  target[3] = r;
+}
+
 void Texture::Flush() {
   svcFlushProcessDataCache(CUR_PROCESS_HANDLE, (u32)pixels, GetSize());
 }

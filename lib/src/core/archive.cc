@@ -41,6 +41,16 @@ core::Hook<u32(u32*, u32, void*)> load_data2_hook;
 core::Hook<u32(u32*, u32)> get_file_size2_hook;
 core::Hook<void(u32*, u32, u32*)> get_info_hook;
 core::Hook<void(u32*, u32, u32, void*, u32*)> read_hook;
+core::Hook<bool(void*, void*, const c16*, u32, u32, u32, void*, u32, void*, void*)>
+    file_async_read_hook;
+} // namespace
+
+static bool FileStartAsyncReadHook(void* file, void* heap, const c16* filename,
+                                   u32 offset, u32 size, u32 size_again,
+                                   void* buffer, u32 priority, void* callback,
+                                   void* work);
+
+namespace {
 } // namespace
 
 void Archive::Initialize() {
@@ -57,6 +67,8 @@ void Archive::Initialize() {
     get_file_size2_hook.Install(sys::address::kArchiveGetFileSize2,
                                 GetFileSizeHook2);
   }
+  file_async_read_hook.Install(sys::address::kFileStartAsyncRead,
+                               FileStartAsyncReadHook);
   if (sys::address::kArchiveGetInfo) {
     get_info_hook.Install(sys::address::kArchiveGetInfo, GetInfoHook);
     read_hook.Install(sys::address::kArchiveRead, ReadHook);
@@ -79,32 +91,96 @@ struct OverrideEntry {
   u32 file_id;
   u32 size;
 };
-static constexpr u32 kMaxOverrides = 6144;
-static OverrideEntry overrides[kMaxOverrides];
-static u32 override_count = 0;
-static bool override_loaded = false;
 
-static void LoadOverrideIndex() {
-  if (override_loaded) return;
-  sys::File file;
-  if (!OpenSd(&file, u"sdmc:/sango/pokemodel/index.bin")) return;
-  override_loaded = true;
-  u32 count = 0;
-  file.Read(&count, 4);
-  if (count > kMaxOverrides) count = kMaxOverrides;
-  file.Read(overrides, count * sizeof(OverrideEntry));
-  file.Close();
-  override_count = count;
+// The files of an archive that the SD card replaces. The index file has the
+// number of files, then (file id, size) for each file, sorted by file id.
+//
+// With `whole_file` false, a file of the SD card has its size (4 bytes), then
+// the data of the file without compression. With `whole_file` true, a file of
+// the SD card has the same bytes as the file of the archive (compressed), and
+// the game reads it as it reads the archive.
+struct OverrideSet {
+  ArchiveId archive;
+  const c16* index_path;
+  const c16* file_format; ///< The path of a file, with one `%d`.
+  u32 token; ///< The bit that marks a read of this set in an offset.
+  bool whole_file;
+  OverrideEntry* entries;
+  u32 capacity;
+  u32 count;
+  bool loaded;
+};
+
+// The offsets of the real archives are less than 0x40000000. A fake offset has
+// the token in its four high bits and the file id in the other bits.
+static constexpr u32 kPokemonToken = 0x80000000;
+static constexpr u32 kOverworldToken = 0x40000000;
+static constexpr u32 kLandToken = 0xC0000000;
+static constexpr u32 kAreaToken = 0xD0000000;
+static constexpr u32 kMatrixToken = 0xE0000000;
+static constexpr u32 kTokenMask = 0xF0000000;
+static constexpr u32 kFileIdMask = ~kTokenMask;
+static OverrideEntry pokemon_entries[6144];
+static OverrideEntry overworld_entries[1024];
+static OverrideEntry land_entries[1024];
+static OverrideEntry area_entries[512];
+static OverrideEntry matrix_entries[512];
+static OverrideSet override_sets[] = {
+    {ArchiveId::kPokemonModel, u"sdmc:/sango/pokemodel/index.bin",
+     u"sdmc:/sango/pokemodel/%d.pc", kPokemonToken, false, pokemon_entries,
+     6144, 0, false},
+    {ArchiveId::kOverworldModel, u"sdmc:/sango/npcmodel/index.bin",
+     u"sdmc:/sango/npcmodel/%d.bin", kOverworldToken, true, overworld_entries,
+     1024, 0, false},
+    {ArchiveId::kMapLandData, u"sdmc:/sango/land/index.bin",
+     u"sdmc:/sango/land/%d.bin", kLandToken, true, land_entries, 1024, 0,
+     false},
+    {ArchiveId::kOverworldArea, u"sdmc:/sango/area/index.bin",
+     u"sdmc:/sango/area/%d.bin", kAreaToken, true, area_entries, 512, 0,
+     false},
+    {ArchiveId::kMapMatrix, u"sdmc:/sango/matrix/index.bin",
+     u"sdmc:/sango/matrix/%d.bin", kMatrixToken, true, matrix_entries, 512, 0,
+     false},
+};
+
+static OverrideSet* FindSet(const u32* archive) {
+  for (OverrideSet& set : override_sets) {
+    if (Archive::IsArchive(archive, set.archive)) return &set;
+  }
+  return nullptr;
 }
 
-static u32 OverrideSize(u32 file_id) {
-  LoadOverrideIndex();
+static OverrideSet* FindSetByToken(u32 offset) {
+  for (OverrideSet& set : override_sets) {
+    if ((offset & kTokenMask) == set.token) return &set;
+  }
+  return nullptr;
+}
+
+static void LoadOverrideIndex(OverrideSet& set) {
+  if (set.loaded) return;
+  // Try once: with no index file, the game calls this for each file it reads,
+  // and a new try on the SD card each time makes the game freeze.
+  set.loaded = true;
+  sys::File file;
+  if (!OpenSd(&file, set.index_path)) return;
+  u32 count = 0;
+  file.Read(&count, 4);
+  if (count > set.capacity) count = set.capacity;
+  file.Read(set.entries, count * sizeof(OverrideEntry));
+  file.Close();
+  set.count = count;
+}
+
+// Returns the size of the file of the SD card, or 0 when it is not there.
+static u32 OverrideSize(OverrideSet& set, u32 file_id) {
+  LoadOverrideIndex(set);
   u32 low = 0;
-  u32 high = override_count;
+  u32 high = set.count;
   while (low < high) {
     const u32 mid = low + (high - low) / 2;
-    if (overrides[mid].file_id == file_id) return overrides[mid].size;
-    if (overrides[mid].file_id < file_id) {
+    if (set.entries[mid].file_id == file_id) return set.entries[mid].size;
+    if (set.entries[mid].file_id < file_id) {
       low = mid + 1;
     } else {
       high = mid;
@@ -115,12 +191,29 @@ static u32 OverrideSize(u32 file_id) {
 
 static u32 LzStoreSize(u32 raw) { return 4 + raw + (raw + 7) / 8; }
 
-static constexpr u32 kOverrideOffset = 0x80000000;
+// Writes a line "code file size" in sdmc:/sango/npcmodel/trace.log. It shows
+// how the game reads the files that the SD card replaces. The codes: 1 size
+// of a file, 2 information of a file, 3 read in a thread, 4 read with the
+// offset.
+static void Trace(OverrideSet* set, u32 what, u32 file_id, u32 size) {
+  static sys::File file;
+  static bool opened = false;
+  static u32 lines = 0;
+  if (set == nullptr || !set->whole_file || lines >= 400) return;
+  if (!opened) {
+    opened = true;
+    file.Open(u"sdmc:/sango/npcmodel/trace.log");
+  }
+  if (!file.IsOpen()) return;
+  lines++;
+  file.WriteText(u"%u %u %u\n", what, file_id, size);
+}
+
 static constexpr u32 kSpeciesTableFile = 0;
 
-static void ServeLz(u32 file_id, void* buffer, u32 size) {
+static void ServeLz(OverrideSet& set, u32 file_id, void* buffer, u32 size) {
   c16 path[64];
-  Utils::Format(path, u"sdmc:/sango/pokemodel/%d.pc", file_id);
+  Utils::Format(path, set.file_format, file_id);
   sys::File file;
   if (!OpenSd(&file, path)) return;
   u32 raw = 0;
@@ -143,6 +236,16 @@ static void ServeLz(u32 file_id, void* buffer, u32 size) {
       out += m;
     }
   }
+  file.Close();
+}
+
+// Copies a file of the SD card (a set with `whole_file`) to the buffer.
+static void ServeFile(OverrideSet& set, u32 file_id, void* buffer, u32 size) {
+  c16 path[64];
+  Utils::Format(path, set.file_format, file_id);
+  sys::File file;
+  if (!OpenSd(&file, path)) return;
+  file.Read(buffer, size);
   file.Close();
 }
 
@@ -178,15 +281,29 @@ static bool ServeRaw(void* buffer, u32 size) {
   return true;
 }
 
+// The size of a file that the SD card replaces, as the game reads it. Returns
+// 0 when the game must read its own file.
+static u32 ReplacedSize(OverrideSet* set, u32 file_id) {
+  if (set == nullptr) return 0;
+  if (set->archive == ArchiveId::kPokemonModel &&
+      file_id == kSpeciesTableFile && RawSize()) {
+    return RawSize();
+  }
+  const u32 size = OverrideSize(*set, file_id);
+  if (size == 0) return 0;
+  return set->whole_file ? size : LzStoreSize(size);
+}
+
 u32 Archive::GetFileSizeHook(u32* archive, u32 file_id) {
   if (IsArchive(archive, ArchiveId::kBattleMoveAnimation)) {
     const u32 patched = battle::MoveAnimations::PatchedSize(archive, file_id);
     if (patched) return patched;
   }
-  if (IsArchive(archive, ArchiveId::kPokemonModel)) {
-    if (file_id == kSpeciesTableFile && RawSize()) return RawSize();
-    const u32 size = OverrideSize(file_id);
-    if (size) return LzStoreSize(size);
+  OverrideSet* set = FindSet(archive);
+  const u32 replaced = ReplacedSize(set, file_id);
+  if (replaced) {
+    Trace(set, 1, file_id, replaced);
+    return replaced;
   }
   return get_file_size_hook(archive, file_id);
 }
@@ -196,36 +313,40 @@ u32 Archive::GetFileSizeHook2(u32* archive, u32 file_id) {
     const u32 patched = battle::MoveAnimations::PatchedSize(archive, file_id);
     if (patched) return patched;
   }
-  if (IsArchive(archive, ArchiveId::kPokemonModel)) {
-    if (file_id == kSpeciesTableFile && RawSize()) return RawSize();
-    const u32 size = OverrideSize(file_id);
-    if (size) return LzStoreSize(size);
+  OverrideSet* set = FindSet(archive);
+  const u32 replaced = ReplacedSize(set, file_id);
+  if (replaced) {
+    Trace(set, 1, file_id, replaced);
+    return replaced;
   }
   return get_file_size2_hook(archive, file_id);
 }
 
 void Archive::GetInfoHook(u32* archive, u32 file_id, u32* info) {
-  if (info != nullptr && IsArchive(archive, ArchiveId::kPokemonModel)) {
-    const u32 size = file_id == kSpeciesTableFile
-                       ? RawSize()
-                       : LzStoreSize(OverrideSize(file_id));
-    if ((file_id == kSpeciesTableFile && RawSize()) || OverrideSize(file_id)) {
-      info[0] = info[1] = size;
-      info[2] = kOverrideOffset | file_id;
-      return;
-    }
+  OverrideSet* set = FindSet(archive);
+  const u32 replaced = info != nullptr ? ReplacedSize(set, file_id) : 0;
+  if (replaced) {
+    Trace(set, 2, file_id, replaced);
+    info[0] = info[1] = replaced;
+    info[2] = set->token | file_id;
+    return;
   }
   get_info_hook(archive, file_id, info);
 }
 
 void Archive::ReadHook(u32* archive, u32 offset, u32 size,
                                 void* buffer, u32* read) {
-  if ((offset & kOverrideOffset) != 0) {
-    const u32 file_id = offset & ~kOverrideOffset;
-    if (file_id == kSpeciesTableFile) {
+  OverrideSet* set = FindSetByToken(offset);
+  if (set != nullptr) {
+    const u32 file_id = offset & kFileIdMask;
+    if (set->archive == ArchiveId::kPokemonModel &&
+        file_id == kSpeciesTableFile) {
       ServeRaw(buffer, size);
+    } else if (set->whole_file) {
+      Trace(set, 4, file_id, size);
+      ServeFile(*set, file_id, buffer, size);
     } else {
-      ServeLz(file_id, buffer, size);
+      ServeLz(*set, file_id, buffer, size);
     }
     if (read != nullptr) *read = size;
     return;
@@ -240,14 +361,25 @@ u32 Archive::LoadDataHook2(u32* archive, u32 file_id, void* buffer) {
       return patched;
     }
   }
-  if (IsArchive(archive, ArchiveId::kPokemonModel)) {
-    if (file_id == kSpeciesTableFile && RawSize() &&
+  OverrideSet* set = FindSet(archive);
+  if (set != nullptr && set->whole_file) {
+    // The game reads the whole file at once (a small file, for example).
+    const u32 size = OverrideSize(*set, file_id);
+    if (size) {
+      Trace(set, 5, file_id, size);
+      ServeFile(*set, file_id, buffer, size);
+      return size;
+    }
+  }
+  if (set != nullptr && !set->whole_file) {
+    if (set->archive == ArchiveId::kPokemonModel &&
+        file_id == kSpeciesTableFile && RawSize() &&
         ServeRaw(buffer, RawSize())) {
       return RawSize();
     }
-    const u32 size = OverrideSize(file_id);
+    const u32 size = OverrideSize(*set, file_id);
     if (size) {
-      ServeLz(file_id, buffer, LzStoreSize(size));
+      ServeLz(*set, file_id, buffer, LzStoreSize(size));
       return LzStoreSize(size);
     }
   }
@@ -256,14 +388,15 @@ u32 Archive::LoadDataHook2(u32* archive, u32 file_id, void* buffer) {
 
 void* Archive::LoadCompressedHook(u32* archive, u32 file_id, void* heap_work,
                                   void* heap_data, s32 align, u32* out_size) {
-  if (IsArchive(archive, ArchiveId::kPokemonModel)) {
-    const u32 size = OverrideSize(file_id);
+  OverrideSet* set = FindSet(archive);
+  if (set != nullptr && !set->whole_file) {
+    const u32 size = OverrideSize(*set, file_id);
     if (size) {
       void* buffer = ((void* (*)(void*, u32, u32))sys::address::kHeapAlloc)(
           heap_data, size, align ? align : 4);
       if (buffer != nullptr) {
         c16 path[64];
-        Utils::Format(path, u"sdmc:/sango/pokemodel/%d.pc", file_id);
+        Utils::Format(path, set->file_format, file_id);
         sys::File file;
         if (OpenSd(&file, path)) {
           u32 raw = 0;
@@ -279,6 +412,28 @@ void* Archive::LoadCompressedHook(u32* archive, u32 file_id, void* heap_work,
   }
   return load_compressed_hook(archive, file_id, heap_work, heap_data, align,
                               out_size);
+}
+
+// The game reads a part of an archive in a thread, with the offset that the
+// archive gave. For a file of the SD card, the offset has the token of the set.
+// The plugin copies the file to the buffer at once. The thread then reads four
+// bytes of the real archive into a small buffer, so that the game sees the
+// end of the read as usual.
+static bool FileStartAsyncReadHook(void* file, void* heap, const c16* filename,
+                                   u32 offset, u32 size, u32 size_again,
+                                   void* buffer, u32 priority, void* callback,
+                                   void* work) {
+  OverrideSet* set = FindSetByToken(offset);
+  if (set != nullptr && set->whole_file) {
+    static u32 scratch[4];
+    const u32 file_id = offset & kFileIdMask;
+    Trace(set, 3, file_id, size);
+    ServeFile(*set, file_id, buffer, size);
+    return file_async_read_hook(file, heap, filename, 0, 4, 4, scratch,
+                                priority, callback, work);
+  }
+  return file_async_read_hook(file, heap, filename, offset, size, size_again,
+                              buffer, priority, callback, work);
 }
 
 u32 Archive::GetOriginalFileSize(u32* archive, u32 file_id) {

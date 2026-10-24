@@ -73,6 +73,10 @@ struct Texture {
   /// Returns the size of the pixels, in bytes.
   u32 GetSize() const { return width * height * 4; }
 
+  /// Writes one pixel, in the native format. (0, 0) is the top-left pixel.
+  /// Call Flush() after the changes.
+  void SetPixel(u32 x, u32 y, u8 r, u8 g, u8 b, u8 a);
+
   /// Writes the cache of the CPU to the memory. Call it after a change of
   /// the pixels: the GPU reads the memory.
   void Flush();

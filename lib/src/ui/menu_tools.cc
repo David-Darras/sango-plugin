@@ -310,6 +310,9 @@ void MainApplication::DrawHelp(Editor editor) {
     case Editor::kPicker:
       editor_line = u"Grid: touch a value, then lift the stylus.";
       break;
+    case Editor::kColor:
+      editor_line = u"Color: drag in the square and on the bars.";
+      break;
     case Editor::kChoices:
       editor_line = u"Touch a value, or press Left / Right.";
       break;

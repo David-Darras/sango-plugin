@@ -408,6 +408,24 @@ app.Add("Camera", ui::LoadOverworldCameraPage)
    .Add("Apps", ui::LoadAppPage);
 ```
 
+## Colors
+
+To let the player choose a color, add an entry that opens a color page:
+
+```cpp
+app.Add("Outline Color", ui::LoadColorPage, &ctx.outline_color)   // Color
+   .Add("Top Color", ui::LoadColor8Page, &ctx.top_color);         // Color8
+```
+
+The page has the four values (red, green, blue, alpha). The bottom screen
+shows a color picker like the one of a paint program: drag the stylus in the
+square (saturation and brightness) and on the bars (hue and alpha), or touch a
+color of the palette. The old swatch shows the color of the page opening:
+touch it to put this color back. "Type the values" shows the numpad.
+
+The square and the bars are textures that `ui::ColorPicker` makes, so the
+picker draws them with three rectangles.
+
 ## Related pages
 
 - [Add a menu page](../tutorials/02-add-a-menu-page.md)

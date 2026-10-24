@@ -27,6 +27,7 @@
 #include "battle/patch/setup.h"
 #include "battle/patch/type_helper.h"
 #include "ui/performance_overlay.h"
+#include "core/frame_trace.h"
 #include "core/hook.h"
 #include "core/patch/app_launcher.h"
 #include "core/patch/archive.h"
@@ -199,6 +200,7 @@ void DrawFrame() {
     ui::KeyboardPatch::DrawTop();
     battle::TypeHelper::DrawTop();
     ui::PerformanceOverlay::DrawTop();
+    core::FrameTrace::OnScreenDrawn(true);
     sys::Graphics::DisableScissor();
   }
 
@@ -207,7 +209,9 @@ void DrawFrame() {
     sys::Graphics::EnableScissor(0, 0, 320, 240);
     sys::Graphics::BeginRender(bottom_buffer);
     application->DrawBottom(graphics);
+    core::FrameTrace::OnScreenDrawn(false);
     sys::Graphics::DisableScissor();
   }
+  core::FrameTrace::EndFrame();
 }
 } // namespace plugin

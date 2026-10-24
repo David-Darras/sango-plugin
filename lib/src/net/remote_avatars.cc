@@ -305,6 +305,11 @@ void RemoteAvatars::Update() {
   // The next map load adds the avatars only when this value is true.
   self.has_connection_ = self.is_enabled && Network::GetInstance().IsConnected();
   if (!self.is_enabled) return;
+  if (!self.has_connection_) {
+    // Offline there are no avatars: do not search the models of the game.
+    for (auto& avatar : self.avatars_) avatar.is_placed = false;
+    return;
+  }
 
   auto& maps = MapManager::GetInstance();
   if (!core::ProcessManager::IsOverworldActive() ||

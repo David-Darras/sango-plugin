@@ -160,6 +160,33 @@ void LoadColor8Page(MainApplication& app, void* args) {
       .Add("Alpha", color.a);
 }
 
+namespace {
+// Returns the direction that the player faces now, or `fallback` when the
+// player has no direction. The game keeps the direction as a vector: x to the
+// right and z to the bottom of the map.
+overworld::Facing GetPlayerFacing(overworld::Facing fallback) {
+  const Vec3& direction =
+      overworld::ModelManager::GetInstance().GetPlayer().facing_direction;
+  const f32 ax = direction.x < 0.0f ? -direction.x : direction.x;
+  const f32 az = direction.z < 0.0f ? -direction.z : direction.z;
+  if (ax == 0.0f && az == 0.0f) return fallback;
+  if (ax > az * 2.0f) {
+    return direction.x > 0.0f ? overworld::Facing::kRight
+                              : overworld::Facing::kLeft;
+  }
+  if (az > ax * 2.0f) {
+    return direction.z > 0.0f ? overworld::Facing::kDown
+                              : overworld::Facing::kUp;
+  }
+  if (direction.x > 0.0f) {
+    return direction.z > 0.0f ? overworld::Facing::kDownRight
+                              : overworld::Facing::kUpRight;
+  }
+  return direction.z > 0.0f ? overworld::Facing::kDownLeft
+                            : overworld::Facing::kUpLeft;
+}
+} // namespace
+
 void RefreshMap(void*) {
   auto& main_app = MainApplication::GetInstance();
   if (main_app.CheckProcess(overworld::address::kVtable)) return;
@@ -170,6 +197,9 @@ void RefreshMap(void*) {
   const bool show_map_name = false;
   overworld::Facing facing = core::DataManager::GetInstance().GetPlayerDirection();
   if (facing >= overworld::Facing::kCount) facing = overworld::Facing::kUp;
+  // The saved direction is the one of the last map change: use the direction
+  // that the player faces now.
+  facing = GetPlayerFacing(facing);
   overworld::MapManager::ChangeMap(overworld::MapManager::GetInstance().GetMap(),
                                    pos, facing, same_background_music,
                                    show_map_name);

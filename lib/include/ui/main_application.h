@@ -35,6 +35,7 @@
 #include "ui/page_item.h"
 #include "ui/painter.h"
 #include "ui/theme.h"
+#include "ui/widget/color_picker.h"
 #include "ui/widget/keyboard.h"
 #include "ui/widget/numpad.h"
 
@@ -83,6 +84,14 @@ public:
 
   /// Returns true when the menu is open.
   bool IsOpened() const { return is_opened_; };
+
+  /**
+   * @brief Writes where the player is: the pages, the selected entry and its
+   *        editor. core::FrameTrace writes it to the SD card.
+   * @param out Receives the text (UTF-8).
+   * @param size The size of `out`, in bytes.
+   */
+  void DescribeState(c8* out, u32 size) const;
 
   /// Closes the menu.
   void ForceClose();
@@ -517,6 +526,7 @@ private:
     kTouchToMin, ///< The numpad: the smallest value.
     kTouchToMax, ///< The numpad: the largest value.
     kTouchHex, ///< The numpad: the hexadecimal keys.
+    kTouchColorKeys, ///< The color picker: switch to the numpad.
     kTouchMax,
   };
 
@@ -540,6 +550,7 @@ private:
     kNumber, ///< The numpad and the step buttons.
     kText, ///< The keyboard.
     kPicker, ///< The grid of the values, with icons or names.
+    kColor, ///< The color picker (a page of LoadColorPage()).
   };
 
   /// The views of the grid of values.
@@ -672,6 +683,27 @@ private:
 
   /// Keeps the old value of an entry before a change (kMaxUndo changes).
   void SaveUndo(const PageItem& entry, u32 index);
+  /// Keeps `size` bytes at `data` for Undo. The entry gives the name.
+  void PushUndo(const PageItem& entry, u32 index, void* data, u32 size);
+
+  // The color picker (main_application.cc).
+
+  /**
+   * @brief Finds the color of the page for an entry.
+   * @param entry An entry of the page.
+   * @param color Receives the address of the Color or the Color8.
+   * @param is_byte Receives true for a Color8 (LoadColor8Page).
+   * @return true when the entry is the red, green, blue or alpha value of
+   *         the color of an open LoadColorPage() or LoadColor8Page().
+   */
+  bool GetColorTarget(const PageItem& entry, void*& color,
+                      bool& is_byte) const;
+  /// Reads the color that GetColorTarget() found.
+  static Color ReadColor(const void* color, bool is_byte);
+  /// Writes a color to the address that GetColorTarget() found.
+  static void WriteColor(void* color, bool is_byte, const Color& value);
+  /// Keeps the color of the page for Undo.
+  void SaveColorUndo(const PageItem& entry, u32 index);
   /// Puts the old value of the last change back.
   void Undo();
   /**
@@ -869,6 +901,9 @@ private:
 
   MenuContext contexts_[kMaxContexts];
   Numpad numpad_;
+  ColorPicker color_picker_;
+  /// A page of colors shows the numpad (true) in place of the color picker.
+  bool is_color_numpad_ = false;
   Keyboard keyboard_;
   Button touch_[kTouchMax];
   Editor editor_ = Editor::kNone; ///< The editor of the last frame.

@@ -442,6 +442,42 @@ static void LoadWorldOverlayPage(MainApplication& app, void* args) {
 }
 #endif
 
+namespace {
+u32 go_to_map_id = 0;
+overworld::Position go_to_position = {0, {360.0f, 0.0f, 360.0f}, {}, {}, 0};
+
+// Sends the player to the map and the position of the page Go To Map.
+void GoToMap(void*) {
+  auto& main_app = MainApplication::GetInstance();
+  if (main_app.CheckProcess(overworld::address::kVtable)) return;
+
+  // Keeps the other fields of the position of the player (scale, rotation) and
+  // changes only the coordinates.
+  overworld::Position position =
+      overworld::ModelManager::GetInstance().GetPlayer().world_pos;
+  position.coords = go_to_position.coords;
+  overworld::MapManager::ChangeMap(static_cast<overworld::MapId>(go_to_map_id),
+                                   position, overworld::Facing::kUp, false,
+                                   false);
+  main_app.ForceClose();
+}
+
+void LoadGoToMapPage(MainApplication& app, void* args) {
+  if (app.CheckProcess(overworld::address::kVtable)) return;
+
+  app.Add("Map ID", go_to_map_id)
+     .WithBounds(0, 1000)
+     .AddSection("Position")
+     .Add("X", go_to_position.coords.x)
+     .Add("Height", go_to_position.coords.y)
+     .Add("Z", go_to_position.coords.z)
+     .AddSection("Go")
+     .Add("Go To Map", GoToMap)
+     .WithDescription("Closes the menu and sends the player to the map. A "
+                      "block has 720 x 720 units: the center is 360, 360.");
+}
+} // namespace
+
 void LoadOverworldPage(MainApplication& app, void* args) {
   if (app.CheckProcess(overworld::address::kVtable)) return;
 
@@ -452,6 +488,8 @@ void LoadOverworldPage(MainApplication& app, void* args) {
      .Add("Map ID", map_manager.GetMapId())
      .Add("Reload Map", RefreshMap)
      .WithDescription("Closes the menu and loads the current map again.")
+     .Add("Go To Map", LoadGoToMapPage)
+     .WithDescription("Sends the player to any map, by its id.")
      .Add("Weather", LoadWeatherPage)
      .Add("Time of Day", LoadTimeOfDayPage)
      .WithDescription("Sets a fixed time: morning, day, evening or night.")

@@ -67,10 +67,8 @@ void ApplyScale(const pokemon::LoadedModel& loaded, f32 scale) {
 }
 
 void SpawnOverworldModel(void*) {
-  if (g_overworld_model.IsLoaded()) {
-    ui::LogApplication::Print(u"already spawned, clear first");
-    return;
-  }
+  // A new model replaces the model that is there.
+  pokemon::ModelLoader::Drop(&g_overworld_model);
   const ModelId model_id = GetSettings().model_id;
   if (pokemon::ModelLoader::LoadOverworldModel(&g_overworld_model, model_id,
                                                SpawnPosition())) {
@@ -80,10 +78,7 @@ void SpawnOverworldModel(void*) {
 }
 
 void SpawnPokemon(void*) {
-  if (g_pokemon_model.IsLoaded()) {
-    ui::LogApplication::Print(u"already spawned, clear first");
-    return;
-  }
+  pokemon::ModelLoader::Drop(&g_pokemon_model);
   const Settings& settings = GetSettings();
   if (pokemon::ModelLoader::LoadPokemon(&g_pokemon_model, settings.species,
                                         settings.form, settings.is_shiny,
@@ -130,6 +125,8 @@ void LoadModelLoaderPage(MainApplication& app, void* args) {
      .WithBounds(0, 30)
      .Add("Shiny", settings.is_shiny)
      .AddSection("Place")
+     .Add("Clear Models", ClearModels)
+     .WithDescription("Removes the models of this page.")
      .Add("Scale", settings.scale)
      .WithFactor(0.1f)
      .Add("Distance", settings.distance)

@@ -47,6 +47,8 @@ constexpr uptr kArchiveGetFileSize = GAME_ADDRESS(0x0011C708, 0x0011CA10);
 constexpr uptr kArchiveGetFileSize2 = GAME_ADDRESS(0, 0x00110E10);
 constexpr uptr kArchiveGetInfo = GAME_ADDRESS(0, 0x0012894C);
 constexpr uptr kArchiveRead = GAME_ADDRESS(0, 0x001288DC);
+/// Starts the read of a part of a file in a thread.
+constexpr uptr kFileStartAsyncRead = GAME_ADDRESS(0x00356D6C, 0x0036E920);
 constexpr uptr kArchiveLoadFile = GAME_ADDRESS(0x00128100, 0x00128B34);
 constexpr uptr kArchiveLoadCompressedFile = GAME_ADDRESS(0x001283D8, 0x00137A30);
 
