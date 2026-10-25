@@ -81,7 +81,6 @@
 #include "ui/patch/new_game.h"
 #include "ui/patch/party_select.h"
 #include "ui/patch/title_screen.h"
-#include "ui/root_application.h"
 
 sys::String sys::String::s_tmp;
 c16 sys::String::s_buffer[128];
@@ -156,7 +155,7 @@ void OpenMenu(ui::Painter& painter, PageLoader root_page) {
   auto& main_app = ui::MainApplication::GetInstance();
   main_app.SetPainter(painter);
   main_app.Open(root_page);
-  ui::ApplicationManager::GetInstance().Push(ui::RootApplication::GetInstance());
+  ui::ApplicationManager::GetInstance().Push(ui::MainApplication::GetInstance());
 }
 
 void Start(void (*every_frame)()) {

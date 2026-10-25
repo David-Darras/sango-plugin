@@ -26,7 +26,8 @@
 
 namespace overworld {
 
-/// Plays the run animation of the player model when the player runs.
+/// Uses the walk animation, faster, for the characters that run but have no
+/// run animation. Brendan, May and Steven have their own.
 class RunAnimation {
   MAKE_SINGLETON(RunAnimation)
 

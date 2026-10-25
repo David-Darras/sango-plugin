@@ -25,6 +25,7 @@
 #pragma once
 
 #include "common.h"
+#include "pokemon/constant/item.h"
 
 namespace pokemon {
 struct ItemData;
@@ -47,6 +48,17 @@ public:
   ItemDataCallback on_item_data = nullptr;
 
   static void Initialize();
+
+  /// The number of items whose data the menu can keep changed.
+  static constexpr u32 kMaxOverrides = 16;
+
+  /// Keeps a changed copy of the data of an item. Each time the game reads the
+  /// item, it gets this copy. Returns false when there is no free place.
+  static bool SetOverride(const ItemData& data);
+  /// Gives the data of the item back to the game.
+  static void ClearOverride(ItemId id);
+  /// Returns the changed copy of an item, or null.
+  static const ItemData* GetOverride(ItemId id);
 
   /// The number of game instructions that the EV limit patch changes.
   static constexpr u32 kLimitPatchCount = 9;

@@ -29,20 +29,28 @@
 namespace ui {
 class MainApplication;
 
-// The top page: the quick settings and one entry for each family below.
+// The top page: one entry for each family below, then the quick access.
 void LoadTopPage(MainApplication& app, void* args);
 
-// The player: the actions and the appearance of the player in the overworld.
-void LoadPlayerPage(MainApplication& app, void* args);
-void LoadOverworldFieldMovePage(MainApplication& app, void* args);
-void LoadAppPage(MainApplication& app, void* args);
+// The characters: the player and the people of the map, all the same.
+void LoadCharactersPage(MainApplication& app, void* args);
+
+// The cheats: features that are fun but do not change the data of the game.
+void LoadCheatsPage(MainApplication& app, void* args);
 void LoadOverworldCameraPage(MainApplication& app, void* args);
-void LoadPlayerModelPage(MainApplication& app, void* args);
+
+// The actions of the top page: the apps (PC, Move Reminder...), the field
+// moves and the teleport.
+void LoadAppPage(MainApplication& app, void* args);
+void LoadOverworldFieldMovePage(MainApplication& app, void* args);
+void LoadTeleportPage(MainApplication& app, void* args);
 
 // Battles: the battle options of the plugin, then the current battle.
 void LoadBattlePage(MainApplication& app, void* args);
 void LoadBattleSettingsPage(MainApplication& app, void* args);
 void LoadBattleSetupPage(MainApplication& app, void* args);
+// ORAS only: starts a battle against any trainer.
+void LoadTrainerBattlePage(MainApplication& app, void* args);
 void LoadTypeChartPage(MainApplication& app, void* args);
 // ORAS only: the table of the static encounters (legendary Pokémon...).
 void LoadStaticEncounterPage(MainApplication& app, void* args);
@@ -56,21 +64,26 @@ void LoadWorldLayoutPage(MainApplication& app, void* args);
 void LoadOverworldMapTilePage(MainApplication& app, void* args);
 void LoadPropModelPage(MainApplication& app, void* args);
 void LoadOverworldEncounterPage(MainApplication& app, void* args);
-void LoadDayCarePage(MainApplication& app, void* args);
+void LoadTallGrassPage(MainApplication& app, void* args);
 
-// Pokémon: shiny Pokémon, randomizers, and the species and move tables.
+// Pokémon: shiny Pokémon, randomizers and the rules for the Pokémon.
 void LoadPokemonPage(MainApplication& app, void* args);
 void LoadShinyPage(MainApplication& app, void* args);
+
+// The game data: the tables of the species, the moves, the TMs and the types.
+void LoadGameDataPage(MainApplication& app, void* args);
 void LoadSpeciesDataPage(MainApplication& app, void* args);
 void LoadMoveDataPage(MainApplication& app, void* args);
 void LoadTechnicalMachinePage(MainApplication& app, void* args);
-void LoadModelLoaderPage(MainApplication& app, void* args);
+void LoadItemDataPage(MainApplication& app, void* args);
 
 // The save data, one page for each part.
 void LoadSaveDataPage(MainApplication& app, void* args);
 
-// The renderer, the scripts, the title screen and the system.
-void LoadRendererPage(MainApplication& app, void* args);
+// The graphics (lighting, filters, layouts and the model loader), the
+// scripts, the title screen and the system.
+void LoadGraphicsPage(MainApplication& app, void* args);
+void LoadModelLoaderPage(MainApplication& app, void* args);
 void LoadScriptPage(MainApplication& app, void* args);
 void LoadTitleScreenPage(MainApplication& app, void* args);
 void LoadNewGamePage(MainApplication& app, void* args);

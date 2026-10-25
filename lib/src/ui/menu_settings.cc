@@ -20,7 +20,7 @@
  * @brief The settings file of the menu: sdmc:/sango/menu.ini.
  *
  * The file keeps the theme, the effects, the pinned entries and the recent
- * entries. It is an INI file: the player can change it in a text editor.
+ * values. It is an INI file: the player can change it in a text editor.
  * The menu reads it before its first frame, and writes it when the menu
  * closes (only when a setting changed).
  *
@@ -111,6 +111,12 @@ void MainApplication::LoadSettings() {
                    (s32)(theme.background_image_opacity * 100.0f + 0.5f)) /
         100.0f;
     theme.sounds = ini.GetBool("menu", "sounds", theme.sounds);
+    theme.show_pins_at_start =
+        ini.GetBool("menu", "show_pins", theme.show_pins_at_start);
+    theme.walk_opacity = ini.GetInt("menu", "walk_opacity",
+                                    (s32)(theme.walk_opacity * 100)) / 100.0f;
+    if (theme.walk_opacity < 0.0f) theme.walk_opacity = 0.0f;
+    if (theme.walk_opacity > 1.0f) theme.walk_opacity = 1.0f;
     const s32 fast_delay = ini.GetInt("menu", "fast_delay", theme.fast_delay);
     if (fast_delay >= 5 && fast_delay <= 120) theme.fast_delay = fast_delay;
 
@@ -140,28 +146,6 @@ void MainApplication::LoadSettings() {
       const c8* path = ini.Get("pins", key);
       if (path == nullptr || path[0] == '\0') continue;
       Shortcut& shortcut = pins_[pin_count_++];
-      strncpy(shortcut.path, path, sizeof(shortcut.path) - 1);
-      shortcut.path[sizeof(shortcut.path) - 1] = '\0';
-      SplitPath(shortcut.path, section, shortcut.name);
-      shortcut.is_available = false;
-    }
-    recent_count_ = 0;
-    for (u32 i = 0; i < kMaxRecents; i++) {
-      snprintf(key, sizeof(key), "recent%lu", (unsigned long)(i + 1));
-      const c8* path = ini.Get("recent", key);
-      if (path == nullptr || path[0] == '\0') continue;
-      Shortcut& shortcut = recents_[recent_count_++];
-      strncpy(shortcut.path, path, sizeof(shortcut.path) - 1);
-      shortcut.path[sizeof(shortcut.path) - 1] = '\0';
-      SplitPath(shortcut.path, section, shortcut.name);
-      shortcut.is_available = false;
-    }
-    recent_page_count_ = 0;
-    for (u32 i = 0; i < kMaxRecents; i++) {
-      snprintf(key, sizeof(key), "page%lu", (unsigned long)(i + 1));
-      const c8* path = ini.Get("recent_pages", key);
-      if (path == nullptr || path[0] == '\0') continue;
-      Shortcut& shortcut = recent_pages_[recent_page_count_++];
       strncpy(shortcut.path, path, sizeof(shortcut.path) - 1);
       shortcut.path[sizeof(shortcut.path) - 1] = '\0';
       SplitPath(shortcut.path, section, shortcut.name);
@@ -209,6 +193,8 @@ void MainApplication::SaveSettings() {
   ini.AddComment("The frames (60 = 1 second) before a held button goes "
                  "faster: 5 to 120.");
   ini.SetInt("fast_delay", theme_.fast_delay);
+  ini.SetInt("show_pins", theme_.show_pins_at_start ? 1 : 0);
+  ini.SetInt("walk_opacity", (s32)(theme_.walk_opacity * 100 + 0.5f));
 
   ini.AddSection("theme");
   ini.SetHex("background", ToHex(theme_.background_color));
@@ -237,20 +223,6 @@ void MainApplication::SaveSettings() {
     snprintf(key, sizeof(key), "pin%lu", (unsigned long)(i + 1));
     ini.Set(key, pins_[i].path);
   }
-  ini.AddSection("recent");
-  for (u32 i = 0; i < recent_count_; i++) {
-    c8 key[16];
-    snprintf(key, sizeof(key), "recent%lu", (unsigned long)(i + 1));
-    ini.Set(key, recents_[i].path);
-  }
-
-  ini.AddSection("recent_pages");
-  for (u32 i = 0; i < recent_page_count_; i++) {
-    c8 key[16];
-    snprintf(key, sizeof(key), "page%lu", (unsigned long)(i + 1));
-    ini.Set(key, recent_pages_[i].path);
-  }
-
   ini.AddSection("values");
   ini.AddComment("The last values of the grids, the last first (numbers).");
   for (u32 kind = 0; kind < kValueKindCount; kind++) {

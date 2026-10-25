@@ -20,6 +20,6 @@ parts when the tools are available.
 Until then, you can:
 
 - change the data of an existing species with the page
-  **Pokemon > Species Data** of the overlay,
+  **Game Data > Species Data** of the overlay,
 - change the look of a Pokémon with `pokemon::ModelReplacement`
   ([Tutorial 10](10-replace-models.md)).

@@ -191,7 +191,7 @@ These are the members of `pokemon::MoveData` that you change most:
 | `target` | 0 = one other Pokémon (selected), 3 = one opponent, 4 = all the other Pokémon, 5 = all the opponents, 7 = the user. |
 | `stat_id`, `stat_stages`, `stat_rate` | Up to three stat changes: the stat, the number of stages, the chance in percent. |
 
-The values come from the data of the game. The page **Pokemon > Move Data** of
+The values come from the data of the game. The page **Game Data > Move Data** of
 the overlay shows the data of all the moves: use it to copy the values of a
 similar move.
 

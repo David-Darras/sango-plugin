@@ -52,6 +52,12 @@ struct Theme {
   /// The frames that Up / Down or Left / Right stay pressed before the menu
   /// moves faster.
   u8 fast_delay = 45;
+  /// Shows the pinned entries on the first page when the menu starts. Off: the
+  /// player opens them with the Quick Access entry.
+  bool show_pins_at_start = false;
+  /// The opacity of the background color in walk mode (0: invisible, 1: as in
+  /// the menu).
+  f32 walk_opacity = 0.4f;
 
   /// Plays a sound of the menu, when Theme::sounds is on.
   void Play(u16 sound) const {

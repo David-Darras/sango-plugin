@@ -48,7 +48,7 @@
 #include "overworld/native/hidden_item.h"
 #include "renderer/native/h3d_shader_model.h"
 #include "system/native/sound.h"
-#include "ui/log_application.h"
+#include "ui/log.h"
 #include "ui/main_application.h"
 #include "ui/page/enum_names.h"
 #include "ui/page/page_common.h"
@@ -243,20 +243,6 @@ void LoadPropModelPage(MainApplication& app, void* args) {
      .Add("Position Z", shader->position.z);
 }
 
-void LoadDayCarePage(MainApplication& app, void* args) {
-  if (app.CheckProcess(overworld::address::kVtable)) return;
-
-  auto& day_care = overworld::DayCare::GetInstance();
-
-  app.Add("Instant Egg Hatch", day_care.instant_egg_hatch)
-     .WithCallback(overworld::DayCare::ApplyEggHatch)
-     .WithDescription("Press A to switch it. The Eggs hatch at once.")
-     .Add("Instant Max Exp", day_care.instant_max_exp)
-     .WithCallback(overworld::DayCare::ApplyMaxExp)
-     .WithDescription("Press A to switch it. The Pokemon of the Day Care get "
-                      "the maximum experience.");
-}
-
 void LoadWorldLayoutPage(MainApplication& app, void* args) {
   using overworld::WorldLayout;
   if (app.CheckProcess(overworld::address::kVtable)) return;
@@ -297,9 +283,11 @@ void LoadWorldLayoutPage(MainApplication& app, void* args) {
        .Add("Is Applied", result.is_applied)
        .WithReadOnly()
        .Add("Anchor Map", request.anchor)
+       .WithArray(kMapNames, SIZE(kMapNames))
        .Add("Side", request.side)
        .WithArray(kSideNames, SIZE(kSideNames))
        .Add("Grafted Map", request.map)
+       .WithArray(kMapNames, SIZE(kMapNames))
        .Add("Shift (blocks)", request.shift)
        .WithMin(-31)
        .WithMax(31)
@@ -311,9 +299,11 @@ void LoadWorldLayoutPage(MainApplication& app, void* args) {
     auto& link = overworld::MapGraft::GetLink(i);
     app.AddSection(LINK_NAMES[i])
        .Add("Leaving Map", link.from)
+       .WithArray(kMapNames, SIZE(kMapNames))
        .Add("Through Side", link.side)
        .WithArray(kSideNames, SIZE(kSideNames))
        .Add("Lands On Map", link.to)
+       .WithArray(kMapNames, SIZE(kMapNames))
        .Add("Tile X", link.tile_x)
        .WithBounds(0, WorldLayout::kMaxWidth * WorldLayout::kTilesPerBlockSide)
        .Add("Tile Z", link.tile_z)
@@ -350,7 +340,7 @@ static void LoadDecorationPage(MainApplication& app, void* args) {
                       "Hold A to confirm.");
 }
 
-static void LoadTallGrassPage(MainApplication& app, void* args) {
+void LoadTallGrassPage(MainApplication& app, void* args) {
   static const c8* kMixNames[] = {"All", "Green", "Ferns", "Ash"};
   auto& grass = overworld::TallGrass::GetInstance();
   app.Add("Enabled", grass.is_enabled)
@@ -383,6 +373,7 @@ void LoadHiddenItemPage(MainApplication& app, void* args) {
      .Add("Height", hidden_item.height)
      .Add("Tile Z", hidden_item.tile_z)
      .Add("Map ID", hidden_item.map_id)
+     .WithArray(kMapNames, SIZE(kMapNames))
      .AddSection("Respawn")
      .Add("Respawn Rate", &hidden_item.flags, 0, 7)
      .WithBounds(0, 127)
@@ -403,6 +394,7 @@ void LoadRandomHiddenItemPage(MainApplication& app, void* args) {
 
   app.AddSection("Place")
      .Add("Map ID", random_item.map_id)
+     .WithArray(kMapNames, SIZE(kMapNames))
      .Add("UID", &random_item.flags, 0, 15)
      .Add("Is Mirage Spot", &random_item.flags, 15, 1)
      .Add("Tile X", random_item.tile_x)
@@ -443,11 +435,20 @@ static void LoadWorldOverlayPage(MainApplication& app, void* args) {
 #endif
 
 namespace {
-u32 go_to_map_id = 0;
-overworld::Position go_to_position = {0, {360.0f, 0.0f, 360.0f}, {}, {}, 0};
+u32 target_map = 0;
+overworld::Position target_position = {0, {360.0f, 0.0f, 360.0f}, {}, {}, 0};
+bool is_target_set = false;
 
-// Sends the player to the map and the position of the page Go To Map.
-void GoToMap(void*) {
+// Takes the map and the place of the player as the destination.
+void UseCurrentPlace(void*) {
+  target_map = static_cast<u32>(overworld::MapManager::GetInstance().GetMap());
+  target_position.coords =
+      overworld::ModelManager::GetInstance().GetPlayer().world_pos.coords;
+  MainApplication::GetInstance().Refresh();
+}
+
+// Sends the player to the destination.
+void Teleport(void*) {
   auto& main_app = MainApplication::GetInstance();
   if (main_app.CheckProcess(overworld::address::kVtable)) return;
 
@@ -455,28 +456,42 @@ void GoToMap(void*) {
   // changes only the coordinates.
   overworld::Position position =
       overworld::ModelManager::GetInstance().GetPlayer().world_pos;
-  position.coords = go_to_position.coords;
-  overworld::MapManager::ChangeMap(static_cast<overworld::MapId>(go_to_map_id),
+  position.coords = target_position.coords;
+  overworld::MapManager::ChangeMap(static_cast<overworld::MapId>(target_map),
                                    position, overworld::Facing::kUp, false,
                                    false);
   main_app.ForceClose();
 }
+} // namespace
 
-void LoadGoToMapPage(MainApplication& app, void* args) {
+void LoadTeleportPage(MainApplication& app, void* args) {
   if (app.CheckProcess(overworld::address::kVtable)) return;
 
-  app.Add("Map ID", go_to_map_id)
-     .WithBounds(0, 1000)
-     .AddSection("Position")
-     .Add("X", go_to_position.coords.x)
-     .Add("Height", go_to_position.coords.y)
-     .Add("Z", go_to_position.coords.z)
-     .AddSection("Go")
-     .Add("Go To Map", GoToMap)
-     .WithDescription("Closes the menu and sends the player to the map. A "
-                      "block has 720 x 720 units: the center is 360, 360.");
+  // The first time, the destination is the place of the player.
+  if (!is_target_set) {
+    is_target_set = true;
+    UseCurrentPlace(nullptr);
+  }
+
+  app.AddSection("Destination")
+     .Add("Map", target_map)
+     .WithArray(kMapNames, SIZE(kMapNames))
+     .WithCallback(Teleport)
+     .WithDescription("Press A to teleport to this map. A block has "
+                      "720 x 720 units: the center is 360, 360.")
+     .Add("X", target_position.coords.x)
+     .Add("Height", target_position.coords.y)
+     .Add("Z", target_position.coords.z)
+     .AddSection("Actions")
+     .Add("Teleport", Teleport)
+     .WithDescription("Closes the menu and sends the player to the "
+                      "destination.")
+     .Add("Use My Place", UseCurrentPlace)
+     .WithDescription("The destination becomes the map and the place of the "
+                      "player now.")
+     .Add("Reload Map", RefreshMap)
+     .WithDescription("Closes the menu and loads the current map again.");
 }
-} // namespace
 
 void LoadOverworldPage(MainApplication& app, void* args) {
   if (app.CheckProcess(overworld::address::kVtable)) return;
@@ -484,12 +499,9 @@ void LoadOverworldPage(MainApplication& app, void* args) {
   auto& map_manager = overworld::MapManager::GetInstance();
   auto& music = overworld::Overworld::GetInstance();
 
-  app.AddSection("Map")
-     .Add("Map ID", map_manager.GetMapId())
-     .Add("Reload Map", RefreshMap)
-     .WithDescription("Closes the menu and loads the current map again.")
-     .Add("Go To Map", LoadGoToMapPage)
-     .WithDescription("Sends the player to any map, by its id.")
+  app.AddSection("Location")
+     .Add("Teleport", LoadTeleportPage)
+     .WithDescription("The map of the player, and the teleport to any map.")
      .Add("Weather", LoadWeatherPage)
      .Add("Time of Day", LoadTimeOfDayPage)
      .WithDescription("Sets a fixed time: morning, day, evening or night.")
@@ -499,25 +511,11 @@ void LoadOverworldPage(MainApplication& app, void* args) {
      .Add("Encounters", LoadOverworldEncounterPage)
      .WithDescription("The walk counter, the encounter rate and the "
                       "Pokemon that move on the map.")
-#ifdef GAME_ORAS
-     .Add("Tall Grass", LoadTallGrassPage)
-     .WithDescription("Shows 3D tall grass around the player.")
-#endif
-     .AddSection("Objects")
-     .Add("Decorations", LoadDecorationPage)
-     .WithDescription("Places Secret Base decorations in the overworld.")
-     .Add("Props", LoadPropModelPage)
-     .WithDescription("The doors and the other objects of the map: size, "
-                      "rotation, position.")
-     .Add("Hidden Items", LoadHiddenItemPage)
-     .Add("Random Hidden Items", LoadRandomHiddenItemPage)
-     .Add("Day Care", LoadDayCarePage)
-#ifdef GAME_ORAS
-     .Add("Healer Follower",
-          overworld::HealerFollower::GetInstance().is_enabled)
-     .WithDescription("A nurse follows the player. Talk to her to heal the "
-                      "team.")
-#endif
+     .AddSection("Scene")
+     .Add("Characters", LoadCharactersPage)
+     .WithDescription("The player and the people of the map: model, "
+                      "animation, position and size.")
+     .Add("Camera", LoadOverworldCameraPage)
      .AddSection("Music")
      .Add("Freeze Background Music", music.freeze_background_music)
      .WithDescription("On: the overworld always plays the music below.")
@@ -525,7 +523,15 @@ void LoadOverworldPage(MainApplication& app, void* args) {
      .WithArray(kBackgroundMusicNames, SIZE(kBackgroundMusicNames))
      .WithCallback(PlayOverworldMusic)
      .WithDescription("Press A to play this music now.")
+     .AddSection("Objects")
+     .Add("Decorations", LoadDecorationPage)
+     .WithDescription("Places Secret Base decorations in the overworld.")
+     .Add("Props", LoadPropModelPage)
+     .WithDescription("The doors and the other objects of the map: size, "
+                      "rotation, position.")
      .AddSection("Map Editing")
+     .Add("Hidden Items", LoadHiddenItemPage)
+     .Add("Random Hidden Items", LoadRandomHiddenItemPage)
 #ifdef GAME_ORAS
      .Add("World Overlay", LoadWorldOverlayPage)
      .WithDescription("Shows the walls, the water, the grass and the hidden "

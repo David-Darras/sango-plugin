@@ -33,7 +33,7 @@
 #include "pokemon/patch/custom_shop.h"
 #include "savedata/native/pokemon_team.h"
 #include "script/patch/native_script.h"
-#include "ui/log_application.h"
+#include "ui/log.h"
 #include "ui/patch/starter_choice.h"
 
 namespace overworld {

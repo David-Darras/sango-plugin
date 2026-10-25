@@ -33,7 +33,7 @@
 #include "overworld/native/prop_model_manager.h"
 #include "overworld/native/world_layout.h"
 #include "renderer/native/h3d_shader_model.h"
-#include "ui/log_application.h"
+#include "ui/log.h"
 
 namespace overworld {
 
@@ -224,7 +224,7 @@ MapSettings* MapGraft::GetSettingsTable() {
 void MapGraft::WarpThrough(u32 index) {
   const MapLinkRequest& link = links_[index];
   if (is_logging_enabled) {
-    ui::LogApplication::Print(u"link %u: to map %u at tile %u,%u", index,
+    ui::Log::Print(u"link %u: to map %u at tile %u,%u", index,
                               link.to, link.tile_x, link.tile_z);
   }
   pending_frames_ = kPendingFrames;
@@ -277,7 +277,7 @@ void MapGraft::UpdateLinks() {
 
   const Facing side = GetStepSide(step_x, step_z);
   if (is_logging_enabled) {
-    ui::LogApplication::Print(u"crossed map %u -> map %u through side %u",
+    ui::Log::Print(u"crossed map %u -> map %u through side %u",
                               from, cell_map, side);
   }
   TryLinks(from, side, cell_map);
@@ -490,7 +490,7 @@ void MapGraft::Apply(WorldLayout& layout, Bundle* pack) {
     BlockRect source;
     if (!FindMap(pristine, request.map, &source)) {
       if (is_logging_enabled) {
-        ui::LogApplication::Print(
+        ui::Log::Print(
             u"graft %u: map %u is not on layout %u, only Link() can join it",
             i, request.map, layout.id);
       }
@@ -534,7 +534,7 @@ void MapGraft::Apply(WorldLayout& layout, Bundle* pack) {
         dest.x1 >= (s32)WorldLayout::kMaxWidth ||
         dest.z1 >= (s32)WorldLayout::kMaxHeight) {
       if (is_logging_enabled) {
-        ui::LogApplication::Print(u"graft %u: map %u falls off the grid",
+        ui::Log::Print(u"graft %u: map %u falls off the grid",
                                   i, request.map);
       }
       continue;
@@ -582,7 +582,7 @@ void MapGraft::Apply(WorldLayout& layout, Bundle* pack) {
     }
 
     if (is_logging_enabled) {
-      ui::LogApplication::Print(
+      ui::Log::Print(
           u"graft %u: map %u copied to block %u,%u (%ux%u) offset %d,%d",
           i, map, result.x, result.z, result.width,
           result.height, result.offset_x, result.offset_z);

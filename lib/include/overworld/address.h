@@ -56,6 +56,9 @@ constexpr uptr kGetModelArchiveIndex = GAME_ADDRESS(0x0019B02C, 0x0019C678);
 
 constexpr uptr kGetDrawModel = GAME_ADDRESS(0x004ACAC8, 0x004E3F90);
 constexpr uptr kCallStaticEncounter = GAME_ADDRESS(0, 0x0077D0C4);
+/// field::EventBattleCall::CallTrainer(GameManager*, const TrainerBattleParam&):
+/// starts a trainer battle. The parameter has 16 bytes (see page_battle.cc).
+constexpr uptr kCallTrainerBattle = GAME_ADDRESS(0, 0x003DA09C);
 constexpr uptr kTradePokemon = GAME_ADDRESS(0x0073D180, 0x0074AC64);
 constexpr uptr kFlyCheck = GAME_ADDRESS(0, 0x003EF8C4);
 constexpr uptr kSimulateButtonPress = GAME_ADDRESS(0x006D7A74, 0x00715C48);

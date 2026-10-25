@@ -30,7 +30,7 @@
 
 #include "core/native/game_manager.h"
 #include "system/address.h"
-#include "ui/log_application.h"
+#include "ui/log.h"
 
 namespace core {
 namespace {
@@ -83,7 +83,7 @@ void LogHeaps() {
   for (s32 id = 0; id < kLoggedHeaps; id++) {
     void* heap = GetHeap(id);
     if (heap == nullptr) continue;
-    ui::LogApplication::Print(u"Heap %ld: %lu KB free", id,
+    ui::Log::Print(u"Heap %ld: %lu KB free", id,
                               GetAllocatableSize(heap) / 1024);
   }
 }
@@ -198,7 +198,7 @@ u8* GameFile::Read(ArchiveId archive_id, u32 file_id, bool compressed,
                    u32* out_size) {
   void* archive = OpenArchive(archive_id);
   if (archive == nullptr) {
-    ui::LogApplication::Print(u"Archive %lu: no memory to open it",
+    ui::Log::Print(u"Archive %lu: no memory to open it",
                               static_cast<u32>(archive_id));
     return nullptr;
   }
@@ -239,7 +239,7 @@ void* GameFile::AllocateDevice(u32 size, u32 alignment) {
   static bool is_logged = false;
   if (!is_logged) {
     is_logged = true;
-    ui::LogApplication::Print(u"Linear memory: result %08lX, address %08lX",
+    ui::Log::Print(u"Linear memory: result %08lX, address %08lX",
                               (u32)result, address);
   }
   if (R_SUCCEEDED(result) && address != 0) return (void*)address;
@@ -253,7 +253,7 @@ void* GameFile::AllocateDevice(u32 size, u32 alignment) {
   static bool is_reported = false;
   if (!is_reported) {
     is_reported = true;
-    ui::LogApplication::Print(
+    ui::Log::Print(
         u"GPU memory: %lu KB, %lu KB free (%lu KB needed)",
         heaps[0] != nullptr ? GetAllocatableSize(heaps[0]) / 1024 : 0,
         heaps[1] != nullptr ? GetAllocatableSize(heaps[1]) / 1024 : 0,

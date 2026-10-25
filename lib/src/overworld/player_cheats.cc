@@ -37,18 +37,6 @@ void PlayerCheats::Initialize() {
   core::CheatCodeManager::Initialize(CheatCodeId::kNoclip, Noclip, nullptr, true);
 }
 
-void PlayerCheats::PlayAnimation(void*) {
-  if (!core::ProcessManager::GetInstance().IsCurrentProcess(
-      address::kVtable))
-    return;
-
-  auto& ctx = GetInstance();
-
-  ((void (*)(Model*, u16, u8))renderer::address::kModelPlayAnimation)(
-      &ModelManager::GetInstance().GetPlayer(),
-      ctx.model_animation, 3);
-}
-
 void PlayerCheats::SwarmMod() {
   if (!core::ProcessManager::GetInstance().IsCurrentProcess(
       address::kVtable))

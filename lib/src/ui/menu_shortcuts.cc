@@ -107,9 +107,19 @@ MainApplication& MainApplication::AddQuickAccess() {
   if (is_indexing_) return *this;
 
   is_quick_access_ = 1;
-  first_pin_ = first_recent_ = first_recent_page_ = 0xFF;
+  first_pin_ = 0xFF;
 
-  AddSection("Pinned");
+  AddSection("Quick Access");
+  Add(are_pins_shown_ ? "Hide The Pinned Entries" : "Show The Pinned Entries",
+      [](void*) {
+        MainApplication& app = MainApplication::GetInstance();
+        app.are_pins_shown_ = !app.are_pins_shown_;
+        app.Refresh();
+      })
+      .WithDescription("The entries that you pinned with Y. X shows them in "
+                       "a circle from any page.");
+  if (!are_pins_shown_) return *this;
+
   if (pin_count_ == 0) {
     Add("Press Y on an entry to pin it here")
         .WithDescription("The pinned entries stay here. X shows them in a "
@@ -117,16 +127,6 @@ MainApplication& MainApplication::AddQuickAccess() {
   } else {
     first_pin_ = entries_count_;
     AddShortcuts(pins_, pin_count_);
-  }
-  if (recent_count_ != 0) {
-    AddSection("Recent");
-    first_recent_ = entries_count_;
-    AddShortcuts(recents_, recent_count_);
-  }
-  if (recent_page_count_ != 0) {
-    AddSection("Recent Pages");
-    first_recent_page_ = entries_count_;
-    AddShortcuts(recent_pages_, recent_page_count_);
   }
   return *this;
 }
@@ -158,14 +158,6 @@ MainApplication::Shortcut* MainApplication::GetShortcut(u32 index) {
   if (first_pin_ != 0xFF && index >= first_pin_ &&
       index < first_pin_ + pin_count_) {
     return &pins_[index - first_pin_];
-  }
-  if (first_recent_ != 0xFF && index >= first_recent_ &&
-      index < first_recent_ + recent_count_) {
-    return &recents_[index - first_recent_];
-  }
-  if (first_recent_page_ != 0xFF && index >= first_recent_page_ &&
-      index < first_recent_page_ + recent_page_count_) {
-    return &recent_pages_[index - first_recent_page_];
   }
   return nullptr;
 }
@@ -267,64 +259,6 @@ void MainApplication::TogglePin(u32 index) {
   if (is_quick_access_) Refresh();
 }
 
-void MainApplication::AddRecent(u32 index) {
-  if (is_quick_access_ || is_search_page_ || is_indexing_) return;
-  const PageItem& entry = entries_[index];
-  if (!entry.IsSelectable() || entry.GetType() == kTypeMenu) return;
-  c8 path[sizeof(Shortcut::path)];
-  if (!BuildPath(index, path, sizeof(path))) return;
-
-  // The same entry moves to the top of the list.
-  for (u32 i = 0; i < recent_count_; i++) {
-    if (strcmp(recents_[i].path, path) == 0) {
-      Remove(recents_, recent_count_, i);
-      break;
-    }
-  }
-  if (recent_count_ >= kMaxRecents) recent_count_ = kMaxRecents - 1;
-  for (u32 i = recent_count_; i > 0; i--) recents_[i] = recents_[i - 1];
-  Shortcut& added = recents_[0];
-  Copy(added.path, sizeof(added.path), path);
-  c8 section[kSectionLength];
-  SplitPath(path, section, added.name);
-  added.item = entry;
-  added.on_change = on_change_;
-  added.is_available = true;
-  recent_count_++;
-}
-
-void MainApplication::AddRecentPage(u32 index) {
-  // The first page shows the quick access: its pages count, but not the
-  // shortcuts themselves.
-  if (is_search_page_ || is_indexing_ || GetShortcut(index) != nullptr) {
-    return;
-  }
-  const PageItem& entry = entries_[index];
-  if (entry.GetType() != kTypeMenu) return;
-  c8 path[sizeof(Shortcut::path)];
-  if (!BuildPath(index, path, sizeof(path))) return;
-
-  // The same page moves to the top of the list.
-  for (u32 i = 0; i < recent_page_count_; i++) {
-    if (strcmp(recent_pages_[i].path, path) == 0) {
-      Remove(recent_pages_, recent_page_count_, i);
-      break;
-    }
-  }
-  if (recent_page_count_ >= kMaxRecents) recent_page_count_ = kMaxRecents - 1;
-  for (u32 i = recent_page_count_; i > 0; i--) {
-    recent_pages_[i] = recent_pages_[i - 1];
-  }
-  Shortcut& added = recent_pages_[0];
-  Copy(added.path, sizeof(added.path), path);
-  c8 section[kSectionLength];
-  SplitPath(path, section, added.name);
-  added.item = entry;
-  added.on_change = nullptr;
-  added.is_available = true;
-  recent_page_count_++;
-}
-
 void MainApplication::OpenPageShortcut(const Shortcut& shortcut) {
   // A copy: the lists of the shortcuts change below.
   const Shortcut page = shortcut;
@@ -336,7 +270,6 @@ void MainApplication::OpenPageShortcut(const Shortcut& shortcut) {
       strcmp(entry.GetName(), page.name) != 0) {
     return;
   }
-  AddRecentPage(GetSelectedIndex());
   entry.Execute(*this);
 }
 
@@ -352,14 +285,11 @@ bool MainApplication::LoadScratch(menu_callback_t load, void* args) {
   // Keep the state of the page that the menu shows (or builds now).
   PageItem* const saved_entries = entries_;
   const u32 saved_count = entries_count_;
-  const u32 saved_no_background = no_background_;
   const u32 saved_quick_access = is_quick_access_;
   const u32 saved_search_page = is_search_page_;
   const u32 saved_indexing = is_indexing_;
   const uptr saved_vtable = process_vtable_;
   const u8 saved_first_pin = first_pin_;
-  const u8 saved_first_recent = first_recent_;
-  const u8 saved_first_recent_page = first_recent_page_;
   const callback_t saved_on_change = on_change_;
 
   entries_ = scratch_entries_;
@@ -374,14 +304,11 @@ bool MainApplication::LoadScratch(menu_callback_t load, void* args) {
 
   entries_ = saved_entries;
   entries_count_ = saved_count;
-  no_background_ = saved_no_background;
   is_quick_access_ = saved_quick_access;
   is_search_page_ = saved_search_page;
   is_indexing_ = saved_indexing;
   process_vtable_ = saved_vtable;
   first_pin_ = saved_first_pin;
-  first_recent_ = saved_first_recent;
-  first_recent_page_ = saved_first_recent_page;
   on_change_ = saved_on_change;
   index_failed_ = 0;
   return is_loaded;

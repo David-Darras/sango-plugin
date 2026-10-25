@@ -33,7 +33,7 @@
 #include "renderer/native/pokemon_model_table.h"
 #include "renderer/native/scene.h"
 #include "system/native/file.h"
-#include "ui/log_application.h"
+#include "ui/log.h"
 
 #define POKEMON_FILE_SPECIES_TABLE (0)
 #define POKEMON_FILE_COMMON_SHADER (1)
@@ -55,7 +55,7 @@ bool ModelLoader::LoadOverworldModel(LoadedModel* out, ModelId model_id,
   renderer::H3dResource* shader =
       overworld::ModelManager::GetInstance().GetShaderResource();
   if (shader == nullptr) {
-    ui::LogApplication::Print(u"shader unavailable");
+    ui::Log::Print(u"shader unavailable");
     return false;
   }
 
@@ -89,7 +89,7 @@ bool ModelLoader::LoadPokemon(LoadedModel* out, SpeciesId species, FormId form,
 
   const u32 pack_top = table.GetPackTop(species, form, gender);
   if (pack_top == renderer::PokemonModelTable::kInvalidPack) {
-    ui::LogApplication::Print(u"unknown species %d", species);
+    ui::Log::Print(u"unknown species %d", species);
     return false;
   }
 
@@ -143,13 +143,13 @@ bool ModelLoader::LoadDecoration(LoadedModel* out, u32 decoration_index,
 
   out->model_pack = ReadFile(ArchiveId::kSecretBase, pack_id, false);
   if (out->model_pack == nullptr) {
-    ui::LogApplication::Print(u"decoration %u: pack %u unreadable",
+    ui::Log::Print(u"decoration %u: pack %u unreadable",
                               decoration_index, pack_id);
     return false;
   }
   out->model_resource = AttachPackEntry(out->model_pack, model_index);
   if (out->model_resource == nullptr) {
-    ui::LogApplication::Print(u"decoration %u: model %u missing",
+    ui::Log::Print(u"decoration %u: model %u missing",
                               decoration_index, model_index);
     return false;
   }
@@ -404,7 +404,7 @@ void ModelLoader::LinkPokemonCommonResources(renderer::H3dResource* target) {
 bool ModelLoader::BuildModel(LoadedModel* out, const Vec3& position) {
   out->model = renderer::H3dShaderModel::Create(DeviceHeap());
   if (out->model == nullptr) {
-    ui::LogApplication::Print(u"model constructor failed");
+    ui::Log::Print(u"model constructor failed");
     return false;
   }
 
@@ -415,14 +415,14 @@ bool ModelLoader::BuildModel(LoadedModel* out, const Vec3& position) {
                     0, &description);
 
   if (out->model->GetMaterialCount() <= 0) {
-    ui::LogApplication::Print(u"model has no material");
+    ui::Log::Print(u"model has no material");
     return false;
   }
 
   void* scene = Scene();
   if (scene == nullptr || !renderer::Scene::Register0(scene, out->model) ||
       !renderer::Scene::Register1(scene, out->model)) {
-    ui::LogApplication::Print(u"scene registration refused");
+    ui::Log::Print(u"scene registration refused");
     return false;
   }
 
@@ -438,7 +438,7 @@ void ModelLoader::Track(LoadedModel* entry) {
 }
 
 void ModelLoader::ReportUnresolved(renderer::H3dResource* resource) {
-  ui::LogApplication::Print(u"setup failed, unresolved %X",
+  ui::Log::Print(u"setup failed, unresolved %X",
                             resource->GetState());
 }
 

@@ -109,7 +109,8 @@ void WorldOverlay::DrawTop() {
   if (!self.is_enabled || camera == nullptr) return;
   if (renderer::address::kCameraGetMatrices == 0) return;
   if (!core::ProcessManager::IsOverworldActive()) return;
-  if (ui::MainApplication::GetInstance().IsOpened()) return;
+  auto& menu = ui::MainApplication::GetInstance();
+  if (menu.IsOpened() && !menu.IsWalking()) return;
 
   ((void (*)(void*, Mtx34*, Mtx44*))
        renderer::address::kCameraGetMatrices)(camera, &self.view_,

@@ -32,7 +32,7 @@
 #include "overworld/patch/tile_editor.h"
 #include "renderer/native/h3d_shader_model.h"
 #include "system/native/file.h"
-#include "ui/log_application.h"
+#include "ui/log.h"
 
 namespace overworld {
 namespace {
@@ -96,14 +96,14 @@ bool TallGrass::LoadResources() {
                                                  kGrassPackCapacity);
   }
   if (ctx.pack_ == nullptr) {
-    ui::LogApplication::Print(u"tall grass: pack unreadable");
+    ui::Log::Print(u"tall grass: pack unreadable");
     return false;
   }
   for (u32 i = 0; i < kKindCount; i++) {
     Trace("load resource");
     ctx.resources_[i] = pokemon::ModelLoader::LoadPackResource(ctx.pack_, i);
     if (ctx.resources_[i] == nullptr) {
-      ui::LogApplication::Print(u"tall grass: model %u unusable", i);
+      ui::Log::Print(u"tall grass: model %u unusable", i);
       for (u32 j = 0; j < i; j++) ctx.resources_[j]->RemoveData();
       for (u32 j = 0; j < kKindCount; j++) ctx.resources_[j] = nullptr;
       return false;

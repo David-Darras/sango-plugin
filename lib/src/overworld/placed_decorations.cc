@@ -38,7 +38,7 @@
 #include "overworld/patch/tile_editor.h"
 #include "renderer/native/h3d_shader_model.h"
 #include "script/patch/native_script.h"
-#include "ui/log_application.h"
+#include "ui/log.h"
 
 namespace overworld {
 namespace {
@@ -219,7 +219,7 @@ bool PlacedDecorations::AddInFrontOfPlayer(DecorationId decoration,
   request.facing = facing;
   request.is_talkable = is_talkable;
   if (!Add(request)) {
-    ui::LogApplication::Print(u"decorations: list full (max %u)",
+    ui::Log::Print(u"decorations: list full (max %u)",
                               kMaxDecorations);
     return false;
   }

@@ -24,6 +24,8 @@
 
 #include "pokemon/patch/item_customizer.h"
 
+#include <cstring>
+
 #include "core/hook.h"
 #include "pokemon/native/item_data.h"
 
@@ -81,11 +83,59 @@ void ItemCustomizer::UpdateLimitPatch() {
   feat.is_limit_removed_ = feat.remove_limit;
 }
 
+namespace {
+// The changed copies of the items. A copy is kept as bytes: the constructor of
+// ItemData reads the data of the game.
+struct OverrideSlot {
+  bool is_used;
+  alignas(4) u8 data[sizeof(ItemData)];
+};
+OverrideSlot overrides[ItemCustomizer::kMaxOverrides];
+
+OverrideSlot* FindOverride(ItemId id) {
+  for (OverrideSlot& slot : overrides) {
+    if (slot.is_used && reinterpret_cast<ItemData*>(slot.data)->id == id) {
+      return &slot;
+    }
+  }
+  return nullptr;
+}
+} // namespace
+
+bool ItemCustomizer::SetOverride(const ItemData& data) {
+  OverrideSlot* slot = FindOverride(data.id);
+  if (slot == nullptr) {
+    for (OverrideSlot& free_slot : overrides) {
+      if (!free_slot.is_used) {
+        slot = &free_slot;
+        break;
+      }
+    }
+  }
+  if (slot == nullptr) return false;
+  memcpy(slot->data, &data, sizeof(ItemData));
+  slot->is_used = true;
+  return true;
+}
+
+void ItemCustomizer::ClearOverride(ItemId id) {
+  OverrideSlot* slot = FindOverride(id);
+  if (slot != nullptr) slot->is_used = false;
+}
+
+const ItemData* ItemCustomizer::GetOverride(ItemId id) {
+  OverrideSlot* slot = FindOverride(id);
+  return slot != nullptr ? reinterpret_cast<const ItemData*>(slot->data)
+                         : nullptr;
+}
+
 u32 ItemCustomizer::GetParamHook(ItemData* item, u32 param_id) {
   if (!item) return 0;
   UpdateLimitPatch();
 
   auto& feat = GetInstance();
+  const ItemData* changed = GetOverride(item->id);
+  if (changed != nullptr) memcpy(item, changed, sizeof(ItemData));
   if (feat.on_item_data != nullptr) feat.on_item_data(item);
 
   return GetParam(item, param_id);

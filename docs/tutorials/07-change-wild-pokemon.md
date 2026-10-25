@@ -127,7 +127,7 @@ species. Set them too when you need exact values.
 ## Find the id of a map
 
 - The map ids are in `lib/include/overworld/constant/map.h`.
-- The overlay shows the id of the current map: **Overworld > Map Id**.
+- The overlay shows the current map: **Teleport > Use My Place**. The grid of the **Map** entry shows the id of each map.
 
 ## Change the encounter table
 

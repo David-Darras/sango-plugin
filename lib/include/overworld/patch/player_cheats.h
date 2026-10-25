@@ -33,11 +33,8 @@ struct PlayerCheats {
   f32 theta = 0.0f;
   f32 radius = 5.0f;
   f32 theta_speed = 1.0f;
-  u32 model_idx = 0;
-  u16 model_animation = 0;
 
   static void Initialize();
-  static void PlayAnimation(void*);
   static void SwarmMod();
   static void Noclip();
 };

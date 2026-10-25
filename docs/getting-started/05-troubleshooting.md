@@ -69,8 +69,8 @@ that is almost empty, points to the cause.
 
 ## Find the cause of a problem
 
-- Use the log window. Add `ui::LogApplication::Print(u"value: %d", value);` to your code.
-  Press **L + R** in the game to read the log.
+- Use the log window. Add `ui::Log::Print(u"value: %d", value);` to your code.
+  Open **Plugin > Log** in the menu to read the log.
 - Remove changes one at a time. Build and test after each change.
 - On Azahar, the log console of the emulator shows the crashes.
   Enable it in **Emulation > Configure > Debug**.

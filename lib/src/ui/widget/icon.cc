@@ -31,7 +31,7 @@
 #include "core/constant/archive_id.h"
 #include "core/game_file.h"
 #include "system/native/graphics.h"
-#include "ui/log_application.h"
+#include "ui/log.h"
 
 namespace ui {
 namespace {
@@ -508,7 +508,7 @@ void IconPool::LoadFileIcon(Slot& slot) {
                                                    &size);
   if (file == nullptr || !WriteImage(slot, file, size, true)) {
     if (error_count++ < 4) {
-      LogApplication::Print(u"Icon %u/%lu: %s", (unsigned)archive, file_id,
+      Log::Print(u"Icon %u/%lu: %s", (unsigned)archive, file_id,
                             file == nullptr       ? "no file"
                             : slot.texture == nullptr ? "no texture"
                                                       : "bad image");

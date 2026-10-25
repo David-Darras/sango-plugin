@@ -103,7 +103,7 @@ The menu of the plugin is on the top screen.
 | **A** | Opens the page of the entry, or runs the entry. |
 | **B** | Goes back to the previous page. |
 | **X** | Sets the value that you typed on the bottom screen (overlay only). |
-| **L + R** | Shows or hides the log window. |
+| **L + R** | Walk mode: the game gets the buttons and the menu stays on the screen. L + R again goes back to the menu. |
 
 You can change the button that opens the menu: **Plugin Theme > Key 1, Key 2, Key 3**.
 

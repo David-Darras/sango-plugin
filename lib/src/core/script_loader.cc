@@ -27,7 +27,7 @@
 #include "core/hook.h"
 #include "script/native/amx.h"
 #include "system/native/file.h"
-#include "ui/log_application.h"
+#include "ui/log.h"
 
 namespace core {
 
@@ -123,7 +123,7 @@ void ScriptLoader::Dump(u32 id, const void* buffer, u32 size) {
   dumped_count++;
 
   if (log_activity) {
-    ui::LogApplication::Print(u"dumped script %08x (%d bytes)", id, size);
+    ui::Log::Print(u"dumped script %08x (%d bytes)", id, size);
   }
 }
 
@@ -165,7 +165,7 @@ const void* ScriptLoader::LoadOverride(u32 id, u32* out_size) {
 
   if (!IsValidHeader(buffer, size)) {
     if (log_activity) {
-      ui::LogApplication::Print(u"script %08x: override is not a valid .amx",
+      ui::Log::Print(u"script %08x: override is not a valid .amx",
                                 id);
     }
     return nullptr;
@@ -174,7 +174,7 @@ const void* ScriptLoader::LoadOverride(u32 id, u32* out_size) {
   const auto* header = (const script::AmxHeader*)buffer;
   if (header->total_file_size != size) {
     if (log_activity) {
-      ui::LogApplication::Print(
+      ui::Log::Print(
           u"script %08x: override is %d bytes, header says %d", id, size,
           header->total_file_size);
     }
@@ -188,7 +188,7 @@ const void* ScriptLoader::LoadOverride(u32 id, u32* out_size) {
 void ScriptLoader::ReportInjected(u32 id, u32 size) {
   injected_count++;
   if (log_activity) {
-    ui::LogApplication::Print(u"script %08x replaced (%d bytes)", id, size);
+    ui::Log::Print(u"script %08x replaced (%d bytes)", id, size);
   }
 }
 

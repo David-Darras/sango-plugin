@@ -16,8 +16,8 @@
  */
 
 /**
- * @file log_application.h
- * @brief The log window of the plugin.
+ * @file log.h
+ * @brief The log of the plugin.
  */
 
 #pragma once
@@ -27,46 +27,19 @@
 #include <cstring>
 
 #include "common.h"
-#include "system/native/controller.h"
-#include "system/native/graphics.h"
-#include "ui/application.h"
 
 namespace ui {
 /**
- * @brief The log window: the last 13 messages. Press L + R to show it.
+ * @brief The log of the plugin: the last 13 messages. The page Log of the
+ * menu shows them.
  *
  * @code
- * ui::LogApplication::Print(u"Species %u", static_cast<u32>(species));
+ * ui::Log::Print(u"Species %u", static_cast<u32>(species));
  * @endcode
  */
-class LogApplication : public Application {
-  MAKE_SINGLETON(LogApplication)
+class Log {
+  MAKE_SINGLETON(Log)
 public:
-  void DrawTop(sys::Graphics& graphics) override {
-    sys::Graphics::FillScreen(0, 0, 1, 0.6f);
-
-    Color text_color{1, 1, 1, 1};
-
-    for (u32 i = 0; i < kMaxEntries; i++) {
-      if (log_entries_[i][0] == u'\0') continue;
-
-      int x = 5;
-      int y = 5 + i * kLineHeight;
-
-      sys::Graphics::DrawText(x, y, log_entries_[i], text_color);
-    }
-  }
-
-  void DrawBottom(sys::Graphics& graphics) override {
-    sys::Graphics::FillScreen(0, 0, 1, 0.6f);
-
-    Color text_color{1, 1, 1, 1};
-    sys::Graphics::DrawText(10, 10, u"[DEBUG VIEW]", text_color);
-  }
-
-  void Update(sys::Controller& controller) override {
-  }
-
   /// Adds a formatted message (64 characters at most).
   void Add(const c16* message, ...) {
     if (!message) return;
@@ -107,7 +80,7 @@ public:
     if (!message)
       return;
 
-    LogApplication& log = GetInstance();
+    Log& log = GetInstance();
 
     c16 buffer[kMaxEntryLength];
 

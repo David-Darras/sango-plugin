@@ -130,7 +130,7 @@ make myhack
 | Forms | `lib/include/pokemon/constant/form.h` (`FormId`) |
 | Processes | `lib/include/core/address.h` (`k...Vtable`) |
 
-The overlay has a page to preview the overworld models: **Player > Model**.
+The overlay has a page to preview the overworld models: **Characters**.
 
 ## Examples in the project
 

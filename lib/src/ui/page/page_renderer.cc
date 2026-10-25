@@ -26,6 +26,7 @@
 #include "renderer/patch/text_box_filter.h"
 #include "ui/main_application.h"
 #include "ui/page/page_common.h"
+#include "ui/page/pages.h"
 
 namespace ui {
 void LoadPokemonTexturePage(MainApplication& app, void* args) {
@@ -105,13 +106,16 @@ void LoadLayoutPicturePage(MainApplication& app, void* args) {
      .Add("Bottom Right Color", LoadColor8Page, &ctx.bottom_right_color);
 }
 
-void LoadRendererPage(MainApplication& app, void* args) {
+void LoadGraphicsPage(MainApplication& app, void* args) {
   app.AddSection("3D Models")
      .Add("Lighting", LoadLightPage)
      .WithDescription("The outlines, the ambient light and the diffuse "
                       "light of the 3D models.")
      .Add("Battle Pokemon Filter", LoadPokemonTexturePage)
      .WithDescription("A color filter on the Pokemon models in battle.")
+     .Add("Model Loader (Unstable)", LoadModelLoaderPage)
+     .WithDescription("Shows a model of a character or a Pokemon near the "
+                      "player.")
      .AddSection("2D Layouts")
      .Add("Text Box", LoadLayoutTextBoxPage)
      .WithDescription("The size and the colors of the message boxes.")

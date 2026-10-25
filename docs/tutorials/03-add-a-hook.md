@@ -45,7 +45,7 @@ Make the file `myhack/src/my_hooks.cc`:
 #include "core/hook.h"
 #include "pokemon/address.h"
 #include "savedata/native/pokemon_team.h"
-#include "ui/log_application.h"
+#include "ui/log.h"
 
 namespace myhack {
 
@@ -59,7 +59,7 @@ HOOK(bool, AddPokemonToTeam,
   const SpeciesId species = pokemon->core->species;
   pokemon->accessor->Encrypt();
 
-  ui::LogApplication::Print(u"New Pokemon: species %u",
+  ui::Log::Print(u"New Pokemon: species %u",
                             static_cast<u32>(species));
 
   // Stop Wurmple, but only for the party of the player.
@@ -91,7 +91,7 @@ make myhack
 In the game:
 
 1. Catch a Pokémon or receive a gift Pokémon.
-2. Press **L + R**: the log shows `New Pokemon: species ...`.
+2. Open **Plugin > Log** in the menu: the log shows `New Pokemon: species ...`.
 3. Catch a Wurmple on Route 101 or Route 102. It does not join your party.
 
 ## Change the result or the parameters

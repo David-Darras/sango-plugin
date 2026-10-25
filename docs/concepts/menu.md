@@ -33,6 +33,7 @@ on the next line.
 | **Hold Y** | Opens the menu of the entry: Copy, Paste, Reset, Pin, Undo, Help. A long press on the description does the same. |
 | **X** | Opens the pinned entries in a circle (see below). In the numpad and the keyboard: applies the value. |
 | **B** | Goes back to the previous page. |
+| **L + R** (together) | Walk mode: the menu stays on the top screen, dimmed, and the game gets the buttons again. L + R again goes back to the menu. The **Walk** button of the bottom screen does the same. START closes the menu in both modes. |
 
 The menu does not use SELECT, HOME, ZL or ZR: SELECT and START are the same
 button on some consoles, and ZL / ZR do not exist on a standard 3DS.
@@ -98,7 +99,7 @@ Katakana, Kanji, the icons of the game... It starts with the current text.
 
 ```cpp
 void LoadMyPage(ui::MainApplication& app, void* args) {
-  app.AddQuickAccess()   // The pinned entries and the recent entries.
+  app.AddQuickAccess()   // The pinned entries.
      .AddSection("Play")
      .Add("Game Speed", core::GameSpeed::GetInstance().game_speed)
      .WithDescription("1 is the normal speed.")
@@ -111,7 +112,7 @@ void LoadMyPage(ui::MainApplication& app, void* args) {
 |---|---|
 | `AddSection(name)` | Adds a section title. L and R jump between the sections. |
 | `WithDescription(text)` | Sets the text of the bottom screen for the last entry. Use one or two short sentences. |
-| `AddQuickAccess()` | Adds the pinned entries (Y, 8 at most), the 4 recent entries and the 4 recent pages. Use it at the start of the first page. A pinned or a recent page opens with the pages before it: B goes back through them. |
+| `AddQuickAccess()` | Adds the pinned entries (Y, 8 at most). Use it at the end of the first page: the shortcuts come last. A pinned page opens with the pages before it: B goes back through them. |
 | `WithReadOnly()` | The player sees the value of the last entry, but cannot change it. |
 | `OnChange(function)` | Runs the function after each change of a value on the page. |
 
@@ -131,14 +132,14 @@ void LoadMyPokemonPage(ui::MainApplication& app, void* args) {
 ```
 
 The menu runs `OnChange` before it builds the page again (`WithRefresh`):
-the page then reads the new data. A pinned or a recent entry keeps the
+the page then reads the new data. A pinned entry keeps the
 `OnChange` function of its page.
 
 A pinned entry is a copy of the entry: the player changes its value directly
 on the first page. When the page of the entry needs a part of the game
 (`CheckProcess`), the copy works only in this part of the game.
 
-The menu keeps the way to each pinned or recent entry as a text: the names of
+The menu keeps the way to each pinned entry as a text: the names of
 the pages, the section in brackets, then the name of the entry. For example:
 `Battle > Settings > [Display] Type Helper`. When the first page loads, the
 menu runs the page functions without the screen to find the entries again.
@@ -162,7 +163,7 @@ automatically for the entries of type page.
 - **The editors start with the current value**: the player edits a value,
   and does not type it again.
 - **Few levels of pages**: a page with sections is faster than several small
-  pages. The Save Data page shows all its parts in four sections.
+  pages. The Save Data page shows all its parts in a few sections.
 - **A circle for the 8 pins**: a radial menu is fast for 8 items at most:
   each item has its own direction, and the hand learns it. It is not good
   for long lists, so the pages stay lists.
@@ -176,7 +177,7 @@ automatically for the entries of type page.
 
 The menu keeps its settings in `sdmc:/sango/menu.ini`: the effects, the
 colors, the sounds, the buttons that open the menu, the pinned entries and
-the recent entries. The menu reads the file when the game starts, and writes
+the recent values. The menu reads the file when the game starts, and writes
 it when the menu closes, only when a setting changed. The player can change
 the file in a text editor:
 
@@ -198,7 +199,7 @@ pin2 = [Play] Game Speed
 
 The colors are `RRGGBBAA` in hexadecimal. `[menu]` also keeps `sounds`
 (0: no sound) and `fast_delay` (the frames before a held button goes
-faster). The section `[recent_pages]` keeps the recent pages. Other features
+faster). Other features
 can use the same format with `core::Ini` (`lib/include/core/ini.h`).
 
 ## The types of entries

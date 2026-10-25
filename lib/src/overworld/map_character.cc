@@ -34,7 +34,7 @@
 #include "overworld/constant/position_kind.h"
 #include "overworld/patch/map_graft.h"
 #include "overworld/patch/placed_decorations.h"
-#include "ui/log_application.h"
+#include "ui/log.h"
 
 namespace overworld {
 
@@ -216,13 +216,13 @@ void MapCharacter::CompleteRegionModelList(
 void MapCharacter::LogShippedCharacters(const MapEventData* events) const {
   const u32 count = events->character_count;
   const CharacterPlacement* shipped = events->characters;
-  ui::LogApplication::Print(u"map=%u chars=%u", events->map_id, count);
+  ui::Log::Print(u"map=%u chars=%u", events->map_id, count);
   if (shipped == nullptr) return;
 
   u32 shown = count < 8 ? count : 8;
   for (u32 i = 0; i < shown; i++) {
     const CharacterPlacement& c = shipped[i];
-    ui::LogApplication::Print(u"  id=%u model=%u script=%u xz=%u,%u y=%d",
+    ui::Log::Print(u"  id=%u model=%u script=%u xz=%u,%u y=%d",
                               c.local_id, c.model_id, c.script_id,
                               c.position.tile_x, c.position.tile_z,
                               (s32)c.position.height);
@@ -291,7 +291,7 @@ void MapCharacter::PlaceCharacters(MapEventData* events) {
   events->character_capacity = count;
 
   if (is_logging_enabled) {
-    ui::LogApplication::Print(u"placed %u -> chars=%u", added, count);
+    ui::Log::Print(u"placed %u -> chars=%u", added, count);
   }
 }
 
@@ -336,13 +336,13 @@ void MapCharacter::AddMissingModels(CharacterManager* manager,
     if (Contains(models, count, model_id)) continue;
     if (!LoadAppearance(manager, model_id, &models[count])) {
       if (is_logging_enabled) {
-        ui::LogApplication::Print(u"model %u unknown", model_id);
+        ui::Log::Print(u"model %u unknown", model_id);
       }
       continue;
     }
     count++;
     if (is_logging_enabled) {
-      ui::LogApplication::Print(u"model %u added -> models=%u", model_id,
+      ui::Log::Print(u"model %u added -> models=%u", model_id,
                                 count);
     }
   }

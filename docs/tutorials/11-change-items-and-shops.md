@@ -98,7 +98,7 @@ Some useful members:
 
 2. Build, install your product and start the game.
 3. Talk to the clerk of the shop and open the shop.
-4. Press **L + R**: the log shows `shop: type=... id=...`. Write down the id.
+4. Open **Plugin > Log** in the menu: the log shows `shop: type=... id=...`. Write down the id.
 5. Remove the line of step 1.
 
 ### Step 2: Set the items

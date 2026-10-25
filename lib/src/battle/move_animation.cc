@@ -26,7 +26,7 @@
 #include <cstring>
 #include "battle/patch/effect_style.h"
 #include "core/patch/archive.h"
-#include "ui/log_application.h"
+#include "ui/log.h"
 
 namespace battle {
 
@@ -682,13 +682,13 @@ static Slot* PrepareSlot(u32* archive, u32 file_id) {
   const MoveAnimation::LimitProblem problem =
       animation.FindLimitProblem(&problem_step, &problem_limit);
   if (problem == MoveAnimation::LimitProblem::kGroupOutOfRange) {
-    ui::LogApplication::Print(u"Animation %d: step %d uses a group >= %d",
+    ui::Log::Print(u"Animation %d: step %d uses a group >= %d",
                               (s32)file_id, (s32)problem_step,
                               (s32)problem_limit);
     return nullptr;
   }
   if (problem == MoveAnimation::LimitProblem::kGroupStillAlive) {
-    ui::LogApplication::Print(u"Animation %d: step %d reuses group %d too early",
+    ui::Log::Print(u"Animation %d: step %d reuses group %d too early",
                               (s32)file_id, (s32)problem_step,
                               (s32)problem_limit);
     return nullptr;

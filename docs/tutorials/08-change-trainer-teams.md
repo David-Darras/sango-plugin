@@ -138,7 +138,7 @@ The values are in `lib/include/battle/constant/`.
 - In the callback, write the id to the log to find it:
 
   ```cpp
-  ui::LogApplication::Print(u"Trainer %u", static_cast<u32>(trainer_id));
+  ui::Log::Print(u"Trainer %u", static_cast<u32>(trainer_id));
   ```
 
 ## Go further

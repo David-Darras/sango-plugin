@@ -55,6 +55,7 @@
 #include "system/native/core.h"
 #include "system/native/sound.h"
 #include "ui/theme.h"
+#include "ui/page/enum_names.h"
 #include "ui/page/page_common.h"
 #include "ui/page/pages.h"
 
@@ -596,60 +597,55 @@ void LoadSaveDataRecordsPage(MainApplication& app, void* args) {
      .Add("Value", data.records_1[record_1_idx]);
 }
 
-void LoadSaveDataMiscellaneousPage(MainApplication& app, void* args) {
-  auto& data = savedata::Misc::GetInstance();
-
-  app.AddSection("Money")
-     .Add("Money", data.money)
-     .Add("Battle Points", data.battle_points)
-     .AddSection("Badges");
-
-  for (u32 i = 0; i < 8; i++) {
-    app.Add(GetNumberedNames("Badge %u", 8)[i], &data.badges, i, 1);
-  }
-
-  app.AddSection("Other")
-     .Add("Rival Nickname", data.rival_nickname,
-          savedata::Misc::kNicknameLength)
-     .Add("Unlock Pokémon League Wallpapers", &data.flags, 0, 1)
-     .Add("Keyboard Layout", &data.flags, 2, 1)
-     .Add("Exp. Share Enabled", &data.flags, 3, 1)
-#ifdef GAME_XY
-     .Add("Pokemon-Amie Tutorial Seen", &data.tutorial_pokemon_amie, 0, 1)
-      .Add("Super Training Tutorial Seen", &data.tutorial_super_training, 0, 1)
-      .Add("Vs. Recorder Tutorial Seen", &data.flags2, 1, 1);
-#else
-      .Add("PSS Tutorial Seen", &data.flags, 5, 1)
-      .Add("Pokemon-Amie Tutorial Seen", &data.flags, 6, 1)
-      .Add("Super Training Tutorial Seen", &data.flags, 7, 1)
-      .Add("Vs. Recorder Tutorial Seen", &data.flags, 9, 1)
-      .Add("Skip Long Sky Trip Animation", &data.flags, 11, 1)
-      .Add("TV Navi Tutorial Seen", &data.flags, 14, 1);
-#endif
-}
-
-void LoadSaveDataTrainerStatusPage(MainApplication& app, void* args) {
+// The player: who it is, what it owns and what it did. The most edited values
+// of the save file are here.
+void LoadSaveDataTrainerPage(MainApplication& app, void* args) {
   static const c8* GENDERS[] = {"Male", "Female"};
-  auto& data = savedata::TrainerStatus::GetInstance();
+  auto& status = savedata::TrainerStatus::GetInstance();
+  auto& misc = savedata::Misc::GetInstance();
+  auto& time = savedata::PlayTime::GetInstance();
 
   app.AddSection("Trainer")
-     .Add("Player Name", data.name, savedata::TrainerStatus::kPlayerNameLen)
-     .Add("Nickname", data.nickname, savedata::TrainerStatus::kPlayerNameLen)
-     .Add("Trainer ID (TID)", data.trainer_id)
+     .Add("Player Name", status.name, savedata::TrainerStatus::kPlayerNameLen)
+     .Add("Nickname", status.nickname, savedata::TrainerStatus::kPlayerNameLen)
+     .Add("Gender", status.gender)
+     .WithArray(GENDERS, SIZE(GENDERS))
+     .Add("Trainer ID (TID)", status.trainer_id)
      .WithDescription("The Trainer ID that the Trainer Card shows.")
-     .Add("Secret ID (SID)", data.secret_id)
+     .Add("Secret ID (SID)", status.secret_id)
      .WithDescription("The hidden part of the Trainer ID. It changes the "
                       "shiny Pokemon.")
-     .Add("Gender", data.gender)
-     .WithArray(GENDERS, SIZE(GENDERS))
-     .Add("Game Version", data.game_version)
+     .Add("Rival Nickname", misc.rival_nickname,
+          savedata::Misc::kNicknameLength)
+     .Add("Game Version", status.game_version)
      .WithArray(kGameVersionNames, SIZE(kGameVersionNames))
 
-     .AddSection("Mega Evolution")
-     .Add("Mega Ring Obtained", &data.mega_flags, 0, 1)
-     .Add("Mega Rayquaza Unlocked", &data.mega_flags, 1, 1)
+     .AddSection("Money")
+     .Add("Money", misc.money)
+     .Add("Battle Points", misc.battle_points)
 
-     .AddSection("PSS")
+     .AddSection("Badges");
+  for (u32 i = 0; i < 8; i++) {
+    app.Add(GetNumberedNames("Badge %u", 8)[i], &misc.badges, i, 1);
+  }
+
+  app.AddSection("Play Time")
+     .Add("Hours", time.hour)
+     .Add("Minutes", time.minute)
+     .WithBounds(0, 59)
+     .Add("Seconds", time.second)
+     .WithBounds(0, 59)
+
+     .AddSection("Mega Evolution")
+     .Add("Mega Ring Obtained", &status.mega_flags, 0, 1)
+     .Add("Mega Rayquaza Unlocked", &status.mega_flags, 1, 1);
+}
+
+// The online profile and the data of the console.
+void LoadSaveDataOnlinePage(MainApplication& app, void* args) {
+  auto& data = savedata::TrainerStatus::GetInstance();
+
+  app.AddSection("PSS")
      .Add("PSS Icon", data.pss_icon)
      .Add("PSS Message 1", data.pss_messages[0],
           savedata::TrainerStatus::kPssMessageLen)
@@ -861,16 +857,6 @@ void LoadSaveDataOPowerPage(MainApplication& app, void* args) {
      .Add("Lv. 2 Uses", man.battle_power_level_2_uses[battle_opower_idx]);
 }
 
-void LoadSaveDataPlayTimePage(MainApplication& app, void* args) {
-  auto& data = savedata::PlayTime::GetInstance();
-
-  app.Add("Hours", data.hour)
-     .Add("Minutes", data.minute)
-     .WithBounds(0, 59)
-     .Add("Seconds", data.second)
-     .WithBounds(0, 59);
-}
-
 void OnUpdateLanguage(void*) {
   auto& settings = savedata::Settings::GetInstance();
   auto language = static_cast<Language>(settings.language);
@@ -879,6 +865,7 @@ void OnUpdateLanguage(void*) {
   savedata::TrainerStatus::GetInstance().language = language;
 }
 
+// The options of the game, and the tutorials that the player saw.
 void LoadSaveDataSettingsPage(MainApplication& app, void* args) {
   static const c8* TEXT_SPEED[] = {"Slow", "Normal", "Fast", "Instant"};
   static const c8* TOGGLE_OFF_ON[] = {"Off", "On"};
@@ -891,6 +878,7 @@ void LoadSaveDataSettingsPage(MainApplication& app, void* args) {
   };
 
   auto& settings = savedata::Settings::GetInstance();
+  auto& misc = savedata::Misc::GetInstance();
 
   app.AddSection("Game")
      .Add("Text Speed", &settings.core, 0, 2)
@@ -918,7 +906,23 @@ void LoadSaveDataSettingsPage(MainApplication& app, void* args) {
      .Add("SpotPass", &settings.core, 16, 1)
      .WithArray(TOGGLE_OFF_ON, SIZE(TOGGLE_OFF_ON))
      .Add("PSS", &settings.core, 17, 1)
-     .WithArray(TOGGLE_OFF_ON, SIZE(TOGGLE_OFF_ON));
+     .WithArray(TOGGLE_OFF_ON, SIZE(TOGGLE_OFF_ON))
+     .AddSection("Other")
+     .Add("Exp. Share Enabled", &misc.flags, 3, 1)
+     .Add("Keyboard Layout", &misc.flags, 2, 1)
+     .Add("Unlock Pokémon League Wallpapers", &misc.flags, 0, 1)
+#ifdef GAME_XY
+     .Add("Pokemon-Amie Tutorial Seen", &misc.tutorial_pokemon_amie, 0, 1)
+     .Add("Super Training Tutorial Seen", &misc.tutorial_super_training, 0, 1)
+     .Add("Vs. Recorder Tutorial Seen", &misc.flags2, 1, 1);
+#else
+     .Add("PSS Tutorial Seen", &misc.flags, 5, 1)
+     .Add("Pokemon-Amie Tutorial Seen", &misc.flags, 6, 1)
+     .Add("Super Training Tutorial Seen", &misc.flags, 7, 1)
+     .Add("Vs. Recorder Tutorial Seen", &misc.flags, 9, 1)
+     .Add("Skip Long Sky Trip Animation", &misc.flags, 11, 1)
+     .Add("TV Navi Tutorial Seen", &misc.flags, 14, 1);
+#endif
 }
 
 void LoadSaveDataRepelPage(MainApplication& app, void* args) {
@@ -1081,6 +1085,7 @@ void LoadSaveDataBerryTreePage(MainApplication& app, void* args) {
      .Add("Use Default Berry", tree.use_default_berry)
      .AddSection("Place")
      .Add("Map ID", loc.map_id)
+     .WithArray(kMapNames, SIZE(kMapNames))
      .Add("Tile X", loc.tile_x)
      .Add("Tile Z", loc.tile_z)
      .Add("Height", loc.height);
@@ -1091,43 +1096,46 @@ void LoadSaveDataPage(MainApplication& app, void* args) {
   auto& sv = savedata::SaveData::GetInstance();
   auto& fusion = savedata::Fusion::GetInstance();
 
-  app.AddSection("Pokemon")
-     .Add("Team", LoadSaveDataTeamPage)
-     .WithDescription("The Pokemon of the team. The changes apply at once.")
-     .Add("PC Boxes", LoadSaveDataPokemonBoxPage)
-     .WithDescription("The Pokemon of the PC. The changes apply at once.")
-     .Add("Battle Box", LoadSaveDataBattleBoxPage)
-     .Add("Day Care", LoadSaveDataDayCarePage)
-     .Add("Fusion", LoadSaveDataPokemonPage, &fusion.pokemon)
-     .WithDescription("The Pokemon inside a fused Kyurem (Reshiram or "
-                      "Zekrom).")
-     .Add("Pokedex", LoadSaveDataPokedexPage)
-     .Add("Hall of Fame", LoadSaveDataHallOfFamePage)
-
-     .AddSection("Trainer")
-     .Add("Trainer Status", LoadSaveDataTrainerStatusPage)
-     .WithDescription("The name, the IDs and the PSS profile of the player.")
-     .Add("Money, Badges, Flags", LoadSaveDataMiscellaneousPage)
-     .Add("Play Time", LoadSaveDataPlayTimePage)
-     .Add("Records", LoadSaveDataRecordsPage)
-     .Add("Settings", LoadSaveDataSettingsPage)
-     .WithDescription("The options of the game: text speed, language, "
-                      "battle style...")
+  app.AddSection("Trainer")
+     .Add("Trainer Card", LoadSaveDataTrainerPage)
+     .WithDescription("Name, IDs, money, badges, play time and Mega Ring.")
+     .Add("Game Options", LoadSaveDataSettingsPage)
+     .WithDescription("Text speed, language, battle style, Exp. Share and "
+                      "the tutorials that the player saw.")
      .Add("Overworld Menu", LoadSaveDataOverworldMenuPage)
      .WithDescription("The icons of the X menu: visible or not, and their "
                       "positions.")
 
-     .AddSection("Items")
+     .AddSection("Pokemon")
+     .Add("Team", LoadSaveDataTeamPage)
+     .WithDescription("The Pokemon of the team. The changes apply at once.")
+     .Add("PC Boxes", LoadSaveDataPokemonBoxPage)
+     .WithDescription("The Pokemon of the PC. The changes apply at once.")
+     .Add("Pokedex", LoadSaveDataPokedexPage)
+     .Add("Battle Box", LoadSaveDataBattleBoxPage)
+     .Add("Day Care", LoadSaveDataDayCarePage)
+     .Add("Box Names And Wallpapers", LoadSaveDataBoxesMetadataPage)
+     .Add("Hall of Fame", LoadSaveDataHallOfFamePage)
+     .Add("Fusion", LoadSaveDataPokemonPage, &fusion.pokemon)
+     .WithDescription("The Pokemon inside a fused Kyurem (Reshiram or "
+                      "Zekrom).")
+
+     .AddSection("Bag")
      .Add("Bag Items", LoadSaveDataBagItemsPage)
      .Add("Bag Order And Shortcuts", LoadSaveDataBagMetadataPage)
-     .Add("Box Names And Wallpapers", LoadSaveDataBoxesMetadataPage)
-     .Add("Berry Trees", LoadSaveDataBerryTreePage)
      .Add("Repel", LoadSaveDataRepelPage)
+     .Add("Berry Trees", LoadSaveDataBerryTreePage)
 
-     .AddSection("Activities")
+     .AddSection("Progress")
+     .Add("Records", LoadSaveDataRecordsPage)
      .Add("O-Power", LoadSaveDataOPowerPage)
      .Add("Pokemon-Amie", LoadSaveDataPokemonAmiePage)
      .Add("Minigames", LoadSaveDataMinigamePage)
+
+     .AddSection("Online")
+     .Add("PSS Profile And Console", LoadSaveDataOnlinePage)
+     .WithDescription("The messages and the requests of the PSS, and the "
+                      "IDs of the console.")
      .Add("PSS Favorites", LoadSaveDataPssGroupPage,
           &sv.GetPssFavouriteGroup())
      .Add("PSS Friends", LoadSaveDataPssGroupPage, &sv.GetPssFriendGroup())

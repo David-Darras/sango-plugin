@@ -29,42 +29,64 @@
 #include "ui/page/pages.h"
 
 namespace ui {
-// The first page. The quick access comes first: the pinned entries and the
-// recent entries. Then the pages, grouped by what the player wants to do.
-// The pages for the creators of ROM hacks and the expert pages come last.
+// The first page. It starts with what the player uses at once: the speed, the
+// apps, the field moves and the teleport. Then the pages by family, and the
+// plugin itself. The quick access (the pinned entries) comes last.
 void LoadTopPage(MainApplication& app, void* args) {
   app.AddSection("Play")
      .Add("Game Speed", core::GameSpeed::GetInstance().game_speed)
      .WithBounds(-5, 5)
      .WithDescription("1 is the normal speed. 2 to 5 make the game faster. "
          "-2 to -5 make it slower.")
-     .Add("Player", LoadPlayerPage)
-     .WithDescription("Field moves, apps, camera and look of the player.")
-     .Add("Pokemon", LoadPokemonPage)
-     .WithDescription("Shiny Pokemon, randomizers, species, moves and "
-         "TMs.")
-     .Add("Battle", LoadBattlePage)
-     .WithDescription("Battle options, and the Pokemon of the current "
-         "battle.")
+     .Add("Apps", LoadAppPage)
+     .WithDescription("Opens the PC, the Move Reminder or the Move Deleter "
+         "from anywhere.")
+     .Add("Field Moves", LoadOverworldFieldMovePage)
+     .WithDescription("Uses Surf, Cut, Fly... without a Pokemon that knows "
+         "the move.")
+     .Add("Teleport", LoadTeleportPage)
+     .WithDescription("Sends the player to any map.")
+     .AddSection("Game")
      .Add("Overworld", LoadOverworldPage)
-     .WithDescription("Weather, time of day, wild Pokemon and the map.")
-     .AddSection("Create")
-     .Add("Scripts", LoadScriptPage)
-     .WithDescription("The overworld scripts and the C++ scripts.")
-     .Add("Renderer", LoadRendererPage)
-     .WithDescription("Lighting, outlines and color filters.")
+     .WithDescription("Teleport, weather, time of day, wild Pokemon, "
+         "characters, camera and objects of the map.")
+     .Add("Battle", LoadBattlePage)
+     .WithDescription("Battle options, new battles, and the Pokemon of the "
+         "current battle.")
+     .Add("Pokemon", LoadPokemonPage)
+     .WithDescription("Shiny Pokemon, randomizers and rules for the "
+         "Pokemon.")
+     .AddSection("Edit")
+     .Add("Save Data", LoadSaveDataPage)
+     .WithDescription("The save file: money, badges, bag, team, boxes... "
+         "Change it with care.")
+     .Add("Game Data", LoadGameDataPage)
+     .WithDescription("The tables of the game: species, moves, TMs and the "
+         "type chart.")
+     .AddSection("Customize")
+     .Add("Graphics", LoadGraphicsPage)
+     .WithDescription("Lighting, outlines, color filters, layouts and the "
+         "model loader.")
+     .Add("Sound", LoadSoundPage)
+     .WithDescription("Plays the music, the sound effects and the cries.")
      .Add("Title Screen", LoadTitleScreenPage)
      .WithDescription("The videos, the cry and the timing of the title "
-         "screen.")
-     .AddSection("Advanced")
-     .Add("Save Data", LoadSaveDataPage)
-     .WithDescription("The raw data of the save file. Change it with "
-         "care.")
-     .Add("System", LoadSystemPage)
-     .WithDescription("Sounds and the clock of the game.")
+         "screen, and the start of a new game.")
+     .Add("Scripts", LoadScriptPage)
+     .WithDescription("The overworld scripts and the C++ scripts.")
+     .AddSection("Extras")
+     .Add("Cheats", LoadCheatsPage)
+     .WithDescription("Noclip, Auto Surf, Swarm, Day Care and other fun "
+         "features.")
+     .AddSection("Plugin")
      .Add("Plugin Theme", LoadThemePage)
      .WithDescription("The colors, the sounds and the button of the "
          "menu.")
+     .Add("Log", LoadLogPage)
+     .WithDescription("The last messages of the plugin.")
+     .Add("System", LoadSystemPage)
+     .WithDescription("The performance overlay and the clock of the "
+         "game.")
      .AddQuickAccess();
 }
 } // namespace ui

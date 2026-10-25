@@ -24,7 +24,7 @@
 
 #include "battle/constant/effect_id.h"
 #include "battle/patch/move_animation.h"
-#include "ui/log_application.h"
+#include "ui/log.h"
 
 namespace battle {
 
@@ -51,7 +51,7 @@ void BuildEffectShowcaseAnimation(MoveAnimation& a) {
   if (count > kMaxEffectsPerUse) count = kMaxEffectsPerUse;
   if (kAdvanceEachUse) next_effect = first + count;
 
-  ui::LogApplication::Print(u"Effect showcase: effects %d to %d", (s32)first,
+  ui::Log::Print(u"Effect showcase: effects %d to %d", (s32)first,
                             (s32)(first + count - 1));
 
   MoveAnimations::LoadEffectsOnDemand();
@@ -85,7 +85,7 @@ void BuildEffectShowcaseAnimation(MoveAnimation& a) {
 
   a.CameraRestore(end, end + 20, false, MoveCurve::kFastStart, false);
 
-  ui::LogApplication::Print(u"Effect showcase: %d bytes, %d frames",
+  ui::Log::Print(u"Effect showcase: %d bytes, %d frames",
                             (s32)a.size(), end + 20);
 }
 

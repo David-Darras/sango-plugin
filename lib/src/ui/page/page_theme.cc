@@ -73,6 +73,14 @@ void LoadThemePage(MainApplication& app, void* args) {
   app.AddSection("Controls")
       .Add("Menu Sounds", theme.sounds)
       .WithDescription("Off: the menu plays no sound.")
+      .Add("Show Pinned At Start", theme.show_pins_at_start)
+      .WithDescription("On: the first page shows the pinned entries when the "
+                       "menu starts. Off: touch Quick Access to show them.")
+      .Add("Walk Mode Opacity", theme.walk_opacity)
+      .WithFactor(0.1f)
+      .WithBounds(0, 1)
+      .WithDescription("In walk mode (L + R) the game stays visible behind "
+                       "the menu. 0: the page only. 1: the normal background.")
       .Add("Fast Scroll Delay", theme.fast_delay)
       .WithBounds(5, 120)
       .WithDescription("The frames (60 = 1 second) that a held button waits "

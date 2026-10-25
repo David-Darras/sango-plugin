@@ -30,7 +30,9 @@
 
 #include "core/native/event_manager.h"
 #include "core/native/process_manager.h"
+#include "battle/address.h"
 #include "core/patch/device_patch.h"
+#include "overworld/address.h"
 #include "core/utils.h"
 #include "system/native/controller.h"
 #include "system/native/graphics.h"
@@ -159,7 +161,8 @@ void MainApplication::InitializeTouch() {
   // The help: the top-right corner. Undo and Reset: on its left, easy to
   // reach with the stylus.
   touch_[kTouchHelp].Initialize(294, 2, 22, 24);
-  touch_[kTouchUndo].Initialize(238, 2, 52, 24);
+  touch_[kTouchWalk].Initialize(240, 2, 50, 24);
+  touch_[kTouchUndo].Initialize(186, 2, 50, 24);
   touch_[kTouchOff].Initialize(10, kEditorY + 10, 145, 50);
   touch_[kTouchOn].Initialize(165, kEditorY + 10, 145, 50);
   touch_[kTouchRun].Initialize(10, kEditorY + 10, 300, 50);
@@ -200,7 +203,7 @@ void MainApplication::InitializeTouch() {
   touch_[kTouchPickerFilter].Initialize(186, kPickerBarY, 80,
                                         kPickerBarHeight);
   touch_[kTouchPageNext].Initialize(270, kPickerBarY, 40, kPickerBarHeight);
-  touch_[kTouchReset].Initialize(182, 2, 52, 24);
+  touch_[kTouchReset].Initialize(132, 2, 50, 24);
   // Min, Max and Hex: on the right of the bar of the numpad.
   const s32 tool_x = 10 + Numpad::kKeysWidth + 6;
   const s32 tool_width = (300 - Numpad::kKeysWidth - 6 - 4) / 3;
@@ -366,6 +369,14 @@ void MainApplication::DrawTouch(TouchId id, const c16* label, bool is_active,
 void MainApplication::DrawBottom(sys::Graphics& graphics) {
   painter_->DrawBottomOverlay(graphics);
 
+  if (IsWalking()) {
+    // The bottom screen belongs to the game: only a line of text.
+    sys::Graphics::DrawRect(0, 224, 320, 16, theme_.background_color);
+    sys::Graphics::SetTextScale(0.45f, 0.45f);
+    DrawLabel(6, 227, u"Walk mode.   L + R: back to the menu.",
+              theme_.selected_text_color);
+    return;
+  }
   if (!IsOpened() || !painter_->ShowBottom()) return;
 
   // The image of the theme, then the color of the theme over it.
@@ -408,9 +419,10 @@ void MainApplication::DrawBottom(sys::Graphics& graphics) {
   sys::Graphics::SetTextScale(0.45f, 0.45f);
   // The text stops before the first button.
   DrawPart(6, 3, contexts_count_ <= 1 ? kCredit : path,
-           has_reset ? 32 : (undo_count_ != 0 ? 42 : 54),
+           has_reset ? 22 : (undo_count_ != 0 ? 32 : 42),
            theme_.unselected_text_color);
   DrawTouch(kTouchHelp, u"?", false);
+  DrawTouch(kTouchWalk, u"Walk", false);
   if (undo_count_ != 0) {
     core::Utils::Format(buffer, u"Undo %u", undo_count_);
     DrawTouch(kTouchUndo, buffer, false);
@@ -635,8 +647,21 @@ void MainApplication::ForceClose() {
   theme_.Play(IsOpened() ? theme_.close_sound : theme_.open_sound);
   if (IsOpened()) SaveSettings();
   is_opened_ = false;
+  is_walking_ = 0;
   is_radial_open_ = 0;
   core::DevicePatch::GetInstance().use_redirection = is_opened_;
+}
+
+void MainApplication::SetWalking(bool is_walking) {
+  if (is_walking == static_cast<bool>(is_walking_)) return;
+  is_walking_ = is_walking;
+  is_radial_open_ = 0;
+  is_context_open_ = false;
+  is_help_open_ = false;
+  // The game sees the buttons only in walk mode.
+  core::DevicePatch::GetInstance().use_redirection = !is_walking;
+  theme_.Play(is_walking ? theme_.open_sound : theme_.close_sound);
+  for (u32 i = 0; i < kTouchMax; i++) touch_[i].Reset();
 }
 
 void MainApplication::ReadTouch(const PageItem& entry, Input& input) {
@@ -654,6 +679,8 @@ void MainApplication::ReadTouch(const PageItem& entry, Input& input) {
   for (u32 i = kTouchSectionUp; i <= kTouchBack; i++) touch_[i].Update();
   touch_[kTouchHelp].Update();
   if (touch_[kTouchHelp].IsReleased()) input.help = true;
+  touch_[kTouchWalk].Update();
+  if (touch_[kTouchWalk].IsReleased()) input.walk = true;
   // A long press on the description opens the menu of the entry.
   sys::TouchScreen& touch_screen = sys::TouchScreen::GetInstance();
   if (touch_screen.IsDown() && touch_screen.GetY() >= 28 &&
@@ -796,7 +823,13 @@ bool MainApplication::HasSlider(const PageItem& entry) {
 void MainApplication::Update(sys::Controller& controller) {
   // The settings file gives the theme and the buttons of the menu: read it
   // before the first frame of the menu.
-  if (!are_settings_loaded_) LoadSettings();
+  if (!are_settings_loaded_) {
+    LoadSettings();
+    are_pins_shown_ = theme_.show_pins_at_start;
+    // The first page loaded before the settings: build it again with the
+    // pins and the theme.
+    if (entries_count_ != 0) Refresh();
+  }
 
   // The menu cannot draw in this part of the game (for example the menu of
   // the Pokemon): it stays closed, and the buttons go to the game.
@@ -804,6 +837,7 @@ void MainApplication::Update(sys::Controller& controller) {
     if (IsOpened()) {
       SaveSettings();
       is_opened_ = 0;
+      is_walking_ = 0;
       is_radial_open_ = 0;
       core::DevicePatch::GetInstance().use_redirection = false;
     } else if (AreKeysReleased(controller)) {
@@ -816,6 +850,7 @@ void MainApplication::Update(sys::Controller& controller) {
     theme_.Play(IsOpened() ? theme_.close_sound : theme_.open_sound);
     if (IsOpened()) SaveSettings();
     is_opened_ ^= 1;
+    is_walking_ = 0;
     is_radial_open_ = 0;
     core::DevicePatch::GetInstance().use_redirection = is_opened_;
     return;
@@ -824,6 +859,21 @@ void MainApplication::Update(sys::Controller& controller) {
   if (!IsOpened()) return;
   StepAnimations();
   ItemCategories::Step();
+
+  // L + R together: walk mode. The menu stays on the screen and the game
+  // gets the buttons, so the player can walk around with the overlay.
+  const bool is_combo =
+      controller.IsKeyDown(Key::kL) && controller.IsKeyDown(Key::kR);
+  const bool combo_started = is_combo && !was_walk_combo_;
+  was_walk_combo_ = is_combo;
+  if (is_walking_) {
+    if (combo_started) SetWalking(false);
+    return;
+  }
+  if (combo_started) {
+    SetWalking(true);
+    return;
+  }
 
   if (is_radial_open_) {
     UpdateRadial(controller);
@@ -993,6 +1043,10 @@ void MainApplication::Update(sys::Controller& controller) {
     is_help_open_ = true;
     return;
   }
+  if (input.walk) {
+    SetWalking(true);
+    return;
+  }
   if (input.context) {
     OpenContext();
     return;
@@ -1059,14 +1113,9 @@ void MainApplication::Update(sys::Controller& controller) {
       theme_.Play(theme_.confirm_sound);
       const Shortcut* shortcut = GetShortcut(index);
       if (type == kTypeMenu && shortcut != nullptr) {
-        // A pinned or a recent page opens with the pages before it.
+        // A pinned page opens with the pages before it.
         OpenPageShortcut(*shortcut);
         return;
-      }
-      if (type == kTypeMenu) {
-        AddRecentPage(index);
-      } else {
-        AddRecent(index);
       }
       entry.Execute(*this);
       return;
@@ -1107,7 +1156,6 @@ void MainApplication::Update(sys::Controller& controller) {
     flash_frames_ = kFlashFrames;
     // First write the data back (OnChange), then build the page again: the
     // page reads the data when it loads.
-    AddRecent(index);
     RunOnChange(index);
     if (selected.NeedsRefresh()) Refresh();
     needs_prepare_ = true;
@@ -1200,7 +1248,6 @@ void MainApplication::FinishChange(u32 index, const PageItem& selected) {
   flash_index_ = index;
   flash_frames_ = kFlashFrames;
   // First write the data back (OnChange), then build the page again.
-  AddRecent(index);
   RunOnChange(index);
   if (selected.NeedsRefresh()) Refresh();
   needs_prepare_ = true;
@@ -1379,7 +1426,6 @@ void MainApplication::Open(menu_callback_t load_menu, void* args,
   is_help_open_ = false;
 
   entries_count_ = 0;
-  no_background_ = 0;
   is_quick_access_ = 0;
   is_search_page_ = 0;
   on_change_ = nullptr;
@@ -1407,7 +1453,6 @@ void MainApplication::Close() {
   MenuContext& ctx = GetContext();
 
   entries_count_ = 0;
-  no_background_ = 0;
   is_quick_access_ = 0;
   is_search_page_ = 0;
   on_change_ = nullptr;
@@ -1441,6 +1486,14 @@ bool MainApplication::CheckProcess(uptr vtable) {
       Close();
     }
     theme_.Play(theme_.error_sound);
+    // The player must know why the page did not open.
+    if (vtable == battle::address::kVtable) {
+      ShowToast("This page works only during a battle.");
+    } else if (vtable == overworld::address::kVtable) {
+      ShowToast("This page works only in the overworld.");
+    } else {
+      ShowToast("This page needs a different part of the game.");
+    }
     return true;
   }
   process_vtable_ = vtable;
@@ -1473,13 +1526,18 @@ PageItem& Painter::GetEntry(MainApplication& app, u32 index) {
 }
 
 void MainAppPainter::DrawPageBackground(MainApplication& app) {
-  if (!app.no_background_) {
-    if (app.theme_.background_image) {
-      GetTopImage().DrawCentered(
-          400, 240, Color(1, 1, 1, app.theme_.background_image_opacity));
-    }
-    sys::Graphics::FillScreen(app.theme_.background_color);
+  if (app.IsWalking()) {
+    // The game stays visible behind the page.
+    Color color = app.theme_.background_color;
+    color.a *= app.theme_.walk_opacity;
+    sys::Graphics::FillScreen(color);
+    return;
   }
+  if (app.theme_.background_image) {
+    GetTopImage().DrawCentered(
+        400, 240, Color(1, 1, 1, app.theme_.background_image_opacity));
+  }
+  sys::Graphics::FillScreen(app.theme_.background_color);
 }
 
 void MainAppPainter::DrawPageItems(MainApplication& app) {
@@ -1564,6 +1622,11 @@ void MainAppPainter::DrawPageItems(MainApplication& app) {
       // The stylus holds Reset: the line shows the value of the page opening.
       MainApplication::GetValueTextOf(entry, app.snapshot_[index], value);
       color = theme.selected_text_color;
+    } else if (index == app.GetSelectedIndex() && app.numpad_.IsHex() &&
+               entry.IsInteger() &&
+               app.GetEditor(entry) == MainApplication::Editor::kNumber) {
+      // The Hex key of the numpad is on: the value shows in hexadecimal.
+      core::Utils::Format(value, u"0x%lX", (u32)entry.ReadValue());
     } else {
       entry.GetValueText(value);
     }

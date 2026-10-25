@@ -85,6 +85,10 @@ public:
   /// Returns true when the menu is open.
   bool IsOpened() const { return is_opened_; };
 
+  /// Returns true in walk mode: the menu stays on the top screen, and the
+  /// game gets the buttons (L + R, or the Walk button, switches the mode).
+  bool IsWalking() const { return is_opened_ && is_walking_; }
+
   /**
    * @brief Writes where the player is: the pages, the selected entry and its
    *        editor. core::FrameTrace writes it to the SD card.
@@ -217,12 +221,6 @@ public:
    */
   MainApplication& OnChange(callback_t callback) {
     on_change_ = callback;
-    return *this;
-  }
-
-  /// Hides the background of the menu on this page.
-  MainApplication& WithNoBackground() {
-    no_background_ = 1;
     return *this;
   }
 
@@ -377,7 +375,7 @@ public:
     return *this;
   }
 
-  /// Adds the pinned entries and the recent entries. The player pins an
+  /// Adds the pinned entries. The player pins an
   /// entry with Y. Use it at the start of the first page.
   MainApplication& AddQuickAccess();
 
@@ -470,7 +468,7 @@ private:
     const c8* title;
   };
 
-  /// A pinned or a recent entry. The menu keeps the way to the entry as a
+  /// A pinned entry. The menu keeps the way to the entry as a
   /// text ("Battle > Settings > [Display] Type Helper"), saves it in the
   /// settings file, and finds the entry again when the first page loads.
   struct Shortcut {
@@ -523,6 +521,7 @@ private:
     kTouchPickerFilter, ///< Opens the filter (the keyboard).
     kTouchReset, ///< Puts the value of the page opening back.
     kTouchHelp, ///< "?": the help of the controls.
+    kTouchWalk, ///< Walk mode: the game gets the buttons.
     kTouchToMin, ///< The numpad: the smallest value.
     kTouchToMax, ///< The numpad: the largest value.
     kTouchHex, ///< The numpad: the hexadecimal keys.
@@ -577,7 +576,7 @@ private:
     : is_opened_(0),
       entries_count_(0),
       contexts_count_(0),
-      no_background_(0),
+      is_walking_(0),
       is_quick_access_(0),
       is_indexing_(0),
       index_failed_(0),
@@ -625,11 +624,7 @@ private:
   void TogglePin(u32 index);
   /// Returns the pin with this way, or -1.
   s32 FindPin(const c8* path) const;
-  /// Adds the entry at `index` to the list of the recent entries.
-  void AddRecent(u32 index);
-  /// Adds the page of the entry at `index` to the list of the recent pages.
-  void AddRecentPage(u32 index);
-  /// Opens the page of a pinned or a recent page, with the pages before it.
+  /// Opens the page of a pinned page, with the pages before it.
   void OpenPageShortcut(const Shortcut& shortcut);
   /// Adds the entries of a shortcut list to the page.
   void AddShortcuts(Shortcut* list, u32 count);
@@ -714,8 +709,8 @@ private:
    *        value goes in the recent values.
    */
   void ApplyValue(u32 index, u64 value, bool is_choice);
-  /// The end of a change of the entry at `index`: the flash, the recent
-  /// entries, OnChange() and the new page. `selected` is a copy of the entry.
+  /// The end of a change of the entry at `index`: the flash,
+  /// OnChange() and the new page. `selected` is a copy of the entry.
   void FinishChange(u32 index, const PageItem& selected);
   /// Puts the value of the page opening back (Reset).
   void ResetEntry(u32 index);
@@ -813,10 +808,14 @@ private:
     bool undo = false;
     bool reset = false; ///< Puts the value of the page opening back.
     bool help = false; ///< Shows the help of the controls.
+    bool walk = false; ///< Starts the walk mode.
     bool context = false; ///< Opens the menu of the entry.
     bool has_number = false; ///< Writes `number` (Min, Max, the slider).
     s64 number = 0;
   };
+
+  /// Starts or stops the walk mode (see IsWalking()).
+  void SetWalking(bool is_walking);
 
   /// Reads the touch buttons of the bottom screen into `input`.
   void ReadTouch(const PageItem& entry, Input& input);
@@ -847,7 +846,6 @@ private:
   static constexpr u32 kMaxDisplayCount = 15;
   static constexpr u32 kLineHeight = 16;
   static constexpr u32 kMaxPins = 8;
-  static constexpr u32 kMaxRecents = 4;
   static constexpr u32 kMaxChoices = 12;
   /// The changes that Undo can cancel.
   static constexpr u32 kMaxUndo = 8;
@@ -881,7 +879,7 @@ private:
   u32 is_opened_ : 1;
   u32 entries_count_ : 7;
   u32 contexts_count_ : 4;
-  u32 no_background_ : 1;
+  u32 is_walking_ : 1; ///< Walk mode: the game sees the buttons.
   u32 is_quick_access_ : 1; ///< The page shows the quick access.
   u32 is_indexing_ : 1; ///< The page loads into the second list.
   u32 index_failed_ : 1; ///< CheckProcess failed while indexing.
@@ -908,21 +906,17 @@ private:
   Button touch_[kTouchMax];
   Editor editor_ = Editor::kNone; ///< The editor of the last frame.
   u32 hold_frames_ = 0; ///< The frames that Up or Down stays pressed.
+  bool was_walk_combo_ = false; ///< L and R were both down last frame.
+  bool are_pins_shown_ = false; ///< The first page lists the pinned entries.
   u32 hold_step_frames_ = 0; ///< The frames that Left or Right stays pressed.
   callback_t on_change_; ///< The OnChange() function of the page.
   u8 prepared_index_ = 0xFF; ///< The entry that the editor shows.
   bool needs_prepare_ = true; ///< The editor must show the value again.
 
   Shortcut pins_[kMaxPins];
-  Shortcut recents_[kMaxRecents];
-  Shortcut recent_pages_[kMaxRecents];
   u8 pin_count_ = 0;
-  u8 recent_count_ = 0;
-  u8 recent_page_count_ = 0;
-  u8 first_recent_page_ = 0xFF; ///< The index of the first recent page.
   u8 touch_index_ = 0; ///< The selected entry when the buttons were reset.
   u8 first_pin_ = 0xFF; ///< The index of the first pin in the page.
-  u8 first_recent_ = 0xFF; ///< The index of the first recent entry.
   s8 radial_direction_ = -1; ///< The selected pin of the radial menu.
 
   c16 search_query_[kQueryLength] = {}; ///< The text of the search.

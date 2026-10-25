@@ -28,7 +28,7 @@
 #include "pokemon/patch/model_loader.h"
 #include "renderer/native/h3d_shader_model.h"
 #include "savedata/native/pokemon_team.h"
-#include "ui/log_application.h"
+#include "ui/log.h"
 #include "ui/main_application.h"
 #include "ui/page/enum_names.h"
 #include "ui/page/pages.h"
@@ -73,7 +73,7 @@ void SpawnOverworldModel(void*) {
   if (pokemon::ModelLoader::LoadOverworldModel(&g_overworld_model, model_id,
                                                SpawnPosition())) {
     ApplyScale(g_overworld_model, GetSettings().scale);
-    ui::LogApplication::Print(u"model %d spawned", model_id);
+    ui::Log::Print(u"model %d spawned", model_id);
   }
 }
 
@@ -84,7 +84,7 @@ void SpawnPokemon(void*) {
                                         settings.form, settings.is_shiny,
                                         SpawnPosition())) {
     ApplyScale(g_pokemon_model, GetSettings().scale);
-    ui::LogApplication::Print(u"species %d spawned", settings.species);
+    ui::Log::Print(u"species %d spawned", settings.species);
   }
 }
 

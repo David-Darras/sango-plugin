@@ -32,7 +32,7 @@
 #include "pokemon/native/utils.h"
 #include "savedata/native/pokemon_team.h"
 #include "savedata/native/pokemon_box.h"
-#include "ui/log_application.h"
+#include "ui/log.h"
 #include "overworld/patch/static_randomizer.h"
 #include "overworld/patch/trade.h"
 #include "pokemon/patch/shiny.h"
@@ -267,13 +267,6 @@ void LoadPokemonPage(MainApplication& app, void* args) {
                       "ability and the form.")
      .Add("Pokemon Shop", CheatCodeId::kPokemonShop)
      .WithDescription("The normal Poke Marts sell Pokemon.")
-     .AddSection("Data")
-     .Add("Species Data", LoadSpeciesDataPage)
-     .WithDescription("Base stats, types, abilities and TMs of each species.")
-     .Add("Move Data", LoadMoveDataPage)
-     .WithDescription("Type, power, accuracy and effects of each move.")
-     .Add("TMs and HMs", LoadTechnicalMachinePage)
-     .WithDescription("The move of each TM and HM.")
      .AddSection("Tools")
      .Add("Z-A Mega Evolutions", LoadZaMegaPage)
      .WithDescription("Gives the Mega Evolutions of Pokemon Legends: Z-A.")
@@ -283,9 +276,6 @@ void LoadPokemonPage(MainApplication& app, void* args) {
      .WithDescription("Puts each new species and form in the boxes. It "
                       "replaces the Pokemon in the boxes!")
 #endif
-     .Add("Model Loader (Unstable)", LoadModelLoaderPage)
-     .WithDescription("Shows a model of a character or a Pokemon near the "
-                      "player.")
      .AddSection("Who's That Pokemon?")
      .Add("Reward Level", who.reward_level)
      .WithBounds(1, 100)

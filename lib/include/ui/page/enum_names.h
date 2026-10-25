@@ -14,6 +14,14 @@ extern const c8* kBackgroundMusicNames[180];
 /// The names of BackgroundMusicId. The index is the value.
 extern const c8* kBackgroundMusicNames[216];
 #endif
+#ifdef GAME_XY
+/// The names of MapId. The index is the value.
+extern const c8* kMapNames[360];
+#endif
+#ifndef GAME_XY
+/// The names of MapId. The index is the value.
+extern const c8* kMapNames[536];
+#endif
 /// The names of ModelId. The index is the value.
 extern const c8* kModelNames[354];
 

@@ -31,7 +31,7 @@
 #include "script/patch/context.h"
 #include "script/patch/natives.h"
 #include "system/coroutine.h"
-#include "ui/log_application.h"
+#include "ui/log.h"
 
 namespace script {
 /**
@@ -99,14 +99,14 @@ public:
 
     if (!ctx.natives_resolved_) {
       if (!ctx.natives_.Resolve()) {
-        ui::LogApplication::Print(u"script %d: some natives are missing",
+        ui::Log::Print(u"script %d: some natives are missing",
                                   descriptor->script_id);
       }
       ctx.natives_resolved_ = true;
     }
 
     if (ctx.IsSuspendedElsewhere(engine, vm)) {
-      ui::LogApplication::Print(u"script %d: nested C++ scripts unsupported",
+      ui::Log::Print(u"script %d: nested C++ scripts unsupported",
                                 descriptor->script_id);
       return false;
     }
@@ -118,7 +118,7 @@ public:
     ctx.coroutine_.Start(RunScript, &ctx);
     ctx.run_count++;
     if (ctx.log_activity) {
-      ui::LogApplication::Print(u"script %d -> C++", descriptor->script_id);
+      ui::Log::Print(u"script %d -> C++", descriptor->script_id);
     }
 
     buffer = ctx.stub_;
@@ -163,13 +163,13 @@ private:
     const bool alive = ctx.coroutine_.Resume();
 
     if (!ctx.coroutine_.IsStackHealthy()) {
-      ui::LogApplication::Print(u"script %d: stack overflow!",
+      ui::Log::Print(u"script %d: stack overflow!",
                                 (s32)ctx.current_->id);
     }
     if (alive) return 1;
 
     if (ctx.log_activity) {
-      ui::LogApplication::Print(u"script %d done (stack %u bytes)",
+      ui::Log::Print(u"script %d done (stack %u bytes)",
                                 (s32)ctx.current_->id,
                                 ctx.coroutine_.GetStackHighWater());
     }

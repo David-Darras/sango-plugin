@@ -297,7 +297,7 @@ void MainApplication::DrawHelp(Editor editor) {
       u"A: open, run or switch. B: back.",
       u"Y: pin the entry. Hold Y: copy, paste, reset...",
       u"X: the pinned entries in a circle (push a direction).",
-      u"L + R: the log of the plugin.",
+      u"L + R, or Walk: the game gets the buttons (walk mode).",
       u"Undo (top right): cancel the last changes.",
       u"Reset: the value of the page opening. Hold it to see it.",
       u"A mark on the left of a line: the value changed.",

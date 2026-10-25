@@ -24,7 +24,7 @@ When you do not know a game term, search it on Bulbapedia.
 | **Menu** | The menu of the plugin. It is on the top screen. Press **Start** to open it or to close it. |
 | **Page** | One list of entries in the menu. A page is a function `void LoadXxxPage(ui::MainApplication& app, void* args)`. |
 | **Entry** | One line of a page. An entry shows a value, opens a page or runs a function. |
-| **Log** | A text window of the plugin. Press **L + R** to show it or to hide it. `ui::LogApplication::Print()` writes to it. |
+| **Log** | The last messages of the plugin. Open **Plugin > Log** in the menu. `ui::Log::Print()` writes to it. |
 
 ## Technical terms
 

@@ -30,7 +30,7 @@
 #include "pokemon/native/gift_pokemon_data.h"
 #include "pokemon/native/shop_data.h"
 #include "savedata/native/pokemon_team.h"
-#include "ui/log_application.h"
+#include "ui/log.h"
 #include "ui/native/app_layout_manager.h"
 
 namespace pokemon {
@@ -184,7 +184,7 @@ void CustomShop::LoadShopItemsHook(ShopData* data, ShopType type, u32 id,
   auto& shop = GetInstance();
   shop.pokemon_data = nullptr;
   if (shop.log_shop_ids) {
-    ui::LogApplication::Print(u"shop: type=%u id=%u", type, id);
+    ui::Log::Print(u"shop: type=%u id=%u", type, id);
   }
 
   if (shop.is_pokemon_shop_enabled_ && shop.pokemons != nullptr &&

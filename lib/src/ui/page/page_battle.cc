@@ -51,14 +51,7 @@ namespace ui {
 void LoadBattleSettingsPage(MainApplication& app, void* args) {
   auto& ctx = battle::Battle::GetInstance();
 
-  app.AddSection("Rules")
-     .Add("Can Use Items", ctx.can_use_item)
-     .WithDescription("Off: the player cannot use the items of the Bag in "
-                      "battle.")
-     .Add("Same Catch Rate For Every Ball", ctx.same_ratio_for_all_pokeball)
-     .WithDescription("All the Poke Balls have the same catch rate, the "
-                      "Master Ball too.")
-     .AddSection("Multipliers")
+  app.AddSection("Multipliers")
      .Add("Experience", ctx.exp_multiplier)
      .WithFactor(0.5f)
      .WithBounds(0, 20)
@@ -74,7 +67,14 @@ void LoadBattleSettingsPage(MainApplication& app, void* args) {
      .WithBounds(0, 20)
      .WithDescription("Multiplies the money after each battle. The change "
                       "applies at the next battle.")
-     .AddSection("Other Rules")
+     .AddSection("Rules")
+     .Add("Can Use Items", ctx.can_use_item)
+     .WithDescription("Off: the player cannot use the items of the Bag in "
+                      "battle.")
+     .Add("Same Catch Rate For Every Ball", ctx.same_ratio_for_all_pokeball)
+     .WithDescription("All the Poke Balls have the same catch rate, the "
+                      "Master Ball too.")
+     .AddSection("Challenge Rules")
      .Add("One Mega Evolution", ctx.mega_restriction)
      .WithDescription("On: the rule of the game, one Mega Evolution in each "
                       "battle. Off: no limit.")
@@ -393,8 +393,7 @@ void LoadBattlePokemonModelPage(MainApplication& app, void* args) {
   constexpr f32 kRotationFactor = 4.0f * M_PI / 180.0f;
   constexpr f32 kPositionFactor = 4.0f;
 
-  app.WithNoBackground()
-     .AddSection("Position")
+  app.AddSection("Position")
      .Add("Position X", model.position.x)
      .WithFactor(kPositionFactor)
      .Add("Position Y", model.position.y)
@@ -428,8 +427,7 @@ void LoadBattleCameraPage(MainApplication& app, void* args) {
 
   auto& ctx = overworld::Camera::GetInstance();
 
-  app.WithNoBackground()
-     .Add("Free Camera", [](void*) { FreeCameraApplication::Open(); })
+  app.Add("Free Camera", [](void*) { FreeCameraApplication::Open(); })
      .WithDescription("Moves the camera with the buttons. The bottom screen "
                       "shows the controls.")
      .Add("State", ctx.battle_state)
@@ -504,27 +502,63 @@ void LoadBattleLivePage(MainApplication& app, void* args) {
 
 // The top page of the battle pages.
 
+#ifdef GAME_ORAS
+namespace {
+u32 trainer_battle_id = 1;
+u32 trainer_battle_rule = 0;
+const c8* kTrainerBattleRules[] = {"Single", "Double"};
+
+// The parameter of field::EventBattleCall::CallTrainer: 16 bytes. The rule at
+// 0 (0: single, 1: double), the partner at 2, the trainers at 4 and 6, the
+// flags at 8, then the background and the effect (0: the game chooses).
+void StartTrainerBattle(void*) {
+  if (!core::ProcessManager::IsOverworldActive()) return;
+  u8 param[16] = {};
+  param[0] = static_cast<u8>(trainer_battle_rule);
+  *reinterpret_cast<u16*>(param + 4) = static_cast<u16>(trainer_battle_id);
+  ((void* (*)(core::GameManager*, const void*))
+       overworld::address::kCallTrainerBattle)(
+      &core::GameManager::GetInstance(), param);
+  MainApplication::GetInstance().ForceClose();
+}
+} // namespace
+
+void LoadTrainerBattlePage(MainApplication& app, void* args) {
+  if (app.CheckProcess(overworld::address::kVtable)) return;
+
+  app.AddSection("Trainer")
+     .Add("Trainer", trainer_battle_id)
+     .WithArray(TRAINER_NAMES, SIZE(TRAINER_NAMES))
+     .WithDescription("The trainer to battle, with its team in the data of "
+                      "the game.")
+     .Add("Format", trainer_battle_rule)
+     .WithArray(kTrainerBattleRules, SIZE(kTrainerBattleRules))
+     .AddSection("Start")
+     .Add("Start The Battle", StartTrainerBattle)
+     .WithDescription("Closes the menu and starts the battle now. Use it in "
+                      "the overworld.");
+}
+#endif
+
 void LoadBattlePage(MainApplication& app, void* args) {
-  app.AddSection("Current Battle")
-     .Add("Live Battle", LoadBattleLivePage)
-     .WithDescription("The Pokemon, the models and the camera of the "
-                      "current battle.")
-     .AddSection("Options")
+  app.AddSection("Options")
      .Add("Settings", LoadBattleSettingsPage)
-     .WithDescription("The rules, the display and the animations of all "
-                      "the battles.")
-     .Add("Type Chart", LoadTypeChartPage)
-     .WithDescription("Changes the effectiveness of one type against "
-                      "another type.")
+     .WithDescription("The multipliers, the rules, the display and the "
+                      "animations of all the battles.")
      .AddSection("Start a Battle")
      .Add("Wild Battle Setup", LoadBattleSetupPage)
      .WithDescription("The Pokemon, the battlefield and the rules of the "
                       "next wild battles.")
 #ifdef GAME_ORAS
+     .Add("Trainer Battle", LoadTrainerBattlePage)
+     .WithDescription("Starts a battle against any trainer of the game.")
      .Add("Static Encounters", LoadStaticEncounterPage)
      .WithDescription("The legendary Pokemon and the other fixed "
                       "encounters. You can start their battles.")
 #endif
-     ;
+     .AddSection("Current Battle")
+     .Add("Live Battle", LoadBattleLivePage)
+     .WithDescription("The Pokemon, the models and the camera of the "
+                      "current battle.");
 }
 } // namespace ui
