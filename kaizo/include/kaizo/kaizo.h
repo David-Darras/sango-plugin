@@ -111,8 +111,6 @@ extern void InitializeModelHook();
 extern void ShouldReplacePokemonModel(bool no_yes);
 extern void PatchStarterView();
 extern void PatchBattle();
-extern void SetFirstEncounter();
-extern bool IsNotFirstEncounter();
 extern u8 GetEncounterLevel();
 extern void SaveTeamBeforeBattle();
 extern void RestoreTeamAfterBattle();

@@ -72,15 +72,6 @@ u32 Hash(s32 tile_x, s32 tile_z) {
 s32 Abs(s32 value) { return value < 0 ? -value : value; }
 } // namespace
 
-u32 TallGrass::GetPatchCount() {
-  auto& ctx = GetInstance();
-  u32 count = 0;
-  for (u32 i = 0; i < kMaxPatches; i++) {
-    if (ctx.patches_[i].is_used) count++;
-  }
-  return count;
-}
-
 TallGrass::Kind TallGrass::PickKind(u32 hash) {
   auto& ctx = GetInstance();
   switch (ctx.mix) {

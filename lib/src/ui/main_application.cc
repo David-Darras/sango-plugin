@@ -148,15 +148,6 @@ void MainApplication::DrawTop(sys::Graphics& graphics) {
   IconPool::GetInstance().Prepare();
 
   painter_->DrawPageBackground(*this);
-//   sys::Graphics::SetTextScale(1.0f, 1.0f);
-// #ifdef GAME_ORAS
-//   static const c16* kPluginTitle = u"『さんご』";
-// #endif
-// #ifdef GAME_XY
-//   static const c16* kPluginTitle = u"『くじら』";
-// #endif
-//   sys::Graphics::DrawText(390, 220, kPluginTitle,
-//                           Theme::GetInstance().selected_text_color);
   painter_->DrawPageItems(*this);
 }
 

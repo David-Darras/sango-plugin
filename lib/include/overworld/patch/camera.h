@@ -66,15 +66,6 @@ struct Camera : public CameraSettings {
 
   CameraContext active_context = CameraContext::kNone;
 
-  /// Gives the camera back to the game.
-  void SetCameraIdle(bool is_battle);
-  /// Sets the free camera.
-  void SetCameraFree(bool is_battle, f32 x, f32 y, f32 z, f32 yaw, f32 pitch);
-  /// Turns the camera around a point: radius, height, angle.
-  void SetCameraRotate(bool is_battle, f32 r, f32 h, f32 w = 0.0f);
-  /// Sets the third-person view.
-  void SetCameraTPS(bool is_battle, f32 dist, f32 height, f32 offset);
-
   static void Initialize();
 
 private:

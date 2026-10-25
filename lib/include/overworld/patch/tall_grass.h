@@ -59,7 +59,6 @@ public:
   static void Update();
   /// Removes the grass before a battle starts.
   static void RemoveModelsBeforeBattle();
-  static u32 GetPatchCount();
 
 private:
   struct Patch {

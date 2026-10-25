@@ -137,9 +137,8 @@ static const EncounterEntry s_table[] = {
     {MapId::kPetalburgWoods, SIZE(PETALBURG_WOODS), PETALBURG_WOODS},
     {MapId::kRoute104North, SIZE(ROUTE_104_NORTH), ROUTE_104_NORTH},
     {MapId::kRoute116, SIZE(ROUTE_116), ROUTE_116},
+    {MapId::kRusturfTunnelRoom1, SIZE(RUSTURF_TUNNEL), RUSTURF_TUNNEL},
 };
-static const u32 s_table_size = SIZE(s_table);
-
 
 const EncounterEntry* GetEncounterEntry(MapId map_id) {
   for (const auto& i : s_table) {

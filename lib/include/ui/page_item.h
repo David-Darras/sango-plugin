@@ -167,8 +167,6 @@ public:
   bool GetMax(s32& max) const { max = max_; return is_max_used_ != 0; }
   /// Returns the current value as an index (for an entry with texts).
   s32 GetIndex() const;
-  /// Returns true when both entries show the same data.
-  bool IsSameAs(const PageItem& other) const;
   /// Returns true for a whole number of 32 bits at most (not a decimal
   /// number, not a text).
   bool IsInteger() const;

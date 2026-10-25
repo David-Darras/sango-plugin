@@ -433,18 +433,6 @@ s32 PageItem::GetIndex() const {
   }
 }
 
-bool PageItem::IsSameAs(const PageItem& other) const {
-  // A std::function cannot be compared: the name tells the actions apart.
-  if (type_ != other.type_ || address_ != other.address_ ||
-      args_ != other.args_ ||
-      (callback_ == nullptr) != (other.callback_ == nullptr)) {
-    return false;
-  }
-  if (name_ == other.name_) return true;
-  if (name_ == nullptr || other.name_ == nullptr) return false;
-  return strcmp(name_, other.name_) == 0;
-}
-
 u8 PageItem::GetType() const { return type_; }
 
 void PageItem::GetValueText(c16* buffer) const {

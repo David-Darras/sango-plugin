@@ -42,38 +42,6 @@ core::Hook<Mtx34*(Mtx34*, Vec3*, Vec3*, Vec3*)> update_look_at_hook;
 core::Hook<u32(uptr, Vec3*, f32*, Facing*, u8*)> get_player_movement_hook;
 } // namespace
 
-void Camera::SetCameraIdle(bool is_battle) {
-  (is_battle ? battle_state : overworld_state) = CameraState::kIdle;
-}
-
-void Camera::SetCameraFree(bool is_battle, f32 x, f32 y, f32 z, f32 yaw,
-                           f32 pitch) {
-  CameraState& state_ref = is_battle ? battle_state : overworld_state;
-  CameraState& old_state_ref =
-      is_battle ? battle_old_state : overworld_old_state;
-  state_ref = CameraState::kFree;
-  pos.x = x;
-  pos.y = y;
-  pos.z = z;
-  rot.y = yaw;
-  rot.x = pitch;
-  old_state_ref = state_ref;
-}
-
-void Camera::SetCameraRotate(bool is_battle, f32 r, f32 h, f32 w) {
-  (is_battle ? battle_state : overworld_state) = CameraState::kRotate;
-  radius = r;
-  height = h;
-  theta = w;
-}
-
-void Camera::SetCameraTPS(bool is_battle, f32 dist, f32 height, f32 offset) {
-  (is_battle ? battle_state : overworld_state) = CameraState::kTps;
-  tps_dist = dist;
-  tps_height = height;
-  tps_offset = offset;
-}
-
 void Camera::Initialize() {
   update_matrices_hook.Install(renderer::address::kStereoCameraUpdateMatrices,
                                UpdateMatricesHook);
