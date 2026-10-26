@@ -111,8 +111,6 @@ void MainApplication::LoadSettings() {
                    (s32)(theme.background_image_opacity * 100.0f + 0.5f)) /
         100.0f;
     theme.sounds = ini.GetBool("menu", "sounds", theme.sounds);
-    theme.show_pins_at_start =
-        ini.GetBool("menu", "show_pins", theme.show_pins_at_start);
     theme.walk_opacity = ini.GetInt("menu", "walk_opacity",
                                     (s32)(theme.walk_opacity * 100)) / 100.0f;
     if (theme.walk_opacity < 0.0f) theme.walk_opacity = 0.0f;
@@ -193,7 +191,6 @@ void MainApplication::SaveSettings() {
   ini.AddComment("The frames (60 = 1 second) before a held button goes "
                  "faster: 5 to 120.");
   ini.SetInt("fast_delay", theme_.fast_delay);
-  ini.SetInt("show_pins", theme_.show_pins_at_start ? 1 : 0);
   ini.SetInt("walk_opacity", (s32)(theme_.walk_opacity * 100 + 0.5f));
 
   ini.AddSection("theme");

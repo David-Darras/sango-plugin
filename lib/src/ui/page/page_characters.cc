@@ -28,6 +28,7 @@
 
 #include "core/native/process_manager.h"
 #include "overworld/native/model_manager.h"
+#include "overworld/patch/map_character.h"
 #include "renderer/address.h"
 #include "ui/main_application.h"
 #include "ui/page/enum_names.h"
@@ -51,6 +52,13 @@ const c8* character_label_pointers[ModelManager::kMaxModels];
 u32 selected_character = 0; ///< The index in character_slots.
 bool is_character_chosen = false;
 u16 character_animation = 0;
+Vec3 tile_before; ///< The tiles of the character when the page loaded.
+u32 tile_before_slot = 0xFFFFFFFF; ///< The slot of that character.
+
+// The size of a tile in the world, in units.
+constexpr f32 kUnitsPerTile = 18.0f;
+// The units of the height for one step of Height (see PlayerCheats::Noclip).
+constexpr f32 kUnitsPerHeight = 9.0f;
 
 // Returns the slot of the player.
 u32 FindPlayerSlot() {
@@ -122,6 +130,56 @@ void PlayCharacterAnimation(void*) {
       &GetSelectedModel(), character_animation, 3);
 }
 
+// A change of the page: the character moves for the game and on the screen,
+// and its model calculates its matrices again.
+//
+// The tiles are for the game (the walls, the talk): the position of the world
+// and the position of the model are for the screen. The three must stay
+// together, or the character is in one place and drawn in another.
+void ApplyCharacterChanges(void*) {
+  if (character_count == 0) return;
+  Model& model = GetSelectedModel();
+
+  // The player chose another character: its tiles are the new reference. They
+  // are not a move of the character.
+  if (character_slots[selected_character] != tile_before_slot) {
+    tile_before = model.map_pos.coords;
+    tile_before_slot = character_slots[selected_character];
+    return;
+  }
+
+  const Vec3 now = model.map_pos.coords;
+  const f32 dx = now.x - tile_before.x;
+  const f32 dy = now.y - tile_before.y;
+  const f32 dz = now.z - tile_before.z;
+  overworld::DrawModel* draw_model = model.GetDrawModelOrNull();
+  if (dx != 0.0f || dy != 0.0f || dz != 0.0f) {
+    const f32 wx = dx * kUnitsPerTile;
+    const f32 wy = dy * kUnitsPerHeight;
+    const f32 wz = dz * kUnitsPerTile;
+    model.world_pos.coords.x += wx;
+    model.world_pos.coords.y += wy;
+    model.world_pos.coords.z += wz;
+    model.draw_pos.x += wx;
+    model.draw_pos.y += wy;
+    model.draw_pos.z += wz;
+    if (draw_model != nullptr) {
+      draw_model->position.x += wx;
+      draw_model->position.y += wy;
+      draw_model->position.z += wz;
+    }
+    // The place where the character comes back to, and the last place.
+    model.init_pos.coords.x += dx;
+    model.init_pos.coords.y += dy;
+    model.init_pos.coords.z += dz;
+    model.prev_pos.coords.x += dx;
+    model.prev_pos.coords.y += dy;
+    model.prev_pos.coords.z += dz;
+    tile_before = now;
+  }
+  if (draw_model != nullptr) draw_model->flags |= overworld::DrawModel::kDirty;
+}
+
 void SelectPlayer(void*) {
   selected_character = 0;
   MainApplication::GetInstance().Refresh();
@@ -191,12 +249,19 @@ void LoadCharactersPage(MainApplication& app, void* args) {
 #endif
   app.Add("Animation", character_animation)
      .WithCallback(PlayCharacterAnimation)
-     .WithDescription("Select an animation, then press A to play it.");
+     .WithDescription("Select an animation, then press {A} to play it.");
 
+  // The page changes the position and the scale: it moves the character on
+  // the screen too (see ApplyCharacterChanges()).
+  tile_before = model.map_pos.coords;
+  tile_before_slot = character_slots[selected_character];
+  app.OnChange(ApplyCharacterChanges);
   app.AddSection("Position")
      .Add("Tile X", model.map_pos.coords.x)
      .Add("Tile Z", model.map_pos.coords.z)
-     .Add("Height", model.map_pos.coords.y);
+     .Add("Height", model.map_pos.coords.y)
+     .WithDescription("The character moves for the game (walls, talk) and on "
+                      "the screen.");
 
   overworld::DrawModel* draw_model = model.GetDrawModelOrNull();
   if (draw_model != nullptr) {
@@ -208,5 +273,77 @@ void LoadCharactersPage(MainApplication& app, void* args) {
        .Add("Scale Z", draw_model->scale.z)
        .WithFactor(0.2f);
   }
+
+  // What the game knows about the character: its id, its script, how it
+  // moves. The values come from the events of the map: they are for
+  // information (the game reads them when the map loads).
+  app.AddSection("Behavior")
+     .Add("Character ID", model.id)
+     .WithReadOnly()
+     .WithDescription("The id of the character on the map. 255: the player.")
+     .Add("Live Movement Code", model.move_id)
+     .WithReadOnly()
+     .WithDescription("The movement code that the character uses now.");
+  overworld::CharacterPlacement* placement =
+      model.id == overworld::ModelManager::kPlayerId
+          ? nullptr
+          : overworld::MapCharacter::FindPlacement(model.id);
+  if (placement != nullptr) {
+    app.Add("Script", reinterpret_cast<u16&>(placement->script_id))
+       .WithReadOnly()
+       .WithDescription("The script that runs when the player talks to the "
+                        "character. 3000 and more: a trainer.")
+       .Add("Movement Code", placement->movement_id)
+       .WithReadOnly()
+       .WithDescription("How the character moves: still, walks around, "
+                        "turns...")
+       .Add("Move Parameter 1", placement->param0)
+       .WithReadOnly()
+       .Add("Move Parameter 2", placement->param1)
+       .WithReadOnly()
+       .Add("Move Parameter 3", placement->param2)
+       .WithReadOnly()
+       .WithDescription("The parameters of the movement: often the distance "
+                        "that the character walks.")
+       .Add("Interaction", placement->interaction_kind)
+       .WithReadOnly()
+       .Add("Hidden By Flag", placement->hide_when_flag_set)
+       .WithReadOnly()
+       .WithDescription("The event flag that hides the character. 0: never.")
+       .Add("Start Tile X", placement->position.tile_x)
+       .WithReadOnly()
+       .Add("Start Tile Z", placement->position.tile_z)
+       .WithReadOnly()
+       .Add("Sight Width", placement->trigger_width)
+       .WithReadOnly()
+       .Add("Sight Depth", placement->trigger_depth)
+       .WithReadOnly()
+       .WithDescription("The size of the area where a trainer sees the "
+                        "player.");
+  } else if (model.id != overworld::ModelManager::kPlayerId) {
+    app.Add("No Placement Found");
+  }
+
+#ifndef GAME_XY
+  // The appearance of the model: the game reads it when the map loads. All the
+  // characters with the same model code share it.
+  if (resource_index < ModelManager::kMaxModels) {
+    auto& resource = manager.GetResource(resource_index);
+    app.AddSection("Appearance")
+       .Add("Hitbox Width", resource.width)
+       .WithCallback(RefreshMap)
+       .WithDescription("The width in tiles. Press {A} to load the map again.")
+       .Add("Hitbox Depth", resource.depth)
+       .WithCallback(RefreshMap)
+       .Add("Shadow", resource.shadow_kind)
+       .WithCallback(RefreshMap)
+       .Add("Footprints", resource.footprint_kind)
+       .WithCallback(RefreshMap)
+       .Add("Reflection", resource.reflection_kind)
+       .WithCallback(RefreshMap)
+       .Add("Outline", resource.outline_kind)
+       .WithCallback(RefreshMap);
+  }
+#endif
 }
 } // namespace ui

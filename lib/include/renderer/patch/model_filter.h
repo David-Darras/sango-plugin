@@ -17,7 +17,7 @@
 
 /**
  * @file model_filter.h
- * @brief Applies color filters to the 3D models in battle.
+ * @brief Applies color filters to the 3D Pokémon models.
  */
 
 #pragma once
@@ -33,13 +33,13 @@ struct H3dModel;
 
 /// The settings of renderer::ModelFilter.
 struct ModelFilterSettings {
-  TextureFilter filter = TextureFilter::kDarken; ///< The filter.
-  u8 mesh = 0;
+  TextureFilter filter = TextureFilter::kNormal; ///< The filter.
 };
 static_assert(std::is_standard_layout<ModelFilterSettings>::value,
               "ModelFilterSettings must have standard layout");
 
-/// Applies a color filter to the Pokémon models in battle.
+/// Applies a color filter to the 3D Pokémon models: in battle, and in the
+/// menus of the game (the party, the PC, the Pokédex...).
 struct ModelFilter : public ModelFilterSettings {
   MAKE_SINGLETON(ModelFilter)
 

@@ -30,7 +30,6 @@ namespace core {
 enum class CheatCodeId : u32 {
   kNoclip, ///< The player walks through the walls.
   kSwarmMod, ///< The Pokémon of the party follow the player in a circle.
-  kNoEncounter, ///< No wild Pokémon (an infinite Repel).
   kPokemonShop, ///< The normal Poké Marts sell Pokémon. See pokemon::CustomShop.
   kMax ///< The number of cheat codes.
 };

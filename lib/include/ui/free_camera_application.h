@@ -24,6 +24,7 @@
 
 #include "common.h"
 #include "ui/application.h"
+#include "ui/widget/button.h"
 
 namespace ui {
 /// Moves the free camera with the buttons. The bottom screen shows the controls.
@@ -39,6 +40,7 @@ public:
   void DrawBottom(sys::Graphics& graphics) override;
 
 private:
+  Button back_button_; ///< Touch: back to the menu.
   bool is_battle_ = false;
   u32 held_frames_ = 0;
   u32 turn_held_frames_ = 0;

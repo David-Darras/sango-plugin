@@ -26,10 +26,11 @@ on the next line.
 |---|---|
 | **START** | Opens and closes the menu (the Plugin Theme page can change it). |
 | **Up / Down** | Selects an entry. Hold the button to go faster. A new press at the end of the page goes back to the start. |
-| **L / R** | Goes to the previous / next section. A page without sections moves one screen. |
+| **L / R** | Goes to the previous / next section. A page without sections moves one screen. On a grid of values (species, items, moves...): previous / next page of the grid. |
 | **Left / Right** | Changes the value. Hold the button: a number changes 10 times faster. |
 | **A** | Opens the page, runs the action, or switches On / Off. |
-| **Y** | Pins the entry to the quick access, or removes the pin. |
+| **Y** | On a grid of values: opens the filter (type a part of a name). |
+| **Pin** (bottom screen) | Pins the entry to the quick access, or removes the pin. |
 | **Hold Y** | Opens the menu of the entry: Copy, Paste, Reset, Pin, Undo, Help. A long press on the description does the same. |
 | **X** | Opens the pinned entries in a circle (see below). In the numpad and the keyboard: applies the value. |
 | **B** | Goes back to the previous page. |
@@ -112,7 +113,7 @@ void LoadMyPage(ui::MainApplication& app, void* args) {
 |---|---|
 | `AddSection(name)` | Adds a section title. L and R jump between the sections. |
 | `WithDescription(text)` | Sets the text of the bottom screen for the last entry. Use one or two short sentences. |
-| `AddQuickAccess()` | Adds the pinned entries (Y, 8 at most). Use it at the end of the first page: the shortcuts come last. A pinned page opens with the pages before it: B goes back through them. |
+| `AddQuickAccess()` | Adds the pinned entries (the Pin button, 8 at most). Use it at the end of the first page: the shortcuts come last. A pinned page opens with the pages before it: B goes back through them. |
 | `WithReadOnly()` | The player sees the value of the last entry, but cannot change it. |
 | `OnChange(function)` | Runs the function after each change of a value on the page. |
 
@@ -183,7 +184,7 @@ the file in a text editor:
 
 ```ini
 [menu]
-text_shadow = 1
+text_shadow = 0
 animations = 1
 
 [theme]
@@ -373,7 +374,8 @@ To change the look, make a class that inherits `ui::Painter`.
 **Keep the number of texts small.** Each `DrawText()` adds many commands to
 the command list of the GPU, and this list has a fixed size: about 100 texts
 in one frame (both screens) make the game crash. `sys::Graphics` counts the
-texts of each frame: it stops the shadows at 80 texts (`kShadowLimit`) and
+texts of each frame: it stops the shadows at 80 texts (`kShadowLimit`; the shadows are off by
+default: the page Plugin Theme turns them on) and
 the texts at 88 (`kTextLimit`). To use few texts, draw one text for a full
 line: `sys::Graphics::AppendSpaces()` adds spaces up to a width, then
 `AppendText()` adds the next column. The menu draws each row of keys like
@@ -406,7 +408,7 @@ Your product can use them in its own menu:
 
 ```cpp
 app.Add("Camera", ui::LoadOverworldCameraPage)
-   .Add("Apps", ui::LoadAppPage);
+   .Add("Applications", ui::LoadAppPage);
 ```
 
 ## Colors

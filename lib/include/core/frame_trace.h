@@ -29,7 +29,7 @@ namespace core {
 /**
  * @brief The black box of the plugin.
  *
- * While the menu is open, the trace writes the file
+ * When it is on and the menu is open, the trace writes the file
  * `sdmc:/sango/frame_trace.txt` three times each second. The file always
  * has the same size, and each write replaces the last one. When the game
  * crashes, the file shows the last state: the page and the entry of the
@@ -43,6 +43,10 @@ namespace core {
  */
 class FrameTrace {
 public:
+  /// true: the trace writes the file. The writes can make the game stutter
+  /// on a console, so it is off until the player needs it (page System).
+  static bool is_enabled;
+
   /// Reads the size of the command list after the drawings of a screen.
   /// plugin::DrawFrame() calls it for each screen.
   static void OnScreenDrawn(bool is_top);

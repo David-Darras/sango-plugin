@@ -46,14 +46,17 @@ struct WildEncounter {
   EncounterTableCallback on_encounter_table = nullptr;
   WildPokemonCallback on_wild_pokemon = nullptr;
 
+  /// How often the wild Pokémon appear: normal, never or at each step.
+  enum class Mode : u8 { kNormal, kNever, kAlways };
+  Mode mode = Mode::kNormal;
+
   static void Initialize();
 
 private:
   static u16* GetDexNavTable(EncounterData* data, s32 data_size,
                               u32* count, void* heap,
                               u8 p4, bool p5);
-  static void AddMaxRepel();
-  static void RemoveMaxRepel();
+  static u32 GetNowEncountProbHook(void* work, const void* pattern);
   static bool GetEncounterPokemonHook(u32 p0, u32 p1);
 };
 

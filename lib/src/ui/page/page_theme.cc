@@ -21,6 +21,7 @@
  */
 
 #include "ui/main_application.h"
+#include "ui/page/enum_names.h"
 #include "ui/page/page_common.h"
 
 namespace ui {
@@ -73,9 +74,6 @@ void LoadThemePage(MainApplication& app, void* args) {
   app.AddSection("Controls")
       .Add("Menu Sounds", theme.sounds)
       .WithDescription("Off: the menu plays no sound.")
-      .Add("Show Pinned At Start", theme.show_pins_at_start)
-      .WithDescription("On: the first page shows the pinned entries when the "
-                       "menu starts. Off: touch Quick Access to show them.")
       .Add("Walk Mode Opacity", theme.walk_opacity)
       .WithFactor(0.1f)
       .WithBounds(0, 1)
@@ -94,24 +92,37 @@ void LoadThemePage(MainApplication& app, void* args) {
 
   app.AddSection("Sounds")
       .Add("Open Plugin Sound Effect", theme.open_sound)
+#ifndef GAME_XY
+      .WithArray(kSoundEffectNames, SIZE(kSoundEffectNames))
+#endif
       .Add("Close Plugin Sound Effect", theme.close_sound)
+#ifndef GAME_XY
+      .WithArray(kSoundEffectNames, SIZE(kSoundEffectNames))
+#endif
       .Add("Confirm Sound Effect", theme.confirm_sound)
+#ifndef GAME_XY
+      .WithArray(kSoundEffectNames, SIZE(kSoundEffectNames))
+#endif
       .Add("Next Sound Effect", theme.next_sound)
-      .Add("Error Sound Effect", theme.error_sound);
+#ifndef GAME_XY
+      .WithArray(kSoundEffectNames, SIZE(kSoundEffectNames))
+#endif
+      .Add("Error Sound Effect", theme.error_sound)
+#ifndef GAME_XY
+      .WithArray(kSoundEffectNames, SIZE(kSoundEffectNames))
+#endif
+      ;
 
-  static const char* KEYS[] = {
-      "None", "Left", "Right", "Up", "Down", "A", "B", "X", "Y", "L", "R",
-      "ZL", "ZR", "Start/Select"
-  };
+  const c8** KEYS = GetKeyNames();
 
   app.AddSection("Menu Button")
       .Add("Key 1", theme.keys[0])
       .WithDescription("The buttons that open the menu. None for all three: "
                        "START. ZL and ZR do not exist on a standard 3DS.")
-      .WithArray(KEYS, SIZE(KEYS))
+      .WithArray(KEYS, kKeyNameCount)
       .Add("Key 2", theme.keys[1])
-      .WithArray(KEYS, SIZE(KEYS))
+      .WithArray(KEYS, kKeyNameCount)
       .Add("Key 3", theme.keys[2])
-      .WithArray(KEYS, SIZE(KEYS));
+      .WithArray(KEYS, kKeyNameCount);
 }
 } // namespace ui

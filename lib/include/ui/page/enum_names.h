@@ -24,5 +24,9 @@ extern const c8* kMapNames[536];
 #endif
 /// The names of ModelId. The index is the value.
 extern const c8* kModelNames[354];
+#ifndef GAME_XY
+/// The names of the sound effects. The index is the value.
+extern const c8* kSoundEffectNames[119];
+#endif
 
 } // namespace ui

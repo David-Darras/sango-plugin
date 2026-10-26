@@ -192,8 +192,26 @@ u32 MapCharacter::LoadMapCharacters(MapEventData* events, u32 buffer_id) {
   if (ctx.is_logging_enabled) ctx.LogShippedCharacters(events);
   ctx.MoveGraftedEvents(events);
   ctx.PlaceCharacters(events);
+  ctx.loaded_events_ = events;
   PlacedDecorations::OnMapEventsLoaded(events);
   return result;
+}
+
+CharacterPlacement* MapCharacter::FindPlacement(u16 local_id) {
+  MapEventData* events = GetInstance().loaded_events_;
+  if (events == nullptr || events->characters == nullptr ||
+      events->map_id != MapManager::GetInstance().GetMap()) {
+    return nullptr;
+  }
+  const u32 count = events->character_count < kMaxCharactersPerMap
+                        ? events->character_count
+                        : kMaxCharactersPerMap;
+  for (u32 i = 0; i < count; i++) {
+    if (events->characters[i].local_id == local_id) {
+      return &events->characters[i];
+    }
+  }
+  return nullptr;
 }
 
 void MapCharacter::MoveGraftedEvents(MapEventData* events) {

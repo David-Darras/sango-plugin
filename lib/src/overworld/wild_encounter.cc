@@ -24,12 +24,10 @@
 
 #include "overworld/patch/wild_encounter.h"
 
-#include "core/cheat_code_manager.h"
 #include "core/hook.h"
 #include "core/native/process_manager.h"
 #include "overworld/patch/placed_decorations.h"
 #include "overworld/native/map_manager.h"
-#include "savedata/native/repel.h"
 
 namespace overworld {
 
@@ -37,11 +35,14 @@ namespace {
 core::Hook<bool(u32, u32)> get_encounter_pokemon_hook;
 core::Hook<u16*(EncounterData*, s32, u32*, void*, u8, bool)>
     get_dex_nav_table_hook;
+core::Hook<u32(void*, const void*)> get_now_encount_prob_hook;
 } // namespace
 
 void WildEncounter::Initialize() {
-  core::CheatCodeManager::Initialize(CheatCodeId::kNoEncounter, AddMaxRepel,
-                               RemoveMaxRepel, true);
+#ifdef GAME_ORAS
+  get_now_encount_prob_hook.Install(address::kGetNowEncountProb,
+                                    GetNowEncountProbHook, address::kVtable);
+#endif
   get_encounter_pokemon_hook.Install(pokemon::address::kEncounterSetPokemon,
                                      GetEncounterPokemonHook, address::kVtable);
   get_dex_nav_table_hook.Install(address::kGetDexNavTable, GetDexNavTable);
@@ -58,12 +59,17 @@ u16* WildEncounter::GetDexNavTable(EncounterData* data, s32 data_size,
   return get_dex_nav_table_hook(data, data_size, count, heap, p4, p5);
 }
 
-void WildEncounter::AddMaxRepel() {
-  savedata::Repel::GetInstance().spray_count = 100;
-}
-
-void WildEncounter::RemoveMaxRepel() {
-  savedata::Repel::GetInstance().spray_count = 0;
+// The chance of an encounter at each step. The game compares a random number
+// from 0 to 99 with it: 0 never meets a Pokémon, 100 or more always does.
+u32 WildEncounter::GetNowEncountProbHook(void* work, const void* pattern) {
+  switch (GetInstance().mode) {
+    case Mode::kNever:
+      return 0;
+    case Mode::kAlways:
+      return 10000;
+    default:
+      return get_now_encount_prob_hook(work, pattern);
+  }
 }
 
 bool WildEncounter::GetEncounterPokemonHook(u32 p0, u32 p1) {

@@ -33,6 +33,7 @@
 #include "battle/address.h"
 #include "core/patch/device_patch.h"
 #include "overworld/address.h"
+#include "overworld/native/map_manager.h"
 #include "core/utils.h"
 #include "system/native/controller.h"
 #include "system/native/graphics.h"
@@ -73,22 +74,51 @@ Image& GetBottomImage() {
   return image;
 }
 
-// Draws a text (UTF-8) at the position, with a maximum of `max_length`
-// characters. Returns the number of characters that it drew.
-u32 DrawPart(s32 x, s32 y, const c8* text, u32 max_length, Color color) {
-  c8 part[kWrapLength + 1];
-  u32 length = strlen(text);
-  if (max_length > kWrapLength) max_length = kWrapLength;
-  if (length > max_length) {
-    // Cut the text after the last space, when there is one.
-    length = max_length;
-    for (u32 i = max_length; i > max_length / 2; i--) {
-      if (text[i] == ' ') {
-        length = i;
-        break;
-      }
+// Returns the number of bytes of `text` (UTF-8) that fit in `max_width` pixels
+// at the current text scale. A text that is too long is cut after its last
+// space, when there is one.
+u32 FitLength(const c8* text, s32 max_width) {
+  u32 total = strlen(text);
+  if (total > kWrapLength) total = kWrapLength;
+  auto fits = [&](u32 length) {
+    c8 part[kWrapLength + 1];
+    memcpy(part, text, length);
+    part[length] = '\0';
+    c16 buffer[kWrapLength + 1];
+    core::Utils::Format(buffer, u"%s", part);
+    return sys::Graphics::GetTextWidth(buffer) <= max_width;
+  };
+  if (fits(total)) return total;
+  // The largest length that fits.
+  u32 low = 1;
+  u32 high = total;
+  while (low < high) {
+    const u32 middle = (low + high + 1) / 2;
+    if (fits(middle)) {
+      low = middle;
+    } else {
+      high = middle - 1;
     }
   }
+  u32 length = low;
+  for (u32 i = length; i > length / 2; i--) {
+    if (text[i] == ' ') {
+      length = i;
+      break;
+    }
+  }
+  // Do not cut a character of several bytes.
+  while (length > 1 && (static_cast<u8>(text[length]) & 0xC0) == 0x80) {
+    length--;
+  }
+  return length;
+}
+
+// Draws a text (UTF-8) at the position, as long as it fits in `max_width`
+// pixels. Returns the number of bytes that it drew.
+u32 DrawPart(s32 x, s32 y, const c8* text, s32 max_width, Color color) {
+  const u32 length = FitLength(text, max_width);
+  c8 part[kWrapLength + 1];
   memcpy(part, text, length);
   part[length] = '\0';
   c16 buffer[kWrapLength + 1];
@@ -97,15 +127,17 @@ u32 DrawPart(s32 x, s32 y, const c8* text, u32 max_length, Color color) {
   return length;
 }
 
-// Draws a text on two lines at most.
+// Draws a text on two lines at most. A line stops before the right edge of
+// the bottom screen (320 pixels).
 void DrawWrapped(s32 x, s32 y, const c8* text, Color color) {
+  const s32 max_width = 314 - x;
   sys::Graphics::SetTextScale(0.45f, 0.45f);
-  const u32 first = DrawPart(x, y, text, kWrapLength, color);
+  const u32 first = DrawPart(x, y, text, max_width, color);
   const c8* rest = text + first;
   while (*rest == ' ') rest++;
   if (*rest != '\0') {
     sys::Graphics::SetTextScale(0.45f, 0.45f);
-    DrawPart(x, y + 12, rest, kWrapLength, color);
+    DrawPart(x, y + 12, rest, max_width, color);
   }
 }
 
@@ -155,14 +187,19 @@ void MainApplication::DrawTop(sys::Graphics& graphics) {
 
 void MainApplication::InitializeTouch() {
   // The navigation bar: five large buttons at the bottom edge.
+  // Pin is small: it is the least used button.
+  static const s16 kNavX[kNavCount] = {4, 70, 136, 180, 252};
+  static const s16 kNavWidth[kNavCount] = {64, 64, 40, 70, 64};
   for (u32 i = 0; i < kNavCount; i++) {
-    touch_[kTouchSectionUp + i].Initialize(4 + i * 63, kNavY, 59, kNavHeight);
+    touch_[kTouchSectionUp + i].Initialize(kNavX[i], kNavY, kNavWidth[i],
+                                           kNavHeight);
   }
   // The help: the top-right corner. Undo and Reset: on its left, easy to
   // reach with the stylus.
-  touch_[kTouchHelp].Initialize(294, 2, 22, 24);
-  touch_[kTouchWalk].Initialize(240, 2, 50, 24);
-  touch_[kTouchUndo].Initialize(186, 2, 50, 24);
+  // The buttons stay on the first line: the name of the entry is under them.
+  touch_[kTouchHelp].Initialize(294, 1, 22, 13);
+  touch_[kTouchWalk].Initialize(240, 1, 50, 13);
+  touch_[kTouchUndo].Initialize(186, 1, 50, 13);
   touch_[kTouchOff].Initialize(10, kEditorY + 10, 145, 50);
   touch_[kTouchOn].Initialize(165, kEditorY + 10, 145, 50);
   touch_[kTouchRun].Initialize(10, kEditorY + 10, 300, 50);
@@ -203,7 +240,7 @@ void MainApplication::InitializeTouch() {
   touch_[kTouchPickerFilter].Initialize(186, kPickerBarY, 80,
                                         kPickerBarHeight);
   touch_[kTouchPageNext].Initialize(270, kPickerBarY, 40, kPickerBarHeight);
-  touch_[kTouchReset].Initialize(132, 2, 50, 24);
+  touch_[kTouchReset].Initialize(132, 1, 50, 13);
   // Min, Max and Hex: on the right of the bar of the numpad.
   const s32 tool_x = 10 + Numpad::kKeysWidth + 6;
   const s32 tool_width = (300 - Numpad::kKeysWidth - 6 - 4) / 3;
@@ -358,6 +395,8 @@ void MainApplication::DrawTouch(TouchId id, const c16* label, bool is_active,
   sys::Graphics::DrawRect(x + inset, y + inset, width - 2 * inset,
                           height - 2 * inset, fill);
   // The label is in the center of the button.
+  c16 expanded[96];
+  label = ExpandButtons(label, expanded, SIZE(expanded));
   sys::Graphics::SetTextScale(0.5f, 0.5f);
   s32 label_x = x + (width - sys::Graphics::GetTextWidth(label)) / 2;
   if (label_x < x + 2) label_x = x + 2;
@@ -367,13 +406,35 @@ void MainApplication::DrawTouch(TouchId id, const c16* label, bool is_active,
 }
 
 void MainApplication::DrawBottom(sys::Graphics& graphics) {
+  DrawBottomPage(graphics);
+  // The message is over everything, even when the page has no entry.
+  if (IsOpened() && !IsWalking() && painter_->ShowBottom() &&
+      toast_frames_ != 0) {
+    DrawToast();
+  }
+}
+
+void MainApplication::DrawToast() const {
+  // A box in the middle of the screen, in the color of the selection. The last
+  // frames fade out.
+  const f32 fade = toast_frames_ < 30 ? toast_frames_ / 30.0f : 1.0f;
+  Color box = theme_.selected_text_color;
+  box.a = 0.92f * fade;
+  sys::Graphics::DrawRect(8, 88, 304, 40, box);
+  Color text = Color(1, 1, 1, fade);
+  sys::Graphics::SetTextScale(0.55f, 0.55f);
+  const s32 x = 160 - sys::Graphics::GetTextWidth(toast_) / 2;
+  DrawLabel(x < 14 ? 14 : x, 100, toast_, text);
+}
+
+void MainApplication::DrawBottomPage(sys::Graphics& graphics) {
   painter_->DrawBottomOverlay(graphics);
 
   if (IsWalking()) {
     // The bottom screen belongs to the game: only a line of text.
     sys::Graphics::DrawRect(0, 224, 320, 16, theme_.background_color);
     sys::Graphics::SetTextScale(0.45f, 0.45f);
-    DrawLabel(6, 227, u"Walk mode.   L + R: back to the menu.",
+    DrawLabel(6, 227, u"Walk mode.   {L} + {R}: back to the menu.",
               theme_.selected_text_color);
     return;
   }
@@ -418,9 +479,11 @@ void MainApplication::DrawBottom(sys::Graphics& graphics) {
   const bool has_reset = IsChanged(index) && entry.CanWriteValue();
   sys::Graphics::SetTextScale(0.45f, 0.45f);
   // The text stops before the first button.
+  // The title is quieter than the entry under it.
+  Color dim_title = theme_.unselected_text_color;
+  dim_title.a *= 0.55f;
   DrawPart(6, 3, contexts_count_ <= 1 ? kCredit : path,
-           has_reset ? 22 : (undo_count_ != 0 ? 32 : 42),
-           theme_.unselected_text_color);
+           has_reset ? 122 : (undo_count_ != 0 ? 176 : 230), dim_title);
   DrawTouch(kTouchHelp, u"?", false);
   DrawTouch(kTouchWalk, u"Walk", false);
   if (undo_count_ != 0) {
@@ -478,9 +541,9 @@ void MainApplication::DrawBottom(sys::Graphics& graphics) {
       const bool needs_confirm = entry.NeedsConfirm();
       DrawTouch(kTouchRun,
                 entry.GetType() == kTypeMenu
-                    ? u"Open the page   (A)"
-                    : (needs_confirm ? u"Hold to run   (hold A)"
-                                     : u"Run   (A)"),
+                    ? u"Open the page   {A}"
+                    : (needs_confirm ? u"Hold to run   (hold {A})"
+                                     : u"Run   {A}"),
                 false);
       // The progress of the long press.
       if (needs_confirm && confirm_frames_ != 0 && confirm_index_ == index) {
@@ -578,16 +641,7 @@ void MainApplication::DrawBottom(sys::Graphics& graphics) {
   }
   if (is_context_open_) DrawContext(entry);
 
-  // The message of ShowToast() goes over the state of the game.
-  if (toast_frames_ != 0) {
-    Color fill = theme_.selected_text_color;
-    fill.a = toast_frames_ < 20 ? 0.03f * toast_frames_ : 0.6f;
-    sys::Graphics::DrawRect(0, kFooterY - 1, 320, 13, fill);
-    sys::Graphics::SetTextScale(0.45f, 0.45f);
-    DrawLabel(6, kFooterY, toast_, theme_.unselected_text_color);
-  } else {
-    DrawFooter();
-  }
+  DrawFooter();
   DrawNavigation(is_pinned);
 }
 
@@ -631,16 +685,20 @@ void MainApplication::DrawFooter() const {
   core::Utils::Format(buffer, u"Process: %s  |  Event: %s", process_name,
                       event_name);
   sys::Graphics::SetTextScale(0.4f, 0.4f);
-  sys::Graphics::DrawText(6, kFooterY, buffer, theme_.unselected_text_color);
+  Color dim = theme_.unselected_text_color;
+  dim.a *= 0.5f;
+  sys::Graphics::DrawText(6, kFooterY, buffer, dim);
 }
 
 void MainApplication::DrawNavigation(bool is_pinned) const {
   // The navigation bar. Each button also shows its key.
-  DrawTouch(kTouchSectionUp, u"L Prev.", false);
-  DrawTouch(kTouchSectionDown, u"R Next", false);
-  DrawTouch(kTouchPin, is_pinned ? u"Y Unpin" : u"Y Pin", is_pinned);
+  // On the grid of values, L and R turn the pages of the grid.
+  const bool is_grid = editor_ == Editor::kPicker;
+  DrawTouch(kTouchSectionUp, is_grid ? u"{L} Page <" : u"{L} Prev.", false);
+  DrawTouch(kTouchSectionDown, is_grid ? u"{R} Page >" : u"{R} Next", false);
+  DrawTouch(kTouchPin, is_pinned ? u"Unpin" : u"Pin", is_pinned);
   DrawTouch(kTouchSearch, u"Search", is_search_page_);
-  DrawTouch(kTouchBack, u"B Back", false);
+  DrawTouch(kTouchBack, u"{B} Back", false);
 }
 
 void MainApplication::ForceClose() {
@@ -650,6 +708,19 @@ void MainApplication::ForceClose() {
   is_walking_ = 0;
   is_radial_open_ = 0;
   core::DevicePatch::GetInstance().use_redirection = is_opened_;
+}
+
+bool MainApplication::RefreshIfPlaceChanged() {
+  const bool is_overworld = core::ProcessManager::IsOverworldActive();
+  const u32 key =
+      is_overworld ? overworld::MapManager::GetInstance().GetMapId() : 0xFFFFFFFE;
+  if (key == place_key_) return false;
+  const bool is_first = place_key_ == 0xFFFFFFFF;
+  place_key_ = key;
+  // The first call (the menu opens) always builds the page again.
+  (void)is_first;
+  Refresh();
+  return true;
 }
 
 void MainApplication::SetWalking(bool is_walking) {
@@ -825,7 +896,6 @@ void MainApplication::Update(sys::Controller& controller) {
   // before the first frame of the menu.
   if (!are_settings_loaded_) {
     LoadSettings();
-    are_pins_shown_ = theme_.show_pins_at_start;
     // The first page loaded before the settings: build it again with the
     // pins and the theme.
     if (entries_count_ != 0) Refresh();
@@ -852,6 +922,12 @@ void MainApplication::Update(sys::Controller& controller) {
     is_opened_ ^= 1;
     is_walking_ = 0;
     is_radial_open_ = 0;
+    // The map can change while the menu is closed: the entries of the page
+    // point to data that is gone. Build the page again.
+    if (IsOpened() && contexts_count_ > 0) {
+      place_key_ = 0xFFFFFFFF;
+      RefreshIfPlaceChanged();
+    }
     core::DevicePatch::GetInstance().use_redirection = is_opened_;
     return;
   }
@@ -867,7 +943,11 @@ void MainApplication::Update(sys::Controller& controller) {
   const bool combo_started = is_combo && !was_walk_combo_;
   was_walk_combo_ = is_combo;
   if (is_walking_) {
-    if (combo_started) SetWalking(false);
+    if (combo_started) {
+      SetWalking(false);
+    } else {
+      RefreshIfPlaceChanged();
+    }
     return;
   }
   if (combo_started) {
@@ -991,7 +1071,7 @@ void MainApplication::Update(sys::Controller& controller) {
   } else {
     if (controller.IsKeyReleased(Key::kY) &&
         y_hold_frames_ < kLongPressFrames) {
-      input.pin = true;
+      input.filter = true;
     }
     y_hold_frames_ = 0;
   }
@@ -1037,6 +1117,13 @@ void MainApplication::Update(sys::Controller& controller) {
     }
   }
 
+  // On the grid of values, L and R turn the pages of the grid. Everywhere
+  // else, they jump from section to section.
+  if (editor == Editor::kPicker && input.section != 0) {
+    input.page = input.section;
+    input.section = 0;
+  }
+
   // Do the actions.
   if (input.help) {
     theme_.Play(theme_.next_sound);
@@ -1057,6 +1144,12 @@ void MainApplication::Update(sys::Controller& controller) {
   }
   if (input.pin) {
     TogglePin(index);
+    return;
+  }
+  if (input.filter) {
+    // Y: the filter of a grid of values. Nothing on another entry: the pin is
+    // a touch button (Pin).
+    if (editor == Editor::kPicker) OpenFilter(selected);
     return;
   }
   if (input.undo) {
@@ -1165,6 +1258,8 @@ void MainApplication::Update(sys::Controller& controller) {
     theme_.Play(theme_.next_sound);
     // Wrap only for a new press: a held button stops at the end of the page.
     MoveCursor(input.move, hold_frames_ == 1);
+  } else if (input.page != 0) {
+    ChangePickerPage(selected, input.page);
   } else if (input.section != 0) {
     theme_.Play(theme_.next_sound);
     JumpSection(input.section);
@@ -1540,6 +1635,18 @@ void MainAppPainter::DrawPageBackground(MainApplication& app) {
   sys::Graphics::FillScreen(app.theme_.background_color);
 }
 
+// Draws a text of a line of the page. Only the selected line has a shadow: a
+// shadow costs as much as a text, and the first lines would use the whole
+// budget of the GPU. All the other lines then look the same.
+static void DrawRowText(s32 x, s32 y, const c16* text, Color color,
+                        bool is_selected) {
+  if (is_selected) {
+    DrawMenuText(x, y, text, color);
+  } else {
+    sys::Graphics::DrawText(x, y, text, color);
+  }
+}
+
 void MainAppPainter::DrawPageItems(MainApplication& app) {
   // The filter shows its results in place of the page.
   if (app.is_filtering_) {
@@ -1631,7 +1738,7 @@ void MainAppPainter::DrawPageItems(MainApplication& app) {
       entry.GetValueText(value);
     }
     if (value[0] == 0 || entry.GetType() == kTypeIdle) {
-      DrawMenuText(x, y, name, color);
+      DrawRowText(x, y, name, color, ctx.cursor == i);
       continue;
     }
     // The values are aligned on the right: the eyes find them faster.
@@ -1641,13 +1748,13 @@ void MainAppPainter::DrawPageItems(MainApplication& app) {
     if (x + name_width + kValueGap > value_x) {
       // No space: the value follows the name on the same line.
       entry.GetDisplayValue(name);
-      DrawMenuText(x, y, name, color);
+      DrawRowText(x, y, name, color, ctx.cursor == i);
       continue;
     }
     // Two texts: spaces between the name and the value would add the small
     // error of each space, and push the value out of the screen.
-    DrawMenuText(x, y, name, color);
-    DrawMenuText(value_x, y, value, color);
+    DrawRowText(x, y, name, color, ctx.cursor == i);
+    DrawRowText(value_x, y, value, color, ctx.cursor == i);
 
     // The icon of the value, at half size, on the left of the value.
     const IconKind kind = entry.GetIconKind();

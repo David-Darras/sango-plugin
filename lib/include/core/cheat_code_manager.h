@@ -30,7 +30,7 @@ namespace core {
 /**
  * @brief Keeps the cheat codes and runs them at each frame.
  *
- * A menu entry can enable a cheat code: `app.Add("Repel", CheatCodeId::kNoEncounter)`.
+ * A menu entry can enable a cheat code: `app.Add("Noclip", CheatCodeId::kNoclip)`.
  */
 class CheatCodeManager {
   MAKE_SINGLETON(CheatCodeManager)

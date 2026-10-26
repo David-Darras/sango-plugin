@@ -195,16 +195,16 @@ static void AddWholeTeam(MainApplication& app) {
           [](void*) { ChangeTeam(BatchChange::kLevel100); })
      .WithConfirm()
      .WithDescription("All the Pokemon of the team (not the Eggs). Undo "
-                      "cannot cancel it: hold A.")
+                      "cannot cancel it: hold {A}.")
      .Add("All Shiny", [](void*) { ChangeTeam(BatchChange::kShiny); })
      .WithConfirm()
-     .WithDescription("All the Pokemon of the team become shiny. Hold A.")
+     .WithDescription("All the Pokemon of the team become shiny. Hold {A}.")
      .Add("All IVs To 31", [](void*) { ChangeTeam(BatchChange::kMaxIvs); })
      .WithConfirm()
-     .WithDescription("The six IVs of all the team. Hold A.")
+     .WithDescription("The six IVs of all the team. Hold {A}.")
      .Add("Clear All EVs", [](void*) { ChangeTeam(BatchChange::kClearEvs); })
      .WithConfirm()
-     .WithDescription("The six EVs of all the team go to 0. Hold A.");
+     .WithDescription("The six EVs of all the team go to 0. Hold {A}.");
 }
 
 // The box of the page of the PC boxes.
@@ -225,16 +225,16 @@ static void AddWholeBox(MainApplication& app) {
      .Add("All To Level 100", [](void*) { ChangeBox(BatchChange::kLevel100); })
      .WithConfirm()
      .WithDescription("All the Pokemon of this box (not the Eggs). Undo "
-                      "cannot cancel it: hold A.")
+                      "cannot cancel it: hold {A}.")
      .Add("All Shiny", [](void*) { ChangeBox(BatchChange::kShiny); })
      .WithConfirm()
-     .WithDescription("All the Pokemon of this box become shiny. Hold A.")
+     .WithDescription("All the Pokemon of this box become shiny. Hold {A}.")
      .Add("All IVs To 31", [](void*) { ChangeBox(BatchChange::kMaxIvs); })
      .WithConfirm()
-     .WithDescription("The six IVs of all the box. Hold A.")
+     .WithDescription("The six IVs of all the box. Hold {A}.")
      .Add("Clear All EVs", [](void*) { ChangeBox(BatchChange::kClearEvs); })
      .WithConfirm()
-     .WithDescription("The six EVs of all the box go to 0. Hold A.");
+     .WithDescription("The six EVs of all the box go to 0. Hold {A}.");
 }
 
 // Adds Copy Pokemon and Paste Pokemon.
@@ -246,7 +246,7 @@ static void AddClipboard(MainApplication& app) {
      .Add("Paste Pokemon", PastePokemon)
      .WithConfirm()
      .WithDescription(has_clipboard
-                          ? "Hold A: puts the copy in this slot. The Pokemon "
+                          ? "Hold {A}: puts the copy in this slot. The Pokemon "
                             "of the slot goes away, Undo cannot bring it back."
                           : "Copy a Pokemon first.");
 }
@@ -597,6 +597,19 @@ void LoadSaveDataRecordsPage(MainApplication& app, void* args) {
      .Add("Value", data.records_1[record_1_idx]);
 }
 
+namespace {
+// The number of badges of the Trainer Card page. The game counts the bits of
+// the badges that are on: a badge is not a precise bit, so the page edits the
+// count and turns on the first bits.
+u32 badge_count = 0;
+
+void ApplyBadgeCount(void*) {
+  auto& misc = savedata::Misc::GetInstance();
+  if (misc.GetBadgesCount() == badge_count) return;
+  misc.badges = (badge_count >= 8 ? 0xFFu : (1u << badge_count) - 1);
+}
+} // namespace
+
 // The player: who it is, what it owns and what it did. The most edited values
 // of the save file are here.
 void LoadSaveDataTrainerPage(MainApplication& app, void* args) {
@@ -605,6 +618,8 @@ void LoadSaveDataTrainerPage(MainApplication& app, void* args) {
   auto& misc = savedata::Misc::GetInstance();
   auto& time = savedata::PlayTime::GetInstance();
 
+  badge_count = misc.GetBadgesCount();
+  app.OnChange(ApplyBadgeCount);
   app.AddSection("Trainer")
      .Add("Player Name", status.name, savedata::TrainerStatus::kPlayerNameLen)
      .Add("Nickname", status.nickname, savedata::TrainerStatus::kPlayerNameLen)
@@ -624,12 +639,13 @@ void LoadSaveDataTrainerPage(MainApplication& app, void* args) {
      .Add("Money", misc.money)
      .Add("Battle Points", misc.battle_points)
 
-     .AddSection("Badges");
-  for (u32 i = 0; i < 8; i++) {
-    app.Add(GetNumberedNames("Badge %u", 8)[i], &misc.badges, i, 1);
-  }
+     .AddSection("Badges")
+     .Add("Badge Count", badge_count)
+     .WithBounds(0, 8)
+     .WithDescription("The number of Gym Badges. The game only counts the "
+                      "bits that are on: the first badges are on.")
 
-  app.AddSection("Play Time")
+     .AddSection("Play Time")
      .Add("Hours", time.hour)
      .Add("Minutes", time.minute)
      .WithBounds(0, 59)
@@ -887,7 +903,7 @@ void LoadSaveDataSettingsPage(MainApplication& app, void* args) {
      .WithArray(kLanguageNames, SIZE(kLanguageNames))
      .WithIcons(IconKind::kLanguage)
      .WithCallback(OnUpdateLanguage)
-     .WithDescription("Select the language, then press A to use it. The "
+     .WithDescription("Select the language, then press {A} to use it. The "
                       "next texts use the new language.")
      .Add("Button Mode", &settings.core, 13, 2)
      .WithArray(BUTTON_MODE, SIZE(BUTTON_MODE))

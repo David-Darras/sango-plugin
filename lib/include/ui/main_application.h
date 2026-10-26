@@ -798,10 +798,12 @@ private:
   struct Input {
     s32 move = 0; ///< The number of entries to move (Up / Down).
     s32 section = 0; ///< -1: previous section, 1: next section.
+    s32 page = 0; ///< -1 / 1: the previous / next page of the grid.
     s32 step = 0; ///< The change of the value (Left / Right, -10 / +10).
     s32 choice = -1; ///< The index that the player touched, or -1.
     bool back = false;
     bool pin = false;
+    bool filter = false; ///< Opens the filter of a grid of values (Y).
     bool run = false;
     bool apply = false; ///< Applies the numpad or the keyboard.
     bool search = false;
@@ -814,6 +816,13 @@ private:
     s64 number = 0;
   };
 
+  /// Shows the previous (-1) or the next (1) page of the grid of values.
+  void ChangePickerPage(const PageItem& entry, s32 direction);
+
+  /// Builds the page again when the map or the part of the game changed: the
+  /// pointers of the entries are then wrong. Returns true when it did.
+  bool RefreshIfPlaceChanged();
+
   /// Starts or stops the walk mode (see IsWalking()).
   void SetWalking(bool is_walking);
 
@@ -821,6 +830,10 @@ private:
   void ReadTouch(const PageItem& entry, Input& input);
   /// Reads Min, Max, Hex and the slider of the numpad.
   void ReadNumberTouch(const PageItem& entry, Input& input);
+  /// Draws the bottom screen of the menu (without the message).
+  void DrawBottomPage(sys::Graphics& graphics);
+  /// Draws the message of ShowToast() over the page: a box that is easy to see.
+  void DrawToast() const;
   /// Draws the state of the game at the bottom of the bottom screen.
   void DrawFooter() const;
   /// Draws the navigation bar.
@@ -868,7 +881,7 @@ private:
   /// The frames that the player holds A to run an action of WithConfirm().
   static constexpr u32 kConfirmFrames = 50;
   /// The frames that a message of ShowToast() stays.
-  static constexpr u32 kToastFrames = 120;
+  static constexpr u32 kToastFrames = 200;
   /// The characters of a message of ShowToast().
   static constexpr u32 kToastLength = 64;
 
@@ -907,7 +920,7 @@ private:
   Editor editor_ = Editor::kNone; ///< The editor of the last frame.
   u32 hold_frames_ = 0; ///< The frames that Up or Down stays pressed.
   bool was_walk_combo_ = false; ///< L and R were both down last frame.
-  bool are_pins_shown_ = false; ///< The first page lists the pinned entries.
+  u32 place_key_ = 0xFFFFFFFF; ///< The map (or none) of the last frame.
   u32 hold_step_frames_ = 0; ///< The frames that Left or Right stays pressed.
   callback_t on_change_; ///< The OnChange() function of the page.
   u8 prepared_index_ = 0xFF; ///< The entry that the editor shows.

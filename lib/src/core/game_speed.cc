@@ -24,6 +24,8 @@
 
 #include "core/patch/game_speed.h"
 #include "core/hook.h"
+#include "core/native/game_manager.h"
+#include "ui/main_application.h"
 
 namespace core {
 
@@ -43,9 +45,26 @@ void GameSpeed::StartBackupThread(uptr self, u32 a, u32 b, u32 c, u32 d) {
   start_backup_thread_hook(self, a, b, c, d);
 }
 
+// The mode of the frame rate in the game manager (ORAS): the byte 12 is the
+// mode that the game asked for (0: 60 frames, 1: 30 frames, 2: nothing), the
+// game applies it at the start of the next frame.
+static void ForceFrameRate(u8 frame_rate) {
+#ifdef GAME_ORAS
+  if (frame_rate == 0) return;
+  *(u8*)((uptr)&GameManager::GetInstance() + 12) = frame_rate == 2 ? 0 : 1;
+#endif
+}
+
 s32 GameSpeed::UpdateFrameHook(uptr addr) {
   auto& ctx = GetInstance();
   ctx.frame_count++;
+
+  // The game waits while the menu is open (not in walk mode).
+  if (ctx.freeze_in_menu) {
+    auto& menu = ui::MainApplication::GetInstance();
+    if (menu.IsOpened() && !menu.IsWalking()) return 1;
+  }
+  ForceFrameRate(ctx.frame_rate);
 
   if (ctx.game_speed >= 1) {
     s32 res = 0;

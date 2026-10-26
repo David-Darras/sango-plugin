@@ -17,7 +17,7 @@
 
 /**
  * @file texture_filter.h
- * @brief The color filters of the Pokémon models in battle.
+ * @brief The color filters of the 3D Pokémon models.
  */
 
 #pragma once
@@ -26,21 +26,29 @@
 
 namespace renderer {
 
-/// A color filter of the Pokémon models in battle. See renderer::ModelFilter.
+/// A color filter of the 3D Pokémon models. See renderer::ModelFilter. The
+/// order is the order of the list of the menu.
 enum class TextureFilter : u8 {
-  kNormal,
-  kPitchBlack,
-  kInvert,
-  kDarken,
-  kOverexposed,
-  kPsychedelic,
+  kNormal, ///< RGB: the colors of the game.
+  kGrb, ///< The red and the green change places.
+  kBgr,
+  kRbg,
+  kGbr,
+  kBrg,
+  kInverted, ///< (1 - R) (1 - G) (1 - B).
+  kInvertedGrb,
+  kInvertedBgr,
+  kDarker,
+  kBrighter,
+  kAllBlack,
+  kAllWhite,
+  kGrayscale, ///< Black and white.
   kSepia,
-  kObsidian,
-  kPlasma,
-  kSketch,
-  kChromeMetallic,
-  kLiquidChrome,
-  kGhost,
+  kLightOnly, ///< Only the light of the scene, without the textures.
+  kSpecularOnly, ///< Only the shiny parts.
+  kRimLight,
+  kLiquidMetal,
+  kGhost, ///< The model is half transparent.
   kCount,
 };
 

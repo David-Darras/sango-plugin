@@ -67,20 +67,10 @@ void LoadBattleSettingsPage(MainApplication& app, void* args) {
      .WithBounds(0, 20)
      .WithDescription("Multiplies the money after each battle. The change "
                       "applies at the next battle.")
-     .AddSection("Rules")
-     .Add("Can Use Items", ctx.can_use_item)
-     .WithDescription("Off: the player cannot use the items of the Bag in "
-                      "battle.")
+     .AddSection("Challenge Rules")
      .Add("Same Catch Rate For Every Ball", ctx.same_ratio_for_all_pokeball)
      .WithDescription("All the Poke Balls have the same catch rate, the "
                       "Master Ball too.")
-     .AddSection("Challenge Rules")
-     .Add("One Mega Evolution", ctx.mega_restriction)
-     .WithDescription("On: the rule of the game, one Mega Evolution in each "
-                      "battle. Off: no limit.")
-     .Add("Unlimited Mega Evolutions", ctx.unlimited_mega_evolution)
-     .WithDescription("When One Mega Evolution is Off: the game always "
-                      "accepts a Mega Evolution.")
      .Add("Inverse Stats", ctx.inverse_stats)
      .WithDescription("Exchanges the physical stats and the special stats "
                       "of all the Pokemon.")
@@ -93,8 +83,6 @@ void LoadBattleSettingsPage(MainApplication& app, void* args) {
      .Add("Type Helper", ctx.show_type_helper)
      .WithDescription("Shows the effectiveness of each move against the "
                       "opponent.")
-     .Add("Real Pokemon Sizes", ctx.fix_pokemon_size)
-     .WithDescription("Shows the Pokemon with their real sizes.")
      .Add("Keep Overworld Music", ctx.sync_overworld_music)
      .WithDescription("The battle keeps the music of the overworld.")
      .Add("No Shader", ctx.no_shader)
@@ -106,7 +94,21 @@ void LoadBattleSettingsPage(MainApplication& app, void* args) {
      .Add("Show Trainer Animation", ctx.show_trainer_animation)
      .Add("Show Poke Ball Animation", ctx.show_pokeball_animation)
      .Add("Show Fade In", ctx.show_fade_in)
-     .Add("Show Shiny Animation", ctx.show_shiny_animation);
+     .Add("Show Shiny Animation", ctx.show_shiny_animation)
+     // The options that are already on in the game: the player rarely
+     // changes them, so they come last.
+     .AddSection("Game Rules")
+     .Add("Can Use Items", ctx.can_use_item)
+     .WithDescription("Off: the player cannot use the items of the Bag in "
+                      "battle.")
+     .Add("One Mega Evolution", ctx.mega_restriction)
+     .WithDescription("On: the rule of the game, one Mega Evolution in each "
+                      "battle. Off: no limit.")
+     .Add("Unlimited Mega Evolutions", ctx.unlimited_mega_evolution)
+     .WithDescription("When One Mega Evolution is Off: the game always "
+                      "accepts a Mega Evolution.")
+     .Add("Real Pokemon Sizes", ctx.fix_pokemon_size)
+     .WithDescription("Shows the Pokemon with their real sizes.");
 }
 
 void LoadBattleSetupPage(MainApplication& app, void* args) {
@@ -375,9 +377,16 @@ void LoadBattlePokemonDataPage(MainApplication& app, void* args) {
      .Add("EV Sp. Atk", pkm.ev_special_attack)
      .Add("EV Sp. Def", pkm.ev_special_defense)
      .Add("EV Speed", pkm.ev_speed)
-     .Add("EV Total", pkm.ev_sum)
-     .Add("Battle ID", pkm.uid)
-     .WithReadOnly();
+     .Add("EV Total", pkm.ev_sum);
+}
+
+// The game applies the position, the rotation and the size of a model only
+// when its flag `update` is on, then it turns the flag off. Each change of the
+// page turns it on again: the model moves at once.
+static void UpdateBattleModel(void*) {
+  if (!core::ProcessManager::IsBattleActive()) return;
+  battle::Manager::GetInstance().GetGraphics().GetPokemonModel(pokemon_idx)
+      .update = true;
 }
 
 void LoadBattlePokemonModelPage(MainApplication& app, void* args) {
@@ -388,6 +397,7 @@ void LoadBattlePokemonModelPage(MainApplication& app, void* args) {
           pokemon_idx);
 
   model.update = true;
+  app.OnChange(UpdateBattleModel);
 
   constexpr f32 kScaleFactor = 0.05f;
   constexpr f32 kRotationFactor = 4.0f * M_PI / 180.0f;
@@ -432,30 +442,43 @@ void LoadBattleCameraPage(MainApplication& app, void* args) {
                       "shows the controls.")
      .Add("State", ctx.battle_state)
      .WithArray(kCameraStates, SIZE(kCameraStates))
+     .WithRefresh()
      .Add("Target Pokemon Slot", ctx.battle_target_pokemon_slot)
-     .WithBounds(0, 5)
-     .AddSection("Free Position")
-     .Add("Free Pos X (Left/Right)", ctx.pos.x)
-     .WithFactor(5.0f)
-     .Add("Free Pos Y (Up/Down)", ctx.pos.y)
-     .WithFactor(5.0f)
-     .Add("Free Pos Z (Forward/Back)", ctx.pos.z)
-     .WithFactor(5.0f)
-     .Add("Free Yaw (Turn)", ctx.rot.y)
-     .WithFactor(0.05f)
-     .Add("Free Pitch (Look)", ctx.rot.x)
-     .WithFactor(0.05f)
-     .AddSection("Third Person")
-     .Add("Distance", ctx.tps_dist)
-     .Add("Height", ctx.tps_height)
-     .Add("Shoulder Offset", ctx.tps_offset)
-     .AddSection("Orbit")
-     .Add("Orbit Radius", ctx.radius)
-     .WithFactor(3.0f)
-     .Add("Orbit Height", ctx.height)
-     .WithFactor(3.0f)
-     .Add("Orbit Rotation Speed", ctx.theta_speed)
-     .WithFactor(0.01f);
+     .WithBounds(0, 5);
+
+  // The sections of the mode that the camera uses now.
+  switch (ctx.battle_state) {
+    case overworld::CameraState::kFree:
+      app.AddSection("Free Position")
+         .Add("Free Pos X (Left/Right)", ctx.pos.x)
+         .WithFactor(5.0f)
+         .Add("Free Pos Y (Up/Down)", ctx.pos.y)
+         .WithFactor(5.0f)
+         .Add("Free Pos Z (Forward/Back)", ctx.pos.z)
+         .WithFactor(5.0f)
+         .Add("Free Yaw (Turn)", ctx.rot.y)
+         .WithFactor(0.05f)
+         .Add("Free Pitch (Look)", ctx.rot.x)
+         .WithFactor(0.05f);
+      break;
+    case overworld::CameraState::kTps:
+      app.AddSection("Third Person")
+         .Add("Distance", ctx.tps_dist)
+         .Add("Height", ctx.tps_height)
+         .Add("Shoulder Offset", ctx.tps_offset);
+      break;
+    case overworld::CameraState::kRotate:
+      app.AddSection("Orbit")
+         .Add("Orbit Radius", ctx.radius)
+         .WithFactor(3.0f)
+         .Add("Orbit Height", ctx.height)
+         .WithFactor(3.0f)
+         .Add("Orbit Rotation Speed", ctx.theta_speed)
+         .WithFactor(0.01f);
+      break;
+    default:
+      break;
+  }
 }
 
 void LoadBattleLivePage(MainApplication& app, void* args) {
@@ -476,8 +499,14 @@ void LoadBattleLivePage(MainApplication& app, void* args) {
   pkm_server = battle::Manager::GetPokemon(true, team_idx, pokemon_idx);
   pkm_client = battle::Manager::GetPokemon(false, team_idx, pokemon_idx);
 
-  app.AddSection("Pokemon")
-     .Add("Team", team_idx)
+  app.AddSection("Pokemon");
+  // The id of the Pokemon in the battle comes first.
+  if (pkm_server != nullptr) {
+    app.Add("Battle ID", pkm_server->uid)
+       .WithReadOnly()
+       .WithDescription("The id of this Pokemon in the battle.");
+  }
+  app.Add("Team", team_idx)
      .WithArray(SIDES, SIZE(SIDES))
      .WithRefresh()
      .Add("Slot", pokemon_idx)

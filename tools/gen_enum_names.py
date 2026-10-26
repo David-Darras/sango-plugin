@@ -78,6 +78,45 @@ def read_titles(path):
   return titles
 
 
+SOUND_HEADER = "private/include/sound/SoundMiddleID.h"
+
+
+def read_sound_effects():
+  """Returns the sound effects of the bank 6 of the game (ORAS): {index: name}.
+
+  The header is in the private folder of the project. Without it, the tool
+  keeps the names that it wrote the last time.
+  """
+  path = os.path.join(REPO, SOUND_HEADER)
+  if not os.path.exists(path):
+    return None
+  text = open(path, encoding="cp932", errors="replace").read()
+  effects = {}
+  for match in re.finditer(r"^\s*SEQ_SE_(\w+)\s*=\s*(\d+)", text, re.M):
+    value = int(match.group(2))
+    if value >> 16 == 6:
+      effects[value & 0xFFFF] = match.group(1)
+  return effects
+
+
+# The names of the game that are Japanese words, or two words in one.
+SOUND_NAMES = {
+    "WAZAWASURE": "Forget Move",
+    "BOSHU": "Invite",
+    "PRESSSTART": "Press Start",
+}
+
+
+def pretty_sound(name):
+  if name in SOUND_NAMES:
+    return SOUND_NAMES[name]
+  words = re.findall(r"[A-Za-z]+|\d+", name)
+  # SYS_017 is the 17th system sound: "System 17".
+  if len(words) == 2 and words[0].upper() == "SYS":
+    return "System %d" % int(words[1])
+  return " ".join(word.capitalize() for word in words)
+
+
 def pretty(name):
   words = re.findall(r"[A-Z][a-z]+|[A-Z]+(?![a-z])|\d+|[a-z]+", name)
   return " ".join(words)
@@ -112,6 +151,16 @@ def main():
       header.append("#endif")
       source.append("#endif")
     source.append("")
+  effects = read_sound_effects()
+  if effects:
+    count = max(effects) + 1
+    header += ["#ifndef GAME_XY", "/// The names of the sound effects. The index is the value.",
+               "extern const c8* kSoundEffectNames[%d];" % count, "#endif"]
+    source += ["#ifndef GAME_XY", "const c8* kSoundEffectNames[%d] = {" % count]
+    for i in range(count):
+      name = pretty_sound(effects[i]) if i in effects else "Sound Effect %d" % i
+      source.append('    "%s",' % name)
+    source += ["};", "#endif", ""]
   header += ["", "} // namespace ui", ""]
   source += ["} // namespace ui", ""]
   with open(os.path.join(REPO, "lib/include/ui/page/enum_names.h"), "w",

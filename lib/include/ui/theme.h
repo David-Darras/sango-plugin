@@ -23,6 +23,7 @@
 #pragma once
 
 #include "common.h"
+#include "ui/button_glyph.h"
 #include "system/native/graphics.h"
 #include "system/native/sound.h"
 
@@ -42,7 +43,7 @@ struct Theme {
 
   u8 keys[3] = {};
 
-  bool text_shadow = true; ///< Draws a shadow under the texts of the menu.
+  bool text_shadow = false; ///< Draws a shadow under the texts of the menu.
   bool animations = true; ///< Moves the cursor and the pages smoothly.
   /// Draws sdmc:/sango/menu_top.tga and menu_bottom.tga behind the menu.
   bool background_image = true;
@@ -52,9 +53,6 @@ struct Theme {
   /// The frames that Up / Down or Left / Right stay pressed before the menu
   /// moves faster.
   u8 fast_delay = 45;
-  /// Shows the pinned entries on the first page when the menu starts. Off: the
-  /// player opens them with the Quick Access entry.
-  bool show_pins_at_start = false;
   /// The opacity of the background color in walk mode (0: invisible, 1: as in
   /// the menu).
   f32 walk_opacity = 0.4f;
@@ -116,8 +114,20 @@ private:
     selected_text_color = selected;
   }
 };
+/// The names of the buttons of Theme::keys. The index is the value of the key.
+constexpr u32 kKeyNameCount = 14;
+inline const c8** GetKeyNames() {
+  static const c8* names[kKeyNameCount] = {
+      "None", "Left", "Right", "Up", "Down", "A", "B", "X", "Y", "L", "R",
+      "ZL", "ZR", "START"};
+  return names;
+}
+
 /// Draws a text of the menu, with a shadow when Theme::text_shadow is on.
 inline void DrawMenuText(s32 x, s32 y, const c16* text, Color color) {
+  // {A}, {B}, {X}, {Y}, {L} and {R} become the symbols of the buttons.
+  c16 expanded[160];
+  text = ExpandButtons(text, expanded, SIZE(expanded));
   if (Theme::GetInstance().text_shadow) {
     sys::Graphics::DrawTextWithShadow(x, y, text, color);
   } else {

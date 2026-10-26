@@ -125,6 +125,8 @@ void Numpad::DrawKey(ButtonId id, const c16* label, bool is_enabled) const {
   sys::Graphics::DrawRect(x, y, width, height, fill);
 
   if (label == nullptr) return;
+  c16 expanded[48];
+  label = ExpandButtons(label, expanded, SIZE(expanded));
   sys::Graphics::SetTextScale(0.6f, 0.6f);
   DrawMenuText(x + (width - sys::Graphics::GetTextWidth(label)) / 2,
                y + (height - 14) / 2, label, border);
@@ -172,7 +174,7 @@ void Numpad::Draw() const {
   }
   DrawKey(kButtonDelete, u"DEL", true);
   DrawKey(kButtonClear, u"CLR", true);
-  DrawKey(kButtonOk, u"OK  (X)", true);
+  DrawKey(kButtonOk, u"OK  {X}", true);
 }
 
 void Numpad::DrawDecimalKeys() const {

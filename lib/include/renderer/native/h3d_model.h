@@ -240,6 +240,11 @@ struct H3dModel {
                          SCALE_1);
   }
 
+  INLINE void ApplyAllWhite() {
+    this->SetConstant(5, 0, 255, 255, 255);
+    this->ConfigureStage(5, REPLACE, CONSTANT, COLOR);
+  }
+
   INLINE void ApplyInvert() {
     this->ConfigureStage(5, REPLACE, PREVIOUS, ONE_MINUS_COLOR);
   }
@@ -253,9 +258,40 @@ struct H3dModel {
     this->ConfigureStage(5, ADD, PREVIOUS, COLOR, PREVIOUS, COLOR, SCALE_1);
   }
 
-  INLINE void ApplyPsychedelic() {
-    this->ConfigureStage(5, MODULATE, PREVIOUS, COLOR, PREVIOUS,
-                         ONE_MINUS_COLOR, SCALE_4);
+  /**
+   * @brief Writes the channels (a, b, c) in place of (R, G, B). A channel is
+   *        0 (red), 1 (green) or 2 (blue).
+   *
+   * Two stages: the stage 4 chooses the channels `a` and `b` for the first two
+   * colors, the stage 5 takes the channel `c` from the combiner buffer, that
+   * keeps the color before the stage 4. `is_inverted` writes 1 - channel.
+   */
+  void ApplyChannels(u32 a, u32 b, u32 c, bool is_inverted) {
+    static const s32 kOperand[3] = {RED, GREEN, BLUE};
+    static const s32 kInvertedOperand[3] = {ONE_MINUS_RED, ONE_MINUS_GREEN,
+                                            ONE_MINUS_BLUE};
+    const s32* operand = is_inverted ? kInvertedOperand : kOperand;
+    // The buffer takes the color that comes into the stage 4.
+    const s32 material_count = this->GetMaterialCount();
+    for (s32 i = 0; i < material_count; ++i) this->SetBufferInputRgb(i, 4, 1);
+    // First color: a. Second color: b. The third color is not used yet.
+    this->SetConstant(4, 1, 255, 0, 0);
+    this->ConfigureStage(4, INTERPOLATE, PREVIOUS, operand[a], PREVIOUS,
+                         operand[b], SCALE_1, CONSTANT, COLOR);
+    // The third color: c, from the buffer.
+    this->SetConstant(5, 0, 255, 255, 0);
+    this->ConfigureStage(5, INTERPOLATE, PREVIOUS, COLOR, PREVIOUS_BUFFER,
+                         operand[c], SCALE_1, CONSTANT, COLOR);
+  }
+
+  /// Black and white. Two stages: the stage 4 gives 0.5 + color / 2, then the
+  /// stage 5 makes the sum of the colors with the weights of the eye.
+  void ApplyGrayscale() {
+    this->SetConstant(4, 1, 128, 128, 128);
+    this->ConfigureStage(4, MULTIPLY_ADD, PREVIOUS, COLOR, CONSTANT, COLOR,
+                         SCALE_1, CONSTANT, COLOR);
+    this->SetConstant(5, 0, 166, 202, 142);
+    this->ConfigureStage(5, DOT3_RGB, PREVIOUS, COLOR, CONSTANT, COLOR);
   }
 
   INLINE void ApplySepia() {
@@ -264,29 +300,24 @@ struct H3dModel {
                          SCALE_1);
   }
 
-  INLINE void ApplyObsidian() {
+  /// Only the light of the scene (the color of the vertices), without the
+  /// textures.
+  INLINE void ApplyLightOnly() {
     this->ConfigureStage(5, REPLACE, FRAGMENT_PRIMARY_COLOR, COLOR);
   }
 
-  INLINE void ApplyPlasma() {
+  /// Only the shiny parts.
+  INLINE void ApplySpecularOnly() {
     this->ConfigureStage(5, REPLACE, FRAGMENT_SECONDARY_COLOR, COLOR);
   }
 
-  INLINE void ApplySketch() {
+  INLINE void ApplyRimLight() {
     this->ConfigureStage(5, MODULATE,
                          FRAGMENT_SECONDARY_COLOR, BLUE,
                          FRAGMENT_SECONDARY_COLOR, BLUE, SCALE_1);
   }
 
-  INLINE void ApplyChromeMetallic() {
-    this->ConfigureStage(4, MODULATE, PREVIOUS, COLOR, PREVIOUS, COLOR,
-                         SCALE_4);
-    this->SetConstant(5, 0, 180, 220, 255);
-    this->ConfigureStage(5, INTERPOLATE, PREVIOUS_BUFFER, COLOR, CONSTANT,
-                         ONE_MINUS_COLOR, SCALE_1);
-  }
-
-  INLINE void ApplyLiquidChrome() {
+  INLINE void ApplyLiquidMetal() {
     this->SetConstant(5, 0, 225, 238, 255);
     this->ConfigureStage(5, INTERPOLATE,
                          CONSTANT, COLOR,
@@ -294,7 +325,8 @@ struct H3dModel {
                          FRAGMENT_SECONDARY_COLOR, BLUE);
   }
 
-  void ApplyGhostMode() {
+  /// The model is half transparent: its alpha is 110 of 255.
+  void ApplyGhost() {
     this->EnableAlphaBlend();
     this->SetConstant(5, 0, 255, 255, 255, 110);
     this->ConfigureAlphaStage(5, MODULATE, PREVIOUS, 0, CONSTANT, 0);

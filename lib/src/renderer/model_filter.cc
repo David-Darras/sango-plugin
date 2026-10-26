@@ -17,7 +17,7 @@
 
 /**
  * @file model_filter.cc
- * @brief Applies color filters to the 3D models in battle.
+ * @brief Applies color filters to the 3D Pokémon models.
  *
  * The declarations are in renderer/patch/model_filter.h.
  */
@@ -188,35 +188,40 @@ void ModelFilter::UpdateH3dModel(H3dModel* h3d_model) {
     }
     return;
   }
-  if (!IsInBattle()) {
-    return;
-  }
-
-  if (IsBattlePokemonModel(h3d_model)) {
-    using FilterFunc = void (H3dModel::*)();
-    static constexpr FilterFunc kFilters[] = {
-        nullptr, ///< kNormal.
-        &H3dModel::ApplyPitchBlack,
-        &H3dModel::ApplyInvert,
-        &H3dModel::ApplyDarken,
-        &H3dModel::ApplyOverexposed,
-        &H3dModel::ApplyPsychedelic,
-        &H3dModel::ApplySepia,
-        &H3dModel::ApplyObsidian,
-        &H3dModel::ApplyPlasma,
-        &H3dModel::ApplySketch,
-        &H3dModel::ApplyChromeMetallic,
-        &H3dModel::ApplyLiquidChrome,
-        &H3dModel::ApplyGhostMode,
-    };
-    static_assert(SIZE(kFilters) == static_cast<u32>(TextureFilter::kCount),
-                  "one entry per TextureFilter");
-
+  // The Pokemon of a battle, and the 3D Pokemon of all the other screens (the
+  // party, the PC, the Pokedex...): they use the model of the Pokemon shader.
+  const bool is_pokemon_model =
+      IsInBattle()
+          ? IsBattlePokemonModel(h3d_model)
+          : *(const u32*)h3d_model == address::kH3dPokemonShaderModelVtable;
+  if (is_pokemon_model) {
     auto& ctx = GetInstance();
-    if (ctx.filter < TextureFilter::kCount) {
-      if (auto func = kFilters[static_cast<u8>(ctx.filter)]) {
-        (h3d_model->*func)();
-      }
+    if (ctx.filter >= TextureFilter::kCount) return;
+    switch (ctx.filter) {
+      case TextureFilter::kGrb: h3d_model->ApplyChannels(1, 0, 2, false); break;
+      case TextureFilter::kBgr: h3d_model->ApplyChannels(2, 1, 0, false); break;
+      case TextureFilter::kRbg: h3d_model->ApplyChannels(0, 2, 1, false); break;
+      case TextureFilter::kGbr: h3d_model->ApplyChannels(1, 2, 0, false); break;
+      case TextureFilter::kBrg: h3d_model->ApplyChannels(2, 0, 1, false); break;
+      case TextureFilter::kInverted: h3d_model->ApplyInvert(); break;
+      case TextureFilter::kInvertedGrb:
+        h3d_model->ApplyChannels(1, 0, 2, true);
+        break;
+      case TextureFilter::kInvertedBgr:
+        h3d_model->ApplyChannels(2, 1, 0, true);
+        break;
+      case TextureFilter::kDarker: h3d_model->ApplyDarken(); break;
+      case TextureFilter::kBrighter: h3d_model->ApplyOverexposed(); break;
+      case TextureFilter::kAllBlack: h3d_model->ApplyPitchBlack(); break;
+      case TextureFilter::kAllWhite: h3d_model->ApplyAllWhite(); break;
+      case TextureFilter::kGrayscale: h3d_model->ApplyGrayscale(); break;
+      case TextureFilter::kSepia: h3d_model->ApplySepia(); break;
+      case TextureFilter::kLightOnly: h3d_model->ApplyLightOnly(); break;
+      case TextureFilter::kSpecularOnly: h3d_model->ApplySpecularOnly(); break;
+      case TextureFilter::kRimLight: h3d_model->ApplyRimLight(); break;
+      case TextureFilter::kLiquidMetal: h3d_model->ApplyLiquidMetal(); break;
+      case TextureFilter::kGhost: h3d_model->ApplyGhost(); break;
+      default: break;
     }
   }
 }

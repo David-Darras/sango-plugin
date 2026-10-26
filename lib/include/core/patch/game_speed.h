@@ -45,6 +45,14 @@ struct GameSpeed : public GameSpeedSettings {
   static void StartBackupThread(uptr self, u32 a, u32 b, u32 c, u32 d);
   static s32 UpdateFrameHook(uptr addr);
 
+  /// The frame rate of the game: 0 (the game chooses), 1 (30 FPS) or 2
+  /// (60 FPS). ORAS only.
+  /// The engine runs the field at 30 frames in each second: 60 makes it
+  /// smoother, but some animations and scripts then run too fast.
+  u8 frame_rate = 0;
+  /// true: the game stops while the menu is open (the menu needs less time).
+  bool freeze_in_menu = false;
+
 private:
   s32 frame_count = 0;
 };

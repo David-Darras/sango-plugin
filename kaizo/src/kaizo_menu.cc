@@ -25,6 +25,7 @@
 #include "overworld/patch/camera.h"
 #include "overworld/patch/field_move.h"
 #include "overworld/patch/overworld.h"
+#include "overworld/patch/wild_encounter.h"
 #include "savedata/native/misc.h"
 #include "system/native/sound.h"
 #include "ui/main_application.h"
@@ -71,6 +72,7 @@ static void LoadHmPage(MainApplication& app, void* args) {
 }
 
 void LoadMenuPage(MainApplication& app, void* args) {
+  static const c8* ENCOUNTER_MODES[] = {"Normal", "Never", "Always"};
   static const c8* CAMERA_STATES[] = {
       "Idle", "Tps", "Rotate", "Top", "Fpv", "Free"
   };
@@ -87,7 +89,8 @@ void LoadMenuPage(MainApplication& app, void* args) {
      .WithCallback([&](void*) { sys::Sound::PlayBackgroundMusic(bgm); })
      .WithBounds(0, static_cast<u32>(BackgroundMusicId::kCount) - 1)
      .Add("HM", LoadHmPage)
-     .Add("App", ui::LoadAppPage)
-     .Add("Repel", CheatCodeId::kNoEncounter);
+     .Add("Applications", ui::LoadAppPage)
+     .Add("Wild Encounters", overworld::WildEncounter::GetInstance().mode)
+     .WithArray(ENCOUNTER_MODES, SIZE(ENCOUNTER_MODES));
 }
 } // namespace kaizo

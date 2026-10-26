@@ -27,6 +27,7 @@
 #include "battle/patch/setup.h"
 #include "battle/patch/type_helper.h"
 #include "ui/performance_overlay.h"
+#include "ui/splash.h"
 #include "core/frame_trace.h"
 #include "core/hook.h"
 #include "core/patch/app_launcher.h"
@@ -199,6 +200,7 @@ void DrawFrame() {
     ui::KeyboardPatch::DrawTop();
     battle::TypeHelper::DrawTop();
     ui::PerformanceOverlay::DrawTop();
+    ui::Splash::DrawTop();
     core::FrameTrace::OnScreenDrawn(true);
     sys::Graphics::DisableScissor();
   }

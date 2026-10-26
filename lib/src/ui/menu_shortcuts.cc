@@ -109,21 +109,11 @@ MainApplication& MainApplication::AddQuickAccess() {
   is_quick_access_ = 1;
   first_pin_ = 0xFF;
 
-  AddSection("Quick Access");
-  Add(are_pins_shown_ ? "Hide The Pinned Entries" : "Show The Pinned Entries",
-      [](void*) {
-        MainApplication& app = MainApplication::GetInstance();
-        app.are_pins_shown_ = !app.are_pins_shown_;
-        app.Refresh();
-      })
-      .WithDescription("The entries that you pinned with Y. X shows them in "
-                       "a circle from any page.");
-  if (!are_pins_shown_) return *this;
-
+  AddSection("Pinned");
   if (pin_count_ == 0) {
-    Add("Press Y on an entry to pin it here")
+    Add("Touch Pin on an entry to pin it here")
         .WithDescription("The pinned entries stay here. X shows them in a "
-                         "circle from any page. Y on a pin removes it.");
+                         "circle from any page. Pin on a pin removes it.");
   } else {
     first_pin_ = entries_count_;
     AddShortcuts(pins_, pin_count_);
@@ -252,7 +242,7 @@ void MainApplication::TogglePin(u32 index) {
     added.on_change = shortcut != nullptr ? shortcut->on_change : on_change_;
     added.is_available = true;
     theme_.Play(theme_.confirm_sound);
-    core::Utils::Format(message, u"Pinned: %s  (X shows the pins)",
+    core::Utils::Format(message, u"Pinned: %s  ({X} shows the pins)",
                         added.name);
     ShowToastText(message);
   }
@@ -428,7 +418,7 @@ void MainApplication::LoadSearchPage(MainApplication& app, void* args) {
   app.is_search_page_ = 1;
   app.Add("Search", app.search_query_, kQueryLength)
      .WithDescription("Type a part of a name: the results show while you "
-                      "type. Press A on a result to go to it.");
+                      "type. Press {A} on a result to go to it.");
 
   app.AddSection("Results");
   if (app.search_query_[0] == 0) {
@@ -599,7 +589,7 @@ void MainApplication::UpdateRadial(sys::Controller& controller) {
 void MainApplication::DrawRadial() {
   sys::Graphics::SetTextScale(0.45f, 0.45f);
   DrawLabel(6, 4, u"Pinned entries: push a direction, then release X "
-                  u"or press A.",
+                  u"or press {A}.",
             theme_.unselected_text_color);
 
   c16 label[24];
@@ -615,6 +605,6 @@ void MainApplication::DrawRadial() {
               radial_direction_ == (s32)i);
   }
   sys::Graphics::SetTextScale(0.5f, 0.5f);
-  DrawLabel(128, 112, u"B: Close", theme_.unselected_text_color);
+  DrawLabel(128, 112, u"{B}: Close", theme_.unselected_text_color);
 }
 } // namespace ui

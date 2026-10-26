@@ -56,10 +56,10 @@ void LoadCheatsPage(MainApplication& app, void* args) {
      .AddSection("Day Care")
      .Add("Instant Egg Hatch", day_care.instant_egg_hatch)
      .WithCallback(overworld::DayCare::ApplyEggHatch)
-     .WithDescription("Press A to switch it. The Eggs hatch at once.")
+     .WithDescription("Press {A} to switch it. The Eggs hatch at once.")
      .Add("Instant Max Exp", day_care.instant_max_exp)
      .WithCallback(overworld::DayCare::ApplyMaxExp)
-     .WithDescription("Press A to switch it. The Pokemon of the Day Care get "
+     .WithDescription("Press {A} to switch it. The Pokemon of the Day Care get "
                       "the maximum experience.")
 #ifdef GAME_ORAS
      .AddSection("World")

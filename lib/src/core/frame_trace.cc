@@ -35,6 +35,8 @@
 #include "ui/main_application.h"
 
 namespace core {
+bool FrameTrace::is_enabled = false;
+
 namespace {
 const c16* const kPath = u"sdmc:/sango/frame_trace.txt";
 // The file always has this size: a new write replaces the old text.
@@ -82,7 +84,7 @@ void FrameTrace::EndFrame() {
   Raise(state.peak_rects, budget.rects);
 
   auto& menu = ui::MainApplication::GetInstance();
-  if (!menu.IsOpened()) return;
+  if (!is_enabled || !menu.IsOpened()) return;
   state.opened_frames++;
   if (state.opened_frames % kWriteInterval != 1) return;
 

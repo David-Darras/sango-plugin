@@ -29,32 +29,31 @@
 #include "ui/page/pages.h"
 
 namespace ui {
-void LoadPokemonTexturePage(MainApplication& app, void* args) {
-  static const char* FILTERS[] = {
-      "Normal", // 0
-      "Pitch Black", // 1
-      "Invert", // 2
-      "Darken", // 3
-      "Overexposed", // 4
-      "Psychedelic", // 5
-      "Sepia", // 6
-      "Obsidian", // 7
-      "Plasma", // 8
-      "Sketch", // 9
-      "Chrome Metallic", // 10
-      "Liquid Chrome", // 11
-      "Ghost", // 12
-  };
-
-
-
-  auto& ctx = renderer::ModelFilter::GetInstance();
-
-  app.Add("Filter", ctx.filter)
-     .WithArray(FILTERS, SIZE(FILTERS))
-     .WithDescription("A color filter on the Pokemon models in battle.")
-     .Add("Mesh", ctx.mesh);
-}
+namespace {
+// The color filters of the Pokemon in battle.
+const char* FILTERS[] = {
+    "RGB",
+    "GRB",
+    "BGR",
+    "RBG",
+    "GBR",
+    "BRG",
+    "Inverted RGB,",
+    "Inverted GRB",
+    "Inverted BGR",
+    "Darker",
+    "Brighter",
+    "All Black",
+    "All White",
+    "Gray (Black And White)",
+    "Sepia",
+    "Light Only",
+    "Specular Only",
+    "Rim Light",
+    "Liquid Metal",
+    "Ghost",
+};
+} // namespace
 
 void LoadLightPage(MainApplication& app, void* args) {
   auto& ctx = renderer::Lighting::GetInstance();
@@ -111,8 +110,10 @@ void LoadGraphicsPage(MainApplication& app, void* args) {
      .Add("Lighting", LoadLightPage)
      .WithDescription("The outlines, the ambient light and the diffuse "
                       "light of the 3D models.")
-     .Add("Battle Pokemon Filter", LoadPokemonTexturePage)
-     .WithDescription("A color filter on the Pokemon models in battle.")
+     .Add("Pokemon Filter", renderer::ModelFilter::GetInstance().filter)
+     .WithArray(FILTERS, SIZE(FILTERS))
+     .WithDescription("A color filter on all the 3D Pokemon: in battle, and in "
+                      "the party, the PC, the Pokedex and the other menus.")
      .Add("Model Loader (Unstable)", LoadModelLoaderPage)
      .WithDescription("Shows a model of a character or a Pokemon near the "
                       "player.")

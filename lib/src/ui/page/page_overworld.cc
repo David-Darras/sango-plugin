@@ -33,6 +33,7 @@
 #include "overworld/patch/day_care.h"
 #include "overworld/patch/overworld.h"
 #include "overworld/patch/tall_grass.h"
+#include "overworld/patch/wild_encounter.h"
 #include "overworld/patch/healer_follower.h"
 #include "overworld/patch/map_character.h"
 #include "overworld/patch/map_data_loader.h"
@@ -98,7 +99,7 @@ void LoadWeatherPage(MainApplication& app, void* args) {
        .WithArray(WEATHERS, SIZE(WEATHERS))
        .WithBounds(0, SIZE(WEATHERS) - 1)
        .WithCallback(ApplyForcedWeather)
-       .WithDescription("Select a weather, then press A to show it.");
+       .WithDescription("Select a weather, then press {A} to show it.");
 #else
     app.Add("Current Weather", manager.GetRequestedWeather())
        .WithArray(WEATHERS, SIZE(WEATHERS))
@@ -130,7 +131,7 @@ void LoadTimeOfDayPage(MainApplication& app, void* args) {
   app.AddSection("Time")
      .Add("Override Time", ctx.is_enabled)
      .WithDescription("On: the game uses this time, not the time of the "
-                      "console.")
+         "console.")
      .Add("Hour", ctx.hour)
      .WithBounds(0, 23)
      .Add("Minute", ctx.minute)
@@ -150,7 +151,7 @@ void LoadOverworldMapTilePage(MainApplication& app, void* args) {
 
   app.Add("Override Tiles", ctx.is_enabled)
      .WithDescription("On: all the tiles of the map use the attributes of "
-                      "this page.")
+         "this page.")
      .AddSection("Movement")
      .Add("Is Impassable", ctx.is_impassable)
      .Add("Is Water", ctx.is_water)
@@ -274,7 +275,7 @@ void LoadWorldLayoutPage(MainApplication& app, void* args) {
      .Add("Clear Tile Edits",
           [](void*) { overworld::TileEditor::ClearEdits(); })
      .WithConfirm()
-     .WithDescription("Removes all the tile edits. Hold A to confirm.");
+     .WithDescription("Removes all the tile edits. Hold {A} to confirm.");
 
   for (u32 i = 0; i < overworld::MapGraft::GetCount(); i++) {
     auto& request = overworld::MapGraft::GetRequest(i);
@@ -332,12 +333,12 @@ static void LoadDecorationPage(MainApplication& app, void* args) {
   app.Add("Decoration", selected_decoration)
      .WithArray(DECORATION_NAMES, SIZE(DECORATION_NAMES))
      .WithCallback(PlaceSelectedDecoration)
-     .WithDescription("Select a decoration, then press A to place it in "
-                      "front of the player.")
+     .WithDescription("Select a decoration, then press {A} to place it in "
+         "front of the player.")
      .Add("Remove All", ClearDecorations)
      .WithConfirm()
      .WithDescription("Removes all the decorations that the menu placed. "
-                      "Hold A to confirm.");
+         "Hold {A} to confirm.");
 }
 
 void LoadTallGrassPage(MainApplication& app, void* args) {
@@ -370,8 +371,8 @@ void LoadHiddenItemPage(MainApplication& app, void* args) {
      .Add("UID", hidden_item.uid)
      .AddSection("Place")
      .Add("Tile X", hidden_item.tile_x)
-     .Add("Height", hidden_item.height)
      .Add("Tile Z", hidden_item.tile_z)
+     .Add("Height", hidden_item.height)
      .Add("Map ID", hidden_item.map_id)
      .WithArray(kMapNames, SIZE(kMapNames))
      .AddSection("Respawn")
@@ -398,8 +399,8 @@ void LoadRandomHiddenItemPage(MainApplication& app, void* args) {
      .Add("UID", &random_item.flags, 0, 15)
      .Add("Is Mirage Spot", &random_item.flags, 15, 1)
      .Add("Tile X", random_item.tile_x)
-     .Add("Height", random_item.height)
      .Add("Tile Z", random_item.tile_z)
+     .Add("Height", random_item.height)
      .AddSection("Possible Items")
      .AddItem("Item ID 0", random_item.item_id[0])
      .AddItem("Item ID 1", random_item.item_id[1])
@@ -416,7 +417,7 @@ static void LoadWorldOverlayPage(MainApplication& app, void* args) {
 
   app.Add("Enabled", overlay.is_enabled)
      .WithDescription("Shows marks on the map when the menu is closed. Red: "
-                      "wall. Blue: water. Green: wild Pokemon.")
+         "wall. Blue: water. Green: wild Pokemon.")
      .AddSection("Marks")
      .Add("Tiles", overlay.show_tiles)
      .Add("Radius (tiles)", overlay.radius)
@@ -425,25 +426,44 @@ static void LoadWorldOverlayPage(MainApplication& app, void* args) {
      .WithDescription("A yellow mark on each hidden item of the map.")
      .Add("Player", overlay.show_player)
      .WithDescription("A white mark on the player. If it is not on the "
-                      "player, change Screen Pivot.")
+         "player, change Screen Pivot.")
+     .AddSection("State")
+     .Add("Frames With A Camera", overlay.camera_frames)
+     .WithReadOnly()
+     .WithDescription("0 or not increasing: the overlay does not find the "
+         "camera of the overworld.")
+     .Add("Marks Of The Last Frame", overlay.marks_drawn)
+     .WithReadOnly()
+     .WithDescription("0 with a camera: the points are out of the screen "
+         "(try the other Screen Pivot).")
      .AddSection("Advanced")
      .Add("Screen Pivot", overlay.pivot)
      .WithArray(PIVOTS, SIZE(PIVOTS))
      .WithDescription("How the camera turns the image for the screen of the "
-                      "3DS.");
+         "3DS.");
 }
 #endif
 
 namespace {
 u32 target_map = 0;
-overworld::Position target_position = {0, {360.0f, 0.0f, 360.0f}, {}, {}, 0};
+// The destination in tiles, like the place of the player (Tile X, Tile Z,
+// Height).
+Vec3 target_tile = Vec3(20.0f, 0.0f, 20.0f);
+// A tile is 18 x 18 units in the world; the step of the height is 9 units.
+constexpr f32 kUnitsPerTile = 18.0f;
+constexpr f32 kUnitsPerHeight = 9.0f;
 bool is_target_set = false;
 
 // Takes the map and the place of the player as the destination.
-void UseCurrentPlace(void*) {
+void TakeCurrentPlace() {
   target_map = static_cast<u32>(overworld::MapManager::GetInstance().GetMap());
-  target_position.coords =
-      overworld::ModelManager::GetInstance().GetPlayer().world_pos.coords;
+  target_tile =
+      overworld::ModelManager::GetInstance().GetPlayer().map_pos.coords;
+}
+
+// The entry "Use My Place": the page builds itself again with the new values.
+void UseCurrentPlace(void*) {
+  TakeCurrentPlace();
   MainApplication::GetInstance().Refresh();
 }
 
@@ -453,10 +473,13 @@ void Teleport(void*) {
   if (main_app.CheckProcess(overworld::address::kVtable)) return;
 
   // Keeps the other fields of the position of the player (scale, rotation) and
-  // changes only the coordinates.
+  // changes only the coordinates. The game wants the world: the center of the
+  // tile, in units.
   overworld::Position position =
       overworld::ModelManager::GetInstance().GetPlayer().world_pos;
-  position.coords = target_position.coords;
+  position.coords.x = (target_tile.x + 0.5f) * kUnitsPerTile;
+  position.coords.y = target_tile.y * kUnitsPerHeight;
+  position.coords.z = (target_tile.z + 0.5f) * kUnitsPerTile;
   overworld::MapManager::ChangeMap(static_cast<overworld::MapId>(target_map),
                                    position, overworld::Facing::kUp, false,
                                    false);
@@ -464,57 +487,94 @@ void Teleport(void*) {
 }
 } // namespace
 
-void LoadTeleportPage(MainApplication& app, void* args) {
+void LoadLocationPage(MainApplication& app, void* args) {
   if (app.CheckProcess(overworld::address::kVtable)) return;
 
   // The first time, the destination is the place of the player.
   if (!is_target_set) {
     is_target_set = true;
-    UseCurrentPlace(nullptr);
+    // Not UseCurrentPlace(): a Refresh() inside the loading of the page would
+    // load the page a second time, and the page would have all its entries
+    // twice.
+    TakeCurrentPlace();
   }
 
-  app.AddSection("Destination")
+  auto& map_manager = overworld::MapManager::GetInstance();
+  auto& player = overworld::ModelManager::GetInstance().GetPlayer();
+
+  app.AddSection("Current Place")
+     .Add("Reload Map", RefreshMap)
+     .WithDescription("Closes the menu and loads the current map again.")
+     .Add("Map", map_manager.GetMapId())
+     .WithArray(kMapNames, SIZE(kMapNames))
+     .WithReadOnly()
+     .WithDescription("The map where the player is now.")
+     .Add("Map ID", map_manager.GetMapId())
+     .WithReadOnly()
+     .Add("Tile X", player.map_pos.coords.x)
+     .WithReadOnly()
+     .Add("Tile Z", player.map_pos.coords.z)
+     .WithReadOnly()
+     .Add("Height", player.map_pos.coords.y)
+     .WithReadOnly()
+     .Add("World X", player.world_pos.coords.x)
+     .WithReadOnly()
+     .Add("World Z", player.world_pos.coords.z)
+     .WithReadOnly()
+     .Add("World Height", player.world_pos.coords.y)
+     .WithReadOnly()
+     .WithDescription("The position of the player in world units. A block "
+         "has 720 x 720 units.")
+     .AddSection("Teleport To")
      .Add("Map", target_map)
      .WithArray(kMapNames, SIZE(kMapNames))
      .WithCallback(Teleport)
-     .WithDescription("Press A to teleport to this map. A block has "
-                      "720 x 720 units: the center is 360, 360.")
-     .Add("X", target_position.coords.x)
-     .Add("Height", target_position.coords.y)
-     .Add("Z", target_position.coords.z)
-     .AddSection("Actions")
-     .Add("Teleport", Teleport)
-     .WithDescription("Closes the menu and sends the player to the "
-                      "destination.")
+     .WithDescription("Press {A} to teleport to this map and to the tile "
+         "below.")
+     .Add("Tile X", target_tile.x)
+     .Add("Tile Z", target_tile.z)
+     .Add("Height", target_tile.y)
      .Add("Use My Place", UseCurrentPlace)
      .WithDescription("The destination becomes the map and the place of the "
-                      "player now.")
-     .Add("Reload Map", RefreshMap)
-     .WithDescription("Closes the menu and loads the current map again.");
+         "player now.");
 }
+
+namespace {
+const c8* kEncounterModeNames[] = {"Normal", "Never", "Always"};
+} // namespace
 
 void LoadOverworldPage(MainApplication& app, void* args) {
   if (app.CheckProcess(overworld::address::kVtable)) return;
 
-  auto& map_manager = overworld::MapManager::GetInstance();
   auto& music = overworld::Overworld::GetInstance();
 
-  app.AddSection("Location")
-     .Add("Teleport", LoadTeleportPage)
-     .WithDescription("The map of the player, and the teleport to any map.")
+  app.AddSection("Actions")
+     .Add("Applications", LoadAppPage)
+     .WithDescription("Opens the PC, the Move Reminder or the Move Deleter "
+         "from anywhere.")
+     .Add("Field Moves", LoadOverworldFieldMovePage)
+     .WithDescription("Uses Surf, Cut, Fly... without a Pokemon that knows "
+         "the move.")
+     .Add("Location", LoadLocationPage)
+     .WithDescription("The map and the place of the player, and the "
+         "teleport to any map.")
+     .AddSection("Environment")
      .Add("Weather", LoadWeatherPage)
      .Add("Time of Day", LoadTimeOfDayPage)
      .WithDescription("Sets a fixed time: morning, day, evening or night.")
      .AddSection("Wild Pokemon")
-     .Add("Repel", CheatCodeId::kNoEncounter)
-     .WithDescription("No wild Pokemon appear: an infinite Repel.")
-     .Add("Encounters", LoadOverworldEncounterPage)
+     .Add("Wild Encounters", overworld::WildEncounter::GetInstance().mode)
+     .WithArray(kEncounterModeNames, SIZE(kEncounterModeNames))
+     .WithDescription("Normal: the rule of the game. Never: no wild Pokemon "
+         "appear (better than a Repel). Always: a battle at "
+         "each step in the grass.")
+     .Add("Encounter Counters", LoadOverworldEncounterPage)
      .WithDescription("The walk counter, the encounter rate and the "
-                      "Pokemon that move on the map.")
+         "Pokemon that move on the map.")
      .AddSection("Scene")
      .Add("Characters", LoadCharactersPage)
      .WithDescription("The player and the people of the map: model, "
-                      "animation, position and size.")
+         "animation, position and size.")
      .Add("Camera", LoadOverworldCameraPage)
      .AddSection("Music")
      .Add("Freeze Background Music", music.freeze_background_music)
@@ -522,25 +582,25 @@ void LoadOverworldPage(MainApplication& app, void* args) {
      .Add("Background Music", music.background_music)
      .WithArray(kBackgroundMusicNames, SIZE(kBackgroundMusicNames))
      .WithCallback(PlayOverworldMusic)
-     .WithDescription("Press A to play this music now.")
+     .WithDescription("Press {A} to play this music now.")
      .AddSection("Objects")
      .Add("Decorations", LoadDecorationPage)
      .WithDescription("Places Secret Base decorations in the overworld.")
      .Add("Props", LoadPropModelPage)
      .WithDescription("The doors and the other objects of the map: size, "
-                      "rotation, position.")
+         "rotation, position.")
      .AddSection("Map Editing")
      .Add("Hidden Items", LoadHiddenItemPage)
      .Add("Random Hidden Items", LoadRandomHiddenItemPage)
 #ifdef GAME_ORAS
-     .Add("World Overlay", LoadWorldOverlayPage)
-     .WithDescription("Shows the walls, the water, the grass and the hidden "
-                      "items on the map (experimental).")
+      .Add("World Overlay", LoadWorldOverlayPage)
+      .WithDescription("Shows the walls, the water, the grass and the hidden "
+          "items on the map (experimental).")
 #endif
-     .Add("World Layout", LoadWorldLayoutPage)
-     .WithDescription("Joins maps together (grafts) and edits the tiles.")
-     .Add("Map Tile", LoadOverworldMapTilePage)
-     .WithDescription("Replaces the attributes of all the tiles: water, "
-                      "walls, encounters...");
+      .Add("World Layout", LoadWorldLayoutPage)
+      .WithDescription("Joins maps together (grafts) and edits the tiles.")
+      .Add("Map Tile", LoadOverworldMapTilePage)
+      .WithDescription("Replaces the attributes of all the tiles: water, "
+          "walls, encounters...");
 }
 } // namespace ui

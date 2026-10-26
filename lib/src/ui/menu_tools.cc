@@ -284,7 +284,7 @@ void MainApplication::DrawContext(const PageItem& entry) {
   }
   DrawLabel(16, kEditorY + 72, text, theme_.unselected_text_color);
   DrawLabel(16, kEditorY + 86,
-            u"+Control Pad and A, or touch a button. B: close.",
+            u"+Control Pad and {A}, or touch a button. {B}: close.",
             theme_.unselected_text_color);
 }
 
@@ -292,12 +292,14 @@ void MainApplication::DrawContext(const PageItem& entry) {
 
 void MainApplication::DrawHelp(Editor editor) {
   static const c16* const kLines[] = {
-      u"Up / Down: select an entry. L / R: previous / next section.",
+      u"Up / Down: select an entry. {L} / {R}: previous / next section.",
+      u"On a grid of values, {L} / {R}: previous / next page of the grid.",
       u"Left / Right: change the value. Hold: faster.",
-      u"A: open, run or switch. B: back.",
-      u"Y: pin the entry. Hold Y: copy, paste, reset...",
-      u"X: the pinned entries in a circle (push a direction).",
-      u"L + R, or Walk: the game gets the buttons (walk mode).",
+      u"{A}: open, run or switch. {B}: back.",
+      u"{Y}: filter the values of a grid. Hold {Y}: copy, paste, reset...",
+      u"Pin (bottom screen): pin the entry to the quick access.",
+      u"{X}: the pinned entries in a circle (push a direction).",
+      u"{L} + {R}, or Walk: the game gets the buttons (walk mode).",
       u"Undo (top right): cancel the last changes.",
       u"Reset: the value of the page opening. Hold it to see it.",
       u"A mark on the left of a line: the value changed.",
@@ -305,7 +307,7 @@ void MainApplication::DrawHelp(Editor editor) {
   const c16* editor_line = u"";
   switch (editor) {
     case Editor::kNumber:
-      editor_line = u"Numpad: type, then OK (X). Drag the bar: slider.";
+      editor_line = u"Numpad: type, then OK {X}. Drag the bar: slider.";
       break;
     case Editor::kPicker:
       editor_line = u"Grid: touch a value, then lift the stylus.";
@@ -317,13 +319,13 @@ void MainApplication::DrawHelp(Editor editor) {
       editor_line = u"Touch a value, or press Left / Right.";
       break;
     case Editor::kText:
-      editor_line = u"Type the text, then touch OK (or press X).";
+      editor_line = u"Type the text, then touch OK (or press {X}).";
       break;
     case Editor::kSwitch:
-      editor_line = u"Press A or Left / Right, or touch On / Off.";
+      editor_line = u"Press {A} or Left / Right, or touch On / Off.";
       break;
     case Editor::kRun:
-      editor_line = u"Some actions run only after you hold A one second.";
+      editor_line = u"Some actions run only after you hold {A} one second.";
       break;
     default:
       break;
@@ -340,7 +342,7 @@ void MainApplication::DrawHelp(Editor editor) {
   if (editor_line[0] != 0) {
     DrawLabel(6, y + 4, editor_line, theme_.selected_text_color);
   }
-  DrawLabel(6, 222, u"Touch the screen or press B to close.",
+  DrawLabel(6, 222, u"Touch the screen or press {B} to close.",
             theme_.unselected_text_color);
 }
 } // namespace ui

@@ -38,30 +38,45 @@ void LoadOverworldCameraPage(MainApplication& app, void* args) {
          "shows the controls.")
      .Add("State", ctx.overworld_state)
      .WithArray(STATES, SIZE(STATES))
-     .AddSection("Free Position")
-     .Add("Free Pos X (Left/Right)", ctx.pos.x)
-     .WithFactor(5.0f)
-     .Add("Free Pos Y (Up/Down)", ctx.pos.y)
-     .WithFactor(5.0f)
-     .Add("Free Pos Z (Forward/Back)", ctx.pos.z)
-     .WithFactor(5.0f)
-     .Add("Free Yaw (Turn)", ctx.rot.y)
-     .WithFactor(0.05f)
-     .Add("Free Pitch (Look)", ctx.rot.x)
-     .WithFactor(0.05f)
-     .AddSection("Third Person")
-     .Add("Distance", ctx.tps_dist)
-     .Add("Height", ctx.tps_height)
-     .Add("Shoulder Offset", ctx.tps_offset)
-     .AddSection("First Person")
-     .Add("Eye Height", ctx.fpv_height)
-     .Add("Eye Offset", ctx.fpv_offset)
-     .AddSection("Orbit")
-     .Add("Orbit Radius", ctx.radius)
-     .WithFactor(3.0f)
-     .Add("Orbit Height", ctx.height)
-     .WithFactor(3.0f)
-     .Add("Orbit Rotation Speed", ctx.theta_speed)
-     .WithFactor(0.01f);
+     .WithRefresh();
+
+  // The sections of the mode that the camera uses now.
+  switch (ctx.overworld_state) {
+    case overworld::CameraState::kFree:
+      app.AddSection("Free Position")
+         .Add("Free Pos X (Left/Right)", ctx.pos.x)
+         .WithFactor(5.0f)
+         .Add("Free Pos Y (Up/Down)", ctx.pos.y)
+         .WithFactor(5.0f)
+         .Add("Free Pos Z (Forward/Back)", ctx.pos.z)
+         .WithFactor(5.0f)
+         .Add("Free Yaw (Turn)", ctx.rot.y)
+         .WithFactor(0.05f)
+         .Add("Free Pitch (Look)", ctx.rot.x)
+         .WithFactor(0.05f);
+      break;
+    case overworld::CameraState::kTps:
+      app.AddSection("Third Person")
+         .Add("Distance", ctx.tps_dist)
+         .Add("Height", ctx.tps_height)
+         .Add("Shoulder Offset", ctx.tps_offset);
+      break;
+    case overworld::CameraState::kFpv:
+      app.AddSection("First Person")
+         .Add("Eye Height", ctx.fpv_height)
+         .Add("Eye Offset", ctx.fpv_offset);
+      break;
+    case overworld::CameraState::kRotate:
+      app.AddSection("Orbit")
+         .Add("Orbit Radius", ctx.radius)
+         .WithFactor(3.0f)
+         .Add("Orbit Height", ctx.height)
+         .WithFactor(3.0f)
+         .Add("Orbit Rotation Speed", ctx.theta_speed)
+         .WithFactor(0.01f);
+      break;
+    default:
+      break;
+  }
 }
 } // namespace ui

@@ -127,7 +127,7 @@ species. Set them too when you need exact values.
 ## Find the id of a map
 
 - The map ids are in `lib/include/overworld/constant/map.h`.
-- The overlay shows the current map: **Teleport > Use My Place**. The grid of the **Map** entry shows the id of each map.
+- The overlay shows the current map: **Overworld > Location > Map ID**.
 
 ## Change the encounter table
 
@@ -137,11 +137,13 @@ Pokémon. Look at `kaizo/src/kaizo_encounter.cc`: the function
 
 ## Disable the wild Pokémon
 
-The overlay has the entry **Repel**. It uses the cheat code
-`CheatCodeId::kNoEncounter`. Your menu can use it too:
+The overlay has the entry **Overworld > Wild Encounters**: Normal, Never or
+Always. Your menu can use it too:
 
 ```cpp
-app.Add("Repel", CheatCodeId::kNoEncounter);
+static const c8* kModes[] = {"Normal", "Never", "Always"};
+app.Add("Wild Encounters", overworld::WildEncounter::GetInstance().mode)
+   .WithArray(kModes, SIZE(kModes));
 ```
 
 ## What you learned

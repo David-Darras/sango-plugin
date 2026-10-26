@@ -55,6 +55,9 @@ constexpr uptr kCompleteRegionModelList = GAME_ADDRESS(0x003D7654, 0x003F7640);
 constexpr uptr kGetModelArchiveIndex = GAME_ADDRESS(0x0019B02C, 0x0019C678);
 
 constexpr uptr kGetDrawModel = GAME_ADDRESS(0x004ACAC8, 0x004E3F90);
+/// EncountWork::GetNowEncountProb: the chance (in percent) of a wild encounter
+/// at each step. ORAS only.
+constexpr uptr kGetNowEncountProb = GAME_ADDRESS(0, 0x006F7620);
 constexpr uptr kCallStaticEncounter = GAME_ADDRESS(0, 0x0077D0C4);
 /// field::EventBattleCall::CallTrainer(GameManager*, const TrainerBattleParam&):
 /// starts a trainer battle. The parameter has 16 bytes (see page_battle.cc).

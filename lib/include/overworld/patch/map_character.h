@@ -75,6 +75,9 @@ public:
   static bool Empty(MapId map_id);
   /// Returns the number of added characters.
   static u32 GetCount();
+  /// Returns the placement (script, movement...) of the character with this
+  /// id on the current map, or null (the player has none).
+  static CharacterPlacement* FindPlacement(u16 local_id);
   /// Returns the id on the map of the character with this script.
   static u16 GetLocalId(ScriptId script_id);
   /// Loads the map again after a battle with this trainer.
@@ -114,6 +117,7 @@ private:
   static bool LoadAppearance(const CharacterManager* manager,
                              ModelId model_id, ModelAppearance* out);
 
+  MapEventData* loaded_events_ = nullptr; ///< The events of the last map.
   MapCharacterRequest requests_[kMaxRequests];
   u32 request_count_ = 0;
   bool is_reload_armed_ = false;

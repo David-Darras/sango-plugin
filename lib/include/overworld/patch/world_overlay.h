@@ -54,6 +54,11 @@ public:
   /// 1: no turn. Change it when the marks are not at their places.
   u8 pivot = 0;
 
+  /// The state of the last frames, for the page of the menu: the frames where
+  /// the overlay had a camera, and the marks of the last frame.
+  u32 camera_frames = 0;
+  u32 marks_drawn = 0;
+
   static void Initialize();
 
   /// Draws the marks. plugin::DrawFrame() calls it for the top screen.

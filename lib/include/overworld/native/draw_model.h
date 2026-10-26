@@ -34,6 +34,12 @@ struct DrawModel {
   Vec3 position;
   Vec3 rotation;
   Vec3 scale;
+  /// The bits of the changes. gfl::grp::g3d::Model::SetScale() turns on
+  /// kDirty after it writes the scale: the game then calculates the matrices
+  /// of the model again. A change of the fields above needs it too.
+  u32 flags;
+
+  static constexpr u32 kDirty = 0x800;
 };
 
 } // namespace overworld

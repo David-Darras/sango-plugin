@@ -106,7 +106,13 @@ void WorldOverlay::DrawTop() {
   void* const camera = self.camera_;
   // The next frame needs a new camera: the overworld can end at any time.
   self.camera_ = nullptr;
-  if (!self.is_enabled || camera == nullptr) return;
+  if (!self.is_enabled) return;
+  if (camera == nullptr) {
+    self.marks_drawn = 0;
+    return;
+  }
+  self.camera_frames++;
+  self.marks_drawn = 0;
   if (renderer::address::kCameraGetMatrices == 0) return;
   if (!core::ProcessManager::IsOverworldActive()) return;
   auto& menu = ui::MainApplication::GetInstance();
@@ -149,7 +155,10 @@ void WorldOverlay::DrawTop() {
         }
         const Vec3 center(TileCenter(player_x + dx), ground,
                           TileCenter(player_z + dz));
-        if (self.Project(center, x, y)) DrawMark(x, y, color);
+        if (self.Project(center, x, y)) {
+          DrawMark(x, y, color);
+          self.marks_drawn++;
+        }
       }
     }
   }
@@ -163,12 +172,14 @@ void WorldOverlay::DrawTop() {
                         TileCenter(item.tile_z));
       if (self.Project(center, x, y)) {
         DrawMark(x, y, Color(1, 0.9f, 0.1f, 0.9f));
+        self.marks_drawn++;
       }
     }
   }
 
   if (self.show_player && self.Project(player.world_pos.coords, x, y)) {
     DrawMark(x, y, Color(1, 1, 1, 0.9f));
+    self.marks_drawn++;
   }
 }
 

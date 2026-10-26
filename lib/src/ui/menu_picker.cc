@@ -154,8 +154,9 @@ void MainApplication::PreparePicker(const PageItem& entry, u32 index) {
       const u32 found = suggest(suggestions_, kMaxSuggestions);
       suggestion_count_ = found < kMaxSuggestions ? found : kMaxSuggestions;
     }
-    picker_view_ =
-        IsPickerViewAvailable(entry, kViewQuick) ? kViewQuick : kViewAll;
+    // The full list first: the Quick view (the recent and the suggested
+    // values) is one touch away in the list of the views.
+    picker_view_ = kViewAll;
     picker_page_ = 0;
   }
   if (!IsPickerViewAvailable(entry, picker_view_)) picker_view_ = kViewAll;
@@ -222,6 +223,17 @@ s32 MainApplication::GetCellValue(const PageItem& entry, s32 cell) const {
   const u32 position = picker_page_ * kPickerCells + cell;
   if (position >= GetViewCount(entry)) return -1;
   return (s32)GetViewValue(position);
+}
+
+void MainApplication::ChangePickerPage(const PageItem& entry, s32 direction) {
+  const u32 count = GetViewCount(entry);
+  const u32 pages = count == 0 ? 1 : (count + kPickerCells - 1) / kPickerCells;
+  theme_.Play(theme_.next_sound);
+  if (direction < 0) {
+    picker_page_ = picker_page_ > 0 ? picker_page_ - 1 : pages - 1;
+  } else {
+    picker_page_ = picker_page_ + 1 < pages ? picker_page_ + 1 : 0;
+  }
 }
 
 void MainApplication::ReadPickerTouch(const PageItem& entry, Input& input) {
@@ -385,7 +397,7 @@ void MainApplication::DrawPicker(const PageItem& entry, s32 value) const {
                       picker_page_ + 1, pages);
   DrawTouch(kTouchPagePrevious, u"<", false);
   DrawTouch(kTouchPickerView, label, is_picker_views_open_);
-  DrawTouch(kTouchPickerFilter, u"Filter", false);
+  DrawTouch(kTouchPickerFilter, u"{Y} Filter", false);
   DrawTouch(kTouchPageNext, u">", false);
 }
 
@@ -553,7 +565,7 @@ void MainApplication::DrawFilterKeyboard(const PageItem& entry) {
   sys::Graphics::SetTextScale(0.45f, 0.45f);
   DrawLabel(6, 33, u"Type a part of the name (or the number).",
             theme_.unselected_text_color);
-  DrawLabel(6, 45, u"Up / Down: choose.  A: OK.  B: back.",
+  DrawLabel(6, 45, u"Up / Down: choose.  {A}: OK.  {B}: back.",
             theme_.unselected_text_color);
   keyboard_.Draw();
 }

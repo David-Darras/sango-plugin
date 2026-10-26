@@ -15,7 +15,7 @@ You need the map id and the tile position of the new character.
 
 1. Install the overlay (`sango_plugin-release.3gx`) and start the game.
 2. Walk to the place of the new character. Use an empty tile.
-3. Open the menu: **Teleport**, then touch **Use My Place**. Touch the **Map** entry: the grid shows the id of the map. Write down the number.
+3. Open the menu: **Overworld > Location**. Write down **Map ID**.
 4. Open the menu: **Overworld > Characters**. Write down **Tile X**, **Tile Z** and **Height** of the player.
    **Height** is the height (Tile Y in the script).
 5. Find the name of the map id in `lib/include/overworld/constant/map.h`.

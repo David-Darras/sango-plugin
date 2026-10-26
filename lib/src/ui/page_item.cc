@@ -27,6 +27,7 @@
 #include "core/utils.h"
 #include <cstring>
 #include "pokemon/native/item_data.h"
+#include "system/native/font_manager.h"
 #include "ui/name_list.h"
 
 namespace ui {
@@ -439,7 +440,7 @@ void PageItem::GetValueText(c16* buffer) const {
   buffer[0] = 0;
   if (array_size_ != 0 && HasValue()) {
     const u32 index = (u32)GetIndex() % array_size_;
-    core::Utils::Format(buffer, u"< %s >", array_[index]);
+    core::Utils::Format(buffer, u"%s", array_[index]);
     return;
   }
 
@@ -523,9 +524,22 @@ void PageItem::GetValueText(c16* buffer) const {
       core::Utils::Format(buffer, u"%ls", name);
       break;
     }
-    case kTypeMenu:
-      core::Utils::Format(buffer, u">");
+    case kTypeMenu: {
+      // The sign of a page: the first symbol that the font of the game draws.
+      // The symbols of the Japanese part of the font come first (JIS X 0208:
+      // 》 〉 →): the font of the 3DS has them. The last one is always there.
+      static const c16 kSigns[] = {0x300B, 0x3009, 0x2192, u'>'};
+      c16 sign = kSigns[SIZE(kSigns) - 1];
+      for (const c16 candidate : kSigns) {
+        if (sys::FontManager::IsPrintable(candidate)) {
+          sign = candidate;
+          break;
+        }
+      }
+      buffer[0] = sign;
+      buffer[1] = 0;
       break;
+    }
     default:
       break;
   }

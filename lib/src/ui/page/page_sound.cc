@@ -64,22 +64,25 @@ void LoadSoundPage(MainApplication& app, void* args) {
   app.Add("Pokemon Cry Volume", pokemon_cry_volume)
       .WithFactor(0.1f)
       .WithCallback(ChangePokemonCryVolume)
-      .WithDescription("Press A to use this volume. 1 is the normal volume.")
+      .WithDescription("Press {A} to use this volume. 1 is the normal volume.")
       .AddSpecies("Pokemon Cry", pokemon_cry_species)
       .WithCallback(PlayPokemonCry)
-      .WithDescription("Press A to play the cry.")
+      .WithDescription("Press {A} to play the cry.")
       .Add("Sound Effect", sound_effect_id)
+#ifndef GAME_XY
+      .WithArray(kSoundEffectNames, SIZE(kSoundEffectNames))
+#endif
       .WithCallback(PlaySoundEffect)
-      .WithDescription("Press A to play the sound effect.")
+      .WithDescription("Press {A} to play the sound effect.")
       .Add("Background Music", background_music)
       .WithArray(kBackgroundMusicNames, SIZE(kBackgroundMusicNames))
       .WithCallback(PlayBackgroundMusic)
-      .WithDescription("Press A to play the music.");
+      .WithDescription("Press {A} to play the music.");
   if (sd_music_count > 0) {
     app.Add("SD Music", sd_music)
         .WithArray(sd_music_names, sd_music_count)
         .WithCallback(PlaySdMusic)
-        .WithDescription("Press A to play a file of sdmc:/sango/bgm/list.txt.");
+        .WithDescription("Press {A} to play a file of sdmc:/sango/bgm/list.txt.");
   }
 }
 } // namespace ui

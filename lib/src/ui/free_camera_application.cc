@@ -27,10 +27,12 @@
 #include <cmath>
 
 #include "core/native/process_manager.h"
+#include "core/utils.h"
 #include "overworld/patch/camera.h"
 #include "system/native/controller.h"
 #include "system/native/graphics.h"
 #include "ui/application_manager.h"
+#include "ui/theme.h"
 
 namespace ui {
 
@@ -57,6 +59,9 @@ void FreeCameraApplication::Open() {
     old_state = overworld::CameraState::kIdle;
   }
 
+  // The same bottom button as the "Back" of the menu.
+  app.back_button_.Initialize(4, 206, 312, 30);
+  app.back_button_.Reset();
   ApplicationManager::GetInstance().Push(app);
 }
 
@@ -64,7 +69,9 @@ void FreeCameraApplication::Update(sys::Controller& controller) {
   const bool in_context = is_battle_
                               ? core::ProcessManager::IsBattleActive()
                               : core::ProcessManager::IsOverworldActive();
-  if (!in_context || controller.IsKeyPressed(Key::kStart)) {
+  back_button_.Update();
+  if (!in_context || controller.IsKeyPressed(Key::kStart) ||
+      back_button_.IsReleased()) {
     ApplicationManager::GetInstance().Pop();
     return;
   }
@@ -118,19 +125,67 @@ void FreeCameraApplication::Update(sys::Controller& controller) {
                            strafe * std::cos(yaw));
 }
 
-void FreeCameraApplication::DrawBottom(sys::Graphics& graphics) {
-  sys::Graphics::DrawRect(0, 0, 320, 240, Color(0.0f, 0.0f, 0.0f, 1.0f));
+namespace {
+// One line of the table of the controls: the buttons on the left, what they do
+// on the right. A rectangle like the touch buttons of the menu.
+void DrawControl(s32 y, const c16* keys, const c16* action) {
+  const Theme& theme = Theme::GetInstance();
+  Color fill = theme.unselected_text_color;
+  fill.a = 0.12f;
+  sys::Graphics::DrawRect(4, y, 312, 22, fill);
   sys::Graphics::SetTextScale(0.5f, 0.5f);
-  const Color text(1.0f, 1.0f, 1.0f, 1.0f);
-  const Color muted(0.7f, 0.7f, 0.7f, 1.0f);
+  DrawMenuText(12, y + 5, keys, theme.selected_text_color);
+  DrawMenuText(110, y + 5, action, theme.unselected_text_color);
+}
+} // namespace
 
-  sys::Graphics::DrawText(5, 5, u"Free camera", text);
-  sys::Graphics::DrawText(5, 30, u"D-Pad   move / strafe", muted);
-  sys::Graphics::DrawText(5, 46, u"L / R   down / up", muted);
-  sys::Graphics::DrawText(5, 62, u"Y / A   turn left / right", muted);
-  sys::Graphics::DrawText(5, 78, u"X / B   look up / down", muted);
-  sys::Graphics::DrawText(5, 94, u"Start   back to the menu", muted);
-  sys::Graphics::DrawText(5, 118, u"Hold a key to speed up", muted);
+void FreeCameraApplication::DrawBottom(sys::Graphics& graphics) {
+  const Theme& theme = Theme::GetInstance();
+  // The look of the menu: the color of the theme over the game.
+  sys::Graphics::FillScreen(theme.background_color);
+
+  // The title is quiet, the name of the page is clear, then its description.
+  Color dim = theme.unselected_text_color;
+  dim.a *= 0.55f;
+  sys::Graphics::SetTextScale(0.45f, 0.45f);
+  DrawMenuText(6, 3, u"Menu > Free Camera", dim);
+  sys::Graphics::SetTextScale(0.6f, 0.6f);
+  DrawMenuText(6, 15, u"Free Camera", theme.selected_text_color);
+  sys::Graphics::SetTextScale(0.45f, 0.45f);
+  DrawMenuText(6, 33, u"Moves the camera with the buttons. Hold a key to "
+                      u"go faster.",
+               theme.unselected_text_color);
+
+  DrawControl(58, u"D-Pad", u"Move / strafe");
+  DrawControl(84, u"{L} / {R}", u"Down / up");
+  DrawControl(110, u"{Y} / {A}", u"Turn left / right");
+  DrawControl(136, u"{X} / {B}", u"Look up / down");
+
+  // The state of the camera, for the developers (like the process line of
+  // the menu).
+  auto& camera = overworld::Camera::GetInstance();
+  c16 line[96];
+  core::Utils::Format(line, u"X %.0f  Y %.0f  Z %.0f   Yaw %.2f  Pitch %.2f",
+                      camera.pos.x, camera.pos.y, camera.pos.z, camera.rot.y,
+                      camera.rot.x);
+  sys::Graphics::SetTextScale(0.4f, 0.4f);
+  dim.a = theme.unselected_text_color.a * 0.5f;
+  sys::Graphics::DrawText(6, 193, line, dim);
+
+  // The button of the bottom: the same as Back in the menu.
+  const bool is_down = back_button_.IsDown();
+  Color fill = is_down ? theme.selected_text_color
+                       : theme.unselected_text_color;
+  fill.a = is_down ? 0.7f : 0.12f;
+  sys::Graphics::DrawRect(back_button_.GetX(), back_button_.GetY(),
+                          back_button_.GetWidth(), back_button_.GetHeight(),
+                          fill);
+  sys::Graphics::SetTextScale(0.5f, 0.5f);
+  const c16* label = u"Back to the menu   START";
+  DrawMenuText(back_button_.GetX() +
+                   (back_button_.GetWidth() -
+                    sys::Graphics::GetTextWidth(label)) / 2,
+               back_button_.GetY() + 9, label, theme.unselected_text_color);
 }
 
 } // namespace ui

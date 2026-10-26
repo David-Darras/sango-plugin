@@ -39,11 +39,11 @@ void LoadCharactersPage(MainApplication& app, void* args);
 void LoadCheatsPage(MainApplication& app, void* args);
 void LoadOverworldCameraPage(MainApplication& app, void* args);
 
-// The actions of the top page: the apps (PC, Move Reminder...), the field
-// moves and the teleport.
+// The actions of the Overworld page: the applications (PC, Move Reminder...),
+// the field moves and the location (with the teleport).
 void LoadAppPage(MainApplication& app, void* args);
 void LoadOverworldFieldMovePage(MainApplication& app, void* args);
-void LoadTeleportPage(MainApplication& app, void* args);
+void LoadLocationPage(MainApplication& app, void* args);
 
 // Battles: the battle options of the plugin, then the current battle.
 void LoadBattlePage(MainApplication& app, void* args);

@@ -34,7 +34,7 @@ constexpr s32 kFooterY = 193; // The line of the process and the event.
 constexpr s32 kNavY = 206; // The top of the navigation buttons.
 constexpr s32 kNavHeight = 30;
 constexpr u32 kNavCount = 5; // The buttons of the navigation bar.
-constexpr u32 kWrapLength = 58; // The characters of a description line.
+constexpr u32 kWrapLength = 120; // The most bytes that one line of a description holds.
 
 // The grid of values: 6 columns and 3 rows of cells, then a bar with the
 // page buttons, the views and the filter. An icon is a texture of 64 x 32

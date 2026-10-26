@@ -22,6 +22,8 @@
 
 #include "ui/log.h"
 #include "ui/main_application.h"
+#include "core/frame_trace.h"
+#include "core/patch/game_speed.h"
 #include "ui/page/pages.h"
 #include "ui/performance_overlay.h"
 
@@ -80,6 +82,14 @@ void LoadSystemPage(MainApplication& app, void* args) {
           PerformanceOverlay::GetInstance().is_enabled)
      .WithDescription("Shows the frames per second and the free memory at "
                       "the bottom of the top screen, when the menu is closed.")
+     .Add("Freeze The Game In The Menu",
+          core::GameSpeed::GetInstance().freeze_in_menu)
+     .WithDescription("The game stops while the menu is open (not in walk "
+                      "mode). The menu then has all the time of the frame.")
+     .Add("Black Box (frame_trace.txt)", core::FrameTrace::is_enabled)
+     .WithDescription("Writes the state of the menu and of the GPU to the SD "
+                      "card three times each second, to find a crash. It can "
+                      "make the game stutter: keep it off.")
      .AddSection("Game Time");
   LoadGameTimePage(app, args);
 }
