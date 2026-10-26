@@ -110,6 +110,9 @@ void LoadGraphicsPage(MainApplication& app, void* args) {
      .WithArray(FILTERS, SIZE(FILTERS))
      .WithDescription("A color filter on all the 3D Pokemon: in battle, and in "
                       "the party, the PC, the Pokedex and the other menus.")
+     .Add("Model Viewer", LoadModelViewerPage)
+     .WithDescription("Lists the 3D models of the screen. Hide their parts "
+                      "and change the colors of their materials.")
      .Add("Model Loader (Unstable)", LoadModelLoaderPage)
      .WithDescription("Shows a model of a character or a Pokemon near the "
                       "player.")

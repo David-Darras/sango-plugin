@@ -23,6 +23,7 @@
  */
 
 #include "renderer/patch/model_filter.h"
+#include "renderer/patch/model_viewer.h"
 #include "battle/patch/effect_style.h"
 #include "core/hook.h"
 #include "core/native/process_manager.h"
@@ -227,6 +228,7 @@ void ModelFilter::UpdateH3dModel(H3dModel* h3d_model) {
 }
 
 bool ModelFilter::AddH3dModel(uptr scene, H3dModel* model, u32 idx) {
+  ModelViewer::OnModelAdded(model);
   UpdateH3dModel(model);
   return add_h3d_model_hook(scene, model, idx);
 }

@@ -25,6 +25,7 @@ Read these pages to understand the code.
 - [Scripts](concepts/scripts.md): the scripts of the game and the C++ scripts.
 - [The menu](concepts/menu.md): pages and entries.
 - [The 2D layouts](concepts/layouts.md): the panes of the menus of the game, and how to change them.
+- [The 3D models](concepts/model-viewer.md): the parts and the materials of the models of the screen.
 - [Settings](concepts/settings.md): the values that change how a feature works.
 
 ## Tutorials

@@ -108,6 +108,19 @@ constexpr uptr kH3dModelGetTranslate = GAME_ADDRESS(0x0049D104, 0x004CCFD8);
 constexpr uptr kH3dModelSetRotate = GAME_ADDRESS(0x0037FD10, 0x003966E0);
 constexpr uptr kH3dModelSetScale = GAME_ADDRESS(0x00384B78, 0x0039B594);
 constexpr uptr kH3dModelSetShaderSymbol = GAME_ADDRESS(0x003812D0, 0x00397BCC);
+/// More functions of the 3D models. ORAS only.
+constexpr uptr kH3dModelSetVisible = GAME_ADDRESS(0, 0x00396558);
+constexpr uptr kH3dModelSetMeshNodeVisible = GAME_ADDRESS(0, 0x00396CE8);
+constexpr uptr kH3dModelSetMaterialColorAmbient = GAME_ADDRESS(0, 0x00397DFC);
+constexpr uptr kH3dModelSetMaterialColorDiffuse = GAME_ADDRESS(0, 0x00397E6C);
+constexpr uptr kH3dModelSetCullingMode = GAME_ADDRESS(0, 0x00399814);
+constexpr uptr kH3dModelGetMeshNodeCount = GAME_ADDRESS(0, 0x004CD1B8);
+constexpr uptr kH3dModelGetMeshNodeName = GAME_ADDRESS(0, 0x004CD0D8);
+constexpr uptr kH3dModelIsMeshNodeVisible = GAME_ADDRESS(0, 0x004CD258);
+constexpr uptr kH3dModelGetMaterialName = GAME_ADDRESS(0, 0x004CD094);
+/// The function that removes a model from a scene (the game calls it before it
+/// destroys the model). ORAS only.
+constexpr uptr kSceneRemoveModel = GAME_ADDRESS(0, 0x003917D0);
 constexpr uptr kH3dModelDestroy = GAME_ADDRESS(0x003843B0, 0x0039AED4);
 
 constexpr uptr kSceneRegister0 = GAME_ADDRESS(0x00374B94, 0x0038B600);

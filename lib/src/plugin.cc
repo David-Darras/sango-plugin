@@ -69,6 +69,7 @@
 #include "pokemon/patch/shiny.h"
 #include "renderer/patch/lighting.h"
 #include "renderer/patch/model_filter.h"
+#include "renderer/patch/model_viewer.h"
 #include "renderer/patch/layout_editor.h"
 #include "script/patch/native_script.h"
 #include "system/native/controller.h"
@@ -96,6 +97,7 @@ void InitializeEngine() {
 
   core::GameSpeed::Initialize();
   renderer::Lighting::Initialize();
+  renderer::ModelViewer::Initialize();
   renderer::LayoutEditor::Initialize();
   overworld::MapTile::Initialize();
   overworld::Camera::Initialize();

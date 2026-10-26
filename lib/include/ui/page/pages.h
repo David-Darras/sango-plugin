@@ -89,6 +89,10 @@ void LoadLayoutsPage(MainApplication& app, void* args);
 // Hides the menu, the overlays and the 2D menus for a screenshot.
 void LoadScreenshotPage(MainApplication& app, void* args);
 void LoadPanePage(MainApplication& app, void* args);
+// The 3D models of the screen (ORAS): the list, one model, one material.
+void LoadModelViewerPage(MainApplication& app, void* args);
+void LoadModelPage(MainApplication& app, void* args);
+void LoadMaterialPage(MainApplication& app, void* args);
 void LoadModelLoaderPage(MainApplication& app, void* args);
 void LoadScriptPage(MainApplication& app, void* args);
 void LoadTitleScreenPage(MainApplication& app, void* args);
