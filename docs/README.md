@@ -24,6 +24,7 @@ Read these pages to understand the code.
 - [The battle engine](concepts/battle-engine.md): moments, reactions and mutations.
 - [Scripts](concepts/scripts.md): the scripts of the game and the C++ scripts.
 - [The menu](concepts/menu.md): pages and entries.
+- [The 2D layouts](concepts/layouts.md): the panes of the menus of the game, and how to change them.
 - [Settings](concepts/settings.md): the values that change how a feature works.
 
 ## Tutorials

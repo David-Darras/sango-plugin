@@ -83,6 +83,10 @@ void LoadSaveDataPage(MainApplication& app, void* args);
 // The graphics (lighting, filters, layouts and the model loader), the
 // scripts, the title screen and the system.
 void LoadGraphicsPage(MainApplication& app, void* args);
+// The panes of the 2D layouts of the game (ORAS): the layouts of the screen,
+// then one pane with its tree.
+void LoadLayoutsPage(MainApplication& app, void* args);
+void LoadPanePage(MainApplication& app, void* args);
 void LoadModelLoaderPage(MainApplication& app, void* args);
 void LoadScriptPage(MainApplication& app, void* args);
 void LoadTitleScreenPage(MainApplication& app, void* args);

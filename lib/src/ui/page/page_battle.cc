@@ -546,7 +546,7 @@ void StartTrainerBattle(void*) {
   param[0] = static_cast<u8>(trainer_battle_rule);
   *reinterpret_cast<u16*>(param + 4) = static_cast<u16>(trainer_battle_id);
   ((void* (*)(core::GameManager*, const void*))
-       overworld::address::kCallTrainerBattle)(
+       overworld::address::kStartTrainerBattle)(
       &core::GameManager::GetInstance(), param);
   MainApplication::GetInstance().ForceClose();
 }

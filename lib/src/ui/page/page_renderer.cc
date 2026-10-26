@@ -21,9 +21,7 @@
  */
 
 #include "renderer/patch/lighting.h"
-#include "renderer/patch/picture_filter.h"
 #include "renderer/patch/model_filter.h"
-#include "renderer/patch/text_box_filter.h"
 #include "ui/main_application.h"
 #include "ui/page/page_common.h"
 #include "ui/page/pages.h"
@@ -38,14 +36,14 @@ const char* FILTERS[] = {
     "RBG",
     "GBR",
     "BRG",
-    "Inverted RGB,",
+    "Inverted RGB",
     "Inverted GRB",
     "Inverted BGR",
     "Darker",
     "Brighter",
     "All Black",
     "All White",
-    "Gray (Black And White)",
+    "Gray",
     "Sepia",
     "Light Only",
     "Specular Only",
@@ -74,37 +72,6 @@ void LoadLightPage(MainApplication& app, void* args) {
      .Add("Diffuse Light Color", LoadColorPage, &ctx.diffuse_color);
 }
 
-void LoadLayoutTextBoxPage(MainApplication& app, void* args) {
-  auto& ctx = renderer::TextBoxFilter::GetInstance();
-
-  app.Add("Is Enabled", ctx.is_enabled)
-     .AddSection("Scale")
-     .Add("Scale X", ctx.scale.x)
-     .WithFactor(0.1f)
-     .Add("Scale Y", ctx.scale.y)
-     .WithFactor(0.1f)
-     .AddSection("Colors")
-     .Add("Top Color", LoadColor8Page, &ctx.top_color)
-     .Add("Bottom Color", LoadColor8Page, &ctx.bottom_color);
-}
-
-void LoadLayoutPicturePage(MainApplication& app, void* args) {
-  auto& ctx = renderer::PictureFilter::GetInstance();
-
-  app.Add("Is Enabled", ctx.is_enabled)
-     .AddSection("Scale")
-     .Add("Scale X", ctx.scale.x)
-     .WithFactor(0.1f)
-     .Add("Scale Y", ctx.scale.y)
-     .WithFactor(0.1f)
-     .AddSection("Colors")
-     .Add("Alpha", ctx.alpha)
-     .Add("Top Left Color", LoadColor8Page, &ctx.top_left_color)
-     .Add("Top Right Color", LoadColor8Page, &ctx.top_right_color)
-     .Add("Bottom Left Color", LoadColor8Page, &ctx.bottom_left_color)
-     .Add("Bottom Right Color", LoadColor8Page, &ctx.bottom_right_color);
-}
-
 void LoadGraphicsPage(MainApplication& app, void* args) {
   app.AddSection("3D Models")
      .Add("Lighting", LoadLightPage)
@@ -118,10 +85,9 @@ void LoadGraphicsPage(MainApplication& app, void* args) {
      .WithDescription("Shows a model of a character or a Pokemon near the "
                       "player.")
      .AddSection("2D Layouts")
-     .Add("Text Box", LoadLayoutTextBoxPage)
-     .WithDescription("The size and the colors of the message boxes.")
-     .Add("Picture", LoadLayoutPicturePage)
-     .WithDescription("The size and the colors of the pictures of the "
-                      "layouts.");
+     .Add("Layouts", LoadLayoutsPage)
+     .WithDescription("The panes of the menus of the game, as a tree: move, "
+                      "hide, resize and color them. The changes can be "
+                      "saved.");
 }
 } // namespace ui

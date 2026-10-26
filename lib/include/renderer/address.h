@@ -60,8 +60,16 @@ constexpr uptr kChangeOutlineScale = GAME_ADDRESS(0x00362BD4, 0x00379E3C);
 constexpr uptr kChangeOutlineColor = GAME_ADDRESS(0x00362A14, 0x00379C7C);
 constexpr uptr kChangeAmbientLightColor = GAME_ADDRESS(0x0013A140, 0x00139710);
 constexpr uptr kChangeDiffuseLightColor = GAME_ADDRESS(0x0013A1F0, 0x001397C0);
-constexpr uptr kDrawPicture = GAME_ADDRESS(0x0048EE34, 0x004BE3DC);
-constexpr uptr kDrawTextBox = GAME_ADDRESS(0x00312A70, 0x00326FB8);
+/// The function that calculates the matrix of a pane of a 2D layout (a menu
+/// of the game). The game calls it for each pane, one time for each frame,
+/// after the animations and before the drawing. ORAS only.
+constexpr uptr kPaneUpdateMatrix = GAME_ADDRESS(0, 0x0032224C);
+/// The vtables of the kinds of panes of the 2D layouts. ORAS only.
+constexpr uptr kPaneVtable = GAME_ADDRESS(0, 0x005DBE18);
+constexpr uptr kPictureVtable = GAME_ADDRESS(0, 0x005DBFB4);
+constexpr uptr kWindowVtable = GAME_ADDRESS(0, 0x005DBF20);
+constexpr uptr kTextBoxVtable = GAME_ADDRESS(0, 0x005DC040);
+constexpr uptr kBoundingVtable = GAME_ADDRESS(0, 0x005DC0D4);
 constexpr uptr kAppStatusSetupGraphicsParams = GAME_ADDRESS(0x006C5C60, 0x007144FC);
 constexpr uptr kAppStatusSetupGraphicsMoves = GAME_ADDRESS(0x006C32B8, 0x0070DDC0);
 constexpr uptr kAppStatusSetupGraphicsContest = GAME_ADDRESS(0, 0x0070D3D4);

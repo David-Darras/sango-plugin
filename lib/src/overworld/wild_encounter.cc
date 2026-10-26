@@ -35,13 +35,13 @@ namespace {
 core::Hook<bool(u32, u32)> get_encounter_pokemon_hook;
 core::Hook<u16*(EncounterData*, s32, u32*, void*, u8, bool)>
     get_dex_nav_table_hook;
-core::Hook<u32(void*, const void*)> get_now_encount_prob_hook;
+core::Hook<u32(void*, const void*)> get_encounter_chance_hook;
 } // namespace
 
 void WildEncounter::Initialize() {
 #ifdef GAME_ORAS
-  get_now_encount_prob_hook.Install(address::kGetNowEncountProb,
-                                    GetNowEncountProbHook, address::kVtable);
+  get_encounter_chance_hook.Install(address::kGetEncounterChance,
+                                    GetEncounterChanceHook, address::kVtable);
 #endif
   get_encounter_pokemon_hook.Install(pokemon::address::kEncounterSetPokemon,
                                      GetEncounterPokemonHook, address::kVtable);
@@ -61,14 +61,14 @@ u16* WildEncounter::GetDexNavTable(EncounterData* data, s32 data_size,
 
 // The chance of an encounter at each step. The game compares a random number
 // from 0 to 99 with it: 0 never meets a Pokémon, 100 or more always does.
-u32 WildEncounter::GetNowEncountProbHook(void* work, const void* pattern) {
+u32 WildEncounter::GetEncounterChanceHook(void* work, const void* pattern) {
   switch (GetInstance().mode) {
     case Mode::kNever:
       return 0;
     case Mode::kAlways:
       return 10000;
     default:
-      return get_now_encount_prob_hook(work, pattern);
+      return get_encounter_chance_hook(work, pattern);
   }
 }
 

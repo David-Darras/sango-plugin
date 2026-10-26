@@ -68,8 +68,7 @@
 #include "pokemon/patch/shiny.h"
 #include "renderer/patch/lighting.h"
 #include "renderer/patch/model_filter.h"
-#include "renderer/patch/picture_filter.h"
-#include "renderer/patch/text_box_filter.h"
+#include "renderer/patch/layout_editor.h"
 #include "script/patch/native_script.h"
 #include "system/native/controller.h"
 #include "system/native/file.h"
@@ -96,8 +95,7 @@ void InitializeEngine() {
 
   core::GameSpeed::Initialize();
   renderer::Lighting::Initialize();
-  renderer::TextBoxFilter::Initialize();
-  renderer::PictureFilter::Initialize();
+  renderer::LayoutEditor::Initialize();
   overworld::MapTile::Initialize();
   overworld::Camera::Initialize();
   overworld::FieldMove::Initialize();
@@ -167,6 +165,8 @@ void UpdateFrame() {
   auto& controller = sys::Controller::GetInstance();
   auto* application = ui::ApplicationManager::GetInstance().GetCurrentApplication();
 
+  // The layouts of the last frame, and the name of the screen, before the menu.
+  renderer::LayoutEditor::Update();
   application->Update(controller);
   core::CheatCodeManager::GetInstance().Update();
 

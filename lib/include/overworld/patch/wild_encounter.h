@@ -56,7 +56,7 @@ private:
   static u16* GetDexNavTable(EncounterData* data, s32 data_size,
                               u32* count, void* heap,
                               u8 p4, bool p5);
-  static u32 GetNowEncountProbHook(void* work, const void* pattern);
+  static u32 GetEncounterChanceHook(void* work, const void* pattern);
   static bool GetEncounterPokemonHook(u32 p0, u32 p1);
 };
 
