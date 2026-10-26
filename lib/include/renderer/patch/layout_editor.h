@@ -73,6 +73,8 @@ public:
   static constexpr u32 kMaxRoots = 12;
   static constexpr u32 kMaxEdits = 24;
   static constexpr u32 kMaxPathLength = 96;
+  /// The most characters of the text that the editor keeps for a text box.
+  static constexpr u32 kMaxTextLength = 40;
 
   /// Installs the hook and reads the saved changes. ORAS only.
   static void Initialize();
@@ -109,6 +111,28 @@ public:
   /// Writes the values to a pane. The game calculates its matrix again.
   static void Write(Pane* pane, const PaneState& state);
 
+  /// Returns the number of characters that the text of a text box can have,
+  /// or 0 when the pane is not a text box (or has no text buffer).
+  static u32 GetTextCapacity(const Pane* pane);
+
+  /// Reads the text of a text box into `out` (kMaxTextLength + 1 characters
+  /// at least). Writes an empty text when the pane has none.
+  static void ReadText(const Pane* pane, c16* out);
+
+  /// Writes a text to a text box. The text is cut to the capacity of the box.
+  static void WriteText(Pane* pane, const c16* text);
+
+  /// Keeps a text for a text box: the game gets it again at each frame.
+  /// `original` is the text before the first change. Returns false when
+  /// the list of changes is full.
+  static bool SetText(const Pane* pane, const c16* original, const c16* text);
+
+  /// Returns the kept text of a pane, or null.
+  static const c16* GetTextEdit(const Pane* pane);
+
+  /// Returns the text of a pane before its first change, or null.
+  static const c16* GetTextOriginal(const Pane* pane);
+
   /// Keeps a change of a pane: the game gets it again at each frame.
   /// `original` is the state before the first change. Returns false when
   /// the list is full.
@@ -136,6 +160,10 @@ public:
   /// The name of the current screen (the class of its process).
   static const c8* GetScreenName();
 
+  /// true: hides all the layouts of the game (the screenshot mode). false:
+  /// shows again the layouts that the editor hid.
+  static void SetHideAll(bool is_hidden);
+
 private:
   struct Root {
     Pane* pane;
@@ -144,6 +172,8 @@ private:
     /// top screen, 320 for the bottom screen. It tells two layouts of one
     /// screen apart when their panes have the same names.
     u32 tag;
+    /// true when the editor cleared the visible flag of this root.
+    bool is_hidden;
   };
 
   struct Edit {
@@ -153,10 +183,13 @@ private:
     c8 path[kMaxPathLength];
     PaneState original;
     PaneState state;
+    bool has_text; ///< true: the change has a text for a text box.
+    c16 text[kMaxTextLength + 1];
+    c16 original_text[kMaxTextLength + 1];
   };
 
   static void UpdateMatrixHook(Pane* pane, const void* draw_info);
-  void Register(Pane* pane);
+  Root* Register(Pane* pane);
   void Apply(Pane* pane);
   static bool Load();
   Edit* Find(const Pane* pane);
@@ -167,6 +200,7 @@ private:
   Edit edits_[kMaxEdits] = {};
   u32 edit_count_ = 0;
   u32 frame_ = 0;
+  bool hide_all_ = false;
   u32 screen_hash_ = 0;
   c8 screen_[48] = "";
 };

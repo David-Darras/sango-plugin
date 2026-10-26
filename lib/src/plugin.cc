@@ -27,6 +27,7 @@
 #include "battle/patch/setup.h"
 #include "battle/patch/type_helper.h"
 #include "ui/performance_overlay.h"
+#include "ui/screenshot_mode.h"
 #include "ui/splash.h"
 #include "core/frame_trace.h"
 #include "core/hook.h"
@@ -168,6 +169,7 @@ void UpdateFrame() {
   // The layouts of the last frame, and the name of the screen, before the menu.
   renderer::LayoutEditor::Update();
   application->Update(controller);
+  ui::ScreenshotMode::Update();
   core::CheatCodeManager::GetInstance().Update();
 
   overworld::MapCharacter::Update();
@@ -195,12 +197,14 @@ void DrawFrame() {
   if (graphics.BindFramebuffer(top_buffer)) {
     sys::Graphics::EnableScissor(0, 0, 400, 240);
     sys::Graphics::BeginRender(top_buffer);
-    overworld::WorldOverlay::DrawTop();
-    application->DrawTop(graphics);
-    ui::KeyboardPatch::DrawTop();
-    battle::TypeHelper::DrawTop();
-    ui::PerformanceOverlay::DrawTop();
-    ui::Splash::DrawTop();
+    if (!ui::ScreenshotMode::AreOverlaysHidden()) {
+      overworld::WorldOverlay::DrawTop();
+      application->DrawTop(graphics);
+      ui::KeyboardPatch::DrawTop();
+      battle::TypeHelper::DrawTop();
+      ui::PerformanceOverlay::DrawTop();
+      ui::Splash::DrawTop();
+    }
     core::FrameTrace::OnScreenDrawn(true);
     sys::Graphics::DisableScissor();
   }

@@ -25,6 +25,8 @@
 #include "ui/main_application.h"
 #include "ui/page/page_common.h"
 #include "ui/page/pages.h"
+#include "ui/free_camera_application.h"
+#include "ui/screenshot_mode.h"
 
 namespace ui {
 namespace {
@@ -72,6 +74,33 @@ void LoadLightPage(MainApplication& app, void* args) {
      .Add("Diffuse Light Color", LoadColorPage, &ctx.diffuse_color);
 }
 
+void LoadScreenshotPage(MainApplication& app, void* args) {
+  auto& mode = ScreenshotMode::GetInstance();
+
+  app.AddSection("Options")
+     .Add("Hide The Game Menus", mode.hide_game_ui)
+     .WithDescription("Hides the 2D menus of the game: the HUD, the text "
+                      "boxes and the buttons.")
+     .Add("Hide The Overlays", mode.hide_overlays)
+     .WithDescription("Hides the overlays of the plugin: performance, "
+                      "world, type helper.")
+     .Add("Freeze The Game", mode.freeze_game)
+     .WithDescription("Stops the game. Some effects of the free camera "
+                      "need the game to run: turn it off then.")
+     .AddSection("Start")
+     .Add("Start The Screenshot Mode", [](void*) { ScreenshotMode::Start(); })
+     .WithDescription("Closes the menu. Use the free camera or walk mode "
+                      "(L + R) as usual. The menu button stops the mode and "
+                      "opens the menu again.")
+     .Add("Start With The Free Camera", [](void*) {
+       ScreenshotMode::Start();
+       FreeCameraApplication::Open();
+     })
+     .WithDescription("The same, and the free camera starts at once. The "
+                      "Start button leaves the camera, and the mode goes "
+                      "on.");
+}
+
 void LoadGraphicsPage(MainApplication& app, void* args) {
   app.AddSection("3D Models")
      .Add("Lighting", LoadLightPage)
@@ -84,6 +113,9 @@ void LoadGraphicsPage(MainApplication& app, void* args) {
      .Add("Model Loader (Unstable)", LoadModelLoaderPage)
      .WithDescription("Shows a model of a character or a Pokemon near the "
                       "player.")
+     .Add("Screenshot Mode", LoadScreenshotPage)
+     .WithDescription("Hides the menu, the overlays and the menus of the "
+                      "game, to take a clean screenshot.")
      .AddSection("2D Layouts")
      .Add("Layouts", LoadLayoutsPage)
      .WithDescription("The panes of the menus of the game, as a tree: move, "

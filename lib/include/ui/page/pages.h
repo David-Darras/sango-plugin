@@ -86,6 +86,8 @@ void LoadGraphicsPage(MainApplication& app, void* args);
 // The panes of the 2D layouts of the game (ORAS): the layouts of the screen,
 // then one pane with its tree.
 void LoadLayoutsPage(MainApplication& app, void* args);
+// Hides the menu, the overlays and the 2D menus for a screenshot.
+void LoadScreenshotPage(MainApplication& app, void* args);
 void LoadPanePage(MainApplication& app, void* args);
 void LoadModelLoaderPage(MainApplication& app, void* args);
 void LoadScriptPage(MainApplication& app, void* args);

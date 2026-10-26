@@ -26,6 +26,7 @@
 #include "core/hook.h"
 #include "core/native/game_manager.h"
 #include "ui/main_application.h"
+#include "ui/screenshot_mode.h"
 
 namespace core {
 
@@ -58,6 +59,9 @@ static void ForceFrameRate(u8 frame_rate) {
 s32 GameSpeed::UpdateFrameHook(uptr addr) {
   auto& ctx = GetInstance();
   ctx.frame_count++;
+
+  // The screenshot mode can stop the game.
+  if (ui::ScreenshotMode::IsFrozen()) return 1;
 
   // The game waits while the menu is open (not in walk mode).
   if (ctx.freeze_in_menu) {

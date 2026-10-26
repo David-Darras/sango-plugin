@@ -60,6 +60,13 @@ PaneState edit;
 PaneState original;
 bool has_edit = false;
 
+// The text of a text box: the text of the page, and the text of the game
+// before the first change. The buffers have one more character than the
+// entry, for the end of the text.
+c16 text_edit[LayoutEditor::kMaxTextLength + 2];
+c16 text_original[LayoutEditor::kMaxTextLength + 2];
+c8 text_note[80];
+
 u32 children_offset = 0;
 u32 siblings_offset = 0;
 
@@ -96,12 +103,45 @@ void GoTo(Pane* pane) {
   MainApplication::GetInstance().Refresh();
 }
 
+bool IsSameText(const c16* a, const c16* b) {
+  u32 i = 0;
+  while (a[i] != 0 && a[i] == b[i]) i++;
+  return a[i] == b[i];
+}
+
+// Copies the text of the pane, or the text that the editor keeps for it, to the
+// buffers of the page.
+void LoadText(const Pane* pane) {
+  text_edit[0] = 0;
+  text_original[0] = 0;
+  if (LayoutEditor::GetTextCapacity(pane) == 0) return;
+  const c16* saved = LayoutEditor::GetTextEdit(pane);
+  if (saved != nullptr) {
+    const c16* first = LayoutEditor::GetTextOriginal(pane);
+    for (u32 i = 0; i <= LayoutEditor::kMaxTextLength; i++) {
+      text_edit[i] = saved[i];
+      text_original[i] = first[i];
+    }
+    return;
+  }
+  LayoutEditor::ReadText(pane, text_edit);
+  LayoutEditor::ReadText(pane, text_original);
+}
+
 // A change of the page: the pane gets the values now, and at each frame.
 void ApplyEdit(void*) {
   if (edited_pane == nullptr || !LayoutEditor::IsAlive(edited_pane)) return;
   has_edit = true;
   LayoutEditor::Write(edited_pane, edit);
-  if (!LayoutEditor::SetEdit(edited_pane, original, edit)) {
+  bool is_saved_ok = LayoutEditor::SetEdit(edited_pane, original, edit);
+  // A text that the player did not change is not kept.
+  if (is_saved_ok && LayoutEditor::GetTextCapacity(edited_pane) != 0 &&
+      (LayoutEditor::GetTextEdit(edited_pane) != nullptr ||
+       !IsSameText(text_edit, text_original))) {
+    LayoutEditor::WriteText(edited_pane, text_edit);
+    is_saved_ok = LayoutEditor::SetText(edited_pane, text_original, text_edit);
+  }
+  if (!is_saved_ok) {
     MainApplication::GetInstance().ShowToast(
         "24 changes at most: remove one first.");
   }
@@ -212,12 +252,14 @@ void LoadPanePage(MainApplication& app, void* args) {
       edit = LayoutEditor::Read(pane);
       original = edit;
     }
+    LoadText(pane);
   } else if (has_edit) {
     // The page of a color changed the values: the pane gets them.
     ApplyEdit(nullptr);
   } else {
     edit = LayoutEditor::Read(pane);
     original = edit;
+    LoadText(pane);
   }
 
   // The name, the kind and the path.
@@ -245,9 +287,21 @@ void LoadPanePage(MainApplication& app, void* args) {
      .AddSection("Show")
      .Add("Visible", edit.is_visible)
      .Add("Alpha", edit.alpha)
-     .WithDescription("The opacity: 0 is invisible, 255 is solid.")
+     .WithDescription("The opacity: 0 is invisible, 255 is solid.");
 
-     .AddSection("Move")
+  // The text of a text box: the player can write a translation and see it.
+  const u32 text_capacity = LayoutEditor::GetTextCapacity(pane);
+  if (text_capacity != 0) {
+    snprintf(text_note, sizeof(text_note),
+             "The text of the box (%lu characters at most). A longer text is "
+             "cut.",
+             (unsigned long)text_capacity);
+    app.AddSection("Text")
+       .Add("Text", text_edit, LayoutEditor::kMaxTextLength + 1)
+       .WithDescription(text_note);
+  }
+
+  app.AddSection("Move")
      .Add("Translate X", edit.translate[0])
      .Add("Translate Y", edit.translate[1])
      .Add("Translate Z", edit.translate[2])

@@ -43,6 +43,8 @@ The page has these entries:
 - **Visible**, **Alpha**: show or hide the pane.
 - **Translate**, **Rotate**, **Scale**, **Width**, **Height**: move, turn and
   resize the pane.
+- **Text**: the text of a text box. Write a translation and see it at once. A
+  longer text than the box can hold is cut.
 - **Colors**: the colors of a text box or of a picture.
 - **Reset This Pane**: removes the change.
 - **Save To The SD Card**: writes the changes to `sdmc:/sango/layouts.ini`.
@@ -61,7 +63,15 @@ edit1 = app::pokelist::Process|RootPane@400/N_Top/T_Title|0.000,12.000,0.000,0.0
 ```
 
 The values are: translate (3), rotate (3), scale (2), size (2), alpha, visible,
-the number of colors, then the colors as `RRGGBBAA`. The plugin reads the file
-at the start. It keeps 24 changes at most.
+the number of colors, then the colors as `RRGGBBAA`. A text box can have a
+last part after a second `|`: its text, in UTF-8, with `
+` for a new line. The
+plugin reads the file at the start. It keeps 24 changes at most.
 
 Two panes can have the same name. The path tells them apart.
+
+## The screenshot mode
+
+The page **Graphics > Screenshot Mode** hides the menu, the overlays of the
+plugin and all the layouts of the game, and it can stop the game. The free
+camera and walk mode work as usual. The menu button stops the mode.

@@ -117,6 +117,82 @@ u32 CountTree(const Pane* pane, u32 depth) {
   return total;
 }
 
+// The text of a text box: the pointer to its buffer is in the struct. The size
+// of the buffer in bytes, the length of the text in characters and a flag byte
+// (the bit 0 tells the box to build its text again) come after the colors.
+constexpr u32 kTextBufferBytesOffset = 0xF8;
+constexpr u32 kTextLengthOffset = 0xFA;
+constexpr u32 kTextFlagsOffset = 0xFE;
+constexpr u8 kTextChangedBit = 0x01;
+
+template <typename T>
+T* AtOffset(const Pane* pane, u32 offset) {
+  return reinterpret_cast<T*>(reinterpret_cast<uptr>(pane) + offset);
+}
+
+c16* TextBuffer(const Pane* pane) {
+  c16* buffer = reinterpret_cast<const TextBox*>(pane)->text;
+  const uptr address = reinterpret_cast<uptr>(buffer);
+  return (address & 1) == 0 && sys::Graphics::IsDataAddress(address) ? buffer
+                                                                      : nullptr;
+}
+
+// Writes a UTF-16 text as UTF-8. The backslash and the new line have an
+// escape, so that the text fits in one line of the file.
+void EncodeText(const c16* text, c8* out, u32 size) {
+  u32 length = 0;
+  for (; *text != 0; text++) {
+    const c16 c = *text;
+    if (length + 5 > size) break;
+    if (c == '\\') {
+      out[length++] = '\\';
+      out[length++] = '\\';
+    } else if (c == '\n') {
+      out[length++] = '\\';
+      out[length++] = 'n';
+    } else if (c < 0x20) {
+      continue;
+    } else if (c < 0x80) {
+      out[length++] = static_cast<c8>(c);
+    } else if (c < 0x800) {
+      out[length++] = static_cast<c8>(0xC0 | (c >> 6));
+      out[length++] = static_cast<c8>(0x80 | (c & 0x3F));
+    } else {
+      out[length++] = static_cast<c8>(0xE0 | (c >> 12));
+      out[length++] = static_cast<c8>(0x80 | ((c >> 6) & 0x3F));
+      out[length++] = static_cast<c8>(0x80 | (c & 0x3F));
+    }
+  }
+  out[length] = '\0';
+}
+
+void DecodeText(const c8* text, c16* out, u32 max) {
+  u32 length = 0;
+  while (*text != '\0' && length < max) {
+    const u8 c = static_cast<u8>(*text++);
+    if (c == '\\') {
+      const c8 next = *text;
+      if (next == 'n') {
+        out[length++] = '\n';
+        text++;
+      } else if (next == '\\') {
+        out[length++] = '\\';
+        text++;
+      }
+    } else if (c < 0x80) {
+      out[length++] = c;
+    } else if ((c & 0xE0) == 0xC0 && text[0] != '\0') {
+      out[length++] = static_cast<c16>(((c & 0x1F) << 6) | (text[0] & 0x3F));
+      text += 1;
+    } else if ((c & 0xF0) == 0xE0 && text[0] != '\0' && text[1] != '\0') {
+      out[length++] = static_cast<c16>(((c & 0x0F) << 12) |
+                                       ((text[0] & 0x3F) << 6) | (text[1] & 0x3F));
+      text += 2;
+    }
+  }
+  out[length] = 0;
+}
+
 // The colors of a pane: 2 for a text box, 4 for a picture.
 Color8* GetColors(Pane* pane, u32& count) {
   switch (LayoutEditor::GetKind(pane)) {
@@ -151,9 +227,27 @@ void LayoutEditor::Update() {
   auto& self = GetInstance();
   self.frame_++;
   for (Root& root : self.roots_) {
-    if (root.pane != nullptr && root.frame + 1 < self.frame_) {
-      root.pane = nullptr;
+    if (root.pane == nullptr) continue;
+    // A hidden root can leave the game's update: the editor keeps it, and it
+    // shows it again when the mode ends. The pane can be gone: check it.
+    if (root.is_hidden) {
+      const bool is_valid = IsPointer(root.pane) &&
+                            LayoutEditor::GetKind(root.pane) != PaneKind::kUnknown;
+      if (!is_valid) {
+        root.pane = nullptr;
+        root.is_hidden = false;
+        continue;
+      }
+      if (self.hide_all_) {
+        root.pane->flags &= ~kVisibleBit;
+        root.frame = self.frame_;
+      } else {
+        root.pane->flags |= kVisibleBit;
+        root.is_hidden = false;
+      }
+      continue;
     }
+    if (root.frame + 1 < self.frame_) root.pane = nullptr;
   }
 
   uptr vtable = 0;
@@ -184,12 +278,12 @@ PaneKind LayoutEditor::GetKind(const Pane* pane) {
   return PaneKind::kUnknown;
 }
 
-void LayoutEditor::Register(Pane* pane) {
+LayoutEditor::Root* LayoutEditor::Register(Pane* pane) {
   Root* free_slot = nullptr;
   for (Root& root : roots_) {
     if (root.pane == pane) {
       root.frame = frame_;
-      return;
+      return &root;
     }
     if (root.pane == nullptr && free_slot == nullptr) free_slot = &root;
   }
@@ -204,6 +298,12 @@ void LayoutEditor::Register(Pane* pane) {
   free_slot->frame = frame_;
   // The size is the one of the game: Apply() comes after this call.
   free_slot->tag = static_cast<u32>(pane->scale2.x + 0.5f);
+  free_slot->is_hidden = false;
+  return free_slot;
+}
+
+void LayoutEditor::SetHideAll(bool is_hidden) {
+  GetInstance().hide_all_ = is_hidden;
 }
 
 u32 LayoutEditor::GetRoots(Pane** out, u32 max) {
@@ -335,6 +435,77 @@ LayoutEditor::Edit* LayoutEditor::Find(const Pane* pane) {
   return nullptr;
 }
 
+u32 LayoutEditor::GetTextCapacity(const Pane* pane) {
+  if (pane == nullptr || GetKind(pane) != PaneKind::kTextBox) return 0;
+  if (TextBuffer(pane) == nullptr) return 0;
+  const u32 bytes = *AtOffset<u16>(pane, kTextBufferBytesOffset);
+  return bytes >= 4 ? bytes / 2 - 1 : 0;
+}
+
+void LayoutEditor::ReadText(const Pane* pane, c16* out) {
+  out[0] = 0;
+  const u32 capacity = GetTextCapacity(pane);
+  if (capacity == 0) return;
+  const c16* buffer = TextBuffer(pane);
+  u32 length = 0;
+  while (length < capacity && length < kMaxTextLength && buffer[length] != 0) {
+    out[length] = buffer[length];
+    length++;
+  }
+  out[length] = 0;
+}
+
+void LayoutEditor::WriteText(Pane* pane, const c16* text) {
+  const u32 capacity = GetTextCapacity(pane);
+  if (capacity == 0) return;
+  c16* buffer = TextBuffer(pane);
+  u32 length = 0;
+  while (length < capacity && text[length] != 0) length++;
+  // The same text: the box keeps its layout.
+  bool is_same = buffer[length] == 0;
+  for (u32 i = 0; is_same && i < length; i++) is_same = buffer[i] == text[i];
+  if (is_same) return;
+  for (u32 i = 0; i < length; i++) buffer[i] = text[i];
+  buffer[length] = 0;
+  *AtOffset<u16>(pane, kTextLengthOffset) = static_cast<u16>(length);
+  *AtOffset<u8>(pane, kTextFlagsOffset) |= kTextChangedBit;
+}
+
+bool LayoutEditor::SetText(const Pane* pane, const c16* original,
+                           const c16* text) {
+  auto& self = GetInstance();
+  if (self.Find(pane) == nullptr) {
+    const PaneState state = Read(pane);
+    if (!SetEdit(pane, state, state)) return false;
+  }
+  Edit* edit = self.Find(pane);
+  if (edit == nullptr) return false;
+  if (!edit->has_text) {
+    edit->has_text = true;
+    for (u32 i = 0; i <= kMaxTextLength; i++) {
+      edit->original_text[i] = original[i];
+      if (original[i] == 0) break;
+    }
+    edit->original_text[kMaxTextLength] = 0;
+  }
+  for (u32 i = 0; i <= kMaxTextLength; i++) {
+    edit->text[i] = text[i];
+    if (text[i] == 0) break;
+  }
+  edit->text[kMaxTextLength] = 0;
+  return true;
+}
+
+const c16* LayoutEditor::GetTextEdit(const Pane* pane) {
+  const Edit* edit = GetInstance().Find(pane);
+  return edit != nullptr && edit->has_text ? edit->text : nullptr;
+}
+
+const c16* LayoutEditor::GetTextOriginal(const Pane* pane) {
+  const Edit* edit = GetInstance().Find(pane);
+  return edit != nullptr && edit->has_text ? edit->original_text : nullptr;
+}
+
 bool LayoutEditor::SetEdit(const Pane* pane, const PaneState& original,
                            const PaneState& state) {
   auto& self = GetInstance();
@@ -353,6 +524,9 @@ bool LayoutEditor::SetEdit(const Pane* pane, const PaneState& original,
     edit->screen[sizeof(edit->screen) - 1] = '\0';
     GetPath(pane, edit->path, sizeof(edit->path));
     edit->original = original;
+    edit->has_text = false;
+    edit->text[0] = 0;
+    edit->original_text[0] = 0;
     self.edit_count_++;
   }
   edit->state = state;
@@ -374,16 +548,19 @@ const PaneState* LayoutEditor::GetOriginal(const Pane* pane) {
 // path.
 namespace {
 void RestoreTree(Pane* pane, const c8* path, const PaneState& original,
-                 u32 depth) {
+                 const c16* original_text, u32 depth) {
   if (depth >= kMaxDepth) return;
   c8 current[LayoutEditor::kMaxPathLength];
   LayoutEditor::GetPath(pane, current, sizeof(current));
-  if (strcmp(current, path) == 0) LayoutEditor::Write(pane, original);
+  if (strcmp(current, path) == 0) {
+    LayoutEditor::Write(pane, original);
+    if (original_text != nullptr) LayoutEditor::WriteText(pane, original_text);
+  }
   u32 count = 0;
   for (Pane* child = FirstChild(pane); child != nullptr;
        child = NextChild(pane, child)) {
     if (++count > kMaxChildren) break;
-    RestoreTree(child, path, original, depth + 1);
+    RestoreTree(child, path, original, original_text, depth + 1);
   }
 }
 }  // namespace
@@ -392,7 +569,8 @@ void LayoutEditor::Restore(const Edit& edit) {
   Pane* roots[kMaxRoots];
   const u32 count = GetRoots(roots, kMaxRoots);
   for (u32 i = 0; i < count; i++) {
-    RestoreTree(roots[i], edit.path, edit.original, 0);
+    RestoreTree(roots[i], edit.path, edit.original,
+                edit.has_text ? edit.original_text : nullptr, 0);
   }
 }
 
@@ -423,7 +601,13 @@ u32 LayoutEditor::GetEditCount() { return GetInstance().edit_count_; }
 void LayoutEditor::UpdateMatrixHook(Pane* pane, const void* draw_info) {
   auto& self = GetInstance();
   if (pane != nullptr) {
-    if (pane->parent == nullptr) self.Register(pane);
+    if (pane->parent == nullptr) {
+      Root* root = self.Register(pane);
+      if (self.hide_all_ && (pane->flags & kVisibleBit) != 0) {
+        pane->flags &= ~kVisibleBit;
+        root->is_hidden = true;
+      }
+    }
     if (self.edit_count_ != 0) self.Apply(pane);
   }
   update_matrix_hook(pane, draw_info);
@@ -446,7 +630,10 @@ void LayoutEditor::Apply(Pane* pane) {
       GetPath(pane, path, sizeof(path));
       has_path = true;
     }
-    if (strcmp(edit.path, path) == 0) Write(pane, edit.state);
+    if (strcmp(edit.path, path) == 0) {
+      Write(pane, edit.state);
+      if (edit.has_text) WriteText(pane, edit.text);
+    }
   }
 }
 
@@ -467,7 +654,7 @@ bool LayoutEditor::Save() {
     if (!edit.is_used) continue;
     const PaneState& s = edit.state;
     c8 key[16];
-    c8 value[300];
+    c8 value[480];
     snprintf(key, sizeof(key), "edit%lu", (unsigned long)++number);
     int length = snprintf(
         value, sizeof(value),
@@ -483,6 +670,10 @@ bool LayoutEditor::Save() {
       length += snprintf(value + length, sizeof(value) - length, ",%02X%02X%02X%02X",
                          s.colors[i].r, s.colors[i].g, s.colors[i].b,
                          s.colors[i].a);
+    }
+    if (edit.has_text && length > 0 && length + 4 < (int)sizeof(value)) {
+      value[length++] = '|';
+      EncodeText(edit.text, value + length, sizeof(value) - length);
     }
     ini.Set(key, value);
   }
@@ -500,7 +691,7 @@ bool LayoutEditor::Load() {
     if (value == nullptr) continue;
 
     // "screen|path|values"
-    c8 line[300];
+    c8 line[480];
     strncpy(line, value, sizeof(line) - 1);
     line[sizeof(line) - 1] = '\0';
     c8* path = strchr(line, '|');
@@ -509,6 +700,9 @@ bool LayoutEditor::Load() {
     c8* values = strchr(path, '|');
     if (values == nullptr) continue;
     *values++ = '\0';
+    // The text of a text box comes after the values.
+    c8* text = strchr(values, '|');
+    if (text != nullptr) *text++ = '\0';
 
     PaneState s;
     f32* numbers[10] = {&s.translate[0], &s.translate[1], &s.translate[2],
@@ -558,6 +752,13 @@ bool LayoutEditor::Load() {
     // pane keeps the saved state as its original.
     slot->original = s;
     slot->state = s;
+    slot->has_text = text != nullptr;
+    slot->text[0] = 0;
+    if (text != nullptr) DecodeText(text, slot->text, kMaxTextLength);
+    for (u32 i = 0; i <= kMaxTextLength; i++) {
+      slot->original_text[i] = slot->text[i];
+      if (slot->text[i] == 0) break;
+    }
     self.edit_count_++;
   }
   return true;
