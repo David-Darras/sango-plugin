@@ -24,6 +24,7 @@
 
 #include "common.h"
 #include "system/native/core.h"
+#include "system/address.h"
 
 namespace sys {
 class Controller;

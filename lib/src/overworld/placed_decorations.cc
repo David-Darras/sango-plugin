@@ -39,6 +39,7 @@
 #include "renderer/native/h3d_shader_model.h"
 #include "script/patch/native_script.h"
 #include "ui/log.h"
+#include "overworld/address.h"
 
 namespace overworld {
 namespace {

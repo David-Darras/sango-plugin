@@ -24,6 +24,7 @@
 
 #include "common.h"
 #include "battle/constant/trainer_model.h"
+#include "core/address.h"
 
 namespace battle {
 

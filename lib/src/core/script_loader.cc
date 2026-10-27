@@ -28,6 +28,8 @@
 #include "script/native/amx.h"
 #include "system/native/file.h"
 #include "ui/log.h"
+#include "core/address.h"
+#include "system/address.h"
 
 namespace core {
 

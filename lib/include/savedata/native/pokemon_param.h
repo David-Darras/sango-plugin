@@ -26,6 +26,7 @@
 #include "pokemon/native/core_data.h"
 #include "pokemon/native/data_accessor.h"
 #include "pokemon/native/runtime_data.h"
+#include "pokemon/address.h"
 
 namespace savedata {
 

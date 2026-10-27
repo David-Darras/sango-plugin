@@ -29,6 +29,7 @@
 #include "overworld/patch/placed_decorations.h"
 #include "battle/native/config.h"
 #include "savedata/native/pokemon_team.h"
+#include "battle/address.h"
 
 namespace battle {
 

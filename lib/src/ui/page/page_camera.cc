@@ -24,6 +24,7 @@
 #include "ui/free_camera_application.h"
 #include "ui/main_application.h"
 #include "ui/page/pages.h"
+#include "overworld/address.h"
 
 namespace ui {
 void LoadOverworldCameraPage(MainApplication& app, void* args) {

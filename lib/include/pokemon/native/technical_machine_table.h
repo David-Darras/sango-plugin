@@ -24,6 +24,7 @@
 
 #include "common.h"
 #include "pokemon/constant/move.h"
+#include "pokemon/address.h"
 
 namespace pokemon {
 /// The moves of the TMs and HMs.

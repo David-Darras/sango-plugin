@@ -23,6 +23,7 @@
  */
 
 #include "battle/patch/type_chart.h"
+#include "battle/address.h"
 
 namespace battle {
 

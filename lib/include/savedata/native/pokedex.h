@@ -22,6 +22,7 @@
 
 #pragma once
 #include "savedata/native/savedata.h"
+#include "pokemon/address.h"
 
 namespace savedata {
 /// The Pokédex: seen and caught Pokémon.

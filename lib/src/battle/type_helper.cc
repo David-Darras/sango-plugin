@@ -29,6 +29,9 @@
 #include "pokemon/native/move_data.h"
 #include "system/native/graphics.h"
 #include "ui/main_application.h"
+#include "battle/address.h"
+#include "pokemon/address.h"
+#include "system/address.h"
 
 namespace battle {
 

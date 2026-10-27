@@ -32,6 +32,8 @@
 #include "savedata/native/pokemon_team.h"
 #include "ui/log.h"
 #include "ui/native/app_layout_manager.h"
+#include "core/address.h"
+#include "pokemon/address.h"
 
 namespace pokemon {
 

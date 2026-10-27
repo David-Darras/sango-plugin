@@ -28,6 +28,7 @@
 #include "overworld/native/draw_model.h"
 #include "overworld/native/model_resource.h"
 #include "overworld/native/position.h"
+#include "overworld/address.h"
 
 namespace overworld {
 

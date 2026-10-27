@@ -27,6 +27,7 @@
 #include "core/native/game_manager.h"
 #include "ui/main_application.h"
 #include "ui/screenshot_mode.h"
+#include "core/address.h"
 
 namespace core {
 

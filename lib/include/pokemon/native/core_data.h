@@ -34,6 +34,7 @@
 #include "pokemon/constant/move.h"
 #include "pokemon/constant/nature.h"
 #include "pokemon/constant/species.h"
+#include "pokemon/address.h"
 
 namespace pokemon {
 

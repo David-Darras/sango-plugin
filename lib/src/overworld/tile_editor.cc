@@ -32,6 +32,8 @@
 #include "overworld/native/world_layout.h"
 #include "system/native/file.h"
 #include "core/utils.h"
+#include "overworld/address.h"
+#include "system/address.h"
 
 namespace overworld {
 

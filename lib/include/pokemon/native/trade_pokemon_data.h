@@ -26,6 +26,7 @@
 #include "pokemon/constant/form.h"
 #include "pokemon/constant/item.h"
 #include "pokemon/constant/nature.h"
+#include "pokemon/address.h"
 
 namespace pokemon {
 /// One in-game trade: the Pokémon that the character gives, and the Pokémon that the character wants.

@@ -23,6 +23,7 @@
  */
 
 #include "ui/patch/starter_choice.h"
+#include "core/address.h"
 
 namespace ui {
 

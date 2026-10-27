@@ -39,6 +39,7 @@
 #include "ui/main_application.h"
 #include "ui/page/page_common.h"
 #include "ui/page/pages.h"
+#include "battle/address.h"
 
 namespace ui {
 #include "battle/data/config.inc"

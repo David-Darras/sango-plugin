@@ -32,6 +32,7 @@
 #include "ui/main_application.h"
 #include "ui/page/enum_names.h"
 #include "ui/page/pages.h"
+#include "overworld/address.h"
 
 pokemon::LoadedModel g_my_1st_pokemon;
 

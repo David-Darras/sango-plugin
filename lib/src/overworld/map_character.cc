@@ -35,6 +35,8 @@
 #include "overworld/patch/map_graft.h"
 #include "overworld/patch/placed_decorations.h"
 #include "ui/log.h"
+#include "overworld/address.h"
+#include "system/address.h"
 
 namespace overworld {
 

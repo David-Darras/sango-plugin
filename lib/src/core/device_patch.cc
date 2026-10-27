@@ -25,6 +25,7 @@
 #include "core/patch/device_patch.h"
 #include "core/hook.h"
 #include "system/native/device.h"
+#include "system/address.h"
 
 namespace core {
 namespace {

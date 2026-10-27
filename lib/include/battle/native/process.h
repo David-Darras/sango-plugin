@@ -24,6 +24,7 @@
 
 #include "common.h"
 #include "core/native/process_manager.h"
+#include "battle/address.h"
 
 namespace core {
 class ProcessManager;

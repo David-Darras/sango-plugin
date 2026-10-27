@@ -27,6 +27,7 @@
 #include "pokemon/constant/form.h"
 #include "pokemon/constant/item.h"
 #include "pokemon/constant/species.h"
+#include "pokemon/address.h"
 
 namespace pokemon {
 

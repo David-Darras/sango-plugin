@@ -23,6 +23,7 @@
 #pragma once
 
 #include "common.h"
+#include "system/address.h"
 
 namespace savedata {
 class PssManager;

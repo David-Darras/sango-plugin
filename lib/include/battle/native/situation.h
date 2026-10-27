@@ -23,6 +23,7 @@
 #pragma once
 #include "common.h"
 #include "battle/constant/situation_key.h"
+#include "battle/address.h"
 
 namespace battle {
 /// The values of the current moment: the Pokémon, the move, the targets...

@@ -31,6 +31,9 @@
 #include "overworld/patch/overworld.h"
 #include "system/native/sound.h"
 #include "pokemon/address.h"
+#include "battle/address.h"
+#include "renderer/address.h"
+#include "system/address.h"
 
 namespace battle {
 

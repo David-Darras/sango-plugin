@@ -34,6 +34,7 @@
 #include "overworld/native/world_layout.h"
 #include "renderer/native/h3d_shader_model.h"
 #include "ui/log.h"
+#include "overworld/address.h"
 
 namespace overworld {
 

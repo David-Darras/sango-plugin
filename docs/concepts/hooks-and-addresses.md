@@ -14,6 +14,11 @@ Each domain has a file `address.h` with its addresses:
 constexpr uptr kAddPokemonToTeam = GAME_ADDRESS(0x0039FA78, 0x003B6754);
 ```
 
+A file includes the `address.h` of each domain that it uses, for example
+`#include "pokemon/address.h"`. No other header includes them for you. This
+keeps the build fast: a new address in one domain compiles only the files that
+include this domain.
+
 `GAME_ADDRESS(xy, oras)` contains two addresses:
 
 - The first value is for Pokémon X v1.5.

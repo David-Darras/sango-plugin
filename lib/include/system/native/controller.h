@@ -25,6 +25,7 @@
 #include "common.h"
 #include "system/constant/key.h"
 #include "system/native/device.h"
+#include "system/address.h"
 
 namespace sys {
 

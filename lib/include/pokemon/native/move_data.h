@@ -28,6 +28,7 @@
 #include "battle/constant/status_condition.h"
 #include "pokemon/constant/move.h"
 #include "pokemon/constant/type.h"
+#include "pokemon/address.h"
 
 namespace pokemon {
 /// The data of one move: type, power, accuracy, effects...

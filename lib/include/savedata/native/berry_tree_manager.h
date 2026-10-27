@@ -25,6 +25,7 @@
 #include "common.h"
 #include "pokemon/constant/item.h"
 #include "savedata/native/savedata.h"
+#include "overworld/address.h"
 
 namespace savedata {
 /// The growth state of a Berry tree.

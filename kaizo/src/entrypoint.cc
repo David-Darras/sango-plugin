@@ -39,6 +39,7 @@
 #include "pokemon/patch/item_customizer.h"
 #include "ui/patch/app_status.h"
 #include "ui/patch/title_screen.h"
+#include "core/address.h"
 
 namespace {
 bool IsCaptureAllowed() { return !kaizo::CapturedEvent::Check(); }

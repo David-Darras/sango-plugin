@@ -26,6 +26,7 @@
 
 #include "common.h"
 #include "core/game.h"
+#include "pokemon/address.h"
 
 namespace pokemon {
 struct EvolutionTable;

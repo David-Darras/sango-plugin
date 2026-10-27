@@ -31,6 +31,7 @@
 #include "overworld/native/map_manager.h"
 #include "overworld/native/model_manager.h"
 #include "ui/main_application.h"
+#include "overworld/address.h"
 
 namespace ui {
 const c8* kGenderNames[3] = {"Male", "Female", "Genderless"};

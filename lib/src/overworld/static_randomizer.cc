@@ -27,6 +27,7 @@
 #include "core/native/game_manager.h"
 #include "overworld/native/static_encounter.h"
 #include "core/utils.h"
+#include "overworld/address.h"
 
 namespace overworld {
 

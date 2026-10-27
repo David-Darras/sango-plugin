@@ -26,6 +26,8 @@
 #include "core/hook.h"
 #include "overworld/patch/day_care.h"
 #include "system/native/sound.h"
+#include "overworld/address.h"
+#include "system/address.h"
 
 namespace overworld {
 

@@ -32,6 +32,7 @@
 #include "battle/native/pokemon.h"
 #include "pokemon/constant/item.h"
 #include "pokemon/constant/move.h"
+#include "battle/address.h"
 
 namespace battle {
 struct Mutation;

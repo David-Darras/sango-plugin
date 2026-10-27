@@ -27,6 +27,7 @@
 #include "script/native/amx.h"
 #include "script/native/engine_workspace.h"
 #include "script/native/script_vm.h"
+#include "core/address.h"
 
 namespace core {
 class GameManager;

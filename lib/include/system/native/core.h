@@ -24,6 +24,7 @@
 
 #include "common.h"
 #include "system/constant/language.h"
+#include "core/address.h"
 
 namespace sys {
 class Device;

@@ -24,6 +24,7 @@
 #include "common.h"
 #include "core/constant/event_flag.h"
 #include "savedata/native/savedata.h"
+#include "core/address.h"
 
 namespace savedata {
 /// The event flags and the script variables of the save data.

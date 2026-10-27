@@ -25,6 +25,7 @@
 #include "common.h"
 #include "battle/constant/priority_tier.h"
 #include "battle/native/listener.h"
+#include "battle/address.h"
 
 namespace battle {
 /// Registers and removes the listeners of the battle engine.

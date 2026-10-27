@@ -23,6 +23,7 @@
  */
 
 #include "overworld/patch/day_care.h"
+#include "pokemon/address.h"
 
 namespace overworld {
 namespace {

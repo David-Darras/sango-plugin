@@ -24,6 +24,7 @@
 #include "common.h"
 #include "core/native/data_manager.h"
 #include "savedata/native/pokemon_param.h"
+#include "pokemon/address.h"
 
 namespace savedata {
 

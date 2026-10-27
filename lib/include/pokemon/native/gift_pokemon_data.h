@@ -28,6 +28,7 @@
 #include "pokemon/constant/move.h"
 #include "pokemon/constant/shiny_roll.h"
 #include "pokemon/constant/species.h"
+#include "pokemon/address.h"
 
 namespace pokemon {
 /// One gift Pokémon of the game: a Pokémon that a character gives to the player.

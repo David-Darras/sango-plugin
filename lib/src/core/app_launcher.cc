@@ -37,6 +37,9 @@
 #include "savedata/native/pokemon_team.h"
 #include "savedata/native/trainer_status.h"
 #include "ui/main_application.h"
+#include "core/address.h"
+#include "overworld/address.h"
+#include "system/address.h"
 
 namespace core {
 

@@ -25,6 +25,7 @@
 #include "ui/patch/party_select.h"
 
 #include "core/hook.h"
+#include "ui/address.h"
 
 namespace ui {
 

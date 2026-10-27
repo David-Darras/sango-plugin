@@ -58,6 +58,8 @@
 #include "ui/page/enum_names.h"
 #include "ui/page/page_common.h"
 #include "ui/page/pages.h"
+#include "overworld/address.h"
+#include "ui/address.h"
 
 namespace ui {
 // The Pokemon of the save data are encrypted. The page shows a decrypted

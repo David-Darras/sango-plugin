@@ -28,6 +28,8 @@
 #include "core/native/process_manager.h"
 #include "overworld/patch/placed_decorations.h"
 #include "overworld/native/map_manager.h"
+#include "overworld/address.h"
+#include "pokemon/address.h"
 
 namespace overworld {
 

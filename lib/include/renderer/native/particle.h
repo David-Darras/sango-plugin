@@ -24,6 +24,7 @@
 
 #include "common.h"
 #include "renderer/native/h3d_model.h"
+#include "renderer/address.h"
 
 namespace renderer {
 

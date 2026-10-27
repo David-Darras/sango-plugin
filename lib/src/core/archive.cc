@@ -29,6 +29,7 @@
 #include "core/hook.h"
 #include "core/utils.h"
 #include "system/native/file.h"
+#include "system/address.h"
 
 namespace core {
 

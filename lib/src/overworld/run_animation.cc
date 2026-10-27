@@ -26,6 +26,8 @@
 #include "core/hook.h"
 #include "core/native/process_manager.h"
 #include "overworld/native/model.h"
+#include "overworld/address.h"
+#include "renderer/address.h"
 
 namespace overworld {
 

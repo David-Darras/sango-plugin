@@ -27,6 +27,7 @@
 #include "common.h"
 #include "pokemon/constant/item.h"
 #include "core/native/game_manager.h"
+#include "pokemon/address.h"
 
 namespace pokemon {
 /// The data of one item: price, effects, pockets...

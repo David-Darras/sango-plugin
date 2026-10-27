@@ -26,6 +26,8 @@
 #include "core/patch/script_loader.h"
 #include "core/hook.h"
 #include "core/native/event_manager.h"
+#include "overworld/address.h"
+#include "system/address.h"
 
 namespace core {
 

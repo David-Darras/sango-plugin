@@ -24,6 +24,7 @@
 #include "common.h"
 #include "core/hook.h"
 #include "savedata/native/pokemon_team.h"
+#include "pokemon/address.h"
 
 namespace kaizo {
 static const SpeciesId SPECIAL_POKEMON[] = {
@@ -104,7 +105,7 @@ bool IsSpecialPokemon(SpeciesId species) {
 }
 
 // The legendary Pokémon cannot join the party of the player.
-bool, AddPokemonToTeam,
+HOOK(bool, AddPokemonToTeam,
      (savedata::PokemonTeam* team, savedata::PokemonParam* pokemon),
      pokemon::address::kAddPokemonToTeam) {
   if (team == &savedata::PokemonTeam::GetInstance()) {

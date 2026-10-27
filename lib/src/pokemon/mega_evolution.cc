@@ -30,6 +30,7 @@
 #include "pokemon/constant/mega_evolution_method.h"
 #include "pokemon/native/database.h"
 #include "pokemon/native/mega_evolution_table.h"
+#include "pokemon/address.h"
 
 namespace pokemon {
 

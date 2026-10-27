@@ -25,6 +25,8 @@
 #include "pokemon/patch/shiny.h"
 
 #include "core/hook.h"
+#include "core/address.h"
+#include "pokemon/address.h"
 
 namespace pokemon {
 

@@ -27,6 +27,7 @@
 
 #include "common.h"
 #include <cxxabi.h>
+#include "system/address.h"
 
 
 namespace core {

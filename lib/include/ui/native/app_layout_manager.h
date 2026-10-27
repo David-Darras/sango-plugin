@@ -24,6 +24,8 @@
 
 #include "common.h"
 #include "renderer/native/picture.h"
+#include "system/address.h"
+#include "ui/address.h"
 
 namespace renderer {
 struct TextBox;

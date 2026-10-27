@@ -37,6 +37,7 @@
 #include "pokemon/data/alolan_form.inc"
 #include "pokemon/data/gen7_species.inc"
 #include "pokemon/data/gen8_species.inc"
+#include "pokemon/address.h"
 
 namespace pokemon {
 

@@ -33,6 +33,9 @@
 #include "overworld/native/model_manager.h"
 #include "overworld/native/renderer.h"
 #include "system/native/controller.h"
+#include "battle/address.h"
+#include "overworld/address.h"
+#include "renderer/address.h"
 
 namespace overworld {
 

@@ -25,6 +25,7 @@
 #include "renderer/patch/lighting.h"
 
 #include "core/hook.h"
+#include "renderer/address.h"
 
 namespace renderer {
 

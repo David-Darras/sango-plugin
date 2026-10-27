@@ -29,6 +29,7 @@
 #include "pokemon/constant/item.h"
 #include "pokemon/native/database.h"
 #include "pokemon/native/evolution_table.h"
+#include "pokemon/address.h"
 
 namespace pokemon {
 

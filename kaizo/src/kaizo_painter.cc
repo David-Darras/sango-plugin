@@ -25,6 +25,7 @@
 #include "system/native/graphics.h"
 #include "ui/main_application.h"
 #include "core/utils.h"
+#include "system/address.h"
 
 namespace kaizo {
 void Painter::DrawPageBackground(ui::MainApplication& app) {

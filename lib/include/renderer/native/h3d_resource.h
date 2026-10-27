@@ -23,6 +23,8 @@
 #pragma once
 
 #include "common.h"
+#include "renderer/address.h"
+#include "system/address.h"
 
 namespace renderer {
 

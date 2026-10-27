@@ -26,6 +26,8 @@
 #include "core/hook.h"
 #include "pokemon/native/gift_pokemon_data.h"
 #include "core/utils.h"
+#include "overworld/address.h"
+#include "pokemon/address.h"
 
 namespace overworld {
 

@@ -25,6 +25,7 @@
 #include "pokemon/patch/model_replacement.h"
 #include "core/hook.h"
 #include "pokemon/patch/species_table.h"
+#include "pokemon/address.h"
 
 namespace pokemon {
 

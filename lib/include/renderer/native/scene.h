@@ -24,6 +24,7 @@
 
 #include "common.h"
 #include "renderer/native/h3d_shader_model.h"
+#include "renderer/address.h"
 
 namespace renderer {
 /// Adds models to the 3D scene and removes them.

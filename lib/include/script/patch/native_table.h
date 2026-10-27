@@ -26,6 +26,7 @@
 
 #include "common.h"
 #include "script/native/amx.h"
+#include "core/address.h"
 
 namespace script {
 

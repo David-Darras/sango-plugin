@@ -35,6 +35,7 @@
 #include "ui/painter.h"
 #include "ui/patch/new_game.h"
 #include "ui/patch/title_screen.h"
+#include "core/address.h"
 
 namespace undertow {
 void InstallScripts();

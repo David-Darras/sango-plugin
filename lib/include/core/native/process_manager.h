@@ -29,6 +29,8 @@
 #include "core/native/game_manager.h"
 #include "core/native/process_handle.h"
 #include "core/utils.h"
+#include "battle/address.h"
+#include "overworld/address.h"
 
 namespace core {
 

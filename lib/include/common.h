@@ -45,9 +45,6 @@
 #include <functional>
 #include <CTRPluginFramework/System/Process.hpp>
 
-// The addresses of all the domains.
-#include "address.h"
-
 // The ids that most files use.
 #include "pokemon/constant/form.h"
 #include "pokemon/constant/gender.h"

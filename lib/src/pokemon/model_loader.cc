@@ -34,6 +34,8 @@
 #include "renderer/native/scene.h"
 #include "system/native/file.h"
 #include "ui/log.h"
+#include "overworld/address.h"
+#include "system/address.h"
 
 #define POKEMON_FILE_SPECIES_TABLE (0)
 #define POKEMON_FILE_COMMON_SHADER (1)

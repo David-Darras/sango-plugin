@@ -24,6 +24,8 @@
 
 #include "common.h"
 #include "renderer/native/h3d_resource.h"
+#include "renderer/address.h"
+#include "system/address.h"
 
 namespace renderer {
 /// A 3D model with its shaders. The plugin uses it to show models in the overworld.

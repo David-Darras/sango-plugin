@@ -25,6 +25,8 @@
 #include "core/utils.h"
 #include "pokemon/constant/species.h"
 #include "savedata/native/pokemon_param.h"
+#include "core/address.h"
+#include "pokemon/address.h"
 
 namespace kaizo {
 struct PokemonStarterView {

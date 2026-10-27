@@ -23,6 +23,7 @@
 #pragma once
 
 #include "common.h"
+#include "renderer/address.h"
 namespace renderer {
 /// The values of the texture combiner stages of the GPU.
 namespace TevCombine {

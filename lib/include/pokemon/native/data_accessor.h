@@ -25,6 +25,7 @@
 
 #include "common.h"
 #include "pokemon/native/core_data.h"
+#include "pokemon/address.h"
 
 namespace pokemon {
 struct RuntimeData;

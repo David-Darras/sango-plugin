@@ -25,6 +25,7 @@
 #include "common.h"
 #include "pokemon/constant/species.h"
 #include "system/constant/background_music.h"
+#include "system/address.h"
 
 namespace sys {
 

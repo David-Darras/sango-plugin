@@ -43,6 +43,10 @@
 #include "pokemon/data/form.inc"
 #include "pokemon/data/nature.inc"
 #include "system/native/controller.h"
+#include "pokemon/address.h"
+#include "renderer/address.h"
+#include "system/address.h"
+#include "ui/address.h"
 
 // Moves a value of a Pokémon forward or back, from 0 to max - 1.
 // The calculation uses u32, then casts back to the type of the value. The

@@ -26,6 +26,7 @@
 #include "core/hook.h"
 #include "pokemon/native/trade_pokemon_data.h"
 #include "core/utils.h"
+#include "overworld/address.h"
 
 namespace overworld {
 

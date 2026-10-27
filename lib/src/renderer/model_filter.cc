@@ -34,6 +34,9 @@
 #include "battle/native/graphics.h"
 #include "renderer/native/particle.h"
 #include "renderer/native/scene.h"
+#include "battle/address.h"
+#include "core/address.h"
+#include "renderer/address.h"
 
 namespace renderer {
 

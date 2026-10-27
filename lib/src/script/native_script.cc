@@ -25,6 +25,7 @@
 #include "script/patch/native_script.h"
 
 #include "core/hook.h"
+#include "core/address.h"
 
 Coroutine* Coroutine::self_ = nullptr;
 

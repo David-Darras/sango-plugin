@@ -34,6 +34,9 @@
 #include "battle/native/pokemon.h"
 #include "battle/constant/priority_tier.h"
 #include "pokemon/native/move_data.h"
+#include "battle/address.h"
+#include "pokemon/address.h"
+#include "system/address.h"
 
 namespace battle {
 

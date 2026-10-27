@@ -26,6 +26,9 @@
 #include "core/hook.h"
 #include "core/native/data_manager.h"
 #include "savedata/native/trainer_status.h"
+#include "core/address.h"
+#include "overworld/address.h"
+#include "renderer/address.h"
 
 namespace ui {
 

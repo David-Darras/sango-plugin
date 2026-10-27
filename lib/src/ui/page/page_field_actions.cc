@@ -27,6 +27,7 @@
 #include "overworld/patch/field_move.h"
 #include "ui/main_application.h"
 #include "ui/page/pages.h"
+#include "overworld/address.h"
 
 namespace ui {
 void LoadOverworldFieldMovePage(MainApplication& app, void* args) {

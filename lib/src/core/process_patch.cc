@@ -33,6 +33,11 @@
 #include "ui/patch/title_screen.h"
 #include "core/native/process_manager.h"
 #include "pokemon/patch/species_table.h"
+#include "battle/address.h"
+#include "core/address.h"
+#include "overworld/address.h"
+#include "system/address.h"
+#include "ui/address.h"
 
 namespace core {
 

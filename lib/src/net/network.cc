@@ -41,6 +41,7 @@
 #include "overworld/native/map_manager.h"
 #include "overworld/native/model_manager.h"
 #include "system/native/file.h"
+#include "system/address.h"
 
 static const c16* kStatusFilename =
     u"sdmc:/luma/plugins/000400000011C500/net_status.log";

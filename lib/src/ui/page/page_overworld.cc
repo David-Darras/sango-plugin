@@ -55,6 +55,7 @@
 #include "ui/page/page_common.h"
 #include "ui/page/pages.h"
 #include "ui/tile_editor_application.h"
+#include "overworld/address.h"
 
 namespace ui {
 #include "overworld/data/tile.inc"

@@ -25,6 +25,8 @@
 #include "overworld/patch/field_move.h"
 #include "overworld/native/map_manager.h"
 #include "ui/main_application.h"
+#include "core/address.h"
+#include "overworld/address.h"
 
 namespace overworld {
 

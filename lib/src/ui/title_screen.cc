@@ -25,6 +25,8 @@
 #include "ui/patch/title_screen.h"
 
 #include "core/hook.h"
+#include "core/address.h"
+#include "system/address.h"
 
 namespace ui {
 

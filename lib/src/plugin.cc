@@ -86,6 +86,7 @@
 #include "ui/patch/new_game.h"
 #include "ui/patch/party_select.h"
 #include "ui/patch/title_screen.h"
+#include "system/address.h"
 
 sys::String sys::String::s_tmp;
 c16 sys::String::s_buffer[128];

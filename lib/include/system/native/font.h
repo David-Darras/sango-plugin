@@ -23,6 +23,7 @@
 #pragma once
 
 #include "common.h"
+#include "ui/address.h"
 
 namespace sys {
 

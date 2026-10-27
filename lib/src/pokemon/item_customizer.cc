@@ -28,6 +28,7 @@
 
 #include "core/hook.h"
 #include "pokemon/native/item_data.h"
+#include "pokemon/address.h"
 
 namespace pokemon {
 

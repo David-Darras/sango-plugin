@@ -26,6 +26,7 @@
 #include "core/hook.h"
 #include "overworld/patch/map_graft.h"
 #include "overworld/native/map_data.h"
+#include "overworld/address.h"
 
 namespace overworld {
 

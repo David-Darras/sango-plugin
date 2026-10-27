@@ -29,6 +29,7 @@
 #include "pokemon/native/item_data.h"
 #include "system/native/font_manager.h"
 #include "ui/name_list.h"
+#include "pokemon/address.h"
 
 namespace ui {
 static void SetBits(u32* num, u32 offset, u32 size, u32 value) {

@@ -28,6 +28,9 @@
 #include "system/native/controller.h"
 #include "system/native/font_manager.h"
 #include "system/native/graphics.h"
+#include "core/address.h"
+#include "system/address.h"
+#include "ui/address.h"
 
 namespace ui {
 

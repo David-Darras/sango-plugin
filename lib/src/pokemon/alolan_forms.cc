@@ -30,6 +30,7 @@
 #include "core/hook.h"
 #include "pokemon/patch/species_table.h"
 #include "pokemon/data/alolan_form.inc"
+#include "pokemon/address.h"
 
 namespace pokemon {
 

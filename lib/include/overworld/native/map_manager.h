@@ -26,6 +26,7 @@
 #include "overworld/constant/facing.h"
 #include "overworld/constant/map.h"
 #include "overworld/native/position.h"
+#include "overworld/address.h"
 
 namespace core {
 class GameManager;

@@ -26,6 +26,7 @@
 
 #include "core/hook.h"
 #include "overworld/native/weather_manager.h"
+#include "overworld/address.h"
 
 namespace overworld {
 

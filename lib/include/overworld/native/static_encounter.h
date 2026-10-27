@@ -36,6 +36,7 @@
 #include "pokemon/constant/item.h"
 #include "pokemon/constant/shiny_roll.h"
 #include "pokemon/constant/species.h"
+#include "pokemon/address.h"
 
 namespace overworld {
 /// One row of the static encounter table: the Pokémon and the place of the

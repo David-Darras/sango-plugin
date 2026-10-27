@@ -34,6 +34,7 @@
 #include "ui/page/enum_names.h"
 #include "ui/page/page_common.h"
 #include "ui/page/pages.h"
+#include "overworld/address.h"
 
 namespace ui {
 namespace {

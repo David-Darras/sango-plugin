@@ -26,6 +26,7 @@
 
 #include "core/hook.h"
 #include "overworld/patch/tile_editor.h"
+#include "overworld/address.h"
 
 namespace overworld {
 

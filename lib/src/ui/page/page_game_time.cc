@@ -22,6 +22,7 @@
 
 #include "core/native/time_manager.h"
 #include "ui/main_application.h"
+#include "system/address.h"
 
 namespace ui {
 void LoadGameTimePage(MainApplication& app, void* args) {

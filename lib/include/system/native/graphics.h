@@ -28,6 +28,7 @@
 #include "common.h"
 #include "system/constant/screen.h"
 #include "system/native/core.h"
+#include "renderer/address.h"
 
 namespace sys {
 
