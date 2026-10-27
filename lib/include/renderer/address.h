@@ -118,6 +118,11 @@ constexpr uptr kH3dModelGetMeshNodeCount = GAME_ADDRESS(0, 0x004CD1B8);
 constexpr uptr kH3dModelGetMeshNodeName = GAME_ADDRESS(0, 0x004CD0D8);
 constexpr uptr kH3dModelIsMeshNodeVisible = GAME_ADDRESS(0, 0x004CD258);
 constexpr uptr kH3dModelGetMaterialName = GAME_ADDRESS(0, 0x004CD094);
+/// The setters of the texture coordinates of a material: the scale, the turn
+/// and the move of the UV. ORAS only.
+constexpr uptr kH3dModelSetUvScale = GAME_ADDRESS(0, 0x003999AC);
+constexpr uptr kH3dModelSetUvRotate = GAME_ADDRESS(0, 0x00399AC8);
+constexpr uptr kH3dModelSetUvTranslate = GAME_ADDRESS(0, 0x00399D0C);
 /// The functions of the skeleton of a model: the number of bones and the name
 /// of a bone. ORAS only.
 constexpr uptr kH3dModelGetBonesCount = GAME_ADDRESS(0, 0x004CCFF0);

@@ -456,6 +456,10 @@ u32 TextureEditor::GetOriginalHash(const TextureTarget& target) {
   return hash;
 }
 
+u32 TextureEditor::GetFileKey(const TextureTarget& target, u32 original_hash) {
+  return MakeKey(target, original_hash);
+}
+
 bool TextureEditor::IsSaved(const TextureTarget& target, u32 original_hash) {
   return HasKey(MakeKey(target, original_hash));
 }

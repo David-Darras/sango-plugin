@@ -62,6 +62,9 @@ u32 selected_material = 0;
 MaterialState material;
 bool is_material_loaded = false;
 c8 texture_labels[3][kLabelLength];
+renderer::UvTransform uv[3];
+bool has_uv[3];
+c8 uv_labels[3][5][kLabelLength];
 
 bool IsSelectedAlive() { return ModelViewer::IsKnown(selected_model); }
 
@@ -94,6 +97,11 @@ void HideAllParts(void*) {
 void ApplyMaterial(void*) {
   if (!IsSelectedAlive()) return;
   ModelViewer::WriteMaterial(selected_model, selected_material, material);
+  for (u32 unit = 0; unit < 3; unit++) {
+    if (has_uv[unit]) {
+      ModelViewer::WriteUv(selected_model, selected_material, unit, uv[unit]);
+    }
+  }
 }
 } // namespace
 
@@ -212,6 +220,16 @@ void LoadMaterialPage(MainApplication& app, void* args) {
   }
   if (!is_material_loaded) {
     material = ModelViewer::ReadMaterial(selected_model, selected_material);
+    for (u32 unit = 0; unit < 3; unit++) {
+      renderer::TextureUnitInfo info;
+      has_uv[unit] = ModelViewer::ReadTextureUnit(selected_model,
+                                                  selected_material, unit,
+                                                  info) &&
+                     info.kind != 0;
+      if (has_uv[unit]) {
+        uv[unit] = ModelViewer::ReadUv(selected_model, selected_material, unit);
+      }
+    }
     is_material_loaded = true;
   } else {
     ApplyMaterial(nullptr);
@@ -232,6 +250,29 @@ void LoadMaterialPage(MainApplication& app, void* args) {
      .Add("Alpha Test", material.has_alpha_test)
      .WithDescription("On: the GPU drops the pixels that are almost "
                       "transparent.");
+
+  // The texture coordinates of each unit that has a texture: scale, turn and
+  // move the texture on the surface (for example, to move the eyes).
+  for (u32 unit = 0; unit < 3; unit++) {
+    if (!has_uv[unit]) continue;
+    snprintf(uv_labels[unit][0], kLabelLength, "Texture %lu UV",
+             (unsigned long)unit);
+    app.AddSection(uv_labels[unit][0])
+       .Add("Scale U", uv[unit].scale[0])
+       .WithFactor(0.05f)
+       .Add("Scale V", uv[unit].scale[1])
+       .WithFactor(0.05f)
+       .WithDescription("1 is the size of the texture. A bigger number makes "
+                        "the texture repeat and smaller.")
+       .Add("Rotate", uv[unit].rotate)
+       .WithFactor(5.0f)
+       .WithDescription("In degrees.")
+       .Add("Move U", uv[unit].translate[0])
+       .WithFactor(0.01f)
+       .Add("Move V", uv[unit].translate[1])
+       .WithFactor(0.01f)
+       .WithDescription("1 moves the texture by its own size.");
+  }
 
   // The textures that the game makes while it runs (the Pokemon) can be
   // painted.

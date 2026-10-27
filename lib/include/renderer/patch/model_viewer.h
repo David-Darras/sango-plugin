@@ -47,6 +47,13 @@ struct TextureUnitInfo {
   u32 words[10] = {};
 };
 
+/// The transform of the texture coordinates (UV) of one unit of a material.
+struct UvTransform {
+  f32 scale[2] = {1, 1};
+  f32 rotate = 0; ///< In degrees.
+  f32 translate[2] = {0, 0};
+};
+
 /**
  * @brief The 3D models of the current screen.
  *
@@ -99,6 +106,13 @@ public:
                               TextureUnitInfo& out);
   static void WriteMaterial(H3dModel* model, u32 index,
                             const MaterialState& state);
+
+  /// Reads the UV transform of a unit (0 to 2) of a material.
+  static UvTransform ReadUv(const H3dModel* model, u32 material, u32 unit);
+
+  /// Writes the UV transform of a unit of a material.
+  static void WriteUv(H3dModel* model, u32 material, u32 unit,
+                      const UvTransform& uv);
 
 private:
   static void RemoveHook(uptr scene, H3dModel* model);

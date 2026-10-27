@@ -118,6 +118,10 @@ public:
   /// Deletes the saved texture. Returns true when a file was saved.
   static bool Forget(const TextureTarget& target, u32 original_hash);
 
+  /// The key of a texture: it names its files (the saved texture and the TGA
+  /// file). The same original texture has the same key.
+  static u32 GetFileKey(const TextureTarget& target, u32 original_hash);
+
   /// Returns true when the original texture has a saved file.
   static bool IsSaved(const TextureTarget& target, u32 original_hash);
 };

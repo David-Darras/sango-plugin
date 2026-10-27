@@ -32,23 +32,42 @@ makes new models.
 
 The game makes the textures of the Pokémon while it runs, in the memory of the
 GPU. A material page lists the textures of its three units. For a texture that
-the game made, the entry is **Paint Unit N**.
+the game made, the entry is **Paint Unit N**, with the format and the size of
+the texture.
 
 The paint program opens on the bottom screen. The stylus draws on the texture,
-and the model on the top screen changes at once.
+and the model on the top screen changes at once. The palette is always on the
+right. The button under the tools changes the tab.
 
-- **Palette**: touch a color.
-- **- / +**: the size of the brush.
-- **Paint / Pick / Erase**: the tool. Pick takes the color of a pixel. Erase
-  makes a pixel transparent, for the formats that have an alpha channel.
-- **Undo**: goes back one stroke. **Reset**: gives the original texture.
-- **Done**, B or START: back to the menu.
+- **Draw**: **- / +** is the size of the brush. The tool button changes between
+  Paint, Pick (takes the color of a pixel), Erase (makes a pixel transparent, for
+  the formats with an alpha channel) and Fill (the bucket fills the area of the
+  same color). **Mirror** draws the same stroke on the other side of the
+  texture. **Undo** goes back one action, **Reset** gives the original texture.
+- **Color**: **Hue**, **Sat** and **Val** change the hue, the saturation and the
+  brightness of all the texture, one step for each touch (it is a way to make a
+  shiny form). **Replace** changes the color that you picked with the Pick tool
+  to the color of the palette, and keeps the shades.
+- **File**: **Export** writes the texture to
+  `sdmc:/sango/textures/export/XXXXXXXX.tga` (32 bits). **Import** reads this
+  file (24 or 32 bits, same size). **Live** exports the texture, then reloads the
+  file each time it changes: open the file in a program on your computer, save
+  it, and the model changes in the game. **Save** and **Del** keep or delete the
+  texture (see below).
+
+**Done**, B or START goes back to the menu.
 
 `renderer::TextureEditor` reads and writes the pixels in place. It supports the
 formats RGBA8, RGB8, RGBA5551, RGB565, RGBA4 and L8, with sides from 8 to 256
 pixels. The paint program changes only the first level of the texture. The
 change stays until the game makes the texture again, for example in the next
 battle.
+
+## The texture coordinates
+
+The page of a material has a section **Texture N UV** for each texture. **Scale
+U/V**, **Rotate** and **Move U/V** change how the texture covers the surface. For
+example, move the UV of the eyes to change the look of a Pokémon.
 
 ## Saving a texture
 

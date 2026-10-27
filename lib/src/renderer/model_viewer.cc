@@ -50,6 +50,15 @@ constexpr u32 kAmbientOffset = 0x40;
 constexpr u32 kDiffuseOffset = 0x44;
 constexpr u32 kVisibleFlagsOffset = 0xE4;
 constexpr u32 kTextureTableOffset = 0x80;
+// The texture coordinates: in the state of each material (340 bytes at the byte
+// 0x30 of the model), each unit has a block of 24 bytes from the byte 0x54. The
+// scale (2 floats), the turn (1 float, in radians) and the move (2 floats)
+// are in this block.
+constexpr u32 kUvBlockOffset = 0x54;
+constexpr u32 kUvBlockSize = 24;
+constexpr u32 kUvScaleOffset = 0x98;
+constexpr u32 kUvRotateOffset = 0xA0;
+constexpr u32 kUvTranslateOffset = 0xA4;
 
 template <typename T>
 T* At(const H3dModel* model, u32 offset) {
@@ -257,6 +266,45 @@ bool ModelViewer::ReadTextureUnit(const H3dModel* model, u32 material,
     out.words[i] = reinterpret_cast<const u32*>(out.object)[i];
   }
   return true;
+}
+
+UvTransform ModelViewer::ReadUv(const H3dModel* model, u32 material, u32 unit) {
+  UvTransform uv;
+  if (unit >= 3 || material >= GetMaterialCount(model)) return uv;
+  const uptr states = *At<uptr>(model, kMaterialColorsOffset);
+  if (!IsReadableArray(states + material * kMaterialColorsSize)) return uv;
+  const uptr block = states + material * kMaterialColorsSize + kUvBlockOffset +
+                     unit * kUvBlockSize;
+  const f32* scale = reinterpret_cast<const f32*>(block + kUvScaleOffset);
+  const f32 rotate = *reinterpret_cast<const f32*>(block + kUvRotateOffset);
+  const f32* translate =
+      reinterpret_cast<const f32*>(block + kUvTranslateOffset);
+  uv.scale[0] = scale[0];
+  uv.scale[1] = scale[1];
+  uv.rotate = rotate * (180.0f / 3.14159265f);
+  uv.translate[0] = translate[0];
+  uv.translate[1] = translate[1];
+  return uv;
+}
+
+void ModelViewer::WriteUv(H3dModel* model, u32 material, u32 unit,
+                          const UvTransform& uv) {
+#ifdef GAME_ORAS
+  if (unit >= 3 || material >= GetMaterialCount(model)) return;
+  const f32 scale[2] = {uv.scale[0], uv.scale[1]};
+  const f32 translate[2] = {uv.translate[0], uv.translate[1]};
+  ((void (*)(H3dModel*, s32, s32, const f32*))address::kH3dModelSetUvScale)(
+      model, material, unit, scale);
+  ((void (*)(H3dModel*, s32, s32, f32))address::kH3dModelSetUvRotate)(
+      model, material, unit, uv.rotate * (3.14159265f / 180.0f));
+  ((void (*)(H3dModel*, s32, s32, const f32*))address::kH3dModelSetUvTranslate)(
+      model, material, unit, translate);
+#else
+  (void)model;
+  (void)material;
+  (void)unit;
+  (void)uv;
+#endif
 }
 
 void ModelViewer::WriteMaterial(H3dModel* model, u32 index,
