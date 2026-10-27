@@ -93,6 +93,9 @@ void LoadPanePage(MainApplication& app, void* args);
 void LoadModelViewerPage(MainApplication& app, void* args);
 void LoadModelPage(MainApplication& app, void* args);
 void LoadMaterialPage(MainApplication& app, void* args);
+// The skeleton of a 3D model (ORAS): the bones, then one bone.
+void LoadSkeletonPage(MainApplication& app, void* args);
+void LoadBonePage(MainApplication& app, void* args);
 void LoadModelLoaderPage(MainApplication& app, void* args);
 void LoadScriptPage(MainApplication& app, void* args);
 void LoadTitleScreenPage(MainApplication& app, void* args);

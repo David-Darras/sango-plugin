@@ -59,3 +59,23 @@ makes the same original texture. **Del** deletes the saved file.
 
 The list of the saved textures is in `sdmc:/sango/textures/index.bin`. The
 plugin keeps 256 textures at most.
+
+## The skeleton
+
+A model has a skeleton: bones that the animations of the game move. In
+**Model Viewer > a model > Skeleton > Bones**, the list shows all the bones.
+Open a bone to move it, turn it (in degrees) or scale it. The bones under it
+follow, as in a 3D program: scale the bone of the head to make a big head.
+A bone with a star has a change.
+
+Not all the bones have vertices: a change of a bone without vertices shows
+only through the bones under it. Try a bone of the body, the head or a limb.
+
+`renderer::SkeletonEditor` changes the matrices of the bones when the game
+starts to draw the model. It works for all the models, also for the
+characters, because it does not depend on who calculates the bones.
+
+**Save To The SD Card** writes `sdmc:/sango/skeleton.ini`. A change is for all
+the models that have the same skeleton: the key is a hash of the names of the
+bones. After a restart, every Pokémon of the same species gets its changes
+again. The file keeps 32 changes at most.

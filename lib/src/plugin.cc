@@ -70,6 +70,7 @@
 #include "renderer/patch/lighting.h"
 #include "renderer/patch/model_filter.h"
 #include "renderer/patch/model_viewer.h"
+#include "renderer/patch/skeleton_editor.h"
 #include "renderer/patch/texture_editor.h"
 #include "renderer/patch/layout_editor.h"
 #include "script/patch/native_script.h"
@@ -100,6 +101,7 @@ void InitializeEngine() {
   renderer::Lighting::Initialize();
   renderer::ModelViewer::Initialize();
   renderer::TextureEditor::Initialize();
+  renderer::SkeletonEditor::Initialize();
   renderer::LayoutEditor::Initialize();
   overworld::MapTile::Initialize();
   overworld::Camera::Initialize();

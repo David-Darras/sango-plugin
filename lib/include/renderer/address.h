@@ -118,6 +118,13 @@ constexpr uptr kH3dModelGetMeshNodeCount = GAME_ADDRESS(0, 0x004CD1B8);
 constexpr uptr kH3dModelGetMeshNodeName = GAME_ADDRESS(0, 0x004CD0D8);
 constexpr uptr kH3dModelIsMeshNodeVisible = GAME_ADDRESS(0, 0x004CD258);
 constexpr uptr kH3dModelGetMaterialName = GAME_ADDRESS(0, 0x004CD094);
+/// The functions of the skeleton of a model: the number of bones and the name
+/// of a bone. ORAS only.
+constexpr uptr kH3dModelGetBonesCount = GAME_ADDRESS(0, 0x004CCFF0);
+constexpr uptr kH3dModelGetBonesName = GAME_ADDRESS(0, 0x004CCD64);
+/// The function that writes the draw commands of one mesh of a model with a
+/// skeleton. Its third argument is the state of the skeleton. ORAS only.
+constexpr uptr kMeshDrawCommand = GAME_ADDRESS(0, 0x004BC8C4);
 /// The vtable of the textures that the game makes while it runs (the textures
 /// of the Pokemon). ORAS only.
 constexpr uptr kH3dDynamicTextureVtable = GAME_ADDRESS(0, 0x005DDC08);

@@ -24,6 +24,8 @@
 #include <cstdio>
 
 #include "renderer/patch/model_viewer.h"
+#include "renderer/patch/skeleton_editor.h"
+#include "renderer/patch/texture_editor.h"
 #include "ui/paint_application.h"
 #include "ui/main_application.h"
 #include "ui/page/page_common.h"
@@ -39,7 +41,7 @@ using renderer::ModelViewer;
 // materials.
 constexpr u32 kMaxParts = 22;
 constexpr u32 kMaxMaterials = 22;
-constexpr u32 kLabelLength = 56;
+constexpr u32 kLabelLength = 72;
 
 const c8* kCullingNames[] = {"No Culling", "Culling 1", "Culling 2"};
 
@@ -60,7 +62,6 @@ u32 selected_material = 0;
 MaterialState material;
 bool is_material_loaded = false;
 c8 texture_labels[3][kLabelLength];
-c8 texture_words[3][100];
 
 bool IsSelectedAlive() { return ModelViewer::IsKnown(selected_model); }
 
@@ -109,11 +110,18 @@ void LoadModelViewerPage(MainApplication& app, void* args) {
                         "walk to a new map, then look here again.");
   }
   for (u32 i = 0; i < count; i++) {
-    snprintf(model_labels[i], kLabelLength, "%s %lu  (%lu parts)",
+    // The position tells the models apart: the Pokemon of the player and the
+    // Pokemon of the opponent are not at the same place.
+    f32 position[3];
+    ModelViewer::GetPosition(models[i], position);
+    snprintf(model_labels[i], kLabelLength, "%s %lu  (%lu parts)  %.0f %.0f %.0f",
              ModelViewer::GetKindName(models[i]), (unsigned long)(i + 1),
-             (unsigned long)ModelViewer::GetPartCount(models[i]));
+             (unsigned long)ModelViewer::GetPartCount(models[i]),
+             (double)position[0], (double)position[1], (double)position[2]);
     app.Add(model_labels[i], LoadModelPage, models[i])
-       .WithDescription("The parts and the materials of this model.");
+       .WithDescription("The parts and the materials of this model. The "
+                        "numbers are its position. Turn Visible off on its "
+                        "page to see which model it is.");
   }
   opened_material = nullptr;
 #else
@@ -163,6 +171,13 @@ void LoadModelPage(MainApplication& app, void* args) {
          .WithDescription("A part of the model: a mesh that the game can "
                           "show or hide.");
     }
+  }
+
+  if (renderer::SkeletonEditor::GetBoneCount(model) != 0) {
+    app.AddSection("Skeleton")
+       .Add("Bones", LoadSkeletonPage, model)
+       .WithDescription("Moves, turns and scales the bones of the model, "
+                        "for example to make the head bigger.");
   }
 
   u32 material_count = ModelViewer::GetMaterialCount(model);
@@ -218,46 +233,45 @@ void LoadMaterialPage(MainApplication& app, void* args) {
      .WithDescription("On: the GPU drops the pixels that are almost "
                       "transparent.");
 
-  // The textures of the material: the kind and the first words of the object.
-  // The bottom screen shows the words, to study the layout of the texture.
+  // The textures that the game makes while it runs (the Pokemon) can be
+  // painted.
   app.AddSection("Textures");
   u32 shown = 0;
   for (u32 unit = 0; unit < 3; unit++) {
     renderer::TextureUnitInfo info;
     if (!ModelViewer::ReadTextureUnit(selected_model, selected_material, unit,
                                       info) ||
-        info.kind == 0) {
+        info.kind != 3) {
       continue;
     }
-    snprintf(texture_labels[unit], kLabelLength,
-             info.kind == 3 ? "Paint Unit %lu (kind %u)" : "Unit %lu: kind %u",
-             (unsigned long)unit, (unsigned)info.kind);
-    snprintf(texture_words[unit], sizeof(texture_words[unit]),
-             "%08lX: %08lX %08lX %08lX %08lX %08lX %08lX %08lX %08lX",
-             (unsigned long)info.object, (unsigned long)info.words[0],
-             (unsigned long)info.words[1], (unsigned long)info.words[2],
-             (unsigned long)info.words[3], (unsigned long)info.words[4],
-             (unsigned long)info.words[5], (unsigned long)info.words[6],
-             (unsigned long)info.words[7]);
-    if (info.kind == 3) {
-      // A texture that the game makes while it runs (the Pokemon): paint it.
+    renderer::TextureTarget target;
+    const c8* error = nullptr;
+    if (renderer::TextureEditor::Locate(selected_model, selected_material, unit,
+                                        target, &error)) {
+      snprintf(texture_labels[unit], kLabelLength, "Paint Unit %lu  (%s %lux%lu)",
+               (unsigned long)unit,
+               renderer::TextureEditor::GetFormatName(target.format),
+               (unsigned long)target.width, (unsigned long)target.height);
       H3dModel* model = selected_model;
       const u32 material_index = selected_material;
       app.Add(texture_labels[unit],
               [model, material_index, unit](void*) {
-                const c8* error = nullptr;
+                const c8* open_error = nullptr;
                 if (!PaintApplication::Open(model, material_index, unit,
-                                            &error)) {
-                  MainApplication::GetInstance().ShowToast(error);
+                                            &open_error)) {
+                  MainApplication::GetInstance().ShowToast(open_error);
                 }
               })
-         .WithDescription(texture_words[unit]);
+         .WithDescription("Draws on this texture with the stylus. The model "
+                          "changes at once.");
     } else {
-      app.Add(texture_labels[unit]).WithDescription(texture_words[unit]);
+      snprintf(texture_labels[unit], kLabelLength, "Unit %lu  (cannot be painted)",
+               (unsigned long)unit);
+      app.Add(texture_labels[unit]).WithDescription(error);
     }
     shown++;
   }
-  if (shown == 0) app.Add("No texture on this material.");
+  if (shown == 0) app.Add("No texture to paint on this material.");
 }
 
 } // namespace ui

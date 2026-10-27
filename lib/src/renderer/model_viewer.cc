@@ -28,6 +28,7 @@
 #include "core/hook.h"
 #include "renderer/address.h"
 #include "renderer/native/h3d_model.h"
+#include "renderer/patch/skeleton_editor.h"
 #include "system/native/graphics.h"
 
 namespace renderer {
@@ -77,6 +78,7 @@ void ModelViewer::RemoveHook(uptr scene, H3dModel* model) {
   for (H3dModel*& slot : self.models_) {
     if (slot == model) slot = nullptr;
   }
+  SkeletonEditor::OnModelRemoved(model);
   remove_model_hook(scene, model);
 }
 

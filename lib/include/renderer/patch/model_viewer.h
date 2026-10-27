@@ -38,7 +38,8 @@ struct MaterialState {
 };
 
 /// The texture of one unit of a material, as the model keeps it. The words are
-/// the first bytes of the texture object, for the study of its layout.
+/// the first bytes of the texture object: the texture editor reads its address,
+/// its size and its format from them.
 struct TextureUnitInfo {
   u8 kind = 0; ///< 0: no texture. 1: a texture of the file. 2: a texture that
                ///< the game made while it runs. 3: another kind.
