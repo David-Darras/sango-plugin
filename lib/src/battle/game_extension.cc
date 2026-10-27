@@ -28,6 +28,7 @@
 
 #include "core/constant/archive_id.h"
 #include "core/hook.h"
+#include "core/patch/text_editor.h"
 #include "battle/native/broadcaster.h"
 #include "battle/native/listener.h"
 #include "battle/native/pokemon.h"
@@ -250,6 +251,9 @@ void GameExtension::MessageGetStringHook(Message* self, u32 str_id,
     default:
       break;
   }
+  // The last step: the text editor sees the text with the patches above, and
+  // replaces it when the player changed it.
+  core::TextEditor::OnString(self, str_id, output);
 }
 
 void GameExtension::SetAbilityNameHook(uptr self, u32 archive, u32 ability) {

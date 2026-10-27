@@ -89,6 +89,9 @@ void LoadLayoutsPage(MainApplication& app, void* args);
 // Hides the menu, the overlays and the 2D menus for a screenshot.
 void LoadScreenshotPage(MainApplication& app, void* args);
 void LoadPanePage(MainApplication& app, void* args);
+// The texts of the game: the last texts that the game read, then one text.
+void LoadTextEditorPage(MainApplication& app, void* args);
+void LoadTextPage(MainApplication& app, void* args);
 // The 3D models of the screen (ORAS): the list, one model, one material.
 void LoadModelViewerPage(MainApplication& app, void* args);
 void LoadModelPage(MainApplication& app, void* args);

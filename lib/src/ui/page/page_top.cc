@@ -68,6 +68,9 @@ void LoadTopPage(MainApplication& app, void* args) {
          "and the type chart.")
      .Add("Scripts", LoadScriptPage)
      .WithDescription("The overworld scripts and the C++ scripts.")
+     .Add("Game Text", LoadTextEditorPage)
+     .WithDescription("The last texts that the game read: change the "
+         "dialogues and the names, add colors and pauses.")
      .AddSection("Look And Sound")
      .Add("Graphics", LoadGraphicsPage)
      .WithDescription("Lighting, outlines, color filters, layouts and the "

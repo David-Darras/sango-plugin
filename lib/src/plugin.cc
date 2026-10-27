@@ -36,6 +36,7 @@
 #include "core/patch/device_patch.h"
 #include "core/patch/event_patch.h"
 #include "core/patch/game_speed.h"
+#include "core/patch/text_editor.h"
 #include "core/patch/process_patch.h"
 #include "core/patch/script_loader.h"
 #include "overworld/patch/auto_surf.h"
@@ -98,6 +99,7 @@ void InitializeEngine() {
   sys::File::MountSdmc();
 
   core::GameSpeed::Initialize();
+  core::TextEditor::Initialize();
   renderer::Lighting::Initialize();
   renderer::ModelViewer::Initialize();
   renderer::TextureEditor::Initialize();
