@@ -48,6 +48,7 @@ constexpr u32 kMaterialColorsSize = 340;
 constexpr u32 kAmbientOffset = 0x40;
 constexpr u32 kDiffuseOffset = 0x44;
 constexpr u32 kVisibleFlagsOffset = 0xE4;
+constexpr u32 kTextureTableOffset = 0x80;
 
 template <typename T>
 T* At(const H3dModel* model, u32 offset) {
@@ -236,6 +237,24 @@ MaterialState ModelViewer::ReadMaterial(const H3dModel* model, u32 index) {
         material + kDiffuseOffset));
   }
   return state;
+}
+
+bool ModelViewer::ReadTextureUnit(const H3dModel* model, u32 material,
+                                  u32 unit, TextureUnitInfo& out) {
+  out = TextureUnitInfo();
+  if (unit >= 3 || material >= GetMaterialCount(model)) return false;
+  // The table of the textures: 16 bytes for each material. A word with one
+  // byte for each unit tells the kind of the unit, then come three pointers.
+  const uptr table = *At<uptr>(model, kTextureTableOffset);
+  if (!IsReadableArray(table)) return false;
+  const uptr row = table + material * 16;
+  out.kind = static_cast<u8>(*reinterpret_cast<const u32*>(row) >> (8 * unit));
+  out.object = *reinterpret_cast<const uptr*>(row + 4 + 4 * unit);
+  if (out.kind == 0 || !IsReadableArray(out.object)) return true;
+  for (u32 i = 0; i < 10; i++) {
+    out.words[i] = reinterpret_cast<const u32*>(out.object)[i];
+  }
+  return true;
 }
 
 void ModelViewer::WriteMaterial(H3dModel* model, u32 index,

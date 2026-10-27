@@ -24,6 +24,7 @@
 #include <cstdio>
 
 #include "renderer/patch/model_viewer.h"
+#include "ui/paint_application.h"
 #include "ui/main_application.h"
 #include "ui/page/page_common.h"
 #include "ui/page/pages.h"
@@ -58,6 +59,8 @@ const void* opened_material = nullptr;
 u32 selected_material = 0;
 MaterialState material;
 bool is_material_loaded = false;
+c8 texture_labels[3][kLabelLength];
+c8 texture_words[3][100];
 
 bool IsSelectedAlive() { return ModelViewer::IsKnown(selected_model); }
 
@@ -214,6 +217,47 @@ void LoadMaterialPage(MainApplication& app, void* args) {
      .Add("Alpha Test", material.has_alpha_test)
      .WithDescription("On: the GPU drops the pixels that are almost "
                       "transparent.");
+
+  // The textures of the material: the kind and the first words of the object.
+  // The bottom screen shows the words, to study the layout of the texture.
+  app.AddSection("Textures");
+  u32 shown = 0;
+  for (u32 unit = 0; unit < 3; unit++) {
+    renderer::TextureUnitInfo info;
+    if (!ModelViewer::ReadTextureUnit(selected_model, selected_material, unit,
+                                      info) ||
+        info.kind == 0) {
+      continue;
+    }
+    snprintf(texture_labels[unit], kLabelLength,
+             info.kind == 3 ? "Paint Unit %lu (kind %u)" : "Unit %lu: kind %u",
+             (unsigned long)unit, (unsigned)info.kind);
+    snprintf(texture_words[unit], sizeof(texture_words[unit]),
+             "%08lX: %08lX %08lX %08lX %08lX %08lX %08lX %08lX %08lX",
+             (unsigned long)info.object, (unsigned long)info.words[0],
+             (unsigned long)info.words[1], (unsigned long)info.words[2],
+             (unsigned long)info.words[3], (unsigned long)info.words[4],
+             (unsigned long)info.words[5], (unsigned long)info.words[6],
+             (unsigned long)info.words[7]);
+    if (info.kind == 3) {
+      // A texture that the game makes while it runs (the Pokemon): paint it.
+      H3dModel* model = selected_model;
+      const u32 material_index = selected_material;
+      app.Add(texture_labels[unit],
+              [model, material_index, unit](void*) {
+                const c8* error = nullptr;
+                if (!PaintApplication::Open(model, material_index, unit,
+                                            &error)) {
+                  MainApplication::GetInstance().ShowToast(error);
+                }
+              })
+         .WithDescription(texture_words[unit]);
+    } else {
+      app.Add(texture_labels[unit]).WithDescription(texture_words[unit]);
+    }
+    shown++;
+  }
+  if (shown == 0) app.Add("No texture on this material.");
 }
 
 } // namespace ui

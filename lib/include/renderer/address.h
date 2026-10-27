@@ -118,6 +118,9 @@ constexpr uptr kH3dModelGetMeshNodeCount = GAME_ADDRESS(0, 0x004CD1B8);
 constexpr uptr kH3dModelGetMeshNodeName = GAME_ADDRESS(0, 0x004CD0D8);
 constexpr uptr kH3dModelIsMeshNodeVisible = GAME_ADDRESS(0, 0x004CD258);
 constexpr uptr kH3dModelGetMaterialName = GAME_ADDRESS(0, 0x004CD094);
+/// The vtable of the textures that the game makes while it runs (the textures
+/// of the Pokemon). ORAS only.
+constexpr uptr kH3dDynamicTextureVtable = GAME_ADDRESS(0, 0x005DDC08);
 /// The function that removes a model from a scene (the game calls it before it
 /// destroys the model). ORAS only.
 constexpr uptr kSceneRemoveModel = GAME_ADDRESS(0, 0x003917D0);

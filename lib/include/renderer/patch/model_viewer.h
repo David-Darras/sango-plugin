@@ -37,6 +37,15 @@ struct MaterialState {
   bool has_alpha_test = false;
 };
 
+/// The texture of one unit of a material, as the model keeps it. The words are
+/// the first bytes of the texture object, for the study of its layout.
+struct TextureUnitInfo {
+  u8 kind = 0; ///< 0: no texture. 1: a texture of the file. 2: a texture that
+               ///< the game made while it runs. 3: another kind.
+  uptr object = 0;
+  u32 words[10] = {};
+};
+
 /**
  * @brief The 3D models of the current screen.
  *
@@ -82,6 +91,11 @@ public:
   static u32 GetMaterialCount(const H3dModel* model);
   static const c8* GetMaterialName(const H3dModel* model, u32 index);
   static MaterialState ReadMaterial(const H3dModel* model, u32 index);
+
+  /// Reads the texture of a unit (0 to 2) of a material. Returns false when
+  /// the model has no table of textures for this material.
+  static bool ReadTextureUnit(const H3dModel* model, u32 material, u32 unit,
+                              TextureUnitInfo& out);
   static void WriteMaterial(H3dModel* model, u32 index,
                             const MaterialState& state);
 
