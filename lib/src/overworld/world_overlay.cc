@@ -38,11 +38,27 @@
 namespace overworld {
 
 namespace {
-core::Hook<void(void*, void*, u32, void*, u32)> draw_scene_hook;
+core::Hook<void(void*, void*, void*, void*, s32, bool)> draw_scene_hook;
+core::Hook<void(void*, void*, void*, bool)> stereo_draw_hook;
 
-// The value of the top screen (the left eye in 3D).
-constexpr u32 kDisplayUpper = 0;
 constexpr s32 kMarkSize = 6;
+
+// The top screen is 400 x 240 pixels (a ratio of 1.67), the bottom screen is
+// 320 x 240 (1.33). A perspective projection has two scales, one for each
+// side of the screen: their ratio is the ratio of the screen, whatever the
+// turn of the screen.
+bool IsTopScreenProjection(const Mtx44& projection) {
+  auto abs = [](f32 value) { return value < 0 ? -value : value; };
+  f32 first = abs(projection.m[0][0]) > abs(projection.m[0][1])
+                  ? abs(projection.m[0][0])
+                  : abs(projection.m[0][1]);
+  f32 second = abs(projection.m[1][0]) > abs(projection.m[1][1])
+                   ? abs(projection.m[1][0])
+                   : abs(projection.m[1][1]);
+  if (first < 0.0001f || second < 0.0001f) return false;
+  const f32 ratio = first > second ? first / second : second / first;
+  return ratio > 1.55f && ratio < 1.8f;
+}
 
 // The center of a tile in the world: a tile is 18 x 18 units, and the tile
 // (0, 0) starts at the origin of the world.
@@ -58,17 +74,49 @@ void DrawMark(s32 x, s32 y, Color color) {
 
 void WorldOverlay::Initialize() {
   draw_scene_hook.Install(renderer::address::kSceneDraw, DrawSceneHook);
+  stereo_draw_hook.Install(renderer::address::kSceneStereoDraw,
+                           StereoDrawHook);
 }
 
-void WorldOverlay::DrawSceneHook(void* scene, void* graphics, u32 display,
-                                 void* camera, u32 command_cache_dump) {
+void WorldOverlay::StereoDrawHook(void* scene, void* graphics, void* camera,
+                                  bool flag) {
   auto& self = GetInstance();
+  self.draws_seen++;
+  // The stereo camera is a camera too: its matrices are those of the center
+  // between the eyes, which is right for a flat overlay.
+  if (!self.has_camera_) self.TryUseCamera(camera);
+  stereo_draw_hook(scene, graphics, camera, flag);
+}
+
+void WorldOverlay::DrawSceneHook(void* scene, void* graphics, void* camera,
+                                 void* target, s32 index, bool flag) {
+  auto& self = GetInstance();
+  self.draws_seen++;
   // Keep the first camera of the top screen in each frame: the camera of
   // the overworld. The other scenes of the frame (effects) come after it.
-  if (display == kDisplayUpper && self.camera_ == nullptr) {
-    self.camera_ = camera;
+  if (!self.has_camera_) self.TryUseCamera(camera);
+  draw_scene_hook(scene, graphics, camera, target, index, flag);
+}
+
+bool WorldOverlay::TryUseCamera(void* camera) {
+  const uptr address = reinterpret_cast<uptr>(camera);
+  if (renderer::address::kCameraGetMatrices == 0 || (address & 3) != 0 ||
+      !sys::Graphics::IsDataAddress(address)) {
+    return false;
   }
-  draw_scene_hook(scene, graphics, display, camera, command_cache_dump);
+  Mtx34 view = {};
+  Mtx44 projection = {};
+  ((void (*)(void*, Mtx34*, Mtx44*))
+       renderer::address::kCameraGetMatrices)(camera, &view, &projection);
+  if (!IsTopScreenProjection(projection)) {
+    cameras_refused++;
+    return false;
+  }
+  view_ = view;
+  projection_ = projection;
+  has_camera_ = true;
+  cameras_found++;
+  return true;
 }
 
 bool WorldOverlay::Project(const Vec3& world, s32& x, s32& y) const {
@@ -103,24 +151,19 @@ bool WorldOverlay::Project(const Vec3& world, s32& x, s32& y) const {
 
 void WorldOverlay::DrawTop() {
   auto& self = GetInstance();
-  void* const camera = self.camera_;
+  const bool has_camera = self.has_camera_;
   // The next frame needs a new camera: the overworld can end at any time.
-  self.camera_ = nullptr;
+  self.has_camera_ = false;
   if (!self.is_enabled) return;
-  if (camera == nullptr) {
+  if (!has_camera) {
     self.marks_drawn = 0;
     return;
   }
   self.camera_frames++;
   self.marks_drawn = 0;
-  if (renderer::address::kCameraGetMatrices == 0) return;
   if (!core::ProcessManager::IsOverworldActive()) return;
   auto& menu = ui::MainApplication::GetInstance();
   if (menu.IsOpened() && !menu.IsWalking()) return;
-
-  ((void (*)(void*, Mtx34*, Mtx44*))
-       renderer::address::kCameraGetMatrices)(camera, &self.view_,
-                                                       &self.projection_);
 
   auto& player = ModelManager::GetInstance().GetPlayer();
   const f32 ground = player.world_pos.coords.y;

@@ -58,6 +58,12 @@ public:
   /// the overlay had a camera, and the marks of the last frame.
   u32 camera_frames = 0;
   u32 marks_drawn = 0;
+  /// For the page of the menu, to find why the overlay shows nothing: the
+  /// scene draws that the hooks saw, the cameras of the top screen that the
+  /// overlay found, and the cameras that it refused.
+  u32 draws_seen = 0;
+  u32 cameras_found = 0;
+  u32 cameras_refused = 0;
 
   static void Initialize();
 
@@ -65,14 +71,20 @@ public:
   static void DrawTop();
 
 private:
-  static void DrawSceneHook(void* scene, void* graphics, u32 display,
-                            void* camera, u32 command_cache_dump);
+  static void DrawSceneHook(void* scene, void* graphics, void* camera,
+                            void* target, s32 index, bool flag);
+  static void StereoDrawHook(void* scene, void* graphics, void* camera,
+                             bool flag);
+
+  /// Reads the matrices of a camera. Keeps them, and returns true, when the
+  /// camera draws the top screen (the shape of its projection tells it).
+  bool TryUseCamera(void* camera);
 
   /// Converts a point of the world into a pixel of the top screen. Returns
   /// false when the point is behind the camera or out of the screen.
   bool Project(const Vec3& world, s32& x, s32& y) const;
 
-  void* camera_ = nullptr; ///< The camera of the last frame, or null.
+  bool has_camera_ = false; ///< The matrices below are those of this frame.
   Mtx34 view_ = {};
   Mtx44 projection_ = {};
 };

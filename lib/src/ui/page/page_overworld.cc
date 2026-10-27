@@ -436,6 +436,18 @@ static void LoadWorldOverlayPage(MainApplication& app, void* args) {
      .WithReadOnly()
      .WithDescription("0 with a camera: the points are out of the screen "
          "(try the other Screen Pivot).")
+     .Add("Scene Draws Seen", overlay.draws_seen)
+     .WithReadOnly()
+     .WithDescription("How many times the game drew a scene since the start. "
+         "0: the hooks of the overlay are not called.")
+     .Add("Top Cameras Found", overlay.cameras_found)
+     .WithReadOnly()
+     .WithDescription("The cameras with the shape of the top screen. 0 with "
+         "draws: the overlay refuses all the cameras.")
+     .Add("Cameras Refused", overlay.cameras_refused)
+     .WithReadOnly()
+     .WithDescription("The cameras that do not have the shape of the top "
+         "screen (the bottom screen, the effects).")
      .AddSection("Advanced")
      .Add("Screen Pivot", overlay.pivot)
      .WithArray(PIVOTS, SIZE(PIVOTS))

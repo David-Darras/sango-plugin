@@ -46,8 +46,15 @@ constexpr uptr kGraphicsState = GAME_ADDRESS(0, 0x0066E008);
 constexpr uptr kGraphicsCommandCursor = GAME_ADDRESS(0, 0x0061E0BC);
 /// Returns the width of a text (sys::Graphics::GetTextWidth).
 constexpr uptr kGraphicsGetTextWidth = GAME_ADDRESS(0, 0x003A36D8);
-/// Draws a 3D scene with a camera (overworld::WorldOverlay).
-constexpr uptr kSceneDraw = GAME_ADDRESS(0, 0x00391FDC);
+/// Draws a 3D scene with a camera on a render target. All the ways to draw a
+/// scene end here, also the draw of the top screen in 3D (one call for each
+/// eye). Arguments: scene, graphics, camera, render target, an int, a bool.
+/// ORAS only (overworld::WorldOverlay).
+constexpr uptr kSceneDraw = GAME_ADDRESS(0, 0x00392098);
+/// Draws a 3D scene for the two eyes at once, with a stereo camera (the top
+/// screen in 3D). It does not call kSceneDraw. Arguments: scene, graphics,
+/// stereo camera, a bool. ORAS only (overworld::WorldOverlay).
+constexpr uptr kSceneStereoDraw = GAME_ADDRESS(0, 0x003896D4);
 /// Gives the view matrix and the projection matrix of a camera.
 constexpr uptr kCameraGetMatrices = GAME_ADDRESS(0, 0x004CBDD4);
 constexpr uptr kStereoCameraUpdateMatrices = GAME_ADDRESS(0x003609A8, 0x00377C10);
