@@ -57,12 +57,25 @@ A **trigger** has the same zone, and:
   works. With another number, the trigger works only when this work of the
   game has the value. The story flags are works.
 
+## The warps and the characters
+
+The [map editor](map-editor.md) also changes the **warps** (the zones that
+change the map) and the **characters** of the map, in its mode Events. A warp
+has a zone, a destination map and exit, and the direction of the exit. A
+character has a tile, a direction, a script, a movement, a kind and
+parameters (the first parameter of a trainer is its range). The editor does
+not remove the warps or the characters of the game.
+
 ## The file
 
 Each line is `map kind index fields`. The kinds are `S+` (added sign), `T+`
-(added trigger), `S=` and `T=` (change of the event of the game with this
-number). A sign has `x z width depth height script talk_from kind`. A trigger
-has `x z width depth height script work value when`.
+(added trigger), `W+` (added warp), `S=`, `T=` and `W=` (change of the event
+of the game with this number), and `C=` (change of a character). A sign has
+`x z width depth height script talk_from kind`. A trigger has
+`x z width depth height script work value when`. A warp has
+`x y z width depth map exit facing kind`, in world units. A character has
+`x z height facing script movement kind range parameter1 parameter2 hide_flag
+model trigger_x trigger_z trigger_width trigger_depth`.
 
 ## What the editor does not do
 

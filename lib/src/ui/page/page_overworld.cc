@@ -426,6 +426,8 @@ static void LoadWorldOverlayPage(MainApplication& app, void* args) {
      .WithDescription("Orange: the tile blocks the trainers.")
      .Add("Decoration Spots", overlay.show_decoration_spots)
      .WithDescription("Purple: a decoration can stand on the tile.")
+     .Add("Plain Tiles", overlay.show_plain_tiles)
+     .WithDescription("A pale tint on the tiles that the player can walk on, so that the whole ground is visible. It needs more drawings.")
      .Add("Fill In Perspective", overlay.fill_tiles)
      .WithDescription("On: each tile is filled like the ground. Off: a small "
          "square on each tile (fewer drawings).")
@@ -641,6 +643,9 @@ void LoadOverworldPage(MainApplication& app, void* args) {
      .WithDescription("The doors and the other objects of the map: size, "
          "rotation, position.")
      .AddSection("Map Editing")
+     .Add("Map Editor", LoadMapEditorPage)
+     .WithDescription("Paints the attributes of the tiles with the stylus, "
+         "with undo and one file for each world.")
      .Add("Hidden Items", LoadHiddenItemPage)
      .Add("Random Hidden Items", LoadRandomHiddenItemPage)
 #ifdef GAME_ORAS

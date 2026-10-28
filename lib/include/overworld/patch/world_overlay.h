@@ -40,7 +40,8 @@ namespace overworld {
  *
  * The layers:
  * - the tiles: red = wall, blue = water, green = wild Pokémon, orange = the
- *   tile blocks trainers, purple = a decoration can stand on it;
+ *   tile blocks trainers, purple = a decoration can stand on it, a pale
+ *   tint = a plain tile that the player can walk on;
  * - the zones of the events: cyan = sign, magenta = trigger that starts when
  *   the player walks in, pink = trigger that starts when the player pushes,
  *   lime = warp;
@@ -63,6 +64,9 @@ public:
   bool show_tiles = true; ///< Walls, water and wild Pokémon.
   bool show_trainer_blockers = false;
   bool show_decoration_spots = false;
+  /// A pale tint on the plain tiles, so that the ground around the player is
+  /// visible. It needs more drawings.
+  bool show_plain_tiles = true;
   /// true: the tiles are filled in perspective. false: a small square on each
   /// tile (it needs fewer drawings).
   bool fill_tiles = true;

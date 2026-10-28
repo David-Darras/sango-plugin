@@ -17,7 +17,8 @@
 
 /**
  * @file trigger_editor.h
- * @brief Adds and changes the signs and the triggers of the map.
+ * @brief Adds and changes the signs, the triggers, the warps and the
+ *        characters of the map.
  */
 
 #pragma once
@@ -29,6 +30,11 @@ namespace overworld {
 
 /**
  * @brief Adds and changes the signs and the triggers of the map.
+ *
+ * A **warp** changes the map when the player walks in its zone. A
+ * **character** is a person of the map: the editor changes the characters
+ * of the game (position, direction, script, movement, trainer range), and
+ * the change shows when the map loads again.
  *
  * A **sign** starts a script when the player presses {A} in front of a zone
  * of tiles. A **trigger** starts a script when the player walks in a zone of
@@ -50,6 +56,7 @@ class TriggerEditor {
 public:
   static constexpr u32 kMaxSigns = 40;
   static constexpr u32 kMaxTriggers = 40;
+  static constexpr u32 kMaxWarps = 24;
   /// The changes that the file keeps, for all the maps.
   static constexpr u32 kMaxRecords = 64;
   /// The script number of an event that does nothing.
@@ -57,6 +64,12 @@ public:
 
   /// Reads the changes of the SD card.
   static void Initialize();
+
+  /// Reads the file again when it changes, and applies it to the current
+  /// map (is_live).
+  static void Update();
+
+  bool is_live = false;
 
   /// Called when the game loads the events of a map: takes the tables.
   static void OnMapEventsLoaded(MapEventData* events);
@@ -75,22 +88,39 @@ public:
   static u32 GetShippedTriggerCount();
   static TriggerEvent* GetTrigger(u32 index);
 
+  static u32 GetWarpCount();
+  static u32 GetShippedWarpCount();
+  static WarpEvent* GetWarp(u32 index);
+
+  /// The characters of the map. The editor changes them in place: the
+  /// game uses the new values when it loads the map again.
+  static u32 GetCharacterCount();
+  static CharacterPlacement* GetCharacter(u32 index);
+
   /// Adds a sign on the tile of the player. The sign does nothing until it
   /// has a script. Returns null when the table is full.
   static SignEvent* AddSign();
   static TriggerEvent* AddTrigger();
+  /// Adds a warp on the tile of the player. It leads to the first exit of
+  /// the same map until you change its destination.
+  static WarpEvent* AddWarp();
 
   /// Puts the zone of an event on the tile of the player.
   static void MoveToPlayer(SignEvent* sign);
   static void MoveToPlayer(TriggerEvent* trigger);
+  static void MoveToPlayer(WarpEvent* warp);
+  static void MoveToPlayer(CharacterPlacement* character);
 
   /// Removes an added event. Returns false for an event of the game.
   static bool RemoveSign(u32 index);
   static bool RemoveTrigger(u32 index);
+  static bool RemoveWarp(u32 index);
 
   /// Returns true when the event is different from the one of the game.
   static bool IsSignChanged(u32 index);
   static bool IsTriggerChanged(u32 index);
+  static bool IsWarpChanged(u32 index);
+  static bool IsCharacterChanged(u32 index);
 
   /// Writes the changes of the current map to the SD card (the changes of the
   /// other maps stay). Returns false when the file is full or cannot be
@@ -104,7 +134,15 @@ public:
   static u32 GetRecordCount();
 
 private:
-  enum RecordKind : u8 { kAddedSign, kAddedTrigger, kEditedSign, kEditedTrigger };
+  enum RecordKind : u8 {
+    kAddedSign,
+    kAddedTrigger,
+    kEditedSign,
+    kEditedTrigger,
+    kAddedWarp,
+    kEditedWarp,
+    kEditedCharacter
+  };
 
   struct Record {
     bool is_used = false;
@@ -113,11 +151,18 @@ private:
     u16 index = 0;
     SignEvent sign = {};
     TriggerEvent trigger = {};
+    WarpEvent warp = {};
+    CharacterPlacement character = {};
   };
 
   static bool LoadLine(const c8* line);
+  /// Copies the fields of a character that the editor changes.
+  static void CopyCharacterFields(CharacterPlacement& to,
+                                  const CharacterPlacement& from);
   void ApplyRecords();
   void TakeTables();
+  void RestoreShipped();
+  void ReloadFromFile();
   Record* NewRecord();
 
   MapEventData* events_ = nullptr;
@@ -126,10 +171,19 @@ private:
   u16 trigger_count_ = 0;
   u16 shipped_sign_count_ = 0;
   u16 shipped_trigger_count_ = 0;
+  u32 frame_ = 0;
+  u32 file_hash_ = 0;
+  bool has_baseline_ = false;
+  u16 warp_count_ = 0;
+  u16 shipped_warp_count_ = 0;
+  u16 character_count_ = 0;
   SignEvent signs_[kMaxSigns] = {};
   TriggerEvent triggers_[kMaxTriggers] = {};
   SignEvent shipped_signs_[kMaxSigns] = {};
   TriggerEvent shipped_triggers_[kMaxTriggers] = {};
+  WarpEvent warps_[kMaxWarps] = {};
+  WarpEvent shipped_warps_[kMaxWarps] = {};
+  CharacterPlacement shipped_characters_[kMaxCharactersPerMap] = {};
   Record records_[kMaxRecords];
 };
 

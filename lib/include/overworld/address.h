@@ -32,6 +32,11 @@ constexpr uptr kSetDefaultPosition = GAME_ADDRESS(0x003E2B00, 0x004040E4);
 constexpr uptr kMapBlockVtable = GAME_ADDRESS(0x007B17F4, 0x007FD7DC);
 // XY: not verified (found near another vtable).
 constexpr uptr kGetMapTile = GAME_ADDRESS(0x003E28D8, 0x00403DAC);
+/// The table of the flags of the tiles: 256 numbers of 16 bits, indexed by the
+/// ground number (the top byte of the attribute of a tile). The game gives a
+/// tile the flags `(attribute & ~7) | table[ground]`: the bits 0 to 2 (wall,
+/// water, wild Pokemon) come only from the table. ORAS only.
+constexpr uptr kTileFlagTable = GAME_ADDRESS(0, 0x005860E4);
 constexpr uptr kGetPlayerMovement = GAME_ADDRESS(0x007338E4, 0x00782A8C);
 constexpr uptr kLoadMapData = GAME_ADDRESS(0x003BCFA0, 0x003D9BD4);
 constexpr uptr kGetDexNavTable = GAME_ADDRESS(0, 0x004013A4);

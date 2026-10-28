@@ -29,6 +29,8 @@ Read these pages to understand the code.
 - [The texts of the game](concepts/game-text.md): change the dialogues and the names, add colors and pauses.
 - [The signs and the triggers of the map](concepts/map-events.md): the zones that start a script, and how to add your own.
 - [The world overlay](concepts/world-overlay.md): colors on the ground for the tiles, the events and the trainers.
+- [The map editor](concepts/map-editor.md): paint the tiles, place events, set the music and the weather of a map.
+- [The scripts without code](concepts/data-scripts.md): write scripts with steps in the menu.
 - [Settings](concepts/settings.md): the values that change how a feature works.
 
 ## Tutorials

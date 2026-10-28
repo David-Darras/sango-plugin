@@ -35,6 +35,7 @@
 #include "overworld/patch/map_graft.h"
 #include "overworld/patch/placed_decorations.h"
 #include "overworld/patch/trigger_editor.h"
+#include "overworld/patch/zone_settings.h"
 #include "ui/log.h"
 #include "overworld/address.h"
 #include "system/address.h"
@@ -199,6 +200,7 @@ u32 MapCharacter::LoadMapCharacters(MapEventData* events, u32 buffer_id) {
   PlacedDecorations::OnMapEventsLoaded(events);
   // The last step: the editor copies the tables with the decorations.
   TriggerEditor::OnMapEventsLoaded(events);
+  if (events != nullptr) ZoneSettings::OnMapLoaded(static_cast<u32>(events->map_id));
   return result;
 }
 

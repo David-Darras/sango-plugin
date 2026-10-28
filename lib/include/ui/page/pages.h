@@ -89,6 +89,13 @@ void LoadLayoutsPage(MainApplication& app, void* args);
 // Hides the menu, the overlays and the 2D menus for a screenshot.
 void LoadScreenshotPage(MainApplication& app, void* args);
 void LoadPanePage(MainApplication& app, void* args);
+// The scripts without code: the list, then the steps of one script.
+void LoadDataScriptsPage(MainApplication& app, void* args);
+void LoadDataScriptPage(MainApplication& app, void* args);
+// The music, the weather and the time of the current map.
+void LoadZoneSettingsPage(MainApplication& app, void* args);
+// The map editor: opens the touch editor of the tiles and manages the changes.
+void LoadMapEditorPage(MainApplication& app, void* args);
 // The signs and the triggers of the map: the list, one sign, one trigger.
 void LoadMapEventsPage(MainApplication& app, void* args);
 void LoadSignEventPage(MainApplication& app, void* args);

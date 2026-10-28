@@ -122,6 +122,14 @@ public:
   /// when `marked` is too short (the text is then cut).
   static bool Encode(const c16* raw, u32 length, c16* marked, u32 size);
 
+  /// Converts a UTF-16 text to UTF-8 (the characters over 0xFFFF are not
+  /// supported). Returns the number of bytes, without the end byte.
+  static u32 ToUtf8(const c16* text, c8* out, u32 capacity);
+
+  /// Converts a UTF-8 text of `length` bytes to UTF-16. Returns the number of
+  /// characters, without the end character.
+  static u32 FromUtf8(const c8* in, u32 length, c16* out, u32 capacity);
+
   /// Writes the letters of a text to `out` (ASCII only: a character that the
   /// menu cannot draw is a question mark), without the tags.
   static void MakePreview(const c16* raw, u32 length, c8* out, u32 size);

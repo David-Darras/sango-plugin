@@ -508,7 +508,7 @@ bool TextEditor::Save() {
     if (used < 0) continue;
     u32 length = static_cast<u32>(used);
     for (u32 i = 0; marked[i] != 0 && length + 4 < kLineSize; i++) {
-      length += ToUtf8(marked[i], line + length);
+      length += ::core::ToUtf8(marked[i], line + length);
     }
     line[length++] = '\n';
     file.Write(line, length);
@@ -669,6 +669,19 @@ bool TextEditor::Encode(const c16* raw, u32 length, c16* marked, u32 size) {
   }
   writer.End();
   return writer.is_ok;
+}
+
+u32 TextEditor::ToUtf8(const c16* text, c8* out, u32 capacity) {
+  u32 length = 0;
+  for (u32 i = 0; text[i] != 0 && length + 4 < capacity; i++) {
+    length += ::core::ToUtf8(text[i], out + length);
+  }
+  if (capacity != 0) out[length] = '\0';
+  return length;
+}
+
+u32 TextEditor::FromUtf8(const c8* in, u32 length, c16* out, u32 capacity) {
+  return ::core::FromUtf8(in, length, out, capacity);
 }
 
 void TextEditor::MakePreview(const c16* raw, u32 length, c8* out, u32 size) {

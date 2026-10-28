@@ -37,6 +37,9 @@
 #include "core/patch/event_patch.h"
 #include "core/patch/game_speed.h"
 #include "core/patch/text_editor.h"
+#include "overworld/patch/map_editor.h"
+#include "overworld/patch/zone_settings.h"
+#include "script/patch/data_scripts.h"
 #include "overworld/patch/trigger_editor.h"
 #include "core/patch/process_patch.h"
 #include "core/patch/script_loader.h"
@@ -120,6 +123,8 @@ void InitializeEngine() {
   core::Archive::Initialize();
   core::ScriptLoader::Initialize();
   script::NativeScript::Initialize();
+  script::DataScripts::Initialize();
+  overworld::ZoneSettings::Initialize();
   overworld::AutoSurf::Initialize();
   overworld::PlacedDecorations::Initialize();
 #ifdef GAME_ORAS
@@ -193,6 +198,10 @@ void UpdateFrame() {
 #ifndef GAME_XY
   overworld::MapGraft::Update();
   overworld::TileEditor::Update();
+  overworld::MapEditor::Update();
+  overworld::TriggerEditor::Update();
+  overworld::ZoneSettings::Update();
+  script::DataScripts::Update();
 #endif
 }
 

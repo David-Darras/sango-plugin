@@ -33,6 +33,7 @@ it does not hide the colors behind a building.
 | Wild Pokémon | Green | Wild Pokémon can appear on the tile. |
 | Blocks Trainers | Orange | The tile blocks the trainers. |
 | Decoration Spots | Purple | A decoration can stand on the tile. |
+| Plain Tiles | Pale yellow | A tile that the player can walk on and that has no other color. |
 | Signs | Cyan | The zone where {A} starts a script. |
 | Triggers | Magenta or pink | The zone where a script starts when the player walks in (magenta) or pushes against it (pink). |
 | Warps | Lime | The zones that change the map. |

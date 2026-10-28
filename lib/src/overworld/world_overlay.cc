@@ -60,6 +60,7 @@ enum TileClass : u8 {
   kEncounter,
   kBlocker,
   kDecoration,
+  kPlain,
 };
 
 // The kinds of characters (event types of the game) that look for the player.
@@ -133,6 +134,7 @@ Color ColorOf(TileClass tile_class, f32 alpha) {
     case kEncounter: return WithAlpha(0.3f, 1.0f, 0.3f, alpha);
     case kBlocker: return WithAlpha(1.0f, 0.6f, 0.1f, alpha);
     case kDecoration: return WithAlpha(0.7f, 0.3f, 1.0f, alpha);
+    case kPlain: return WithAlpha(1.0f, 1.0f, 0.85f, alpha * 0.4f);
     default: return WithAlpha(1.0f, 1.0f, 1.0f, alpha);
   }
 }
@@ -310,7 +312,7 @@ void WorldOverlay::FlushQuads() {
 
 void WorldOverlay::DrawTileLayer(s32 player_x, s32 player_z, f32 ground) {
   const bool wants_tiles = show_tiles || show_trainer_blockers ||
-                           show_decoration_spots;
+                           show_decoration_spots || show_plain_tiles;
   if (!wants_tiles) return;
   TileEditor::Block blocks[TileEditor::kMaxBlocks];
   const u32 count = TileEditor::CollectBlocks(blocks, TileEditor::kMaxBlocks);
@@ -329,6 +331,7 @@ void WorldOverlay::DrawTileLayer(s32 player_x, s32 player_z, f32 ground) {
     }
     if (show_trainer_blockers && tile.blocks_trainer_movement) return kBlocker;
     if (show_decoration_spots && tile.can_place_decorations) return kDecoration;
+    if (show_plain_tiles && !tile.is_impassable && !tile.is_water) return kPlain;
     return kNone;
   };
 
@@ -562,6 +565,7 @@ void WorldOverlay::DrawLegend() {
       {show_tiles, ColorOf(kEncounter, 0.9f), u"Wild Pokemon"},
       {show_trainer_blockers, ColorOf(kBlocker, 0.9f), u"Blocks trainers"},
       {show_decoration_spots, ColorOf(kDecoration, 0.9f), u"Decorations"},
+      {show_plain_tiles, Color(1.0f, 1.0f, 0.85f, 0.6f), u"Plain tile"},
       {show_signs, Color(0.1f, 0.9f, 1.0f, 0.9f), u"Sign"},
       {show_triggers, Color(1.0f, 0.2f, 1.0f, 0.9f), u"Trigger"},
       {show_warps, Color(0.7f, 1.0f, 0.1f, 0.9f), u"Warp"},
