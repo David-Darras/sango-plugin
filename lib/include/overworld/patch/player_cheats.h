@@ -30,6 +30,9 @@ namespace overworld {
 struct PlayerCheats {
   MAKE_SINGLETON(PlayerCheats)
   Vec3 speed = Vec3{1, 1, 1}; ///< The speed of Noclip on each axis.
+  /// The player walks through the tiles, the objects and the height steps. The
+  /// map is not changed: the plugin ignores the answer of the collision check.
+  bool no_collision = false;
   f32 theta = 0.0f;
   f32 radius = 5.0f;
   f32 theta_speed = 1.0f;

@@ -38,6 +38,12 @@ constexpr uptr kGetMapTile = GAME_ADDRESS(0x003E28D8, 0x00403DAC);
 /// water, wild Pokemon) come only from the table. ORAS only.
 constexpr uptr kTileFlagTable = GAME_ADDRESS(0, 0x005860E4);
 constexpr uptr kGetPlayerMovement = GAME_ADDRESS(0x007338E4, 0x00782A8C);
+/// Checks if the player can walk to the next tile with the D-pad (ORAS only).
+/// Returns the hit bits: the map limit, the tile attribute, an object, the
+/// height, or the end of the map.
+constexpr uptr kPlayerHitCheckGrid = GAME_ADDRESS(0, 0x00757698);
+/// The same check for the walk with the Circle Pad (ORAS only).
+constexpr uptr kPlayerHitCheckAnalog = GAME_ADDRESS(0, 0x00755C58);
 constexpr uptr kLoadMapData = GAME_ADDRESS(0x003BCFA0, 0x003D9BD4);
 constexpr uptr kGetDexNavTable = GAME_ADDRESS(0, 0x004013A4);
 constexpr uptr kGetEncounterContactAction = GAME_ADDRESS(0, 0x0076E10C);

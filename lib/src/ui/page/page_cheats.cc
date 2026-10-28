@@ -38,6 +38,12 @@ void LoadCheatsPage(MainApplication& app, void* args) {
      .Add("Noclip", CheatCodeId::kNoclip)
      .WithDescription("The player walks through the walls. L and R: down and "
                       "up.")
+#ifdef GAME_ORAS
+     .Add("No Collision", swarm.no_collision)
+     .WithDescription("The player walks through the walls, the objects and "
+                      "the steps of the ground, with the normal walk. The "
+                      "map is not changed.")
+#endif
      .Add("Auto Surf", overworld::AutoSurf::GetInstance().is_enabled)
      .WithDescription("The player surfs at once when walking into water.")
      .Add("Run Animation", overworld::RunAnimation::GetInstance().enabled)

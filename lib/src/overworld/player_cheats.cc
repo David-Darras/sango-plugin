@@ -25,6 +25,7 @@
 #include "overworld/patch/player_cheats.h"
 #include <cmath>
 #include "core/cheat_code_manager.h"
+#include "core/hook.h"
 #include "core/native/process_manager.h"
 #include "overworld/native/model_manager.h"
 #include "system/native/controller.h"
@@ -32,7 +33,44 @@
 
 namespace overworld {
 
+#ifdef GAME_ORAS
+namespace {
+// The hit bit of the end of the map: the player never leaves the map space.
+constexpr u32 kHitEndOfMap = 1 << 4;
+
+core::Hook<u32(void*, u32, void*, void*, void*, u32)> hit_check_grid_hook;
+core::Hook<u32(void*, void*, void*, u32, void*, f32, void*, void*, void*, u32,
+               void*, void*, void*)>
+    hit_check_analog_hook;
+
+u32 FilterHit(u32 hit) {
+  return PlayerCheats::GetInstance().no_collision ? (hit & kHitEndOfMap) : hit;
+}
+
+u32 HitCheckGridHook(void* player, u32 dir, void* attr, void* next_pos,
+                     void* hit_model, u32 check_slice) {
+  return FilterHit(
+      hit_check_grid_hook(player, dir, attr, next_pos, hit_model, check_slice));
+}
+
+u32 HitCheckAnalogHook(void* player, void* map, void* model, u32 dir,
+                       void* way, f32 distance, void* attr, void* next_pos,
+                       void* limit, u32 skipped_bits, void* slice_dir,
+                       void* next_check, void* forced_way) {
+  return FilterHit(hit_check_analog_hook(player, map, model, dir, way, distance,
+                                         attr, next_pos, limit, skipped_bits,
+                                         slice_dir, next_check, forced_way));
+}
+} // namespace
+#endif
+
 void PlayerCheats::Initialize() {
+#ifdef GAME_ORAS
+  hit_check_grid_hook.Install(address::kPlayerHitCheckGrid, HitCheckGridHook,
+                              address::kVtable);
+  hit_check_analog_hook.Install(address::kPlayerHitCheckAnalog,
+                                HitCheckAnalogHook, address::kVtable);
+#endif
   core::CheatCodeManager::Initialize(CheatCodeId::kSwarmMod, SwarmMod, nullptr,
                                true);
   core::CheatCodeManager::Initialize(CheatCodeId::kNoclip, Noclip, nullptr, true);
