@@ -89,6 +89,10 @@ void LoadLayoutsPage(MainApplication& app, void* args);
 // Hides the menu, the overlays and the 2D menus for a screenshot.
 void LoadScreenshotPage(MainApplication& app, void* args);
 void LoadPanePage(MainApplication& app, void* args);
+// The signs and the triggers of the map: the list, one sign, one trigger.
+void LoadMapEventsPage(MainApplication& app, void* args);
+void LoadSignEventPage(MainApplication& app, void* args);
+void LoadTriggerEventPage(MainApplication& app, void* args);
 // The texts of the game: the last texts that the game read, then one text.
 void LoadTextEditorPage(MainApplication& app, void* args);
 void LoadTextPage(MainApplication& app, void* args);

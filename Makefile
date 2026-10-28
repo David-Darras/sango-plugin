@@ -146,8 +146,6 @@ re: clean all
 relink: run-overlay
 
 $(addprefix run-,$(PRODUCTS)): run-%:
-	# @test -n "$(DEST)" -a -n "$(EMULATOR)" -a -n "$(GAME_PATH)" || \
-	#	{ echo "Set SDMC, EMULATOR and the game path in config.mk (see config.mk.example)."; exit 1; }
 	@rm -f *.elf *.3gx
 	@$(MAKE) --no-print-directory $*
 	@mkdir -p "$(DEST)"

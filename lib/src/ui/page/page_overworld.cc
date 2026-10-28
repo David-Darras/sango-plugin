@@ -417,17 +417,48 @@ static void LoadWorldOverlayPage(MainApplication& app, void* args) {
   auto& overlay = overworld::WorldOverlay::GetInstance();
 
   app.Add("Enabled", overlay.is_enabled)
-     .WithDescription("Shows marks on the map when the menu is closed. Red: "
-         "wall. Blue: water. Green: wild Pokemon.")
-     .AddSection("Marks")
-     .Add("Tiles", overlay.show_tiles)
+     .WithDescription("Shows marks on the map when the menu is closed. Turn "
+         "on the Legend to see the colors.")
+     .AddSection("Tiles")
+     .Add("Walls, Water, Wild Pokemon", overlay.show_tiles)
+     .WithDescription("Red: wall. Blue: water. Green: wild Pokemon.")
+     .Add("Blocks Trainers", overlay.show_trainer_blockers)
+     .WithDescription("Orange: the tile blocks the trainers.")
+     .Add("Decoration Spots", overlay.show_decoration_spots)
+     .WithDescription("Purple: a decoration can stand on the tile.")
+     .Add("Fill In Perspective", overlay.fill_tiles)
+     .WithDescription("On: each tile is filled like the ground. Off: a small "
+         "square on each tile (fewer drawings).")
      .Add("Radius (tiles)", overlay.radius)
      .WithBounds(1, overworld::WorldOverlay::kMaxRadius)
+     .Add("Opacity (%)", overlay.opacity)
+     .WithBounds(10, 100)
+     .AddSection("Events")
+     .Add("Signs", overlay.show_signs)
+     .WithDescription("Cyan: the zone where {A} starts a script.")
+     .Add("Triggers", overlay.show_triggers)
+     .WithDescription("Magenta: a script starts when you walk in. Pink: when "
+         "you push against the zone.")
+     .Add("Warps", overlay.show_warps)
+     .WithDescription("Lime: the zones that change the map.")
      .Add("Hidden Items", overlay.show_hidden_items)
      .WithDescription("A yellow mark on each hidden item of the map.")
+     .Add("Script Numbers", overlay.show_script_numbers)
+     .WithDescription("Writes the number of the script over the zones and "
+         "the characters (20 at most).")
+     .AddSection("Characters")
+     .Add("Characters", overlay.show_characters)
+     .WithDescription("A square on each character. Orange: a trainer. Blue: "
+         "another character.")
+     .Add("Trainer Sight", overlay.show_trainer_sight)
+     .WithDescription("Orange tiles: where the trainer sees the player. The "
+         "line stops at the first wall.")
+     .AddSection("Display")
      .Add("Player", overlay.show_player)
      .WithDescription("A white mark on the player. If it is not on the "
          "player, change Screen Pivot.")
+     .Add("Legend", overlay.show_legend)
+     .WithDescription("The list of the colors, at the bottom left.")
      .AddSection("State")
      .Add("Frames With A Camera", overlay.camera_frames)
      .WithReadOnly()
@@ -437,6 +468,10 @@ static void LoadWorldOverlayPage(MainApplication& app, void* args) {
      .WithReadOnly()
      .WithDescription("0 with a camera: the points are out of the screen "
          "(try the other Screen Pivot).")
+     .Add("Strips Of The Last Frame", overlay.strips_drawn)
+     .WithReadOnly()
+     .WithDescription("The thin rectangles that fill the tiles. Many strips "
+         "slow the game: lower the radius.")
      .Add("Scene Draws Seen", overlay.draws_seen)
      .WithReadOnly()
      .WithDescription("How many times the game drew a scene since the start. "
@@ -589,6 +624,9 @@ void LoadOverworldPage(MainApplication& app, void* args) {
      .WithDescription("The player and the people of the map: model, "
          "animation, position and size.")
      .Add("Camera", LoadOverworldCameraPage)
+     .Add("Map Events", LoadMapEventsPage)
+     .WithDescription("The signs and the triggers of the map: the zones that "
+         "start a script. Change them or add your own.")
      .AddSection("Music")
      .Add("Freeze Background Music", music.freeze_background_music)
      .WithDescription("On: the overworld always plays the music below.")

@@ -27,6 +27,8 @@ Read these pages to understand the code.
 - [The 2D layouts](concepts/layouts.md): the panes of the menus of the game, and how to change them.
 - [The 3D models](concepts/model-viewer.md): the parts and the materials of the models of the screen.
 - [The texts of the game](concepts/game-text.md): change the dialogues and the names, add colors and pauses.
+- [The signs and the triggers of the map](concepts/map-events.md): the zones that start a script, and how to add your own.
+- [The world overlay](concepts/world-overlay.md): colors on the ground for the tiles, the events and the trainers.
 - [Settings](concepts/settings.md): the values that change how a feature works.
 
 ## Tutorials

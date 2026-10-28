@@ -37,6 +37,7 @@
 #include "core/patch/event_patch.h"
 #include "core/patch/game_speed.h"
 #include "core/patch/text_editor.h"
+#include "overworld/patch/trigger_editor.h"
 #include "core/patch/process_patch.h"
 #include "core/patch/script_loader.h"
 #include "overworld/patch/auto_surf.h"
@@ -101,6 +102,7 @@ void InitializeEngine() {
 
   core::GameSpeed::Initialize();
   core::TextEditor::Initialize();
+  overworld::TriggerEditor::Initialize();
   renderer::Lighting::Initialize();
   renderer::ModelViewer::Initialize();
   renderer::TextureEditor::Initialize();
