@@ -30,6 +30,11 @@
 #include "ui/page/pages.h"
 
 namespace ui {
+#ifdef GAME_ORAS
+static const c8* kStepFrames[] = {"1", "2", "3", "4", "5",
+                                  "6", "7", "8", "12"};
+#endif
+
 void LoadCheatsPage(MainApplication& app, void* args) {
   auto& swarm = overworld::PlayerCheats::GetInstance();
   auto& day_care = overworld::DayCare::GetInstance();
@@ -43,6 +48,15 @@ void LoadCheatsPage(MainApplication& app, void* args) {
      .WithDescription("The player walks through the walls, the objects and "
                       "the steps of the ground, with the normal walk. The "
                       "map is not changed.")
+#endif
+#ifdef GAME_ORAS
+     .Add("Walk Frames Per Tile", swarm.walk_frames)
+     .WithArray(kStepFrames, SIZE(kStepFrames))
+     .WithDescription("The frames that the player needs to walk one tile. "
+                      "Fewer frames is faster. The game uses 7.")
+     .Add("Run Frames Per Tile", swarm.run_frames)
+     .WithArray(kStepFrames, SIZE(kStepFrames))
+     .WithDescription("The same, when the player runs. The game uses 4.")
 #endif
      .Add("Auto Surf", overworld::AutoSurf::GetInstance().is_enabled)
      .WithDescription("The player surfs at once when walking into water.")

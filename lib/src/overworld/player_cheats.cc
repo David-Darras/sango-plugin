@@ -43,6 +43,26 @@ core::Hook<u32(void*, void*, void*, u32, void*, f32, void*, void*, void*, u32,
                void*, void*, void*)>
     hit_check_analog_hook;
 
+// The commands of the game that move the player one tile in a number of
+// frames, from the fastest to the slowest: 1, 2, 3, 4, 5, 6, 7, 8 and 12.
+constexpr u32 kStepCommands[] = {16, 15, 21, 14, 22, 20, 19, 13, 17};
+constexpr u32 kWalkCommand = 19; // The walk of the game: 7 frames.
+constexpr u32 kRunCommand = 14;  // The run of the game: 4 frames.
+
+core::Hook<void(void*, u32, u32)> set_command_hook;
+
+// The player asks the game for the command of the walk or the run: the plugin
+// gives another command, which takes more or fewer frames for one tile.
+void SetCommandHook(void* player, u32 command, u32 direction) {
+  auto& cheats = PlayerCheats::GetInstance();
+  if (command == kWalkCommand && cheats.walk_frames < SIZE(kStepCommands)) {
+    command = kStepCommands[cheats.walk_frames];
+  } else if (command == kRunCommand && cheats.run_frames < SIZE(kStepCommands)) {
+    command = kStepCommands[cheats.run_frames];
+  }
+  set_command_hook(player, command, direction);
+}
+
 u32 FilterHit(u32 hit) {
   return PlayerCheats::GetInstance().no_collision ? (hit & kHitEndOfMap) : hit;
 }
@@ -70,6 +90,8 @@ void PlayerCheats::Initialize() {
                               address::kVtable);
   hit_check_analog_hook.Install(address::kPlayerHitCheckAnalog,
                                 HitCheckAnalogHook, address::kVtable);
+  set_command_hook.Install(address::kPlayerSetCommand, SetCommandHook,
+                           address::kVtable);
 #endif
   core::CheatCodeManager::Initialize(CheatCodeId::kSwarmMod, SwarmMod, nullptr,
                                true);

@@ -33,6 +33,10 @@ struct PlayerCheats {
   /// The player walks through the tiles, the objects and the height steps. The
   /// map is not changed: the plugin ignores the answer of the collision check.
   bool no_collision = false;
+  /// The frames that the player needs to walk one tile: the index in
+  /// kStepFrames. The game uses 7 frames for the walk and 4 for the run.
+  u8 walk_frames = 6;
+  u8 run_frames = 3;
   f32 theta = 0.0f;
   f32 radius = 5.0f;
   f32 theta_speed = 1.0f;
@@ -40,6 +44,7 @@ struct PlayerCheats {
   static void Initialize();
   static void SwarmMod();
   static void Noclip();
+
 };
 
 } // namespace overworld

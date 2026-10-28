@@ -44,6 +44,9 @@ constexpr uptr kGetPlayerMovement = GAME_ADDRESS(0x007338E4, 0x00782A8C);
 constexpr uptr kPlayerHitCheckGrid = GAME_ADDRESS(0, 0x00757698);
 /// The same check for the walk with the Circle Pad (ORAS only).
 constexpr uptr kPlayerHitCheckAnalog = GAME_ADDRESS(0, 0x00755C58);
+/// Starts the command of an action of the player (a walk, a run...), by its
+/// number (ORAS only). Parameters: the player, the command, the direction.
+constexpr uptr kPlayerSetCommand = GAME_ADDRESS(0, 0x0076A6F4);
 constexpr uptr kLoadMapData = GAME_ADDRESS(0x003BCFA0, 0x003D9BD4);
 constexpr uptr kGetDexNavTable = GAME_ADDRESS(0, 0x004013A4);
 constexpr uptr kGetEncounterContactAction = GAME_ADDRESS(0, 0x0076E10C);
