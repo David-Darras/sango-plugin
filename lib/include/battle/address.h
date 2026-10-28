@@ -36,7 +36,6 @@ constexpr uptr kMainProcess = GAME_ADDRESS(0, 0x08C69214);
 constexpr uptr kLevelUp = GAME_ADDRESS(0x0070DEB0, 0x0075D73C);
 constexpr uptr kStartMegaEvolutionAnimation = GAME_ADDRESS(0x006E465C, 0x0072EF18);
 constexpr uptr kStartEntryAnimation = GAME_ADDRESS(0x007255BC, 0x00775354);
-constexpr uptr kStartBackgroundMusic = GAME_ADDRESS(0x00425238, 0x0044D560);
 constexpr uptr kPlayAnimation = GAME_ADDRESS(0x007027AC, 0x007510A8);
 constexpr uptr kUpdateView = GAME_ADDRESS(0x006EE0AC, 0x0073B60C);
 constexpr uptr kUpdateGauge = GAME_ADDRESS(0x006D4578, 0x0071E174);

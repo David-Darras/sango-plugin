@@ -586,6 +586,10 @@ void MoveAnimations::Clear() {
   ResetSlots();
 }
 
+void MoveAnimations::Invalidate() {
+  ResetSlots();
+}
+
 bool MoveAnimations::Resolve(pokemon::MoveId move, u32* id, bool* is_move) {
   auto& ctx = GetInstance();
   ctx.active_definition_ = kMaxDefinitions;

@@ -28,6 +28,7 @@
 #include <3ds.h>
 #include <cstring>
 #include "core/hook.h"
+#include "core/patch/music_lock.h"
 #include "system/address.h"
 #include "system/native/file.h"
 #include "system/native/sound.h"
@@ -126,7 +127,7 @@ void MusicFiles::PlayFile(u32 index) {
   has_pending_ = true;
   pending_tick_ = svcGetSystemTick();
   use_second_carrier_ = !use_second_carrier_;
-  sys::Sound::PlayBackgroundMusic(kCarriers[use_second_carrier_ ? 1 : 0]);
+  MusicLock::Play(kCarriers[use_second_carrier_ ? 1 : 0]);
 }
 
 const char* MusicFiles::TakePendingName() {

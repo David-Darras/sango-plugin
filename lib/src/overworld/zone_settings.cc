@@ -27,6 +27,7 @@
 #include <cstdio>
 
 #include "core/native/process_manager.h"
+#include "core/patch/music_lock.h"
 #include "core/patch/time_override.h"
 #include "overworld/native/weather_manager.h"
 #include "overworld/patch/overworld.h"
@@ -196,7 +197,7 @@ void ZoneSettings::Apply(const Zone& zone) {
     auto& music = Overworld::GetInstance();
     music.freeze_background_music = true;
     music.background_music = static_cast<BackgroundMusicId>(zone.music);
-    sys::Sound::PlayBackgroundMusic(music.background_music);
+    core::MusicLock::Play(music.background_music);
   }
   if (zone.has_time) {
     auto& time = core::TimeOverride::GetInstance();

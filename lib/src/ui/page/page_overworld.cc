@@ -50,6 +50,7 @@
 #include "renderer/native/h3d_shader_model.h"
 #include "system/native/sound.h"
 #include "ui/log.h"
+#include "core/patch/music_lock.h"
 #include "ui/main_application.h"
 #include "ui/page/enum_names.h"
 #include "ui/page/page_common.h"
@@ -315,7 +316,7 @@ void LoadWorldLayoutPage(MainApplication& app, void* args) {
 }
 
 static void PlayOverworldMusic(void*) {
-  sys::Sound::PlayBackgroundMusic(
+  core::MusicLock::Play(
       overworld::Overworld::GetInstance().background_music);
 }
 

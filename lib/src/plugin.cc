@@ -25,6 +25,7 @@
 #include "battle/patch/battle.h"
 #include "battle/patch/game_extension.h"
 #include "battle/patch/setup.h"
+#include "battle/patch/shiny_entry.h"
 #include "battle/patch/type_helper.h"
 #include "ui/performance_overlay.h"
 #include "ui/screenshot_mode.h"
@@ -42,6 +43,7 @@
 #include "script/patch/data_scripts.h"
 #include "overworld/patch/trigger_editor.h"
 #include "core/patch/process_patch.h"
+#include "core/patch/music_lock.h"
 #include "core/patch/script_loader.h"
 #include "overworld/patch/auto_surf.h"
 #include "overworld/patch/camera.h"
@@ -134,6 +136,8 @@ void InitializeEngine() {
   battle::Setup::Initialize();
   renderer::ModelFilter::Initialize();
   battle::Battle::Initialize();
+  core::MusicLock::Initialize();
+  battle::ShinyEntry::Initialize();
   overworld::PlayerCheats::Initialize();
   core::ProcessPatch::Initialize();
   core::EventPatch::Initialize();

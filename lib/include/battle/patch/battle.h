@@ -45,7 +45,6 @@ struct BattleSettings {
   bool can_use_item = true;
   bool same_ratio_for_all_pokeball = false;
   bool fix_pokemon_size = true; ///< Shows the Pokémon with their real sizes.
-  bool sync_overworld_music = false; ///< Keeps the overworld music in battle.
   bool sync_team_hp = false; ///< When one Pokémon of the first team faints, all the Pokémon of this team faint.
   bool inverse_stats = false; ///< Exchanges the physical and the special stats.
   bool metronome_only = false; ///< All the moves are Metronome.
@@ -95,7 +94,6 @@ private:
   static void UpdateViewHook(uptr self);
   static void PokemonModelSettingsHook(uptr model, uptr p0, uptr p1);
   static void PlayAnimationHook(uptr view_manager, u16 id);
-  static void StartBackgroundMusicHook(uptr sound_manager, u32 id, u8 p2);
 
   static void StartEntryAnimationHook(void* p0, EntryAnimationData* data);
   static void StartMegaEvolutionAnimationHook(void* view, u8 target,

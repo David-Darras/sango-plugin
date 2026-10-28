@@ -78,6 +78,18 @@ constexpr uptr kSoundPlayPokemonCry = GAME_ADDRESS(0x00427988, 0x004500C0);
 constexpr uptr kSoundChangePokemonCryVolume = GAME_ADDRESS(0x004265B4, 0x0044EB4C);
 constexpr uptr kSoundPlaySoundEffect = GAME_ADDRESS(0x00427550, 0x0044FC88);
 constexpr uptr kSoundPlayBackgroundMusic = GAME_ADDRESS(0x004260FC, 0x0044E6CC);
+/// Starts the music of a battle: fades out the music of the overworld, saves
+/// it and plays the music of the battle. Parameters: the field sound object,
+/// the music id, the fade frames.
+constexpr uptr kSoundStartBattleMusic = GAME_ADDRESS(0x00425238, 0x0044D560);
+/// Ends the music of a battle: fades it out and gives the music of the
+/// overworld back (ORAS only). Parameter: the music to play next, or -1.
+constexpr uptr kSoundEndBattleMusic = GAME_ADDRESS(0, 0x0044E360);
+/// Fades the music in (ORAS only). Parameter: the fade frames.
+constexpr uptr kSoundFadeInMusic = GAME_ADDRESS(0, 0x0044D35C);
+/// The sound manager of the game: the pointer at +4 leads to the music
+/// player, which keeps the id of the playing music at +0x20 (ORAS only).
+constexpr uptr kSoundManager = GAME_ADDRESS(0, 0x005F4F88);
 /// Opens a file of the sound archive by its path (a music file).
 constexpr uptr kSoundOpenStreamFile = GAME_ADDRESS(0x0031B3B4, 0x0032FCE8);
 

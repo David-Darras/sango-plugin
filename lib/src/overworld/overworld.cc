@@ -24,6 +24,7 @@
 
 #include "overworld/patch/overworld.h"
 #include "core/hook.h"
+#include "core/patch/music_lock.h"
 #include "overworld/patch/day_care.h"
 #include "system/native/sound.h"
 #include "overworld/address.h"
@@ -54,6 +55,9 @@ void Overworld::PatchLoad() {
 
 u32 Overworld::GetBackgroundMusic(u32 sound_manager, u32 map_id, u32 player_form) {
   auto& instance = GetInstance();
+  // The lock keeps the music that plays, whatever the map.
+  const auto& lock = core::MusicLock::GetInstance();
+  if (lock.IsHolding()) return lock.GetKept();
   if (instance.freeze_background_music) {
     return sys::Sound::kBankBackgroundMusic +
            static_cast<u32>(instance.background_music);

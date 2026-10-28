@@ -29,6 +29,7 @@
 #include "battle/native/team.h"
 #include "battle/patch/battle.h"
 #include "battle/patch/setup.h"
+#include "battle/patch/shiny_entry.h"
 #include "battle/patch/type_chart.h"
 #include "core/native/process_manager.h"
 #include "overworld/address.h"
@@ -52,7 +53,8 @@ namespace ui {
 void LoadBattleSettingsPage(MainApplication& app, void* args) {
   auto& ctx = battle::Battle::GetInstance();
 
-  app.AddSection("Multipliers")
+  app.OnChange([](void*) { battle::ShinyEntry::Refresh(); })
+     .AddSection("Multipliers")
      .Add("Experience", ctx.exp_multiplier)
      .WithFactor(0.5f)
      .WithBounds(0, 20)
@@ -84,8 +86,6 @@ void LoadBattleSettingsPage(MainApplication& app, void* args) {
      .Add("Type Helper", ctx.show_type_helper)
      .WithDescription("Shows the effectiveness of each move against the "
                       "opponent.")
-     .Add("Keep Overworld Music", ctx.sync_overworld_music)
-     .WithDescription("The battle keeps the music of the overworld.")
      .Add("No Shader", ctx.no_shader)
      .WithDescription("Turns off the shaders of the battle.")
      .AddSection("Animations")
@@ -96,6 +96,12 @@ void LoadBattleSettingsPage(MainApplication& app, void* args) {
      .Add("Show Poke Ball Animation", ctx.show_pokeball_animation)
      .Add("Show Fade In", ctx.show_fade_in)
      .Add("Show Shiny Animation", ctx.show_shiny_animation)
+#ifdef GAME_ORAS
+     .Add("Show Shiny Effect", battle::ShinyEntry::GetInstance().is_enabled)
+     .WithDescription("Big stars and a flash of all the colors when a shiny "
+                      "Pokemon comes out of its Poke Ball. Applies at the "
+                      "next battle.")
+#endif
      // The options that are already on in the game: the player rarely
      // changes them, so they come last.
      .AddSection("Game Rules")
@@ -575,6 +581,7 @@ void LoadBattlePage(MainApplication& app, void* args) {
      .Add("Settings", LoadBattleSettingsPage)
      .WithDescription("The multipliers, the rules, the display and the "
                       "animations of all the battles.")
+
      .AddSection("Start a Battle")
      .Add("Wild Battle Setup", LoadBattleSetupPage)
      .WithDescription("The Pokemon, the battlefield and the rules of the "

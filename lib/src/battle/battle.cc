@@ -41,7 +41,6 @@ namespace {
 core::Hook<bool(void*, Team*, LevelUpData*)> level_up_hook;
 core::Hook<void(void*, u8, bool)> start_mega_evolution_animation_hook;
 core::Hook<void(void*, EntryAnimationData*)> start_entry_animation_hook;
-core::Hook<void(uptr, u32, u8)> start_background_music_hook;
 core::Hook<void(uptr, u16)> play_animation_hook;
 core::Hook<void(uptr)> update_view_hook;
 core::Hook<void(uptr, uptr, uptr)> pokemon_model_settings_hook;
@@ -63,8 +62,6 @@ void Battle::Initialize() {
       address::kVtable);
   start_entry_animation_hook.Install(address::kStartEntryAnimation,
                                      StartEntryAnimationHook, address::kVtable);
-  start_background_music_hook.Install(address::kStartBackgroundMusic,
-                                      StartBackgroundMusicHook);
   play_animation_hook.Install(address::kPlayAnimation, PlayAnimationHook,
                               address::kVtable);
   update_view_hook.Install(address::kUpdateView, UpdateViewHook,
@@ -249,14 +246,6 @@ void Battle::PokemonModelSettingsHook(uptr model, uptr p0, uptr p1) {
 void Battle::PlayAnimationHook(uptr view_manager, u16 id) {
   if (id == kShinyAnimationId && !GetInstance().show_shiny_animation) return;
   return play_animation_hook(view_manager, id);
-}
-
-void Battle::StartBackgroundMusicHook(uptr sound_manager, u32 id, u8 p2) {
-  if (GetInstance().sync_overworld_music) {
-    id = sys::Sound::kBankBackgroundMusic +
-         static_cast<u32>(overworld::Overworld::GetInstance().background_music);
-  }
-  return start_background_music_hook(sound_manager, id, p2);
 }
 
 void Battle::StartEntryAnimationHook(void* p0, EntryAnimationData* data) {

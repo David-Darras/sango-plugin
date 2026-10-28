@@ -21,6 +21,7 @@
  */
 
 #include "core/patch/music_files.h"
+#include "core/patch/music_lock.h"
 #include "ui/page/enum_names.h"
 #include "ui/main_application.h"
 #include "system/native/sound.h"
@@ -47,7 +48,7 @@ void PlaySoundEffect(void*) {
 }
 
 void PlayBackgroundMusic(void*) {
-  sys::Sound::PlayBackgroundMusic(background_music);
+  core::MusicLock::Play(background_music);
 }
 
 void PlaySdMusic(void*) {
@@ -61,7 +62,13 @@ void LoadSoundPage(MainApplication& app, void* args) {
   for (u32 i = 0; i < sd_music_count; i++) {
     sd_music_names[i] = files.GetTitle(i);
   }
-  app.Add("Pokemon Cry Volume", pokemon_cry_volume)
+  app.OnChange([](void*) { core::MusicLock::OnToggle(); })
+      .Add("Lock Music", core::MusicLock::GetInstance().is_enabled)
+      .WithDescription("On: the music that plays now stays. It does not "
+                       "change in a battle, when the zone changes, or in "
+                       "the other places where the game changes its music. "
+                       "The music of this page still plays.")
+      .Add("Pokemon Cry Volume", pokemon_cry_volume)
       .WithFactor(0.1f)
       .WithCallback(ChangePokemonCryVolume)
       .WithDescription("Press {A} to use this volume. 1 is the normal volume.")

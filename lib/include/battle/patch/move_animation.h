@@ -256,6 +256,9 @@ public:
   static bool Define(pokemon::MoveId move, Editor build);
   /// Removes all the editors and all the new animations.
   static void Clear();
+  /// Makes the library build the changed animations again, for example after
+  /// a change of the settings that an editor reads.
+  static void Invalidate();
 
   /// Selects the file of a move that has a new animation. The library calls it.
   static bool Resolve(pokemon::MoveId move, u32* id, bool* is_move);
