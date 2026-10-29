@@ -23,3 +23,9 @@ EMULATOR := "C:/Program Files/Azahar/azahar.exe"
 # Your dump of the game (.3ds, .cci or .cia), one line for each game.
 ORAS_GAME_PATH := "C:/Games/3DS/alpha_sapphire.3ds"
 XY_GAME_PATH   := "C:/Games/3DS/pokemon_x.3ds"
+
+# The links of the packs (Pokemon models, overworld models, music) that `make release` writes in the
+# README.txt and in the notes of the GitHub release.
+# POKEMON_MODELS_URL   := https://drive.google.com/...
+# OVERWORLD_MODELS_URL := https://drive.google.com/...
+# MUSIC_URL            := https://drive.google.com/...

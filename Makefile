@@ -7,6 +7,9 @@
 #   make GAME=XY          builds for Pokemon X instead of Alpha Sapphire
 #   make run-overlay      builds one product, copies it to the SD card of the
 #                         emulator and starts the game (needs config.mk)
+#   make release-pack     builds the Alpha Sapphire plugin and makes
+#                         dist/Sango-Plugin-<version>.zip
+#   make release          makes the zip, then publishes it on GitHub (needs gh)
 #   make clean            removes all the build output
 #
 # Put your local settings (emulator, game dump, SD card) in config.mk.
@@ -28,6 +31,13 @@ include $(DEVKITARM)/3ds_rules
 PLUGIN_VERSION  := 7.0.0
 PLUGIN_CREATOR  := ZettaD
 PLUGIN_NAME     := Sango
+
+# The links of the packs that the release README and notes show. Set them
+# in config.mk.
+POKEMON_MODELS_URL   ?= https://drive.google.com/file/d/1YgFf7eNm3bpnUxJ7xFQod6HtvWV6rjDw/view?usp=sharing
+OVERWORLD_MODELS_URL ?= https://drive.google.com/file/d/1WghmLRZqxeH2gd0CmWTEP1VDFywphScH/view?usp=sharing
+MUSIC_URL            ?= https://drive.google.com/file/d/16e-uJYl0zZbzPWCIFwjPsiPHwnlXFXBv/view?usp=sharing
+PYTHON     ?= $(shell command -v python3 2>/dev/null || command -v python)
 
 #---------------------------------------------------------------------------------
 # The target game.
@@ -134,7 +144,25 @@ $(PRODUCTS):
 
 clean:
 	@echo clean ...
-	@rm -fr $(foreach p,$(PRODUCTS),release-$(p) debug-$(p)) release debug *.elf *.3gx
+	@rm -fr $(foreach p,$(PRODUCTS),release-$(p) debug-$(p)) release debug dist *.elf *.3gx
+
+# `make release-pack` builds the overlay for Alpha Sapphire and puts it in
+# dist/Sango-Plugin-<version>.zip with a README.txt.
+# `make release` then publishes the zip on GitHub (`make release DRAFT=1`
+# makes a draft, `make release YES=1` does not ask first).
+.PHONY: release-pack release
+
+release-pack:
+	@$(MAKE) --no-print-directory GAME=ORAS overlay
+	@$(PYTHON) tools/release.py pack --version $(PLUGIN_VERSION) \
+		--plugin $(overlay_TARGET)-release.3gx \
+		--pokemon-models-url "$(POKEMON_MODELS_URL)" \
+		--overworld-models-url "$(OVERWORLD_MODELS_URL)" \
+		--music-url "$(MUSIC_URL)"
+
+release: release-pack
+	@$(PYTHON) tools/release.py publish --version $(PLUGIN_VERSION) \
+		$(if $(DRAFT),--draft) $(if $(YES),--yes)
 
 re: clean all
 

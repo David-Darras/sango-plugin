@@ -12,10 +12,10 @@ then fills the empty slots of the game with them.
 The two first arguments are the archive of the overworld models of the two
 games: the file "a/0/2/1" of the RomFS. The tool writes:
 
-  <out_dir>/npcmodel/index.bin   the list of the models
-  <out_dir>/npcmodel/<id>.bin    one model (the id of overworld::ModelId)
+  <out_dir>/overworld_model/index.bin   the list of the models
+  <out_dir>/overworld_model/<id>.bin    one model (the id of overworld::ModelId)
 
-Copy the folder "npcmodel" to sdmc:/sango/. Then use the id with
+Copy the folder "overworld_model" to sdmc:/sango/. Then use the id with
 overworld::ModelId, for example in the page Model Loader of the overlay.
 
 The models of X and Y have an older 3D format than the models of ORAS. The
@@ -140,7 +140,7 @@ def main():
     print("Converting the 3D format of %d models..." % len(models), flush=True)
     convert_models(packs, args.spica)
 
-  folder = os.path.join(args.out_dir, "npcmodel")
+  folder = os.path.join(args.out_dir, "overworld_model")
   os.makedirs(folder, exist_ok=True)
   index = []
   for model_id in models:

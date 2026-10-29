@@ -130,8 +130,8 @@ static OverrideSet override_sets[] = {
     {ArchiveId::kPokemonModel, u"sdmc:/sango/pokemodel/index.bin",
      u"sdmc:/sango/pokemodel/%d.pc", kPokemonToken, false, pokemon_entries,
      6144, 0, false},
-    {ArchiveId::kOverworldModel, u"sdmc:/sango/npcmodel/index.bin",
-     u"sdmc:/sango/npcmodel/%d.bin", kOverworldToken, true, overworld_entries,
+    {ArchiveId::kOverworldModel, u"sdmc:/sango/overworld_model/index.bin",
+     u"sdmc:/sango/overworld_model/%d.bin", kOverworldToken, true, overworld_entries,
      1024, 0, false},
     {ArchiveId::kMapLandData, u"sdmc:/sango/land/index.bin",
      u"sdmc:/sango/land/%d.bin", kLandToken, true, land_entries, 1024, 0,
@@ -192,7 +192,7 @@ static u32 OverrideSize(OverrideSet& set, u32 file_id) {
 
 static u32 LzStoreSize(u32 raw) { return 4 + raw + (raw + 7) / 8; }
 
-// Writes a line "code file size" in sdmc:/sango/npcmodel/trace.log. It shows
+// Writes a line "code file size" in sdmc:/sango/overworld_model/trace.log. It shows
 // how the game reads the files that the SD card replaces. The codes: 1 size
 // of a file, 2 information of a file, 3 read in a thread, 4 read with the
 // offset.
@@ -203,7 +203,7 @@ static void Trace(OverrideSet* set, u32 what, u32 file_id, u32 size) {
   if (set == nullptr || !set->whole_file || lines >= 400) return;
   if (!opened) {
     opened = true;
-    file.Open(u"sdmc:/sango/npcmodel/trace.log");
+    file.Open(u"sdmc:/sango/overworld_model/trace.log");
   }
   if (!file.IsOpen()) return;
   lines++;
