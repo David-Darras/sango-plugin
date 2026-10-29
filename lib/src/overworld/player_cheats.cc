@@ -28,6 +28,7 @@
 #include "core/hook.h"
 #include "core/native/process_manager.h"
 #include "overworld/native/model_manager.h"
+#include "overworld/patch/pokemon_flight.h"
 #include "system/native/controller.h"
 #include "overworld/address.h"
 
@@ -47,6 +48,7 @@ core::Hook<u32(void*, void*, void*, u32, void*, f32, void*, void*, void*, u32,
 // frames, from the fastest to the slowest: 1, 2, 3, 4, 5, 6, 7, 8 and 12.
 constexpr u32 kStepCommands[] = {16, 15, 21, 14, 22, 20, 19, 13, 17};
 constexpr u32 kWalkCommand = 19; // The walk of the game: 7 frames.
+constexpr u32 kSitWaitCommand = 134; // The player sits and waits.
 constexpr u32 kRunCommand = 14;  // The run of the game: 4 frames.
 
 core::Hook<void(void*, u32, u32)> set_command_hook;
@@ -55,6 +57,14 @@ core::Hook<void(void*, u32, u32)> set_command_hook;
 // gives another command, which takes more or fewer frames for one tile.
 void SetCommandHook(void* player, u32 command, u32 direction) {
   auto& cheats = PlayerCheats::GetInstance();
+  // The player sits on a Pokémon in flight: the game cannot make it walk.
+  if (PokemonFlight::IsFlying()) {
+    // All the orders of the game become the sit order (a walk, a wait, a
+    // turn), with the direction of the flight: the player stays seated, and it
+    // turns with the flight.
+    set_command_hook(player, kSitWaitCommand, PokemonFlight::GetSitDirection());
+    return;
+  }
   if (command == kWalkCommand && cheats.walk_frames < SIZE(kStepCommands)) {
     command = kStepCommands[cheats.walk_frames];
   } else if (command == kRunCommand && cheats.run_frames < SIZE(kStepCommands)) {

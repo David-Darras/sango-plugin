@@ -69,6 +69,10 @@ enum class ActionCommand : u16 {
   kWait4Frames = 43,
   kWait8Frames = 44,
   kWait15Frames = 45,
+  kSitWait = 134, ///< Sits and waits (the player sits on a chair).
+  kSit = 135,
+  kSitStand = 136, ///< Stands up from a seat.
+  kSitRotate = 137, ///< Turns while sitting (4 frames).
   kHalfSitStart = 148,
   kHalfSitWait = 149,
   kHalfSitEnd = 150,

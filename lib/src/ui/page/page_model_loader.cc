@@ -277,5 +277,4 @@ void UpdateFollowingPokemon() {
   } else if (controller.IsKeyPressed(Key::kR)) {
     pokemon::ModelLoader::Act(&g_my_1st_pokemon, true);
   }
-  pokemon::ModelLoader::UpdateMotions();
 }

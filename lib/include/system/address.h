@@ -54,6 +54,11 @@ constexpr uptr kArchiveLoadCompressedFile = GAME_ADDRESS(0x001283D8, 0x00137A30)
 
 // The buttons and the touch screen.
 constexpr uptr kDeviceGetController = GAME_ADDRESS(0x001174D0, 0x00117550);
+/// The Circle Pad: the device of a number (0 is the Circle Pad of the console),
+/// then its position at the last frame, from -1 to 1 on each axis. ORAS only.
+constexpr uptr kCirclePadDevice = GAME_ADDRESS(0, 0x004C812C);
+constexpr uptr kCirclePadReadX = GAME_ADDRESS(0, 0x004C7B64);
+constexpr uptr kCirclePadReadY = GAME_ADDRESS(0, 0x004C7B70);
 constexpr uptr kControllerIsKeyPressed = GAME_ADDRESS(0x00498BBC, 0x004C86EC);
 constexpr uptr kControllerIsKeyReleased = GAME_ADDRESS(0x00498B84, 0x004C86B4);
 constexpr uptr kControllerIsKeyRepeated = GAME_ADDRESS(0x00498B0C, 0x004C863C);

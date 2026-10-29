@@ -30,7 +30,7 @@ namespace overworld {
 struct AutoSurf {
   MAKE_SINGLETON(AutoSurf)
 
-  bool is_enabled = true;
+  bool is_enabled = false;
 
   static void Initialize();
 

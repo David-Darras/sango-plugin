@@ -25,6 +25,7 @@
 #include "overworld/patch/day_care.h"
 #include "overworld/patch/healer_follower.h"
 #include "overworld/patch/player_cheats.h"
+#include "overworld/patch/pokemon_flight.h"
 #include "overworld/patch/run_animation.h"
 #include "ui/main_application.h"
 #include "ui/page/pages.h"
@@ -78,6 +79,24 @@ void LoadCheatsPage(MainApplication& app, void* args) {
                       "L plays a battle animation and R a Pokemon-Amie "
                       "animation, with its cry. It leaves during the "
                       "menus, the scripts and the battles.")
+#endif
+#ifdef GAME_ORAS
+     .AddSection("Flight")
+     .Add("Fly On A Pokemon", overworld::PokemonFlight::GetInstance().is_enabled)
+     .WithCallback(overworld::PokemonFlight::Apply)
+     .WithDescription("The player sits on a flying Pokemon: the Circle Pad "
+                      "gives the direction, R goes up and L goes down. No "
+                      "wild Pokemon, no collision. The Pokemon of the team "
+                      "that follows you leaves during the flight.")
+     .AddSpecies("Flying Pokemon",
+                 overworld::PokemonFlight::GetInstance().species)
+     .WithBounds(1, static_cast<u32>(SpeciesId::kCount) - 1)
+     .Add("Flight Pokemon Size", overworld::PokemonFlight::GetInstance().scale)
+     .WithFactor(0.1f)
+     .Add("Flight Speed", overworld::PokemonFlight::GetInstance().speed)
+     .WithFactor(0.25f)
+     .Add("Climb Speed", overworld::PokemonFlight::GetInstance().climb_speed)
+     .WithFactor(0.5f)
 #endif
      .AddSection("Day Care")
      .Add("Instant Egg Hatch", day_care.instant_egg_hatch)

@@ -58,7 +58,10 @@
 #include "overworld/patch/healer_follower.h"
 #include "overworld/patch/placed_decorations.h"
 #include "overworld/patch/whos_that_pokemon.h"
+#include "core/native/process_manager.h"
 #include "overworld/patch/player_cheats.h"
+#include "pokemon/patch/model_loader.h"
+#include "overworld/patch/pokemon_flight.h"
 #include "overworld/patch/run_animation.h"
 #include "overworld/patch/static_randomizer.h"
 #include "overworld/patch/tile_editor.h"
@@ -200,6 +203,11 @@ void UpdateFrame() {
   overworld::TallGrass::Update();
   overworld::HealerFollower::Update();
   UpdateFollowingPokemon();
+  overworld::PokemonFlight::Update();
+  // The animations of the models of the Pokémon (the follower, the flight).
+  if (core::ProcessManager::IsOverworldActive()) {
+    pokemon::ModelLoader::UpdateMotions();
+  }
 #endif
 #ifndef GAME_XY
   overworld::MapGraft::Update();
