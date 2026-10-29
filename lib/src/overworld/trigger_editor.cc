@@ -251,8 +251,21 @@ void TriggerEditor::ApplyRecords() {
 
 void TriggerEditor::OnMapEventsLoaded(MapEventData* events) {
   auto& self = GetInstance();
+  MapEventData* previous = self.events_;
   self.events_ = nullptr;
   if (events == nullptr) return;
+  // The previous map is still loaded: it keeps a copy of its tables, because
+  // the working tables now belong to the new map.
+  if (previous != nullptr && previous != events &&
+      previous->map_id != events->map_id && previous->signs == self.signs_ &&
+      previous->triggers == self.triggers_ && previous->warps == self.warps_) {
+    memcpy(self.frozen_signs_, self.signs_, sizeof(self.signs_));
+    memcpy(self.frozen_triggers_, self.triggers_, sizeof(self.triggers_));
+    memcpy(self.frozen_warps_, self.warps_, sizeof(self.warps_));
+    previous->signs = self.frozen_signs_;
+    previous->triggers = self.frozen_triggers_;
+    previous->warps = self.frozen_warps_;
+  }
   // A map with more events than the tables: the editor leaves it alone.
   if (events->sign_count > kMaxSigns || events->trigger_count > kMaxTriggers ||
       events->warp_count > kMaxWarps ||

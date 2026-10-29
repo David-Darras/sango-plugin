@@ -128,7 +128,10 @@ private:
   bool has_resting_spot_ = false;
   f32 resting_x_ = 0.0f;
   f32 resting_z_ = 0.0f;
-  CharacterPlacement placements_[kMaxCharactersPerMap];
+  // The game keeps the events of two maps when the player walks from one map
+  // to the next without a loading screen: each map needs its own list.
+  CharacterPlacement placements_[2][kMaxCharactersPerMap];
+  u32 placement_buffer_ = 0;
   MapId emptied_maps_[kMaxEmptiedMaps];
   u32 emptied_count_ = 0;
 };

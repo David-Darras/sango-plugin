@@ -32,7 +32,7 @@ namespace ui {
 class Splash {
 public:
   /// The frames that the splash screen stays on the screen (60 = 1 second).
-  static constexpr u32 kFrames = 300;
+  static constexpr u32 kFrames = 100;
 
   /// Draws the splash screen on the top screen. Call it one time for each
   /// frame, after the other drawings: the screen counts its own frames.

@@ -184,6 +184,11 @@ private:
   WarpEvent warps_[kMaxWarps] = {};
   WarpEvent shipped_warps_[kMaxWarps] = {};
   CharacterPlacement shipped_characters_[kMaxCharactersPerMap] = {};
+  // The tables of the previous map: the game still uses them when the player
+  // walks to the next map without a loading screen.
+  SignEvent frozen_signs_[kMaxSigns] = {};
+  TriggerEvent frozen_triggers_[kMaxTriggers] = {};
+  WarpEvent frozen_warps_[kMaxWarps] = {};
   Record records_[kMaxRecords];
 };
 

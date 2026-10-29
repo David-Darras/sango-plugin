@@ -144,7 +144,9 @@ void PlayerCheats::Noclip() {
 
   auto& ctx = GetInstance();
   auto& player = ModelManager::GetInstance().GetPlayer();
-  auto& draw_model = player.GetDrawModel();
+  // The drawn model does not exist while the map loads.
+  DrawModel* draw_model = player.GetDrawModelOrNull();
+  if (draw_model == nullptr) return;
   auto& controller = sys::Controller::GetInstance();
 
 #define ADD_MOVEMENT(key, composant, val)                                    \
@@ -152,7 +154,7 @@ void PlayerCheats::Noclip() {
     player.map_pos.coords.composant += (val) * ctx.speed.composant;          \
     player.world_pos.coords.composant += (val) * 9.0f * ctx.speed.composant; \
     player.draw_pos.composant += (val) * 9.0f * ctx.speed.composant;         \
-    draw_model.position.composant += (val) * 9.0f * ctx.speed.composant;     \
+    draw_model->position.composant += (val) * 9.0f * ctx.speed.composant;    \
   }
 
   ADD_MOVEMENT(kLeft, x, -1)

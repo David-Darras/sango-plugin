@@ -279,12 +279,13 @@ void MapCharacter::PlaceCharacters(MapEventData* events) {
 
   if (IsEmptied(map_id)) shipped_count = 0;
 
+  CharacterPlacement* placements = placements_[placement_buffer_];
   u32 count = 0;
   u16 next_local_id = 0;
   for (; count < shipped_count; count++) {
-    placements_[count] = shipped[count];
+    placements[count] = shipped[count];
     if (is_grafted) {
-      MapGraft::OffsetPlacement(&placements_[count], graft_dx, graft_dz);
+      MapGraft::OffsetPlacement(&placements[count], graft_dx, graft_dz);
     }
     if (shipped[count].local_id >= next_local_id) {
       next_local_id = shipped[count].local_id + 1;
@@ -297,13 +298,13 @@ void MapCharacter::PlaceCharacters(MapEventData* events) {
     if (request.map_id != map_id && !request.is_everywhere) continue;
     if (request.is_enabled != nullptr && !*request.is_enabled) continue;
     request.local_id = next_local_id;
-    BuildPlacement(request, next_local_id++, &placements_[count]);
+    BuildPlacement(request, next_local_id++, &placements[count]);
     if (request.is_everywhere) {
-      placements_[count].map_id = map_id;
-      placements_[count].displayed_on_map_id = map_id;
-      placements_[count].owned_by_map_id = map_id;
-      placements_[count].position.tile_x = everywhere_x;
-      placements_[count].position.tile_z = everywhere_z;
+      placements[count].map_id = map_id;
+      placements[count].displayed_on_map_id = map_id;
+      placements[count].owned_by_map_id = map_id;
+      placements[count].position.tile_x = everywhere_x;
+      placements[count].position.tile_z = everywhere_z;
     }
     count++;
     added++;
@@ -311,7 +312,8 @@ void MapCharacter::PlaceCharacters(MapEventData* events) {
 
   if (added == 0 && !is_grafted && !IsEmptied(map_id)) return;
 
-  events->characters = placements_;
+  events->characters = placements;
+  placement_buffer_ ^= 1;
   events->character_count = count;
   events->character_capacity = count;
 
@@ -349,15 +351,27 @@ void MapCharacter::BuildPlacement(const MapCharacterRequest& request, u16 local_
 void MapCharacter::AddMissingModels(CharacterManager* manager,
                                     const CharacterPlacement* placements,
                                     u32 placement_count) {
-  if (placements == nullptr) return;
-
   ModelAppearance* models = manager->models;
   u32 count = manager->model_count;
   u32 initial_count = count;
 
-  for (u32 i = 0; i < placement_count; i++) {
+  // The models of the characters of the game, then the models of the
+  // characters that the plugin adds. The game makes this list once for a
+  // region, and it does not make it again when the player walks to the next
+  // map without a loading screen: the models of all the requests must be
+  // there from the start, or the game stops when the map sets up.
+  const u32 total = placement_count + request_count_;
+  for (u32 i = 0; i < total; i++) {
     if (count + 1 >= kMaxModelsPerRegion) break;
-    ModelId model_id = placements[i].model_id;
+    ModelId model_id;
+    if (i < placement_count) {
+      if (placements == nullptr) continue;
+      model_id = placements[i].model_id;
+    } else {
+      const MapCharacterRequest& request = requests_[i - placement_count];
+      if (request.is_enabled != nullptr && !*request.is_enabled) continue;
+      model_id = request.model_id;
+    }
     if (Contains(models, count, model_id)) continue;
     if (!LoadAppearance(manager, model_id, &models[count])) {
       if (is_logging_enabled) {

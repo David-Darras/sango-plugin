@@ -33,7 +33,7 @@
 namespace ui {
 namespace {
 // The last frames fade out.
-constexpr u32 kFadeFrames = 60;
+constexpr u32 kFadeFrames = 30;
 
 // Draws a text at the center of the top screen. The texts of the top screen
 // use a space of 512 x 256.
@@ -78,7 +78,7 @@ void Splash::DrawTop() {
   DrawCentered(125, 0.6f, line, text);
   core::Utils::Format(line, u"Build %s  %s", __DATE__, __TIME__);
   DrawCentered(150, 0.5f, line, text);
-  core::Utils::Format(line, u"by %s (David Darras)", PLUGIN_CREATOR);
+  core::Utils::Format(line, u"by %s", PLUGIN_CREATOR);
   DrawCentered(175, 0.6f, line, title);
 
   // The buttons that open the menu (START when no key is set).
