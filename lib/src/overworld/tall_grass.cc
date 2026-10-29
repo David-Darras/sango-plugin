@@ -24,6 +24,7 @@
 
 #include "overworld/patch/tall_grass.h"
 
+#include "core/hook.h"
 #include "core/native/process_manager.h"
 #include "overworld/native/map_manager.h"
 #include "overworld/native/model_manager.h"
@@ -33,13 +34,37 @@
 #include "renderer/native/h3d_shader_model.h"
 #include "system/native/file.h"
 #include "ui/log.h"
+#include "overworld/address.h"
 
 namespace overworld {
 namespace {
 constexpr f32 kPi = 3.14159265f;
 
-constexpr const c16* kGrassPackPath = u"sdmc:/sango/tall_grass.bin";
-constexpr u32 kGrassPackCapacity = 0x10000;
+// The numbers of the three grass models in the pack of the field: grass00,
+// grass04 and grass05. The game keeps them in memory all the time.
+constexpr u32 kGrassModelIndex[3] = {42, 56, 69};
+
+#ifdef GAME_ORAS
+// Where the models are: the game manager keeps the object of the resident
+// resources of the field, and this object keeps the models of the effects.
+constexpr u32 kResidentResourcesOffset = 0x1A0;
+constexpr u32 kEffectModelsOffset = 0x8C;
+// true when the game does not have the models: the grass cannot work.
+bool are_models_missing = false;
+
+// Returns the object that keeps the models of the effects, or null when the
+// field is not loaded.
+void* FindResidentModels() {
+  const uptr manager = READ32(sys::address::kGameManager);
+  if (manager == 0) return nullptr;
+  u32 resident = 0;
+  SAFE_READ32(manager + kResidentResourcesOffset, resident);
+  if (resident == 0) return nullptr;
+  u32 models = 0;
+  SAFE_READ32(resident + kEffectModelsOffset, models);
+  return reinterpret_cast<void*>(models);
+}
+#endif
 constexpr const c16* kTracePath = u"sdmc:/sango/tall_grass.log";
 
 void Trace(const c8* step) {
@@ -90,26 +115,26 @@ bool TallGrass::LoadResources() {
   auto& ctx = GetInstance();
   if (ctx.resources_[kGreen] != nullptr) return true;
 
-  if (ctx.pack_ == nullptr) {
-    Trace("read pack");
-    ctx.pack_ = pokemon::ModelLoader::ReadSdPack(kGrassPackPath,
-                                                 kGrassPackCapacity);
-  }
-  if (ctx.pack_ == nullptr) {
-    ui::Log::Print(u"tall grass: pack unreadable");
-    return false;
-  }
+#ifdef GAME_ORAS
+  // The models are the ones that the game keeps for its own grass: they are
+  // set up already, and the game frees them.
+  void* models = FindResidentModels();
+  if (models == nullptr) return false;
   for (u32 i = 0; i < kKindCount; i++) {
-    Trace("load resource");
-    ctx.resources_[i] = pokemon::ModelLoader::LoadPackResource(ctx.pack_, i);
+    ctx.resources_[i] = ((renderer::H3dResource * (*)(void*, u32))
+                             address::kGetResidentModel)(models,
+                                                         kGrassModelIndex[i]);
     if (ctx.resources_[i] == nullptr) {
-      ui::Log::Print(u"tall grass: model %u unusable", i);
-      for (u32 j = 0; j < i; j++) ctx.resources_[j]->RemoveData();
+      ui::Log::Print(u"tall grass: model %u is not in the game", i);
+      are_models_missing = true;
       for (u32 j = 0; j < kKindCount; j++) ctx.resources_[j] = nullptr;
       return false;
     }
   }
   return true;
+#else
+  return false;
+#endif
 }
 
 TallGrass::Patch* TallGrass::FindPatch(s32 tile_x, s32 tile_z) {
@@ -240,12 +265,7 @@ void TallGrass::DropAll() {
     pokemon::ModelLoader::Drop(&ctx.patches_[i].model);
     ctx.patches_[i] = Patch{};
   }
-  for (u32 i = 0; i < kKindCount; i++) {
-    if (ctx.resources_[i] != nullptr) ctx.resources_[i]->RemoveData();
-    ctx.resources_[i] = nullptr;
-  }
-  pokemon::ModelLoader::FreeBuffer(ctx.pack_);
-  ctx.pack_ = nullptr;
+  for (u32 i = 0; i < kKindCount; i++) ctx.resources_[i] = nullptr;
 }
 
 void TallGrass::DiscardAll() {
@@ -257,7 +277,6 @@ void TallGrass::DiscardAll() {
     ctx.patches_[i] = Patch{};
   }
   for (u32 i = 0; i < kKindCount; i++) ctx.resources_[i] = nullptr;
-  ctx.pack_ = nullptr;
 }
 
 void TallGrass::RemoveModelsBeforeBattle() {
@@ -315,7 +334,13 @@ void TallGrass::Update() {
   if (ctx.frame_ - ctx.map_load_frame_ < kShowDelayFrames) return;
   if (ctx.frame_ % kRefreshFrames != 0) return;
   if (!LoadResources()) {
+    // Without the object of the game, wait: the field is loading. Without
+    // the models, nothing will change: stop.
+#ifdef GAME_ORAS
+    if (are_models_missing) ctx.is_enabled = false;
+#else
     ctx.is_enabled = false;
+#endif
     return;
   }
   if (ctx.frame_ < 3000) Trace("refresh");

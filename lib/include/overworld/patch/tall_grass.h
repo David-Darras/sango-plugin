@@ -87,7 +87,6 @@ private:
   static void DiscardAll();
 
   Patch patches_[kMaxPatches];
-  void* pack_ = nullptr;
   renderer::H3dResource* resources_[kKindCount] = {};
   u32 frame_ = 0;
   u32 map_load_frame_ = 0;

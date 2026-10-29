@@ -81,11 +81,6 @@ void LoadCheatsPage(MainApplication& app, void* args) {
      .WithCallback(overworld::DayCare::ApplyMaxExp)
      .WithDescription("Press {A} to switch it. The Pokemon of the Day Care get "
                       "the maximum experience.")
-#ifdef GAME_ORAS
-     .AddSection("World")
-     .Add("Tall Grass", LoadTallGrassPage)
-     .WithDescription("Shows 3D tall grass around the player.")
-#endif
      ;
 }
 } // namespace ui

@@ -658,6 +658,11 @@ void LoadOverworldPage(MainApplication& app, void* args) {
       .WithDescription("Joins maps together (grafts) and edits the tiles.")
       .Add("Map Tile", LoadOverworldMapTilePage)
       .WithDescription("Replaces the attributes of all the tiles: water, "
-          "walls, encounters...");
+          "walls, encounters...")
+#ifdef GAME_ORAS
+      .Add("Tall Grass", LoadTallGrassPage)
+      .WithDescription("Shows 3D tall grass around the player.")
+#endif
+      ;
 }
 } // namespace ui

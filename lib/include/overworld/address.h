@@ -47,6 +47,10 @@ constexpr uptr kPlayerHitCheckAnalog = GAME_ADDRESS(0, 0x00755C58);
 /// Starts the command of an action of the player (a walk, a run...), by its
 /// number (ORAS only). Parameters: the player, the command, the direction.
 constexpr uptr kPlayerSetCommand = GAME_ADDRESS(0, 0x0076A6F4);
+/// Gives a model of the resident resources of the field (the grass, the
+/// shadows, the particles...) by its number in the pack of the field. The
+/// first parameter is the object that keeps these resources (ORAS only).
+constexpr uptr kGetResidentModel = GAME_ADDRESS(0, 0x0075B450);
 constexpr uptr kLoadMapData = GAME_ADDRESS(0x003BCFA0, 0x003D9BD4);
 constexpr uptr kGetDexNavTable = GAME_ADDRESS(0, 0x004013A4);
 constexpr uptr kGetEncounterContactAction = GAME_ADDRESS(0, 0x0076E10C);
