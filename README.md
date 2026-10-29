@@ -4,7 +4,7 @@
 
 ### Make your own Pokémon Alpha Sapphire ROM hack, in C++, without changing a single game file.
 
-![Version](https://img.shields.io/badge/version-7.0.0-ff4f9a.svg)
+![Version](https://img.shields.io/badge/version-7.1.0-ff4f9a.svg)
 ![License](https://img.shields.io/badge/license-GPL--3.0-blue.svg)
 ![Language](https://img.shields.io/badge/language-C%2B%2B11-orange.svg)
 ![Platform](https://img.shields.io/badge/platform-3DS%20%7C%20Azahar-red.svg)

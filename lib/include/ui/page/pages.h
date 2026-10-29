@@ -126,3 +126,14 @@ void LoadThemePage(MainApplication& app, void* args);
 
 /// Keeps the model of the model loader page near the player.
 void UpdateFollowingPokemon();
+
+/// Removes the model from the scene before a battle starts. Call it before the
+/// game destroys the scene.
+void RemoveFollowingPokemonBeforeBattle();
+
+/// The switch of the Pokémon that follows the player (page Cheats). The
+/// Pokémon appears when the switch is on and the game is ready for it.
+bool& FollowingPokemonSwitch();
+
+/// The callback of the switch: removes the Pokémon when the switch goes off.
+void ApplyFollowingPokemon(void*);

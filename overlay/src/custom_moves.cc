@@ -62,10 +62,10 @@ void PatchAbsoluteZeroData(pokemon::MoveData& move) {
   move.type = TypeId::kIce;
   move.effect_id = StatusCondition::kFreeze;
   move.effect_rate = 100;
-  move.effect_turn_type = 1;
+  move.effect_turn_type = EffectTurnType::kPermanent;
   move.flinch_rate = 0;
-  move.category = 1; // 1 = status only.
-  move.damage_category = 0;
+  move.category = MoveCategory::kStatus;
+  move.damage_category = DamageCategory::kStatus;
 }
 
 // Solar Flare: a physical move that always burns and always flinches.
@@ -76,10 +76,10 @@ void PatchSolarFlareData(pokemon::MoveData& move) {
   move.type = TypeId::kFire;
   move.effect_id = StatusCondition::kBurn;
   move.effect_rate = 100;
-  move.effect_turn_type = 1;
+  move.effect_turn_type = EffectTurnType::kPermanent;
   move.flinch_rate = 100;
-  move.category = 4; // 4 = damage, then a status condition.
-  move.damage_category = 1;
+  move.category = MoveCategory::kDamageStatus;
+  move.damage_category = DamageCategory::kPhysical;
 }
 
 void UseHailAnimation(u32& id, bool& is_move) {

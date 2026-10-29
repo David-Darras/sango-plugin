@@ -86,6 +86,7 @@
 #include "system/native/graphics.h"
 #include "ui/application_manager.h"
 #include "ui/main_application.h"
+#include "ui/page/pages.h"
 #include "ui/patch/app_status.h"
 #include "ui/patch/keyboard_patch.h"
 #include "overworld/patch/world_overlay.h"
@@ -198,6 +199,7 @@ void UpdateFrame() {
 #ifdef GAME_ORAS
   overworld::TallGrass::Update();
   overworld::HealerFollower::Update();
+  UpdateFollowingPokemon();
 #endif
 #ifndef GAME_XY
   overworld::MapGraft::Update();

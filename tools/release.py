@@ -2,8 +2,8 @@
 """Builds the release zip of the plugin and publishes it on GitHub.
 
 Usage (the Makefile calls it):
-  release.py pack    --version 7.0.0 --plugin sango_plugin-release.3gx
-  release.py publish --version 7.0.0 [--draft] [--yes]
+  release.py pack    --version 7.1.0 --plugin sango_plugin-release.3gx
+  release.py publish --version 7.1.0 [--draft] [--yes]
 
 The zip has the layout of the SD card:
   luma/plugins/000400000011C500/sango_plugin.3gx

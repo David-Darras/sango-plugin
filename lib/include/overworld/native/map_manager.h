@@ -48,6 +48,15 @@ public:
     return core::GameManager::GetInstance().GetOverworldMapManager();
   }
 
+  /// Returns the manager, or null when the game did not make it yet (the
+  /// first frames of the overworld).
+  STATIC_INLINE MapManager* GetInstanceOrNull() {
+    uptr address = reinterpret_cast<uptr>(&GetInstance());
+    // The compiler thinks that a reference is never null: this hides it.
+    __asm__ volatile("" : "+r"(address));
+    return reinterpret_cast<MapManager*>(address);
+  }
+
   /// Sends the player to a map and a position.
   STATIC_INLINE void ChangeMap(MapId map_id, const Position& position,
                                Facing facing, bool keep_background_music,

@@ -70,8 +70,8 @@ namespace {
 // 1. The data of the move. The game starts from the data of Pound.
 void PatchThunderclapData(pokemon::MoveData& move) {
   move.type = TypeId::kElectric;
-  move.category = 0;          // 0 = damage only.
-  move.damage_category = 2;   // 2 = special (1 = physical, 0 = status).
+  move.category = MoveCategory::kDamage;           // Damage only.
+  move.damage_category = DamageCategory::kSpecial; // Or kPhysical, kStatus.
   move.power = 70;
   move.accuracy = 100;        // 101 = the move never misses.
   move.base_pp = 5;
@@ -177,8 +177,8 @@ These are the members of `pokemon::MoveData` that you change most:
 | Member | Values |
 |---|---|
 | `type` | `TypeId::kNormal`, `TypeId::kFire`... |
-| `damage_category` | 0 = status, 1 = physical, 2 = special. |
-| `category` | 0 = damage, 1 = status condition only, 2 = stat change only, 3 = recovery, 4 = damage + status condition, 6 = damage + stat change of the target, 7 = damage + stat change of the user, 8 = HP drain, 9 = one-hit KO. |
+| `damage_category` | `DamageCategory::kStatus`, `kPhysical`, `kSpecial`. |
+| `category` | `MoveCategory::kDamage` (damage only), `kStatus` (status condition only), `kEffect` (stat change only), `kRecover`, `kDamageStatus` (damage + status condition), `kEffectStatus`, `kDamageEffect` (damage + stat change of the target), `kDamageEffectUser`, `kDrain`, `kOneHitKo`, `kFieldEffect`, `kSideEffect`. A move that lowers a stat with the category `kEffect` deals no damage, whatever its power is: set `kDamage` to make it hurt. |
 | `power` | The power. 0 for a status move. |
 | `accuracy` | 1 to 100. 101 = the move never misses. |
 | `base_pp` | The PP. |
@@ -188,8 +188,8 @@ These are the members of `pokemon::MoveData` that you change most:
 | `flinch_rate` | The chance of a flinch, in percent. |
 | `crit_stage` | The critical hit stage. |
 | `recoil`, `drain` | The recoil or the HP drain, in percent. |
-| `target` | 0 = one other Pokémon (selected), 3 = one opponent, 4 = all the other Pokémon, 5 = all the opponents, 7 = the user. |
-| `stat_id`, `stat_stages`, `stat_rate` | Up to three stat changes: the stat, the number of stages, the chance in percent. |
+| `target` | `MoveTarget::kOtherSelect` (one other Pokémon), `kEnemySelect` (one opponent), `kOtherAll`, `kEnemyAll`, `kUser`... |
+| `stat_id`, `stat_stages`, `stat_rate` | Up to three stat changes: the stat (`MoveStat::kAttack`...), the number of stages, the chance in percent. |
 
 The values come from the data of the game. The page **Game Data > Move Data** of
 the overlay shows the data of all the moves: use it to copy the values of a

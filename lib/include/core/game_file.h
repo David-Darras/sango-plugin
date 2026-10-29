@@ -76,5 +76,9 @@ public:
    * @return The size in bytes, or 0 when the heap does not exist.
    */
   static u32 GetFreeHeapMemory(s32 heap_id);
+
+  /// Returns the size of the largest free block of a heap of the game, in
+  /// bytes (0 for a null heap).
+  static u32 GetFreeMemory(void* heap);
 };
 } // namespace core

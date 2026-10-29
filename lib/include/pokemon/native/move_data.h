@@ -27,6 +27,7 @@
 #include "common.h"
 #include "battle/constant/status_condition.h"
 #include "pokemon/constant/move.h"
+#include "pokemon/constant/move_data_kind.h"
 #include "pokemon/constant/type.h"
 #include "pokemon/address.h"
 
@@ -58,8 +59,8 @@ struct MoveData {
 #endif
 
   TypeId type; ///< The type.
-  u8 category; ///< 0 damage, 1 status, 2 stat change, 3 recovery, 4 damage + status...
-  u8 damage_category; ///< 0 status, 1 physical, 2 special.
+  MoveCategory category; ///< What the move does: damage, status, stat change...
+  DamageCategory damage_category; ///< Status, physical or special.
   u8 power; ///< The power. 0 for a status move.
 
   u8 accuracy; ///< The accuracy in percent. 101: the move never misses.
@@ -70,7 +71,7 @@ struct MoveData {
   StatusCondition effect_id; ///< The status condition that the move gives.
   u8 _1;
   u8 effect_rate; ///< The chance of the status condition, in percent.
-  u8 effect_turn_type; ///< How long the status condition stays.
+  EffectTurnType effect_turn_type; ///< How long the status condition stays.
 
   u8 min_turns; ///< The minimum number of turns of the effect.
   u8 max_turns; ///< The maximum number of turns of the effect.
@@ -81,8 +82,8 @@ struct MoveData {
   s8 recoil; ///< The recoil in percent of the damage (negative value).
   s8 drain; ///< The HP drain in percent of the damage.
 
-  u8 target; ///< The target (0 one other Pokémon, 3 one opponent, 7 the user...).
-  u8 stat_id[3]; ///< The stats that the move changes.
+  MoveTarget target; ///< The Pokémon that the move hits.
+  MoveStat stat_id[3]; ///< The stats that the move changes.
   s8 stat_stages[3]; ///< The number of stages for each stat.
   u8 stat_rate[3]; ///< The chance of each stat change, in percent.
 

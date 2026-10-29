@@ -30,6 +30,7 @@
 #include "battle/native/config.h"
 #include "savedata/native/pokemon_team.h"
 #include "battle/address.h"
+#include "ui/page/pages.h"
 
 namespace battle {
 
@@ -52,6 +53,7 @@ void Setup::SetupTrainerHook(Config* config, void* game_manager,
   overworld::PlacedDecorations::RemoveModelsBeforeBattle();
 #ifdef GAME_ORAS
   overworld::TallGrass::RemoveModelsBeforeBattle();
+  RemoveFollowingPokemonBeforeBattle();
 #endif
   const TrainerId forced = GetInstance().trainer_id;
   if (forced != TrainerId::kNone) trainer_id = forced;
@@ -72,6 +74,7 @@ void Setup::SetupWildHook(Config* config,
   overworld::PlacedDecorations::RemoveModelsBeforeBattle();
 #ifdef GAME_ORAS
   overworld::TallGrass::RemoveModelsBeforeBattle();
+  RemoveFollowingPokemonBeforeBattle();
 #endif
   setup_wild_hook(config, game_manager, opponent_team, p1, format, effect_id,
                   p2);

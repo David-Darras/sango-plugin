@@ -72,6 +72,12 @@ public:
   /// The name of a bone, or an empty text.
   static const c8* GetBoneName(const H3dModel* model, u32 bone);
 
+  /// Gives the matrices of the bones of a model in the world (12 numbers for
+  /// each bone: 3 rows of 4) and the parent of each bone. Returns null when the
+  /// model has no readable skeleton. @a count gets the number of bones.
+  static f32* GetWorldMatrices(const H3dModel* model, u32* count,
+                               const u16** parents);
+
   /// Returns the change of a bone, or null.
   static const BoneChange* GetChange(const H3dModel* model, u32 bone);
 

@@ -108,5 +108,24 @@ constexpr uptr kItemEvStatLimitCheck6 = GAME_ADDRESS(0x00440C60, 0x0046E41C);
 
 constexpr uptr kUtilsFromBallIdToItemId = GAME_ADDRESS(0x003A0610, 0x003B7300);
 
+/// The skeleton motion of a Pokémon model (the animations of the pack section
+/// 5). ORAS only. The vtable is the one of the motion object that the game
+/// makes for each Pokémon model. The functions are: set up the motion with its
+/// data, the model and the heap; move the motion forward one frame; copy the
+/// bones of the motion to a model; make a block of memory in a game heap.
+constexpr uptr kMotionVtable = GAME_ADDRESS(0, 0x005DED60);
+constexpr uptr kMotionInitialize = GAME_ADDRESS(0, 0x003C0CB4);
+constexpr uptr kMotionUpdate = GAME_ADDRESS(0, 0x003BFCBC);
+constexpr uptr kMotionApplyToModel = GAME_ADDRESS(0, 0x003BED24);
+constexpr uptr kMotionIsAvailable = GAME_ADDRESS(0, 0x003ADDB0);
+constexpr uptr kHeapNew = GAME_ADDRESS(0, 0x001235A8);
+/// Plays the cry of a Pokémon. Arguments: the voice (0), the species, the form,
+/// the kind of cry (0), and true for a cry in 3D. ORAS only.
+constexpr uptr kPlayCry = GAME_ADDRESS(0, 0x004500C0);
+/// The voice players of the game: the number of players is at +12 of the first
+/// address, and the second address is the array of players. ORAS only.
+constexpr uptr kVoiceManager = GAME_ADDRESS(0, 0x005F4F88);
+constexpr uptr kVoicePlayers = GAME_ADDRESS(0, 0x00630F2C);
+
 } // namespace address
 } // namespace pokemon

@@ -67,6 +67,9 @@ First steps
 - Overworld > World Overlay draws the walls, the water, the warps and the
   hidden items on the ground, in 3D.
 - Save Data > Team edits the Pokemon of your team.
+- Cheats > Followers > Following Pokemon: your first Pokemon walks near
+  you. L plays a battle animation and R a Pokemon-Amie animation, with its
+  cry.
 - Do not save the game with a new Pokemon in your team: this can corrupt
   your save file.
 

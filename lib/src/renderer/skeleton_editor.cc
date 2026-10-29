@@ -23,6 +23,7 @@
  */
 
 #include "renderer/patch/skeleton_editor.h"
+#include "pokemon/patch/model_loader.h"
 
 #include <cmath>
 #include <cstdio>
@@ -146,11 +147,40 @@ void SkeletonEditor::Initialize() {
 void SkeletonEditor::MeshDrawHook(void* mesh, void* helper, void* state,
                                   void* extra) {
   auto& self = GetInstance();
+  // The animation of a Pokémon model goes first: the changes of the editor come after.
+  pokemon::ModelLoader::ApplyMotion(
+      reinterpret_cast<const void*>(reinterpret_cast<uptr>(state) - kStateOffset));
   if (self.edit_count_ != 0 || self.has_runtime_) {
     self.ApplyToModel(reinterpret_cast<const H3dModel*>(
         reinterpret_cast<uptr>(state) - kStateOffset));
   }
   mesh_draw_hook(mesh, helper, state, extra);
+}
+
+f32* SkeletonEditor::GetWorldMatrices(const H3dModel* model, u32* count,
+                                      const u16** parents) {
+#ifdef GAME_ORAS
+  const u32 bones = GetBoneCount(model);
+  if (bones == 0) return nullptr;
+  const uptr base = reinterpret_cast<uptr>(model);
+  const uptr parents_address =
+      *reinterpret_cast<const uptr*>(base + kParentsOffset);
+  const uptr worlds_address =
+      *reinterpret_cast<const uptr*>(base + kWorldMatricesOffset);
+  const u32 state_count = *reinterpret_cast<const u32*>(base + kBoneCountOffset);
+  if (!IsReadable(worlds_address) || (parents_address & 1) != 0 ||
+      !sys::Graphics::IsDataAddress(parents_address) || state_count < bones) {
+    return nullptr;
+  }
+  *count = bones;
+  *parents = reinterpret_cast<const u16*>(parents_address);
+  return reinterpret_cast<f32*>(worlds_address);
+#else
+  (void)model;
+  (void)count;
+  (void)parents;
+  return nullptr;
+#endif
 }
 
 u32 SkeletonEditor::GetBoneCount(const H3dModel* model) {

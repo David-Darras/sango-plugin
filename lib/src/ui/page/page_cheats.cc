@@ -72,6 +72,12 @@ void LoadCheatsPage(MainApplication& app, void* args) {
      .Add("Healer Follower", overworld::HealerFollower::GetInstance().is_enabled)
      .WithDescription("A nurse follows the player. Talk to her to heal the "
                       "team.")
+     .Add("Following Pokemon", FollowingPokemonSwitch())
+     .WithCallback(ApplyFollowingPokemon)
+     .WithDescription("The first Pokemon of the team walks near the player. "
+                      "L plays a battle animation and R a Pokemon-Amie "
+                      "animation, with its cry. It leaves during the "
+                      "menus, the scripts and the battles.")
 #endif
      .AddSection("Day Care")
      .Add("Instant Egg Hatch", day_care.instant_egg_hatch)

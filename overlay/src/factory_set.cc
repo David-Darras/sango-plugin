@@ -50,8 +50,8 @@ using pokemon::TypeId;
 constexpr u32 kLevel = 50;
 constexpr u32 kMaxLearnable = 128;
 constexpr u32 kMinPower = 40;
-constexpr u8 kPhysical = 1;
-constexpr u8 kSpecial = 2;
+constexpr DamageCategory kPhysical = DamageCategory::kPhysical;
+constexpr DamageCategory kSpecial = DamageCategory::kSpecial;
 
 constexpr u32 kStatHp = 0;
 constexpr u32 kStatAttack = 1;
@@ -236,7 +236,7 @@ u32 ScoreMove(const Profile& profile, const MoveData& data) {
   const u32 accuracy = data.accuracy == 0 ? 100 : data.accuracy;
   u32 score = data.power * accuracy / 100;
   if (IsStab(profile, data.type)) score = score * 3 / 2;
-  const u8 wanted = profile.is_physical ? kPhysical : kSpecial;
+  const DamageCategory wanted = profile.is_physical ? kPhysical : kSpecial;
   if (data.damage_category != wanted) score /= 4;
   return score * (80 + core::Utils::GetRandomValue(40)) / 100;
 }
@@ -266,14 +266,14 @@ enum class Want { kAny, kStab, kCoverage };
 MoveId PickAttack(const Profile& profile, const MoveId* learnable, u32 count,
                   const MoveChoice& chosen, Want want, bool same_category,
                   TypeId only_type = TypeId::kCount) {
-  const u8 wanted = profile.is_physical ? kPhysical : kSpecial;
+  const DamageCategory wanted = profile.is_physical ? kPhysical : kSpecial;
   MoveId best = MoveId::kNone;
   u32 best_score = 0;
   for (u32 i = 0; i < count; i++) {
     const MoveId move = learnable[i];
     if (chosen.Has(move)) continue;
     const MoveData& data = MoveData::GetInstance(move);
-    if (data.damage_category == 0 || data.power < kMinPower) continue;
+    if (data.damage_category == DamageCategory::kStatus || data.power < kMinPower) continue;
     if (same_category && data.damage_category != wanted) continue;
     if (only_type != TypeId::kCount && data.type != only_type) continue;
     const bool stab = IsStab(profile, data.type);

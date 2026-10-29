@@ -125,6 +125,25 @@ constexpr uptr kH3dModelGetMeshNodeCount = GAME_ADDRESS(0, 0x004CD1B8);
 constexpr uptr kH3dModelGetMeshNodeName = GAME_ADDRESS(0, 0x004CD0D8);
 constexpr uptr kH3dModelIsMeshNodeVisible = GAME_ADDRESS(0, 0x004CD258);
 constexpr uptr kH3dModelGetMaterialName = GAME_ADDRESS(0, 0x004CD094);
+/// The light set of a material (the set of lights that lights the material). ORAS only.
+constexpr uptr kH3dModelSetMaterialLightSet = GAME_ADDRESS(0, 0x003989B0);
+constexpr uptr kH3dModelGetMaterialLightSet = GAME_ADDRESS(0, 0x004CD6C8);
+/// Makes a directional light and a light set, and adds them to a scene.
+/// Arguments: heap allocator, device allocator, an array of two pointers for
+/// the light and the set, the scene, the calculation group, the light set
+/// number. ORAS only.
+constexpr uptr kCreateSceneLight = GAME_ADDRESS(0, 0x0045435C);
+/// Removes the set of lights of a number from a scene (give null as the set),
+/// and removes a node (a light) from the calculation list of a scene. A scene
+/// that keeps a light after the game freed its memory freezes the game. ORAS only.
+constexpr uptr kSceneSetLightSet = GAME_ADDRESS(0, 0x00389FEC);
+/// The colours of a light: ambient, diffuse and the two speculars. Each takes a
+/// light and three numbers (red, green, blue). ORAS only.
+constexpr uptr kLightSetAmbient = GAME_ADDRESS(0, 0x00386D78);
+constexpr uptr kLightSetDiffuse = GAME_ADDRESS(0, 0x00386EE4);
+constexpr uptr kLightSetSpecular0 = GAME_ADDRESS(0, 0x0038702C);
+constexpr uptr kLightSetSpecular1 = GAME_ADDRESS(0, 0x0038717C);
+constexpr uptr kSceneRemoveNodeFromCalc = GAME_ADDRESS(0, 0x0038C1E4);
 /// The setters of the texture coordinates of a material: the scale, the turn
 /// and the move of the UV. ORAS only.
 constexpr uptr kH3dModelSetUvScale = GAME_ADDRESS(0, 0x003999AC);

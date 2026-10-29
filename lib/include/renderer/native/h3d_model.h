@@ -88,6 +88,19 @@ struct H3dModel {
       address::kH3dModelGetMaterialCount)(this);
   }
 
+#ifdef GAME_ORAS
+  /// Returns the light set of a material. -1: the model has none.
+  INLINE s32 GetLightSet(s32 mat) {
+    return ((s32(*)(H3dModel*, s32))
+      address::kH3dModelGetMaterialLightSet)(this, mat);
+  }
+
+  INLINE void SetLightSet(s32 mat, s32 light_set) {
+    ((void(*)(H3dModel*, s32, s32))
+      address::kH3dModelSetMaterialLightSet)(this, mat, light_set);
+  }
+#endif
+
   INLINE void SetCombineRgb(s32 mat, s32 step, s32 combine) {
     return ((void(*)(H3dModel*, s32, s32, s32))
       address::kH3dModelSetCombinerCombineRgb)(this, mat, step, combine);
