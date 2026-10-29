@@ -86,6 +86,8 @@ void LoadBattleSettingsPage(MainApplication& app, void* args) {
      .Add("Type Helper", ctx.show_type_helper)
      .WithDescription("Shows the effectiveness of each move against the "
                       "opponent.")
+     .Add("HP Bar Gradient", ctx.hp_gradient)
+     .WithDescription("Colors the HP bar with a gradient, from magenta when the HP is low to cyan when it is full.")
      .Add("No Shader", ctx.no_shader)
      .WithDescription("Turns off the shaders of the battle.")
      .AddSection("Animations")

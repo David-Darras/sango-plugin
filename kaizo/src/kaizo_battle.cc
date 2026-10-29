@@ -23,6 +23,7 @@
 #include "battle/native/pokemon.h"
 #include "battle/patch/battle.h"
 #include "core/constant/event_flag.h"
+#include "core/patch/music_lock.h"
 #include "core/utils.h"
 #include "pokemon/native/utils.h"
 #include "savedata/native/event_table.h"
@@ -92,7 +93,8 @@ void PatchBattle() {
   battle.show_pokeball_animation = false;
   battle.show_shiny_animation = false;
   battle.show_trainer_animation = false;
-  battle.sync_overworld_music = true;
+  battle.hp_gradient = true;
+  core::MusicLock::GetInstance().is_enabled = true;
 
   savedata::Settings::GetInstance().battle_background_id =
       core::Utils::GetRandomValue(15);

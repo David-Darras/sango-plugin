@@ -91,6 +91,8 @@ void MusicLock::ChangeMusicHook(u32 id, u32 fade_out, u32 fade_in, u32 flag) {
   auto& ctx = GetInstance();
   if (!ctx.plugin_play_ && ctx.IsHolding()) return;
   ctx.last_played_ = id;
+  // Turned on by the code before any music plays: keep the first music.
+  if (ctx.is_enabled && ctx.kept_ == 0) ctx.kept_ = id;
   change_music_hook(id, fade_out, fade_in, flag);
 }
 

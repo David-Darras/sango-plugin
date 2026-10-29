@@ -39,9 +39,10 @@ struct BattleSettings {
   bool show_trainer_animation = false;
   bool show_pokeball_animation = false;
   bool show_fade_in = false;
-  bool show_shiny_animation = false;
+  bool show_shiny_animation = true; ///< The stars of the game when a shiny Pokémon comes out.
 
   bool no_shader = false;
+  bool hp_gradient = false; ///< Colors the HP bar with a gradient from magenta to cyan.
   bool can_use_item = true;
   bool same_ratio_for_all_pokeball = false;
   bool fix_pokemon_size = true; ///< Shows the Pokémon with their real sizes.
