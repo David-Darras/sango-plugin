@@ -4,13 +4,15 @@
 
 ### Make your own Pokémon Alpha Sapphire ROM hack, in C++, without changing a single game file.
 
-![Version](https://img.shields.io/badge/version-6.0.0-ff4f9a.svg)
+![Version](https://img.shields.io/badge/version-7.0.0-ff4f9a.svg)
 ![License](https://img.shields.io/badge/license-GPL--3.0-blue.svg)
 ![Language](https://img.shields.io/badge/language-C%2B%2B11-orange.svg)
 ![Platform](https://img.shields.io/badge/platform-3DS%20%7C%20Azahar-red.svg)
 ![Game](https://img.shields.io/badge/game-Alpha%20Sapphire%20v1.4-9cf.svg)
 
-<img src="assets/readme/sango-plugin.png" width="720" alt="The Sango Plugin menu over the overworld of Alpha Sapphire">
+<img src="assets/readme/live-painting.png" width="235" alt="Painting the texture of a Pokémon live in battle">
+<img src="assets/readme/menu.png" width="235" alt="The Sango Plugin menu over the overworld of Alpha Sapphire">
+<img src="assets/readme/world-overlay.png" width="235" alt="The tiles of the overworld drawn in 3D on the ground">
 
 **[Documentation](docs/README.md)** ·
 **[Install the tools](docs/getting-started/01-install-the-tools.md)** ·
@@ -61,6 +63,7 @@ script::NativeScript::Register(kCandyGiver, CandyGiver);
 - Double, triple, rotation and horde battles anywhere
 - Type chart editor, inverse battles, Metronome-only battles
 - Unlimited Mega Evolutions
+- A bigger star effect when a shiny Pokémon comes out of its Poké Ball
 
 </td>
 <td width="50%" valign="top">
@@ -83,6 +86,7 @@ script::NativeScript::Register(kCandyGiver, CandyGiver);
 - Shiny rate, evolutions, Mega Evolution table
 - Species and move data editor
 - Poké Marts that sell Pokémon
+- **Texture painting** on the Pokémon models, live in battle
 
 </td>
 </tr>
@@ -94,6 +98,7 @@ script::NativeScript::Register(kCandyGiver, CandyGiver);
 - **Free camera**, first-person view, top view
 - **Multiplayer**: see other players walk in your world
 - 3D tall grass, hidden items, Secret Base decorations everywhere
+- **World overlay**: walls, water, script tiles, warps, hidden items and the sight of the trainers, drawn in 3D on the ground
 - Weather, time of day, wild Pokémon, gift Pokémon, in-game trades
 - Field moves from the menu, auto-Surf
 
@@ -107,7 +112,7 @@ script::NativeScript::Register(kCandyGiver, CandyGiver);
 <tr>
 <td width="50%" valign="top">
 
-<img src="assets/readme/free-camera.png" alt="The free camera in the overworld">
+<img src="assets/readme/team-editor.png" alt="The team editor of the in-game menu">
 
 </td>
 <td width="50%" valign="top">
@@ -129,7 +134,7 @@ script::NativeScript::Register(kCandyGiver, CandyGiver);
 
 |                                                        | Product | Description |
 |--------------------------------------------------------|---|---|
-| <img src="assets/readme/overlay-menu.png" width="200"> | **The overlay** (`overlay/`) | Every page of the library in one menu. Explore and test the game. |
+| <img src="assets/readme/menu.png" width="200"> | **The overlay** (`overlay/`) | Every page of the library in one menu. Explore and test the game. |
 | <img src="assets/kaizo/battle-triple.jpg" width="200"> | **[Pokémon Sango Kaizo](kaizo.md)** (`kaizo/`) | A difficult version of Alpha Sapphire: Nuzlocke rules, level caps, competitive trainers, custom moves and abilities, quality-of-life features. |
 |      | **Pokémon Undertow** (`undertow/`) | Play as a Team Aqua grunt. Work in progress. |
 
@@ -193,7 +198,6 @@ tools/        helper scripts (multiplayer relay)
 - [CTRPluginFramework](https://gitlab.com/thepixellizeross/ctrpluginframework) and
   [3gxtool](https://gitlab.com/thepixellizeross/3gxtool) by ThePixellizerOSS.
 - [Luma3DS](https://github.com/LumaTeam/Luma3DS), [devkitPro](https://devkitpro.org) and [Azahar](https://azahar-emu.org).
-- The names of the game come from [Bulbapedia](https://bulbapedia.bulbagarden.net).
 
 ## License
 
