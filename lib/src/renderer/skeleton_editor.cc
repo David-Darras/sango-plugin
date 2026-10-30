@@ -133,7 +133,354 @@ void Multiply(const f32* a, const f32* b, f32* out) {
   }
   memcpy(out, result, sizeof(result));
 }
+
+struct Vector {
+  f32 x, y, z;
+};
+
+Vector Subtract(const Vector& a, const Vector& b) {
+  return {a.x - b.x, a.y - b.y, a.z - b.z};
+}
+
+f32 Length(const Vector& v) { return sqrtf(v.x * v.x + v.y * v.y + v.z * v.z); }
+
+Vector Normalize(const Vector& v) {
+  const f32 length = Length(v);
+  if (length < 1e-9f) return {0.0f, -1.0f, 0.0f};
+  return {v.x / length, v.y / length, v.z / length};
+}
+
+Vector BonePosition(const f32* worlds, u32 bone) {
+  return {worlds[bone * 12 + 3], worlds[bone * 12 + 7], worlds[bone * 12 + 11]};
+}
+
+// The turn (3 rows and 3 columns) that takes the direction @a from to the
+// direction @a to. Both are unit vectors.
+void MakeTurn(const Vector& from, const Vector& to, f32 out[9]) {
+  const f32 dot = from.x * to.x + from.y * to.y + from.z * to.z;
+  Vector axis = {from.y * to.z - from.z * to.y, from.z * to.x - from.x * to.z,
+                 from.x * to.y - from.y * to.x};
+  f32 sine = Length(axis);
+  f32 cosine = dot;
+  if (sine < 1e-6f) {
+    if (dot > 0.0f) {
+      const f32 identity[9] = {1, 0, 0, 0, 1, 0, 0, 0, 1};
+      memcpy(out, identity, sizeof(identity));
+      return;
+    }
+    // The opposite direction: a half turn around any direction that is
+    // perpendicular.
+    axis = fabsf(from.x) < 0.9f ? Vector{0, -from.z, from.y}
+                                : Vector{-from.z, 0, from.x};
+    axis = Normalize(axis);
+    sine = 0.0f;
+    cosine = -1.0f;
+  } else {
+    axis = {axis.x / sine, axis.y / sine, axis.z / sine};
+  }
+  const f32 t = 1.0f - cosine;
+  out[0] = cosine + axis.x * axis.x * t;
+  out[1] = axis.x * axis.y * t - axis.z * sine;
+  out[2] = axis.x * axis.z * t + axis.y * sine;
+  out[3] = axis.y * axis.x * t + axis.z * sine;
+  out[4] = cosine + axis.y * axis.y * t;
+  out[5] = axis.y * axis.z * t - axis.x * sine;
+  out[6] = axis.z * axis.x * t - axis.y * sine;
+  out[7] = axis.z * axis.y * t + axis.x * sine;
+  out[8] = cosine + axis.z * axis.z * t;
+}
+
+// Turns a bone and the bones under it around the place of the bone.
+void TurnBranch(f32* worlds, const u16* parents, u32 count, u32 bone,
+                const f32 turn[9]) {
+  bool is_in_tree[128] = {};
+  if (count > 128) return;
+  is_in_tree[bone] = true;
+  for (u32 pass = 0; pass < 16; pass++) {
+    bool is_changed = false;
+    for (u32 i = 0; i < count; i++) {
+      const u32 parent = parents[i];
+      if (!is_in_tree[i] && parent < count && parent != i && is_in_tree[parent]) {
+        is_in_tree[i] = true;
+        is_changed = true;
+      }
+    }
+    if (!is_changed) break;
+  }
+  const Vector pivot = BonePosition(worlds, bone);
+  for (u32 i = 0; i < count; i++) {
+    if (!is_in_tree[i]) continue;
+    f32* m = worlds + i * 12;
+    f32 result[12];
+    const f32 px = m[3] - pivot.x;
+    const f32 py = m[7] - pivot.y;
+    const f32 pz = m[11] - pivot.z;
+    const f32 center[3] = {pivot.x, pivot.y, pivot.z};
+    for (u32 row = 0; row < 3; row++) {
+      for (u32 col = 0; col < 3; col++) {
+        result[row * 4 + col] = turn[row * 3 + 0] * m[0 * 4 + col] +
+                                turn[row * 3 + 1] * m[1 * 4 + col] +
+                                turn[row * 3 + 2] * m[2 * 4 + col];
+      }
+      result[row * 4 + 3] = turn[row * 3 + 0] * px + turn[row * 3 + 1] * py +
+                            turn[row * 3 + 2] * pz + center[row];
+    }
+    memcpy(m, result, sizeof(result));
+  }
+}
+
+// The bones from @a bone up to the root: the length of the path.
+u32 GetPath(const u16* parents, u32 count, u32 bone, u16* path) {
+  u32 length = 0;
+  while (bone < count && length < count) {
+    path[length++] = static_cast<u16>(bone);
+    const u32 parent = parents[bone];
+    if (parent == bone || parent >= count) break;
+    bone = parent;
+  }
+  return length;
+}
 } // namespace
+
+// A pointer of the character objects to the model, one or two levels deep.
+bool SkeletonEditor::IsSeatModel(const H3dModel* model, u32 count) {
+  if (!has_seat_pose_ || model == seat_excluded_ || count < 20) return false;
+  if (model == seat_model_) return true;
+  for (u32 i = 0; i < seat_checked_count_; i++) {
+    if (seat_checked_[i] == model) return false;
+  }
+  const uptr wanted = reinterpret_cast<uptr>(model);
+  bool is_found = false;
+  for (u32 owner = 0; owner < 2 && !is_found; owner++) {
+    const uptr* words = static_cast<const uptr*>(seat_owner_[owner]);
+    if (words == nullptr) continue;
+    const u32 word_count = seat_owner_size_[owner] / sizeof(uptr);
+    for (u32 i = 0; i < word_count && !is_found; i++) {
+      if (words[i] == wanted) {
+        is_found = true;
+        break;
+      }
+      const uptr inner = words[i];
+      if ((inner & 3) != 0 || !sys::Graphics::IsDataAddress(inner) ||
+          !sys::Graphics::IsDataAddress(inner + 0x100)) {
+        continue;
+      }
+      const uptr* deep = reinterpret_cast<const uptr*>(inner);
+      for (u32 j = 0; j < 64; j++) {
+        if (deep[j] == wanted) {
+          is_found = true;
+          break;
+        }
+      }
+    }
+  }
+  if (is_found) {
+    seat_model_ = model;
+  } else if (seat_checked_count_ < 8) {
+    seat_checked_[seat_checked_count_++] = model;
+  }
+  return is_found;
+}
+
+bool SkeletonEditor::ApplySeatPose(const H3dModel* model, f32* worlds,
+                                   const u16* parents, u32 count) {
+  if (count < 8 || count > 128) return false;
+
+  // The legs of the character: a thigh, a lower leg, a foot and the toes, on
+  // each side. The names are the ones of the skeleton of the characters.
+  static const c8* const kLegNames[2][4] = {
+      {"LThigh", "LLeg", "LFoot", "LToe"}, {"RThigh", "RLeg", "RFoot", "RToe"}};
+  u32 legs[2][4];
+  for (u32 side = 0; side < 2; side++) {
+    for (u32 part = 0; part < 4; part++) {
+      legs[side][part] = count;
+      for (u32 bone = 0; bone < count; bone++) {
+        if (strcmp(GetBoneName(model, bone), kLegNames[side][part]) == 0) {
+          legs[side][part] = bone;
+          break;
+        }
+      }
+      if (legs[side][part] == count) return false;
+    }
+  }
+
+  // The character turns as the Pokémon does: the game turns the player at
+  // once, the Pokémon turns slowly. The direction of the character is the line
+  // across the thighs (left to right) turned by a quarter.
+  {
+    const Vector left_thigh = BonePosition(worlds, legs[0][0]);
+    const Vector right_thigh = BonePosition(worlds, legs[1][0]);
+    const f32 across_x = left_thigh.x - right_thigh.x;
+    const f32 across_z = left_thigh.z - right_thigh.z;
+    if (across_x * across_x + across_z * across_z > 1e-6f) {
+      const f32 actual = atan2f(-across_z, across_x);
+      const f32 wanted = atan2f(seat_forward_[0], seat_forward_[1]);
+      f32 turn = wanted - actual;
+      if (turn > -100.0f && turn < 100.0f) {
+        while (turn > 3.14159265f) turn -= 6.2831853f;
+        while (turn < -3.14159265f) turn += 6.2831853f;
+        const f32 c = cosf(turn);
+        const f32 s = sinf(turn);
+        const f32 pivot_x = (left_thigh.x + right_thigh.x) * 0.5f;
+        const f32 pivot_z = (left_thigh.z + right_thigh.z) * 0.5f;
+        for (u32 i = 0; i < count; i++) {
+          f32* m = worlds + i * 12;
+          f32 result[12];
+          for (u32 col = 0; col < 3; col++) {
+            result[0 * 4 + col] = c * m[0 * 4 + col] + s * m[2 * 4 + col];
+            result[1 * 4 + col] = m[1 * 4 + col];
+            result[2 * 4 + col] = -s * m[0 * 4 + col] + c * m[2 * 4 + col];
+          }
+          const f32 dx = m[3] - pivot_x;
+          const f32 dz = m[11] - pivot_z;
+          result[3] = c * dx + s * dz + pivot_x;
+          result[7] = m[7];
+          result[11] = -s * dx + c * dz + pivot_z;
+          memcpy(m, result, sizeof(result));
+        }
+      }
+    }
+  }
+
+  // The hips stay at the height of the sit pose: the walk animation makes the
+  // body go up and down, and the character would hop on the Pokémon.
+  u32 hips = count;
+  for (u32 bone = 0; bone < count; bone++) {
+    if (strcmp(GetBoneName(model, bone), "Hips") == 0) {
+      hips = bone;
+      break;
+    }
+  }
+  if (hips < count) {
+    const f32 current = worlds[hips * 12 + 7] - seat_ground_y_;
+    if (!seat_moving_) {
+      seat_rest_height_ = seat_rest_height_ < 0.0f
+                              ? current
+                              : seat_rest_height_ + (current - seat_rest_height_) * 0.1f;
+    } else {
+      seat_walk_height_ = seat_walk_height_ < 0.0f
+                              ? current
+                              : seat_walk_height_ + (current - seat_walk_height_) * 0.1f;
+      const f32 wanted = seat_rest_height_ >= 0.0f ? seat_rest_height_
+                                                   : seat_walk_height_;
+      for (u32 i = 0; i < count; i++) worlds[i * 12 + 7] += wanted - current;
+    }
+  }
+
+  // The front of the character: the direction of the ride.
+  const f32 length = sqrtf(seat_forward_[0] * seat_forward_[0] +
+                           seat_forward_[1] * seat_forward_[1]);
+  if (length < 1e-6f) return false;
+  const Vector forward = {seat_forward_[0] / length, 0.0f,
+                          seat_forward_[1] / length};
+  const Vector left = BonePosition(worlds, legs[0][0]);
+  const Vector right = BonePosition(worlds, legs[1][0]);
+  const Vector side_direction =
+      Normalize({left.x - right.x, 0.0f, left.z - right.z});
+
+  // The arms: forward, bent, the hands in front of the chest.
+  static const c8* const kArmNames[2][3] = {{"LArmA", "LForeArm", "LHand"},
+                                            {"RArmA", "RForeArm", "RHand"}};
+  for (u32 side = 0; side < 2; side++) {
+    u32 arm[3] = {count, count, count};
+    for (u32 part = 0; part < 3; part++) {
+      for (u32 bone = 0; bone < count; bone++) {
+        if (strcmp(GetBoneName(model, bone), kArmNames[side][part]) == 0) {
+          arm[part] = bone;
+          break;
+        }
+      }
+    }
+    if (arm[0] == count || arm[1] == count || arm[2] == count) continue;
+    const f32 inward = side == 0 ? -0.12f : 0.12f;
+    // The upper arm: forward and down.
+    const Vector upper = Normalize(Subtract(BonePosition(worlds, arm[1]),
+                                            BonePosition(worlds, arm[0])));
+    const Vector upper_wanted = Normalize(
+        {forward.x * 0.7f + side_direction.x * inward, -0.55f,
+         forward.z * 0.7f + side_direction.z * inward});
+    f32 turn[9];
+    MakeTurn(upper, upper_wanted, turn);
+    TurnBranch(worlds, parents, count, arm[0], turn);
+    // The forearm: forward, a little down, the elbow is bent.
+    const Vector fore = Normalize(Subtract(BonePosition(worlds, arm[2]),
+                                           BonePosition(worlds, arm[1])));
+    const Vector fore_wanted = Normalize(
+        {forward.x * 0.95f + side_direction.x * inward * 1.5f, -0.2f,
+         forward.z * 0.95f + side_direction.z * inward * 1.5f});
+    MakeTurn(fore, fore_wanted, turn);
+    TurnBranch(worlds, parents, count, arm[1], turn);
+  }
+
+  for (u32 side = 0; side < 2; side++) {
+    const u32 thigh = legs[side][0];
+    const u32 lower = legs[side][1];
+    const u32 foot = legs[side][2];
+    const f32 splay = side == 0 ? seat_spread_ : -seat_spread_;
+
+    // The thigh goes forward, a little down and a little to the side.
+    const Vector now = Normalize(Subtract(BonePosition(worlds, lower),
+                                          BonePosition(worlds, thigh)));
+    const Vector wanted = Normalize(
+        {forward.x * 0.9f + side_direction.x * splay, -0.35f,
+         forward.z * 0.9f + side_direction.z * splay});
+    f32 turn[9];
+    MakeTurn(now, wanted, turn);
+    TurnBranch(worlds, parents, count, thigh, turn);
+
+    // The lower leg goes down, a little back.
+    const Vector shin = Normalize(Subtract(BonePosition(worlds, foot),
+                                           BonePosition(worlds, lower)));
+    const Vector down = Normalize({-forward.x * 0.2f, -1.0f, -forward.z * 0.2f});
+    MakeTurn(shin, down, turn);
+    TurnBranch(worlds, parents, count, lower, turn);
+  }
+  // The drawn character goes up: the game keeps it on the ground.
+  for (u32 i = 0; i < count; i++) worlds[i * 12 + 7] += seat_raise_;
+  return true;
+}
+
+void SkeletonEditor::SetSeatPose(const void* draw_model, u32 draw_model_size,
+                                 const void* character, u32 character_size,
+                                 const H3dModel* excluded, f32 forward_x,
+                                 f32 forward_z, bool is_moving, f32 raise,
+                                 f32 leg_spread, f32 ground_y) {
+  auto& self = GetInstance();
+  self.seat_ground_y_ = ground_y;
+  if (fabsf(leg_spread - self.seat_spread_) > 0.001f) self.version_++;
+  self.seat_spread_ = leg_spread;
+  if (fabsf(raise - self.seat_raise_) > 0.01f) self.version_++;
+  self.seat_raise_ = raise;
+  if (fabsf(forward_x - self.seat_forward_[0]) > 0.001f ||
+      fabsf(forward_z - self.seat_forward_[1]) > 0.001f ||
+      is_moving != self.seat_moving_) {
+    self.version_++;
+  }
+  self.seat_forward_[0] = forward_x;
+  self.seat_forward_[1] = forward_z;
+  self.seat_moving_ = is_moving;
+  if (!self.has_seat_pose_) {
+    self.has_seat_pose_ = true;
+    self.seat_model_ = nullptr;
+    self.seat_checked_count_ = 0;
+    self.version_++;
+  }
+  self.seat_owner_[0] = draw_model;
+  self.seat_owner_size_[0] = draw_model_size;
+  self.seat_owner_[1] = character;
+  self.seat_owner_size_[1] = character_size;
+  self.seat_excluded_ = excluded;
+}
+
+void SkeletonEditor::ClearSeatPose() {
+  auto& self = GetInstance();
+  if (!self.has_seat_pose_) return;
+  self.has_seat_pose_ = false;
+  self.seat_model_ = nullptr;
+  self.seat_rest_height_ = -1.0f;
+  self.seat_walk_height_ = -1.0f;
+  self.version_++;
+}
 
 void SkeletonEditor::Initialize() {
 #ifdef GAME_ORAS
@@ -150,7 +497,7 @@ void SkeletonEditor::MeshDrawHook(void* mesh, void* helper, void* state,
   // The animation of a Pokémon model goes first: the changes of the editor come after.
   pokemon::ModelLoader::ApplyMotion(
       reinterpret_cast<const void*>(reinterpret_cast<uptr>(state) - kStateOffset));
-  if (self.edit_count_ != 0 || self.has_runtime_) {
+  if (self.edit_count_ != 0 || self.has_runtime_ || self.has_seat_pose_) {
     self.ApplyToModel(reinterpret_cast<const H3dModel*>(
         reinterpret_cast<uptr>(state) - kStateOffset));
   }
@@ -328,11 +675,15 @@ void SkeletonEditor::ApplyToModel(const H3dModel* model) {
       !sys::Graphics::IsDataAddress(parents_address) || state_count < count) {
     return;
   }
-  const u32 skeleton = GetSkeleton(model);
-  if (skeleton == 0) return;
   const u16* parents = reinterpret_cast<const u16*>(parents_address);
   f32* worlds = reinterpret_cast<f32*>(worlds_address);
   const u32 bytes = count * 12 * sizeof(f32);
+  const bool is_seat_model = IsSeatModel(model, count);
+  // The names of the bones can be unreadable: the pose does not need them.
+  const u32 skeleton = GetSkeleton(model);
+  if (skeleton == 0 && !is_seat_model) return;
+  // A character that has no sit pose and no change stays as the game made it.
+  if (edit_count_ == 0 && !is_seat_model && !has_runtime_) return;
 
   // The memory of this model.
   Runtime* runtime = nullptr;
@@ -391,6 +742,8 @@ void SkeletonEditor::ApplyToModel(const H3dModel* model) {
       if (is_in_tree[i]) Multiply(correction, worlds + i * 12, worlds + i * 12);
     }
   }
+
+  if (is_seat_model) ApplySeatPose(model, worlds, parents, count);
 
   memcpy(runtime->edited, worlds, bytes);
   runtime->is_valid = true;

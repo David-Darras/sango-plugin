@@ -31,6 +31,7 @@
 #include "core/native/process_manager.h"
 #include "overworld/constant/action_command.h"
 #include "overworld/constant/facing.h"
+#include "overworld/constant/ride_offset.h"
 #include "overworld/native/map_manager.h"
 #include "overworld/native/model_manager.h"
 #include "overworld/patch/player_cheats.h"
@@ -53,6 +54,7 @@ constexpr f32 kStickDeadZone = 0.15f;
 constexpr f32 kWorldPerDraw = 1.0f / 9.0f; // A world unit is 9 draw units.
 constexpr f32 kDrawPerTile = 18.0f;
 constexpr f32 kTurnSmoothing = 0.2f;
+constexpr f32 kRunSpeed = 3.4f; // The speed of the player (units for each frame) that is a run.
 
 f32 WrapAngle(f32 angle) {
   if (!(angle > -1.0e6f && angle < 1.0e6f)) return 0.0f;
@@ -80,22 +82,39 @@ Facing ToFacing(f32 heading) {
 }
 } // namespace
 
+f32 PokemonFlight::GetRideHeight() const {
+  const RideOffset* entry = FindRideOffset(ride_species);
+  return entry != nullptr && entry->height != kRideMenu ? entry->height
+                                                        : ride_height;
+}
+
+f32 PokemonFlight::GetRideBack() const {
+  const RideOffset* entry = FindRideOffset(ride_species);
+  return entry != nullptr && entry->back != kRideMenu ? entry->back : ride_back;
+}
+
 u32 PokemonFlight::GetSitDirection() {
   return static_cast<u32>(ToFacing(GetInstance().heading_));
 }
 
 bool PokemonFlight::IsFlying() {
   const auto& self = GetInstance();
-  return self.is_active_ && self.model_.IsLoaded();
+  return self.is_active_ && !self.is_riding_ && self.model_.IsLoaded();
+}
+
+bool PokemonFlight::IsRiding() {
+  const auto& self = GetInstance();
+  return self.is_active_ && self.is_riding_ && self.model_.IsLoaded();
 }
 
 void PokemonFlight::Apply(void*) {
   auto& self = GetInstance();
   // The menu of the plugin is open over the overworld: the scene is there.
-  if (!self.is_enabled && self.is_active_) self.Stop();
+  if (!self.is_enabled && !self.is_ride_enabled && self.is_active_) self.Stop();
 }
 
 void PokemonFlight::Stop() {
+  renderer::SkeletonEditor::ClearSeatPose();
   if (model_.IsLoaded()) {
     if (core::ProcessManager::IsOverworldActive()) {
       pokemon::ModelLoader::Drop(&model_);
@@ -104,10 +123,13 @@ void PokemonFlight::Stop() {
     }
   }
   if (is_active_) {
-    Land();
-    PlayerCheats::GetInstance().no_collision = was_no_collision_;
-    WildEncounter::GetInstance().mode =
-        static_cast<WildEncounter::Mode>(was_encounter_mode_);
+    if (is_riding_) {
+    } else {
+      Land();
+      PlayerCheats::GetInstance().no_collision = was_no_collision_;
+      WildEncounter::GetInstance().mode =
+          static_cast<WildEncounter::Mode>(was_encounter_mode_);
+    }
     FollowingPokemonSwitch() = was_following_;
     is_active_ = false;
     // The player stands up.
@@ -129,6 +151,7 @@ void PokemonFlight::Stop() {
 }
 
 void PokemonFlight::LeaveScene(bool is_scene_alive) {
+  renderer::SkeletonEditor::ClearSeatPose();
   if (model_.IsLoaded()) {
     if (is_scene_alive) {
       pokemon::ModelLoader::Drop(&model_);
@@ -161,11 +184,12 @@ bool PokemonFlight::Spawn() {
   auto& player = ModelManager::GetInstance().GetPlayer();
   DrawModel* draw_model = player.GetDrawModelOrNull();
   if (draw_model == nullptr) return false;
-  if (!pokemon::ModelLoader::LoadPokemon(&model_, species, FormId::kNormal,
-                                         false, draw_model->position)) {
+  if (!pokemon::ModelLoader::LoadPokemon(
+          &model_, is_riding_ ? ride_species : species, FormId::kNormal, false,
+          draw_model->position)) {
     return false;
   }
-  model_.model->SetScale(scale, scale, scale);
+  model_.model->SetScale(Scale(), Scale(), Scale());
   model_.is_walking = false;
   yaw_ = heading_;
   return true;
@@ -226,10 +250,68 @@ void PokemonFlight::MoveModel(f32 player_x, f32 player_y, f32 player_z) {
   const f32 step = WrapAngle(heading_ - yaw_offset_ - yaw_) * kTurnSmoothing;
   yaw_ += step > 0.15f ? 0.15f : (step < -0.15f ? -0.15f : step);
 
-  const f32 lift = kSeatLift * scale;
-  model->SetTranslate(Vec3(player_x - seat_[0], player_y - seat_[1] - lift,
-                           player_z - seat_[2]));
+  const f32 lift = SeatLift();
+  // The ride: the player sits behind the bone, so the model goes forward.
+  const f32 back = is_riding_ ? GetRideBack() * Scale() : 0.0f;
+  model->SetTranslate(Vec3(player_x - seat_[0] + std::sin(heading_) * back,
+                           player_y - seat_[1] - lift,
+                           player_z - seat_[2] + std::cos(heading_) * back));
   model->SetRotate(Vec3(0.0f, yaw_, 0.0f));
+}
+
+// The ride: the game moves the player as usual (the collisions, the doors and
+// the wild Pokémon stay), the player sits on the Pokémon, and the Pokémon
+// walks when the player moves.
+void PokemonFlight::Ride() {
+  auto& player = ModelManager::GetInstance().GetPlayer();
+  DrawModel* draw_model = player.GetDrawModelOrNull();
+  if (draw_model == nullptr) return;
+
+  const Vec3 facing = player.facing_direction;
+  const bool has_facing = facing.x != 0.0f || facing.z != 0.0f;
+  if (!has_base_) {
+    has_base_ = true;
+    if (has_facing) heading_ = std::atan2(facing.x, facing.z);
+    yaw_ = heading_ - yaw_offset_;
+    last_x_ = player.draw_pos.x;
+    last_z_ = player.draw_pos.z;
+  }
+  if (needs_sit_) SitDown();
+
+  // The Pokémon looks where the player looks.
+  if (has_facing) {
+    heading_ = WrapAngle(heading_ + WrapAngle(std::atan2(facing.x, facing.z) -
+                                              heading_) * 0.3f);
+  }
+
+  // The legs swing while the player moves.
+  const f32 dx = player.draw_pos.x - last_x_;
+  const f32 dz = player.draw_pos.z - last_z_;
+  last_x_ = player.draw_pos.x;
+  last_z_ = player.draw_pos.z;
+  if (dx * dx + dz * dz > 0.01f) {
+    still_frames_ = 0;
+  } else if (still_frames_ < 1000) {
+    still_frames_++;
+  }
+  model_.is_walking = still_frames_ < 4;
+  // The player runs when it moves faster than the walk (2.6 units for each
+  // frame): a quadruped gallops.
+  speed_ += (std::sqrt(dx * dx + dz * dz) - speed_) * 0.2f;
+  model_.walk.is_running = speed_ > kRunSpeed;
+  // The player sits on the back. The game keeps the player on the ground (it
+  // writes the height again when the player moves): the lift is only drawn,
+  // by the bones of the player. The arms of the player hold the mane, and the
+  // legs are bent to the sit pose, at rest and when the player moves.
+  const f32 seat_height = (has_seat_ ? seat_[1] : 0.0f) + SeatLift();
+  renderer::SkeletonEditor::SetSeatPose(
+      draw_model, sizeof(DrawModel), &player, sizeof(Model),
+      reinterpret_cast<const renderer::H3dModel*>(model_.model),
+      std::sin(yaw_ + yaw_offset_), std::cos(yaw_ + yaw_offset_),
+      model_.is_walking, seat_height,
+      ride_spread, draw_model->position.y);
+  MoveModel(draw_model->position.x, draw_model->position.y + seat_height,
+            draw_model->position.z);
 }
 
 void PokemonFlight::Fly() {
@@ -338,20 +420,28 @@ void PokemonFlight::Update() {
   auto& self = GetInstance();
   self.frame_++;
 
-  if (!self.is_enabled) {
+  if (!self.is_enabled && !self.is_ride_enabled) {
     if (self.is_active_) self.Stop();
     return;
   }
+  // The flight has the priority over the ride. A change of the mode stops the
+  // active one first.
+  const bool wants_ride = !self.is_enabled;
+  if (self.is_active_ && self.is_riding_ != wants_ride) self.Stop();
   if (!self.is_active_) {
-    // The flight starts: no collision, no wild Pokémon, no Pokémon that follows.
+    // No Pokémon that follows. The flight also has no collision and no wild
+    // Pokémon.
+    self.is_riding_ = wants_ride;
     self.was_following_ = FollowingPokemonSwitch();
     FollowingPokemonSwitch() = false;
     ApplyFollowingPokemon(nullptr);
-    self.was_no_collision_ = PlayerCheats::GetInstance().no_collision;
-    PlayerCheats::GetInstance().no_collision = true;
-    self.was_encounter_mode_ =
-        static_cast<u8>(WildEncounter::GetInstance().mode);
-    WildEncounter::GetInstance().mode = WildEncounter::Mode::kNever;
+    if (!wants_ride) {
+      self.was_no_collision_ = PlayerCheats::GetInstance().no_collision;
+      PlayerCheats::GetInstance().no_collision = true;
+      self.was_encounter_mode_ =
+          static_cast<u8>(WildEncounter::GetInstance().mode);
+      WildEncounter::GetInstance().mode = WildEncounter::Mode::kNever;
+    }
     self.is_active_ = true;
   }
 
@@ -388,7 +478,11 @@ void PokemonFlight::Update() {
       return;
     }
   }
-  self.Fly();
+  if (self.is_riding_) {
+    self.Ride();
+  } else {
+    self.Fly();
+  }
 }
 
 } // namespace overworld

@@ -48,15 +48,28 @@ public:
   f32 speed = 1.0f; ///< The speed of the flight: 1 is a little faster than the run.
   f32 climb_speed = 2.5f; ///< The speed of the climb, in units for each frame.
 
+  bool is_ride_enabled = false; ///< The switch of the ride (Cheats).
+  SpeciesId ride_species = SpeciesId::kRaikou; ///< The Pokémon with four legs that carries the player.
+  f32 ride_height = -16.0f; ///< The height of the seat above the back bone of the Pokémon, for a model with the scale 1.
+  f32 ride_spread = 2.0f; ///< How far the thighs of the player go to the sides (0 is none, 2 is a lot).
+  f32 ride_back = 46.0f; ///< The seat goes back from the back bone of the Pokémon, for a model with the scale 1.
+  f32 ride_speed = 1.5f; ///< The speed of the player on the mount, compared to the game (1 is the same).
+  f32 ride_scale = 0.25f; ///< The size of the model for the ride: 0.25 is the real size (as the Pokémon that follows).
+
   /// Called when the switch changes: lands the player when it goes off.
   static void Apply(void*);
 
   /// Called at each frame by plugin::UpdateFrame().
   static void Update();
 
-  /// Returns true when the player sits on the Pokémon: the walk of the player
+  /// Returns true when the player flies on the Pokémon: the walk of the player
   /// is then replaced by the sit pose (see PlayerCheats).
   static bool IsFlying();
+
+  /// Returns true when the player rides the Pokémon on the ground: the game
+  /// moves the player, and the sit pose replaces the walk pose.
+  static bool IsRiding();
+
 
   /// The direction of the flight as a Facing number: the sit order uses it.
   static u32 GetSitDirection();
@@ -72,6 +85,8 @@ private:
   static constexpr f32 kBaseSpeed = 4.0f;
 
   void Fly();
+  void Ride();
+  f32 Scale() const { return is_riding_ ? ride_scale : scale; }
   void Land();
   /// Removes the model and gives the player back to the game.
   void Stop();
@@ -80,8 +95,15 @@ private:
   bool Spawn();
   void SitDown();
   void MoveModel(f32 player_x, f32 player_y, f32 player_z);
+  /// The height of the seat above the back bone of the model.
+  f32 SeatLift() const { return (is_riding_ ? GetRideHeight() : kSeatLift) * Scale(); }
+  /// The height and the back of the seat for the species (the table of
+  /// overworld/constant/ride_offset.h, else the menu).
+  f32 GetRideHeight() const;
+  f32 GetRideBack() const;
 
   pokemon::LoadedModel model_;
+  bool is_riding_ = false; ///< true: the ride is active, false: the flight.
   bool is_active_ = false; ///< true: the switches of the game are changed.
   bool was_following_ = false;
   bool was_no_collision_ = false;
@@ -102,6 +124,10 @@ private:
   f32 yaw_ = 0.0f;
   f32 yaw_offset_ = 0.0f;
   u16 seat_bone_ = 0xFFFF;
+  f32 last_x_ = 0.0f; ///< The place of the player at the last frame (ride).
+  f32 last_z_ = 0.0f;
+  f32 speed_ = 0.0f; ///< The speed of the player at the last frames (ride).
+  u32 still_frames_ = 0; ///< The frames since the player moved (ride).
   u32 frame_ = 0;
   u32 ready_frame_ = 0;
   u32 last_map_ = 0xFFFFFFFF;

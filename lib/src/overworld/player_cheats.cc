@@ -48,6 +48,8 @@ core::Hook<u32(void*, void*, void*, u32, void*, f32, void*, void*, void*, u32,
 // frames, from the fastest to the slowest: 1, 2, 3, 4, 5, 6, 7, 8 and 12.
 constexpr u32 kStepCommands[] = {16, 15, 21, 14, 22, 20, 19, 13, 17};
 constexpr u32 kWalkCommand = 19; // The walk of the game: 7 frames.
+// The number of frames of each step command, in the order of kStepCommands.
+constexpr u32 kStepFrames[] = {1, 2, 3, 4, 5, 6, 7, 8, 12};
 constexpr u32 kSitWaitCommand = 134; // The player sits and waits.
 constexpr u32 kRunCommand = 14;  // The run of the game: 4 frames.
 
@@ -63,6 +65,37 @@ void SetCommandHook(void* player, u32 command, u32 direction) {
     // turn), with the direction of the flight: the player stays seated, and it
     // turns with the flight.
     set_command_hook(player, kSitWaitCommand, PokemonFlight::GetSitDirection());
+    return;
+  }
+  // The player rides a Pokémon on the ground: the game moves the player, and
+  // the sit pose replaces the pose of the walk.
+  if (PokemonFlight::IsRiding()) {
+    bool is_step = false;
+    for (u32 step_command : kStepCommands) {
+      if (command == step_command) is_step = true;
+    }
+    if (is_step) {
+      // The mount is faster: the step takes fewer frames.
+      f32 speed = PokemonFlight::GetInstance().ride_speed;
+      if (speed < 1.0f) speed = 1.0f;
+      u32 frames = 7;
+      for (u32 i = 0; i < SIZE(kStepCommands); i++) {
+        if (kStepCommands[i] == command) frames = kStepFrames[i];
+      }
+      const f32 wanted = static_cast<f32>(frames) / speed;
+      u32 best = 0;
+      f32 best_distance = 1000.0f;
+      for (u32 i = 0; i < SIZE(kStepFrames); i++) {
+        const f32 distance = std::fabs(static_cast<f32>(kStepFrames[i]) - wanted);
+        if (distance < best_distance) {
+          best_distance = distance;
+          best = i;
+        }
+      }
+      set_command_hook(player, kStepCommands[best], direction);
+    } else {
+      set_command_hook(player, kSitWaitCommand, direction);
+    }
     return;
   }
   if (command == kWalkCommand && cheats.walk_frames < SIZE(kStepCommands)) {

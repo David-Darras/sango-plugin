@@ -2,12 +2,19 @@ Sango Plugin {{VERSION}} for Pokémon Alpha Sapphire v1.4 (no ROM patch).
 
 **New in {{VERSION}}**
 
+- **Fly on a Pokémon** (Cheats > Flight > Fly On A Pokemon): you sit on a flying Pokémon (Staraptor by default) and fly with the Circle Pad.
+  R goes up and L goes down. No wild Pokémon and no collision while you fly.
+- **Ride a Pokémon** (Cheats > Flight > Ride A Pokemon): you sit on the back of a Pokémon with four legs (Raikou by default) and ride it on the ground.
+  The game moves you as usual, so the collisions, the doors and the wild Pokémon stay. The legs of your character are bent to the sit pose,
+  and your arms hold the mane. Any species can be ridden, the seat is set in Cheats (height, back, leg spread, speed) and a table in the code
+  (`ride_offset.h`) gives the seat of a species.
+- **A natural walk for the quadrupeds**: the legs step one after the other, like a cat, with the knees bent, the feet on the ground and a small bounce of the back,
+  the head and the tail. When you run, a quadruped gallops like a cheetah: the two front legs go together, and the two hind legs go together.
 - **Following Pokémon** (Cheats > Followers > Following Pokemon): your first Pokémon walks near you in the overworld.
   It has the light of the overworld (day and night), an idle animation, and it plays battle and Pokémon-Amie animations by itself.
   L plays a battle animation and R plays a Pokémon-Amie animation, both with the cry.
-  Pokémon Omega Ruby and Alpha Sapphire have no walk animation, so the walk is made in code on the bones of the model:
-  two legs for a biped, four legs in diagonal pairs for a quadruped, many legs for a spider. A Pokémon that flies or floats does not walk.
-  It goes away cleanly for the menus, the doors, the scripts, the battles and the map changes.
+  Pokémon Omega Ruby and Alpha Sapphire have no walk animation, so the walk is made in code on the bones of the model.
+  A Pokémon that flies or floats does not walk. It goes away cleanly for the menus, the doors, the scripts, the battles and the map changes.
 - The fields of `MoveData` now have enum classes (`MoveCategory`, `DamageCategory`, `MoveTarget`, `MoveStat`, `EffectTurnType`).
 
 **Install**

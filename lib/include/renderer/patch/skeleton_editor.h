@@ -94,6 +94,32 @@ public:
   /// The number of changes of all the skeletons.
   static u32 GetChangeCount();
 
+  /**
+   * @brief Puts the legs of a character in a sit pose, until ClearSeatPose().
+   *
+   * The model is the one that the two objects of the character (@a draw_model
+   * and @a character) point to, and it is not @a excluded. The editor finds
+   * the legs by the shape of the skeleton: the two lowest chains of bones that
+   * join in the hips. The thighs go forward (@a forward_x and @a forward_z,
+   * a direction on the ground) and to the sides by @a leg_spread (0 is none,
+   * 2 is a lot), and the lower legs go down. The arms go forward, bent, as if
+   * they hold a mane.
+   *
+   * @a is_moving tells that the character walks. The hips then stay at the
+   * height that they have at rest, over @a ground_y (the height of the feet
+   * that the game gives): the bounce of the walk animation does not make the
+   * character hop. The whole character goes up by @a raise: the game moves the
+   * player on the ground, and the pose lifts the drawn model only.
+   */
+  static void SetSeatPose(const void* draw_model, u32 draw_model_size,
+                          const void* character, u32 character_size,
+                          const H3dModel* excluded, f32 forward_x,
+                          f32 forward_z, bool is_moving, f32 raise,
+                          f32 leg_spread, f32 ground_y);
+
+  /// The legs go back to the animation of the game.
+  static void ClearSeatPose();
+
   /// Writes the changes to sdmc:/sango/skeleton.ini. Returns true on success.
   static bool Save();
 
@@ -135,6 +161,11 @@ private:
   /// Gives the changes to the matrices of a model, one time for each
   /// calculation of the game.
   void ApplyToModel(const H3dModel* model);
+  /// true: the model is the character with the sit pose.
+  bool IsSeatModel(const H3dModel* model, u32 count);
+  /// Bends the legs of the model. Returns false when no legs are found.
+  bool ApplySeatPose(const H3dModel* model, f32* worlds, const u16* parents,
+                     u32 count);
   u32 GetSkeleton(const H3dModel* model);
   Edit* Find(u32 skeleton, u32 bone);
 
@@ -146,6 +177,20 @@ private:
   u32 edit_count_ = 0;
   u32 version_ = 1; ///< It changes when a change changes: the matrices follow.
   bool has_runtime_ = false;
+  bool has_seat_pose_ = false;
+  const void* seat_owner_[2] = {nullptr, nullptr};
+  u32 seat_owner_size_[2] = {0, 0};
+  const H3dModel* seat_model_ = nullptr; ///< The character, when it is found.
+  const H3dModel* seat_excluded_ = nullptr;
+  f32 seat_forward_[2] = {0.0f, 1.0f};
+  bool seat_moving_ = false;
+  f32 seat_raise_ = 0.0f;
+  f32 seat_spread_ = 0.25f;
+  f32 seat_ground_y_ = 0.0f;
+  f32 seat_rest_height_ = -1.0f; ///< The height of the hips at rest (< 0: unknown).
+  f32 seat_walk_height_ = -1.0f; ///< The same, filtered, while the character walks.
+  const H3dModel* seat_checked_[8] = {}; ///< The models that are not the character.
+  u32 seat_checked_count_ = 0;
 };
 
 } // namespace renderer

@@ -45,8 +45,8 @@ struct CameraSettings {
   Vec3 pos;
   Vec3 up;
   Vec3 target;
-  f32 radius = 2000.0f;
-  f32 height = 800.0f;
+  f32 radius = 320.0f;
+  f32 height = 200.0f;
   f32 theta = 0.0f;
   f32 theta_speed = 0.005f;
   bool is_updating_camera = false;

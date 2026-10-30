@@ -37,7 +37,11 @@ namespace pokemon {
  * skeleton of the model and chooses a walk:
  * - a biped (two feet): the legs swing forward and back, in opposite ways;
  * - a quadruped (the hands are on the ground, in front of the feet): the four
- *   legs swing in diagonal pairs;
+ *   legs step one after the other, as a cat does (hind left, front left, hind
+ *   right, front right);
+ *   When it runs, a quadruped gallops as a cheetah: the two front legs reach
+ *   forward together and pull back, the two hind legs come forward under the
+ *   body and push;
  * - a Pokémon with many legs and no feet (a spider): the legs swing in turn;
  * - a Pokémon that flies or floats, or that has no leg: no walk.
  */
@@ -59,14 +63,20 @@ struct ModelWalk {
   u32 leg_count = 0;
   u16 leg_bone[kMaxLegs] = {}; ///< The bone that swings: the top of each leg.
   u16 tip_bone[kMaxLegs] = {}; ///< The foot or the hand at the end of each leg.
+  u16 mid_bone[kMaxLegs] = {}; ///< The knee: the bone over the foot, or 0xFFFF.
   u8 leg_side[kMaxLegs] = {}; ///< 0: left, 1: right.
-  u8 leg_phase[kMaxLegs] = {}; ///< 0 or 1: the two phases swing in opposite ways.
+  u8 leg_front[kMaxLegs] = {}; ///< 1: a front leg (a hand) of a quadruped.
+  f32 leg_offset[kMaxLegs] = {}; ///< The start of each leg in the cycle, from 0 to 1.
   f32 phase = 0.0f; ///< The position in the walk cycle, in radians.
+  bool is_running = false; ///< true: a quadruped gallops instead of a walk.
+  f32 run_blend = 0.0f; ///< 0 for the walk, 1 for the gallop.
   f32 blend = 0.0f; ///< 0 for a Pokémon that stands, 1 for a Pokémon that walks.
   bool has_forward = false; ///< true: forward_angle is the direction of the face.
   f32 forward_angle = 0.0f; ///< The direction that the face looks at, in radians (atan2 of x and z).
   u16 head_bone = 0xFFFF; ///< The head, and a bone in front of the head.
   u16 front_bone = 0xFFFF;
+  u16 spine_bone = 0xFFFF; ///< The first bone of the back and of the tail: they bounce.
+  u16 tail_bone = 0xFFFF;
   /// The pairs of bones of the left and the right side (LThigh and RThigh...).
   /// The line from the right bones to the left bones gives the direction of the
   /// body: it does not move like a head does.

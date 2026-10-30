@@ -33,11 +33,26 @@
 #include <cstring>
 
 #include "renderer/patch/skeleton_editor.h"
-#include "ui/log.h"
 
 namespace pokemon {
 namespace {
-constexpr f32 kPhaseStep = 0.28f; // Radians for each frame.
+constexpr f32 kPhaseStep = 0.2f; // Radians for each frame.
+// A quadruped has four steps in a cycle: the cycle is longer.
+constexpr f32 kQuadrupedPhaseStep = 0.14f;
+constexpr f32 kGallopPhaseStep = 0.26f;
+constexpr f32 kRunBlendStep = 0.08f;
+// The gallop: the legs of one end go together (the two front legs, then the
+// two hind legs, half a cycle later), and the stance is short.
+constexpr f32 kGallopSwing = 0.8f;
+constexpr f32 kGallopKnee = 1.1f;
+constexpr f32 kGallopDuty = 0.45f;
+constexpr f32 kGallopPitchAngle = 0.1f; // The back bends: the body leans each bound.
+constexpr f32 kSpineBounce = 0.035f; // The back bounces a little with each step.
+constexpr f32 kHeadBounce = 0.7f; // The head keeps a part of the bounce of the back.
+constexpr f32 kTailSway = 0.14f; // The tail goes from side to side.
+constexpr f32 kTailBounce = 0.08f; // The tail goes up and down.
+constexpr f32 kGallopSpineBounce = 0.12f;
+constexpr f32 kGallopBobHeight = 0.035f; // The body goes up in the air phase.
 constexpr f32 kBlendStep = 0.12f; // The walk starts and stops in about 8 frames.
 constexpr f32 kPi = 3.14159265f;
 constexpr u32 kMaxBones = 512;
@@ -50,10 +65,26 @@ constexpr f32 kQuadrupedMinHandAdvance = 0.10f;
 
 // The angles of the swings, in radians.
 constexpr f32 kBipedSwing = 0.55f;
-constexpr f32 kQuadrupedSwing = 0.45f;
+constexpr f32 kQuadrupedSwing = 0.38f;
 constexpr f32 kMultiLeggedSwing = 0.40f;
 constexpr f32 kRollAngle = 0.07f; // The body rolls from side to side.
 constexpr f32 kPitchAngle = 0.05f; // The body leans forward and back.
+// The knee bends when the leg goes forward, so the foot leaves the ground.
+constexpr f32 kBipedKnee = 0.75f;
+constexpr f32 kQuadrupedKnee = 0.9f;
+// The part of the cycle with the foot on the ground: a cat has a long stance,
+// so three feet are on the ground nearly all the time.
+constexpr f32 kBipedDuty = 0.6f;
+constexpr f32 kQuadrupedDuty = 0.7f;
+// The range of the swing of a quadruped: -0.3 (a little forward) to 1 (back).
+constexpr f32 kQuadrupedReach = 0.65f;
+constexpr f32 kQuadrupedBias = 0.35f;
+constexpr f32 kMultiLeggedDuty = 0.5f;
+// A foot that swings on an arc goes up at the two ends. The leg goes down by
+// this part of the rise, so the foot stays on the ground while it pushes.
+constexpr f32 kFootPlant = 0.7f;
+// The body goes up and down two times for each cycle (a part of the height).
+constexpr f32 kBobHeight = 0.012f;
 
 c8 Lower(c8 c) { return (c >= 'A' && c <= 'Z') ? static_cast<c8>(c + 32) : c; }
 
@@ -128,6 +159,17 @@ void Rotate(f32* worlds, u32 count, const bool* is_marked, const f32 pivot[3],
   }
 }
 
+// Moves the marked bones.
+void Translate(f32* worlds, u32 count, const bool* is_marked, f32 dx, f32 dy,
+               f32 dz) {
+  for (u32 i = 0; i < count; i++) {
+    if (!is_marked[i]) continue;
+    worlds[i * 12 + 3] += dx;
+    worlds[i * 12 + 7] += dy;
+    worlds[i * 12 + 11] += dz;
+  }
+}
+
 // A leg that the search found.
 struct Candidate {
   u16 top;
@@ -164,8 +206,17 @@ void ModelWalk::Advance(bool is_walking) {
   } else if (blend > target) {
     blend = blend - kBlendStep < target ? target : blend - kBlendStep;
   }
+  const f32 run_target = is_running && kind == Kind::kQuadruped ? 1.0f : 0.0f;
+  if (run_blend < run_target) {
+    run_blend = run_blend + kRunBlendStep > run_target ? run_target
+                                                       : run_blend + kRunBlendStep;
+  } else if (run_blend > run_target) {
+    run_blend = run_blend - kRunBlendStep < run_target ? run_target
+                                                       : run_blend - kRunBlendStep;
+  }
   if (blend > 0.0f) {
-    phase += kPhaseStep;
+    const f32 walk_step = kind == Kind::kQuadruped ? kQuadrupedPhaseStep : kPhaseStep;
+    phase += walk_step + (kGallopPhaseStep - walk_step) * run_blend;
     if (phase > 2.0f * kPi) phase -= 2.0f * kPi;
   }
 }
@@ -264,6 +315,17 @@ void ModelWalk::Search(renderer::H3dModel* model, const f32* worlds,
         pair_count++;
         break;
       }
+    }
+  }
+  // The back and the tail: they move a little, so the top of the body does
+  // not stay still.
+  for (u32 bone = 0; bone < count; bone++) {
+    const c8* name = renderer::SkeletonEditor::GetBoneName(model, bone);
+    if (spine_bone == 0xFFFF && strcmp(name, "Spine1") == 0) {
+      spine_bone = static_cast<u16>(bone);
+    }
+    if (tail_bone == 0xFFFF && strcmp(name, "Tail1") == 0) {
+      tail_bone = static_cast<u16>(bone);
     }
   }
   UpdateForward(worlds, count);
@@ -367,19 +429,28 @@ void ModelWalk::Search(renderer::H3dModel* model, const f32* worlds,
     if (side > 1) side = static_cast<u8>(unnamed++ & 1);
     leg_bone[i] = legs[i].top;
     tip_bone[i] = legs[i].tip;
+    // The knee: the bone over the foot, when it is not the top of the leg.
+    const u32 parent = parents[legs[i].tip];
+    mid_bone[i] = parent < count && parent != legs[i].top &&
+                          parent != legs[i].tip
+                      ? static_cast<u16>(parent)
+                      : static_cast<u16>(0xFFFF);
     leg_side[i] = side;
+    leg_front[i] = legs[i].is_hand ? 1 : 0;
     u8 phase_bit = side;
-    if (kind == Kind::kQuadruped && legs[i].is_hand) phase_bit ^= 1;
+    f32 offset = side == 0 ? 0.0f : 0.5f;
+    if (kind == Kind::kQuadruped) {
+      // The steps of a cat: hind left, front left, hind right, front right.
+      offset = (side == 0 ? 0.0f : 0.5f) + (legs[i].is_hand ? 0.25f : 0.0f);
+    }
     if (kind == Kind::kMultiLegged) {
       phase_bit ^= static_cast<u8>(rank[side] & 1);
+      offset = phase_bit != 0 ? 0.5f : 0.0f;
     }
     rank[side]++;
-    leg_phase[i] = phase_bit;
+    leg_offset[i] = offset;
   }
   leg_count = leg_total;
-
-  ui::Log::Print(u"walk: kind %d, %d legs, %d bones", static_cast<u32>(kind),
-                 leg_count, count);
 }
 
 void ModelWalk::Apply(renderer::H3dModel* model) {
@@ -430,19 +501,132 @@ void ModelWalk::Apply(renderer::H3dModel* model) {
   Rotate(worlds, count, is_marked, ground, front,
          std::sin(phase) * kRollAngle * blend);
   Rotate(worlds, count, is_marked, ground, side,
-         std::sin(phase * 2.0f) * kPitchAngle * blend);
+         (std::sin(phase * 2.0f) * kPitchAngle * (1.0f - run_blend) +
+          std::sin(phase) * kGallopPitchAngle * run_blend) * blend);
+
+  // The body goes up and down with the steps.
+  f32 height = 0.0f;
+  if (head_bone < count) height = worlds[head_bone * 12 + 7] - ground[1];
+  if (height > 1.0f) {
+    for (u32 i = 0; i < count; i++) is_marked[i] = true;
+    const f32 bob_speed = kind == Kind::kQuadruped ? 4.0f : 2.0f;
+    const f32 bob = std::cos(phase * bob_speed) * kBobHeight * (1.0f - run_blend) +
+                    (std::sin(phase + 0.5f * kPi) * 0.5f + 0.5f) *
+                        kGallopBobHeight * run_blend;
+    Translate(worlds, count, is_marked, 0.0f, bob * height * blend, 0.0f);
+  }
+
+  // The top of the body: the back bounces a little, the head keeps a part of
+  // the bounce in the other way, and the tail goes from side to side.
+  {
+    const f32 up[3] = {0.0f, 1.0f, 0.0f};
+    const f32 spine_angle =
+        (std::sin(phase * 2.0f + 1.0f) * kSpineBounce * (1.0f - run_blend) +
+         std::sin(phase + 1.2f) * kGallopSpineBounce * run_blend) * blend;
+    if (spine_bone < count) {
+      MarkTree(parents, count, spine_bone, is_marked);
+      const f32* spine = worlds + spine_bone * 12;
+      const f32 spine_pivot[3] = {spine[3], spine[7], spine[11]};
+      Rotate(worlds, count, is_marked, spine_pivot, side, spine_angle);
+    }
+    if (head_bone < count) {
+      MarkTree(parents, count, head_bone, is_marked);
+      const f32* head = worlds + head_bone * 12;
+      const f32 head_pivot[3] = {head[3], head[7], head[11]};
+      Rotate(worlds, count, is_marked, head_pivot, side,
+             -spine_angle * kHeadBounce);
+    }
+    if (tail_bone < count) {
+      MarkTree(parents, count, tail_bone, is_marked);
+      const f32* tail = worlds + tail_bone * 12;
+      const f32 tail_pivot[3] = {tail[3], tail[7], tail[11]};
+      Rotate(worlds, count, is_marked, tail_pivot, up,
+             std::sin(phase + 0.8f) * kTailSway * blend);
+      Rotate(worlds, count, is_marked, tail_pivot, side,
+             std::sin(phase * 2.0f) * kTailBounce * blend);
+    }
+  }
 
   f32 swing = kBipedSwing;
-  if (kind == Kind::kQuadruped) swing = kQuadrupedSwing;
-  if (kind == Kind::kMultiLegged) swing = kMultiLeggedSwing;
+  f32 knee = kBipedKnee;
+  f32 duty = kBipedDuty;
+  if (kind == Kind::kQuadruped) {
+    swing = kQuadrupedSwing;
+    knee = kQuadrupedKnee;
+    duty = kQuadrupedDuty;
+  }
+  if (kind == Kind::kMultiLegged) {
+    swing = kMultiLeggedSwing;
+    knee = 0.0f;
+    duty = kMultiLeggedDuty;
+  }
   for (u32 i = 0; i < leg_count; i++) {
     if (leg_bone[i] >= count) continue;
     MarkTree(parents, count, leg_bone[i], is_marked);
     const f32* top = worlds + leg_bone[i] * 12;
     const f32 pivot[3] = {top[3], top[7], top[11]};
-    const f32 angle = std::sin(phase + (leg_phase[i] != 0 ? kPi : 0.0f)) *
-                      swing * blend;
+    const f32* tip = worlds + tip_bone[i] * 12;
+    const f32 length = std::sqrt((tip[3] - top[3]) * (tip[3] - top[3]) +
+                                 (tip[7] - top[7]) * (tip[7] - top[7]) +
+                                 (tip[11] - top[11]) * (tip[11] - top[11]));
+
+    // The step: on the ground, the foot goes back at a constant speed (it does
+    // not slide). In the air, it comes forward fast, with the knee bent. A
+    // positive angle puts the foot back.
+    f32 cycle = phase / (2.0f * kPi) + leg_offset[i];
+    cycle -= std::floor(cycle);
+    f32 unit = 0.0f;
+    f32 lift = 0.0f;
+    if (cycle < duty) {
+      unit = 2.0f * (cycle / duty) - 1.0f;
+    } else {
+      const f32 air = (cycle - duty) / (1.0f - duty);
+      unit = std::cos(kPi * air);
+      lift = std::sin(kPi * air);
+    }
+    // A cat puts the foot a little in front of the body, and pushes it a long
+    // way back: the swing goes more to the back than to the front.
+    if (kind == Kind::kQuadruped) unit = unit * kQuadrupedReach + kQuadrupedBias;
+    f32 leg_swing = swing;
+    f32 leg_knee = knee;
+    if (kind == Kind::kQuadruped && run_blend > 0.0f) {
+      // The gallop: the front legs go together, the hind legs go together half
+      // a cycle later. The front legs reach forward and pull back; the hind
+      // legs come forward under the body and push.
+      f32 gallop_cycle = phase / (2.0f * kPi) + (leg_front[i] != 0 ? 0.0f : 0.5f);
+      gallop_cycle -= std::floor(gallop_cycle);
+      f32 gallop_unit = 0.0f;
+      f32 gallop_lift = 0.0f;
+      if (gallop_cycle < kGallopDuty) {
+        gallop_unit = 2.0f * (gallop_cycle / kGallopDuty) - 1.0f;
+      } else {
+        const f32 air = (gallop_cycle - kGallopDuty) / (1.0f - kGallopDuty);
+        gallop_unit = std::cos(kPi * air);
+        gallop_lift = std::sin(kPi * air);
+      }
+      gallop_unit = leg_front[i] != 0 ? gallop_unit * 0.8f - 0.2f
+                                      : gallop_unit * 0.8f + 0.2f;
+      unit += (gallop_unit - unit) * run_blend;
+      lift += (gallop_lift - lift) * run_blend;
+      leg_swing += (kGallopSwing - swing) * run_blend;
+      leg_knee += (kGallopKnee - knee) * run_blend;
+    }
+    const f32 angle = unit * leg_swing * blend;
     Rotate(worlds, count, is_marked, pivot, side, angle);
+
+    // The knee bends while the foot is in the air.
+    if (leg_knee > 0.0f && lift > 0.0f && mid_bone[i] < count) {
+      MarkTree(parents, count, mid_bone[i], is_marked);
+      const f32* middle = worlds + mid_bone[i] * 12;
+      const f32 knee_pivot[3] = {middle[3], middle[7], middle[11]};
+      Rotate(worlds, count, is_marked, knee_pivot, side,
+             lift * leg_knee * blend);
+    }
+
+    // The foot stays on the ground while it pushes.
+    MarkTree(parents, count, leg_bone[i], is_marked);
+    Translate(worlds, count, is_marked, 0.0f,
+              -kFootPlant * length * (1.0f - std::cos(angle)), 0.0f);
   }
 #else
   (void)model;

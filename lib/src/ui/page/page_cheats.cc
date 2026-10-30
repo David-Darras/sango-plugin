@@ -97,6 +97,31 @@ void LoadCheatsPage(MainApplication& app, void* args) {
      .WithFactor(0.25f)
      .Add("Climb Speed", overworld::PokemonFlight::GetInstance().climb_speed)
      .WithFactor(0.5f)
+     .Add("Ride A Pokemon", overworld::PokemonFlight::GetInstance().is_ride_enabled)
+     .WithCallback(overworld::PokemonFlight::Apply)
+     .WithDescription("The player sits on a Pokemon with four legs and rides "
+                      "it on the ground: walk as usual, the Pokemon walks "
+                      "with you. The flight has the priority when both are "
+                      "on. The Pokemon of the team that follows you leaves.")
+     .AddSpecies("Riding Pokemon",
+                 overworld::PokemonFlight::GetInstance().ride_species)
+     .WithBounds(1, static_cast<u32>(SpeciesId::kCount) - 1)
+     .Add("Ride Pokemon Size", overworld::PokemonFlight::GetInstance().ride_scale)
+     .WithFactor(0.05f)
+     .Add("Ride Speed", overworld::PokemonFlight::GetInstance().ride_speed)
+     .WithFactor(0.25f)
+     .WithDescription("How fast the player goes on the mount: 1 is the speed "
+                      "of the game, 2 is two times faster.")
+     .Add("Ride Height", overworld::PokemonFlight::GetInstance().ride_height)
+     .WithFactor(2.0f)
+     .WithDescription("The height of the seat on the back of the Pokemon.")
+     .Add("Ride Leg Spread", overworld::PokemonFlight::GetInstance().ride_spread)
+     .WithFactor(0.1f)
+     .WithDescription("How far the legs of the player go to the sides.")
+     .Add("Ride Back", overworld::PokemonFlight::GetInstance().ride_back)
+     .WithFactor(2.0f)
+     .WithDescription("The seat goes back along the Pokemon: more is closer "
+                      "to the tail.")
 #endif
      .AddSection("Day Care")
      .Add("Instant Egg Hatch", day_care.instant_egg_hatch)

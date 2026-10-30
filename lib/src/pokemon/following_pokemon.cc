@@ -244,6 +244,8 @@ void FollowingPokemon::Update(LoadedModel* pokemon) {
   // The Pokémon walks while it moves, and a few frames more.
   self.still_frames_ = self.speed_ > kMovingSpeed ? 0 : self.still_frames_ + 1;
   pokemon->is_walking = self.still_frames_ < kStillFramesBeforeStop;
+  // A fast follower gallops.
+  pokemon->walk.is_running = self.speed_ > (kWalkSpeed + kRunSpeed) * 0.5f;
 
   pokemon->model->SetTranslate(self.position_);
   pokemon->model->SetRotate(Vec3(0.0f, self.yaw_, 0.0f));
