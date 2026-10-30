@@ -8,6 +8,8 @@ Sango Plugin {{VERSION}} for Pokémon Alpha Sapphire v1.4 (no ROM patch).
   The game moves you as usual, so the collisions, the doors and the wild Pokémon stay. The legs of your character are bent to the sit pose,
   and your arms hold the mane. Any species can be ridden, the seat is set in Cheats (height, back, leg spread, speed) and a table in the code
   (`ride_offset.h`) gives the seat of a species.
+- **New types** (`battle::GameExtension::AddType()`): add a type, or change the name and the icon of a type of the game, with its own type chart.
+  The overlay has two examples, **Cosmic** and **Sound**. Their icons are in `sango/types/` of the zip (the release script makes them from the PNG files of `assets/types`).
 - **A natural walk for the quadrupeds**: the legs step one after the other, like a cat, with the knees bent, the feet on the ground and a small bounce of the back,
   the head and the tail. When you run, a quadruped gallops like a cheetah: the two front legs go together, and the two hind legs go together.
 - **Following Pokémon** (Cheats > Followers > Following Pokemon): your first Pokémon walks near you in the overworld.

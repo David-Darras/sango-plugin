@@ -29,6 +29,20 @@
 namespace ui {
 class MainApplication;
 
+/**
+ * Lets a product add entries at the end of a page of the library. The product
+ * gives a function, and the page calls it after its own entries.
+ *
+ * @code
+ * ui::PageExtensions::GetInstance().pokemon_page = MyEntries;
+ * @endcode
+ */
+struct PageExtensions {
+  MAKE_SINGLETON(PageExtensions)
+  /// Adds entries to the end of the page "Pokemon" (the top page of the menu).
+  void (*pokemon_page)(MainApplication& app) = nullptr;
+};
+
 // The top page: one entry for each family below, then the quick access.
 void LoadTopPage(MainApplication& app, void* args);
 

@@ -56,6 +56,7 @@ constexpr u32 kLevelUpSlots = 6;
 } // namespace
 
 void Battle::Initialize() {
+  TypeChart::Initialize();
   level_up_hook.Install(address::kLevelUp, LevelUpHook, address::kVtable);
   start_mega_evolution_animation_hook.Install(
       address::kStartMegaEvolutionAnimation, StartMegaEvolutionAnimationHook,

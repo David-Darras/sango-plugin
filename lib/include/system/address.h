@@ -64,6 +64,10 @@ constexpr uptr kControllerIsKeyReleased = GAME_ADDRESS(0x00498B84, 0x004C86B4);
 constexpr uptr kControllerIsKeyRepeated = GAME_ADDRESS(0x00498B0C, 0x004C863C);
 constexpr uptr kControllerIsKeyDown = GAME_ADDRESS(0x00498AD4, 0x004C8604);
 constexpr uptr kControllerGetRepeatedKey = GAME_ADDRESS(0x00498B4C, 0x004C867C);
+/// The masks of the buttons that went down or up at this frame (the first
+/// parameter is the device, the second one is the channel). ORAS only.
+constexpr uptr kControllerGetNewButtons = GAME_ADDRESS(0, 0x004C82D4);
+constexpr uptr kControllerGetReleasedButtons = GAME_ADDRESS(0, 0x004C82A4);
 constexpr uptr kDeviceGetDpad = GAME_ADDRESS(0x00498590, 0x004C80E0);
 constexpr uptr kDpadIsPressed = GAME_ADDRESS(0x00498368, 0x004C8030);
 constexpr uptr kDpadIsRepeated = GAME_ADDRESS(0x00498288, 0x004C7F50);

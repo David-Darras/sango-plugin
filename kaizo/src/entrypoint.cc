@@ -121,6 +121,9 @@ void InstallCallbacks() {
 
   overworld::Overworld::GetInstance().on_overworld_load = OnOverworldLoad;
   pokemon::ItemCustomizer::GetInstance().on_item_data = kaizo::PatchItemData;
+  // Kaizo has the summary editor, with only the nature, the ability and the
+  // form (the editor is off by default).
+  ui::AppStatus::GetInstance().is_enabled = true;
   ui::AppStatus::GetInstance().is_restricted = true;
 }
 

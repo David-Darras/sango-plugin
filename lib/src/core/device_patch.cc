@@ -86,4 +86,67 @@ HOOK(u32, GetRepeatedKey, (uptr button, u8 channel),
   return original(button, channel);
 }
 
+#ifdef GAME_ORAS
+// The game also reads the masks of the buttons (a menu that tests many buttons
+// at one time), the directions (the D-pad and the Circle Pad, as a vector) and
+// the other states of the touch screen. They have no channel: they are all
+// hidden while the menu is open.
+HOOK(u32, GetNewButtonsMask, (void* device, u8 channel),
+     sys::address::kControllerGetNewButtons) {
+  if (IsHidden(channel)) return 0;
+  return original(device, channel);
+}
+
+HOOK(u32, GetReleasedButtonsMask, (void* device, u8 channel),
+     sys::address::kControllerGetReleasedButtons) {
+  if (IsHidden(channel)) return 0;
+  return original(device, channel);
+}
+
+HOOK(bool, IsDPadHold, (void* device, u32 mask), sys::address::kDpadIsDown) {
+  if (DevicePatch::GetInstance().use_redirection) return false;
+  return original(device, mask);
+}
+
+HOOK(bool, IsDPadRepeated, (void* device, u32 mask),
+     sys::address::kDpadIsRepeated) {
+  if (DevicePatch::GetInstance().use_redirection) return false;
+  return original(device, mask);
+}
+
+HOOK(bool, IsDPadPressed, (void* device, u32 mask),
+     sys::address::kDpadIsPressed) {
+  if (DevicePatch::GetInstance().use_redirection) return false;
+  return original(device, mask);
+}
+
+HOOK(bool, IsDPadReleased, (void* device, u32 mask),
+     sys::address::kDpadIsReleased2) {
+  if (DevicePatch::GetInstance().use_redirection) return false;
+  return original(device, mask);
+}
+
+HOOK(s32, IsTouchPressed, (void* touch), sys::address::kTouchscreenIsPressed) {
+  if (DevicePatch::GetInstance().use_redirection) return 0;
+  return original(touch);
+}
+
+HOOK(bool, IsTouchRepeated, (void* touch), sys::address::kTouchscreenIsRepeated) {
+  if (DevicePatch::GetInstance().use_redirection) return false;
+  return original(touch);
+}
+
+// The Circle Pad (the position of the stick, from -1 to 1): the menu does not
+// use it, and the game moves its cursors with it.
+HOOK(f32, GetStickX, (void* stick), sys::address::kCirclePadReadX) {
+  if (DevicePatch::GetInstance().use_redirection) return 0.0f;
+  return original(stick);
+}
+
+HOOK(f32, GetStickY, (void* stick), sys::address::kCirclePadReadY) {
+  if (DevicePatch::GetInstance().use_redirection) return 0.0f;
+  return original(stick);
+}
+#endif
+
 } // namespace core

@@ -24,12 +24,16 @@
  */
 
 #include "ui/widget/icon.h"
+#include "renderer/patch/type_icon.h"
 
 #include <cstdio>
 #include <cstring>
 
 #include "core/constant/archive_id.h"
 #include "core/game_file.h"
+#include "battle/patch/game_extension.h"
+#include "pokemon/constant/type.h"
+#include "renderer/patch/type_icon.h"
 #include "system/native/graphics.h"
 #include "ui/log.h"
 
@@ -525,6 +529,26 @@ void IconPool::LoadLayoutIcons(IconKind kind) {
   bool has_archive = false;
   for (Slot& slot : slots_) {
     if (slot.wanted_kind != kind || slot.IsDone()) continue;
+    const battle::TypeSpec* type_spec =
+        kind == IconKind::kType ? battle::GameExtension::FindType(slot.wanted_id)
+                                : nullptr;
+    c16 type_path[80];
+    if (type_spec != nullptr &&
+        battle::GameExtension::GetTypeIconPath(*type_spec, type_path,
+                                               SIZE(type_path))) {
+      // A type that the plugin adds or changes: its image is on the SD card.
+      static u8 type_file[16 * 1024];
+      const u32 type_size = renderer::TypeIcon::ReadFile(type_path, type_file,
+                                                         sizeof(type_file));
+      if (type_size != 0 && WriteImage(slot, type_file, type_size, false)) {
+        continue;
+      }
+      // A new type without a file has no icon. A type of the game keeps its icon.
+      if (slot.wanted_id >= static_cast<u32>(TypeId::kCount)) {
+        slot.SetEmpty();
+        continue;
+      }
+    }
     if (!GetLayoutIcon(kind, slot.wanted_id, name, sizeof(name), archive)) {
       slot.SetEmpty();
     } else {

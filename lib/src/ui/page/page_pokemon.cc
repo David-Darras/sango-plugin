@@ -262,6 +262,11 @@ void LoadPokemonPage(MainApplication& app, void* args) {
      .Add("No EV Limit", pokemon::ItemCustomizer::GetInstance().remove_limit)
      .WithDescription("The items that raise the EVs (vitamins, wings) work "
                       "up to 255 for each stat.")
+     .Add("Summary Editor", AppStatus::GetInstance().is_enabled)
+     .WithCallback(AppStatus::Apply)
+     .WithDescription("On: the summary screen of the party has the Pokemon "
+                      "editor ({Y} starts it). Off: the summary screen is the "
+                      "one of the game.")
      .Add("Restricted Summary Editor", AppStatus::GetInstance().is_restricted)
      .WithDescription("On: the summary editor changes only the nature, the "
                       "ability and the form.")
@@ -284,5 +289,10 @@ void LoadPokemonPage(MainApplication& app, void* args) {
      .WithBounds(1, static_cast<u32>(SpeciesId::kCount) - 1)
      .WithDescription("The questions use the species from 1 to this "
                       "number.");
+
+  // The entries of the product.
+  if (PageExtensions::GetInstance().pokemon_page != nullptr) {
+    PageExtensions::GetInstance().pokemon_page(app);
+  }
 }
 } // namespace ui

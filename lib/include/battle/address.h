@@ -40,6 +40,14 @@ constexpr uptr kPlayAnimation = GAME_ADDRESS(0x007027AC, 0x007510A8);
 constexpr uptr kUpdateView = GAME_ADDRESS(0x006EE0AC, 0x0073B60C);
 constexpr uptr kUpdateGauge = GAME_ADDRESS(0x006D4578, 0x0071E174);
 constexpr uptr kTypeChart = GAME_ADDRESS(0x0077A2A8, 0x007CE428);
+// The effect of a type against a type: the number of the result (0 no effect,
+// 6 not very effective, 7 normal, 8 super effective), and the flag of the
+// inverse battle (a byte that is not 0 when the battle is inverse).
+constexpr uptr kTypeMatchup = GAME_ADDRESS(0, 0x007585BC);
+constexpr uptr kInverseBattleFlag = GAME_ADDRESS(0, 0x08152AD9);
+/// The function that shows the icon of a type in a pane of a battle layout
+/// (this, the layout, the pane, the type). ORAS only.
+constexpr uptr kShowTypeIcon = GAME_ADDRESS(0, 0x0074B2DC);
 constexpr uptr kGetEffectiveness = GAME_ADDRESS(0x00719DB8, 0x00769D1C);
 constexpr uptr kGetPokemonTypes = GAME_ADDRESS(0x00719E4C, 0x00769DB0);
 

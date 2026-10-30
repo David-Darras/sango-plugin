@@ -61,6 +61,17 @@ def pack(args):
     with zipfile.ZipFile(target, "w", zipfile.ZIP_DEFLATED) as z:
         z.write(args.plugin, "luma/plugins/%s/sango_plugin.3gx" % TITLE_ID)
         z.writestr("README.txt", readme.replace("\r\n", "\n").replace("\n", "\r\n"))
+        # The icons of the new types (sdmc:/sango/types): the PNG files of
+        # assets/types become BCLIM files here (the files are not in the repo).
+        types_dir = os.path.join(ROOT, "assets", "types")
+        sys.path.insert(0, os.path.join(ROOT, "tools"))
+        import png_to_bclim
+        from PIL import Image
+        for name in sorted(os.listdir(types_dir)):
+            if name.endswith(".png"):
+                with Image.open(os.path.join(types_dir, name)) as image:
+                    data = png_to_bclim.convert(image)
+                z.writestr("sango/types/%s.bclim" % name[:-4], data)
     shutil.copyfile(args.plugin, os.path.join(DIST, "sango_plugin.3gx"))
 
     print("Release pack: %s" % target)

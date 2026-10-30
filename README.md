@@ -118,11 +118,28 @@ script::NativeScript::Register(kCandyGiver, CandyGiver);
 <td width="50%" valign="top">
 
 ### 🛠️ For ROM hack makers
-- **12 step-by-step tutorials** for beginners
+- **14 step-by-step tutorials** for beginners
 - An in-game menu to explore and edit everything while the game runs
 - Typed game structures, documented with Doxygen
 - One library, as many ROM hacks as you want
 - Experimental support of Pokémon X v1.5
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+### 🌌 New types
+- **Add a type**, or change the name and the icon of a type of the game
+- Its own **type chart**, with a **table editor** on the bottom screen
+- Icons with the style of the game (a tool draws them)
+- Six examples: Cosmic, Sound, Light, Plasma, Dream and Time
+- [Tutorial 14](docs/tutorials/14-add-a-type.md)
+
+</td>
+<td width="50%" valign="top">
+
+<img src="assets/readme/new-types.png" alt="A Celebi with two new types and four moves of four other new types">
 
 </td>
 </tr>

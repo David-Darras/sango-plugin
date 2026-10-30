@@ -38,6 +38,7 @@
 #include "overworld/patch/camera.h"
 #include "ui/free_camera_application.h"
 #include "ui/main_application.h"
+#include "ui/type_chart_application.h"
 #include "ui/page/page_common.h"
 #include "ui/page/pages.h"
 #include "battle/address.h"
@@ -210,8 +211,17 @@ void LoadTypeChartPage(MainApplication& app, void* args) {
     if (kMultipliers[i] == current) edit.multiplier = i;
   }
 
-  const u32 last_type = static_cast<u32>(TypeId::kCount) - 1;
-  app.OnChange(ApplyTypeChart)
+  // 18 is no type: the page can pick the new types (19 and more) after it.
+  u32 type_count = 0;
+  ui::GetTypeNames(&type_count);
+  const u32 last_type = type_count - 1;
+  app.AddSection("Table")
+     .Add("Open The Table", [](void*) { TypeChartApplication::Open(); })
+     .WithDescription("The whole type chart on the bottom screen: a row for "
+                      "each attacking type and a column for each defending "
+                      "type. Touch a cell to change it: x0, x1/2, x1, x2.")
+     .AddSection("One Cell")
+     .OnChange(ApplyTypeChart)
      .AddType("Attacking Type", edit.attacking)
      .WithBounds(0, last_type)
      .WithRefresh()

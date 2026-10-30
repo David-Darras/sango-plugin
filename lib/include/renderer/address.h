@@ -159,6 +159,18 @@ constexpr uptr kMeshDrawCommand = GAME_ADDRESS(0, 0x004BC8C4);
 /// The vtable of the textures that the game makes while it runs (the textures
 /// of the Pokemon). ORAS only.
 constexpr uptr kH3dDynamicTextureVtable = GAME_ADDRESS(0, 0x005DDC08);
+/// The function that sets the frame of an animation of a layout (this, the
+/// animation, the frame). ORAS only.
+constexpr uptr kLayoutSeekAnimation = GAME_ADDRESS(0, 0x00111AF4);
+/// The function that applies an animation of a layout to a material (the
+/// animation, the number of the part, the material), and the function that
+/// updates a texture of a material after the change. ORAS only.
+constexpr uptr kLayoutPlayMaterialAnimation = GAME_ADDRESS(0, 0x003217A4);
+constexpr uptr kLayoutRefreshImage = GAME_ADDRESS(0, 0x00325A64);
+/// The function that gives an image of a layout resource (a texture), and the
+/// function that makes a texture of a BCLIM image in memory. ORAS only.
+constexpr uptr kLayoutGetImage = GAME_ADDRESS(0, 0x004C8FF0);
+constexpr uptr kLayoutMakeImage = GAME_ADDRESS(0, 0x00134AD8);
 /// The function that removes a model from a scene (the game calls it before it
 /// destroys the model). ORAS only.
 constexpr uptr kSceneRemoveModel = GAME_ADDRESS(0, 0x003917D0);

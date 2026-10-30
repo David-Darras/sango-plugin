@@ -45,6 +45,14 @@ class Controller;
 
 namespace ui {
 struct Theme;
+
+/**
+ * Gives the names of the types for a list of the menu: the 18 types of the game,
+ * "None" (the number 18) and the new types (the number 19 and more). The names
+ * come from battle::GameExtension::AddType().
+ * @param count Gets the number of names.
+ */
+const c8** GetTypeNames(u32* count);
 /**
  * @brief The menu of the plugin.
  *
@@ -318,14 +326,11 @@ public:
 
   /// Adds an entry that shows the name of a type.
   MainApplication& AddType(const c8* name, u8& var) {
-    static const c8* TYPES[] = {
-        "Normal", "Fighting", "Flying", "Poison", "Ground", "Rock",
-        "Bug", "Ghost", "Steel", "Fire", "Water", "Grass",
-        "Electric", "Psychic", "Ice", "Dragon", "Dark", "Fairy"
-    };
+    u32 type_count = 0;
+    const c8** types = GetTypeNames(&type_count);
     if (entries_count_ < kMaxEntries) {
       entries_[entries_count_++].Initialize(name, (void*)&var, kTypeU8);
-      WithArray(TYPES, SIZE(TYPES));
+      WithArray(types, type_count);
       WithIcons(IconKind::kType);
     }
     return *this;

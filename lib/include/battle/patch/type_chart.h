@@ -37,12 +37,18 @@ public:
   static constexpr u32 kTypeCount = static_cast<u32>(TypeId::kCount);
   typedef TypeMultiplier Row[kTypeCount];
 
+  /// Installs the hook of the new types. ORAS only.
+  static void Initialize();
   static void PatchLoad();
   /// Returns the type chart.
   static Row* GetTable();
-  /// Changes one cell of the type chart.
+  /// Changes one cell of the type chart. The cells of a new type are kept by
+  /// the plugin: the game reads them through a hook. A cell with TypeId::kCount
+  /// (no type) does nothing.
   static void Set(TypeId attacking_type, TypeId defending_type, TypeMultiplier value);
-  /// Returns one cell of the type chart.
+  /// Returns one cell of the type chart (x1 for TypeId::kCount).
   static TypeMultiplier Get(TypeId attacking_type, TypeId defending_type);
+  /// Gives all the cells (see GameExtension::SetTypeChart()).
+  static void SetTable(const TypeMultiplier* table, u32 type_count);
 };
 } // namespace battle

@@ -698,6 +698,7 @@ void AppStatus::Draw(Pane* panes[], u32 pane_count,
 void AppStatus::SetupGraphicsParamsHook(uptr self,
                                         savedata::PokemonParam* pokemon) {
   setup_graphics_params_hook(self, pokemon);
+  if (!GetInstance().is_enabled) return;
 
   static Pane* PARAMS_PANES[] = {
       &pane_species, &pane_nature_form, &pane_shiny,
@@ -717,6 +718,7 @@ void AppStatus::SetupGraphicsMovesHook(uptr self,
                                        savedata::PokemonParam* pokemon,
                                        u8 move_index) {
   setup_graphics_moves_hook(self, pokemon, move_index);
+  if (!GetInstance().is_enabled) return;
 
   static Pane* MOVES_PANES[] = {
       &pane_move_0, &pane_move_1, &pane_move_2, &pane_move_3
@@ -729,6 +731,7 @@ void AppStatus::SetupGraphicsMovesHook(uptr self,
 void AppStatus::SetupGraphicsInfosHook(uptr self,
                                        savedata::PokemonParam* pokemon) {
   setup_graphics_infos_hook(self, pokemon);
+  if (!GetInstance().is_enabled) return;
 
   static Pane* INFOS_PANES[] = {
       &pane_level, &pane_gender, &pane_item_ball
@@ -757,6 +760,7 @@ void AppStatus::SetupGraphicsContestHook(uptr self,
   };
 
   setup_graphics_contest_hook(self, pokemon);
+  if (!GetInstance().is_enabled) return;
 
   auto& ctx = GetInstance();
   auto& manager = *(AppLayoutManager*)(READ32(self + 8 + 16));
@@ -793,7 +797,13 @@ void AppStatus::Initialize() {
       address::kAppStatusVtable);
 }
 
+void AppStatus::Apply(void*) {
+  // The menu of the plugin is open: it keeps the buttons away from the game.
+  if (!GetInstance().is_enabled) GetInstance().mode_ = Mode::kIdle;
+}
+
 void AppStatus::PatchUpdate() {
+  if (!GetInstance().is_enabled) return;
   auto& pokemon = *savedata::PokemonTeam::GetInstance().pokemons[GetSlot()];
   auto& controller = sys::Controller::GetInstance();
   GetInstance().Update(pokemon, controller);
@@ -802,7 +812,7 @@ void AppStatus::PatchUpdate() {
 void AppStatus::PatchLoad() {
   MEMORY_SCOPE(sys::address::kMemoryRegionAppStatus, 0x10000);
   GetInstance().Reset();
-  if (GetInstance().is_restricted) {
+  if (GetInstance().is_enabled && GetInstance().is_restricted) {
     pane_level.Disable();
     pane_gender.Disable();
     pane_shiny.Disable();

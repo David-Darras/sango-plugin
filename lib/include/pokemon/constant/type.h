@@ -46,7 +46,14 @@ enum class TypeId : u8 {
   kDragon = 15,
   kDark = 16,
   kFairy = 17,
+  /// The number of types of the game. It is also the value of "no type": a
+  /// Pokémon with one type has this value for its second type.
   kCount = 18,
+  /// The first and the last number of a new type (ORAS only, see
+  /// battle::GameExtension::AddType()). A new type does not use kCount,
+  /// because the game uses it for "no type".
+  kFirstCustom = 19,
+  kLastCustom = 31,
 };
 } // namespace pokemon
 

@@ -36,6 +36,13 @@ class Pane;
 class AppStatus {
   MAKE_SINGLETON(AppStatus)
 public:
+  /// true: the summary screen has the editor (Y starts it). Off by default:
+  /// the summary screen is then the one of the game.
+  bool is_enabled = false;
+
+  /// Called when the switch changes: the editor stops when it goes off.
+  static void Apply(void*);
+
   /// true: the player can change only the nature, the ability (from the
   /// abilities of the species) and the form.
   bool is_restricted = false;
