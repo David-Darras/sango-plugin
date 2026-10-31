@@ -37,6 +37,7 @@
 #include "overworld/patch/trigger_editor.h"
 #include "overworld/patch/zone_settings.h"
 #include "ui/log.h"
+#include "core/problems.h"
 #include "overworld/address.h"
 #include "system/address.h"
 
@@ -113,7 +114,11 @@ void MapCharacter::ChangeMapHook(core::GameManager* manager, MapId map_id,
 
 bool MapCharacter::Add(const MapCharacterRequest& request) {
   auto& ctx = GetInstance();
-  if (ctx.request_count_ >= kMaxRequests) return false;
+  if (ctx.request_count_ >= kMaxRequests) {
+    core::Problems::Add(u"character on map %u: more than %u characters",
+                        static_cast<u32>(request.map_id), kMaxRequests);
+    return false;
+  }
   ctx.requests_[ctx.request_count_++] = request;
   return true;
 }
@@ -125,7 +130,11 @@ void MapCharacter::Clear() {
 
 bool MapCharacter::Empty(MapId map_id) {
   auto& ctx = GetInstance();
-  if (ctx.emptied_count_ >= kMaxEmptiedMaps) return false;
+  if (ctx.emptied_count_ >= kMaxEmptiedMaps) {
+    core::Problems::Add(u"map %u: more than %u maps to empty",
+                        static_cast<u32>(map_id), kMaxEmptiedMaps);
+    return false;
+  }
   ctx.emptied_maps_[ctx.emptied_count_++] = map_id;
   return true;
 }

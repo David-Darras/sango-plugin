@@ -33,6 +33,7 @@
 #include "ui/splash.h"
 #include "core/frame_trace.h"
 #include "core/hook.h"
+#include "core/problems.h"
 #include "core/patch/app_launcher.h"
 #include "core/patch/archive.h"
 #include "core/patch/device_patch.h"
@@ -187,6 +188,8 @@ void OpenMenu(ui::Painter& painter, PageLoader root_page) {
 }
 
 void Start(void (*every_frame)()) {
+  // The settings of the product are complete: check them.
+  core::Problems::CheckHack();
   entrypoint_hook.Install(sys::address::kEntrypoint, every_frame);
 }
 
@@ -244,6 +247,7 @@ void DrawFrame() {
       battle::TypeHelper::DrawTop();
       ui::PerformanceOverlay::DrawTop();
       ui::Splash::DrawTop();
+      core::Problems::DrawTop();
     }
     core::FrameTrace::OnScreenDrawn(true);
     sys::Graphics::DisableScissor();

@@ -43,6 +43,7 @@
 #include "pokemon/native/runtime_data.h"
 #include "savedata/native/pokemon_param.h"
 #include "system/address.h"
+#include "core/problems.h"
 
 namespace battle {
 
@@ -111,8 +112,17 @@ bool ItemExtension::AddItem(const ItemSpec& spec) {
   const u32 id = static_cast<u32>(spec.id);
   const bool is_game_item = id >= 1 && id < kGameItemCount;
   const bool is_new_item = id >= kFirstId && id <= kLastId;
-  if (self.item_count_ >= kMaxItems || (!is_game_item && !is_new_item) ||
-      FindItem(spec.id) != nullptr) {
+  if (self.item_count_ >= kMaxItems) {
+    core::Problems::Add(u"item %u: more than %u items", id, kMaxItems);
+    return false;
+  }
+  if (!is_game_item && !is_new_item) {
+    core::Problems::Add(u"item %u: use an id from %u to %u", id, kFirstId,
+                        kLastId);
+    return false;
+  }
+  if (FindItem(spec.id) != nullptr) {
+    core::Problems::Add(u"item %u: the id is used two times", id);
     return false;
   }
   self.items_[self.item_count_++] = spec;

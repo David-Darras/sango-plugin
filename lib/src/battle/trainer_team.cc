@@ -24,6 +24,7 @@
 
 #include "battle/patch/trainer_team.h"
 #include "battle/native/config.h"
+#include "core/problems.h"
 #include "savedata/native/pokemon_team.h"
 
 namespace battle {
@@ -55,7 +56,12 @@ void TrainerTeam::ApplyTo(Config& config) const {
 
 bool TrainerTeams::Add(TrainerId id, const TrainerTeam* team) {
   auto& ctx = GetInstance();
-  if (ctx.count_ >= kMaxTeams || team == nullptr) return false;
+  if (team == nullptr) return false;
+  if (ctx.count_ >= kMaxTeams) {
+    core::Problems::Add(u"trainer %u: more than %u teams (use SetTable)",
+                        static_cast<u32>(id), kMaxTeams);
+    return false;
+  }
   ctx.teams_[ctx.count_].id = id;
   ctx.teams_[ctx.count_].team = team;
   ctx.count_++;

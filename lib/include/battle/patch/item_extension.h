@@ -153,6 +153,13 @@ public:
   /// Returns the new item with this id, or null.
   static const ItemSpec* FindItem(ItemId id);
 
+  /// Returns the number of added items.
+  static u32 GetCount() { return GetInstance().item_count_; }
+  /// Returns an added item (index from 0 to GetCount() - 1).
+  static const ItemSpec& GetItem(u32 index) {
+    return GetInstance().items_[index < kMaxItems ? index : 0];
+  }
+
   /// Writes the path of the icon of an item: sdmc:/sango/items/<name>.bclim.
   /// Returns false when the item has no name or when the path is too long.
   static bool GetIconPath(const ItemSpec& spec, c16* path, u32 capacity);

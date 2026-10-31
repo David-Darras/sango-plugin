@@ -75,6 +75,10 @@ public:
   static bool Empty(MapId map_id);
   /// Returns the number of added characters.
   static u32 GetCount();
+  /// Returns an added character (index from 0 to GetCount() - 1).
+  static const MapCharacterRequest& GetRequest(u32 index) {
+    return GetInstance().requests_[index < kMaxRequests ? index : 0];
+  }
   /// Returns the placement (script, movement...) of the character with this
   /// id on the current map, or null (the player has none).
   static CharacterPlacement* FindPlacement(u16 local_id);

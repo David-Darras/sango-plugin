@@ -39,6 +39,7 @@
 #include "battle/address.h"
 #include "pokemon/address.h"
 #include "system/address.h"
+#include "core/problems.h"
 
 namespace battle {
 
@@ -123,8 +124,17 @@ void ReplaceText(String* text, const c16* from, const c16* to) {
 // Registration.
 bool GameExtension::AddMove(const MoveSpec& spec) {
   auto& self = GetInstance();
-  if (self.move_count_ >= kMaxMoves || FindMove(spec.id) != nullptr) {
+  const u32 id = static_cast<u32>(spec.id);
+  if (self.move_count_ >= kMaxMoves) {
+    core::Problems::Add(u"move %u: more than %u new moves", id, kMaxMoves);
     return false;
+  }
+  if (FindMove(spec.id) != nullptr) {
+    core::Problems::Add(u"move %u: the id is used two times", id);
+    return false;
+  }
+  if (id < static_cast<u32>(MoveId::kCount)) {
+    core::Problems::Add(u"move %u: a move of the game has this id", id);
   }
   self.moves_[self.move_count_++] = spec;
   return true;
@@ -132,9 +142,18 @@ bool GameExtension::AddMove(const MoveSpec& spec) {
 
 bool GameExtension::AddAbility(const AbilitySpec& spec) {
   auto& self = GetInstance();
-  if (self.ability_count_ >= kMaxAbilities ||
-      FindAbility(spec.id) != nullptr) {
+  const u32 id = static_cast<u32>(spec.id);
+  if (self.ability_count_ >= kMaxAbilities) {
+    core::Problems::Add(u"ability %u: more than %u new abilities", id,
+                        kMaxAbilities);
     return false;
+  }
+  if (FindAbility(spec.id) != nullptr) {
+    core::Problems::Add(u"ability %u: the id is used two times", id);
+    return false;
+  }
+  if (id < static_cast<u32>(AbilityId::kCount)) {
+    core::Problems::Add(u"ability %u: an ability of the game has this id", id);
   }
   self.abilities_[self.ability_count_++] = spec;
   return true;
@@ -143,7 +162,12 @@ bool GameExtension::AddAbility(const AbilitySpec& spec) {
 bool GameExtension::AddType(const TypeSpec& spec) {
   auto& self = GetInstance();
   const u32 id = static_cast<u32>(spec.id);
-  if (id == kGameTypeCount || id >= kMaxTypes || self.is_type_used_[id]) {
+  if (id == kGameTypeCount || id >= kMaxTypes) {
+    core::Problems::Add(u"type %u: use 0 to 17 or 19 to 31", id);
+    return false;
+  }
+  if (self.is_type_used_[id]) {
+    core::Problems::Add(u"type %u: the id is used two times", id);
     return false;
   }
   self.types_[id] = spec;

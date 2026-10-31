@@ -40,6 +40,25 @@ Make sure that the size of each member is correct. Read [Game structures](../con
 
 ## Run problems
 
+### The screen "The ROM hack has N problem(s)"
+
+The library checks your ROM hack when the game starts. A few seconds after the
+start, the top screen shows the problems that it found. Press **A** or **B** to
+close the list. The log of the plugin (**Plugin > Log**) also shows them.
+
+| Problem | Cause | Solution |
+|---|---|---|
+| `move N: the id is used two times` | Two moves (or abilities, items, scripts, types) have the same id. | Give each one its own id. |
+| `move N: more than 32 new moves` | The list is full. The library ignores the move. | Remove a move, or ask for a bigger list. |
+| `move N: a move of the game has this id` | The id is not free. The new move replaces the name of a move of the game. | Use an id above `MoveId::kCount`. For an ability, above `AbilityId::kCount`. |
+| `item N: use an id from 800 to 1023` | The id is not an item of the game and not a free id. | Use an id from 800 to 1023 for a new item. |
+| `script N: use an id from 30500 to 59999` | A C++ script has the id of a script of the game. | Use a free id: see [Scripts](../concepts/scripts.md). |
+| `character N: script N is not registered` | A character of `MapCharacter::Add()` has a free script id without a C++ script. | Call `NativeScript::Register()` with this id. |
+| `type N: no icon in sdmc:/sango/types` | The icon file of the type is not on the SD card. The game shows the icon of Fairy. | Copy `<name>.bclim` to `sdmc:/sango/types/`. |
+| `item N: no icon in sdmc:/sango/items` | The icon file of the item is not on the SD card, and the item has no `icon_item`. | Copy `<name>.bclim` to `sdmc:/sango/items/`, or set `icon_item`. |
+| `trainer N: more than 16 teams (use SetTable)` | `TrainerTeams::Add()` keeps 16 teams. | Use `TrainerTeams::SetTable()` for more teams. |
+| `character on map N: more than 16 characters` | `MapCharacter::Add()` keeps 16 characters. | Remove a character. |
+
 ### The menu does not open
 
 1. Make sure that the plugin loader is enabled (Azahar: **Emulation > Configure > System**; console: Rosalina menu).

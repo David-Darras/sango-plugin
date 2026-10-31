@@ -25,6 +25,7 @@
 #pragma once
 
 #include "common.h"
+#include "core/problems.h"
 #include "script/constant/script.h"
 #include "script/native/amx.h"
 #include "script/native/engine.h"
@@ -71,8 +72,16 @@ public:
   /// Links a script id to a C++ function. 32 scripts at most.
   static bool Register(ScriptId id, Function function) {
     auto& ctx = GetInstance();
-    if (function == nullptr || ctx.Find(id) != nullptr) return false;
-    if (ctx.count_ >= kMaxScripts) return false;
+    if (function == nullptr) return false;
+    if (ctx.Find(id) != nullptr) {
+      core::Problems::Add(u"script %u: the id is used two times", (u32)id);
+      return false;
+    }
+    if (ctx.count_ >= kMaxScripts) {
+      core::Problems::Add(u"script %u: more than %u C++ scripts", (u32)id,
+                          kMaxScripts);
+      return false;
+    }
     ctx.entries_[ctx.count_++] = Entry{id, function};
     return true;
   }
@@ -84,6 +93,11 @@ public:
 
   /// Returns the number of registered scripts.
   static u32 GetCount() { return GetInstance().count_; }
+
+  /// Returns the id of a registered script (index from 0 to GetCount() - 1).
+  static ScriptId GetId(u32 index) {
+    return GetInstance().entries_[index < kMaxScripts ? index : 0].id;
+  }
 
   /// Gives the small .amx program to the game. core::ScriptLoader calls it.
   static bool OnLoad(void* self, const void*& buffer, u32& size) {
