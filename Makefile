@@ -28,7 +28,7 @@ include $(DEVKITARM)/3ds_rules
 # Local settings. The file is optional: only `make run-<product>` needs it.
 -include $(TOPDIR)/config.mk
 
-PLUGIN_VERSION  := 7.2.0
+PLUGIN_VERSION  := 7.3.0
 PLUGIN_CREATOR  := ZettaD
 PLUGIN_NAME     := Sango
 
@@ -235,6 +235,38 @@ else
 #---------------------------------------------------------------------------------
 
 DEPENDS	:=	$(OFILES:.o=.d)
+
+# The first rule of the file is the default goal: keep it the plugin, not the
+# rules of the macro files below.
+.DEFAULT_GOAL := $(OUTPUT)
+
+#---------------------------------------------------------------------------------
+# The macros of the command line (-D...). The files of the build directory do not
+# depend on the Makefile, so a change of a value did not rebuild anything. Each
+# group of macros has a small file with its values: the make rule writes the file
+# only when a value changed, and the object files depend on it.
+#   game.flag    the target game (GAME_ORAS or GAME_XY): all the files
+#   plugin.flag  the name, the version and the creator: the files that use them
+#---------------------------------------------------------------------------------
+GAME_VALUES   := $(GAME_DEFINE)
+PLUGIN_VALUES := $(PLUGIN_NAME) $(PLUGIN_VERSION) $(PLUGIN_CREATOR)
+
+.PHONY: FORCE
+FORCE:
+
+game.flag: FORCE
+	@echo '$(GAME_VALUES)' | cmp -s - $@ || echo '$(GAME_VALUES)' > $@
+
+plugin.flag: FORCE
+	@echo '$(PLUGIN_VALUES)' | cmp -s - $@ || echo '$(PLUGIN_VALUES)' > $@
+
+# The source files that use the macros of the plugin.
+PLUGIN_USERS := $(patsubst %.cc,%.o,$(notdir $(shell grep -lE \
+	'PLUGIN_(NAME|VERSION|CREATOR)' $(wildcard $(addsuffix /*.cc,$(VPATH))) \
+	2>/dev/null)))
+
+$(OFILES): game.flag
+$(PLUGIN_USERS): plugin.flag
 
 
 $(OUTPUT) : $(basename $(OUTPUT)).elf

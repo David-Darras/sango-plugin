@@ -2,22 +2,25 @@ Sango Plugin {{VERSION}} for Pokémon Alpha Sapphire v1.4 (no ROM patch).
 
 **New in {{VERSION}}**
 
-- **Fly on a Pokémon** (Cheats > Flight > Fly On A Pokemon): you sit on a flying Pokémon (Staraptor by default) and fly with the Circle Pad.
-  R goes up and L goes down. No wild Pokémon and no collision while you fly.
-- **Ride a Pokémon** (Cheats > Flight > Ride A Pokemon): you sit on the back of a Pokémon with four legs (Raikou by default) and ride it on the ground.
-  The game moves you as usual, so the collisions, the doors and the wild Pokémon stay. The legs of your character are bent to the sit pose,
-  and your arms hold the mane. Any species can be ridden, the seat is set in Cheats (height, back, leg spread, speed) and a table in the code
-  (`ride_offset.h`) gives the seat of a species.
-- **New types** (`battle::GameExtension::AddType()`): add a type, or change the name and the icon of a type of the game, with its own type chart.
-  The overlay has two examples, **Cosmic** and **Sound**. Their icons are in `sango/types/` of the zip (the release script makes them from the PNG files of `assets/types`).
-- **A natural walk for the quadrupeds**: the legs step one after the other, like a cat, with the knees bent, the feet on the ground and a small bounce of the back,
-  the head and the tail. When you run, a quadruped gallops like a cheetah: the two front legs go together, and the two hind legs go together.
-- **Following Pokémon** (Cheats > Followers > Following Pokemon): your first Pokémon walks near you in the overworld.
-  It has the light of the overworld (day and night), an idle animation, and it plays battle and Pokémon-Amie animations by itself.
-  L plays a battle animation and R plays a Pokémon-Amie animation, both with the cry.
-  Pokémon Omega Ruby and Alpha Sapphire have no walk animation, so the walk is made in code on the bones of the model.
-  A Pokémon that flies or floats does not walk. It goes away cleanly for the menus, the doors, the scripts, the battles and the map changes.
-- The fields of `MoveData` now have enum classes (`MoveCategory`, `DamageCategory`, `MoveTarget`, `MoveStat`, `EffectTurnType`).
+- **New Pokémon types** (`battle::GameExtension::AddType()`): add a type, or change the name and the icon of a type of the game.
+  Each type has its own icon, its own row and column in the type chart, and a table editor in the menu (Battle > Type Chart).
+  The overlay has six examples: **Cosmic**, **Sound**, **Light**, **Plasma**, **Dream** and **Time**. Their icons are in `sango/types/` of the zip
+  (the release script makes them from the PNG files of `assets/types`).
+- **Four new moves of these types**, each with its own effect in battle, its own reactions and its own animation:
+  Prism Lance (Light), Sonic Requiem (Sound), Ion Storm (Plasma) and Dreamfall (Dream).
+- **New items and changed items** (`battle::ItemExtension`): add an item (ids 800 to 1023) or change an item of the game (ids 1 to 775).
+  An item has a name, a description, an icon (a file `sango/items/<name>.bclim`, made from a PNG), data (price, Fling...) and reactions in battle.
+  The names show in the party, the summary, the Bag, the PC boxes and the overlay. The icons of the examples are in `sango/items/` of the zip
+  (the release script makes them from the PNG files of `assets/items`).
+- **Items that the player uses in the Bag**: the player chooses "Use" and a Pokémon, and a function of the product runs on it.
+  The overlay has examples: **Shiny Switch** (shiny on and off), **Ability Switch** (goes to the next ability), **Evolution Prism** (makes a Pokémon evolve),
+  **Devolution Stone** (goes back to the species before, with the evolution animation) and **Knife** (a Pokémon keeps 1 HP).
+- **Medicine effects with names** (`battle::ItemMedicine`): restore HP, revive, cure the status conditions, raise the level, restore or raise the PP,
+  change the EVs and the friendship. The game does the work and shows its own messages.
+- **Held items with reactions**: Plasma Core, Dream Pillow, a changed Leftovers and **Philosopher Stone** (the holder survives any hit and recovers its HP).
+- **Team Runtime Data** (Pokémon > Tools): changes the HP, the stats and the status condition of the team, refreshes the Pokémon and heals them.
+- The ability and its flag stay in agreement when you change the species, the form or the ability.
+- New tutorials: `docs/tutorials/14-add-a-type.md` and `docs/tutorials/15-add-an-item.md`.
 
 **Install**
 
