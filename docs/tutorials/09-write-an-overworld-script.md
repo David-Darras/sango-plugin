@@ -45,15 +45,14 @@ namespace {
 // The id of the script: HackScript(0) to HackScript(999) are free.
 constexpr ScriptId kCandyGiver = script::HackScript(0);
 
-// A flag that the game never uses. It remembers that the gift happened.
-// HackFlag(0) to HackFlag(13) are free.
-constexpr EventFlag kCandyReceived = core::HackFlag(0);
+// A flag of the ROM hack (0 to 4095). It remembers that the gift happened.
+constexpr u16 kCandyReceived = 0;
 
 // The script. The game runs it when the player talks to the character.
 void CandyGiver(script::Context& s) {
   s.TalkStart();
 
-  if (s.GetFlag(kCandyReceived)) {
+  if (s.GetHackFlag(kCandyReceived)) {
     s.Talk(u"Use the candies well!");
     s.TalkEnd();
     return;
@@ -74,7 +73,7 @@ void CandyGiver(script::Context& s) {
 
   s.GiveItem(ItemId::kRareCandy, 5);
   s.PlayJingle(script::kJingleItem);
-  s.SetFlag(kCandyReceived);
+  s.SetHackFlag(kCandyReceived);
   s.Talk(u"Here are 5 Rare Candies!");
   s.TalkEnd();
 }
@@ -164,6 +163,6 @@ See `undertow/src/scripts.cc`.
 - `NativeScript::Register` links a script id to a C++ function.
 - `MapCharacter::Add` puts a character with a script on a map.
 - `script::Context` has the functions of the script: messages, items, flags...
-- A free event flag makes a gift happen one time only.
+- A flag of the ROM hack (`SetHackFlag`) makes a gift happen one time only.
 
 **Next:** [Tutorial 10: Replace models](10-replace-models.md)

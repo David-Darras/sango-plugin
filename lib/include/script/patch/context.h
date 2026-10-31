@@ -36,6 +36,7 @@
 #include "overworld/native/static_encounter.h"
 #include "pokemon/constant/item.h"
 #include "pokemon/native/gift_pokemon_data.h"
+#include "savedata/patch/hack_save.h"
 #include "script/constant/battle_result.h"
 #include "script/constant/fade_color.h"
 #include "script/constant/message_option.h"
@@ -205,6 +206,20 @@ public:
   bool GetFlag(EventFlag f) { return GetFlag((u16)f); }
   void SetFlag(EventFlag f) { SetFlag((u16)f); }
   void ResetFlag(EventFlag f) { ResetFlag((u16)f); }
+
+  /// @name The flags and the variables of the ROM hack
+  /// 4096 flags and 512 variables in the save data. See savedata::HackSave.
+  /// @{
+  bool GetHackFlag(u16 flag) { return savedata::HackSave::GetFlag(flag); }
+  void SetHackFlag(u16 flag) { savedata::HackSave::SetFlag(flag); }
+  void ResetHackFlag(u16 flag) { savedata::HackSave::ResetFlag(flag); }
+  u16 GetHackVariable(u16 variable) {
+    return savedata::HackSave::GetVariable(variable);
+  }
+  void SetHackVariable(u16 variable, u16 value) {
+    savedata::HackSave::SetVariable(variable, value);
+  }
+  /// @}
 
   /// Returns the character that the player talks to.
   s32 GetTalkTarget() { return (s16)GetVariable(ScriptVariable::kTalkTarget); }

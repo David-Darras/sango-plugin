@@ -88,6 +88,22 @@ public:
   INLINE BerryTreeManager& GetBerryTreeManager() { return *(BerryTreeManager*)segments_[40]; }
   INLINE PokemonBox& GetPokemonBox() { return *(PokemonBox*)segments_[kPokemonBoxIndex]; }
   INLINE PssPhoto& GetPssPhoto() { return *(PssPhoto*)segments_[50]; }
+  /// Returns the reserved segment: 2000 bytes that the game saves and never
+  /// uses. Null in X and Y.
+  INLINE u8* GetReservedSegment() {
+#ifdef GAME_ORAS
+    // The segment starts with its vtable, then the 2000 bytes.
+    return segments_[kReservedIndex] != nullptr
+               ? (u8*)segments_[kReservedIndex] + 4
+               : nullptr;
+#else
+    return nullptr;
+#endif
+  }
+
+  /// The size of the reserved segment.
+  static constexpr u32 kReservedSize = 2000;
+  static constexpr u32 kReservedIndex = 47;
 
   static constexpr u32 kPokemonBoxIndex = GAME_CONSTANT(53, 56);
   static constexpr u32 kSegmentCount = GAME_CONSTANT(55, 58);

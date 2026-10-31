@@ -96,6 +96,8 @@ models at most for your characters.
 | `GivePokemon(gift_id)` | Gives a gift Pokémon. |
 | `SelectPokemon()` | Opens the party. Returns the selected slot. |
 | `GetFlag(flag)`, `SetFlag(flag)`, `ResetFlag(flag)` | Reads and changes an event flag. |
+| `GetHackFlag(n)`, `SetHackFlag(n)`, `ResetHackFlag(n)` | Reads and changes a flag of the ROM hack (0 to 4095). |
+| `GetHackVariable(n)`, `SetHackVariable(n, value)` | Reads and changes a variable of the ROM hack (0 to 511). |
 | `GetVariable(id)`, `SetVariable(id, value)` | Reads and changes a script variable. |
 | `GetMoney()`, `AddMoney(amount)`, `SubMoney(amount)` | Reads and changes the money. |
 | `PlaySound(id)`, `PlayJingle(id)` | Plays a sound or a short music. |
@@ -182,6 +184,48 @@ if (s.GetFlag(kMyGiftReceived)) {
   return;
 }
 ```
+
+## The flags and the variables of the ROM hack
+
+14 flags are not enough for a story. The save data has a reserved part that
+the game never uses. The library keeps more flags and variables there, for
+your ROM hack only (`savedata::HackSave`):
+
+| What | Numbers | Values | In a script |
+|---|---|---|---|
+| Flags | 0 to 4095 | true or false | `GetHackFlag(n)`, `SetHackFlag(n)`, `ResetHackFlag(n)` |
+| Variables | 0 to 511 | 0 to 65535 | `GetHackVariable(n)`, `SetHackVariable(n, value)` |
+
+Give a name to each number:
+
+```cpp
+// The flags of my ROM hack.
+constexpr u16 kRivalMet = 0;
+constexpr u16 kRivalBeaten = 1;
+// The variables of my ROM hack.
+constexpr u16 kQuestStep = 0;
+
+void Rival(script::Context& s) {
+  s.TalkStart();
+  if (!s.GetHackFlag(kRivalMet)) {
+    s.Talk(u"Hi! I am your rival.");
+    s.SetHackFlag(kRivalMet);
+  }
+  s.SetHackVariable(kQuestStep, 2);
+  s.TalkEnd();
+}
+```
+
+Outside a script, use `savedata::HackSave::GetFlag()`, `SetFlag()`,
+`GetVariable()`, `SetVariable()` and `AddToVariable()`.
+
+- A new game starts with all the flags false and all the variables 0.
+- The player saves the game to keep them, like the other data of the game.
+- The save data remembers the product that wrote it. With the save data of an
+  other ROM hack, the log of the plugin shows
+  `save: an other ROM hack wrote this save data`, and
+  `HackSave::IsFromOtherHack()` returns true.
+- Alpha Sapphire only. In X, the functions do nothing.
 
 ## Related pages
 

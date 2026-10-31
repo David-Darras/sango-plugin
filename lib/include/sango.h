@@ -91,6 +91,9 @@
 #include "overworld/patch/weather_override.h"
 #include "overworld/patch/wild_encounter.h"
 
+// Save data: the flags and the variables of the ROM hack.
+#include "savedata/patch/hack_save.h"
+
 // Scripts: the C++ scripts of the characters.
 #include "script/patch/context.h"
 #include "script/patch/native_script.h"
