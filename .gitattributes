@@ -1,2 +1,7 @@
 # Auto detect text files and perform LF normalization
 * text=auto 
+
+# Scripts that run in Linux (Docker, GitHub) keep LF, the Windows scripts CRLF.
+*.sh text eol=lf
+Dockerfile text eol=lf
+*.bat text eol=crlf

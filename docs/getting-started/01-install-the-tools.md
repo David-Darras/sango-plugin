@@ -15,6 +15,9 @@ You need these tools:
 
 Time: about 20 minutes.
 
+> **Tip:** You can also build without these tools: on GitHub, or with Docker.
+> See [Build without devkitPro](06-build-without-devkitpro.md).
+
 - [Windows](#windows)
 - [Linux (Debian, Ubuntu)](#linux-debian-ubuntu)
 - [macOS](#macos)

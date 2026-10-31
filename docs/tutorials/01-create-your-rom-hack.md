@@ -5,7 +5,8 @@ At the end, you have the file `myhack-release.3gx`. In the game, all the
 wild Pokémon are shiny, and the menu shows your own page.
 
 **Time:** 10 minutes.
-**You need:** a working build. See [Build the plugin](../getting-started/02-build-the-plugin.md).
+**You need:** a working build. See [Build the plugin](../getting-started/02-build-the-plugin.md),
+or [Build without devkitPro](../getting-started/06-build-without-devkitpro.md).
 
 ## Step 1: Make the product
 

@@ -176,6 +176,8 @@ Your ROM hack is the next line of this table. **[Start here.](docs/tutorials/01-
 You need [devkitPro](https://devkitpro.org), [libctrpf](https://gitlab.com/thepixellizeross/ctrpluginframework)
 and [3gxtool](https://gitlab.com/thepixellizeross/3gxtool).
 The [installation guide](docs/getting-started/01-install-the-tools.md) explains each step for Windows and Linux.
+You can also build without these tools, on GitHub or with Docker:
+see [Build without devkitPro](docs/getting-started/06-build-without-devkitpro.md).
 
 ```bash
 git clone https://github.com/David-Darras/sango-plugin.git

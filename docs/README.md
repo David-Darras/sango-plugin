@@ -13,6 +13,7 @@ Do these steps in order.
 3. [Run the plugin](getting-started/03-run-the-plugin.md): on the Azahar emulator or on a 3DS console.
 4. [Set up your editor](getting-started/04-set-up-your-editor.md): code completion and the API reference.
 5. [Troubleshooting](getting-started/05-troubleshooting.md): the common problems and their solutions.
+6. [Build without devkitPro](getting-started/06-build-without-devkitpro.md): build on GitHub or with Docker.
 
 ## Concepts
 

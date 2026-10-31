@@ -1,0 +1,43 @@
+# Builds the products on GitHub. You do not need devkitPro on your computer.
+#
+# GitHub runs this workflow when you push a commit or open a pull request.
+# The .3gx files are in the "Artifacts" part of the run (Actions tab).
+# To build one product only: Actions > Build > Run workflow, and type its name.
+name: Build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      product:
+        description: "The product to build (for example myhack). Empty: all the products."
+        required: false
+        default: ""
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: devkitpro/devkitarm:latest
+
+    steps:
+      - name: Get the source code
+        uses: actions/checkout@v4
+
+      - name: Install libctrpf and 3gxtool
+        run: sh tools/docker/install_tools.sh
+
+      - name: Build
+        env:
+          PRODUCT_NAME: ${{ github.event.inputs.product }}
+        run: |
+          # The Makefile calls 3gxtool without its path.
+          export PATH="$DEVKITPRO/tools/bin:$PATH"
+          make -j"$(nproc)" $PRODUCT_NAME
+
+      - name: Keep the plugin files
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugins
+          path: "*-release.3gx"
+          if-no-files-found: error
