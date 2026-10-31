@@ -358,7 +358,7 @@ public:
   MainApplication& AddItem(const c8* name, u16& var) {
     if (entries_count_ < kMaxEntries) {
       entries_[entries_count_++].Initialize(name, (void*)&var, kTypeItem);
-      WithBounds(0, 775);
+      WithBounds(0, GAME_CONSTANT(775, 1023));
       WithIcons(IconKind::kItem);
     }
     return *this;

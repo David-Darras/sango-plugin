@@ -53,6 +53,21 @@ public:
 
   static void Initialize();
 
+  /// Makes the game read a BCLIM file of the SD card as the file `file_id` of
+  /// the archive of the item icons. The file id must be above the files of the
+  /// archive (631 files). Returns false when the file is not an image.
+  static bool RegisterItemIcon(u32 file_id, const c16* path);
+
+  /// The size of the file of the data of an item, in bytes. The file has no
+  /// compression.
+  static constexpr u32 kItemDataFileSize = 36;
+
+  /// Makes the game read `data` as the file of the item `item_id` in the
+  /// archive of the item data. The game then sees the data that the plugin
+  /// changed (for example "use in the Bag"). `item_id` must be above the files
+  /// of the archive.
+  static bool RegisterItemData(u32 item_id, const u8* data);
+
   /// Returns true when the archive of a stream is `archive_id`.
   static bool IsArchive(const u32* archive_data, const ArchiveId archive_id);
   /// Returns true when the archive of a queued read is `archive_id`.

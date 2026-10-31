@@ -118,7 +118,7 @@ script::NativeScript::Register(kCandyGiver, CandyGiver);
 <td width="50%" valign="top">
 
 ### 🛠️ For ROM hack makers
-- **14 step-by-step tutorials** for beginners
+- **15 step-by-step tutorials** for beginners
 - An in-game menu to explore and edit everything while the game runs
 - Typed game structures, documented with Doxygen
 - One library, as many ROM hacks as you want
@@ -140,6 +140,18 @@ script::NativeScript::Register(kCandyGiver, CandyGiver);
 <td width="50%" valign="top">
 
 <img src="assets/readme/new-types.png" alt="A Celebi with two new types and four moves of four other new types">
+
+</td>
+</tr>
+<tr>
+<td colspan="2" valign="top">
+
+### 🎒 New items
+- **Add an item**, or change an item of the game: its name, its description, its icon, its data and its reactions in battle
+- **Items that the player uses in the Bag**: a function of your product runs on the Pokémon (shiny, hidden ability, species...)
+- **Evolution stones** that make any Pokémon evolve, with the animation of the game
+- Examples with their own icons: Plasma Core, Dream Pillow, Shiny Switch, Ability Switch, Evolution Prism, Devolution Stone, Knife and Philosopher Stone
+- [Tutorial 15](docs/tutorials/15-add-an-item.md)
 
 </td>
 </tr>

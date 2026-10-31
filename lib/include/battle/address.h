@@ -71,6 +71,22 @@ constexpr uptr kAddTerrain = GAME_ADDRESS(0x006CE120, 0x00718B10);
 constexpr uptr kRegisterAbilityListener = GAME_ADDRESS(0x00710DB0, 0x0076063C);
 constexpr uptr kRegisterMoveListener = GAME_ADDRESS(0x0071328C, 0x00762B18);
 
+// The three functions that register the reactions of a held item. The first
+// registers the item of a Pokémon (a Pokémon, no result). The second does the
+// same after a check of the battle server. The third registers an item for a
+// short time (a Pokémon and an item). ORAS only.
+constexpr uptr kRegisterItemListener = GAME_ADDRESS(0, 0x007A8124);
+constexpr uptr kRegisterItemListenerChecked = GAME_ADDRESS(0, 0x007A1D54);
+constexpr uptr kRegisterTemporaryItemListener = GAME_ADDRESS(0, 0x007A821C);
+/// The two places of the battle code that compare the item of a Pokémon with
+/// the number of items of the game (776). The battle removes an item that is
+/// above this number. ORAS only.
+constexpr uptr kItemLimitCheck1 = GAME_ADDRESS(0, 0x0076F7C4);
+constexpr uptr kItemLimitCheck2 = GAME_ADDRESS(0, 0x007962D4);
+/// The check of the second function (a Pokémon number, and the number 5).
+/// It returns 1 when the check refuses the registration. ORAS only.
+constexpr uptr kItemListenerCheck = GAME_ADDRESS(0, 0x0077526C);
+
 constexpr uptr kLoadAnimation = GAME_ADDRESS(0x006FF9EC, 0x0074E908);
 constexpr uptr kLoadEffect = GAME_ADDRESS(0, 0x0076728C);
 

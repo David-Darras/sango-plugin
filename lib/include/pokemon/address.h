@@ -69,6 +69,24 @@ constexpr uptr kReplacePokemonModel = GAME_ADDRESS(0x00443818, 0x004713FC);
 constexpr uptr kPokemonModelSettings = GAME_ADDRESS(0x00442000, 0x0046F950);
 constexpr uptr kEncounterSetPokemon = GAME_ADDRESS(0, 0x0078DB30);
 constexpr uptr kItemDataInitialize = GAME_ADDRESS(0x003A0DE8, 0x003B7B9C);
+/// The two functions that the Bag calls to use a medicine on a Pokémon: the
+/// check (a Pokémon, an item, a move, the heap) and the effect (a Pokémon, an
+/// item, a move, the place, the helper of the Poké Assist power, the heap).
+/// ORAS only.
+constexpr uptr kItemRecoverCheck = GAME_ADDRESS(0, 0x0046DC98);
+constexpr uptr kItemRecover = GAME_ADDRESS(0, 0x0046CE6C);
+/// The function of the Bag (a CRO) that makes the HP bar count up after a
+/// medicine: the Bag object, the counter, the new HP, the maximum HP and the
+/// place of the Pokémon. ORAS only.
+constexpr uptr kBagHpBarStep = GAME_ADDRESS(0, 0x00704AD8);
+/// The table of the item icons: one 32-bit number for each item. It gives the
+/// file of the icon in the archive of the item icons. ORAS only.
+constexpr uptr kItemIconTable = GAME_ADDRESS(0, 0x0057C648);
+/// The three places in the game code that hold the address of the table of the
+/// item icons. ORAS only.
+constexpr uptr kItemIconTableUser1 = GAME_ADDRESS(0, 0x0041E518);
+constexpr uptr kItemIconTableUser2 = GAME_ADDRESS(0, 0x0041E5A0);
+constexpr uptr kItemIconTableUser3 = GAME_ADDRESS(0, 0x0041E73C);
 constexpr uptr kItemDataGetParam = GAME_ADDRESS(0x004A3D3C, 0x004D3C84);
 constexpr uptr kLoadEvolutionTable = GAME_ADDRESS(0x0039A23C, 0x003B1108);
 constexpr uptr kLoadMegaEvolutionTable = GAME_ADDRESS(0x00168108, 0x00168974);

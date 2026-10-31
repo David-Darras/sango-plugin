@@ -23,6 +23,7 @@
  */
 
 #include "battle/patch/battle.h"
+#include "battle/patch/item_extension.h"
 
 #include "battle/native/manager.h"
 #include "battle/patch/game_extension.h"
@@ -134,6 +135,7 @@ void Battle::PatchUpdate() {
 void Battle::PatchLoad() {
   MEMORY_SCOPE(sys::address::kMemoryRegionCro, 0xD8000);
   TypeChart::PatchLoad();
+  ItemExtension::PatchBattleLoad();
 
   auto& feat = GetInstance();
   if (!feat.can_use_item) {

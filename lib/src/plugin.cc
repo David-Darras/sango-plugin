@@ -24,6 +24,7 @@
 
 #include "battle/patch/battle.h"
 #include "battle/patch/game_extension.h"
+#include "battle/patch/item_extension.h"
 #include "battle/patch/setup.h"
 #include "battle/patch/shiny_entry.h"
 #include "battle/patch/type_helper.h"
@@ -152,6 +153,7 @@ void InitializeEngine() {
   ui::AppStatus::Initialize();
   pokemon::Shiny::Initialize();
   battle::GameExtension::Initialize();
+  battle::ItemExtension::Initialize();
   pokemon::MegaEvolution::Initialize();
   pokemon::AlolanForms::Initialize();
   pokemon::SpeciesTable::Initialize();
@@ -203,6 +205,7 @@ void UpdateFrame() {
   overworld::PlacedDecorations::Update();
 #ifdef GAME_ORAS
   overworld::TallGrass::Update();
+  battle::ItemExtension::Update();
   overworld::HealerFollower::Update();
   UpdateFollowingPokemon();
   overworld::PokemonFlight::Update();

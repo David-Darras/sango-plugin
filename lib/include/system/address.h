@@ -104,6 +104,11 @@ constexpr uptr kSoundOpenStreamFile = GAME_ADDRESS(0x0031B3B4, 0x0032FCE8);
 
 // The system.
 constexpr uptr kMessageGetString = GAME_ADDRESS(0x0013A498, 0x00139A34);
+/// Reads a text of a text file that the game loads when it needs it (the
+/// context, the number of the text, the number of the text file, the
+/// result). The Message object that this function uses keeps 0 as its
+/// file number. ORAS only.
+constexpr uptr kGetTextOfFile = GAME_ADDRESS(0, 0x00451440);
 constexpr uptr kStringVtable = GAME_ADDRESS(0x0059B9F8, 0x005DE3BC);
 constexpr uptr kEntrypoint =
     GAME_ADDRESS(0x001220D0, 0x00122938); // The function of each frame that plugin::Start() hooks

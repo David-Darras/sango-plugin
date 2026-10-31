@@ -72,6 +72,15 @@ def pack(args):
                 with Image.open(os.path.join(types_dir, name)) as image:
                     data = png_to_bclim.convert(image)
                 z.writestr("sango/types/%s.bclim" % name[:-4], data)
+        # The icons of the new items (sdmc:/sango/items): the same, with the
+        # format of the item icons.
+        items_dir = os.path.join(ROOT, "assets", "items")
+        import png_to_item_icon
+        for name in sorted(os.listdir(items_dir)):
+            if name.endswith(".png"):
+                with Image.open(os.path.join(items_dir, name)) as image:
+                    data = png_to_item_icon.convert(image)
+                z.writestr("sango/items/%s.bclim" % name[:-4], data)
     shutil.copyfile(args.plugin, os.path.join(DIST, "sango_plugin.3gx"))
 
     print("Release pack: %s" % target)

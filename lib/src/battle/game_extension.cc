@@ -23,6 +23,7 @@
  */
 
 #include "battle/patch/game_extension.h"
+#include "battle/patch/item_extension.h"
 #include "battle/patch/type_chart.h"
 #include "battle/patch/move_animation.h"
 #include "pokemon/patch/custom_shop.h"
@@ -68,6 +69,9 @@ constexpr u32 kTypeNameFile = 18;
 constexpr u32 kGameTypeCount = 18;
 constexpr u32 kItemNameFile1 = 113;
 constexpr u32 kItemNameFile2 = 116;
+constexpr u32 kItemPluralFile = 115;
+constexpr u32 kItemDescriptionFile = 117;
+constexpr u32 kBagFile = 164;
 
 // The move that lends its data to a new move before patch_data runs.
 constexpr u32 kTemplateMove = static_cast<u32>(MoveId::kPound);
@@ -376,7 +380,7 @@ void GameExtension::MessageGetStringHook(Message* self, u32 str_id,
     }
   }
   message_get_string_hook(self, str_id, output);
-  switch (self->file_id) {
+  switch (ItemExtension::ResolveTextFile(self->file_id)) {
     case kMoveNameFile1:
     case kMoveNameFile2:
       PatchMoveName(static_cast<MoveId>(str_id), output);
@@ -395,7 +399,16 @@ void GameExtension::MessageGetStringHook(Message* self, u32 str_id,
       break;
     case kItemNameFile1:
     case kItemNameFile2:
-      pokemon::CustomShop::PatchItemName(static_cast<ItemId>(str_id), output);
+    case kItemPluralFile:
+      if (!ItemExtension::PatchName(static_cast<ItemId>(str_id), output)) {
+        pokemon::CustomShop::PatchItemName(static_cast<ItemId>(str_id), output);
+      }
+      break;
+    case kItemDescriptionFile:
+      ItemExtension::PatchDescription(static_cast<ItemId>(str_id), output);
+      break;
+    case kBagFile:
+      ItemExtension::PatchUseMessage(kBagFile, str_id, output);
       break;
     default:
       break;

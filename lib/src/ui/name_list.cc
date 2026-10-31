@@ -26,6 +26,7 @@
 
 #include <cstring>
 
+#include "battle/patch/item_extension.h"
 #include "core/constant/archive_id.h"
 #include "core/game_file.h"
 #include "core/utils.h"
@@ -337,6 +338,18 @@ bool NameList::GetName(const PageItem& entry, u32 value, c16* out,
       return true;
     }
   } else if (source != NameSource::kNone) {
+#ifdef GAME_ORAS
+    // The names of the new items, and of the items that a product renames, are
+    // not in the text archive: the game gives them (the plugin changes them).
+    if (source == NameSource::kItem) {
+      const battle::ItemSpec* spec =
+          battle::ItemExtension::FindItem(static_cast<ItemId>(value));
+      if (spec != nullptr && spec->name != nullptr &&
+          AskGameName(source, value, out, capacity)) {
+        return true;
+      }
+    }
+#endif
     const s32 index = GetGameIndex(source);
     if (CopyGameName(index, value, out, capacity)) return true;
     // XY, or no text file: ask the game (slower).

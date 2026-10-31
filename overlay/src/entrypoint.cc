@@ -51,8 +51,10 @@ void Initialize() {
   plugin::InitializeEngine();
   battle::RegisterCustomAbilities();
   battle::RegisterCustomMoves();
+  battle::RegisterCustomItems();
   battle::RegisterTypeMoves();
   battle::RegisterCustomTypes();
+  battle::RegisterTestFoes();
   battle::PatchTypedPokemon();
   ui::PageExtensions::GetInstance().pokemon_page = battle::AddTypeTestEntries;
   battle::RegisterAbsoluteZeroAnimation();

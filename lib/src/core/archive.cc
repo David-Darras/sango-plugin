@@ -26,6 +26,8 @@
 #include <cstring>
 #include "battle/patch/move_animation.h"
 #include "battle/patch/effect_style.h"
+#include "battle/patch/item_extension.h"
+#include "renderer/patch/type_icon.h"
 #include "core/hook.h"
 #include "core/utils.h"
 #include "system/native/file.h"
@@ -119,6 +121,8 @@ static constexpr u32 kOverworldToken = 0x40000000;
 static constexpr u32 kLandToken = 0xC0000000;
 static constexpr u32 kAreaToken = 0xD0000000;
 static constexpr u32 kMatrixToken = 0xE0000000;
+static constexpr u32 kItemIconToken = 0xF0000000;
+static constexpr u32 kItemDataToken = 0xB0000000;
 static constexpr u32 kTokenMask = 0xF0000000;
 static constexpr u32 kFileIdMask = ~kTokenMask;
 static OverrideEntry pokemon_entries[6144];
@@ -126,6 +130,14 @@ static OverrideEntry overworld_entries[1024];
 static OverrideEntry land_entries[1024];
 static OverrideEntry area_entries[512];
 static OverrideEntry matrix_entries[512];
+// The icons of the new items: RegisterItemIcon() fills this list.
+static constexpr u32 kMaxItemIcons = 64;
+static OverrideEntry item_icon_entries[kMaxItemIcons];
+static c16 item_icon_paths[kMaxItemIcons][96];
+// The data of the new items: RegisterItemData() fills this list.
+static constexpr u32 kMaxItemData = 32;
+static OverrideEntry item_data_entries[kMaxItemData];
+static u8 item_data_raw[kMaxItemData][Archive::kItemDataFileSize];
 static OverrideSet override_sets[] = {
     {ArchiveId::kPokemonModel, u"sdmc:/sango/pokemodel/index.bin",
      u"sdmc:/sango/pokemodel/%d.pc", kPokemonToken, false, pokemon_entries,
@@ -142,6 +154,12 @@ static OverrideSet override_sets[] = {
     {ArchiveId::kMapMatrix, u"sdmc:/sango/matrix/index.bin",
      u"sdmc:/sango/matrix/%d.bin", kMatrixToken, true, matrix_entries, 512, 0,
      false},
+    // The files of the icons have the paths that RegisterItemIcon() got. The
+    // list is in memory: no index file, so the set is already loaded.
+    {ArchiveId::kItemIcon, u"", u"", kItemIconToken, true, item_icon_entries,
+     kMaxItemIcons, 0, true},
+    {ArchiveId::kItemData, u"", u"", kItemDataToken, true, item_data_entries,
+     kMaxItemData, 0, true},
 };
 
 static OverrideSet* FindSet(const u32* archive) {
@@ -192,6 +210,16 @@ static u32 OverrideSize(OverrideSet& set, u32 file_id) {
 
 static u32 LzStoreSize(u32 raw) { return 4 + raw + (raw + 7) / 8; }
 
+static bool ItemDataIsRegistered(u32 file_id) {
+  for (OverrideSet& set : override_sets) {
+    if (set.archive != ArchiveId::kItemData) continue;
+    for (u32 i = 0; i < set.count; i++) {
+      if (set.entries[i].file_id == file_id) return true;
+    }
+  }
+  return false;
+}
+
 // Writes a line "code file size" in sdmc:/sango/overworld_model/trace.log. It shows
 // how the game reads the files that the SD card replaces. The codes: 1 size
 // of a file, 2 information of a file, 3 read in a thread, 4 read with the
@@ -201,6 +229,11 @@ static void Trace(OverrideSet* set, u32 what, u32 file_id, u32 size) {
   static bool opened = false;
   static u32 lines = 0;
   if (set == nullptr || !set->whole_file || lines >= 400) return;
+  // The sets of the item icons and of the item data are in memory: no log.
+  if (set->archive == ArchiveId::kItemIcon ||
+      set->archive == ArchiveId::kItemData) {
+    return;
+  }
   if (!opened) {
     opened = true;
     file.Open(u"sdmc:/sango/overworld_model/trace.log");
@@ -240,8 +273,70 @@ static void ServeLz(OverrideSet& set, u32 file_id, void* buffer, u32 size) {
   file.Close();
 }
 
+static OverrideSet& GetItemIconSet() {
+  for (OverrideSet& set : override_sets) {
+    if (set.archive == ArchiveId::kItemIcon) return set;
+  }
+  return override_sets[0];
+}
+
+// Writes the file of the icon of a new item as the game reads it: a stream
+// of LZ11 without compression (a flag byte of 0, then 8 bytes).
+static void ServeItemIcon(u32 file_id, void* buffer, u32 size) {
+  OverrideSet& set = GetItemIconSet();
+  const c16* path = nullptr;
+  for (u32 i = 0; i < set.count; i++) {
+    if (set.entries[i].file_id == file_id) path = item_icon_paths[i];
+  }
+  if (path == nullptr) return;
+
+  static u8 raw[4096];
+  const u32 length = renderer::TypeIcon::ReadFile(path, raw, sizeof(raw));
+  if (length == 0) return;
+
+  u8* out = static_cast<u8*>(buffer);
+  u8* end = out + size;
+  const u32 header = 0x11 | (length << 8);
+  std::memcpy(out, &header, 4);
+  out += 4;
+  for (u32 k = 0; k < length && out < end; k += 8) {
+    *out++ = 0;
+    const u32 m = (length - k) < 8 ? (length - k) : 8;
+    for (u32 j = 0; j < m && out < end; j++) *out++ = raw[k + j];
+  }
+}
+
+static OverrideSet& GetItemDataSet() {
+  for (OverrideSet& set : override_sets) {
+    if (set.archive == ArchiveId::kItemData) return set;
+  }
+  return override_sets[0];
+}
+
+// Writes the data of a new item as the game reads it. The files of the item
+// data have no compression: the game reads the 36 bytes as they are.
+static void ServeItemData(u32 file_id, void* buffer, u32 size) {
+  OverrideSet& set = GetItemDataSet();
+  for (u32 i = 0; i < set.count; i++) {
+    if (set.entries[i].file_id != file_id) continue;
+    const u32 length = size < Archive::kItemDataFileSize
+                           ? size
+                           : Archive::kItemDataFileSize;
+    std::memcpy(buffer, item_data_raw[i], length);
+    return;
+  }
+}
+
 // Copies a file of the SD card (a set with `whole_file`) to the buffer.
 static void ServeFile(OverrideSet& set, u32 file_id, void* buffer, u32 size) {
+  if (set.archive == ArchiveId::kItemData) {
+    ServeItemData(file_id, buffer, size);
+    return;
+  }
+  if (set.archive == ArchiveId::kItemIcon) {
+    ServeItemIcon(file_id, buffer, size);
+    return;
+  }
   c16 path[64];
   Utils::Format(path, set.file_format, file_id);
   sys::File file;
@@ -282,6 +377,28 @@ static bool ServeRaw(void* buffer, u32 size) {
   return true;
 }
 
+static bool ItemDataIsRegistered(u32 file_id);
+
+// The data of an item is the file of the archive of the item data that has the
+// number of the item. A new item has no file: the game reads the file of the
+// template item (see battle::ItemExtension). The data that the plugin changes
+// (patch_data) is for the code that reads the item through ItemData.
+static u32 RemapItemFile(const u32* archive, u32 file_id,
+                         bool keep_registered = true) {
+  if (file_id < battle::ItemExtension::kFirstId ||
+      file_id > battle::ItemExtension::kLastId) {
+    return file_id;
+  }
+  if (!Archive::IsArchive(archive, ArchiveId::kItemData)) return file_id;
+  if (battle::ItemExtension::FindItem(static_cast<ItemId>(file_id)) ==
+      nullptr) {
+    return file_id;
+  }
+  // The plugin serves the data of an item that it has (the set of the archive).
+  if (keep_registered && ItemDataIsRegistered(file_id)) return file_id;
+  return battle::ItemExtension::kTemplateFile;
+}
+
 // The size of a file that the SD card replaces, as the game reads it. Returns
 // 0 when the game must read its own file.
 static u32 ReplacedSize(OverrideSet* set, u32 file_id) {
@@ -296,6 +413,7 @@ static u32 ReplacedSize(OverrideSet* set, u32 file_id) {
 }
 
 u32 Archive::GetFileSizeHook(u32* archive, u32 file_id) {
+  file_id = RemapItemFile(archive, file_id);
   if (IsArchive(archive, ArchiveId::kBattleMoveAnimation)) {
     const u32 patched = battle::MoveAnimations::PatchedSize(archive, file_id);
     if (patched) return patched;
@@ -310,6 +428,7 @@ u32 Archive::GetFileSizeHook(u32* archive, u32 file_id) {
 }
 
 u32 Archive::GetFileSizeHook2(u32* archive, u32 file_id) {
+  file_id = RemapItemFile(archive, file_id);
   if (IsArchive(archive, ArchiveId::kBattleMoveAnimation)) {
     const u32 patched = battle::MoveAnimations::PatchedSize(archive, file_id);
     if (patched) return patched;
@@ -324,6 +443,7 @@ u32 Archive::GetFileSizeHook2(u32* archive, u32 file_id) {
 }
 
 void Archive::GetInfoHook(u32* archive, u32 file_id, u32* info) {
+  file_id = RemapItemFile(archive, file_id);
   OverrideSet* set = FindSet(archive);
   const u32 replaced = info != nullptr ? ReplacedSize(set, file_id) : 0;
   if (replaced) {
@@ -356,6 +476,7 @@ void Archive::ReadHook(u32* archive, u32 offset, u32 size,
 }
 
 u32 Archive::LoadDataHook2(u32* archive, u32 file_id, void* buffer) {
+  file_id = RemapItemFile(archive, file_id);
   if (IsArchive(archive, ArchiveId::kBattleMoveAnimation)) {
     u32 patched = 0;
     if (battle::MoveAnimations::Serve(archive, file_id, buffer, &patched)) {
@@ -389,6 +510,7 @@ u32 Archive::LoadDataHook2(u32* archive, u32 file_id, void* buffer) {
 
 void* Archive::LoadCompressedHook(u32* archive, u32 file_id, void* heap_work,
                                   void* heap_data, s32 align, u32* out_size) {
+  file_id = RemapItemFile(archive, file_id, false);
   OverrideSet* set = FindSet(archive);
   if (set != nullptr && !set->whole_file) {
     const u32 size = OverrideSize(*set, file_id);
@@ -445,6 +567,51 @@ u32 Archive::LoadOriginalData(u32* archive, u32 file_id, void* buffer) {
   return load_data2_hook(archive, file_id, buffer);
 }
 
+bool Archive::RegisterItemIcon(u32 file_id, const c16* path) {
+  OverrideSet& set = GetItemIconSet();
+  if (set.count >= kMaxItemIcons) return false;
+  // The file must be a BCLIM image of the SD card.
+  static u8 raw[4096];
+  const u32 length = renderer::TypeIcon::ReadFile(path, raw, sizeof(raw));
+  if (length == 0) return false;
+
+  u32 i = 0;
+  while (path[i] != 0 && i < SIZE(item_icon_paths[0]) - 1) {
+    item_icon_paths[set.count][i] = path[i];
+    i++;
+  }
+  item_icon_paths[set.count][i] = 0;
+  set.entries[set.count].file_id = file_id;
+  set.entries[set.count].size = LzStoreSize(length);
+  set.count++;
+  return true;
+}
+
+bool Archive::RegisterItemData(u32 item_id, const u8* data) {
+  OverrideSet& set = GetItemDataSet();
+  // The data of an item that the plugin already gave: replace it.
+  for (u32 i = 0; i < set.count; i++) {
+    if (set.entries[i].file_id == item_id) {
+      std::memcpy(item_data_raw[i], data, kItemDataFileSize);
+      return true;
+    }
+  }
+  if (set.count >= kMaxItemData) return false;
+  // The list stays sorted by the id of the item.
+  u32 place = set.count;
+  while (place > 0 && set.entries[place - 1].file_id > item_id) {
+    set.entries[place] = set.entries[place - 1];
+    std::memcpy(item_data_raw[place], item_data_raw[place - 1],
+                kItemDataFileSize);
+    place--;
+  }
+  set.entries[place].file_id = item_id;
+  set.entries[place].size = kItemDataFileSize;
+  std::memcpy(item_data_raw[place], data, kItemDataFileSize);
+  set.count++;
+  return true;
+}
+
 bool Archive::IsArchive(const u32* archive_data,
                              const ArchiveId archive_id) {
   u32* archive_table = (u32*)sys::address::kArchiveFilenameTable;
@@ -459,6 +626,7 @@ bool Archive::ReadFileAsync2(u32* archive, void* heap, u32 file_id,
                                   void* buffer,
                                   u32 p4, u32 p5, u32 p6) {
   auto& feat = GetInstance();
+  file_id = RemapItemFile(archive, file_id);
   if (feat.on_stream_file != nullptr) {
     file_id = feat.on_stream_file(archive, file_id);
   }

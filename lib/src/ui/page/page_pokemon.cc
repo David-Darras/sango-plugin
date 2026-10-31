@@ -24,6 +24,7 @@
 #include "pokemon/patch/alolan_forms.h"
 #include "pokemon/patch/species_table.h"
 #include <cstring>
+#include "pokemon/native/ability_slot.h"
 #include "pokemon/native/data_accessor.h"
 #include "pokemon/native/movepool.h"
 #include "pokemon/native/move_data.h"
@@ -92,7 +93,7 @@ static bool PutInBox(u32 slot, SpeciesId species, FormId form,
   scratch.is_illegal_egg = false;
   scratch.is_egg = false;
   scratch.SetShiny(false);
-  scratch.ability = pokemon::SpeciesData::GetInstance(species, form).ability[0];
+  pokemon::SetAbilitySlot(scratch, 0);
   scratch.experience =
       pokemon::Utils::GetExperienceFromLevel(species, data_form, 100);
   MoveId learnt[4];
@@ -150,8 +151,7 @@ static void SetTeamSlot(u32 slot, SpeciesId species, ItemId item) {
   core->is_illegal_egg = 0;
   core->SetShiny(false);
   core->SetLevel(100);
-  core->ability =
-      pokemon::SpeciesData::GetInstance(species, FormId::kNormal).ability[0];
+  pokemon::SetAbilitySlot(*core, 0);
   MoveId learnt[4];
   DefaultMoves(species, FormId::kNormal, learnt);
   core->SetMoves(learnt[0], learnt[1], learnt[2], learnt[3]);
@@ -273,6 +273,9 @@ void LoadPokemonPage(MainApplication& app, void* args) {
      .Add("Pokemon Shop", CheatCodeId::kPokemonShop)
      .WithDescription("The normal Poke Marts sell Pokemon.")
      .AddSection("Tools")
+     .Add("Team Runtime Data", LoadTeamRuntimePage)
+     .WithDescription("Changes the HP, the stats and the status condition "
+                      "of the team, refreshes the Pokemon and heals them.")
      .Add("Z-A Mega Evolutions", LoadZaMegaPage)
      .WithDescription("Gives the Mega Evolutions of Pokemon Legends: Z-A.")
 #ifdef GAME_ORAS

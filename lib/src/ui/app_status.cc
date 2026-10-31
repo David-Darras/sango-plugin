@@ -37,6 +37,7 @@
 #include "pokemon/constant/nature.h"
 #include "pokemon/constant/species.h"
 #include "pokemon/native/item_data.h"
+#include "pokemon/native/ability_slot.h"
 #include "pokemon/native/species_data.h"
 #include "ui/native/app_layout_manager.h"
 
@@ -283,10 +284,12 @@ static Pane pane_species
        PREV(core.species, value, static_cast<u16>(SpeciesId::kCount));
        SkipNonSpecies(core, false);
        core.form = static_cast<FormId>(0);
+       pokemon::AdjustAbilityToSpecies(core);
      }, [](pokemon::CoreData& core, u32 value) {
        NEXT(core.species, value, static_cast<u16>(SpeciesId::kCount));
        SkipNonSpecies(core, true);
        core.form = static_cast<FormId>(0);
+       pokemon::AdjustAbilityToSpecies(core);
      }, [](Pane* pane, AppLayoutManager& manager,
            pokemon::DataAccessor& accessor) {
        auto& core = *accessor.GetCoreData();
@@ -342,6 +345,7 @@ static Pane pane_nature_form
          ctx.item_page_ == AppStatus::ItemPage::kForm) {
          PREV(core.form, value,
               GetFormCount(core.species));
+         pokemon::AdjustAbilityToSpecies(core);
        }
      }, [](pokemon::CoreData& core, u32 value) {
        auto& ctx = AppStatus::GetInstance();
@@ -352,6 +356,7 @@ static Pane pane_nature_form
          ctx.item_page_ == AppStatus::ItemPage::kForm) {
          NEXT(core.form, value,
               GetFormCount(core.species));
+         pokemon::AdjustAbilityToSpecies(core);
        }
      }, [](Pane* pane, AppLayoutManager& manager,
            pokemon::DataAccessor& accessor) {
@@ -376,19 +381,19 @@ static Pane pane_ability
     (true, 38, 40, 0xFF,
      [](pokemon::CoreData& core, u32 value) {
        if (AppStatus::GetInstance().is_restricted) {
-         auto& pkm = pokemon::SpeciesData::GetInstance(core.species, core.form);
          PREV(ability_index, 1, 3);
-         core.ability = pkm.ability[ability_index];
+         pokemon::SetAbilitySlot(core, ability_index);
        } else {
          PREV(core.ability, value, static_cast<u8>(AbilityId::kCount));
+         pokemon::SyncAbilityFlags(core);
        }
      }, [](pokemon::CoreData& core, u32 value) {
        if (AppStatus::GetInstance().is_restricted) {
-         auto& pkm = pokemon::SpeciesData::GetInstance(core.species, core.form);
          NEXT(ability_index, 1, 3);
-         core.ability = pkm.ability[ability_index];
+         pokemon::SetAbilitySlot(core, ability_index);
        } else {
          NEXT(core.ability, value, static_cast<u8>(AbilityId::kCount));
+         pokemon::SyncAbilityFlags(core);
        }
      }, nullptr);
 

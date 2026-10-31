@@ -23,6 +23,7 @@
  */
 
 #include "battle/patch/setup.h"
+#include "pokemon/native/ability_slot.h"
 #include "battle/patch/battle.h"
 #include "core/hook.h"
 #include "overworld/patch/tall_grass.h"
@@ -109,9 +110,11 @@ void Setup::SetupWildHook(Config* config,
     config->pokemon_teams[1]->pokemons[0]->accessor->Decrypt();
     config->pokemon_teams[1]->pokemons[0]->core->species = ctx.species;
     config->pokemon_teams[1]->pokemons[0]->core->form = ctx.form;
+    pokemon::AdjustAbilityToSpecies(*config->pokemon_teams[1]->pokemons[0]->core);
     config->pokemon_teams[1]->pokemons[0]->accessor->Encrypt();
   }
   config->money_rate *= Battle::GetInstance().money_multiplier;
+  if (ctx.on_wild_battle != nullptr) ctx.on_wild_battle(*config);
 }
 
 } // namespace battle

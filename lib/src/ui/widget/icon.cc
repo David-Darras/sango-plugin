@@ -32,6 +32,7 @@
 #include "core/constant/archive_id.h"
 #include "core/game_file.h"
 #include "battle/patch/game_extension.h"
+#include "battle/patch/item_extension.h"
 #include "pokemon/constant/type.h"
 #include "renderer/patch/type_icon.h"
 #include "system/native/graphics.h"
@@ -484,12 +485,19 @@ void IconPool::LoadFileIcon(Slot& slot) {
       item = kBallItems[item];
       // fall through
     case IconKind::kItem:
-      if (item == 0 || item >= SIZE(kItemIconFiles)) {
+      archive = ArchiveId::kItemIcon;
+      file_id = battle::ItemExtension::GetIconFile(static_cast<ItemId>(item));
+      if (file_id != 0xFFFFFFFF) {
+        // An item that the plugin adds or changes.
+      } else if (item >= SIZE(kItemIconFiles)) {
         slot.SetEmpty();
         return;
+      } else if (item == 0) {
+        slot.SetEmpty();
+        return;
+      } else {
+        file_id = kItemIconFiles[item];
       }
-      archive = ArchiveId::kItemIcon;
-      file_id = kItemIconFiles[item];
       break;
     case IconKind::kPokemon:
       // Species 0 has an icon with an other format.

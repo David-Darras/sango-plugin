@@ -83,6 +83,8 @@ void LoadTallGrassPage(MainApplication& app, void* args);
 // Pokémon: shiny Pokémon, randomizers and the rules for the Pokémon.
 void LoadPokemonPage(MainApplication& app, void* args);
 void LoadShinyPage(MainApplication& app, void* args);
+/// Changes the HP, the stats and the status condition of the team.
+void LoadTeamRuntimePage(MainApplication& app, void* args);
 
 // The game data: the tables of the species, the moves, the TMs and the types.
 void LoadGameDataPage(MainApplication& app, void* args);

@@ -80,6 +80,10 @@ struct Setup : public SetupSettings {
   /// the trainer and the team.
   typedef void (*TrainerBattleCallback)(Config& config, TrainerId& trainer_id);
   TrainerBattleCallback on_trainer_battle = nullptr;
+  /// Called after the game prepares a wild battle. The callback can change the
+  /// Pokémon of the second team (the wild Pokémon).
+  typedef void (*WildBattleCallback)(Config& config);
+  WildBattleCallback on_wild_battle = nullptr;
 
   static void Initialize();
 
