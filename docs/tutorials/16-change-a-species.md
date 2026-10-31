@@ -141,4 +141,4 @@ shows these mistakes:
 - `LevelMove` describes a move of a learnset, `EvolutionStep` an evolution.
 - The tables of moves and evolutions must stay in memory: use global `const` arrays.
 
-**Next:** [Tutorials](README.md)
+**Next:** [Tutorial 17: Translate your ROM hack](17-translate-your-rom-hack.md)

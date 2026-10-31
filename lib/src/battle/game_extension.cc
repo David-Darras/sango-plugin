@@ -41,6 +41,7 @@
 #include "pokemon/address.h"
 #include "system/address.h"
 #include "core/problems.h"
+#include "core/translations.h"
 
 namespace battle {
 
@@ -315,21 +316,21 @@ u32 GameExtension::LoadMoveData(uptr self, MoveId move_id) {
 bool GameExtension::PatchMoveName(MoveId move, String* output) {
   const MoveSpec* spec = FindMove(move);
   if (spec == nullptr) return false;
-  output->Set(spec->name);
+  output->Set(core::Translate(spec->name));
   return true;
 }
 
 bool GameExtension::PatchMoveDescription(MoveId move, String* output) {
   const MoveSpec* spec = FindMove(move);
   if (spec == nullptr) return false;
-  output->Set(spec->description);
+  output->Set(core::Translate(spec->description));
   return true;
 }
 
 bool GameExtension::PatchAbilityName(AbilityId ability, String* output) {
   const AbilitySpec* spec = FindAbility(ability);
   if (spec == nullptr) return false;
-  output->Set(spec->name);
+  output->Set(core::Translate(spec->name));
   return true;
 }
 
@@ -337,14 +338,14 @@ bool GameExtension::PatchAbilityName(AbilityId ability, String* output) {
 bool GameExtension::PatchTypeName(u32 type, String* output) {
   const TypeSpec* spec = FindType(type);
   if (spec == nullptr || spec->name == nullptr) return false;
-  output->Set(spec->name);
+  output->Set(core::Translate(spec->name));
   return true;
 }
 
 bool GameExtension::PatchAbilityDescription(AbilityId ability, String* output) {
   const AbilitySpec* spec = FindAbility(ability);
   if (spec == nullptr) return false;
-  output->Set(spec->description);
+  output->Set(core::Translate(spec->description));
   return true;
 }
 

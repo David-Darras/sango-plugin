@@ -30,12 +30,15 @@
 #include "common.h"
 #include "battle/constant/trainer.h"
 #include "core/constant/event_flag.h"
+#include "core/translations.h"
 #include "overworld/constant/action_command.h"
 #include "overworld/constant/facing.h"
 #include "overworld/constant/map.h"
 #include "overworld/native/static_encounter.h"
 #include "pokemon/constant/item.h"
 #include "pokemon/native/gift_pokemon_data.h"
+#include "savedata/native/savedata.h"
+#include "savedata/native/trainer_status.h"
 #include "savedata/patch/hack_save.h"
 #include "script/constant/battle_result.h"
 #include "script/constant/fade_color.h"
@@ -773,17 +776,15 @@ private:
   }
 
   u32 BuildMessage(const c16* text) {
-
-    u32 length = 0;
-    while (text[length] != u'\0') length++;
     const u32 capacity =
         message_capacity_ -
         (sizeof(MessageHeader) + sizeof(MessageLanguageBlock)) / sizeof(c16);
-    if (length >= capacity) length = capacity - 1;
 
     auto* header = (MessageHeader*)message_buffer_;
     auto* block = (MessageLanguageBlock*)(header + 1);
     auto* string = (c16*)(block + 1);
+    // The translation of the text, then the values of its {names}.
+    const u32 length = ExpandText(core::Translate(text), string, capacity);
 
     header->language_count = 1;
     header->string_count = 1;
@@ -795,9 +796,73 @@ private:
     block->string_offset = sizeof(MessageLanguageBlock);
     block->length = (u16)(length + 1);
     block->user_param = 0;
-    for (u32 i = 0; i < length; i++) string[i] = text[i];
-    string[length] = u'\0';
     return 0;
+  }
+
+  /// Copies `text` into `out` and replaces the names between braces:
+  /// {player}, {money} and {var:N}. Returns the length of `out`.
+  u32 ExpandText(const c16* text, c16* out, u32 capacity) {
+    u32 length = 0;
+    for (u32 i = 0; text[i] != u'\0' && length + 1 < capacity; i++) {
+      if (text[i] == u'{') {
+        const u32 used = ExpandName(text + i, out, &length, capacity);
+        if (used != 0) {
+          i += used - 1;
+          continue;
+        }
+      }
+      out[length++] = text[i];
+    }
+    out[length] = u'\0';
+    return length;
+  }
+
+  /// Writes the value of the name at the start of `text` ("{player}"...).
+  /// Returns the number of characters of the name, or 0 for an unknown name.
+  u32 ExpandName(const c16* text, c16* out, u32* length, u32 capacity) {
+    if (StartsWith(text, u"{player}")) {
+      const c16* name = savedata::TrainerStatus::GetInstance().name;
+      for (u32 k = 0; k < savedata::TrainerStatus::kPlayerNameLen &&
+                      name[k] != u'\0' && *length + 1 < capacity; k++) {
+        out[(*length)++] = name[k];
+      }
+      return 8;
+    }
+    if (StartsWith(text, u"{money}")) {
+      AppendNumber(GetMoney(), out, length, capacity);
+      return 7;
+    }
+    if (StartsWith(text, u"{var:")) {
+      u32 variable = 0;
+      u32 i = 5;
+      for (; text[i] >= u'0' && text[i] <= u'9'; i++) {
+        variable = variable * 10 + (text[i] - u'0');
+      }
+      if (i == 5 || text[i] != u'}') return 0;
+      AppendNumber(savedata::HackSave::GetVariable((u16)variable), out, length,
+                   capacity);
+      return i + 1;
+    }
+    return 0;
+  }
+
+  static bool StartsWith(const c16* text, const c16* start) {
+    for (u32 i = 0; start[i] != u'\0'; i++) {
+      if (text[i] != start[i]) return false;
+    }
+    return true;
+  }
+
+  static void AppendNumber(u32 value, c16* out, u32* length, u32 capacity) {
+    c16 digits[10];
+    u32 count = 0;
+    do {
+      digits[count++] = (c16)(u'0' + value % 10);
+      value /= 10;
+    } while (value != 0);
+    while (count > 0 && *length + 1 < capacity) {
+      out[(*length)++] = digits[--count];
+    }
   }
 
   AmxRuntime* amx_ = nullptr;

@@ -25,8 +25,9 @@
  * - The other products: sdmc:/sango/<name of the product>
  *
  * The data folder holds the files of the ROM hack: the scripts, the map
- * events, the zones, the texts, the maps, the icons of the new types and
- * items, the textures, the layouts, the skeletons and the settings of the menu.
+ * events, the zones, the texts, the translations, the maps, the icons of the
+ * new types and items, the textures, the layouts, the skeletons and the
+ * settings of the menu.
  * The packs that all the products share stay in sdmc:/sango: the models of
  * the Pokémon and of the characters, the music, the maps of X and Y and the
  * logs.
