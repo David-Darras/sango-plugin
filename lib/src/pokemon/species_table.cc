@@ -24,6 +24,7 @@
 
 #include "pokemon/patch/species_table.h"
 #include "pokemon/patch/alolan_forms.h"
+#include "pokemon/patch/species_editor.h"
 #include <cstring>
 #include "pokemon/constant/ability.h"
 #include "pokemon/native/database.h"
@@ -160,6 +161,8 @@ void SpeciesTable::Update() {
   feat.is_built_ = true;
   BuildTable(game_table);
   db.species = (SpeciesData*)feat.table_;
+  // The new species and forms exist now: apply the changes of the product.
+  SpeciesChanges::ApplyPending();
 #endif
 }
 
@@ -194,9 +197,13 @@ void SpeciesTable::LoadMovepoolHook(u16 species, u8 form) {
       count++;
     }
     pool.count = count;
+    SpeciesChanges::PatchLearnset(static_cast<SpeciesId>(species),
+                                  static_cast<FormId>(form));
     return;
   }
   load_movepool_hook(species, form);
+  SpeciesChanges::PatchLearnset(static_cast<SpeciesId>(species),
+                                static_cast<FormId>(form));
 }
 
 bool SpeciesTable::PatchEvolutionTable(u16 species, EvolutionData* table) {

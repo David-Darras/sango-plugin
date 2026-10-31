@@ -25,6 +25,7 @@
 #include "pokemon/patch/evolution.h"
 #include "battle/patch/item_extension.h"
 #include "core/hook.h"
+#include "pokemon/patch/species_editor.h"
 #include "pokemon/patch/species_table.h"
 #include "pokemon/constant/evolution_method.h"
 #include "pokemon/constant/item.h"
@@ -49,6 +50,9 @@ void Evolution::LoadEvolveTableHook(SpeciesId species, u32 b, u32 c, u32 d) {
   PatchEvolve(species);
   battle::ItemExtension::PatchEvolution(species,
                                         *Database::GetInstance().evolution->data);
+  // The evolutions of the product come last: they replace the others.
+  SpeciesChanges::PatchEvolutions(species,
+                                  *Database::GetInstance().evolution->data);
 }
 
 void Evolution::PatchEvolve(SpeciesId species) {

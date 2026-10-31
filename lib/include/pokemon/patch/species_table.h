@@ -53,6 +53,8 @@ public:
   static void Initialize();
   /// Puts the bigger table in place. The library calls it at each frame.
   static void Update();
+  /// Returns true when the bigger table is in place.
+  static bool IsBuilt() { return GetInstance().is_built_; }
   /// Changes the model of a new species into the model of its carrier.
   static void PatchModelRequest(PokeInfo* info);
   /// Returns true for a species that the plugin adds.

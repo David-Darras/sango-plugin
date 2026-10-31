@@ -76,7 +76,8 @@
 #include "battle/patch/trainer_team.h"
 #include "battle/patch/type_chart.h"
 
-// Pokémon: shiny rate, Mega Evolutions, shops, items, models.
+// Pokémon: species data, shiny rate, Mega Evolutions, shops, items, models.
+#include "pokemon/patch/species_editor.h"
 #include "pokemon/patch/custom_shop.h"
 #include "pokemon/patch/item_customizer.h"
 #include "pokemon/patch/mega_evolution.h"

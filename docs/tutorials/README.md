@@ -23,6 +23,7 @@ Before you start, build the plugin one time:
 | 13 | [Add your own music](13-add-your-own-music.md) | Play your own music files in the game. |
 | 14 | [Add a type](14-add-a-type.md) | Make a new type with its name, its icon and its type chart. |
 | 15 | [Add an item](15-add-an-item.md) | Make a new item (held item, or item that the player uses in the Bag) or change an item of the game. |
+| 16 | [Change a species](16-change-a-species.md) | Change the stats, the types, the TMs, the learnset and the evolutions of a species. |
 
 ## Conventions of the tutorials
 

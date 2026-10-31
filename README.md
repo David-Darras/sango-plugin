@@ -118,7 +118,7 @@ script::NativeScript::Register(kCandyGiver, CandyGiver);
 <td width="50%" valign="top">
 
 ### 🛠️ For ROM hack makers
-- **15 step-by-step tutorials** for beginners
+- **16 step-by-step tutorials** for beginners
 - An in-game menu to explore and edit everything while the game runs
 - Typed game structures, documented with Doxygen
 - One library, as many ROM hacks as you want
