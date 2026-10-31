@@ -212,7 +212,7 @@ overlay/      the overlay: all the pages in one menu
 kaizo/        Pokémon Sango Kaizo
 undertow/     Pokémon Undertow
 docs/         the documentation and the tutorials
-tools/        helper scripts (multiplayer relay)
+tools/        helper scripts and the Sango Maker Editor (tools/maker_editor)
 ```
 
 ## Supported games

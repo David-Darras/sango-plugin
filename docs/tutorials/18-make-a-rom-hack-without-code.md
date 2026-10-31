@@ -190,6 +190,22 @@ If a name is wrong, the top screen shows the problems a few seconds after the
 start, with the file and the line: `encounters.txt 12: unknown species Pikachuu`.
 Correct the file and start the game again.
 
+## The editor on your computer
+
+The project has an editor for these files: `tools/maker_editor/index.html`.
+Double-click it: it opens in your web browser. It works without internet.
+
+- The tabs are the four files: Encounters, Trainers, Species, Story.
+- The editor checks the file while you type, with the same rules as Sango
+  Maker. Click a problem to go to its line.
+- The fields propose the names (species, moves, items, maps...).
+- The forms on the right make a block (a table, a trainer, a species) and put
+  it in the file. In the tab Story, the buttons add the commands.
+- **Open a file** reads a file of your computer. **Download** saves the file:
+  copy it to `sango/maker` on the SD card.
+
+The editor keeps your texts in the browser between two visits.
+
 ## The names
 
 The files use the names of the library, in English:

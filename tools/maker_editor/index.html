@@ -1,0 +1,824 @@
+<!doctype html>
+<!--
+  Sango Maker Editor: writes the data files of Sango Maker on a computer.
+  Open this file in a web browser (double-click). It needs names.js in the same
+  folder (tools/gen_data_names.py makes it). It works without internet.
+  See docs/tutorials/18-make-a-rom-hack-without-code.md.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sango Maker Editor</title>
+<style>
+  :root {
+    --bg: #f6f5f2;
+    --panel: #ffffff;
+    --text: #1f2328;
+    --muted: #656d76;
+    --line: #d8d6d0;
+    --accent: #d94f7f;
+    --accent-text: #ffffff;
+    --error: #c62828;
+    --ok: #2e7d32;
+    --code-bg: #fbfbfa;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16181c;
+      --panel: #1f2228;
+      --text: #e6e6e6;
+      --muted: #9aa0a6;
+      --line: #33373e;
+      --accent: #ff6f9f;
+      --accent-text: #16181c;
+      --error: #ff6b6b;
+      --ok: #6fcf73;
+      --code-bg: #1a1c21;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+    background: var(--panel);
+  }
+  header h1 { font-size: 18px; margin: 0 12px 0 0; }
+  .tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+  .tabs button, .actions button, .panel button {
+    border: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--text);
+    border-radius: 6px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font: inherit;
+  }
+  .tabs button.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-text);
+  }
+  .actions { margin-left: auto; display: flex; gap: 6px; }
+  button.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-text);
+  }
+  main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 420px;
+    gap: 16px;
+    padding: 16px;
+    height: calc(100vh - 62px);
+  }
+  @media (max-width: 900px) {
+    main { grid-template-columns: 1fr; height: auto; }
+  }
+  .editor { display: flex; flex-direction: column; min-height: 420px; }
+  .editor .file { color: var(--muted); margin-bottom: 6px; }
+  textarea {
+    flex: 1;
+    width: 100%;
+    resize: none;
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--code-bg);
+    color: var(--text);
+    font: 13px/1.5 ui-monospace, Consolas, monospace;
+    tab-size: 2;
+    white-space: pre;
+  }
+  aside { display: flex; flex-direction: column; gap: 16px; overflow: auto; }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px;
+  }
+  .panel h2 { font-size: 15px; margin: 0 0 8px; }
+  .problems { list-style: none; margin: 0; padding: 0; max-height: 220px; overflow: auto; }
+  .problems li { padding: 3px 0; cursor: pointer; color: var(--error); }
+  .problems li.ok { color: var(--ok); cursor: default; }
+  label { display: block; color: var(--muted); font-size: 12px; margin: 6px 0 2px; }
+  input, select {
+    width: 100%;
+    padding: 5px 7px;
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    background: var(--code-bg);
+    color: var(--text);
+    font: inherit;
+  }
+  .row { display: grid; gap: 6px; align-items: end; }
+  .row + .row { margin-top: 4px; }
+  .grid2 { grid-template-columns: 1fr 1fr; }
+  .grid3 { grid-template-columns: 1fr 1fr 1fr; }
+  .grid6 { grid-template-columns: repeat(6, 1fr); }
+  .pokemon-row { grid-template-columns: 2fr 1fr 1fr; }
+  .move-row { grid-template-columns: 70px 1fr; }
+  .evo-row { grid-template-columns: 1.3fr 1fr 1.3fr; }
+  .box { border: 1px dashed var(--line); border-radius: 6px; padding: 8px; margin-top: 8px; }
+  .buttons { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .checks { display: flex; gap: 12px; flex-wrap: wrap; }
+  .checks label { display: flex; gap: 4px; align-items: center; color: var(--text); font-size: 13px; margin: 0; }
+  .checks input { width: auto; }
+  .hint { color: var(--muted); font-size: 12px; margin: 6px 0 0; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Sango Maker Editor</h1>
+  <nav class="tabs" id="tabs"></nav>
+  <div class="actions">
+    <button id="open">Open a file</button>
+    <button id="download" class="primary">Download</button>
+    <input type="file" id="file" accept=".txt,text/plain" hidden>
+  </div>
+</header>
+<main>
+  <section class="editor">
+    <div class="file" id="filename"></div>
+    <textarea id="text" spellcheck="false"></textarea>
+  </section>
+  <aside>
+    <div class="panel">
+      <h2>Problems</h2>
+      <ul class="problems" id="problems"></ul>
+    </div>
+    <div class="panel" id="helper"></div>
+  </aside>
+</main>
+<div id="lists"></div>
+<script src="names.js"></script>
+<script>
+"use strict";
+
+// The names --------------------------------------------------------------
+
+function norm(text) {
+  return text.toLowerCase().replace(/[éèêë]/g, "e").replace(/[^a-z0-9]/g, "");
+}
+
+const NAMES = {};
+for (const kind in SANGO_NAMES) NAMES[kind] = new Set(SANGO_NAMES[kind].map(norm));
+
+// A name of the library, or a number.
+function known(kind, text) {
+  text = text.trim();
+  if (/^\d+$/.test(text)) return true;
+  const n = norm(text);
+  return n !== "" && NAMES[kind].has(n);
+}
+
+function isNumber(text) { return /^\d+$/.test(text.trim()); }
+
+// The lists of the inputs (autocomplete).
+(function makeLists() {
+  const box = document.getElementById("lists");
+  for (const kind in SANGO_NAMES) {
+    const list = document.createElement("datalist");
+    list.id = "list-" + kind;
+    for (const name of SANGO_NAMES[kind]) {
+      const option = document.createElement("option");
+      option.value = name;
+      list.appendChild(option);
+    }
+    box.appendChild(list);
+  }
+})();
+
+// The lines of a file, without the comments and the empty lines.
+function readLines(text) {
+  const result = [];
+  text.split("\n").forEach((raw, i) => {
+    let line = raw;
+    const hash = line.indexOf("#");
+    if (hash >= 0) line = line.slice(0, hash);
+    line = line.trim();
+    if (line === "") return;
+    const isSection = line.startsWith("[") && line.endsWith("]");
+    result.push({
+      n: i + 1,
+      text: isSection ? line.slice(1, -1).trim() : line,
+      isSection,
+    });
+  });
+  return result;
+}
+
+function splitKey(line) {
+  const i = line.indexOf("=");
+  if (i < 0) return null;
+  return [norm(line.slice(0, i)), line.slice(i + 1).trim()];
+}
+
+function splitWord(text) {
+  text = text.trim();
+  const i = text.search(/\s/);
+  return i < 0 ? [text, ""] : [text.slice(0, i), text.slice(i).trim()];
+}
+
+// "Rare Candy 5" -> ["Rare Candy", "5"]; without a number: [text, null].
+function splitLastNumber(text) {
+  const match = text.trim().match(/^(.*\S)\s+(\d+)$/);
+  return match ? [match[1], match[2]] : [text.trim(), null];
+}
+
+// The rules of the files (the same as core::DataFiles) --------------------
+
+function checkEncounters(text) {
+  const errors = [];
+  let open = false;
+  for (const line of readLines(text)) {
+    const err = (message) => errors.push({ n: line.n, message });
+    if (line.isSection) {
+      const parts = line.text.split(",").map((p) => p.trim());
+      open = false;
+      if (parts.length !== 2) { err("use [map, method]"); continue; }
+      if (!known("map", parts[0])) { err("unknown map: " + parts[0]); continue; }
+      if (!known("method", parts[1])) { err("unknown method: " + parts[1]); continue; }
+      open = true;
+      continue;
+    }
+    if (!open) { err("a Pokémon before a valid [map, method]"); continue; }
+    const parts = line.text.split(",").map((p) => p.trim());
+    if (!known("species", parts[0])) { err("unknown species: " + parts[0]); continue; }
+    if (parts.length < 2 || !isNumber(parts[1])) { err("give a level after " + parts[0]); continue; }
+    if (parts.length >= 3 && parts[2] !== "" && !isNumber(parts[2])) err("the maximum level is not a number");
+    if (parts.length >= 4 && !known("form", parts[3])) err("unknown form: " + parts[3]);
+  }
+  return errors;
+}
+
+function checkOpponent(value, err) {
+  const parts = value.split(",").map((p) => p.trim());
+  if (!known("species", parts[0])) { err("unknown species: " + parts[0]); return; }
+  for (const part of parts.slice(1)) {
+    const [word, rest] = splitWord(part);
+    const w = norm(word);
+    if (w === "level" || w === "ivs") {
+      if (!isNumber(rest)) err(word + ": give a number");
+    } else if (w === "item" || w === "ability" || w === "nature" || w === "form") {
+      if (!known(w, rest)) err("unknown " + w + ": " + rest);
+    } else if (w === "shiny") {
+      // Nothing to check.
+    } else if (w === "evs") {
+      const evs = rest.split("/").map((p) => p.trim());
+      if (evs.length !== 6 || !evs.every(isNumber)) err("give 6 EVs: HP/Atk/Def/SpA/SpD/Spe");
+    } else if (w === "moves") {
+      const moves = rest.split("/").map((p) => p.trim());
+      if (moves.length > 4) err("4 moves at most");
+      for (const move of moves) if (!known("move", move)) err("unknown move: " + move);
+    } else {
+      err("unknown value: " + part);
+    }
+  }
+}
+
+function checkTrainers(text) {
+  const errors = [];
+  let open = false;
+  let pokemonCount = 0;
+  for (const line of readLines(text)) {
+    const err = (message) => errors.push({ n: line.n, message });
+    if (line.isSection) {
+      open = known("trainer", line.text);
+      pokemonCount = 0;
+      if (!open) err("unknown trainer: " + line.text);
+      continue;
+    }
+    if (!open) continue;
+    const kv = splitKey(line.text);
+    if (kv === null) { err("use key = value"); continue; }
+    const [key, value] = kv;
+    if (key === "pokemon") {
+      if (++pokemonCount > 6) err("6 Pokémon at most");
+      checkOpponent(value, err);
+    } else if (key === "format") {
+      if (!known("format", value)) err("unknown format: " + value);
+    } else if (key === "name") {
+      if (value === "") err("give a name");
+    } else if (key === "money") {
+      if (!isNumber(value) || Number(value) > 255) err("money: give a number from 0 to 255");
+    } else if (key === "ai") {
+      for (const ai of value.split(",").map(norm)) {
+        if (!["casual", "competitive", "strategist", "multi", "horde"].includes(ai)) err("unknown AI: " + ai);
+      }
+    } else if (key === "items") {
+      const items = value.split(",").map((p) => p.trim());
+      if (items.length > 4) err("4 items at most");
+      for (const item of items) if (!known("item", item)) err("unknown item: " + item);
+    } else {
+      err("unknown key: " + key);
+    }
+  }
+  return errors;
+}
+
+function checkSpecies(text) {
+  const errors = [];
+  let open = false;
+  for (const line of readLines(text)) {
+    const err = (message) => errors.push({ n: line.n, message });
+    if (line.isSection) {
+      const parts = line.text.split(",").map((p) => p.trim());
+      open = known("species", parts[0]);
+      if (!open) err("unknown species: " + parts[0]);
+      else if (parts.length === 2 && !known("form", parts[1])) { err("unknown form: " + parts[1]); open = false; }
+      continue;
+    }
+    if (!open) continue;
+    const kv = splitKey(line.text);
+    if (kv === null) { err("use key = value"); continue; }
+    const [key, value] = kv;
+    const list = value.split(",").map((p) => p.trim());
+    if (key === "stats") {
+      if (list.length !== 6 || !list.every(isNumber)) err("give 6 stats");
+    } else if (key === "types") {
+      if (list.length > 2) err("2 types at most");
+      for (const type of list) if (!known("type", type)) err("unknown type: " + type);
+    } else if (key === "abilities") {
+      if (list.length > 3) err("3 abilities at most");
+      for (const ability of list) if (!known("ability", ability)) err("unknown ability: " + ability);
+    } else if (key === "catchrate") {
+      if (!isNumber(value) || Number(value) > 255) err("catch rate: give a number from 0 to 255");
+    } else if (key === "tms" || key === "tmsoff") {
+      for (const n of list) if (!isNumber(n) || Number(n) < 1 || Number(n) > 100) err("TM " + n + " does not exist");
+    } else if (key === "hms" || key === "hmsoff") {
+      for (const n of list) if (!isNumber(n) || Number(n) < 1 || Number(n) > 7) err("HM " + n + " does not exist");
+    } else if (key === "learnset") {
+      if (list.length > 24) err("24 moves at most");
+      for (const entry of list) {
+        const [level, move] = splitWord(entry);
+        if (!isNumber(level)) err("give a level before the move: " + entry);
+        else if (!known("move", move)) err("unknown move: " + move);
+      }
+    } else if (key === "evolutions") {
+      if (list.length > 8) err("8 evolutions at most");
+      for (const entry of list) {
+        const parts = entry.split("/").map((p) => p.trim());
+        if (parts.length !== 3) { err("use method / value / species: " + entry); continue; }
+        if (!known("evolution", parts[0])) err("unknown method: " + parts[0]);
+        if (!(isNumber(parts[1]) || known("item", parts[1]) || known("move", parts[1]) || known("species", parts[1]))) {
+          err("unknown value: " + parts[1]);
+        }
+        if (!known("species", parts[2])) err("unknown species: " + parts[2]);
+      }
+    } else {
+      err("unknown key: " + key);
+    }
+  }
+  return errors;
+}
+
+function checkCondition(text) {
+  const [word, rest] = splitWord(text);
+  const w = norm(word);
+  if (["yes", "no", "won", "lost"].includes(w)) return null;
+  if (["choice", "flag", "money"].includes(w)) return isNumber(rest) ? null : w + ": give a number";
+  if (w === "not") {
+    const [flag, number] = splitWord(rest);
+    return norm(flag) === "flag" && isNumber(number) ? null : "use: if not flag N";
+  }
+  if (w === "has") {
+    const [name] = splitLastNumber(rest);
+    return known("item", name) ? null : "unknown item: " + name;
+  }
+  if (w === "var") {
+    const parts = rest.split(/\s+/);
+    if (parts.length !== 3 || !isNumber(parts[0]) || !isNumber(parts[2])) return "use: if var N >= V";
+    return ["=", "==", "!=", ">=", "<=", ">", "<"].includes(parts[1]) ? null : "unknown sign: " + parts[1];
+  }
+  return "unknown condition: " + text;
+}
+
+function checkCommand(text) {
+  const [word, rest] = splitWord(text);
+  const [second, tail] = splitWord(rest);
+  const w = norm(word);
+  const s = norm(second);
+  if (["say", "sign", "ask"].includes(w)) return rest === "" ? "give a text" : null;
+  if (w === "choose") {
+    const choices = rest.split("/");
+    return choices.length > 8 ? "8 choices at most" : null;
+  }
+  if (w === "if") return checkCondition(rest);
+  if (["else", "end", "stop", "heal"].includes(w)) return null;
+  if (w === "face") return s === "player" ? null : "use: face player";
+  if (w === "fade") return s === "in" || s === "out" ? null : "use: fade out / fade in";
+  if (w === "music") return s === "end" || known("music", rest) ? null : "unknown music: " + rest;
+  if (["wait", "sound", "call"].includes(w)) return isNumber(rest) ? null : w + ": give a number";
+  if ((w === "give" || w === "take") && s === "item") {
+    const [name] = splitLastNumber(tail);
+    return known("item", name) ? null : "unknown item: " + name;
+  }
+  if ((w === "give" || w === "take") && s === "money") return isNumber(tail) ? null : "money: give a number";
+  if (w === "give" && s === "pokemon") {
+    const [name] = splitLastNumber(tail);
+    return known("species", name) ? null : "unknown species: " + name;
+  }
+  if ((w === "set" || w === "clear") && s === "flag") return isNumber(tail) ? null : "flag: give a number";
+  if ((w === "set" || w === "add") && s === "var") {
+    const parts = tail.split(/\s+/);
+    return parts.length === 2 && parts.every(isNumber) ? null : "use: set var N VALUE";
+  }
+  if (w === "battle" && s === "trainer") return known("trainer", tail) ? null : "unknown trainer: " + tail;
+  if (w === "battle" && s === "wild") {
+    const [name] = splitLastNumber(tail);
+    return known("species", name) ? null : "unknown species: " + name;
+  }
+  if (w === "warp") {
+    const parts = rest.split(",").map((p) => p.trim());
+    if (parts.length < 4) return "use: warp MAP, X, Z, HEIGHT[, Up/Down/Left/Right]";
+    if (!known("map", parts[0])) return "unknown map: " + parts[0];
+    if (!parts.slice(1, 4).every(isNumber)) return "X, Z and HEIGHT are numbers";
+    if (parts.length === 5 && !["up", "down", "left", "right"].includes(norm(parts[4]))) return "unknown direction: " + parts[4];
+    return null;
+  }
+  return "unknown command: " + word;
+}
+
+function checkStory(text) {
+  const errors = [];
+  let open = false;
+  let blocks = [];
+  let sectionLine = 0;
+  const ids = new Set();
+  const close = () => {
+    if (open && blocks.length > 0) errors.push({ n: sectionLine, message: "an if has no end in this script" });
+  };
+  for (const line of readLines(text)) {
+    const err = (message) => errors.push({ n: line.n, message });
+    if (line.isSection) {
+      close();
+      blocks = [];
+      sectionLine = line.n;
+      const id = Number(line.text);
+      open = isNumber(line.text) && id >= 33000 && id <= 33999;
+      if (!open) err("use a script from 33000 to 33999");
+      else if (ids.has(id)) err("the script " + id + " is two times in the file");
+      ids.add(id);
+      continue;
+    }
+    if (!open) continue;
+    const problem = checkCommand(line.text);
+    if (problem) { err(problem); continue; }
+    const w = norm(splitWord(line.text)[0]);
+    if (w === "if") blocks.push("if");
+    if (w === "else") {
+      if (blocks.length === 0) err("no if before else");
+      else if (blocks[blocks.length - 1] === "else") err("two else for one if");
+      else blocks[blocks.length - 1] = "else";
+    }
+    if (w === "end") {
+      if (blocks.length === 0) err("no if before end");
+      else blocks.pop();
+    }
+  }
+  close();
+  return errors;
+}
+
+// The files ---------------------------------------------------------------
+
+const FILES = {
+  encounters: { file: "encounters.txt", label: "Encounters", check: checkEncounters },
+  trainers: { file: "trainers.txt", label: "Trainers", check: checkTrainers },
+  species: { file: "species.txt", label: "Species", check: checkSpecies },
+  story: { file: "story.txt", label: "Story", check: checkStory },
+};
+
+const textarea = document.getElementById("text");
+let current = "encounters";
+const texts = {};
+
+function load(key) {
+  try { return localStorage.getItem("sango-maker-" + key) || ""; } catch (e) { return ""; }
+}
+function store(key, value) {
+  try { localStorage.setItem("sango-maker-" + key, value); } catch (e) { /* Private mode. */ }
+}
+for (const key in FILES) texts[key] = load(key);
+
+function validate() {
+  const errors = FILES[current].check(textarea.value);
+  const list = document.getElementById("problems");
+  list.innerHTML = "";
+  if (errors.length === 0) {
+    const li = document.createElement("li");
+    li.className = "ok";
+    li.textContent = "No problem.";
+    list.appendChild(li);
+    return;
+  }
+  for (const e of errors) {
+    const li = document.createElement("li");
+    li.textContent = "Line " + e.n + ": " + e.message;
+    li.onclick = () => goToLine(e.n);
+    list.appendChild(li);
+  }
+}
+
+function goToLine(n) {
+  const lines = textarea.value.split("\n");
+  let start = 0;
+  for (let i = 0; i < n - 1 && i < lines.length; i++) start += lines[i].length + 1;
+  textarea.focus();
+  textarea.setSelectionRange(start, start + (lines[n - 1] || "").length);
+}
+
+let timer = 0;
+textarea.addEventListener("input", () => {
+  texts[current] = textarea.value;
+  store(current, textarea.value);
+  clearTimeout(timer);
+  timer = setTimeout(validate, 200);
+});
+
+// Inserts text at the cursor, on a line of its own.
+function insert(text) {
+  const start = textarea.selectionStart;
+  const before = textarea.value.slice(0, start);
+  const prefix = before === "" || before.endsWith("\n") ? "" : "\n";
+  textarea.setRangeText(prefix + text + "\n", start, textarea.selectionEnd, "end");
+  textarea.focus();
+  texts[current] = textarea.value;
+  store(current, textarea.value);
+  validate();
+}
+
+// The forms of the helper -------------------------------------------------
+
+function el(tag, attributes, children) {
+  const e = document.createElement(tag);
+  Object.assign(e, attributes || {});
+  for (const child of children || []) e.append(child);
+  return e;
+}
+
+function field(labelText, kind, extra) {
+  const input = el("input", Object.assign({ placeholder: labelText }, extra || {}));
+  if (kind) input.setAttribute("list", "list-" + kind);
+  const wrap = el("div", {}, [el("label", { textContent: labelText }), input]);
+  wrap.input = input;
+  return wrap;
+}
+
+function select(labelText, kind) {
+  const s = el("select");
+  for (const name of SANGO_NAMES[kind]) s.append(el("option", { textContent: name }));
+  const wrap = el("div", {}, [el("label", { textContent: labelText }), s]);
+  wrap.input = s;
+  return wrap;
+}
+
+function button(text, action, primary) {
+  return el("button", { textContent: text, onclick: action, className: primary ? "primary" : "" });
+}
+
+function value(wrap) { return wrap.input.value.trim(); }
+
+function encounterHelper(panel) {
+  const map = field("Map", "map");
+  const method = select("Method", "method");
+  const rows = el("div");
+  const addRow = () => {
+    const species = field("Species", "species");
+    const min = field("Min level", null, { type: "number", min: 1, max: 100 });
+    const max = field("Max level", null, { type: "number", min: 1, max: 100 });
+    const row = el("div", { className: "row pokemon-row" }, [species, min, max]);
+    row.fields = [species, min, max];
+    rows.append(row);
+  };
+  for (let i = 0; i < 3; i++) addRow();
+  panel.append(
+    el("h2", { textContent: "Add a table" }),
+    el("div", { className: "row grid2" }, [map, method]),
+    rows,
+    el("div", { className: "buttons" }, [
+      button("+ Pokémon", addRow),
+      button("Insert", () => {
+        let text = "[" + value(map) + ", " + value(method) + "]\n";
+        for (const row of rows.children) {
+          const [species, min, max] = row.fields.map(value);
+          if (species === "") continue;
+          text += species + ", " + (min || "5") + ", " + (max || min || "5") + "\n";
+        }
+        insert(text);
+      }, true),
+    ]),
+    el("p", { className: "hint", textContent: "Walk is the tall grass and the caves. The map must already have wild Pokémon for the method." })
+  );
+}
+
+function trainerHelper(panel) {
+  const trainer = field("Trainer (name or number)", "trainer");
+  const format = select("Format", "format");
+  const name = field("Name in the battle");
+  const money = field("Money", null, { type: "number", min: 0, max: 255 });
+  const items = field("Items (comma between them)", "item");
+  const aiNames = ["Casual", "Competitive", "Strategist"];
+  const aiBoxes = aiNames.map((n) => el("input", { type: "checkbox", checked: n !== "Strategist" }));
+  const ai = el("div", { className: "checks" }, aiNames.map((n, i) => el("label", {}, [aiBoxes[i], n])));
+  const team = el("div");
+  for (let i = 0; i < 6; i++) {
+    const species = field("Pokémon " + (i + 1), "species");
+    const level = field("Level", null, { type: "number", min: 1, max: 100 });
+    const item = field("Item", "item");
+    const ability = field("Ability", "ability");
+    const nature = field("Nature", "nature");
+    const moves = [1, 2, 3, 4].map((m) => field("Move " + m, "move"));
+    const box = el("div", { className: "box" }, [
+      el("div", { className: "row pokemon-row" }, [species, level, item]),
+      el("div", { className: "row grid2" }, [ability, nature]),
+      el("div", { className: "row grid2" }, moves.slice(0, 2)),
+      el("div", { className: "row grid2" }, moves.slice(2)),
+    ]);
+    box.fields = { species, level, item, ability, nature, moves };
+    team.append(box);
+  }
+  panel.append(
+    el("h2", { textContent: "Add a trainer" }),
+    el("div", { className: "row grid2" }, [trainer, format]),
+    el("div", { className: "row grid2" }, [name, money]),
+    items,
+    el("label", { textContent: "AI" }), ai,
+    team,
+    el("div", { className: "buttons" }, [
+      button("Insert", () => {
+        let text = "[" + value(trainer) + "]\nformat = " + value(format) + "\n";
+        if (value(name)) text += "name = " + value(name) + "\n";
+        const chosen = aiNames.filter((n, i) => aiBoxes[i].checked);
+        if (chosen.length) text += "ai = " + chosen.join(", ") + "\n";
+        if (value(items)) text += "items = " + value(items) + "\n";
+        if (value(money)) text += "money = " + value(money) + "\n";
+        for (const box of team.children) {
+          const f = box.fields;
+          if (!value(f.species)) continue;
+          const parts = [value(f.species)];
+          if (value(f.level)) parts.push("level " + value(f.level));
+          if (value(f.item)) parts.push("item " + value(f.item));
+          if (value(f.ability)) parts.push("ability " + value(f.ability));
+          if (value(f.nature)) parts.push("nature " + value(f.nature));
+          const moves = f.moves.map(value).filter((m) => m);
+          if (moves.length) parts.push("moves " + moves.join(" / "));
+          text += "pokemon = " + parts.join(", ") + "\n";
+        }
+        insert(text);
+      }, true),
+    ])
+  );
+}
+
+function speciesHelper(panel) {
+  const species = field("Species", "species");
+  const form = field("Form (optional)", "form");
+  const stats = ["HP", "Atk", "Def", "SpA", "SpD", "Spe"].map((s) => field(s, null, { type: "number", min: 1, max: 255 }));
+  const types = [field("Type 1", "type"), field("Type 2", "type")];
+  const abilities = [field("Ability 1", "ability"), field("Ability 2", "ability"), field("Hidden", "ability")];
+  const tms = field("TMs (24, 25...)");
+  const moves = el("div");
+  const addMove = () => {
+    const level = field("Level", null, { type: "number", min: 1, max: 100 });
+    const move = field("Move", "move");
+    const row = el("div", { className: "row move-row" }, [level, move]);
+    row.fields = [level, move];
+    moves.append(row);
+  };
+  const evolutions = el("div");
+  const addEvolution = () => {
+    const method = field("Method", "evolution");
+    const amount = field("Value");
+    const into = field("Species", "species");
+    const row = el("div", { className: "row evo-row" }, [method, amount, into]);
+    row.fields = [method, amount, into];
+    evolutions.append(row);
+  };
+  addMove();
+  addEvolution();
+  panel.append(
+    el("h2", { textContent: "Change a species" }),
+    el("div", { className: "row grid2" }, [species, form]),
+    el("label", { textContent: "Base stats (empty: no change)" }),
+    el("div", { className: "row grid6" }, stats),
+    el("div", { className: "row grid2" }, types),
+    el("div", { className: "row grid3" }, abilities),
+    tms,
+    el("label", { textContent: "Learnset (empty: no change)" }), moves,
+    el("div", { className: "buttons" }, [button("+ Move", addMove)]),
+    el("label", { textContent: "Evolutions (empty: no change)" }), evolutions,
+    el("div", { className: "buttons" }, [
+      button("+ Evolution", addEvolution),
+      button("Insert", () => {
+        let text = "[" + value(species) + (value(form) ? ", " + value(form) : "") + "]\n";
+        const s = stats.map(value);
+        if (s.every((v) => v)) text += "stats = " + s.join(", ") + "\n";
+        const t = types.map(value).filter((v) => v);
+        if (t.length) text += "types = " + t.join(", ") + "\n";
+        const a = abilities.map(value).filter((v) => v);
+        if (a.length) text += "abilities = " + a.join(", ") + "\n";
+        if (value(tms)) text += "tms = " + value(tms) + "\n";
+        const m = [...moves.children].map((r) => r.fields.map(value)).filter((r) => r[0] && r[1]);
+        if (m.length) text += "learnset = " + m.map((r) => r[0] + " " + r[1]).join(", ") + "\n";
+        const e = [...evolutions.children].map((r) => r.fields.map(value)).filter((r) => r[0] && r[2]);
+        if (e.length) text += "evolutions = " + e.map((r) => r[0] + " / " + (r[1] || "0") + " / " + r[2]).join(", ") + "\n";
+        insert(text);
+      }, true),
+    ]),
+    el("p", { className: "hint", textContent: "Stats order: HP, Attack, Defense, Sp. Atk, Sp. Def, Speed. The value of an evolution is a level, an item, a move, or 0." })
+  );
+}
+
+function storyHelper(panel) {
+  const id = field("Script number", null, { type: "number", min: 33000, max: 33999, value: 33000 });
+  const commands = [
+    ["Say", "say Hello, {player}!"],
+    ["Sign", "sign A sign."],
+    ["Ask", "ask Do you want it?\nif yes\n  say Here you are!\nelse\n  say Too bad.\nend"],
+    ["Choose", "choose A / B / C\nif choice 1\n  say You chose A.\nend\nif choice 2\n  say You chose B.\nend"],
+    ["One time only", "if flag 0\n  say I have nothing more for you.\n  stop\nend"],
+    ["Set flag", "set flag 0"],
+    ["Give item", "give item Rare Candy 1"],
+    ["Give Pokémon", "give pokemon Pikachu 5"],
+    ["Give money", "give money 1000"],
+    ["Trainer battle", "battle trainer Route 102 Kid 1\nif won\n  say You are strong!\nend"],
+    ["Wild battle", "battle wild Rayquaza 70\nif won\n  say It is gone... or caught!\nend"],
+    ["Warp", "warp Littleroot Town, 47, 77, 6, Down"],
+    ["Heal", "fade out\nheal\nfade in"],
+    ["Music", "music Evolution\nwait 120\nmusic end"],
+    ["Variable", "add var 0 1\nif var 0 >= 3\n  say Third time!\nend"],
+  ];
+  panel.append(
+    el("h2", { textContent: "Add to the story" }),
+    id,
+    el("div", { className: "buttons" }, [
+      button("New script", () => insert("[" + (value(id) || "33000") + "]\nface player\nsay Hello, {player}!"), true),
+    ]),
+    el("label", { textContent: "Commands (they go at the cursor)" }),
+    el("div", { className: "buttons" }, commands.map(([text, code]) => button(text, () => insert(code)))),
+    el("p", { className: "hint", textContent: "Give the number of the script to a character (Overworld > Map Editor, mode Events) or to an event (Overworld > Map Events). Use only numbers that this file has." })
+  );
+}
+
+const HELPERS = { encounters: encounterHelper, trainers: trainerHelper, species: speciesHelper, story: storyHelper };
+
+// The tabs and the files --------------------------------------------------
+
+function select_tab(key) {
+  current = key;
+  textarea.value = texts[key];
+  document.getElementById("filename").textContent =
+    "sdmc:/sango/maker/" + FILES[key].file + " — save it in this folder of the SD card.";
+  for (const b of document.querySelectorAll(".tabs button")) b.classList.toggle("active", b.dataset.key === key);
+  const helper = document.getElementById("helper");
+  helper.innerHTML = "";
+  HELPERS[key](helper);
+  validate();
+}
+
+const tabs = document.getElementById("tabs");
+for (const key in FILES) {
+  const b = el("button", { textContent: FILES[key].label, onclick: () => select_tab(key) });
+  b.dataset.key = key;
+  tabs.append(b);
+}
+
+document.getElementById("download").onclick = () => {
+  const blob = new Blob([textarea.value], { type: "text/plain;charset=utf-8" });
+  const a = el("a", { href: URL.createObjectURL(blob), download: FILES[current].file });
+  document.body.append(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 0);
+};
+
+const fileInput = document.getElementById("file");
+document.getElementById("open").onclick = () => fileInput.click();
+fileInput.onchange = () => {
+  const file = fileInput.files[0];
+  if (!file) return;
+  // The name of the file selects the tab.
+  for (const key in FILES) if (file.name.toLowerCase() === FILES[key].file) current = key;
+  file.text().then((text) => {
+    texts[current] = text.replace(/\r\n/g, "\n");
+    store(current, texts[current]);
+    select_tab(current);
+  });
+  fileInput.value = "";
+};
+
+select_tab("encounters");
+</script>
+</body>
+</html>
