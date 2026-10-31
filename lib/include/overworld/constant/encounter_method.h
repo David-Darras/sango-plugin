@@ -38,3 +38,5 @@ enum class EncounterMethod : u8 {
 };
 
 } // namespace overworld
+
+using overworld::EncounterMethod;

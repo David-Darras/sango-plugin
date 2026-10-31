@@ -25,6 +25,7 @@
 #include "battle/patch/setup.h"
 #include "pokemon/native/ability_slot.h"
 #include "battle/patch/battle.h"
+#include "battle/patch/trainer_team.h"
 #include "core/hook.h"
 #include "overworld/patch/tall_grass.h"
 #include "overworld/patch/placed_decorations.h"
@@ -63,6 +64,10 @@ void Setup::SetupTrainerHook(Config* config, void* game_manager,
   auto& feat = GetInstance();
   if (feat.on_trainer_battle != nullptr) {
     feat.on_trainer_battle(*config, trainer_id);
+  } else {
+    // Without a callback of the product, the teams of TrainerTeams replace
+    // the teams of the game.
+    TrainerTeams::Apply(*config, trainer_id);
   }
 }
 

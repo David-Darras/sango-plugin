@@ -37,14 +37,22 @@ void TrainerOpponent::ApplyTo(pokemon::CoreData& pkm) const {
   pkm.SetMoves(move1, move2, move3, move4);
   if (nickname != nullptr) pkm.SetNickname(nickname);
   if (forced_level != 0) pkm.SetLevel(forced_level);
+  if (iv != kGameIvs) {
+    pkm.iv_hp = iv;
+    pkm.iv_attack = iv;
+    pkm.iv_defense = iv;
+    pkm.iv_speed = iv;
+    pkm.iv_special_attack = iv;
+    pkm.iv_special_defense = iv;
+  }
 }
 
 void TrainerTeam::ApplyTo(Config& config) const {
   if (force_wild_battle_type) config.is_against_trainer = false;
   if (keeps_the_scene) {
+    // The place of the game. WithWeather() can still give a weather.
     config.Set(opponent_count, format, config.background, config.ground,
-               config.platform, config.encounter_animation,
-               Weather::kInvalid);
+               config.platform, config.encounter_animation, weather);
   } else {
     config.Set(opponent_count, format, background, ground, platform,
                encounter_animation, weather);

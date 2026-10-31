@@ -3,18 +3,15 @@
 In this tutorial, you give a new team to the first trainer of Route 102:
 a Pichu and a Riolu with competitive moves and EVs.
 
-**Time:** 20 minutes.
+**Time:** 15 minutes.
 **You need:** [Tutorial 1](01-create-your-rom-hack.md).
 
 ## How it works
 
-1. The player starts a battle against a trainer.
-2. The game prepares the battle: the trainer, the Pokémon, the place.
-3. `battle::Setup` calls your callback `on_trainer_battle`.
-4. Your callback changes the battle with `battle::TrainerTeams`.
-
-`battle::TrainerTeam` describes a team: the format, the place and up to six
-Pokémon (`battle::TrainerOpponent`).
+1. You describe a team with `battle::TrainerTeam` and `battle::TrainerOpponent`.
+2. You link the team to a trainer with `battle::TrainerTeams::Add()`.
+3. Before a battle against this trainer, the library replaces the team of the
+   game with your team.
 
 ## Step 1: Write the team
 
@@ -26,56 +23,43 @@ Make the file `myhack/src/my_trainers.cc`:
  * @brief The trainer teams of my ROM hack.
  */
 
-#include "battle/constant/format.h"
-#include "battle/constant/trainer.h"
-#include "battle/native/config.h"
-#include "battle/patch/setup.h"
-#include "battle/patch/trainer_team.h"
+#include "sango.h"
 
 namespace myhack {
 namespace {
 
-// Each Pokemon: species, held item, ability, nature, shiny,
-// EVs (HP, Atk, Def, Sp. Atk, Sp. Def, Speed), four moves,
-// then (optional) form, nickname, level.
-const battle::TrainerTeam kRoute102Kid1Team(
-    2, Format::kSingle,
-    {
-        {SpeciesId::kPichu, ItemId::kOranBerry, AbilityId::kStatic,
-         Nature::kTimid, false,
-         0, 0, 0, 252, 4, 252,
-         MoveId::kThunderShock, MoveId::kCharm, MoveId::kSweetKiss,
-         MoveId::kNone},
-        {SpeciesId::kRiolu, ItemId::kNone, AbilityId::kInnerFocus,
-         Nature::kAdamant, false,
-         0, 252, 4, 0, 0, 252,
-         MoveId::kQuickAttack, MoveId::kEndure, MoveId::kCounter,
-         MoveId::kNone,
-         FormId::kNormal, nullptr, 8},
-    });
-
-// The list of the new teams: one line for each trainer.
-const battle::TrainerTeamEntry kTeams[] = {
-    {TrainerId::kRoute102Kid1, &kRoute102Kid1Team},
-};
-
-// The game calls this function before each trainer battle.
-void OnTrainerBattle(battle::Config& config, TrainerId& trainer_id) {
-  // If the trainer is in kTeams, its team replaces the team of the game.
-  battle::TrainerTeams::Apply(config, trainer_id);
-}
+// A team: the format of the battle, then each Pokémon. Give the species,
+// then the values that you want to change. The other values come from the
+// game.
+const battle::TrainerTeam kRoute102Kid1Team =
+    battle::TrainerTeam(Format::kSingle)
+        .Add(battle::TrainerOpponent(SpeciesId::kPichu)
+                 .WithLevel(7)
+                 .WithItem(ItemId::kOranBerry)
+                 .WithAbility(AbilityId::kStatic)
+                 .WithNature(Nature::kTimid)
+                 .WithEvs(0, 0, 0, 252, 4, 252)
+                 .WithMoves(MoveId::kThunderShock, MoveId::kCharm,
+                            MoveId::kSweetKiss))
+        .Add(battle::TrainerOpponent(SpeciesId::kRiolu)
+                 .WithLevel(8)
+                 .WithAbility(AbilityId::kInnerFocus)
+                 .WithNature(Nature::kAdamant)
+                 .WithIvs(31)
+                 .WithEvs(0, 252, 4, 0, 0, 252)
+                 .WithMoves(MoveId::kQuickAttack, MoveId::kEndure,
+                            MoveId::kCounter));
 
 } // namespace
 
 void InstallTrainers() {
-  battle::TrainerTeams::SetTable(kTeams, SIZE(kTeams));
-  battle::Setup::GetInstance().on_trainer_battle = OnTrainerBattle;
+  battle::TrainerTeams::Add(TrainerId::kRoute102Kid1, &kRoute102Kid1Team);
 }
 
 } // namespace myhack
 ```
 
-## Step 2: Install the callback
+## Step 2: Install the teams
 
 In `myhack/src/entrypoint.cc`, declare `myhack::InstallTrainers()` and call it
 in `SetUpHack()`:
@@ -101,24 +85,34 @@ make myhack
 
 Battle the first trainer of Route 102. The trainer has a Pichu and a Riolu.
 
-## The levels
+## The values of a Pokémon
 
-The new Pokémon copy the level of the first Pokémon of the game team.
-To set a level, give the last value of the Pokémon (`8` for Riolu above).
+| Function | Value | Without the function |
+|---|---|---|
+| `WithLevel(level)` | The level (1 to 100). | The level of the first Pokémon of the game team. |
+| `WithItem(item)` | The held item. | No item. |
+| `WithAbility(ability)` | The ability. | The ability of the species. |
+| `WithNature(nature)` | The nature. | Hardy. |
+| `WithShiny()` | The Pokémon is shiny. | Not shiny. |
+| `WithEvs(hp, atk, def, spa, spd, spe)` | The six EVs, in the order of the summary. | 0. |
+| `WithIvs(value)` | The six IVs (0 to 31). | The IVs of the game. |
+| `WithMoves(m1, m2, m3, m4)` | The moves. A move that you do not give is empty. | No moves. |
+| `WithForm(form)` | The form. | The normal form. |
+| `WithNickname(u"Name")` | The nickname. | The name of the species. |
 
 ## The place of the battle
 
-The short constructor (`opponent_count, format, {pokemon...}`) keeps the place
-of the game. The long constructor also sets the place:
+A team keeps the place of the game. To change it, use `WithPlace()` and
+`WithWeather()` on the team:
 
 ```cpp
-const battle::TrainerTeam kBossTeam(
-    3, Format::kDouble,
-    BackgroundId::kAquaBoss, GroundId::kAquaBoss, PlatformId::kWater,
-    EncounterAnimationId::kKyogre, battle::Weather::kHeavyRain,
-    {
-        // The Pokémon...
-    });
+const battle::TrainerTeam kBossTeam =
+    battle::TrainerTeam(Format::kDouble)
+        .WithPlace(BackgroundId::kAquaBoss, GroundId::kAquaBoss,
+                   PlatformId::kWater, EncounterAnimationId::kKyogre)
+        .WithWeather(battle::Weather::kHeavyRain)
+        .Add(battle::TrainerOpponent(SpeciesId::kSharpedo).WithLevel(30))
+        .Add(battle::TrainerOpponent(SpeciesId::kMightyena).WithLevel(30));
 ```
 
 | Value | Meaning |
@@ -130,18 +124,44 @@ const battle::TrainerTeam kBossTeam(
 
 The values are in `lib/include/battle/constant/`.
 
+## Many teams
+
+`TrainerTeams::Add()` keeps 256 teams. For a long list, use a table and
+`TrainerTeams::SetTable()`:
+
+```cpp
+const battle::TrainerTeamEntry kTeams[] = {
+    {TrainerId::kRoute102Kid1, &kRoute102Kid1Team},
+    {TrainerId::kRoute103Brendan1, &kRivalTeam},
+};
+
+battle::TrainerTeams::SetTable(kTeams, SIZE(kTeams));
+```
+
 ## Find the id of a trainer
 
 - The trainer ids are in `lib/include/battle/constant/trainer.h`.
 - Not all the trainers have a name in this file. You can use a number:
   `static_cast<TrainerId>(42)`.
-- In the callback, write the id to the log to find it:
 
-  ```cpp
+## Go further: the callback
+
+`battle::Setup::GetInstance().on_trainer_battle` calls your function before
+each trainer battle. It can change all the settings of the battle.
+
+> **Note:** When your product sets this callback, the library does not apply
+> the teams of `TrainerTeams` itself. Call `battle::TrainerTeams::Apply()` in
+> your callback.
+
+```cpp
+void OnTrainerBattle(battle::Config& config, TrainerId& trainer_id) {
+  // Writes the id of the trainer to the log (Plugin > Log).
   ui::Log::Print(u"Trainer %u", static_cast<u32>(trainer_id));
-  ```
+  battle::TrainerTeams::Apply(config, trainer_id);
+}
 
-## Go further
+battle::Setup::GetInstance().on_trainer_battle = OnTrainerBattle;
+```
 
 `kaizo/src/kaizo_trainer.cc` changes much more:
 
@@ -151,8 +171,8 @@ The values are in `lib/include/battle/constant/`.
 
 ## What you learned
 
-- `battle::TrainerTeam` describes a team.
-- `battle::TrainerTeams::SetTable` registers the teams.
-- `on_trainer_battle` and `TrainerTeams::Apply` replace the team before the battle.
+- `battle::TrainerOpponent` and the With functions describe a Pokémon.
+- `battle::TrainerTeam` and `Add()` describe a team.
+- `battle::TrainerTeams::Add()` links a team to a trainer.
 
 **Next:** [Tutorial 9: Write an overworld script](09-write-an-overworld-script.md)
