@@ -100,7 +100,7 @@ make myhack
 | `WithAbilities(first, second, hidden)` | The two abilities and the hidden ability. |
 | `WithCatchRate(rate)` | The catch rate: 3 for a legendary Pokémon, 255 for the easiest. |
 | `WithTm(number, can_learn)` | A TM (1 to 100): `true` to learn it, `false` to stop it. |
-| `WithHm(number, can_learn)` | An HM (1 to 7). |
+| `WithHm(number, can_learn)` | An HM: 1 to 7 in Alpha Sapphire, 1 to 5 in X. |
 | `WithLearnset(moves)` | The moves that the species learns when its level increases. 24 moves at most. |
 | `WithEvolutions(steps)` | The evolutions. 8 at most. They are for all the forms of the species. |
 

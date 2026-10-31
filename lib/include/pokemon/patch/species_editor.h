@@ -127,7 +127,7 @@ public:
   Species& WithCatchRate(u8 rate);
   /// Lets the species learn a TM (1 to 100), or stops it.
   Species& WithTm(u8 number, bool can_learn = true);
-  /// Lets the species learn an HM (1 to 7), or stops it.
+  /// Lets the species learn an HM (1 to 7, or 1 to 5 in X), or stops it.
   Species& WithHm(u8 number, bool can_learn = true);
 
   /// Replaces the learnset: the moves that the species learns when its level

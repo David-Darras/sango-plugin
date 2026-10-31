@@ -34,10 +34,6 @@
 #include "ui/page/pages.h"
 
 namespace ui {
-namespace {
-// The TMs of the table: TM01 to TM100. The menu does not show the HMs.
-constexpr u32 kTechnicalMachineCount = 100;
-} // namespace
 
 void LoadMoveDataPage(MainApplication& app, void* args) {
   static MoveId move = MoveId::kNone;
@@ -170,10 +166,9 @@ void LoadSpeciesDataPage(MainApplication& app, void* args) {
      .WithReadOnly();
 
   u32* tm_bits = &data.technical_moves[tm_index / 32];
-  app.AddSection("TMs")
-     .Add("TM", tm_index)
-     .WithArray(GetNumberedNames("TM%02u", kTechnicalMachineCount),
-                kTechnicalMachineCount)
+  app.AddSection("TMs and HMs")
+     .Add("TM / HM", tm_index)
+     .WithArray(GetTechnicalMachineNames(), kTechnicalMachineCount)
      .WithRefresh()
      .AddMove("Move", pokemon::TechnicalMachineTable::GetTable()[tm_index])
      .WithReadOnly()
@@ -184,12 +179,11 @@ void LoadTechnicalMachinePage(MainApplication& app, void* args) {
   static u8 tm_index = 0;
   MoveId* table = pokemon::TechnicalMachineTable::GetTable();
 
-  app.Add("TM", tm_index)
-     .WithArray(GetNumberedNames("TM%02u", kTechnicalMachineCount),
-                kTechnicalMachineCount)
+  app.Add("TM / HM", tm_index)
+     .WithArray(GetTechnicalMachineNames(), kTechnicalMachineCount)
      .WithRefresh()
      .AddMove("Move", table[tm_index])
-     .WithDescription("The move that the TM teaches. Species Data shows "
+     .WithDescription("The move that the TM or the HM teaches. Species Data shows "
                       "which species can learn it.");
 }
 

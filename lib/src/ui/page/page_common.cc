@@ -68,9 +68,6 @@ const c8* kGameVersionNames[28] = {
 const c8* kSideNames[4] = {"Up", "Down", "Left", "Right"};
 
 namespace {
-// The TMs of the table of the TMs: TM01 to TM100.
-constexpr u32 kTechnicalMachineCount = 100;
-
 // Adds a value to a list, without the same value two times.
 void AddUnique(u16 value, u16* ids, u32 capacity, u32& count) {
   if (value == 0 || count >= capacity) return;
@@ -138,6 +135,28 @@ const c8** GetNumberedNames(const c8* format, u32 count) {
   }
   if (list_count < SIZE(lists)) {
     lists[list_count++] = List{format, count, names};
+  }
+  return names;
+}
+
+const c8** GetTechnicalMachineNames() {
+  static const c8* names[kTechnicalMachineCount] = {};
+  static c8 texts[kTechnicalMachineCount][8];
+  if (names[0] != nullptr) return names;
+  // The HMs are after TM92, and HM07 of Alpha Sapphire is at the end.
+  constexpr u32 kFirstHm = 92;
+  constexpr u32 kHmCount = GAME_CONSTANT(5, 6);
+  for (u32 i = 0; i < kTechnicalMachineCount; i++) {
+    if (i < kFirstHm) {
+      snprintf(texts[i], sizeof(texts[i]), "TM%02u", i + 1);
+    } else if (i < kFirstHm + kHmCount) {
+      snprintf(texts[i], sizeof(texts[i]), "HM%02u", i - kFirstHm + 1);
+    } else if (i < kFirstHm + kHmCount + 8) {
+      snprintf(texts[i], sizeof(texts[i]), "TM%02u", i - kHmCount + 1);
+    } else {
+      snprintf(texts[i], sizeof(texts[i]), "HM07");
+    }
+    names[i] = texts[i];
   }
   return names;
 }

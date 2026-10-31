@@ -32,20 +32,25 @@
 
 namespace pokemon {
 namespace {
-// The table of the TMs and HMs of the game has 107 moves: TM01 to TM92, HM01
-// to HM06, TM93 to TM100, then HM07. The bits of
+// The order of the table of the TMs and HMs of the game. The bits of
 // SpeciesData::technical_moves follow this order.
+// Alpha Sapphire: TM01 to TM92, HM01 to HM06, TM93 to TM100, then HM07.
+// X: TM01 to TM92, HM01 to HM05, then TM93 to TM100.
 constexpr u32 kNoMachine = 0xFF;
+constexpr u32 kFirstHm = 92;
+constexpr u32 kHmCount = GAME_CONSTANT(5, 6);
 
 u32 GetTmIndex(u8 number) {
   if (number >= 1 && number <= 92) return number - 1u;
-  if (number >= 93 && number <= 100) return number + 5u;
+  if (number >= 93 && number <= 100) return number - 1u + kHmCount;
   return kNoMachine;
 }
 
 u32 GetHmIndex(u8 number) {
-  if (number >= 1 && number <= 6) return number + 91u;
+  if (number >= 1 && number <= kHmCount) return kFirstHm + number - 1u;
+#ifdef GAME_ORAS
   if (number == 7) return 106;
+#endif
   return kNoMachine;
 }
 

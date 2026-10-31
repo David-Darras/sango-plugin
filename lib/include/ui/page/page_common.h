@@ -44,6 +44,15 @@ void RefreshMap(void* args);
  */
 const c8** GetNumberedNames(const c8* format, u32 count);
 
+/// The number of moves in the table of the TMs and HMs: 100 TMs, and 7 HMs
+/// (Alpha Sapphire) or 5 HMs (X).
+constexpr u32 kTechnicalMachineCount = GAME_CONSTANT(105, 107);
+
+/// Returns the names of the TMs and HMs in the order of the table of the
+/// game. Alpha Sapphire: TM01 to TM92, HM01 to HM06, TM93 to TM100, then
+/// HM07. X: TM01 to TM92, HM01 to HM05, then TM93 to TM100.
+const c8** GetTechnicalMachineNames();
+
 /**
  * @brief Writes the abilities of a species and form: the first ability, the
  *        second ability and the hidden ability. For WithSuggestions().
