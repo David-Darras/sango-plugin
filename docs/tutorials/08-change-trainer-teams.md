@@ -124,6 +124,51 @@ const battle::TrainerTeam kBossTeam =
 
 The values are in `lib/include/battle/constant/`.
 
+## The trainer
+
+The team can also change the trainer:
+
+```cpp
+const battle::TrainerTeam kRivalTeam =
+    battle::TrainerTeam(Format::kSingle)
+        .WithName(u"Rival")
+        .WithAi(AiFlags::kCasual | AiFlags::kCompetitive |
+                AiFlags::kStrategist)
+        .WithItems(ItemId::kHyperPotion, ItemId::kHyperPotion)
+        .WithMoney(40)
+        .Add(battle::TrainerOpponent(SpeciesId::kRiolu).WithLevel(8));
+```
+
+| Function | What it changes |
+|---|---|
+| `WithName(u"Name")` | The name of the trainer in the battle. The library translates it (see [Tutorial 17](17-translate-your-rom-hack.md)). |
+| `WithAi(flags)` | The AI: `kCasual`, `kCompetitive`, `kStrategist`. Combine them with `\|`. |
+| `WithItems(item1, ...)` | The items that the trainer uses in the battle (4 at most). |
+| `WithMoney(value)` | The prize money: the game multiplies it by the level of the last Pokémon. |
+
+## A new trainer on a map
+
+`overworld::MapCharacter` can put a trainer of the game on any map. The
+trainer sees the player, talks and starts the battle, like the trainers of the
+game. After a win, it battles no more.
+
+```cpp
+overworld::MapCharacterRequest request;
+request.map_id = MapId::kRoute101;
+request.model_id = ModelId::kYoungster;
+request.trainer_id = TrainerId::kRoute102Kid1;  // Its team: kRoute102Kid1Team.
+request.sight = 4;                               // It sees 4 tiles.
+request.tile_x = 10;
+request.tile_z = 12;
+request.facing = overworld::Facing::kLeft;
+overworld::MapCharacter::Add(request);
+```
+
+The trainer says the texts of this trainer of the game. Use a trainer that the
+player cannot meet elsewhere, or remove the trainer of the game from its map
+(`MapCharacter::Empty()`). The overlay shows the sight of the trainers:
+**Overworld > World Overlay**.
+
 ## Many teams
 
 `TrainerTeams::Add()` keeps 256 teams. For a long list, use a table and

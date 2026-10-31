@@ -28,6 +28,7 @@
 
 #include "common.h"
 #include "pokemon/constant/ability.h"
+#include "battle/constant/ai.h"
 #include "battle/constant/background.h"
 #include "battle/constant/encounter_animation.h"
 #include "battle/constant/format.h"
@@ -202,6 +203,17 @@ struct TrainerTeam {
   bool keeps_the_scene;
   TrainerOpponent opponents[6];
 
+  /// @name The trainer
+  /// The values that WithAi(), WithItems(), WithName() and WithMoney() set.
+  /// @{
+  bool has_ai;
+  AiFlags ai;
+  bool has_items;
+  ItemId items[4];
+  const c16* name;
+  u8 money;
+  /// @}
+
   static constexpr BackgroundId kDefaultBackground =
       GAME_CONSTANT(BackgroundId::kFlareBoss, BackgroundId::kAquaBoss);
   static constexpr GroundId kDefaultGround =
@@ -215,7 +227,9 @@ struct TrainerTeam {
       ground(kDefaultGround), platform(PlatformId::kWater),
       encounter_animation(kDefaultEncounterAnimation),
       weather(Weather::kInvalid), force_wild_battle_type(false),
-      keeps_the_scene(true) {}
+      keeps_the_scene(true) {
+    ClearTrainer();
+  }
 
   TrainerTeam(u8 opponent_count, Format format,
               std::initializer_list<TrainerOpponent> opponent_list)
@@ -225,6 +239,7 @@ struct TrainerTeam {
       encounter_animation(kDefaultEncounterAnimation),
       weather(Weather::kInvalid), force_wild_battle_type(false),
       keeps_the_scene(true) {
+    ClearTrainer();
     u32 i = 0;
     for (const auto& opponent : opponent_list) {
       if (i >= kMaxOpponents) break;
@@ -243,6 +258,7 @@ struct TrainerTeam {
       ground(ground), platform(platform),
       encounter_animation(encounter_animation), weather(weather),
       force_wild_battle_type(force_wild_battle_type), keeps_the_scene(false) {
+    ClearTrainer();
     u32 i = 0;
     for (const auto& opponent : opponent_list) {
       if (i >= kMaxOpponents) break;
@@ -272,9 +288,49 @@ struct TrainerTeam {
     this->weather = weather;
     return *this;
   }
+  /// Sets the AI of the trainer, for example
+  /// AiFlags::kCasual | AiFlags::kCompetitive | AiFlags::kStrategist.
+  TrainerTeam& WithAi(AiFlags ai) {
+    has_ai = true;
+    this->ai = ai;
+    return *this;
+  }
+  /// Sets the items that the trainer uses in the battle (4 at most).
+  TrainerTeam& WithItems(ItemId first, ItemId second = ItemId::kNone,
+                         ItemId third = ItemId::kNone,
+                         ItemId fourth = ItemId::kNone) {
+    has_items = true;
+    items[0] = first;
+    items[1] = second;
+    items[2] = third;
+    items[3] = fourth;
+    return *this;
+  }
+  /// Sets the name of the trainer. Use u"..." text. It is translated (see
+  /// core::Translations).
+  TrainerTeam& WithName(const c16* name) {
+    this->name = name;
+    return *this;
+  }
+  /// Sets the prize money: the game multiplies this value by the level of
+  /// the last Pokémon (4 for a Youngster, 100 or more for a boss).
+  TrainerTeam& WithMoney(u8 money) {
+    this->money = money;
+    return *this;
+  }
 
   /// Writes the team and the place into the settings of a battle.
   void ApplyTo(Config& config) const;
+
+private:
+  void ClearTrainer() {
+    has_ai = false;
+    ai = AiFlags::kNone;
+    has_items = false;
+    for (u32 i = 0; i < 4; i++) items[i] = ItemId::kNone;
+    name = nullptr;
+    money = 0;
+  }
 };
 
 /// A trainer id and its team.

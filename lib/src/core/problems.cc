@@ -93,6 +93,10 @@ void CheckCharacters() {
 
   for (u32 i = 0; i < overworld::MapCharacter::GetCount(); i++) {
     const auto& request = overworld::MapCharacter::GetRequest(i);
+    if (request.trainer_id != TrainerId::kNone && request.sight > 10) {
+      Problems::Add(u"character %u: the trainer sees %u tiles, 10 at most",
+                    i + 1, request.sight);
+    }
     // A script of the game is fine. A free id must have a C++ script.
     if (IsCustomScript(request.script_id) &&
         !script::NativeScript::IsRegistered(request.script_id)) {

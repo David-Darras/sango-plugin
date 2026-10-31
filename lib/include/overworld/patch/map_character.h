@@ -25,6 +25,7 @@
 #pragma once
 
 #include "common.h"
+#include "battle/constant/trainer.h"
 #include "overworld/constant/map.h"
 #include "overworld/constant/model.h"
 #include "overworld/native/character_manager.h"
@@ -56,6 +57,14 @@ struct MapCharacterRequest {
   /// A switch of the product. When it is false, the character is not on the
   /// maps. The change shows at the next map load. Null: always there.
   const bool* is_enabled = nullptr;
+  /// A trainer of the game: the character is this trainer. When the player
+  /// walks in front of it or talks to it, the trainer talks and starts the
+  /// battle, like the trainers of the game. After a win, it battles no more.
+  /// battle::TrainerTeams can give it a new team. `script_id` is then not
+  /// used. TrainerId::kNone: a normal character.
+  TrainerId trainer_id = TrainerId::kNone;
+  /// The number of tiles that the trainer sees in front of it (1 to 10).
+  u8 sight = 3;
 };
 
 /// Adds characters to the maps (128 at most).
@@ -93,6 +102,8 @@ public:
 
 private:
   static constexpr u16 kFirstTrainerScript = 3000;
+  /// The kind of the characters that are trainers and see in front of them.
+  static constexpr u16 kTrainerKind = 1;
   static constexpr u32 kMaxEmptiedMaps = 64;
 
   static void ReloadCurrentMap();

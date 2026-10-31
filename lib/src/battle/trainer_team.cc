@@ -25,6 +25,7 @@
 #include "battle/patch/trainer_team.h"
 #include "battle/native/config.h"
 #include "core/problems.h"
+#include "core/translations.h"
 #include "savedata/native/pokemon_team.h"
 
 namespace battle {
@@ -59,6 +60,21 @@ void TrainerTeam::ApplyTo(Config& config) const {
   }
   for (u32 i = 0; i < opponent_count; i++) {
     opponents[i].ApplyTo(config.GetOpponent(i));
+  }
+
+  // The trainers on the side of the opponent: the clients 1 and 3.
+  static const u32 kOpponentClients[] = {1, 3};
+  for (u32 client : kOpponentClients) {
+    TrainerData* trainer = config.trainer_data[client];
+    if (trainer == nullptr) continue;
+    if (has_ai) trainer->ai_flags = ai;
+    if (has_items) {
+      for (u32 i = 0; i < 4; i++) trainer->items[i] = items[i];
+    }
+    if (money != 0) trainer->money_calculation_coefficient = money;
+    if (name != nullptr && trainer->name != nullptr) {
+      trainer->name->Set(core::Translate(name));
+    }
   }
 }
 

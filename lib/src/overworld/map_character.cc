@@ -347,6 +347,14 @@ void MapCharacter::BuildPlacement(const MapCharacterRequest& request, u16 local_
   out->interaction_kind = 0;
   out->hide_when_flag_set = request.hide_when_flag_set;
   out->script_id = request.script_id;
+  if (request.trainer_id != TrainerId::kNone) {
+    // A trainer of the game: its script (3000 + the trainer) and the kind of
+    // the trainers that see in front of them. The sight is the first value.
+    out->script_id = static_cast<ScriptId>(
+        kFirstTrainerScript + static_cast<u16>(request.trainer_id));
+    out->interaction_kind = kTrainerKind;
+    out->param0 = request.sight == 0 ? 1 : request.sight;
+  }
   out->facing = request.facing;
   out->displayed_on_map_id = request.map_id;
   out->owned_by_map_id = request.map_id;
