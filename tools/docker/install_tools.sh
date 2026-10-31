@@ -14,9 +14,13 @@ else
 fi
 CONF="${DEVKITPRO:-/opt/devkitpro}/pacman/etc/pacman.conf"
 
-# The package source of libctrpf and 3gxtool (ThePixellizerOSS).
-if ! grep -q "thepixellizeross-lib" "$CONF"; then
-  cat >> "$CONF" <<'EOF'
+# The server of devkitPro refuses the automatic downloads (error 403 on
+# GitHub), and the image already has its packages. A second configuration
+# keeps the [options] of the image and has only the package source of
+# libctrpf and 3gxtool (ThePixellizerOSS).
+ONLY_TPO=/tmp/pacman-thepixellizeross.conf
+awk '/^\[/ { keep = ($0 == "[options]") } keep' "$CONF" > "$ONLY_TPO"
+cat >> "$ONLY_TPO" <<'EOF'
 
 [thepixellizeross-lib]
 Server = https://thepixellizeross.gitlab.io/packages/any
@@ -26,10 +30,10 @@ SigLevel = Optional
 Server = https://thepixellizeross.gitlab.io/packages/x86_64/linux
 SigLevel = Optional
 EOF
-fi
 
-$PACMAN -Sy --noconfirm
-$PACMAN -S --noconfirm --needed libctrpf 3gxtool
+$PACMAN --config "$ONLY_TPO" -Sy --noconfirm
+$PACMAN --config "$ONLY_TPO" -S --noconfirm --needed libctrpf 3gxtool
+rm -f "$ONLY_TPO"
 
 # Stop now if a tool is missing, not in the middle of a build.
 test -x "${DEVKITPRO:-/opt/devkitpro}/tools/bin/3gxtool" || {

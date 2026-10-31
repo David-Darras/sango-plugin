@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - name: Get the source code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install libctrpf and 3gxtool
         run: sh tools/docker/install_tools.sh
@@ -36,7 +36,7 @@ jobs:
           make -j"$(nproc)" $PRODUCT_NAME
 
       - name: Keep the plugin files
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: plugins
           path: "*-release.3gx"
