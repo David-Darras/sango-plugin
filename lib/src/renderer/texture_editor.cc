@@ -23,6 +23,7 @@
  */
 
 #include "renderer/patch/texture_editor.h"
+#include "core/data_folder.h"
 
 #include <3ds.h>
 
@@ -69,8 +70,8 @@ u32 GetPixelIndex(const TextureTarget& target, u32 x, u32 y) {
 
 // The saved textures: a list of keys (in the file index.bin) tells which
 // textures have a file, so that the plugin reads the SD card only for them.
-const c16* const kFolder = u"sdmc:/sango/textures";
-const c16* const kIndexPath = u"sdmc:/sango/textures/index.bin";
+const c16* const kFolder = SANGO_DATA_PATH(u"textures");
+const c16* const kIndexPath = SANGO_DATA_PATH(u"textures/index.bin");
 constexpr u32 kMaxSaved = 256;
 u32 saved_keys[kMaxSaved];
 u32 saved_count = 0;
@@ -120,7 +121,7 @@ u32 MakeKey(const TextureTarget& target, u32 hash) {
 }
 
 void MakePath(u32 key, c16* out) {
-  core::Utils::Format(out, u"sdmc:/sango/textures/%08X.tex",
+  core::Utils::Format(out, SANGO_DATA_PATH(u"textures/%08X.tex"),
                       static_cast<unsigned>(key));
 }
 
@@ -132,7 +133,7 @@ bool HasKey(u32 key) {
 }
 
 void SaveIndex() {
-  sys::File::CreateDirectory(u"sdmc:/sango");
+  core::MakeDataFolder();
   sys::File::CreateDirectory(kFolder);
   sys::File file(kIndexPath, true);
   if (file.IsOpen() && saved_count != 0) {
@@ -466,7 +467,7 @@ bool TextureEditor::IsSaved(const TextureTarget& target, u32 original_hash) {
 
 bool TextureEditor::Save(const TextureTarget& target, u32 original_hash) {
   if (saved_count >= kMaxSaved && !IsSaved(target, original_hash)) return false;
-  sys::File::CreateDirectory(u"sdmc:/sango");
+  core::MakeDataFolder();
   sys::File::CreateDirectory(kFolder);
   const u32 key = MakeKey(target, original_hash);
   c16 path[64];

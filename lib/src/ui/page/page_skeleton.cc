@@ -24,6 +24,7 @@
 #include <cstdio>
 
 #include "renderer/patch/model_viewer.h"
+#include "core/data_folder.h"
 #include "renderer/patch/skeleton_editor.h"
 #include "ui/main_application.h"
 #include "ui/page/page_common.h"
@@ -88,7 +89,7 @@ void ResetAllBones(void*) {
 
 void SaveChanges(void*) {
   MainApplication::GetInstance().ShowToast(
-      SkeletonEditor::Save() ? "Saved to sdmc:/sango/skeleton.ini."
+      SkeletonEditor::Save() ? "Saved to " SANGO_DATA_TEXT("skeleton.ini") "."
                              : "The SD card did not save the file.");
 }
 
@@ -145,7 +146,7 @@ void LoadSkeletonPage(MainApplication& app, void* args) {
      .Add("Remove The Changes Of This Model", ResetAllBones)
      .WithConfirm()
      .Add("Save To The SD Card", SaveChanges)
-     .WithDescription("Writes the changes to sdmc:/sango/skeleton.ini. They "
+     .WithDescription("Writes the changes to " SANGO_DATA_TEXT("skeleton.ini") ". They "
                       "apply to all the models with the same skeleton, "
                       "after a restart too.");
 #else

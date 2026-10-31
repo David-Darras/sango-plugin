@@ -23,6 +23,7 @@
  */
 
 #include "overworld/patch/map_editor.h"
+#include "core/data_folder.h"
 
 #include <cstdio>
 #include <cstring>
@@ -38,12 +39,11 @@
 namespace overworld {
 
 namespace {
-const c16 kFolder[] = u"sdmc:/sango";
-const c16 kMapsFolder[] = u"sdmc:/sango/maps";
+const c16 kMapsFolder[] = SANGO_DATA_PATH(u"maps");
 
 // Writes the path of the file of a world.
 void MakePath(u16 layout, c16* out) {
-  core::Utils::Format(out, u"sdmc:/sango/maps/layout_%d.tiles",
+  core::Utils::Format(out, SANGO_DATA_PATH(u"maps/layout_%d.tiles"),
                       static_cast<int>(layout));
 }
 constexpr s32 kTextSide = 128;
@@ -52,7 +52,7 @@ constexpr u32 kPollFrames = 45;
 
 // The text path of a world.
 void MakeTextPath(u16 layout, c16* out) {
-  core::Utils::Format(out, u"sdmc:/sango/maps/layout_%d.txt",
+  core::Utils::Format(out, SANGO_DATA_PATH(u"maps/layout_%d.txt"),
                       static_cast<int>(layout));
 }
 
@@ -383,7 +383,7 @@ bool MapEditor::Save() {
     self.is_dirty_ = false;
     return true;
   }
-  sys::File::CreateDirectory(kFolder);
+  core::MakeDataFolder();
   sys::File::CreateDirectory(kMapsFolder);
   sys::File file(path, true);
   if (!file.IsOpen()) return false;
@@ -423,7 +423,7 @@ bool MapEditor::ExportText() {
 
   c16 path[64];
   MakeTextPath(self.loaded_layout_, path);
-  sys::File::CreateDirectory(kFolder);
+  core::MakeDataFolder();
   sys::File::CreateDirectory(kMapsFolder);
   sys::File file(path, true);
   if (!file.IsOpen()) return false;

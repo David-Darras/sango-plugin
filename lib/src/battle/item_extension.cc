@@ -23,6 +23,7 @@
  */
 
 #include "battle/patch/item_extension.h"
+#include "core/data_folder.h"
 
 #include "battle/address.h"
 #include "battle/constant/listener_source.h"
@@ -145,7 +146,7 @@ bool ItemExtension::AddItem(const ItemSpec& spec) {
 
 bool ItemExtension::GetIconPath(const ItemSpec& spec, c16* path,
                                 u32 capacity) {
-  static const c16 kFolder[] = u"sdmc:/sango/items/";
+  static const c16 kFolder[] = SANGO_DATA_PATH(u"items/");
   static const c16 kExtension[] = u".bclim";
   if (spec.name == nullptr) return false;
   u32 length = 0;

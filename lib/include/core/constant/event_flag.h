@@ -40,14 +40,30 @@ enum class EventFlag : u16 {
   kRoute103Unlocked = 2776,
 
   /// @name Free flags
-  /// The game never uses these flags. Use them for your scripts.
+  /// The game never uses these 14 flags. Use them for your scripts, with
+  /// HackFlag().
   /// @{
   kFirstFree = 3026,
   kLastFree = 3039,
-  kStarterGiven = kFirstFree, ///< Undertow: the boss gave the starter.
-  /// @} ///< Undertow: the boss gave the starter.
   /// @}
 };
+
+/// The number of free flags: HackFlag(0) to HackFlag(13).
+constexpr u16 kHackFlagCount = 14;
+
+/**
+ * @brief Returns a free flag for a script of the ROM hack.
+ *
+ * @code
+ * constexpr EventFlag kCandyReceived = core::HackFlag(0);
+ * @endcode
+ *
+ * @param index A number from 0 to 13. Give each flag its own number.
+ */
+constexpr EventFlag HackFlag(u16 index) {
+  return static_cast<EventFlag>(static_cast<u16>(EventFlag::kFirstFree) +
+                                index);
+}
 
 } // namespace core
 

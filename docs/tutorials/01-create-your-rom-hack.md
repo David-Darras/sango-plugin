@@ -103,6 +103,16 @@ The library calls the functions of your product (see `lib/include/hack.h`):
 > **Note:** Write the names exactly as in the table. If a name is not correct,
 > the library does not call the function.
 
+### The data folder
+
+Your ROM hack has its own folder on the SD card: `sdmc:/sango/myhack`. The
+editors of the menu write their files there (`scripts.txt`, `map_events.txt`,
+`zones.txt`...), and the icons of your types and items go there. The files of
+the overlay (`sdmc:/sango`) do not change your ROM hack.
+
+Give these files to the players with your `.3gx` file. The packs of models and
+of music stay in `sdmc:/sango`: all the products share them.
+
 ## Step 4: Build
 
 In the devkitPro shell, type:

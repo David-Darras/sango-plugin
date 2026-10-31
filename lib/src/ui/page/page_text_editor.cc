@@ -24,6 +24,7 @@
 #include <cstdio>
 
 #include "core/patch/text_editor.h"
+#include "core/data_folder.h"
 #include "ui/main_application.h"
 #include "ui/page/page_common.h"
 #include "ui/page/pages.h"
@@ -292,7 +293,7 @@ void LoadTextEditorPage(MainApplication& app, void* args) {
            (unsigned long)TextEditor::GetChangeCount());
   app.Add(change_note)
      .Add("Save To The SD Card", SaveChanges)
-     .WithDescription("Writes the changes to sdmc:/sango/texts.txt. The game "
+     .WithDescription("Writes the changes to " SANGO_DATA_TEXT("texts.txt") ". The game "
                       "reads them again at the next start.")
      .Add("Remove All Changes", RemoveAllChanges)
      .WithConfirm()

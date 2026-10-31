@@ -347,6 +347,25 @@ enum class ScriptId : u16 {
   kLastCustom = 59999,
 };
 
+/// The first id of HackScript(). The library uses the ids before it.
+constexpr u16 kFirstHackScript = 31000;
+/// The number of ids of HackScript(): HackScript(0) to HackScript(999). The
+/// scripts of the menu (32000 and more) come after them.
+constexpr u16 kHackScriptCount = 1000;
+
+/**
+ * @brief Returns a free script id for a C++ script of the ROM hack.
+ *
+ * @code
+ * constexpr ScriptId kCandyGiver = script::HackScript(0);
+ * @endcode
+ *
+ * @param index A number from 0 to 999. Give each script its own number.
+ */
+constexpr ScriptId HackScript(u16 index) {
+  return static_cast<ScriptId>(kFirstHackScript + index);
+}
+
 } // namespace script
 
 using script::ScriptId;

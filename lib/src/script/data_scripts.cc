@@ -23,6 +23,7 @@
  */
 
 #include "script/patch/data_scripts.h"
+#include "core/data_folder.h"
 
 #include <cstdio>
 #include <cstring>
@@ -34,8 +35,7 @@
 namespace script {
 
 namespace {
-const c16 kFolder[] = u"sdmc:/sango";
-const c16 kPath[] = u"sdmc:/sango/scripts.txt";
+const c16 kPath[] = SANGO_DATA_PATH(u"scripts.txt");
 constexpr u32 kLineSize = 320;
 constexpr u32 kFileLimit = 12288;
 constexpr u32 kPollFrames = 45;
@@ -154,7 +154,7 @@ bool DataScripts::Save() {
     self.has_baseline_ = false;
     return true;
   }
-  sys::File::CreateDirectory(kFolder);
+  core::MakeDataFolder();
   sys::File file(kPath, true);
   if (!file.IsOpen()) return false;
   static const c8 kHeader[] =

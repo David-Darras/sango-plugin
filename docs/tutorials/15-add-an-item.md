@@ -131,6 +131,10 @@ Copy the file to `sdmc:/sango/items` (for the emulator, the folder
 files of `assets/items` by itself, and it puts them in the zip: keep the PNG
 file in your project.
 
+> **Note:** `sdmc:/sango` is the data folder of the overlay. Your ROM hack
+> has its own data folder: `sdmc:/sango/myhack/items/` for `myhack`.
+> See [Data folder](../reference/glossary.md).
+
 Without the file, the item shows the icon of the item `icon_item`.
 
 ## Step 4: Register the item

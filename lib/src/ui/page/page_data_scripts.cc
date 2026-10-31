@@ -24,6 +24,7 @@
 #include <cstdio>
 
 #include "overworld/patch/trigger_editor.h"
+#include "core/data_folder.h"
 #include "script/patch/data_scripts.h"
 #include "ui/main_application.h"
 #include "ui/page/page_common.h"
@@ -99,7 +100,7 @@ void LoadDataScriptsPage(MainApplication& app, void* args) {
   }
   app.AddSection("File");
   app.Add("Save To The SD Card", SaveScripts)
-     .WithDescription("Writes sdmc:/sango/scripts.txt. The game reads it when "
+     .WithDescription("Writes " SANGO_DATA_TEXT("scripts.txt") ". The game reads it when "
                       "it starts.");
 }
 

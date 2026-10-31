@@ -23,6 +23,7 @@
  */
 
 #include "core/problems.h"
+#include "core/data_folder.h"
 
 #include <cstdarg>
 
@@ -108,7 +109,7 @@ void CheckTypeIcons() {
     c16 path[96];
     if (battle::GameExtension::GetTypeIconPath(*spec, path, SIZE(path)) &&
         !IsFileOnSdCard(path)) {
-      Problems::Add(u"type %u: no icon in sdmc:/sango/types", id);
+      Problems::Add(u"type %u: no icon in " SANGO_DATA_PATH(u"types"), id);
     }
   }
 }
@@ -121,7 +122,7 @@ void CheckItemIcons() {
     c16 path[96];
     if (battle::ItemExtension::GetIconPath(spec, path, SIZE(path)) &&
         !IsFileOnSdCard(path)) {
-      Problems::Add(u"item %u: no icon in sdmc:/sango/items",
+      Problems::Add(u"item %u: no icon in " SANGO_DATA_PATH(u"items"),
                     static_cast<u32>(spec.id));
     }
   }

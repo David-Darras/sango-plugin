@@ -17,7 +17,7 @@
 
 /**
  * @file menu_settings.cc
- * @brief The settings file of the menu: sdmc:/sango/menu.ini.
+ * @brief The settings file of the menu: menu.ini in the data folder.
  *
  * The file keeps the theme, the effects, the pinned entries and the recent
  * values. It is an INI file: the player can change it in a text editor.
@@ -32,13 +32,13 @@
 #include <cstring>
 
 #include "core/ini.h"
+#include "core/data_folder.h"
 #include "system/native/file.h"
 #include "ui/main_application.h"
 
 namespace ui {
 namespace {
-const c16* const kSettingsFolder = u"sdmc:/sango";
-const c16* const kSettingsPath = u"sdmc:/sango/menu.ini";
+const c16* const kSettingsPath = SANGO_DATA_PATH(u"menu.ini");
 
 // The names of the buttons of Theme::keys. The index is the value.
 // The keys of the recent values (MainApplication::ValueKind).
@@ -239,7 +239,7 @@ void MainApplication::SaveSettings() {
     return;
   }
   if (checksum == last_checksum) return;
-  sys::File::CreateDirectory(kSettingsFolder);
+  core::MakeDataFolder();
   if (ini.Save(kSettingsPath)) last_checksum = checksum;
 }
 } // namespace ui

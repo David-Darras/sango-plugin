@@ -54,10 +54,12 @@ Your function looks like normal code, but it runs over many frames.
 ### The script ids
 
 The ids from `ScriptId::kFirstCustom` (30500) to `ScriptId::kLastCustom` (59999)
-are free for C++ scripts. Define your ids in your product:
+are free for C++ scripts. The library uses some of them. Use `HackScript()`:
+it gives the ids 31000 to 31999, that the library never uses.
 
 ```cpp
-constexpr ScriptId kMyGreeter = static_cast<ScriptId>(31000);
+constexpr ScriptId kMyGreeter = script::HackScript(0);
+constexpr ScriptId kMyShop = script::HackScript(1);
 ```
 
 Do not use an id of the game: the game script does not run any more.
@@ -164,17 +166,18 @@ Pokédex", "the player beat the Gym Leader". The game saves the flags.
 
 The known flags are in `lib/include/core/constant/event_flag.h`.
 The game never uses the flags from `EventFlag::kFirstFree` (3026) to
-`EventFlag::kLastFree` (3039). Use them for your scripts:
+`EventFlag::kLastFree` (3039): 14 flags. Use them for your scripts, with
+`HackFlag()` (0 to 13):
 
 ```cpp
-constexpr EventFlag kMyGiftReceived =
-    static_cast<EventFlag>(static_cast<u16>(EventFlag::kFirstFree) + 1);
+constexpr EventFlag kMyGiftReceived = core::HackFlag(0);
+constexpr EventFlag kMyRivalBeaten = core::HackFlag(1);
 ```
 
 Use a flag to make sure that a gift happens one time only:
 
 ```cpp
-if (s.GetFlag(EventFlag::kStarterGiven)) {
+if (s.GetFlag(kMyGiftReceived)) {
   s.Talk(u"Take good care of your Pokémon!");
   return;
 }

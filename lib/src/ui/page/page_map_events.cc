@@ -23,6 +23,7 @@
 #include <cstdio>
 
 #include "overworld/patch/trigger_editor.h"
+#include "core/data_folder.h"
 #include "ui/main_application.h"
 #include "ui/page/page_common.h"
 #include "ui/page/pages.h"
@@ -174,7 +175,7 @@ void LoadMapEventsPage(MainApplication& app, void* args) {
   app.AddSection("File");
   app.Add("Save To The SD Card", SaveEvents)
      .WithDescription("Writes the changes of this map to "
-                      "sdmc:/sango/map_events.txt. The game reads them when "
+                      "" SANGO_DATA_TEXT("map_events.txt") ". The game reads them when "
                       "the map loads.");
   app.Add("Reset This Map", ResetEvents)
      .WithConfirm()

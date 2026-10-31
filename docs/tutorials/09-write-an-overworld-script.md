@@ -42,12 +42,12 @@ your values:
 namespace myhack {
 namespace {
 
-// The id of the script. The ids 30500 to 59999 are free.
-constexpr ScriptId kCandyGiver = static_cast<ScriptId>(31000);
+// The id of the script: HackScript(0) to HackScript(999) are free.
+constexpr ScriptId kCandyGiver = script::HackScript(0);
 
 // A flag that the game never uses. It remembers that the gift happened.
-constexpr EventFlag kCandyReceived =
-    static_cast<EventFlag>(static_cast<u16>(EventFlag::kFirstFree) + 1);
+// HackFlag(0) to HackFlag(13) are free.
+constexpr EventFlag kCandyReceived = core::HackFlag(0);
 
 // The script. The game runs it when the player talks to the character.
 void CandyGiver(script::Context& s) {

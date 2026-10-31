@@ -118,6 +118,10 @@ def main():
     if not re.match(r"^[a-z][a-z0-9_]*$", name):
         fail("the name must start with a lowercase letter and contain only "
              "lowercase letters, digits and _: " + name)
+    # The name is also the data folder sdmc:/sango/<name>: the paths of the
+    # library must stay short.
+    if len(name) > 20:
+        fail("the name must have 20 characters at most: " + name)
     if name in RESERVED:
         fail("the project already uses the name " + name + ". Use an other name.")
 
@@ -143,6 +147,7 @@ def main():
     print("    make " + name)
     print()
     print("The plugin file is " + name + "-release.3gx.")
+    print("The files of the ROM hack on the SD card are in sdmc:/sango/" + name + ".")
 
 
 if __name__ == "__main__":

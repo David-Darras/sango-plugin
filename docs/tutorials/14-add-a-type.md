@@ -62,6 +62,10 @@ The file goes to `sdmc:/sango/types/Storm.bclim`. The release script makes the
 BCLIM files of all the PNG files of `assets/types` by itself, and it puts them
 in the zip: keep the PNG file in your project.
 
+> **Note:** `sdmc:/sango` is the data folder of the overlay. Your ROM hack
+> has its own data folder: `sdmc:/sango/myhack/types/` for `myhack`.
+> See [Data folder](../reference/glossary.md).
+
 ## Step 2: Add the type
 
 Choose a number that no other type uses. In the overlay, add it to

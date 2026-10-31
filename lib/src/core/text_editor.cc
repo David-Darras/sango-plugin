@@ -23,6 +23,7 @@
  */
 
 #include "core/patch/text_editor.h"
+#include "core/data_folder.h"
 
 #include <cstdio>
 
@@ -31,8 +32,7 @@
 namespace core {
 
 namespace {
-const c16 kFolder[] = u"sdmc:/sango";
-const c16 kPath[] = u"sdmc:/sango/texts.txt";
+const c16 kPath[] = SANGO_DATA_PATH(u"texts.txt");
 
 // The codes of the tags that the editor knows by name. A tag is the code
 // 0x0010, the number of the next codes (the code of the tag and its
@@ -492,7 +492,7 @@ bool TextEditor::Save() {
     sys::File::Delete(kPath);
     return true;
   }
-  sys::File::CreateDirectory(kFolder);
+  core::MakeDataFolder();
   sys::File file(kPath, true);
   if (!file.IsOpen()) return false;
   static const c8 kHeader[] =

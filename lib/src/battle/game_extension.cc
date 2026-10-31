@@ -23,6 +23,7 @@
  */
 
 #include "battle/patch/game_extension.h"
+#include "core/data_folder.h"
 #include "battle/patch/item_extension.h"
 #include "battle/patch/type_chart.h"
 #include "battle/patch/move_animation.h"
@@ -177,7 +178,7 @@ bool GameExtension::AddType(const TypeSpec& spec) {
 
 bool GameExtension::GetTypeIconPath(const TypeSpec& spec, c16* path,
                                     u32 capacity) {
-  static const c16 kFolder[] = u"sdmc:/sango/types/";
+  static const c16 kFolder[] = SANGO_DATA_PATH(u"types/");
   static const c16 kExtension[] = u".bclim";
   if (spec.name == nullptr) return false;
   u32 length = 0;

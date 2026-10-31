@@ -24,6 +24,7 @@
  */
 
 #include "ui/main_application.h"
+#include "core/data_folder.h"
 
 #include <cstdio>
 #include <cstring>
@@ -65,12 +66,12 @@ const c8* const kCredit = PLUGIN_NAME " " PLUGIN_VERSION " by " PLUGIN_CREATOR
 
 // The background images of the menu (see Theme::background_image).
 Image& GetTopImage() {
-  static Image image(u"sdmc:/sango/menu_top.tga");
+  static Image image(SANGO_DATA_PATH(u"menu_top.tga"));
   return image;
 }
 
 Image& GetBottomImage() {
-  static Image image(u"sdmc:/sango/menu_bottom.tga");
+  static Image image(SANGO_DATA_PATH(u"menu_bottom.tga"));
   return image;
 }
 

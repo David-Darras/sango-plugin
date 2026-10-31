@@ -23,6 +23,7 @@
  */
 
 #include "ui/paint_application.h"
+#include "core/data_folder.h"
 
 #include <cstring>
 
@@ -182,7 +183,7 @@ u32 HashBytes(const u8* data, u32 size) {
 }
 
 void MakeTgaPath(u32 key, c16* out) {
-  core::Utils::Format(out, u"sdmc:/sango/textures/export/%08X.tga",
+  core::Utils::Format(out, SANGO_DATA_PATH(u"textures/export/%08X.tga"),
                       static_cast<unsigned>(key));
 }
 
@@ -523,9 +524,9 @@ bool PaintApplication::ExportFile() {
       out += 4;
     }
   }
-  sys::File::CreateDirectory(u"sdmc:/sango");
-  sys::File::CreateDirectory(u"sdmc:/sango/textures");
-  sys::File::CreateDirectory(u"sdmc:/sango/textures/export");
+  core::MakeDataFolder();
+  sys::File::CreateDirectory(SANGO_DATA_PATH(u"textures"));
+  sys::File::CreateDirectory(SANGO_DATA_PATH(u"textures/export"));
   c16 path[72];
   MakeTgaPath(TextureEditor::GetFileKey(target_, original_hash_), path);
   {

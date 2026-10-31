@@ -108,7 +108,8 @@ struct TypeSpec {
   /// The name that the game shows. Use u"..." text. Null keeps the name (and
   /// the icon) of the type of the game.
   ///
-  /// The icon is the file `sdmc:/sango/types/<name>.bclim`, with the same
+  /// The icon is the file `types/<name>.bclim` of the data folder
+  /// (sdmc:/sango for the overlay, see core/data_folder.h), with the same
   /// letters as the name (for example `Cosmic.bclim` for u"Cosmic"). The image
   /// has 50 x 20 pixels and the format RGBA4 (see tools/png_to_bclim.py).
   /// Without the file, a type of the game keeps its icon, and a new type shows
@@ -204,7 +205,8 @@ public:
    */
   static void SetTypeChart(const TypeMultiplier* table, u32 type_count);
 
-  /// Writes the path of the icon of a type: sdmc:/sango/types/<name>.bclim.
+  /// Writes the path of the icon of a type: types/<name>.bclim in the data
+  /// folder.
   /// Returns false when the type has no name or when the path is too long.
   static bool GetTypeIconPath(const TypeSpec& spec, c16* path, u32 capacity);
 

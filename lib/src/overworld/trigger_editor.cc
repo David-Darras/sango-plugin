@@ -24,6 +24,7 @@
  */
 
 #include "overworld/patch/trigger_editor.h"
+#include "core/data_folder.h"
 
 #include <cstdio>
 #include <cstring>
@@ -36,8 +37,7 @@
 namespace overworld {
 
 namespace {
-const c16 kFolder[] = u"sdmc:/sango";
-const c16 kPath[] = u"sdmc:/sango/map_events.txt";
+const c16 kPath[] = SANGO_DATA_PATH(u"map_events.txt");
 
 // The talk direction "all sides" of a sign.
 constexpr u8 kTalkAllSides = 4;
@@ -588,7 +588,7 @@ bool TriggerEditor::Save() {
     sys::File::Delete(kPath);
     return true;
   }
-  sys::File::CreateDirectory(kFolder);
+  core::MakeDataFolder();
   sys::File file(kPath, true);
   if (!file.IsOpen()) return false;
   static const c8 kHeader[] =

@@ -24,6 +24,7 @@
 #include <cstdio>
 
 #include "overworld/native/map_manager.h"
+#include "core/data_folder.h"
 #include "overworld/patch/zone_settings.h"
 #include "ui/main_application.h"
 #include "ui/page/enum_names.h"
@@ -91,7 +92,7 @@ void LoadZoneSettingsPage(MainApplication& app, void* args) {
 
   app.AddSection("File");
   app.Add("Save To The SD Card", SaveZones)
-     .WithDescription("Writes sdmc:/sango/zones.txt. The game applies the "
+     .WithDescription("Writes " SANGO_DATA_TEXT("zones.txt") ". The game applies the "
                       "settings each time that it loads the map.");
   app.Add("Remove The Settings Of This Map", RemoveZone)
      .WithConfirm()

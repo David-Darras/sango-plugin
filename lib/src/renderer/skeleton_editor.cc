@@ -23,6 +23,7 @@
  */
 
 #include "renderer/patch/skeleton_editor.h"
+#include "core/data_folder.h"
 #include "pokemon/patch/model_loader.h"
 
 #include <cmath>
@@ -43,7 +44,7 @@ namespace {
 core::Hook<void(void*, void*, void*, void*)> mesh_draw_hook;
 core::Ini ini;
 
-const c16* const kPath = u"sdmc:/sango/skeleton.ini";
+const c16* const kPath = SANGO_DATA_PATH(u"skeleton.ini");
 
 constexpr u32 kMaxBones = 512;
 
@@ -775,7 +776,7 @@ bool SkeletonEditor::Save() {
              (double)c.scale[2]);
     ini.Set(key, value);
   }
-  sys::File::CreateDirectory(u"sdmc:/sango");
+  core::MakeDataFolder();
   return ini.Save(kPath);
 }
 

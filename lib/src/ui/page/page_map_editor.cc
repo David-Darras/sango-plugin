@@ -24,6 +24,7 @@
 #include <cstdio>
 
 #include "core/native/process_manager.h"
+#include "core/data_folder.h"
 #include "overworld/native/map_manager.h"
 #include "overworld/native/model_manager.h"
 #include "overworld/native/world_layout.h"
@@ -64,7 +65,7 @@ void ClearEdits(void*) {
 
 void ExportText(void*) {
   MainApplication::GetInstance().ShowToast(
-      MapEditor::ExportText() ? "Written: sdmc:/sango/maps/layout_N.txt"
+      MapEditor::ExportText() ? "Written: " SANGO_DATA_TEXT("maps/layout_N.txt") ""
                               : "Go to the overworld first.");
 }
 
@@ -156,7 +157,7 @@ void LoadMapEditorPage(MainApplication& app, void* args) {
      .WithDescription("On: the editor writes the file when you close it and "
                       "when you go to another world.");
   app.Add("Save To The SD Card", SaveEdits)
-     .WithDescription("Writes sdmc:/sango/maps/layout_<world>.tiles. The game "
+     .WithDescription("Writes " SANGO_DATA_TEXT("maps/layout_<world>.tiles") ". The game "
                       "reads it when you enter the world.");
   app.Add("Clear All The Changes Of This World", ClearEdits)
      .WithConfirm()

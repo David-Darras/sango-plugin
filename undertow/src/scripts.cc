@@ -31,6 +31,9 @@
 
 namespace undertow {
 namespace {
+
+// The boss gave the starter.
+constexpr EventFlag kStarterGiven = core::HackFlag(0);
 using script::Context;
 
 constexpr SpeciesId kAquaRecruitPokemon[ui::StarterChoice::kCount] = {
@@ -58,7 +61,7 @@ constexpr CastMember kAquaHideoutCast[] = {
 
 void AquaBossWelcome(Context& s) {
   s.TalkStart();
-  if (s.GetFlag(EventFlag::kStarterGiven)) {
+  if (s.GetFlag(kStarterGiven)) {
     s.Talk(u"Take good care of your Pokémon, recruit.\n"
         u"Team Aqua is counting on you!");
     s.TalkEnd();
@@ -82,7 +85,7 @@ void AquaBossWelcome(Context& s) {
     gift.form = FormId::kNormal;
   }
   s.GivePokemon(gift_id, true);
-  s.SetFlag(EventFlag::kStarterGiven);
+  s.SetFlag(kStarterGiven);
   s.PlayJingle(script::kJinglePokemon);
 
   auto& overworld_menu = savedata::OverworldMenu::GetInstance();

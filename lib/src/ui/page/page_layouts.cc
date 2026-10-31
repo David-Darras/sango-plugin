@@ -31,6 +31,7 @@
 #include <cstring>
 
 #include "renderer/patch/layout_editor.h"
+#include "core/data_folder.h"
 #include "ui/main_application.h"
 #include "ui/page/page_common.h"
 #include "ui/page/pages.h"
@@ -157,7 +158,7 @@ void ResetPane(void*) {
 
 void SaveChanges(void*) {
   MainApplication::GetInstance().ShowToast(
-      LayoutEditor::Save() ? "Saved to sdmc:/sango/layouts.ini."
+      LayoutEditor::Save() ? "Saved to " SANGO_DATA_TEXT("layouts.ini") "."
                            : "The SD card did not save the file.");
 }
 
@@ -217,7 +218,7 @@ void LoadLayoutsPage(MainApplication& app, void* args) {
      .WithDescription("The changes of all the screens. They apply at each "
                       "frame, and after a start when they are saved.")
      .Add("Save To The SD Card", SaveChanges)
-     .WithDescription("Writes the changes to sdmc:/sango/layouts.ini.")
+     .WithDescription("Writes the changes to " SANGO_DATA_TEXT("layouts.ini") ".")
      .Add("Remove The Changes Of This Screen", RemoveScreenChanges)
      .WithConfirm();
 #endif
@@ -349,7 +350,7 @@ void LoadPanePage(MainApplication& app, void* args) {
      .Add("Reset This Pane", ResetPane)
      .WithDescription("Removes the change of this pane.")
      .Add("Save All The Changes", SaveChanges)
-     .WithDescription("Writes the changes to sdmc:/sango/layouts.ini.");
+     .WithDescription("Writes the changes to " SANGO_DATA_TEXT("layouts.ini") ".");
 
   // The tree: the parent, the children, then the brothers.
   Pane* parent = pane->parent;

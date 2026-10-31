@@ -105,11 +105,14 @@ LIB_INCLUDES	:=	lib/include \
 #   overlay/  sango_plugin.3gx: every page of the library under one menu
 #   kaizo/    sango_kaizo.3gx: the ROM hack
 #   undertow/ sango_undertow.3gx: the ROM hack where you play a Team Aqua grunt
+# The data folder of a product on the SD card (see lib/include/core/data_folder.h):
+# sdmc:/sango for the overlay, sdmc:/sango/<product> for the others.
 define PRODUCT_SETTINGS
 $(1)_PSF		:=	$(firstword $(wildcard $(1)/*.plgInfo))
 $(1)_TARGET		:=	$$(basename $$(notdir $$($(1)_PSF)))
 $(1)_SOURCES	:=	$(LIB_SOURCES) $(1)/src
 $(1)_INCLUDES	:=	$(LIB_INCLUDES) $(1)/include
+$(1)_DATA_FOLDER	:=	$(if $(filter overlay,$(1)),sango,sango/$(1))
 endef
 $(foreach product,$(FOUND_PRODUCTS),$(eval $(call PRODUCT_SETTINGS,$(product))))
 
@@ -122,7 +125,7 @@ CFLAGS	:=	-mword-relocations \
  			-ffunction-sections -fdata-sections -fno-strict-aliasing \
 			$(ARCH) $(BUILD_FLAGS) $(G) \
 		   -DPLUGIN_CREATOR=\"$(PLUGIN_CREATOR)\" -DPLUGIN_VERSION=\"$(PLUGIN_VERSION)\" -DPLUGIN_NAME=\"$(PLUGIN_NAME)\" \
-		   -DUSE_SANGO_PLUGIN $(GAME_DEFINE) # -DUSE_DEFAULT_CTRPF
+		   -DUSE_SANGO_PLUGIN $(GAME_DEFINE) $(PRODUCT_DEFINES) # -DUSE_DEFAULT_CTRPF
 
 CFLAGS		+=	$(INCLUDE) -D__3DS__ $(DEFINES)
 
@@ -196,6 +199,7 @@ TARGET		:=	$($(PRODUCT)_TARGET)
 SOURCES		:=	$($(PRODUCT)_SOURCES)
 INCLUDES	:=	$($(PRODUCT)_INCLUDES)
 PSF			:=	$($(PRODUCT)_PSF)
+export PRODUCT_DEFINES	:=	-DPRODUCT_DATA_FOLDER=\"$($(PRODUCT)_DATA_FOLDER)\"
 
 export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
 					$(foreach dir,$(DATA),$(CURDIR)/$(dir))
@@ -253,10 +257,11 @@ DEPENDS	:=	$(OFILES:.o=.d)
 # group of macros has a small file with its values: the make rule writes the file
 # only when a value changed, and the object files depend on it.
 #   game.flag    the target game (GAME_ORAS or GAME_XY): all the files
-#   plugin.flag  the name, the version and the creator: the files that use them
+#   plugin.flag  the name, the version, the creator and the data folder: the
+#                files that use them
 #---------------------------------------------------------------------------------
 GAME_VALUES   := $(GAME_DEFINE)
-PLUGIN_VALUES := $(PLUGIN_NAME) $(PLUGIN_VERSION) $(PLUGIN_CREATOR)
+PLUGIN_VALUES := $(PLUGIN_NAME) $(PLUGIN_VERSION) $(PLUGIN_CREATOR) $(PRODUCT_DEFINES)
 
 .PHONY: FORCE
 FORCE:
@@ -269,7 +274,7 @@ plugin.flag: FORCE
 
 # The source files that use the macros of the plugin.
 PLUGIN_USERS := $(patsubst %.cc,%.o,$(notdir $(shell grep -lE \
-	'PLUGIN_(NAME|VERSION|CREATOR)' $(wildcard $(addsuffix /*.cc,$(VPATH))) \
+	'PLUGIN_(NAME|VERSION|CREATOR)|SANGO_DATA_' $(wildcard $(addsuffix /*.cc,$(VPATH))) \
 	2>/dev/null)))
 
 $(OFILES): game.flag

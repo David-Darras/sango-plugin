@@ -63,7 +63,8 @@ struct ItemSpec {
   /// of its own (for example ItemId::kLeftovers). ItemId::kNone keeps the icon
   /// of an item of the game.
   ///
-  /// The icon of its own is the file `sdmc:/sango/items/<name>.bclim`, with the
+  /// The icon of its own is the file `items/<name>.bclim` of the data folder
+  /// (sdmc:/sango for the overlay, see core/data_folder.h), with the
   /// same letters as the name (for example `Plasma Core.bclim`). The image has
   /// 30 x 30 pixels (see tools/png_to_item_icon.py).
   ItemId icon_item;
@@ -160,7 +161,8 @@ public:
     return GetInstance().items_[index < kMaxItems ? index : 0];
   }
 
-  /// Writes the path of the icon of an item: sdmc:/sango/items/<name>.bclim.
+  /// Writes the path of the icon of an item: items/<name>.bclim in the data
+  /// folder.
   /// Returns false when the item has no name or when the path is too long.
   static bool GetIconPath(const ItemSpec& spec, c16* path, u32 capacity);
 

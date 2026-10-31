@@ -24,6 +24,7 @@
  */
 
 #include "renderer/patch/layout_editor.h"
+#include "core/data_folder.h"
 
 #include <cstdio>
 #include <cstdlib>
@@ -44,7 +45,7 @@ namespace renderer {
 namespace {
 core::Hook<void(Pane*, const void*)> update_matrix_hook;
 
-const c16* const kPath = u"sdmc:/sango/layouts.ini";
+const c16* const kPath = SANGO_DATA_PATH(u"layouts.ini");
 
 // The flag byte of a pane: the bit 0 is the visibility, and the bits 4 and 5
 // are the state of its matrix: 0 means "calculate it again".
@@ -677,7 +678,7 @@ bool LayoutEditor::Save() {
     }
     ini.Set(key, value);
   }
-  sys::File::CreateDirectory(u"sdmc:/sango");
+  core::MakeDataFolder();
   return ini.Save(kPath);
 }
 

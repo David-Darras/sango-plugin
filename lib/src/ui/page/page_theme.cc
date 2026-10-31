@@ -21,6 +21,7 @@
  */
 
 #include "ui/main_application.h"
+#include "core/data_folder.h"
 #include "ui/page/enum_names.h"
 #include "ui/page/page_common.h"
 
@@ -33,7 +34,7 @@ void LoadThemePage(MainApplication& app, void* args) {
         Theme::GetInstance().ApplyPreset(Theme::Preset::kDefault);
       })
       .WithDescription("The colors change at once. The menu saves them in "
-                       "sdmc:/sango/menu.ini when it closes.")
+                       "" SANGO_DATA_TEXT("menu.ini") " when it closes.")
       .Add("Dark", [](void*) {
         Theme::GetInstance().ApplyPreset(Theme::Preset::kDark);
       })
@@ -60,7 +61,7 @@ void LoadThemePage(MainApplication& app, void* args) {
       .WithDescription("A shadow under the texts. On a page with many texts, "
                        "some texts have no shadow: the GPU has a limit.")
       .Add("Background Image", theme.background_image)
-      .WithDescription("Shows sdmc:/sango/menu_top.tga and menu_bottom.tga "
+      .WithDescription("Shows " SANGO_DATA_TEXT("menu_top.tga") " and menu_bottom.tga "
                        "(TGA, 400 x 240 and 320 x 240) behind the menu.")
       .Add("Image Opacity", theme.background_image_opacity)
       .WithFactor(0.1f)

@@ -23,6 +23,7 @@
  */
 
 #include "overworld/patch/zone_settings.h"
+#include "core/data_folder.h"
 
 #include <cstdio>
 
@@ -38,8 +39,7 @@
 namespace overworld {
 
 namespace {
-const c16 kFolder[] = u"sdmc:/sango";
-const c16 kPath[] = u"sdmc:/sango/zones.txt";
+const c16 kPath[] = SANGO_DATA_PATH(u"zones.txt");
 constexpr u32 kLineSize = 96;
 // The game sets the weather while the map starts: the settings repeat it for
 // this number of frames.
@@ -147,7 +147,7 @@ bool ZoneSettings::Save() {
     sys::File::Delete(kPath);
     return true;
   }
-  sys::File::CreateDirectory(kFolder);
+  core::MakeDataFolder();
   sys::File file(kPath, true);
   if (!file.IsOpen()) return false;
   static const c8 kHeader[] =
