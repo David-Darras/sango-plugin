@@ -62,6 +62,10 @@ constexpr TypeId kTypeTime = static_cast<TypeId>(24);
 /// @{
 constexpr MoveId kMoveAbsoluteZero = static_cast<MoveId>(863);
 constexpr MoveId kMoveSolarFlare = static_cast<MoveId>(864);
+constexpr MoveId kMovePrismLance = static_cast<MoveId>(865);
+constexpr MoveId kMoveSonicRequiem = static_cast<MoveId>(866);
+constexpr MoveId kMoveIonStorm = static_cast<MoveId>(867);
+constexpr MoveId kMoveDreamfall = static_cast<MoveId>(868);
 /// @}
 
 namespace battle {
@@ -69,6 +73,10 @@ namespace battle {
 void RegisterCustomAbilities();
 /// Adds the new moves of the overlay to the game.
 void RegisterCustomMoves();
+/// Adds the four moves of the new types (Light, Sound, Plasma and Dream).
+void RegisterTypeMoves();
+/// Adds the animations of these four moves.
+void RegisterTypeMovesAnimations();
 /// Adds the new types of the overlay to the game.
 void RegisterCustomTypes();
 /// Gives the new types to some moves and species of the game (a team to test

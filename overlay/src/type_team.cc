@@ -72,8 +72,7 @@ constexpr TeamMember kTeam[] = {
     // One Pokémon with two new types and four moves of four other new types:
     // all the new types are on one screen (the choice of the move).
     {SpeciesId::kCelebi, {kTypeCosmic, kTypeTime},
-     {MoveId::kFlashCannon, MoveId::kHyperVoice, MoveId::kDischarge,
-      MoveId::kDreamEater}},
+     {kMovePrismLance, kMoveSonicRequiem, kMoveIonStorm, kMoveDreamfall}},
     // A new type and a type of the game.
     {SpeciesId::kExploud, {TypeId::kNormal, kTypeSound},
      {MoveId::kHyperVoice, MoveId::kBoomburst, MoveId::kEchoedVoice,
@@ -173,7 +172,7 @@ void AddTypeTestEntries(ui::MainApplication& app) {
      .WithDescription("Replaces the party with six Pokemon at level 100 that "
                       "have the new types (Cosmic, Sound, Light, Plasma, "
                       "Dream, Time) and moves of these types. The first one "
-                      "(Celebi) has two new types and four moves of four "
+                      "(Celebi) has two new types and four new moves of four "
                       "other new types. Hold {A}. Use it in the overworld.");
 }
 

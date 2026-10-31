@@ -71,6 +71,49 @@ constexpr u32 kItemNameFile2 = 116;
 
 // The move that lends its data to a new move before patch_data runs.
 constexpr u32 kTemplateMove = static_cast<u32>(MoveId::kPound);
+
+// The texts of the battle are built in memory, and the file number is 0 (the
+// same as the texts of the scripts). The texts "<Pokemon> used <move>!" have
+// three texts for each move (the Pokemon of the player, a wild Pokemon, a
+// Pokemon of the opponent): the text number is the move number times 3, plus
+// 0, 1 or 2.
+constexpr u32 kBattleAttackFile = 0;
+constexpr u32 kAttackTextCount = 3;
+
+// Replaces the first `from` in the text by `to`. The text can hold codes equal
+// to 0 (the parameters of a tag): the length of the text is its `size`.
+void ReplaceText(String* text, const c16* from, const c16* to) {
+  const c16* source = text->GetBuffer();
+  const u32 length_in = text->size;
+  u32 from_length = 0;
+  while (from[from_length] != 0) from_length++;
+  u32 to_length = 0;
+  while (to[to_length] != 0) to_length++;
+  if (from_length == 0 || from_length > length_in) return;
+
+  for (u32 start = 0; start + from_length <= length_in; start++) {
+    u32 matched = 0;
+    while (matched < from_length && source[start + matched] == from[matched]) {
+      matched++;
+    }
+    if (matched != from_length) continue;
+
+    const u32 length_out = length_in - from_length + to_length;
+    if (length_out + 1 > text->capacity) return;
+    c16 result[128];
+    if (length_out + 1 > SIZE(result)) return;
+    u32 length = 0;
+    for (u32 i = 0; i < start; i++) result[length++] = source[i];
+    for (u32 i = 0; i < to_length; i++) result[length++] = to[i];
+    for (u32 i = start + from_length; i < length_in; i++) {
+      result[length++] = source[i];
+    }
+    result[length] = 0;
+    for (u32 i = 0; i <= length; i++) text->buffer[i] = result[i];
+    text->size = static_cast<u16>(length);
+    return;
+  }
+}
 } // namespace
 
 // Registration.
@@ -198,12 +241,23 @@ void GameExtension::BattleLoadEffectHook(uptr self, u32 archive_id,
 
 void GameExtension::BattleLoadAnimationHook(uptr self, u32 id, bool is_move) {
   MoveAnimations::LoadEffectsOnDemand(false);
+  // A new move has an id after the last animation of the game: the game
+  // would not take it for a move.
+  const bool is_new_move =
+      is_move && FindMove(static_cast<MoveId>(id)) != nullptr;
   if (kMoveAnimationCount != 0) is_move = id < kMoveAnimationCount;
-  if (is_move) MoveAnimations::Resolve(static_cast<MoveId>(id), &id, &is_move);
+  if (is_move || is_new_move) {
+    is_move = true;
+    MoveAnimations::Resolve(static_cast<MoveId>(id), &id, &is_move);
+  }
   if (is_move) {
     const MoveSpec* spec = FindMove(static_cast<MoveId>(id));
     if (spec != nullptr && spec->patch_animation != nullptr) {
       spec->patch_animation(id, is_move);
+    } else if (spec != nullptr) {
+      // A new move without an animation: the game has no animation for its
+      // number, so it plays the animation of a simple move.
+      id = static_cast<u32>(MoveId::kTackle);
     }
   }
   battle_load_animation_hook(self, id, is_move);
@@ -300,6 +354,26 @@ void GameExtension::MessageGetStringHook(Message* self, u32 str_id,
       PatchTypeName(str_id, output)) {
     core::TextEditor::OnString(self, str_id, output);
     return;
+  }
+  // A new move has no text "<Pokemon> used <move>!" in the file of the game:
+  // the plugin takes the text of a simple move and changes the name.
+  if (self->file_id == kBattleAttackFile) {
+    const MoveSpec* spec =
+        FindMove(static_cast<MoveId>(str_id / kAttackTextCount));
+    if (spec != nullptr) {
+      message_get_string_hook(
+          self, kTemplateMove * kAttackTextCount + str_id % kAttackTextCount,
+          output);
+      c16 template_name[48] = {};
+      String name;
+      name.buffer = template_name;
+      name.capacity = SIZE(template_name);
+      name.size = 0;
+      GetMoveName().GetString(kTemplateMove, &name);
+      ReplaceText(output, template_name, spec->name);
+      core::TextEditor::OnString(self, str_id, output);
+      return;
+    }
   }
   message_get_string_hook(self, str_id, output);
   switch (self->file_id) {

@@ -174,7 +174,12 @@ The game stops if an animation uses too many objects at the same time:
 | Models | 10 |
 | Sounds | 6 |
 
-Do not spawn a new object in a group that is still alive.
+Do not spawn a new object in a group that is still alive. An effect stays
+alive after its last frame, because its particles need time to disappear.
+The library cannot see this, and the game stops when a group gets a new
+effect too early. The safe way is to give each effect its own group: an
+animation has room for 10 effects. Use a group again only a long time
+after the first effect.
 
 The library checks these limits before the animation plays.
 If your animation breaks a limit, the library plays the animation of the game
