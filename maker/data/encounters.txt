@@ -1,0 +1,17 @@
+# The wild Pokémon of the maps.
+#
+# [map, method]: the methods are Walk (tall grass, caves), Surf, Rock Smash,
+# Old Rod, Good Rod, Super Rod and Horde.
+# Then one Pokémon on each line: species, minimum level, maximum level, and
+# (optional) the form.
+# The names are in lib/include/overworld/constant/map.h and
+# lib/include/pokemon/constant/species.h, without the k: kRoute101 is Route 101.
+
+[Route 101, Walk]
+Pikachu, 3, 5
+Eevee, 3, 5
+Riolu, 4, 6
+
+[Route 102, Walk]
+Ralts, 4, 6
+Shinx, 4, 6

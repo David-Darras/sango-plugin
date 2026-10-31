@@ -103,4 +103,4 @@ Hello, {player}! You have {money} Pokédollars. => Bonjour, {player} ! Tu as {mo
 - `translations/<language>.txt` in the data folder translates them.
 - `{player}`, `{money}` and `{var:N}` show values in the texts of the scripts.
 
-**Next:** [Tutorials](README.md)
+**Next:** [Tutorial 18: Make a ROM hack without code](18-make-a-rom-hack-without-code.md)

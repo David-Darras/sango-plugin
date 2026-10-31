@@ -25,6 +25,7 @@ Before you start, build the plugin one time:
 | 15 | [Add an item](15-add-an-item.md) | Make a new item (held item, or item that the player uses in the Bag) or change an item of the game. |
 | 16 | [Change a species](16-change-a-species.md) | Change the stats, the types, the TMs, the learnset and the evolutions of a species. |
 | 17 | [Translate your ROM hack](17-translate-your-rom-hack.md) | Translate the texts into other languages, and show values in the texts. |
+| 18 | [Make a ROM hack without code](18-make-a-rom-hack-without-code.md) | Change the wild Pokémon, the trainers and the species with text files (Sango Maker). |
 
 ## Conventions of the tutorials
 

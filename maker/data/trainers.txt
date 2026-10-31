@@ -1,0 +1,21 @@
+# The trainers.
+#
+# [trainer]: the name of a trainer of lib/include/battle/constant/trainer.h, or
+# its number. Then the values of the trainer:
+#   format  = Single, Double, Triple, Rotation or Horde
+#   name    = the name in the battle
+#   ai      = Casual, Competitive, Strategist (one or more)
+#   items   = the items that the trainer uses (4 at most)
+#   money   = the prize money (the game multiplies it by the level)
+#   pokemon = one Pokémon of the team (6 at most), with its values:
+#             level N, item X, ability X, nature X, form X, ivs N,
+#             evs HP/Atk/Def/SpA/SpD/Spe, moves A/B/C/D, shiny
+
+[Route 102 Kid 1]
+format = Single
+name = Joey
+ai = Casual, Competitive
+items = Potion
+money = 8
+pokemon = Pichu, level 7, item Oran Berry, ability Static, nature Timid, moves Thunder Shock / Charm / Sweet Kiss
+pokemon = Riolu, level 8, ivs 31, evs 0/252/4/0/0/252, moves Quick Attack / Endure / Counter

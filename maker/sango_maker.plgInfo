@@ -1,0 +1,24 @@
+Author: ZettaD
+
+Version:
+    Major: 0
+    Minor: 1
+    Revision: 0
+
+Targets:
+    #- 0x0011C500
+
+Title: sango-maker
+
+Summary: Sango Maker
+
+Description: |
+  Make a ROM hack of Pokemon Alpha Sapphire without code: text files on the
+  SD card (sdmc:/sango/maker) change the wild Pokemon, the trainers and the
+  species. The menu has all the editors of Sango Plugin.
+
+Compatibility: Any
+
+MemorySize: 5MiB
+
+UsePrivateMemory: false
