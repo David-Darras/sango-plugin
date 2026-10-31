@@ -131,11 +131,11 @@ static OverrideEntry land_entries[1024];
 static OverrideEntry area_entries[512];
 static OverrideEntry matrix_entries[512];
 // The icons of the new items: RegisterItemIcon() fills this list.
-static constexpr u32 kMaxItemIcons = 64;
+static constexpr u32 kMaxItemIcons = 128;
 static OverrideEntry item_icon_entries[kMaxItemIcons];
 static c16 item_icon_paths[kMaxItemIcons][96];
 // The data of the new items: RegisterItemData() fills this list.
-static constexpr u32 kMaxItemData = 32;
+static constexpr u32 kMaxItemData = 128;
 static OverrideEntry item_data_entries[kMaxItemData];
 static u8 item_data_raw[kMaxItemData][Archive::kItemDataFileSize];
 static OverrideSet override_sets[] = {

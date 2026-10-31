@@ -142,7 +142,9 @@ make myhack
 | `is_everywhere` | `true`: the character is on all the maps. |
 | `is_enabled` | A pointer to a `bool` of your product. When the `bool` is `false`, the character is not there. |
 
-You can add 16 characters at most.
+You can add 128 characters at most, on all the maps. A map shows 32
+characters at most: the characters of the game first. Use 16 different
+models at most for your characters.
 
 ## Remove the characters of a map
 

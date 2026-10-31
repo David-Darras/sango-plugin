@@ -44,6 +44,9 @@ namespace {
 constexpr u32 kFirstFrame = ui::Splash::kFrames;
 // The number of problems that the screen shows.
 constexpr u32 kShownProblems = 7;
+// The number of different models for the added characters. The other half of
+// the 33 models of a region is for the characters of the game.
+constexpr u32 kMaxCharacterModels = 16;
 
 bool IsFileOnSdCard(const c16* path) {
   sys::File file;
@@ -70,6 +73,23 @@ void CheckScripts() {
 }
 
 void CheckCharacters() {
+  // The game loads the models of all the added characters with the models of
+  // the characters of the region: 33 models at most.
+  ModelId models[overworld::MapCharacter::kMaxRequests];
+  u32 model_count = 0;
+  for (u32 i = 0; i < overworld::MapCharacter::GetCount(); i++) {
+    const ModelId model = overworld::MapCharacter::GetRequest(i).model_id;
+    bool is_new = true;
+    for (u32 j = 0; j < model_count; j++) {
+      if (models[j] == model) is_new = false;
+    }
+    if (is_new) models[model_count++] = model;
+  }
+  if (model_count > kMaxCharacterModels) {
+    Problems::Add(u"characters: %u models, use %u at most", model_count,
+                  kMaxCharacterModels);
+  }
+
   for (u32 i = 0; i < overworld::MapCharacter::GetCount(); i++) {
     const auto& request = overworld::MapCharacter::GetRequest(i);
     // A script of the game is fine. A free id must have a C++ script.

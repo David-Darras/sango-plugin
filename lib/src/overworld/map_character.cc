@@ -371,7 +371,12 @@ void MapCharacter::AddMissingModels(CharacterManager* manager,
   // there from the start, or the game stops when the map sets up.
   const u32 total = placement_count + request_count_;
   for (u32 i = 0; i < total; i++) {
-    if (count + 1 >= kMaxModelsPerRegion) break;
+    if (count + 1 >= kMaxModelsPerRegion) {
+      // A character without its model stops the game: say it in the log.
+      ui::Log::Print(u"characters: the list of models is full (%u)",
+                     kMaxModelsPerRegion);
+      break;
+    }
     ModelId model_id;
     if (i < placement_count) {
       if (placements == nullptr) continue;

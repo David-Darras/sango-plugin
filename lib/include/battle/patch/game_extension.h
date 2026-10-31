@@ -148,9 +148,10 @@ class GameExtension {
   MAKE_SINGLETON(GameExtension)
 public:
   /// The maximum number of new moves.
-  static constexpr u32 kMaxMoves = 32;
+  static constexpr u32 kMaxMoves = 128;
   /// The maximum number of new abilities.
-  static constexpr u32 kMaxAbilities = 32;
+  /// The ids of the abilities stop at 255: about 64 ids are free.
+  static constexpr u32 kMaxAbilities = 64;
   /// The number of the types: the types of the game, "no type" (18) and the
   /// new types.
   static constexpr u32 kMaxTypes = 32;

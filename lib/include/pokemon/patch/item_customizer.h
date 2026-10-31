@@ -50,7 +50,7 @@ public:
   static void Initialize();
 
   /// The number of items whose data the menu can keep changed.
-  static constexpr u32 kMaxOverrides = 16;
+  static constexpr u32 kMaxOverrides = 128;
 
   /// Keeps a changed copy of the data of an item. Each time the game reads the
   /// item, it gets this copy. Returns false when there is no free place.

@@ -157,9 +157,9 @@ class TrainerTeams {
   MAKE_SINGLETON(TrainerTeams)
 
 public:
-  static constexpr u32 kMaxTeams = 16;
+  static constexpr u32 kMaxTeams = 256;
 
-  /// Adds one team. 16 teams at most. The team must stay in memory.
+  /// Adds one team. 256 teams at most. The team must stay in memory.
   static bool Add(TrainerId id, const TrainerTeam* team);
   /// Sets a table of teams. The table must stay in memory.
   static void SetTable(const TrainerTeamEntry* table, u32 count);

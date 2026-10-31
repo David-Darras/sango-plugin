@@ -58,12 +58,14 @@ struct MapCharacterRequest {
   const bool* is_enabled = nullptr;
 };
 
-/// Adds characters to the maps (16 at most).
+/// Adds characters to the maps (128 at most).
 class MapCharacter {
   MAKE_SINGLETON(MapCharacter)
 
 public:
-  static constexpr u32 kMaxRequests = 16;
+  /// The number of characters that the product can add, on all the maps.
+  /// A map shows 32 characters at most: the characters of the game first.
+  static constexpr u32 kMaxRequests = 128;
   bool is_logging_enabled = false;
 
   static void Initialize();
@@ -71,7 +73,7 @@ public:
   static bool Add(const MapCharacterRequest& request);
   /// Removes all the added characters.
   static void Clear();
-  /// Removes the characters of the game from a map (8 maps at most).
+  /// Removes the characters of the game from a map (64 maps at most).
   static bool Empty(MapId map_id);
   /// Returns the number of added characters.
   static u32 GetCount();
@@ -91,7 +93,7 @@ public:
 
 private:
   static constexpr u16 kFirstTrainerScript = 3000;
-  static constexpr u32 kMaxEmptiedMaps = 8;
+  static constexpr u32 kMaxEmptiedMaps = 64;
 
   static void ReloadCurrentMap();
 #ifdef GAME_ORAS

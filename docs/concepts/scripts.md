@@ -78,7 +78,9 @@ request.facing = overworld::Facing::kDown;
 overworld::MapCharacter::Add(request);
 ```
 
-You can add 16 characters at most.
+You can add 128 characters at most, on all the maps. A map shows 32
+characters at most: the characters of the game first. Use 16 different
+models at most for your characters.
 
 ## The functions of the context
 

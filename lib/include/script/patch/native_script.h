@@ -59,7 +59,7 @@ class NativeScript {
   MAKE_SINGLETON(NativeScript)
 
 public:
-  static constexpr u32 kMaxScripts = 32;
+  static constexpr u32 kMaxScripts = 256;
   static constexpr u32 kStackSize = 32 * 1024;
   static constexpr u32 kMessageCapacity = 512;
   static constexpr s32 kBorrowedScriptId = (s32)ScriptId::kDoNothing;
@@ -69,7 +69,7 @@ public:
 
   static void Initialize();
 
-  /// Links a script id to a C++ function. 32 scripts at most.
+  /// Links a script id to a C++ function. 256 scripts at most.
   static bool Register(ScriptId id, Function function) {
     auto& ctx = GetInstance();
     if (function == nullptr) return false;

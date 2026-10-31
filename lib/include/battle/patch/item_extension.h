@@ -136,7 +136,7 @@ public:
   /// icons has 631 files.
   static constexpr u32 kFirstIconFile = 4000;
   /// The maximum number of new items.
-  static constexpr u32 kMaxItems = 32;
+  static constexpr u32 kMaxItems = 128;
 
   /// Installs the hooks. The library calls this function at start-up.
   static void Initialize();
