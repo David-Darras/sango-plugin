@@ -2,7 +2,7 @@
 
 In this tutorial, you make a ROM hack with text files only: you do not write
 C++ and you do not build the plugin. You change the wild Pokémon, a trainer and
-a species.
+a species, and you write a script for a character.
 
 **Time:** 15 minutes.
 **You need:** the file `sango_maker-release.3gx` (build it with
@@ -19,6 +19,7 @@ folder `sdmc:/sango/maker`:
 | `encounters.txt` | The wild Pokémon of the maps. |
 | `trainers.txt` | The teams, the names, the AI and the items of the trainers. |
 | `species.txt` | The stats, the types, the abilities, the TMs, the learnsets and the evolutions. |
+| `story.txt` | The scripts: messages, choices, conditions, gifts, battles, warps. |
 
 The menu of Sango Maker has all the editors of Sango Plugin. They write more
 files in the same folder: the scripts (`scripts.txt`), the events of the maps
@@ -107,7 +108,81 @@ evolutions = Level Up / 30 / Raichu, Item / Thunder Stone / Raichu
 
 For a form: `[Charizard, Charizard Megax]`.
 
-## Step 5: Test
+## Step 5: Write the story
+
+Open `sango/maker/story.txt`. A script is a list of commands, one on each
+line. `[33000]` starts the script 33000: the scripts have the numbers 33000 to
+33999.
+
+```text
+[33000]
+face player
+if flag 0
+  say Take good care of your Pokémon, {player}!
+  stop
+end
+ask Hello, {player}!\nDo you want a Pokémon?
+if yes
+  give pokemon Pikachu 5
+  set flag 0
+else
+  say Come back when you are ready.
+end
+```
+
+Then give the script to something of a map:
+
+- a character: **Overworld > Map Editor**, mode Events, field Script;
+- a sign or a zone on the ground: **Overworld > Map Events**, field Script
+  (see [Map events](../concepts/map-events.md)).
+
+Give the number of your script, for example 33000. Save the changes to the SD
+card in the page of the editor.
+
+> **Warning:** Give only the number of a script of `story.txt`. A number that
+> no script has can freeze the game when the player talks to the character.
+
+### The commands
+
+| Command | What it does |
+|---|---|
+| `face player` | The character turns to the player. Put it first in the script of a character. |
+| `say TEXT` | Shows a message. `\n` is a new line. `{player}`, `{money}` and `{var:N}` show values. |
+| `sign TEXT` | Shows a message in the window of the signs. |
+| `ask TEXT` | Shows a message, then Yes / No. Then use `if yes` or `if no`. |
+| `choose A / B / C` | Shows a list of choices (8 at most). Then use `if choice 1`, `if choice 2`... `if choice 0`: the player pressed B. |
+| `if CONDITION` ... `else` ... `end` | Runs the lines when the condition is true. `else` is optional. An `if` can be in an other `if`. |
+| `stop` | Ends the script. |
+| `give item ITEM [count]`, `take item ITEM [count]` | Gives or takes items. |
+| `give pokemon SPECIES LEVEL` | Gives a Pokémon. A full party sends it to the PC. |
+| `give money N`, `take money N` | Gives or takes money. |
+| `set flag N`, `clear flag N` | Changes a flag of the ROM hack (0 to 4095). |
+| `set var N V`, `add var N V` | Changes a variable of the ROM hack (0 to 511). |
+| `battle trainer TRAINER` | A battle against a trainer. Then use `if won` or `if lost`. After a loss, the player wakes up at the Pokémon Center and the script ends. |
+| `battle wild SPECIES LEVEL` | A battle against a wild Pokémon. `if won` is also true after a catch. |
+| `warp MAP, X, Z, HEIGHT[, DIRECTION]` | Sends the player to a map. The direction is `Up`, `Down`, `Left` or `Right`. |
+| `heal` | Heals the Pokémon of the party. |
+| `fade out [white]`, `fade in` | Makes the screens black (or white), then shows them again. |
+| `music MUSIC`, `music end` | Plays the music of an event, then the music of the map again. |
+| `wait FRAMES` | Waits (60 frames = 1 second). |
+| `sound N` | Plays a sound effect. |
+| `call SCRIPT` | Runs a script of the game. |
+
+The conditions of `if`:
+
+| Condition | True when |
+|---|---|
+| `yes`, `no` | The answer of the last `ask`. |
+| `choice N` | The choice of the last `choose`. |
+| `flag N`, `not flag N` | A flag of the ROM hack is set, or not set. |
+| `var N = V` | A variable of the ROM hack has a value. Also `!=`, `>=`, `<=`, `>`, `<`. |
+| `has ITEM [count]` | The Bag has the items. |
+| `money N` | The player has N money or more. |
+| `won`, `lost` | The result of the last battle. |
+
+`#` starts a comment: do not use it in a text.
+
+## Step 6: Test
 
 Start the game. The changes are there at once: no build.
 
@@ -149,8 +224,10 @@ void SetUpHack() {
 
 ## What you learned
 
-- Sango Maker reads `encounters.txt`, `trainers.txt` and `species.txt` in
-  `sdmc:/sango/maker`.
+- Sango Maker reads `encounters.txt`, `trainers.txt`, `species.txt` and
+  `story.txt` in `sdmc:/sango/maker`.
+- A script of `story.txt` has a number from 33000 to 33999. The editors of the
+  menu give it to a character or to an event.
 - The editors of the menu write the other files in the same folder.
 - The screen of the problems shows the mistakes, with the file and the line.
 

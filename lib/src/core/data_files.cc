@@ -32,7 +32,9 @@
 #include "core/problems.h"
 #include "overworld/patch/wild_encounter.h"
 #include "pokemon/patch/species_editor.h"
+#include "script/patch/native_script.h"
 #include "system/native/file.h"
+#include "system/native/sound.h"
 
 namespace core {
 namespace {
@@ -66,6 +68,7 @@ NameTable GetTable(NameKind kind) {
       return {kEncounterMethodNames, SIZE(kEncounterMethodNames)};
     case NameKind::kFormat: return {kFormatNames, SIZE(kFormatNames)};
     case NameKind::kMap: return {kMapNames, SIZE(kMapNames)};
+    case NameKind::kMusic: return {kMusicNames, SIZE(kMusicNames)};
   }
   return {nullptr, 0};
 }
@@ -654,6 +657,563 @@ void OnSpeciesLine(Span line, bool is_section) {
   }
 }
 
+// story.txt.
+
+// The commands of the scripts.
+enum class Op : u8 {
+  kSay, kSign, kAsk, kChoose, kIf, kElse, kEnd, kStop, kFacePlayer,
+  kGiveItem, kTakeItem, kGivePokemon, kGiveMoney, kTakeMoney,
+  kSetFlag, kClearFlag, kSetVariable, kAddVariable,
+  kBattleTrainer, kBattleWild, kWarp, kHeal, kFadeOut, kFadeIn,
+  kMusic, kMusicEnd, kWait, kSound, kCallScript,
+};
+
+// The conditions of "if".
+enum class Condition : u8 {
+  kNone, kYes, kNo, kChoice, kFlag, kNotFlag,
+  kVarEqual, kVarNotEqual, kVarAtLeast, kVarAtMost, kVarMore, kVarLess,
+  kHasItem, kMoney, kWon, kLost,
+};
+
+struct Instruction {
+  Op op;
+  Condition condition;
+  u8 extra; ///< The direction of a warp, or the colour of a fade.
+  u16 a;
+  u16 b;
+  u16 c;
+  u16 d;
+  u16 jump; ///< The next instruction of "if" (when false) and of "else".
+  const c16* text;
+};
+
+struct Story {
+  u16 id;
+  u16 first;
+  u16 count;
+};
+
+Instruction instruction_pool[2048];
+u32 instruction_count = 0;
+Story stories[128];
+u32 story_count = 0;
+c16 story_text_pool[8192];
+u32 story_text_size = 0;
+
+// The "if" and "else" that wait for their "end".
+u16 open_blocks[16];
+u32 open_block_count = 0;
+bool is_story_open = false;
+
+// Copies a text of a script. "\n" is a new line.
+const c16* StoreStoryText(Span span) {
+  const u32 capacity = SIZE(story_text_pool) - story_text_size;
+  if (capacity < 2) return nullptr;
+  c16* out = story_text_pool + story_text_size;
+  const u32 count = TextEditor::FromUtf8(span.text, span.length, out, capacity);
+  if (count + 1 >= capacity) return nullptr;
+  u32 write = 0;
+  for (u32 read = 0; read < count; read++) {
+    if (out[read] == u'\\' && read + 1 < count && out[read + 1] == u'n') {
+      out[write++] = u'\n';
+      read++;
+    } else {
+      out[write++] = out[read];
+    }
+  }
+  out[write] = 0;
+  story_text_size += write + 1;
+  return out;
+}
+
+// Cuts "Rare Candy 5" into "Rare Candy" and 5. Without a number at the end,
+// `number` keeps its value.
+Span SplitLastNumber(Span span, u32* number) {
+  span = Trim(span);
+  u32 i = span.length;
+  while (i > 0 && span.text[i - 1] >= '0' && span.text[i - 1] <= '9') i--;
+  if (i == span.length || i == 0 || !IsSpace(span.text[i - 1])) return span;
+  ParseNumber(Span{span.text + i, span.length - i}, number);
+  return Trim(Span{span.text, i});
+}
+
+bool ParseFacing(Span span, u8* facing) {
+  static const c8* const kNames[] = {"up", "down", "left", "right"};
+  for (u32 i = 0; i < SIZE(kNames); i++) {
+    if (IsWord(span, kNames[i])) {
+      *facing = static_cast<u8>(i);
+      return true;
+    }
+  }
+  return false;
+}
+
+void CloseStory() {
+  if (!is_story_open) return;
+  if (open_block_count != 0) {
+    Report("an if has no end in script", Span{"", 0});
+  }
+  Story& story = stories[story_count - 1];
+  story.count = static_cast<u16>(instruction_count - story.first);
+  is_story_open = false;
+}
+
+void RunStory(script::Context& s);
+
+bool ParseCondition(Span span, Instruction* instruction) {
+  Span word;
+  Span rest;
+  SplitWord(span, &word, &rest);
+  u32 number = 0;
+  if (IsWord(word, "yes")) {
+    instruction->condition = Condition::kYes;
+  } else if (IsWord(word, "no")) {
+    instruction->condition = Condition::kNo;
+  } else if (IsWord(word, "won")) {
+    instruction->condition = Condition::kWon;
+  } else if (IsWord(word, "lost")) {
+    instruction->condition = Condition::kLost;
+  } else if (IsWord(word, "choice") && ParseNumber(rest, &number)) {
+    instruction->condition = Condition::kChoice;
+    instruction->a = static_cast<u16>(number);
+  } else if (IsWord(word, "flag") && ParseNumber(rest, &number)) {
+    instruction->condition = Condition::kFlag;
+    instruction->a = static_cast<u16>(number);
+  } else if (IsWord(word, "not")) {
+    Span flag_word;
+    Span flag_number;
+    SplitWord(rest, &flag_word, &flag_number);
+    if (!IsWord(flag_word, "flag") || !ParseNumber(flag_number, &number)) {
+      return false;
+    }
+    instruction->condition = Condition::kNotFlag;
+    instruction->a = static_cast<u16>(number);
+  } else if (IsWord(word, "money") && ParseNumber(rest, &number)) {
+    instruction->condition = Condition::kMoney;
+    instruction->a = static_cast<u16>(number & 0xFFFF);
+    instruction->b = static_cast<u16>(number >> 16);
+  } else if (IsWord(word, "has")) {
+    u32 count = 1;
+    const Span name = SplitLastNumber(rest, &count);
+    if (!FindOrReport(NameKind::kItem, name, &number, "unknown item")) {
+      return false;
+    }
+    instruction->condition = Condition::kHasItem;
+    instruction->a = static_cast<u16>(number);
+    instruction->b = static_cast<u16>(count);
+  } else if (IsWord(word, "var")) {
+    // var 3 >= 10
+    Span parts[3];
+    u32 count = 0;
+    Span remaining = rest;
+    while (count < 3 && remaining.length > 0) {
+      SplitWord(remaining, &parts[count], &remaining);
+      count++;
+    }
+    u32 variable = 0;
+    u32 value = 0;
+    if (count != 3 || !ParseNumber(parts[0], &variable) ||
+        !ParseNumber(parts[2], &value)) {
+      return false;
+    }
+    struct Operator {
+      const c8* text;
+      Condition condition;
+    };
+    static const Operator kOperators[] = {
+        {"=", Condition::kVarEqual},    {"==", Condition::kVarEqual},
+        {"!=", Condition::kVarNotEqual}, {">=", Condition::kVarAtLeast},
+        {"<=", Condition::kVarAtMost},  {">", Condition::kVarMore},
+        {"<", Condition::kVarLess},
+    };
+    instruction->condition = Condition::kNone;
+    for (const Operator& op : kOperators) {
+      if (parts[1].length == std::strlen(op.text) &&
+          std::memcmp(parts[1].text, op.text, parts[1].length) == 0) {
+        instruction->condition = op.condition;
+      }
+    }
+    if (instruction->condition == Condition::kNone) return false;
+    instruction->a = static_cast<u16>(variable);
+    instruction->b = static_cast<u16>(value);
+  } else {
+    return false;
+  }
+  return true;
+}
+
+// Reads one command. Returns false when the command is not known.
+bool ParseCommand(Span line, Instruction* in) {
+  Span word;
+  Span rest;
+  SplitWord(line, &word, &rest);
+  Span second;
+  Span tail;
+  SplitWord(rest, &second, &tail);
+  u32 number = 0;
+  u32 value = 0;
+
+  if (IsWord(word, "say") || IsWord(word, "sign") || IsWord(word, "ask")) {
+    in->op = IsWord(word, "say") ? Op::kSay
+             : IsWord(word, "sign") ? Op::kSign : Op::kAsk;
+    in->text = StoreStoryText(rest);
+    return in->text != nullptr;
+  }
+  if (IsWord(word, "choose")) {
+    // choose Bulbasaur / Charmander / Squirtle: the texts follow each other.
+    Span choices[8];
+    const u32 count = Split(rest, '/', choices, SIZE(choices));
+    in->op = Op::kChoose;
+    in->a = static_cast<u16>(count);
+    for (u32 k = 0; k < count; k++) {
+      const c16* text = StoreStoryText(choices[k]);
+      if (text == nullptr) return false;
+      if (k == 0) in->text = text;
+    }
+    return true;
+  }
+  if (IsWord(word, "if")) {
+    in->op = Op::kIf;
+    return ParseCondition(rest, in);
+  }
+  if (IsWord(word, "else")) {
+    in->op = Op::kElse;
+    return true;
+  }
+  if (IsWord(word, "end")) {
+    in->op = Op::kEnd;
+    return true;
+  }
+  if (IsWord(word, "stop")) {
+    in->op = Op::kStop;
+    return true;
+  }
+  if (IsWord(word, "heal")) {
+    in->op = Op::kHeal;
+    return true;
+  }
+  if (IsWord(word, "face") && IsWord(second, "player")) {
+    in->op = Op::kFacePlayer;
+    return true;
+  }
+  if (IsWord(word, "fade")) {
+    if (IsWord(second, "in")) {
+      in->op = Op::kFadeIn;
+      return true;
+    }
+    in->op = Op::kFadeOut;
+    // fade out (black) or fade out white.
+    in->extra = IsWord(tail, "white") ? 1 : 0;
+    return IsWord(second, "out");
+  }
+  if (IsWord(word, "music")) {
+    if (IsWord(rest, "end")) {
+      in->op = Op::kMusicEnd;
+      return true;
+    }
+    in->op = Op::kMusic;
+    if (!FindOrReport(NameKind::kMusic, rest, &number, "unknown music")) {
+      return false;
+    }
+    in->a = static_cast<u16>(number);
+    return true;
+  }
+  if ((IsWord(word, "wait") || IsWord(word, "sound") || IsWord(word, "call")) &&
+      ParseNumber(rest, &number)) {
+    in->op = IsWord(word, "wait") ? Op::kWait
+             : IsWord(word, "sound") ? Op::kSound : Op::kCallScript;
+    in->a = static_cast<u16>(number);
+    return true;
+  }
+  if ((IsWord(word, "give") || IsWord(word, "take")) &&
+      IsWord(second, "item")) {
+    u32 count = 1;
+    const Span name = SplitLastNumber(tail, &count);
+    if (!FindOrReport(NameKind::kItem, name, &number, "unknown item")) {
+      return false;
+    }
+    in->op = IsWord(word, "give") ? Op::kGiveItem : Op::kTakeItem;
+    in->a = static_cast<u16>(number);
+    in->b = static_cast<u16>(count);
+    return true;
+  }
+  if ((IsWord(word, "give") || IsWord(word, "take")) &&
+      IsWord(second, "money") && ParseNumber(tail, &number)) {
+    in->op = IsWord(word, "give") ? Op::kGiveMoney : Op::kTakeMoney;
+    in->a = static_cast<u16>(number & 0xFFFF);
+    in->b = static_cast<u16>(number >> 16);
+    return true;
+  }
+  if (IsWord(word, "give") && IsWord(second, "pokemon")) {
+    u32 level = 5;
+    const Span name = SplitLastNumber(tail, &level);
+    if (!FindOrReport(NameKind::kSpecies, name, &number, "unknown species")) {
+      return false;
+    }
+    in->op = Op::kGivePokemon;
+    in->a = static_cast<u16>(number);
+    in->b = static_cast<u16>(level);
+    return true;
+  }
+  if ((IsWord(word, "set") || IsWord(word, "clear")) &&
+      IsWord(second, "flag") && ParseNumber(tail, &number)) {
+    in->op = IsWord(word, "set") ? Op::kSetFlag : Op::kClearFlag;
+    in->a = static_cast<u16>(number);
+    return true;
+  }
+  if ((IsWord(word, "set") || IsWord(word, "add")) && IsWord(second, "var")) {
+    // set var 3 10
+    Span variable;
+    Span amount;
+    SplitWord(tail, &variable, &amount);
+    if (!ParseNumber(variable, &number) || !ParseNumber(amount, &value)) {
+      return false;
+    }
+    in->op = IsWord(word, "set") ? Op::kSetVariable : Op::kAddVariable;
+    in->a = static_cast<u16>(number);
+    in->b = static_cast<u16>(value);
+    return true;
+  }
+  if (IsWord(word, "battle") && IsWord(second, "trainer")) {
+    if (!FindOrReport(NameKind::kTrainer, tail, &number, "unknown trainer")) {
+      return false;
+    }
+    in->op = Op::kBattleTrainer;
+    in->a = static_cast<u16>(number);
+    return true;
+  }
+  if (IsWord(word, "battle") && IsWord(second, "wild")) {
+    u32 level = 5;
+    const Span name = SplitLastNumber(tail, &level);
+    if (!FindOrReport(NameKind::kSpecies, name, &number, "unknown species")) {
+      return false;
+    }
+    in->op = Op::kBattleWild;
+    in->a = static_cast<u16>(number);
+    in->b = static_cast<u16>(level);
+    return true;
+  }
+  if (IsWord(word, "warp")) {
+    // warp Route 101, 10, 12, 2, Down
+    Span parts[5];
+    const u32 count = Split(rest, ',', parts, 5);
+    u32 x = 0;
+    u32 z = 0;
+    u32 height = 0;
+    if (count < 4 ||
+        !FindOrReport(NameKind::kMap, parts[0], &number, "unknown map") ||
+        !ParseNumber(parts[1], &x) || !ParseNumber(parts[2], &z) ||
+        !ParseNumber(parts[3], &height)) {
+      return false;
+    }
+    in->op = Op::kWarp;
+    in->a = static_cast<u16>(number);
+    in->b = static_cast<u16>(x);
+    in->c = static_cast<u16>(z);
+    in->d = static_cast<u16>(height);
+    in->extra = 1; // Down.
+    if (count == 5 && !ParseFacing(parts[4], &in->extra)) return false;
+    return true;
+  }
+  return false;
+}
+
+void OnStoryLine(Span line, bool is_section) {
+  if (is_section) {
+    CloseStory();
+    if (line.length == 0) return;
+    // [33000]
+    u32 id = 0;
+    if (!ParseNumber(line, &id) || id < script::kFirstStoryScript ||
+        id > script::kLastStoryScript) {
+      Report("use a script from 33000 to 33999:", line);
+      return;
+    }
+    if (story_count >= SIZE(stories)) {
+      Report("too many scripts:", line);
+      return;
+    }
+    stories[story_count++] = {static_cast<u16>(id),
+                              static_cast<u16>(instruction_count), 0};
+    open_block_count = 0;
+    is_story_open = true;
+    script::NativeScript::Register(static_cast<ScriptId>(id), RunStory);
+    return;
+  }
+  if (!is_story_open) return;
+  if (instruction_count >= SIZE(instruction_pool)) {
+    Report("too many commands:", line);
+    return;
+  }
+  Instruction in = {};
+  if (!ParseCommand(line, &in)) {
+    Report("unknown command:", line);
+    return;
+  }
+  const u16 index = static_cast<u16>(instruction_count);
+  if (in.op == Op::kIf) {
+    if (open_block_count >= SIZE(open_blocks)) {
+      Report("too many if inside each other:", line);
+      return;
+    }
+    open_blocks[open_block_count++] = index;
+  } else if (in.op == Op::kElse || in.op == Op::kEnd) {
+    if (open_block_count == 0) {
+      Report("no if before", line);
+      return;
+    }
+    Instruction& opener = instruction_pool[open_blocks[open_block_count - 1]];
+    if (in.op == Op::kElse) {
+      if (opener.op != Op::kIf) {
+        Report("two else for one if:", line);
+        return;
+      }
+      // A false "if" goes after the "else".
+      opener.jump = static_cast<u16>(index + 1);
+      open_blocks[open_block_count - 1] = index;
+    } else {
+      opener.jump = index;
+      open_block_count--;
+    }
+  }
+  instruction_pool[instruction_count++] = in;
+}
+
+// The values of the script that runs: the answers, the choice and the last
+// battle.
+struct StoryState {
+  bool answer;
+  s32 choice;
+  script::BattleResult battle;
+};
+
+bool IsTrue(script::Context& s, const Instruction& in, const StoryState& st) {
+  const u16 variable = in.condition >= Condition::kVarEqual &&
+                               in.condition <= Condition::kVarLess
+                           ? s.GetHackVariable(in.a)
+                           : 0;
+  switch (in.condition) {
+    case Condition::kYes: return st.answer;
+    case Condition::kNo: return !st.answer;
+    case Condition::kChoice: return st.choice == static_cast<s32>(in.a);
+    case Condition::kFlag: return s.GetHackFlag(in.a);
+    case Condition::kNotFlag: return !s.GetHackFlag(in.a);
+    case Condition::kVarEqual: return variable == in.b;
+    case Condition::kVarNotEqual: return variable != in.b;
+    case Condition::kVarAtLeast: return variable >= in.b;
+    case Condition::kVarAtMost: return variable <= in.b;
+    case Condition::kVarMore: return variable > in.b;
+    case Condition::kVarLess: return variable < in.b;
+    case Condition::kHasItem:
+      return s.HasItem(static_cast<ItemId>(in.a), in.b);
+    case Condition::kMoney:
+      return s.GetMoney() >= (static_cast<u32>(in.b) << 16 | in.a);
+    case Condition::kWon:
+      return st.battle == script::BattleResult::kWon ||
+             st.battle == script::BattleResult::kCaught;
+    case Condition::kLost: return st.battle == script::BattleResult::kLost;
+    default: return false;
+  }
+}
+
+void RunStory(script::Context& s) {
+  const u16 id = static_cast<u16>(script::NativeScript::GetCurrentId());
+  const Story* story = nullptr;
+  for (u32 i = 0; i < story_count; i++) {
+    if (stories[i].id == id) story = &stories[i];
+  }
+  if (story == nullptr) return;
+
+  StoryState state = {false, -1, script::BattleResult::kNotStarted};
+  bool is_talking = false;
+  u32 pc = story->first;
+  const u32 end = story->first + story->count;
+  while (pc < end) {
+    const Instruction& in = instruction_pool[pc++];
+    switch (in.op) {
+      case Op::kSay: s.Talk(in.text); break;
+      case Op::kSign: s.Talk(in.text, script::WindowType::kSign); break;
+      case Op::kAsk:
+        s.Talk(in.text);
+        state.answer = s.AskYesNo();
+        break;
+      case Op::kChoose: {
+        const c16* choices[8];
+        const c16* text = in.text;
+        for (u32 k = 0; k < in.a; k++) {
+          choices[k] = text;
+          while (*text != 0) text++;
+          text++;
+        }
+        const s32 choice = s.Choose(choices, in.a);
+        // "if choice 1" is the first choice. 0: the player pressed B.
+        state.choice = choice == script::kChoiceCancel ? 0 : choice + 1;
+        break;
+      }
+      case Op::kIf:
+        if (!IsTrue(s, in, state)) pc = in.jump;
+        break;
+      case Op::kElse: pc = in.jump; break;
+      case Op::kEnd: break;
+      case Op::kStop: pc = end; break;
+      case Op::kFacePlayer:
+        if (!is_talking) s.TalkStart();
+        is_talking = true;
+        break;
+      case Op::kGiveItem: {
+        const ItemId item = static_cast<ItemId>(in.a);
+        if (s.CanGiveItem(item, in.b)) {
+          s.GiveItem(item, in.b);
+          s.PlayJingle(script::kJingleItem);
+        }
+        break;
+      }
+      case Op::kTakeItem: s.TakeItem(static_cast<ItemId>(in.a), in.b); break;
+      case Op::kGivePokemon:
+        if (s.GivePokemon(static_cast<SpeciesId>(in.a),
+                          static_cast<u8>(in.b))) {
+          s.PlayJingle(script::kJinglePokemon);
+        }
+        break;
+      case Op::kGiveMoney: s.AddMoney(static_cast<u32>(in.b) << 16 | in.a); break;
+      case Op::kTakeMoney: s.SubMoney(static_cast<u32>(in.b) << 16 | in.a); break;
+      case Op::kSetFlag: s.SetHackFlag(in.a); break;
+      case Op::kClearFlag: s.ResetHackFlag(in.a); break;
+      case Op::kSetVariable: s.SetHackVariable(in.a, in.b); break;
+      case Op::kAddVariable:
+        savedata::HackSave::AddToVariable(in.a, in.b);
+        break;
+      case Op::kBattleTrainer:
+        state.battle = s.TrainerBattle(static_cast<TrainerId>(in.a));
+        break;
+      case Op::kBattleWild:
+        state.battle = s.WildBattle(static_cast<SpeciesId>(in.a),
+                                    static_cast<u8>(in.b));
+        break;
+      case Op::kWarp:
+        s.Warp(static_cast<MapId>(in.a), in.b, in.c, in.d,
+               static_cast<overworld::Facing>(in.extra));
+        break;
+      case Op::kHeal: s.HealParty(); break;
+      case Op::kFadeOut:
+        s.FadeOut(in.extra != 0 ? script::FadeColor::kWhite
+                                : script::FadeColor::kBlack);
+        break;
+      case Op::kFadeIn: s.FadeIn(); break;
+      case Op::kMusic:
+        s.StartEventMusic(static_cast<BackgroundMusicId>(in.a));
+        break;
+      case Op::kMusicEnd: s.EndEventMusic(); break;
+      case Op::kWait: s.Wait(in.a); break;
+      case Op::kSound:
+        s.PlaySound(sys::Sound::kBankSoundEffect + in.a);
+        break;
+      case Op::kCallScript: s.CallScript(static_cast<ScriptId>(in.a)); break;
+    }
+  }
+  if (is_talking) s.TalkEnd();
+}
+
 } // namespace
 
 bool DataNames::Find(NameKind kind, const c8* text, u32 length, u32* value) {
@@ -692,10 +1252,15 @@ bool DataFiles::LoadSpecies(const c16* path) {
   return ReadLines(path, "species.txt", OnSpeciesLine);
 }
 
+bool DataFiles::LoadStory(const c16* path) {
+  return ReadLines(path, "story.txt", OnStoryLine);
+}
+
 void DataFiles::Load() {
   LoadEncounters(SANGO_DATA_PATH(u"encounters.txt"));
   LoadTrainers(SANGO_DATA_PATH(u"trainers.txt"));
   LoadSpecies(SANGO_DATA_PATH(u"species.txt"));
+  LoadStory(SANGO_DATA_PATH(u"story.txt"));
 }
 
 } // namespace core

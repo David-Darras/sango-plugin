@@ -35,6 +35,10 @@ ENUMS = [
     ("kEncounterMethodNames", "lib/include/overworld/constant/encounter_method.h",
      "EncounterMethod", None),
     ("kFormatNames", "lib/include/battle/constant/format.h", "Format", None),
+    ("kMusicNames", "lib/include/system/constant/background_music_xy.h",
+     "BackgroundMusicId", "XY"),
+    ("kMusicNames", "lib/include/system/constant/background_music.h",
+     "BackgroundMusicId", "ORAS"),
     ("kMapNames", "lib/include/overworld/constant/map.h", "MapId", "XY"),
     ("kMapNames", "lib/include/overworld/constant/map.h", "MapId", "ORAS"),
 ]

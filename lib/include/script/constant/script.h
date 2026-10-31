@@ -353,6 +353,11 @@ constexpr u16 kFirstHackScript = 31000;
 /// scripts of the menu (32000 and more) come after them.
 constexpr u16 kHackScriptCount = 1000;
 
+/// The first id of the scripts of story.txt (see core::DataFiles): 33000 to
+/// 33999.
+constexpr u16 kFirstStoryScript = 33000;
+constexpr u16 kLastStoryScript = 33999;
+
 /**
  * @brief Returns a free script id for a C++ script of the ROM hack.
  *

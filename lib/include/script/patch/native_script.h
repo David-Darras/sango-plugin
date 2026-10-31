@@ -94,6 +94,12 @@ public:
   /// Returns the number of registered scripts.
   static u32 GetCount() { return GetInstance().count_; }
 
+  /// Returns the id of the C++ script that runs now, or ScriptId::kNone.
+  static ScriptId GetCurrentId() {
+    const Entry* current = GetInstance().current_;
+    return current != nullptr ? current->id : ScriptId::kNone;
+  }
+
   /// Returns the id of a registered script (index from 0 to GetCount() - 1).
   static ScriptId GetId(u32 index) {
     return GetInstance().entries_[index < kMaxScripts ? index : 0].id;

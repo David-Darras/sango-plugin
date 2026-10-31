@@ -166,7 +166,7 @@ script::NativeScript::Register(kCandyGiver, CandyGiver);
 | <img src="assets/readme/menu.png" width="200"> | **The overlay** (`overlay/`) | Every page of the library in one menu. Explore and test the game. |
 | <img src="assets/kaizo/battle-triple.jpg" width="200"> | **[Pokémon Sango Kaizo](kaizo.md)** (`kaizo/`) | A difficult version of Alpha Sapphire: Nuzlocke rules, level caps, competitive trainers, custom moves and abilities, quality-of-life features. |
 |      | **Pokémon Undertow** (`undertow/`) | Play as a Team Aqua grunt. Work in progress. |
-|      | **Sango Maker** (`maker/`) | A ROM hack without code: text files on the SD card change the wild Pokémon, the trainers and the species. [Tutorial 18](docs/tutorials/18-make-a-rom-hack-without-code.md). |
+|      | **Sango Maker** (`maker/`) | A ROM hack without code: text files on the SD card change the wild Pokémon, the trainers, the species and the story. [Tutorial 18](docs/tutorials/18-make-a-rom-hack-without-code.md). |
 
 Your ROM hack is the next line of this table. **[Start here.](docs/tutorials/01-create-your-rom-hack.md)**
 

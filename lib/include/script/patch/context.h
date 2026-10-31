@@ -241,6 +241,11 @@ public:
   }
   /// Returns true when the Bag has the items.
   bool HasItem(ItemId item, u32 count = 1) { return CountItem(item) >= count; }
+  /// Removes items from the Bag. Returns false when the Bag has not enough.
+  bool TakeItem(ItemId item, u16 count = 1) {
+    if (!HasItem(item, count)) return false;
+    return CallNative("ItemSub", (u16)item, count) != 0;
+  }
   /// Returns the money of the player.
   u32 GetMoney() { return (u32)Call(natives_.PlayerGetMoney); }
   /// Gives money.

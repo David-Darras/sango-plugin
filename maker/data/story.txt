@@ -1,0 +1,76 @@
+# The scripts of the story.
+#
+# [33000] starts the script 33000 (the scripts are 33000 to 33999). Give this
+# number to a character or to an event of a map: Map Events in the menu.
+# Then one command on each line:
+#
+#   face player                 the character turns to the player
+#   say TEXT                    a message ({player}, {money}, {var:N} show values)
+#   sign TEXT                   a message in the window of the signs
+#   ask TEXT                    a message, then Yes / No: then "if yes" / "if no"
+#   choose A / B / C            a list of choices: then "if choice 1"...
+#   if CONDITION ... else ... end
+#       yes, no, choice N, flag N, not flag N, var N >= V (= != >= <= > <),
+#       has ITEM [count], money N, won, lost
+#   give item ITEM [count]      take item ITEM [count]
+#   give pokemon SPECIES LEVEL  give money N      take money N
+#   set flag N / clear flag N   (the flags of the ROM hack: 0 to 4095)
+#   set var N V / add var N V   (the variables of the ROM hack: 0 to 511)
+#   battle trainer TRAINER      battle wild SPECIES LEVEL
+#   warp MAP, X, Z, HEIGHT[, Up/Down/Left/Right]
+#   heal                        fade out [white] / fade in
+#   music MUSIC / music end     wait FRAMES     sound N     call SCRIPT
+#   stop                        the end of the script
+
+# A gift, one time only.
+[33000]
+face player
+if flag 0
+  say Take good care of your Pokémon, {player}!
+  stop
+end
+ask Hello, {player}!\nDo you want a Pokémon?
+if yes
+  choose Bulbasaur / Charmander / Squirtle
+  if choice 1
+    give pokemon Bulbasaur 5
+  end
+  if choice 2
+    give pokemon Charmander 5
+  end
+  if choice 3
+    give pokemon Squirtle 5
+  end
+  if choice 0
+    say Come back when you are ready.
+    stop
+  end
+  set flag 0
+  say Take good care of it!
+else
+  say Come back when you are ready.
+end
+
+# A rival: a battle, then a reward.
+[33001]
+face player
+if flag 1
+  say You are too strong for me!
+  stop
+end
+say I am your rival! Let's battle!
+battle trainer Route 102 Kid 1
+if won
+  set flag 1
+  say Wow, you won! Take this.
+  give item Rare Candy 3
+end
+
+# A nurse: she heals the Pokémon.
+[33002]
+face player
+say Your Pokémon look tired. Let me heal them.
+fade out
+heal
+fade in
+say Your Pokémon are healthy again!

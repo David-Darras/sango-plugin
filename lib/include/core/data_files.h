@@ -24,7 +24,9 @@
  * - `encounters.txt`: the wild Pokémon of the maps,
  * - `trainers.txt`: the teams and the data of the trainers,
  * - `species.txt`: the stats, the types, the TMs, the learnsets and the
- *   evolutions of the species.
+ *   evolutions of the species,
+ * - `story.txt`: the scripts of the characters and of the events (talk,
+ *   choices, conditions, battles, warps, gifts...).
  *
  * The files use the names of the library, in English: "Pikachu",
  * "Thunder Shock", "Route 101". The case, the spaces and the signs do not
@@ -58,6 +60,7 @@ enum class NameKind : u8 {
   kEncounterMethod,
   kFormat,
   kMap,
+  kMusic,
 };
 
 /// Finds the values of the names of the data files.
@@ -83,6 +86,9 @@ public:
   static bool LoadEncounters(const c16* path);
   static bool LoadTrainers(const c16* path);
   static bool LoadSpecies(const c16* path);
+  /// Reads the scripts of story.txt, and registers them (ids 33000 to
+  /// 33999).
+  static bool LoadStory(const c16* path);
 };
 
 } // namespace core
