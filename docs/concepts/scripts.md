@@ -98,8 +98,60 @@ You can add 16 characters at most.
 | `Walk(object, direction, count)`, `Face(object, direction)` | Moves a character. |
 | `Wait(frames)` | Waits some frames. |
 | `CallScript(id)` | Runs a game script. |
+| `TrainerBattle(trainer)` | Starts a battle against a trainer. Returns the result. |
+| `WildBattle(species, level)` | Starts a battle against a wild Pokémon (Alpha Sapphire only). |
+| `WildBattle(encounter)` | Starts a battle against a row of the static encounter table. |
+| `GivePokemon(species, level)` | Gives a Pokémon. A full party sends it to the PC. |
+| `HealParty()` | Heals all the Pokémon of the party. |
+| `Choose({u"A", u"B"})` | Shows a list of choices. Returns the index of the choice. |
+| `Warp(map, x, z, height)` | Sends the player to a map. The script continues there. |
+| `FadeOut()`, `FadeIn()` | Makes the screens black, then shows them again. |
+| `StartEventMusic(music)`, `EndEventMusic()` | Plays the music of an event, then the music of the map again. |
+| `CallNative("Name", ...)` | Calls a native of the game with its name. |
 
 The full list is in `lib/include/script/patch/context.h`.
+
+### Battles
+
+`TrainerBattle()` and `WildBattle()` wait for the end of the battle. They return
+a `script::BattleResult`: `kWon`, `kLost`, `kRan`, `kFoeRan` or `kCaught`.
+
+```cpp
+void Rival(script::Context& s) {
+  s.TalkStart();
+  s.Talk(u"Let's battle!");
+  s.TalkEnd();
+  // A trainer of lib/include/battle/constant/trainer.h. battle::TrainerTeams
+  // can give it a new team.
+  s.TrainerBattle(TrainerId::kRoute103Brendan1);
+  s.Talk(u"You won!");
+}
+```
+
+> **Note:** When the player loses, the player wakes up at the last Pokémon
+> Center and the game ends the script: the next lines do not run. With
+> `TrainerBattleOption::kCannotLose`, the script continues after a loss.
+
+### Choices
+
+Show the question with `ShowMessage()`, then the choices with `Choose()`:
+
+```cpp
+s.ShowMessage(u"Which Pokémon do you want?");
+const s32 choice = s.Choose({u"Bulbasaur", u"Charmander", u"Squirtle"});
+s.CloseMessage();
+if (choice == script::kChoiceCancel) return;  // The player pressed B.
+const SpeciesId kStarters[] = {SpeciesId::kBulbasaur, SpeciesId::kCharmander,
+                               SpeciesId::kSquirtle};
+s.GivePokemon(kStarters[choice], 5);
+```
+
+### The other natives of the game
+
+The game has more than 800 natives. The `Context` has functions for the most
+useful ones. For an other native, use `CallNative()` with its name. The native
+names are in the scripts of the game. When the game does not have the native,
+the log of the plugin shows `script: no native <name>`.
 
 > **Note:** A C++ script cannot start a second C++ script inside itself.
 

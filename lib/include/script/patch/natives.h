@@ -119,7 +119,81 @@ struct Natives {
   NativeFunction WildBattleResultGet;
   NativeFunction CallPokePartyNameInput;
 
+  // The optional natives. A game can lack one of them: the functions of the
+  // Context that use it then do nothing.
+  /// Starts a trainer battle. Arguments: (partner, trainer, second trainer,
+  /// options, far background, near background, effect).
+  NativeFunction _CallTrainerBattleCore;
+  /// Starts a battle against a row of the static encounter table. Arguments:
+  /// (row).
+  NativeFunction CallWildBattle;
+  /// After a lost trainer battle: the player wakes up at the last Pokémon
+  /// Center. The game ends the script.
+  NativeFunction CallTrainerLose;
+  /// After a lost wild battle: the same as CallTrainerLose.
+  NativeFunction _CallWildLose;
+  /// Sends the player to a map. Arguments: (map, x, height, z, direction,
+  /// keep_music, fade, end_script, show_map_name).
+  NativeFunction _MapChangeCore;
+  /// Starts a fade out. Arguments: (colour, screens, frames).
+  NativeFunction FadeRequestOut;
+  /// Starts a fade in. Arguments: (screens, frames).
+  NativeFunction FadeRequestIn;
+  NativeFunction FadeIsEnd; ///< Returns true when the fade is complete.
+  NativeFunction PokePartyRecoverAll; ///< Heals all the Pokémon of the party.
+  /// Prepares a list menu. Arguments: (x, y, first choice, can_cancel,
+  /// align_right, own_text). Returns: true when the menu is ready.
+  NativeFunction ListMenuInit_Seq;
+  /// Adds a choice to the list menu. Arguments: (text, value, own_text).
+  NativeFunction ListMenuAdd;
+  /// Shows the list menu. Returns: true when the player chose. The value of
+  /// the choice is in ScriptVariable::kAnswer.
+  NativeFunction ListMenuStart_Seq;
+  /// Plays the music of an event. Arguments: (music, fade_frames).
+  NativeFunction BGMStartEvent;
+  /// Plays the music of the map again. Arguments: (fade_out, fade_in).
+  NativeFunction BGMEndEvent;
+
+  /// Finds the natives. Returns false when a native that is not optional is
+  /// missing.
   bool Resolve() {
+    ResolveOptional();
+    return ResolveRequired();
+  }
+
+private:
+  void ResolveOptional() {
+    // Some natives have an other name in X and Y: the second name.
+    struct Entry {
+      const c8* name;
+      const c8* other_name;
+      NativeFunction* slot;
+    };
+    Entry entries[] = {
+        {"_CallTrainerBattleCore", nullptr, &_CallTrainerBattleCore},
+        {"CallWildBattle", nullptr, &CallWildBattle},
+        {"CallTrainerLose", nullptr, &CallTrainerLose},
+        {"_CallWildLose", nullptr, &_CallWildLose},
+        {"_MapChangeCore", nullptr, &_MapChangeCore},
+        {"FadeRequestOut", nullptr, &FadeRequestOut},
+        {"_FadeRequestIn", "FadeRequestIn", &FadeRequestIn},
+        {"FadeIsEnd", nullptr, &FadeIsEnd},
+        {"PokePartyRecoverAll", nullptr, &PokePartyRecoverAll},
+        {"ListMenuInit_Seq", nullptr, &ListMenuInit_Seq},
+        {"ListMenuAdd", nullptr, &ListMenuAdd},
+        {"ListMenuStart_Seq", nullptr, &ListMenuStart_Seq},
+        {"BGMStartEvent", nullptr, &BGMStartEvent},
+        {"BGMEndEvent", nullptr, &BGMEndEvent},
+    };
+    for (const auto& entry : entries) {
+      *entry.slot = NativeTable::Find(entry.name);
+      if (*entry.slot == nullptr && entry.other_name != nullptr) {
+        *entry.slot = NativeTable::Find(entry.other_name);
+      }
+    }
+  }
+
+  bool ResolveRequired() {
     struct Entry {
       const c8* name;
       NativeFunction* slot;

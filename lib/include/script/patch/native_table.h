@@ -47,6 +47,7 @@ public:
         core::address::kScriptNativesOverworldServices,
         core::address::kScriptNativesNpcAi,
         core::address::kScriptNativesProgram,
+        core::address::kScriptNativesBase,
     };
     for (uptr kTable : kTables) {
       NativeFunction function = FindIn((const PawnNativeBinding*)kTable,

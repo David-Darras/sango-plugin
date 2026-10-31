@@ -25,15 +25,24 @@
 
 #pragma once
 
+#include <initializer_list>
+
 #include "common.h"
+#include "battle/constant/trainer.h"
 #include "core/constant/event_flag.h"
 #include "overworld/constant/action_command.h"
 #include "overworld/constant/facing.h"
+#include "overworld/constant/map.h"
+#include "overworld/native/static_encounter.h"
 #include "pokemon/constant/item.h"
+#include "pokemon/native/gift_pokemon_data.h"
+#include "script/constant/battle_result.h"
+#include "script/constant/fade_color.h"
 #include "script/constant/message_option.h"
 #include "script/constant/script.h"
 #include "script/constant/script_variable.h"
 #include "script/constant/talk_option.h"
+#include "script/constant/trainer_battle_option.h"
 #include "script/constant/window_type.h"
 #include "script/native/engine.h"
 #include "script/native/message_header.h"
@@ -41,6 +50,8 @@
 #include "script/native/script_vm.h"
 #include "script/patch/natives.h"
 #include "system/coroutine.h"
+#include "system/native/sound.h"
+#include "ui/log.h"
 #include "ui/patch/party_select.h"
 
 namespace script {
@@ -72,6 +83,9 @@ constexpr u32 kJingleItem = (5 << 16) + 2;
 constexpr u32 kJingleKeyItem = (5 << 16) + 3;
 constexpr u32 kJinglePokemon = (5 << 16) + 4;
 /// @}
+
+/// Choose() returns this value when the player presses B.
+constexpr s32 kChoiceCancel = -1;
 /// @}
 
 /**
@@ -411,8 +425,327 @@ public:
     WaitAnimation();
   }
 
+  /// @name Battles
+  /// After a lost battle, the player wakes up at the last Pokémon Center and
+  /// the game ends the script: the next lines of the script do not run.
+  /// @{
+
+  /**
+   * @brief Starts a battle against a trainer of the game, and waits for its end.
+   *
+   * The team of the trainer comes from the game, or from
+   * battle::TrainerTeams when the product adds a team for this trainer.
+   *
+   * @code
+   * if (s.TrainerBattle(TrainerId::kRoute103Brendan1) == BattleResult::kWon) {
+   *   s.Talk(u"You are strong!");
+   * }
+   * @endcode
+   *
+   * @param trainer The trainer.
+   * @param options The options of the battle, for example
+   *        TrainerBattleOption::kInverse.
+   * @param second_trainer A second trainer for a double battle against two
+   *        trainers, or TrainerId::kNone.
+   * @return The result. kLost only with TrainerBattleOption::kCannotLose.
+   */
+  BattleResult TrainerBattle(
+      TrainerId trainer,
+      TrainerBattleOption options = TrainerBattleOption::kNone,
+      TrainerId second_trainer = TrainerId::kNone) {
+    if (natives_._CallTrainerBattleCore == nullptr) {
+      ui::Log::Print(u"script: no trainer battle in this game");
+      return BattleResult::kNotStarted;
+    }
+    // No partner, and the backgrounds and the effect of the trainer.
+    Call(natives_._CallTrainerBattleCore, 0, (u16)trainer,
+         (u16)second_trainer, (u32)options, 0, 0, 0);
+    Yield();
+    Yield();
+    const bool can_lose = !HasFlag(options, TrainerBattleOption::kCannotLose);
+    return EndBattle(natives_.CallTrainerLose, can_lose);
+  }
+
+  /**
+   * @brief Starts a battle against a row of the static encounter table (a
+   * legendary Pokémon, for example), and waits for its end.
+   * @return The result of the battle.
+   */
+  BattleResult WildBattle(overworld::StaticEncounterId encounter) {
+    if (natives_.CallWildBattle == nullptr) {
+      ui::Log::Print(u"script: no wild battle in this game");
+      return BattleResult::kNotStarted;
+    }
+    Call(natives_.CallWildBattle, (u32)encounter);
+    Yield();
+    Yield();
+    return EndBattle(natives_._CallWildLose, true);
+  }
+
+  /**
+   * @brief Starts a battle against a wild Pokémon, and waits for its end.
+   *
+   * The library lends a row of the static encounter table to the battle.
+   * Alpha Sapphire only.
+   *
+   * @code
+   * if (s.WildBattle(SpeciesId::kRayquaza, 70) == BattleResult::kCaught) {
+   *   s.Talk(u"You caught it!");
+   * }
+   * @endcode
+   * @return The result of the battle.
+   */
+  BattleResult WildBattle(SpeciesId species, u8 level,
+                          FormId form = FormId::kNormal) {
+    if (pokemon::address::kStaticEncounterTable == 0 ||
+        natives_.CallWildBattle == nullptr) {
+      ui::Log::Print(u"script: no wild battle in this game");
+      return BattleResult::kNotStarted;
+    }
+    auto& row = overworld::StaticEncounter::GetInstance(kLentEncounter);
+    const overworld::StaticEncounter backup = row;
+    row.species = species;
+    row.form = form;
+    row.level = level;
+    row.is_shiny = ShinyRoll::kRandom;
+    row.gender = GenderRoll::kRandom;
+    row.ability = AbilitySlot::kRandom;
+    row.kind = StaticEncounterKind::kNormal;
+    row.animation = static_cast<EncounterAnimationId>(0);
+
+    Call(natives_.CallWildBattle, (u32)kLentEncounter);
+    Yield();
+    Yield();
+    // Give the row back before a loss: the game then ends the script.
+    const auto result = (BattleResult)Call(natives_.WildBattleResultGet);
+    row = backup;
+    return EndBattle(result, natives_._CallWildLose, true);
+  }
+  /// @}
+
+  /// @name Places and screens
+  /// @{
+
+  /**
+   * @brief Sends the player to a map, then continues the script there.
+   *
+   * The screen fades out and in, and the game shows the name of the map.
+   * Find the position in the menu: Overworld > Characters (Tile X, Tile Z and
+   * Height of the player).
+   */
+  void Warp(MapId map, u16 tile_x, u16 tile_z, u16 height,
+            overworld::Facing facing = overworld::Facing::kDown) {
+    if (natives_._MapChangeCore == nullptr) {
+      ui::Log::Print(u"script: no warp in this game");
+      return;
+    }
+    // Keep the music: no. Fade: yes. End the script: no. Map name: yes.
+    Call(natives_._MapChangeCore, (u32)map, tile_x, height, tile_z,
+         (u32)facing, false, true, false, true);
+    Yield();
+  }
+
+  /// Makes the two screens black (or white), and waits for the end.
+  void FadeOut(FadeColor color = FadeColor::kBlack, u32 frames = 15) {
+    Call(natives_.FadeRequestOut, (u32)color, kBothScreens, frames);
+    WaitFade();
+  }
+
+  /// Shows the two screens again after FadeOut(), and waits for the end.
+  void FadeIn(u32 frames = 15) {
+    Call(natives_.FadeRequestIn, kBothScreens, frames);
+    WaitFade();
+  }
+
+  /// Heals all the Pokémon of the party: HP, status and PP.
+  void HealParty() { Call(natives_.PokePartyRecoverAll); }
+  /// @}
+
+  /// @name Music
+  /// @{
+
+  /// Plays the music of an event (a cutscene, a boss...) in place of the music
+  /// of the map. Call EndEventMusic() before the end of the script.
+  /// Not in X and Y.
+  void StartEventMusic(BackgroundMusicId music, u32 fade_frames = 10) {
+    Call(natives_.BGMStartEvent,
+         sys::Sound::kBankBackgroundMusic + (u32)music, fade_frames);
+  }
+
+  /// Plays the music of the map again after StartEventMusic().
+  void EndEventMusic() { Call(natives_.BGMEndEvent, 90, 60); }
+  /// @}
+
+  /// @name Choices and Pokémon
+  /// @{
+
+  /**
+   * @brief Shows a list of choices and waits for the choice of the player.
+   *
+   * @code
+   * s.ShowMessage(u"Which Pokémon do you want?");
+   * const s32 choice = s.Choose({u"Bulbasaur", u"Charmander", u"Squirtle"});
+   * s.CloseMessage();
+   * @endcode
+   *
+   * @param choices The texts of the choices. 32 choices at most.
+   * @param can_cancel true: the player can press B.
+   * @param first_choice The choice of the cursor at the start.
+   * @return The index of the choice (0 for the first), or kChoiceCancel.
+   */
+  s32 Choose(std::initializer_list<const c16*> choices, bool can_cancel = true,
+             u32 first_choice = 0) {
+    return Choose(choices.begin(), choices.size(), can_cancel, first_choice);
+  }
+
+  /// Choose() with a table of texts and its size.
+  s32 Choose(const c16* const* choices, u32 count, bool can_cancel = true,
+             u32 first_choice = 0) {
+    if (natives_.ListMenuInit_Seq == nullptr || natives_.ListMenuAdd == nullptr ||
+        natives_.ListMenuStart_Seq == nullptr || count == 0) {
+      return kChoiceCancel;
+    }
+    if (count > kMaxChoices) count = kMaxChoices;
+
+    // The menu reads its texts from the message of the script: each text is
+    // the message during one call.
+    while (CallWithText(u"", natives_.ListMenuInit_Seq, kChoiceX, kChoiceY,
+                        first_choice, can_cancel, false, true) == 0) {
+      Yield();
+    }
+    for (u32 i = 0; i < count; i++) {
+      CallWithText(choices[i], natives_.ListMenuAdd, 0, i, true);
+    }
+    while (Call(natives_.ListMenuStart_Seq) == 0) Yield();
+
+    const u16 answer = GetVariable(ScriptVariable::kAnswer);
+    return answer < count ? (s32)answer : kChoiceCancel;
+  }
+
+  /**
+   * @brief Gives a Pokémon to the player. A full party sends it to the PC.
+   *
+   * The nature, the IVs, the ability and the gender are random. The library
+   * lends a row of the gift table to the game.
+   * @return false when the game cannot give the Pokémon.
+   */
+  bool GivePokemon(SpeciesId species, u8 level, FormId form = FormId::kNormal) {
+    using Gift = pokemon::GiftPokemonData;
+    auto& gift = Gift::GetInstance(kLentGift);
+    const Gift backup = gift;
+    gift.species = species;
+    gift.form = form;
+    gift.level = level;
+    gift.shiny = ShinyRoll::kRandom;
+    gift.ability_slot = Gift::kRandomAbility;
+    gift.nature = Gift::kRandomNature;
+    gift.item = Gift::kRandomItem;
+    gift.gender = GenderRoll::kRandom;
+    gift.egg_place = Gift::kNotAnEgg;
+    gift.move = MoveId::kNone;
+    for (u32 i = 0; i < SIZE(gift.iv); i++) {
+      gift.iv[i] = Gift::kRandomIv;
+      gift.contest[i] = 0;
+    }
+    const bool given = GivePokemon(kLentGift);
+    gift = backup;
+    return given;
+  }
+  /// @}
+
+  /**
+   * @brief Calls a native of the game with its name. Use it for a native
+   * that the Context does not have yet.
+   *
+   * The names are in the scripts of the game (for example "PlayerGetZoneID").
+   * A native with "_Seq" at the end of its name must be called again at each
+   * frame, until it returns true. The arguments are numbers only.
+   *
+   * @code
+   * const s32 map = s.CallNative("PlayerGetZoneID");
+   * @endcode
+   * @return The value of the native, or 0 when the game does not have it.
+   */
+  template <typename... Args>
+  s32 CallNative(const c8* name, Args... args) {
+    NativeFunction native = NativeTable::Find(name);
+    if (native == nullptr) {
+      LogMissingNative(name);
+      return 0;
+    }
+    return Call(native, args...);
+  }
+
 private:
   static constexpr u32 kKneelingMoveCode = 60;
+  /// The screens of a fade: 0 the top screen, 1 the bottom screen, 2 both.
+  static constexpr u32 kBothScreens = 2;
+  /// The position of the list of Choose(), the same as in the game.
+  static constexpr u32 kChoiceX = 180;
+  static constexpr u32 kChoiceY = 112;
+  static constexpr u32 kMaxChoices = 32;
+  /// The row of the static encounter table that WildBattle() lends: a normal
+  /// wild battle of the game.
+  static constexpr overworld::StaticEncounterId kLentEncounter =
+      overworld::StaticEncounterId::kWurmple;
+  /// The row of the gift table that GivePokemon() lends.
+  static constexpr u32 kLentGift = 0;
+
+  /// Reads the result of the last battle. After a win, shows the screens
+  /// again. After a loss, `lose` makes the player wake up at the Pokémon
+  /// Center.
+  BattleResult EndBattle(NativeFunction lose, bool can_lose) {
+    return EndBattle((BattleResult)Call(natives_.WildBattleResultGet), lose,
+                     can_lose);
+  }
+
+  BattleResult EndBattle(BattleResult result, NativeFunction lose,
+                         bool can_lose) {
+    if (result == BattleResult::kLost && can_lose && lose != nullptr) {
+      Call(lose);
+      // The game ends the script: it does not come back here.
+      Yield();
+      return result;
+    }
+    // The same fade as the scripts of the game after a battle.
+    Call(natives_.FadeRequestIn, kBothScreens, 4);
+    WaitFade();
+    return result;
+  }
+
+  /// Waits for the end of a fade.
+  void WaitFade() {
+    if (natives_.FadeIsEnd == nullptr) return;
+    while (Call(natives_.FadeIsEnd) == 0) Yield();
+  }
+
+  /// Calls a native that reads the message of the script, with `text` as
+  /// the message.
+  template <typename... Args>
+  s32 CallWithText(const c16* text, NativeFunction native, Args... args) {
+    SharedWorkspaces* shared = GetSharedWorkspaces();
+    if (shared == nullptr) return 0;
+    BuildMessage(text);
+    LoadedMessage* previous = shared->loaded_message;
+    message_.buffer = message_buffer_;
+    message_.data = nullptr;
+    shared->loaded_message = &message_;
+    const s32 value = Call(native, args...);
+    shared->loaded_message = previous;
+    return value;
+  }
+
+  static void LogMissingNative(const c8* name) {
+    // The log formats its text: copy the name, without the % of a format.
+    c16 text[64] = u"script: no native ";
+    u32 length = 0;
+    while (text[length] != u'\0') length++;
+    for (u32 i = 0; name[i] != '\0' && length + 1 < SIZE(text); i++) {
+      text[length++] = name[i] == '%' ? u'?' : (c16)name[i];
+    }
+    text[length] = u'\0';
+    ui::Log::Print(text);
+  }
 
   bool IsKneelingNpc(s32 object_id) {
     return Call(natives_.MdlGetMoveCode, object_id) == kKneelingMoveCode;

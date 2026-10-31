@@ -86,6 +86,8 @@ constexpr uptr kScriptNativesBattleFacility = GAME_ADDRESS(0x007A0D64, 0x007EBB4
 constexpr uptr kScriptNativesOverworldServices = GAME_ADDRESS(0x007A0EFC, 0x007EBCDC);
 constexpr uptr kScriptNativesNpcAi = GAME_ADDRESS(0x007A0FAC, 0x007EBFBC);
 constexpr uptr kScriptNativesProgram = GAME_ADDRESS(0x0054929C, 0x005885E8);
+// The natives that every script has: random numbers, sounds and fades.
+constexpr uptr kScriptNativesBase = GAME_ADDRESS(0x0053F730, 0x0057A860);
 // The four places where an overworld script waits for a key press, and
 // the cutscene player. Each one returns "done" when it is patched.
 constexpr uptr kScriptWaitKeyPress0 = GAME_ADDRESS(0x0070189C, 0x0073E86C);
