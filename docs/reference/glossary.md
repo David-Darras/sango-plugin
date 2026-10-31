@@ -12,14 +12,14 @@ When you do not know a game term, search it on Bulbapedia.
 |---|---|
 | **Plugin** | A `.3gx` file. Luma3DS (on a console) or Azahar (on a computer) loads it with the game. The plugin runs inside the memory of the game. |
 | **Library** | The shared code in `lib/`. It contains all the features and all the game structures. It does nothing alone. |
-| **Product** | One plugin that uses the library: `overlay`, `kaizo`, `undertow`, or your own ROM hack. Each product has its own folder. |
+| **Product** | One plugin that uses the library: `overlay`, `kaizo`, `undertow`, or your own ROM hack. Each product has its own folder, with a `.plgInfo` file and a `src/` folder. `tools/new_hack.py` makes a new product. |
 | **ROM hack** | A modified version of a game. With this project, a ROM hack is a product. The game files on the cartridge do not change. |
 | **Overlay** | The product that shows all the pages of the library in one menu. Use it to explore and test the game. |
 | **Feature** | A class of the library that changes one part of the game. Examples: `battle::Battle`, `overworld::Camera`. A feature is a singleton. |
 | **Singleton** | A class with one object only. You get the object with `GetInstance()`. |
 | **Setting** | A variable of a feature that the player can change in the menu. The settings are in a `...Settings` structure. The plugin does not save them. |
 | **Callback** | A function of your product that a feature calls. The callbacks have names that start with `on_` (for example `on_wild_pokemon`). |
-| **Entry point** | The `Initialize()` function of a product, in `<product>/src/entrypoint.cc`. The plugin calls it when the game starts. |
+| **Entry point** | The function that the plugin calls when the game starts. The library has a default entry point: it calls `SetUpHack()`, `LoadHackMenu()` and `UpdateHack()` of the product (see `lib/include/hack.h`). A product can write its own `Initialize()` function instead. |
 | **Frame** | One image of the game. The game shows 30 or 60 frames each second. The plugin runs code one time for each frame. |
 | **Menu** | The menu of the plugin. It is on the top screen. Press **Start** to open it or to close it. |
 | **Page** | One list of entries in the menu. A page is a function `void LoadXxxPage(ui::MainApplication& app, void* args)`. |

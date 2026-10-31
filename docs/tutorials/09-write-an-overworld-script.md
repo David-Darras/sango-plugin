@@ -103,19 +103,16 @@ void InstallScripts() {
 ## Step 3: Install the script
 
 In `myhack/src/entrypoint.cc`, declare `myhack::InstallScripts()` and call it
-in `Initialize()`, after `plugin::InitializeEngine()`:
+in `SetUpHack()`:
 
 ```cpp
 namespace myhack {
 void InstallScripts();
 }
 
-void Initialize() {
-  plugin::InitializeEngine();
-  InstallCallbacks();
+void SetUpHack() {
+  pokemon::Shiny::GetInstance().rate = pokemon::ShinyRate::k1_1;
   myhack::InstallScripts();
-  plugin::OpenMenu(ui::MainAppPainter::GetInstance(), LoadRootPage);
-  plugin::Start(EveryFrame);
 }
 ```
 

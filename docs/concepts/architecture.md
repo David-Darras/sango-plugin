@@ -76,34 +76,62 @@ Each domain uses the same four places:
 The `ui/` domain also has the menu framework at its root (`main_application.h`,
 `page_item.h`, the widgets) and the menu pages in `ui/page/`.
 
-Two files are at the root of `lib/include/`:
+These files are at the root of `lib/include/`:
 
-- `common.h`: include it in every file. It contains the base types, the macros and the addresses.
-- `plugin.h`: the functions that a product calls to start the plugin.
+- `common.h`: include it in every file. It contains the base types and the macros.
+- `sango.h`: one header for a ROM hack. It includes the features of the library.
+- `hack.h`: the functions that a ROM hack writes (`SetUpHack()`...). The library calls them.
+- `plugin.h`: the functions that start the plugin.
 
 ## The start of the plugin
+
+The library has a default entry point (`lib/src/hack.cc`). It calls the
+functions of `hack.h` that your product writes:
 
 ```mermaid
 sequenceDiagram
     participant L as Plugin loader
-    participant P as Product (entrypoint.cc)
     participant Lib as Library
+    participant P as Product (entrypoint.cc)
     participant G as Game
-    L->>P: Initialize()
-    P->>Lib: plugin::InitializeEngine()
+    L->>Lib: Initialize()
     Lib->>G: installs the hooks of all the features
+    Lib->>P: SetUpHack()
     P->>Lib: sets the settings and the callbacks
-    P->>Lib: plugin::OpenMenu(painter, root page)
-    P->>Lib: plugin::Start(EveryFrame)
+    Lib->>Lib: opens the menu with LoadHackMenu()
     Lib->>G: hooks the frame function of the game
     loop each frame
-        G->>P: EveryFrame()
-        P->>Lib: plugin::UpdateFrame()
-        P->>Lib: plugin::DrawFrame()
+        G->>Lib: the frame function
+        Lib->>P: UpdateHack()
+        Lib->>Lib: updates and draws the menu
     end
 ```
 
-The `Initialize()` function of a product looks like this:
+The `entrypoint.cc` file of a product looks like this:
+
+```cpp
+#include "sango.h"
+
+void SetUpHack() {                 // Your settings and callbacks.
+  pokemon::Shiny::GetInstance().rate = pokemon::ShinyRate::k1_8;
+}
+
+void LoadHackMenu(ui::MainApplication& app, void* args) {
+  app.Add("Battle", ui::LoadBattlePage);  // The first page of the menu.
+}
+
+void UpdateHack() {                // Your code for each frame.
+}
+```
+
+All three functions are optional. Without `LoadHackMenu()`, the menu shows all
+the pages of the library.
+
+### Your own Initialize()
+
+A product that must control the start writes its own `Initialize()` function.
+The library then ignores the functions of `hack.h`. The overlay and Pokémon Sango
+Kaizo do this:
 
 ```cpp
 void Initialize() {

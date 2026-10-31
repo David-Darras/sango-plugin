@@ -85,10 +85,10 @@ In `myhack/src/entrypoint.cc`:
    #include "myhack/my_pages.h"
    ```
 
-2. Add one entry to `LoadRootPage`:
+2. Add one entry to `LoadHackMenu`:
 
    ```cpp
-   void LoadRootPage(ui::MainApplication& app, void* args) {
+   void LoadHackMenu(ui::MainApplication& app, void* args) {
      app.Add("Shiny rate", pokemon::Shiny::GetInstance().rate)
         .Add("Battle", ui::LoadBattlePage)
         .Add("My options", myhack::LoadMyPage);

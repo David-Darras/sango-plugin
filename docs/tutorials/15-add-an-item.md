@@ -135,12 +135,10 @@ Without the file, the item shows the icon of the item `icon_item`.
 
 ## Step 4: Register the item
 
-Call your function in your `Initialize()` function, after the start of the
-plugin:
+Call your function in your `SetUpHack()` function:
 
 ```cpp
-void Initialize() {
-  plugin::InitializeEngine();
+void SetUpHack() {
   myhack::RegisterItems();
   // ...
 }

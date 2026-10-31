@@ -84,14 +84,14 @@ void InstallEncounters() {
 ## Step 2: Install the callback
 
 In `myhack/src/entrypoint.cc`, declare `myhack::InstallEncounters()` and call
-it in `InstallCallbacks()`:
+it in `SetUpHack()`:
 
 ```cpp
 namespace myhack {
 void InstallEncounters();
 }
 
-void InstallCallbacks() {
+void SetUpHack() {
   pokemon::Shiny::GetInstance().rate = pokemon::ShinyRate::k1_1;
   myhack::InstallEncounters();
 }

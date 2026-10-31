@@ -109,7 +109,7 @@ This changes only the model. The data of the Pokémon does not change.
 ## Step 3: Install the callbacks
 
 In `myhack/src/entrypoint.cc`, declare `myhack::InstallModels()` and call it in
-`InstallCallbacks()`.
+`SetUpHack()`.
 
 ## Step 4: Build and test
 

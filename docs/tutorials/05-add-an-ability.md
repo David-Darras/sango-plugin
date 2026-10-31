@@ -94,13 +94,10 @@ namespace myhack {
 void RegisterAbilities();
 }
 
-void Initialize() {
-  plugin::InitializeEngine();
-  InstallCallbacks();
+void SetUpHack() {
+  pokemon::Shiny::GetInstance().rate = pokemon::ShinyRate::k1_1;
   myhack::RegisterMoves();
   myhack::RegisterAbilities();
-  plugin::OpenMenu(ui::MainAppPainter::GetInstance(), LoadRootPage);
-  plugin::Start(EveryFrame);
 }
 ```
 

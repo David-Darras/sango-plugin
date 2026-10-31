@@ -3,7 +3,8 @@
 #
 # Usage (from the devkitPro shell):
 #   make                  builds all the products of the selected game
-#   make overlay          builds one product (overlay, kaizo or undertow)
+#   make overlay          builds one product (the name of its folder: overlay,
+#                         kaizo, undertow, myhack...)
 #   make GAME=XY          builds for Pokemon X instead of Alpha Sapphire
 #   make run-overlay      builds one product, copies it to the SD card of the
 #                         emulator and starts the game (needs config.mk)
@@ -44,6 +45,18 @@ PYTHON     ?= $(shell command -v python3 2>/dev/null || command -v python)
 #   ORAS: Pokemon Alpha Sapphire v1.4 (title id 000400000011C500), the main game.
 #   XY:   Pokemon X v1.5 (title id 0004000000055D00), experimental, overlay only.
 #---------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------
+# The products. Each folder of the project with a .plgInfo file and a src/
+# folder is a product. Its name is the name of the folder (`make myhack`).
+# Its plugin file has the name of the .plgInfo file (myhack.plgInfo gives
+# myhack-release.3gx). tools/new_hack.py makes a new product.
+#---------------------------------------------------------------------------------
+FOUND_PRODUCTS := $(foreach info,$(wildcard */*.plgInfo),\
+	$(if $(wildcard $(dir $(info))src),$(patsubst %/,%,$(dir $(info)))))
+# The overlay comes first.
+FOUND_PRODUCTS := $(filter overlay,$(FOUND_PRODUCTS)) \
+	$(sort $(filter-out overlay,$(FOUND_PRODUCTS)))
+
 GAME      ?= ORAS
 ifeq ($(GAME),XY)
 GAME_DEFINE   := -DGAME_XY
@@ -52,7 +65,7 @@ TITLE_ID      := 0004000000055D00
 GAME_PATH     ?= $(XY_GAME_PATH)
 else
 GAME_DEFINE   := -DGAME_ORAS
-GAME_PRODUCTS := overlay kaizo undertow
+GAME_PRODUCTS := $(FOUND_PRODUCTS)
 TITLE_ID      := 000400000011C500
 GAME_PATH     ?= $(ORAS_GAME_PATH)
 endif
@@ -68,8 +81,8 @@ CTRPFLIB	?=	$(DEVKITPRO)/libctrpf
 # One library, several plugins built on it. `make` builds them all,
 # `make overlay` / `make kaizo` just one; each gets its own build directory.
 #
-# To add your own ROM hack, copy one product block below, change the name
-# and add the name to GAME_PRODUCTS above. See docs/tutorials/01-create-your-rom-hack.md.
+# To add your own ROM hack, type `python tools/new_hack.py myhack`.
+# See docs/tutorials/01-create-your-rom-hack.md.
 #---------------------------------------------------------------------------------
 PRODUCTS	:=	$(GAME_PRODUCTS)
 
@@ -88,23 +101,17 @@ LIB_SOURCES	:=	lib/src \
 LIB_INCLUDES	:=	lib/include \
 				lib/src
 
-# sango_plugin.3gx: every page of the library under one menu
-overlay_TARGET	:=	sango_plugin
-overlay_SOURCES	:=	$(LIB_SOURCES) overlay/src
-overlay_INCLUDES	:=	$(LIB_INCLUDES) overlay/include
-overlay_PSF		:=	overlay/sango_plugin.plgInfo
-
-# sango_kaizo.3gx: the ROM hack
-kaizo_TARGET	:=	sango_kaizo
-kaizo_SOURCES	:=	$(LIB_SOURCES) kaizo/src
-kaizo_INCLUDES	:=	$(LIB_INCLUDES) kaizo/include
-kaizo_PSF		:=	kaizo/sango_kaizo.plgInfo
-
-# sango_undertow.3gx: the ROM hack where you play a Team Aqua grunt
-undertow_TARGET	:=	sango_undertow
-undertow_SOURCES	:=	$(LIB_SOURCES) undertow/src
-undertow_INCLUDES	:=	$(LIB_INCLUDES) undertow/include
-undertow_PSF		:=	undertow/sango_undertow.plgInfo
+# The settings of each product:
+#   overlay/  sango_plugin.3gx: every page of the library under one menu
+#   kaizo/    sango_kaizo.3gx: the ROM hack
+#   undertow/ sango_undertow.3gx: the ROM hack where you play a Team Aqua grunt
+define PRODUCT_SETTINGS
+$(1)_PSF		:=	$(firstword $(wildcard $(1)/*.plgInfo))
+$(1)_TARGET		:=	$$(basename $$(notdir $$($(1)_PSF)))
+$(1)_SOURCES	:=	$(LIB_SOURCES) $(1)/src
+$(1)_INCLUDES	:=	$(LIB_INCLUDES) $(1)/include
+endef
+$(foreach product,$(FOUND_PRODUCTS),$(eval $(call PRODUCT_SETTINGS,$(product))))
 
 #---------------------------------------------------------------------------------
 # options for code generation

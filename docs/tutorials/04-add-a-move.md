@@ -116,17 +116,14 @@ The text `u"..."` is a UTF-16 text: the game uses this format.
 
 ## Step 3: Register the move at the start
 
-In `myhack/src/entrypoint.cc`, include the header and call the function in `Initialize()`:
+In `myhack/src/entrypoint.cc`, include the header and call the function in `SetUpHack()`:
 
 ```cpp
 #include "myhack/my_moves.h"
 
-void Initialize() {
-  plugin::InitializeEngine();
-  InstallCallbacks();
+void SetUpHack() {
+  pokemon::Shiny::GetInstance().rate = pokemon::ShinyRate::k1_1;
   myhack::RegisterMoves();
-  plugin::OpenMenu(ui::MainAppPainter::GetInstance(), LoadRootPage);
-  plugin::Start(EveryFrame);
 }
 ```
 

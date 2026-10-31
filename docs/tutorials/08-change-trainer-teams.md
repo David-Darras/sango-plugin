@@ -78,7 +78,7 @@ void InstallTrainers() {
 ## Step 2: Install the callback
 
 In `myhack/src/entrypoint.cc`, declare `myhack::InstallTrainers()` and call it
-in `InstallCallbacks()`:
+in `SetUpHack()`:
 
 ```cpp
 namespace myhack {
@@ -86,7 +86,7 @@ void InstallEncounters();
 void InstallTrainers();
 }
 
-void InstallCallbacks() {
+void SetUpHack() {
   pokemon::Shiny::GetInstance().rate = pokemon::ShinyRate::k1_1;
   myhack::InstallEncounters();
   myhack::InstallTrainers();

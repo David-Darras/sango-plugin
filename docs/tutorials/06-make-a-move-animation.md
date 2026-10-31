@@ -62,7 +62,7 @@ void RegisterAnimations() {
 } // namespace myhack
 ```
 
-Call `myhack::RegisterAnimations()` in `Initialize()`, like in the other tutorials.
+Call `myhack::RegisterAnimations()` in `SetUpHack()`, like in the other tutorials.
 
 Build and test: use Thunderbolt in a battle. The lightning is red.
 

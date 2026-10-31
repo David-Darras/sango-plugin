@@ -169,7 +169,7 @@ pokemon::CustomShop::EnablePokemonShop(true);
 ## Step 3: Install and test
 
 In `myhack/src/entrypoint.cc`, declare `myhack::InstallItems()` and call it in
-`InstallCallbacks()`. Then build:
+`SetUpHack()`. Then build:
 
 ```bash
 make myhack

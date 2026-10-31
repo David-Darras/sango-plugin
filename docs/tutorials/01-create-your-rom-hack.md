@@ -1,25 +1,38 @@
 # Tutorial 1: Create your ROM hack
 
 In this tutorial, you make your own product: `myhack`.
-At the end, you have the file `my_hack-release.3gx`. In the game, all the
+At the end, you have the file `myhack-release.3gx`. In the game, all the
 wild Pokémon are shiny, and the menu shows your own page.
 
-**Time:** 15 minutes.
+**Time:** 10 minutes.
 **You need:** a working build. See [Build the plugin](../getting-started/02-build-the-plugin.md).
 
-## Step 1: Make the folders
+## Step 1: Make the product
 
-In the project folder, make these folders:
+In the project folder, type:
+
+```bash
+python tools/new_hack.py myhack --author "Your name" --summary "My ROM hack"
+```
+
+> **Note:** Use `python3` if `python` does not work. The name contains only
+> lowercase letters, digits and `_`.
+
+The script makes these files:
 
 ```
 myhack/
-  include/
-  src/
+  myhack.plgInfo      the information of the plugin
+  include/            your headers
+  src/entrypoint.cc   your settings and your menu
 ```
 
-## Step 2: Make the plugin information file
+The `Makefile` finds the product: each folder with a `.plgInfo` file and a
+`src/` folder is a product. You do not change the `Makefile`.
 
-Make the file `myhack/my_hack.plgInfo`. 3gxtool reads it to make the `.3gx` file.
+## Step 2: Read the plugin information file
+
+Open `myhack/myhack.plgInfo`. 3gxtool reads it to make the `.3gx` file.
 
 ```yaml
 Author: Your name
@@ -32,12 +45,12 @@ Version:
 Targets:
     #- 0x0011C500
 
-Title: my-hack
+Title: myhack
 
 Summary: My ROM hack
 
 Description: |
-  My first ROM hack for Pokémon Alpha Sapphire.
+  My ROM hack. A ROM hack for Pokemon Alpha Sapphire v1.4, made with Sango Plugin.
 
 Compatibility: Any
 
@@ -46,84 +59,50 @@ MemorySize: 5MiB
 UsePrivateMemory: false
 ```
 
+You can change `Author`, `Version`, `Summary` and `Description`.
+
 > **Note:** Do not change `MemorySize`. The plugin needs 5 MiB.
 
-## Step 3: Make the entry point
+## Step 3: Write your settings
 
-Make the file `myhack/src/entrypoint.cc`:
+Open `myhack/src/entrypoint.cc` and replace its contents with this code:
 
 ```cpp
 /**
  * @file entrypoint.cc
- * @brief The entry point of my ROM hack.
+ * @brief The settings and the menu of my ROM hack.
  */
 
-#include "plugin.h"
-#include "pokemon/patch/shiny.h"
-#include "ui/main_application.h"
-#include "ui/painter.h"
-#include "ui/page/pages.h"
+#include "sango.h"
 
-namespace {
-
-// The root page of the menu: the first page that the player sees.
-void LoadRootPage(ui::MainApplication& app, void* args) {
-  app.Add("Shiny rate", pokemon::Shiny::GetInstance().rate)
-     .Add("Battle", ui::LoadBattlePage);
-}
-
-// Sets the features of the library for this ROM hack.
-void InstallCallbacks() {
+// The library calls this function one time, when the game starts.
+void SetUpHack() {
   // All the Pokémon are shiny (1 chance out of 1).
   pokemon::Shiny::GetInstance().rate = pokemon::ShinyRate::k1_1;
 }
 
-// The plugin calls this function one time for each frame.
-void EveryFrame() {
-  plugin::UpdateFrame();
-  plugin::DrawFrame();
-}
-
-} // namespace
-
-// The plugin calls this function one time, when the game starts.
-void Initialize() {
-  plugin::InitializeEngine();
-  InstallCallbacks();
-  plugin::OpenMenu(ui::MainAppPainter::GetInstance(), LoadRootPage);
-  plugin::Start(EveryFrame);
+// The first page of the menu: the page that the player sees first.
+void LoadHackMenu(ui::MainApplication& app, void* args) {
+  app.Add("Shiny rate", pokemon::Shiny::GetInstance().rate)
+     .Add("Battle", ui::LoadBattlePage);
 }
 ```
 
-The name `Initialize` is important: the library calls a function with this
-exact name. It must be outside of all namespaces.
+`sango.h` includes the features of the library. Include it in each file of
+your ROM hack.
 
-## Step 4: Add the product to the Makefile
+The library calls the functions of your product (see `lib/include/hack.h`):
 
-Open the `Makefile`.
+| Function | When the library calls it | Without the function |
+|---|---|---|
+| `SetUpHack()` | One time, when the game starts. | The game does not change. |
+| `LoadHackMenu()` | When the player opens the menu. | The menu shows all the pages of the library. |
+| `UpdateHack()` | One time for each frame. | Nothing more happens at each frame. |
 
-1. Find the product blocks (`# sango_kaizo.3gx: the ROM hack`).
-2. Add this block after the last product block:
+> **Note:** Write the names exactly as in the table. If a name is not correct,
+> the library does not call the function.
 
-   ```makefile
-   # my_hack.3gx: my ROM hack
-   myhack_TARGET	:=	my_hack
-   myhack_SOURCES	:=	$(LIB_SOURCES) myhack/src
-   myhack_INCLUDES	:=	$(LIB_INCLUDES) myhack/include
-   myhack_PSF		:=	myhack/my_hack.plgInfo
-   ```
-
-3. Find the line `GAME_PRODUCTS := overlay kaizo undertow`.
-4. Add `myhack` at the end:
-
-   ```makefile
-   GAME_PRODUCTS := overlay kaizo undertow myhack
-   ```
-
-The name before `_TARGET` (`myhack`) is the name of the product.
-The value of `_TARGET` (`my_hack`) is the name of the file.
-
-## Step 5: Build
+## Step 4: Build
 
 In the devkitPro shell, type:
 
@@ -131,11 +110,11 @@ In the devkitPro shell, type:
 make myhack
 ```
 
-The project folder now contains `my_hack-release.3gx`.
+The project folder now contains `myhack-release.3gx`.
 
-## Step 6: Test
+## Step 5: Test
 
-1. Copy `my_hack-release.3gx` to `luma/plugins/000400000011C500/` on the SD card.
+1. Copy `myhack-release.3gx` to `luma/plugins/000400000011C500/` on the SD card.
    Remove the other `.3gx` files of this folder.
 2. Start the game.
 3. Walk in the tall grass. The wild Pokémon are shiny.
@@ -145,12 +124,13 @@ The project folder now contains `my_hack-release.3gx`.
 
 ## What you learned
 
-- A product is a folder with an entry point and a `.plgInfo` file.
-- `Initialize()` starts the library, sets the features and opens the menu.
+- `tools/new_hack.py` makes a product: a folder with a `.plgInfo` file and a `src/` folder.
+- `SetUpHack()` sets the features. `LoadHackMenu()` makes the first page of the menu.
 - The settings of a feature are normal variables (`Shiny::GetInstance().rate`).
-- The `Makefile` has one block for each product.
+- `make <name of the folder>` builds the product.
 
 ## Next steps
 
-- Look at `kaizo/src/entrypoint.cc`: a complete ROM hack.
+- Look at `kaizo/src/`: a complete ROM hack. It writes its own `Initialize()`
+  function: see [Architecture](../concepts/architecture.md#your-own-initialize).
 - [Tutorial 2: Add a menu page](02-add-a-menu-page.md)

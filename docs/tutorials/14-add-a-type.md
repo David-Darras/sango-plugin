@@ -72,7 +72,7 @@ constexpr TypeId kTypeStorm = static_cast<TypeId>(25);
 ```
 
 Then call `AddType()` in `RegisterCustomTypes()` (`overlay/src/custom_types.cc`).
-In your own product, call it in your `Initialize()` function:
+In your own product, call it in your `SetUpHack()` function:
 
 ```cpp
 #include "battle/patch/game_extension.h"
@@ -151,7 +151,7 @@ data.type[0] = TypeId::kFlying;
 data.type[1] = kTypeStorm;
 ```
 
-Run this code in your `Initialize()` function, after `AddType()`. In the menu
+Run this code in your `SetUpHack()` function, after `AddType()`. In the menu
 of the plugin, the lists of types show the new types after "None" (the page of
 the species data and the page of the moves).
 
