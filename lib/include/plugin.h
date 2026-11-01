@@ -67,6 +67,11 @@ void Start(void (*every_frame)());
 /// frame. Call it one time for each frame.
 void UpdateFrame();
 
+/// Adds a function that UpdateFrame() calls at each frame, after the menu.
+/// A feature that only some products use calls it: the other products then
+/// do not contain its code. Returns false when the list is full.
+bool AddFrameListener(void (*listener)());
+
 /// Draws the menu on the two screens. Call it one time for each frame,
 /// after UpdateFrame().
 void DrawFrame();

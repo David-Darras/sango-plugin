@@ -41,6 +41,9 @@ struct PageExtensions {
   MAKE_SINGLETON(PageExtensions)
   /// Adds entries to the end of the page "Pokemon" (the top page of the menu).
   void (*pokemon_page)(MainApplication& app) = nullptr;
+  /// Adds entries to the end of the section "Data" of the top page. For
+  /// example core::DataFiles::Load() adds the page "Sango Maker".
+  void (*data_section)(MainApplication& app) = nullptr;
 };
 
 // The top page: one entry for each family below, then the quick access.

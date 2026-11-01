@@ -21,7 +21,6 @@
  */
 
 #include "battle/patch/game_extension.h"
-#include "core/data_files.h"
 #include "core/native/event_manager.h"
 #include "core/patch/game_speed.h"
 #include "savedata/native/pokemon_team.h"
@@ -72,10 +71,8 @@ void LoadTopPage(MainApplication& app, void* args) {
      .Add("Game Text", LoadTextEditorPage)
      .WithDescription("The last texts that the game read: change the "
          "dialogues and the names, add colors and pauses.");
-  if (core::DataFiles::IsLoaded()) {
-    app.Add("Sango Maker", LoadMakerPage)
-       .WithDescription("Read the text files again without a restart, see "
-           "their problems, and change the flags and the variables.");
+  if (PageExtensions::GetInstance().data_section != nullptr) {
+    PageExtensions::GetInstance().data_section(app);
   }
   app.AddSection("Look And Sound")
      .Add("Graphics", LoadGraphicsPage)

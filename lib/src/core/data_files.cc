@@ -46,9 +46,12 @@
 #include "pokemon/patch/species_table.h"
 #include "script/patch/native_script.h"
 #include "system/native/file.h"
+#include "plugin.h"
 #include "system/native/sound.h"
 #include "ui/patch/starter_choice.h"
 #include "ui/log.h"
+#include "ui/main_application.h"
+#include "ui/page/pages.h"
 
 namespace core {
 namespace {
@@ -627,7 +630,22 @@ bool DataFiles::LoadCharacters(const c16* path) {
   return LoadFile(path, "characters.txt", maker::ReadCharacters) != 0;
 }
 
+namespace {
+// The entry of the page "Sango Maker" in the section "Data" of the top page.
+void AddMakerEntry(ui::MainApplication& app) {
+  app.Add("Sango Maker", ui::LoadMakerPage)
+     .WithDescription("Read the text files again without a restart, see "
+         "their problems, and change the flags and the variables.");
+}
+} // namespace
+
 void DataFiles::Load() {
+  if (!is_loaded) {
+    // Only the products that read the files contain the page and the
+    // reading at each frame.
+    plugin::AddFrameListener(Update);
+    ui::PageExtensions::GetInstance().data_section = AddMakerEntry;
+  }
   problem_count = 0;
   for (u32 i = 0; i < kFileCount; i++) {
     const DataFile& file = kFiles[i];
@@ -678,7 +696,5 @@ const c8* DataFiles::GetProblem(u32 index) {
 }
 
 u32 DataFiles::GetReloadCount() { return reload_count; }
-
-bool DataFiles::IsLoaded() { return is_loaded; }
 
 } // namespace core

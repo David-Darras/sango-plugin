@@ -45,6 +45,8 @@
  *
  * Reload() reads the files again while the game runs (the Sango Maker page
  * of the menu). With `is_live`, Update() reads them again when they change.
+ * Load() adds the page to the menu and Update() to the frames: a product
+ * that does not call Load() does not contain the code of the files.
  *
  * @see docs/tutorials/18-make-a-rom-hack-without-code.md
  */
@@ -87,7 +89,7 @@ public:
   static bool Reload();
 
   /// Reads the files again after a Reload() that waits, or when a file
-  /// changes (`is_live`). The library calls it at each frame.
+  /// changes (`is_live`). Load() makes the plugin call it at each frame.
   static void Update();
 
   /// Returns the number of problems of the last read of the files.
@@ -96,8 +98,6 @@ public:
   static const c8* GetProblem(u32 index);
   /// Returns the number of Reload() since the start.
   static u32 GetReloadCount();
-  /// Returns true after Load(): the product uses the files.
-  static bool IsLoaded();
 
   static bool LoadEncounters(const c16* path);
   static bool LoadTrainers(const c16* path);

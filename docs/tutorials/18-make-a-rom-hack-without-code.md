@@ -410,7 +410,9 @@ good too. A number is also good: `84` is Thunder Shock.
 ## In a ROM hack in C++
 
 A product in C++ can read the same files. Call `core::DataFiles::Load()` in
-`SetUpHack()`: it reads the files of the data folder of the product.
+`SetUpHack()`: it reads the files of the data folder of the product, and adds
+the page **Sango Maker** to the menu. A product that does not call it does
+not contain the code of the files.
 
 ```cpp
 #include "core/data_files.h"

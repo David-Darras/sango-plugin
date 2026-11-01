@@ -31,7 +31,7 @@
 #include "ui/performance_overlay.h"
 #include "ui/screenshot_mode.h"
 #include "ui/splash.h"
-#include "core/data_files.h"
+#include "core/event.h"
 #include "core/frame_trace.h"
 #include "core/hook.h"
 #include "core/problems.h"
@@ -108,6 +108,8 @@ c16 sys::String::s_buffer[128];
 namespace plugin {
 namespace {
 core::Hook<void()> entrypoint_hook;
+// The functions of AddFrameListener().
+core::Event<void()> frame_listeners;
 } // namespace
 
 void InitializeEngine() {
@@ -194,6 +196,10 @@ void Start(void (*every_frame)()) {
   entrypoint_hook.Install(sys::address::kEntrypoint, every_frame);
 }
 
+bool AddFrameListener(void (*listener)()) {
+  return frame_listeners.Subscribe(listener);
+}
+
 void UpdateFrame() {
   auto& controller = sys::Controller::GetInstance();
   auto* application = ui::ApplicationManager::GetInstance().GetCurrentApplication();
@@ -205,8 +211,9 @@ void UpdateFrame() {
   ui::ScreenshotMode::Update();
   core::CheatCodeManager::GetInstance().Update();
 
-  // The files of Sango Maker, before the characters that they add.
-  core::DataFiles::Update();
+  // The features of AddFrameListener(), for example the files of Sango
+  // Maker, before the characters that they add.
+  frame_listeners.Emit();
   overworld::MapCharacter::Update();
   overworld::PlacedDecorations::Update();
 #ifdef GAME_ORAS
