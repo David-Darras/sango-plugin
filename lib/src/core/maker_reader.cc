@@ -1926,4 +1926,17 @@ bool DataNames::Find(NameKind kind, const c8* text, u32 length, u32* value) {
   return maker::FindName(kind, maker::Span{text, length}, true, value);
 }
 
+const c8* DataNames::GetName(NameKind kind, u32 value) {
+  using namespace maker;
+  const NameTable table = GetTable(kind);
+  for (u32 i = 0; i < table.count; i++) {
+    if (table.names[i].value == value) return table.names[i].name;
+  }
+  if (kind != NameKind::kSpecies) return nullptr;
+  for (u32 i = 0; i < new_species_count; i++) {
+    if (new_species_names[i].id == value) return new_species_names[i].name;
+  }
+  return nullptr;
+}
+
 } // namespace core

@@ -94,6 +94,13 @@ public:
    * @return false when the name does not exist.
    */
   static bool Find(NameKind kind, const c8* text, u32 length, u32* value);
+
+  /**
+   * @brief Finds the name of a value, in the form of the files: lowercase,
+   *        without spaces and signs ("thundershock"). Find() reads it.
+   * @return The name, or null when the value has no name.
+   */
+  static const c8* GetName(NameKind kind, u32 value);
 };
 
 namespace maker {

@@ -116,12 +116,14 @@ struct WildEncounter {
 
   static void Initialize();
 
+  /// Returns the places of a method in the table of a map, and their number
+  /// (null for an unknown method).
+  static PokeInfoOnAction* GetPlaces(EncounterData* data,
+                                     EncounterMethod method, u32* count);
+
 private:
   /// Writes the tables of SetTable() for the current map into `data`.
   static void ApplyTables(EncounterData* data);
-  /// Returns the places of a method in `data`, and their number.
-  static PokeInfoOnAction* GetPlaces(EncounterData* data,
-                                     EncounterMethod method, u32* count);
   static u16* GetDexNavTable(EncounterData* data, s32 data_size,
                               u32* count, void* heap,
                               u8 p4, bool p5);

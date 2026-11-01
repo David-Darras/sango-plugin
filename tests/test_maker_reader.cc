@@ -701,3 +701,15 @@ TEST(NewSpeciesHaveANameForTheOtherFiles) {
   Clear();
   CHECK(!core::DataNames::Find(core::NameKind::kSpecies, "Sangoat", 7, &value));
 }
+
+TEST(NamesGiveTheNameOfAValue) {
+  CHECK(std::string(core::DataNames::GetName(core::NameKind::kMove, 84)) ==
+        "thundershock");
+  const c8* name = core::DataNames::GetName(core::NameKind::kSpecies, 25);
+  u32 value = 0;
+  CHECK(name != nullptr &&
+        core::DataNames::Find(core::NameKind::kSpecies, name,
+                              static_cast<u32>(std::strlen(name)), &value) &&
+        value == 25);
+  CHECK(core::DataNames::GetName(core::NameKind::kMove, 60000) == nullptr);
+}

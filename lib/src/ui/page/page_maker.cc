@@ -21,6 +21,7 @@
  * problems, and changes the flags and the variables of the ROM hack.
  */
 
+#include "core/data_export.h"
 #include "core/data_files.h"
 #include "pokemon/patch/custom_shop.h"
 #include "savedata/patch/hack_save.h"
@@ -30,8 +31,17 @@
 namespace ui {
 namespace {
 
+using core::DataExport;
 using core::DataFiles;
 using savedata::HackSave;
+
+// The species of the entry "Export The Species".
+u16 export_species = 1;
+
+void ShowExportResult(bool is_written, const c8* file) {
+  MainApplication::GetInstance().ShowToast(is_written ? file
+                                                      : "Nothing to export");
+}
 
 // The flag and the variable that the page shows, and their values.
 u16 flag_number = 0;
@@ -88,6 +98,29 @@ void LoadMakerPage(MainApplication& app, void* args) {
            "again.");
   }
   if (count == 0) app.Add("No problem.");
+
+  app.AddSection("Export To The Data Folder");
+#ifdef GAME_ORAS
+  app.Add("Export The Wild Pokemon", [](void*) {
+       ShowExportResult(DataExport::WriteEncounters(),
+                        "export_encounters.txt");
+     })
+     .WithDescription("Writes the wild Pokemon of this map to "
+         "export_encounters.txt, in the format of encounters.txt.");
+#endif
+  app.AddSpecies("Species To Export", export_species)
+     .Add("Export The Species", [](void*) {
+       ShowExportResult(
+           DataExport::WriteSpecies(static_cast<SpeciesId>(export_species)),
+           "export_species.txt");
+     })
+     .WithDescription("Writes the stats, the types, the abilities and the "
+         "catch rate to export_species.txt.")
+     .Add("Export Your Team", [](void*) {
+       ShowExportResult(DataExport::WriteTeam(), "export_team.txt");
+     })
+     .WithDescription("Writes your team to export_team.txt, in the format of "
+         "the Pokemon of trainers.txt.");
 
   app.AddSection("Flags And Variables")
      .Add("Flag", flag_number)

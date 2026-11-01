@@ -347,6 +347,15 @@ Open the menu, then **Sango Maker**:
 | **Trace story.txt** | Writes each command of `story.txt` to the log when it runs: `story 33000 line 12: give item`. See **Plugin > Log**. |
 | **Flag**, **Flag Is Set** | Shows and changes a flag of `story.txt` (`set flag`, `if flag`). |
 | **Variable**, **Variable Value** | Shows and changes a variable of `story.txt` (`set var`, `if var`). |
+| **Log The Shop Ids** | Writes the id of each shop that opens to the log. |
+| **Export The Wild Pokemon** | Writes the wild Pokémon of the current map to `export_encounters.txt` (Alpha Sapphire). |
+| **Species To Export**, **Export The Species** | Writes the stats, the types, the abilities and the catch rate of a species to `export_species.txt`. |
+| **Export Your Team** | Writes your team to `export_team.txt`, in the format of the Pokémon of `trainers.txt`. |
+
+The exports go to the data folder (`sango/maker`). Copy their text into
+`encounters.txt`, `species.txt` or `trainers.txt`, then change it: you do not
+start from an empty file. The names are in lowercase, without spaces
+(`thundershock`): Sango Maker reads them.
 
 The new data has some limits:
 
