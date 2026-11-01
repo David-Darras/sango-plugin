@@ -25,6 +25,7 @@
 
 #include "overworld/patch/trigger_editor.h"
 #include "core/data_folder.h"
+#include "core/line_reader.h"
 
 #include <cstdio>
 #include <cstring>
@@ -42,20 +43,6 @@ const c16 kPath[] = SANGO_DATA_PATH(u"map_events.txt");
 // The talk direction "all sides" of a sign.
 constexpr u8 kTalkAllSides = 4;
 constexpr u32 kLineSize = 160;
-
-bool ReadInt(const c8*& p, s32& value) {
-  while (*p == ' ') p++;
-  bool is_negative = false;
-  if (*p == '-') {
-    is_negative = true;
-    p++;
-  }
-  if (*p < '0' || *p > '9') return false;
-  s32 result = 0;
-  while (*p >= '0' && *p <= '9') result = result * 10 + (*p++ - '0');
-  value = is_negative ? -result : result;
-  return true;
-}
 
 bool IsSame(const void* a, const void* b, u32 size) {
   return memcmp(a, b, size) == 0;
@@ -97,7 +84,7 @@ bool TriggerEditor::LoadLine(const c8* line) {
   const c8* p = line;
   s32 map;
   s32 index;
-  if (!ReadInt(p, map)) return false;
+  if (!core::ParseInt(p, map)) return false;
   while (*p == ' ') p++;
   const c8 type = p[0];
   const c8 mode = p[1];
@@ -107,11 +94,11 @@ bool TriggerEditor::LoadLine(const c8* line) {
       (type == 'C' && mode == '=');
   if (!is_known) return false;
   p += 2;
-  if (!ReadInt(p, index)) return false;
+  if (!core::ParseInt(p, index)) return false;
   s32 f[16] = {};
   const u32 count = type == 'S' ? 8 : (type == 'C' ? 16 : 9);
   for (u32 i = 0; i < count; i++) {
-    if (!ReadInt(p, f[i])) return false;
+    if (!core::ParseInt(p, f[i])) return false;
   }
   Record* record = GetInstance().NewRecord();
   if (record == nullptr) return false;
@@ -179,29 +166,10 @@ bool TriggerEditor::LoadLine(const c8* line) {
 }
 
 void TriggerEditor::Initialize() {
-  sys::File file;
-  file.Open(kPath, sys::File::kRead);
-  if (!file.IsOpen()) return;
-  c8 chunk[128];
+  core::LineReader reader;
+  if (!reader.Open(kPath)) return;
   c8 line[kLineSize];
-  u32 length = 0;
-  for (;;) {
-    const s32 read = file.Read(chunk, sizeof(chunk));
-    if (read <= 0) break;
-    for (s32 i = 0; i < read; i++) {
-      const c8 c = chunk[i];
-      if (c == '\n') {
-        line[length] = '\0';
-        if (length != 0 && line[0] != '#') LoadLine(line);
-        length = 0;
-      } else if (c != '\r' && length < kLineSize - 1) {
-        line[length++] = c;
-      }
-    }
-    if (static_cast<u32>(read) < sizeof(chunk)) break;
-  }
-  line[length] = '\0';
-  if (length != 0 && line[0] != '#') LoadLine(line);
+  while (reader.Next(line, sizeof(line))) LoadLine(line);
 }
 
 void TriggerEditor::TakeTables() {

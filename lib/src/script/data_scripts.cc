@@ -24,6 +24,7 @@
 
 #include "script/patch/data_scripts.h"
 #include "core/data_folder.h"
+#include "core/line_reader.h"
 
 #include <cstdio>
 #include <cstring>
@@ -50,14 +51,6 @@ const Function kRunners[DataScripts::kMaxScripts] = {
     Runner<6>, Runner<7>, Runner<8>,  Runner<9>, Runner<10>, Runner<11>,
 };
 
-bool ReadInt(const c8*& p, s32& value) {
-  while (*p == ' ') p++;
-  if (*p < '0' || *p > '9') return false;
-  s32 result = 0;
-  while (*p >= '0' && *p <= '9') result = result * 10 + (*p++ - '0');
-  value = result;
-  return true;
-}
 } // namespace
 
 void DataScripts::Initialize() {
@@ -87,8 +80,11 @@ bool DataScripts::LoadLine(const c8* line) {
   s32 action;
   s32 parameter_1;
   s32 parameter_2;
-  if (!ReadInt(p, script) || !ReadInt(p, step) || !ReadInt(p, action) ||
-      !ReadInt(p, parameter_1) || !ReadInt(p, parameter_2)) {
+  // The numbers of this file are never negative.
+  if (!core::ParseInt(p, script, false) || !core::ParseInt(p, step, false) ||
+      !core::ParseInt(p, action, false) ||
+      !core::ParseInt(p, parameter_1, false) ||
+      !core::ParseInt(p, parameter_2, false)) {
     return false;
   }
   Step* target = GetStep(static_cast<u32>(script), static_cast<u32>(step));
@@ -117,29 +113,10 @@ bool DataScripts::Load() {
   for (auto& script : self.steps_) {
     for (Step& step : script) step = Step();
   }
-  sys::File file;
-  file.Open(kPath, sys::File::kRead);
-  if (!file.IsOpen()) return false;
-  c8 chunk[128];
+  core::LineReader reader;
+  if (!reader.Open(kPath)) return false;
   c8 line[kLineSize];
-  u32 length = 0;
-  for (;;) {
-    const s32 read = file.Read(chunk, sizeof(chunk));
-    if (read <= 0) break;
-    for (s32 i = 0; i < read; i++) {
-      const c8 c = chunk[i];
-      if (c == '\n') {
-        line[length] = '\0';
-        if (length != 0 && line[0] != '#') LoadLine(line);
-        length = 0;
-      } else if (c != '\r' && length < kLineSize - 1) {
-        line[length++] = c;
-      }
-    }
-    if (static_cast<u32>(read) < sizeof(chunk)) break;
-  }
-  line[length] = '\0';
-  if (length != 0 && line[0] != '#') LoadLine(line);
+  while (reader.Next(line, sizeof(line))) LoadLine(line);
   return true;
 }
 

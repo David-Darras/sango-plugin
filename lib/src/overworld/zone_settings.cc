@@ -24,6 +24,7 @@
 
 #include "overworld/patch/zone_settings.h"
 #include "core/data_folder.h"
+#include "core/line_reader.h"
 
 #include <cstdio>
 
@@ -45,19 +46,6 @@ constexpr u32 kLineSize = 96;
 // this number of frames.
 constexpr u32 kWeatherFrames = 150;
 
-bool ReadInt(const c8*& p, s32& value) {
-  while (*p == ' ') p++;
-  bool is_negative = false;
-  if (*p == '-') {
-    is_negative = true;
-    p++;
-  }
-  if (*p < '0' || *p > '9') return false;
-  s32 result = 0;
-  while (*p >= '0' && *p <= '9') result = result * 10 + (*p++ - '0');
-  value = is_negative ? -result : result;
-  return true;
-}
 } // namespace
 
 ZoneSettings::Zone* ZoneSettings::Find(u32 map) {
@@ -96,8 +84,9 @@ bool ZoneSettings::LoadLine(const c8* line) {
   s32 weather;
   s32 hour;
   s32 minute;
-  if (!ReadInt(p, map) || !ReadInt(p, music) || !ReadInt(p, weather) ||
-      !ReadInt(p, hour) || !ReadInt(p, minute) || map < 0) {
+  if (!core::ParseInt(p, map) || !core::ParseInt(p, music) ||
+      !core::ParseInt(p, weather) || !core::ParseInt(p, hour) ||
+      !core::ParseInt(p, minute) || map < 0) {
     return false;
   }
   Zone* zone = GetOrAdd(static_cast<u32>(map));
@@ -113,29 +102,10 @@ bool ZoneSettings::LoadLine(const c8* line) {
 }
 
 void ZoneSettings::Initialize() {
-  sys::File file;
-  file.Open(kPath, sys::File::kRead);
-  if (!file.IsOpen()) return;
-  c8 chunk[96];
+  core::LineReader reader;
+  if (!reader.Open(kPath)) return;
   c8 line[kLineSize];
-  u32 length = 0;
-  for (;;) {
-    const s32 read = file.Read(chunk, sizeof(chunk));
-    if (read <= 0) break;
-    for (s32 i = 0; i < read; i++) {
-      const c8 c = chunk[i];
-      if (c == '\n') {
-        line[length] = '\0';
-        if (length != 0 && line[0] != '#') LoadLine(line);
-        length = 0;
-      } else if (c != '\r' && length < kLineSize - 1) {
-        line[length++] = c;
-      }
-    }
-    if (static_cast<u32>(read) < sizeof(chunk)) break;
-  }
-  line[length] = '\0';
-  if (length != 0 && line[0] != '#') LoadLine(line);
+  while (reader.Next(line, sizeof(line))) LoadLine(line);
 }
 
 bool ZoneSettings::Save() {
