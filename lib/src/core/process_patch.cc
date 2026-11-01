@@ -70,7 +70,7 @@ void ProcessPatch::OnUpdate(uptr vtable) {
 
 void ProcessPatch::OnLoad(uptr vtable) {
   auto& feat = GetInstance();
-  if (feat.on_process_load != nullptr) feat.on_process_load(vtable);
+  feat.on_process_load.Emit(vtable);
   ui::NewGame::OnProcessLoad(vtable);
 
   if (vtable != ui::address::kKeyboardVtable) {

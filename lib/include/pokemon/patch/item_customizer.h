@@ -25,6 +25,7 @@
 #pragma once
 
 #include "common.h"
+#include "core/event.h"
 #include "pokemon/constant/item.h"
 
 namespace pokemon {
@@ -45,7 +46,7 @@ public:
 
   /// Called each time the game reads the data of an item. Change the data.
   typedef void (*ItemDataCallback)(ItemData* item);
-  ItemDataCallback on_item_data = nullptr;
+  core::Event<void(ItemData*)> on_item_data;
 
   static void Initialize();
 

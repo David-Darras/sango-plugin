@@ -25,6 +25,7 @@
 #include <type_traits>
 
 #include "common.h"
+#include "core/event.h"
 #include "system/constant/background_music.h"
 
 namespace overworld {
@@ -44,7 +45,7 @@ struct Overworld : public OverworldSettings {
   /// Called each time the overworld loads, before the patches of the
   /// library. The code of the overworld CRO is writable.
   typedef void (*OverworldLoadCallback)();
-  OverworldLoadCallback on_overworld_load = nullptr;
+  core::Event<void()> on_overworld_load;
 
   static void Initialize();
   /// Called when the overworld loads.

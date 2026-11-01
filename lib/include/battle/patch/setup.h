@@ -27,6 +27,7 @@
 #include <type_traits>
 
 #include "common.h"
+#include "core/event.h"
 #include "battle/constant/background.h"
 #include "battle/constant/encounter_animation.h"
 #include "battle/constant/format.h"
@@ -76,14 +77,18 @@ static_assert(std::is_standard_layout<SetupSettings>::value,
 /// Changes the battles before they start.
 struct Setup : public SetupSettings {
   MAKE_SINGLETON(Setup)
-  /// Called after the game prepares a trainer battle. The callback can change
-  /// the trainer and the team.
+  /// true: the teams of battle::TrainerTeams replace the teams of the game,
+  /// before on_trainer_battle. A product that applies the teams itself gives
+  /// false.
+  bool apply_trainer_teams = true;
+  /// Called after the game prepares a trainer battle, and after the teams of
+  /// battle::TrainerTeams. The functions can change the trainer and the team.
   typedef void (*TrainerBattleCallback)(Config& config, TrainerId& trainer_id);
-  TrainerBattleCallback on_trainer_battle = nullptr;
+  core::Event<void(Config&, TrainerId&)> on_trainer_battle;
   /// Called after the game prepares a wild battle. The callback can change the
   /// Pokémon of the second team (the wild Pokémon).
   typedef void (*WildBattleCallback)(Config& config);
-  WildBattleCallback on_wild_battle = nullptr;
+  core::Event<void(Config&)> on_wild_battle;
 
   static void Initialize();
 

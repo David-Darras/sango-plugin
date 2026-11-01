@@ -354,7 +354,8 @@ public:
   static void Clear();
   /// Returns the team of a trainer, or null.
   static const TrainerTeam* Find(TrainerId id);
-  /// Replaces the team of the trainer, if it has a new team. Call it in Setup::on_trainer_battle.
+  /// Replaces the team of the trainer, if it has a new team. The library calls
+  /// it before Setup::on_trainer_battle (see Setup::apply_trainer_teams).
   static void Apply(Config& config, TrainerId trainer_id);
 
 private:

@@ -18,7 +18,7 @@ When you do not know a game term, search it on Bulbapedia.
 | **Feature** | A class of the library that changes one part of the game. Examples: `battle::Battle`, `overworld::Camera`. A feature is a singleton. |
 | **Singleton** | A class with one object only. You get the object with `GetInstance()`. |
 | **Setting** | A variable of a feature that the player can change in the menu. The settings are in a `...Settings` structure. The plugin does not save them. |
-| **Callback** | A function of your product that a feature calls. The callbacks have names that start with `on_` (for example `on_wild_pokemon`). |
+| **Callback** | A function of your product that a feature calls. The callbacks have names that start with `on_` (for example `on_wild_pokemon`). Most of them are a `core::Event`: `=` gives the main function, `Subscribe()` adds one more function and keeps the others. |
 | **Data folder** | The folder of the files of a product on the SD card: `sdmc:/sango` for the overlay, `sdmc:/sango/<product>` for the other products. It holds the files of the ROM hack: `scripts.txt`, `map_events.txt`, `zones.txt`, `texts.txt`, `maps/`, `types/`, `items/`, `translations/`, `textures/`, the `.ini` files and the images of the menu. The packs of models and of music stay in `sdmc:/sango` for all the products (see `lib/include/core/data_folder.h`). |
 | **Entry point** | The function that the plugin calls when the game starts. The library has a default entry point: it calls `SetUpHack()`, `LoadHackMenu()` and `UpdateHack()` of the product (see `lib/include/hack.h`). A product can write its own `Initialize()` function instead. |
 | **Frame** | One image of the game. The game shows 30 or 60 frames each second. The plugin runs code one time for each frame. |

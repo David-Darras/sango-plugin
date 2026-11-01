@@ -102,6 +102,8 @@ void InstallCallbacks() {
   battle.is_capture_allowed = IsCaptureAllowed;
   battle.on_captured = OnCaptured;
 
+  // PatchTrainerData() applies the teams of TrainerTeams itself.
+  battle::Setup::GetInstance().apply_trainer_teams = false;
   battle::Setup::GetInstance().on_trainer_battle =
       kaizo::PatchTrainerData;
 

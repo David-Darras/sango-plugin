@@ -149,7 +149,7 @@ u16* WildEncounter::GetDexNavTable(EncounterData* data, s32 data_size,
   // The tables of the product first: the callback can still change them.
   ApplyTables(data);
   auto& feat = GetInstance();
-  if (feat.on_encounter_table != nullptr) feat.on_encounter_table(data);
+  feat.on_encounter_table.Emit(data);
 
   return get_dex_nav_table_hook(data, data_size, count, heap, p4, p5);
 }
@@ -175,9 +175,9 @@ bool WildEncounter::GetEncounterPokemonHook(u32 p0, u32 p1) {
   PlacedDecorations::OnWildPokemonRolled((WildPokemon*)p0, READ32(p0 + 108));
 
   auto& feat = GetInstance();
-  if (feat.on_wild_pokemon == nullptr) return result;
+  if (feat.on_wild_pokemon.IsEmpty()) return result;
 
-  feat.on_wild_pokemon(MapManager::GetInstance().GetMap(), (WildPokemon*)p0,
+  feat.on_wild_pokemon.Emit(MapManager::GetInstance().GetMap(), (WildPokemon*)p0,
                        READ32(p0 + 108));
 
   return result;

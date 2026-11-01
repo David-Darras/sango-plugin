@@ -25,6 +25,7 @@
 #pragma once
 
 #include "common.h"
+#include "core/event.h"
 #include "overworld/constant/encounter_method.h"
 #include "overworld/constant/map.h"
 #include "overworld/native/wild_pokemon.h"
@@ -118,8 +119,8 @@ struct WildEncounter {
   typedef void (*WildPokemonCallback)(MapId map_id, WildPokemon* pokemons,
                                       u32 count);
 
-  EncounterTableCallback on_encounter_table = nullptr;
-  WildPokemonCallback on_wild_pokemon = nullptr;
+  core::Event<void(EncounterData*)> on_encounter_table;
+  core::Event<void(MapId, WildPokemon*, u32)> on_wild_pokemon;
 
   /// How often the wild Pokémon appear: normal, never or at each step.
   enum class Mode : u8 { kNormal, kNever, kAlways };

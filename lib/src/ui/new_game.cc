@@ -71,7 +71,7 @@ s32 NewGame::FinishIntro(void* process, void* manager) {
     status.name[i] = feat.player_name[i];
   }
   status.name[i] = u'\0';
-  if (feat.on_new_game) feat.on_new_game();
+  feat.on_new_game.Emit();
   feat.fade_in_pending_ = true;
   return kResultFinish;
 }

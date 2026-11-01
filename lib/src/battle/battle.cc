@@ -176,7 +176,7 @@ bool Battle::CheckPokemonCapturedHook(u32 p0, u32 p1, u32 p2, u32 p3, u32 p4,
   }
   bool result = check_pokemon_captured_hook(p0, p1, p2, p3, p4, p5);
   if (result) {
-    if (feat.on_captured != nullptr) feat.on_captured();
+    feat.on_captured.Emit();
   } else {
     *battle_type = original_type;
   }

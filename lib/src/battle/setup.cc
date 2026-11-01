@@ -63,13 +63,10 @@ void Setup::SetupTrainerHook(Config* config, void* game_manager,
   setup_trainer_hook(config, game_manager, trainer_id, p1, format, p2);
   config->money_rate *= Battle::GetInstance().money_multiplier;
   auto& feat = GetInstance();
-  if (feat.on_trainer_battle != nullptr) {
-    feat.on_trainer_battle(*config, trainer_id);
-  } else {
-    // Without a callback of the product, the teams of TrainerTeams replace
-    // the teams of the game.
-    TrainerTeams::Apply(*config, trainer_id);
-  }
+  // The teams of TrainerTeams replace the teams of the game, then the
+  // functions of the product change the battle.
+  if (feat.apply_trainer_teams) TrainerTeams::Apply(*config, trainer_id);
+  feat.on_trainer_battle.Emit(*config, trainer_id);
 }
 
 void Setup::SetupWildHook(Config* config,
@@ -120,7 +117,7 @@ void Setup::SetupWildHook(Config* config,
     pokemon::AdjustAbilityToSpecies(*wild);
   }
   config->money_rate *= Battle::GetInstance().money_multiplier;
-  if (ctx.on_wild_battle != nullptr) ctx.on_wild_battle(*config);
+  ctx.on_wild_battle.Emit(*config);
 }
 
 } // namespace battle

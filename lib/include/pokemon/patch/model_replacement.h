@@ -25,6 +25,7 @@
 #pragma once
 
 #include "common.h"
+#include "core/event.h"
 
 namespace pokemon {
 
@@ -37,7 +38,7 @@ public:
   /// the species, the form or the shiny state of the model.
   /// Called before the game makes a Pokémon model. Change `info` to change
   /// the species, the form or the shiny state of the model.
-  void (*on_create)(PokeInfo* info) = nullptr;
+  core::Event<void(PokeInfo*)> on_create;
 
   static void Initialize();
 

@@ -41,7 +41,7 @@ void ModelReplacement::CreateHook(void* model, PokeInfo* info, void* p0, void* p
                               void* p2, void* p3) {
   auto& feat = GetInstance();
   SpeciesTable::PatchModelRequest(info);
-  if (feat.on_create != nullptr) feat.on_create(info);
+  feat.on_create.Emit(info);
   create_hook(model, info, p0, p1, p2, p3);
 }
 

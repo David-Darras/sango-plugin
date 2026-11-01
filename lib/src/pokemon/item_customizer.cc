@@ -137,7 +137,7 @@ u32 ItemCustomizer::GetParamHook(ItemData* item, u32 param_id) {
   auto& feat = GetInstance();
   const ItemData* changed = GetOverride(item->id);
   if (changed != nullptr) memcpy(item, changed, sizeof(ItemData));
-  if (feat.on_item_data != nullptr) feat.on_item_data(item);
+  feat.on_item_data.Emit(item);
 
   return GetParam(item, param_id);
 }

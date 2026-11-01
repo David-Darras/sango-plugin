@@ -191,22 +191,25 @@ battle::TrainerTeams::SetTable(kTeams, SIZE(kTeams));
 ## Go further: the callback
 
 `battle::Setup::GetInstance().on_trainer_battle` calls your function before
-each trainer battle. It can change all the settings of the battle.
-
-> **Note:** When your product sets this callback, the library does not apply
-> the teams of `TrainerTeams` itself. Call `battle::TrainerTeams::Apply()` in
-> your callback.
+each trainer battle, after the teams of `TrainerTeams`. It can change all the
+settings of the battle.
 
 ```cpp
 void OnTrainerBattle(battle::Config& config, TrainerId& trainer_id) {
   // Writes the id of the trainer to the log (All the pages > Log).
   ui::Log::Print(u"Trainer %u", static_cast<u32>(trainer_id));
-  battle::TrainerTeams::Apply(config, trainer_id);
 }
 
 // In InstallTrainers():
 battle::Setup::GetInstance().on_trainer_battle = OnTrainerBattle;
 ```
+
+`=` gives the main function of the event. To add one more function and keep
+the other functions, use `Subscribe()`:
+`battle::Setup::GetInstance().on_trainer_battle.Subscribe(OnTrainerBattle);`.
+To apply the teams of `TrainerTeams` yourself, set
+`battle::Setup::GetInstance().apply_trainer_teams = false` and call
+`battle::TrainerTeams::Apply(config, trainer_id)` in your function.
 
 `kaizo/src/kaizo_trainer.cc` changes much more:
 

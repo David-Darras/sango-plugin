@@ -23,6 +23,7 @@
 #pragma once
 
 #include "common.h"
+#include "core/event.h"
 #include "overworld/constant/facing.h"
 #include "overworld/constant/map.h"
 
@@ -40,7 +41,7 @@ public:
   s16 start_tile_x = -1;
   s16 start_tile_z = -1;
   overworld::Facing start_facing = overworld::Facing::kInvalid;
-  void (*on_new_game)() = nullptr;
+  core::Event<void()> on_new_game;
 
   static void Initialize();
   static void OnProcessUpdate(uptr vtable);

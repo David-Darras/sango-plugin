@@ -44,7 +44,7 @@ void Overworld::Initialize() {
 void Overworld::PatchLoad() {
   MEMORY_SCOPE(sys::address::kMemoryRegionCro, 0xF1000);
   auto& feat = GetInstance();
-  if (feat.on_overworld_load != nullptr) feat.on_overworld_load();
+  feat.on_overworld_load.Emit();
 
   DayCare::PatchLoad();
 

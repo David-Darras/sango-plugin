@@ -170,7 +170,7 @@ A product never changes the files of `lib/`. It uses five tools:
 | Tool | Example |
 |---|---|
 | **Settings** of a feature | `battle::Battle::GetInstance().unlimited_mega_evolution = false;` |
-| **Callbacks** of a feature | `overworld::WildEncounter::GetInstance().on_wild_pokemon = MyFunction;` |
+| **Events** of a feature | `overworld::WildEncounter::GetInstance().on_wild_pokemon = MyFunction;` or `.on_wild_pokemon.Subscribe(MyFunction);` |
 | **Add / Register** functions | `battle::GameExtension::AddMove(...)`, `script::NativeScript::Register(...)` |
 | **Pages** of the menu | `app.Add("Battle", ui::LoadBattlePage);` |
 | **Hooks** | `HOOK(bool, AddPokemonToTeam, (...), pokemon::address::kAddPokemonToTeam) { ... }` |

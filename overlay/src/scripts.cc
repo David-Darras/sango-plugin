@@ -164,7 +164,11 @@ static void EnterFactoryRules() {
   battle.mega_restriction = true;
   battle.unlimited_mega_evolution = false;
   battle.can_use_item = false;
-  battle::Setup::GetInstance().on_trainer_battle = FactoryBattleSetupHook;
+  // The factory makes its own teams: no team of TrainerTeams. The function of
+  // the factory comes after the other functions, and it does not remove them.
+  battle::Setup::GetInstance().apply_trainer_teams = false;
+  battle::Setup::GetInstance().on_trainer_battle.Subscribe(
+      FactoryBattleSetupHook);
   s_factory_battle_active = true;
 }
 
@@ -172,7 +176,9 @@ static void LeaveFactoryRules() {
   if (!s_factory_battle_active) return;
   static_cast<battle::BattleSettings&>(battle::Battle::GetInstance()) =
       s_saved_battle_settings;
-  battle::Setup::GetInstance().on_trainer_battle = nullptr;
+  battle::Setup::GetInstance().on_trainer_battle.Unsubscribe(
+      FactoryBattleSetupHook);
+  battle::Setup::GetInstance().apply_trainer_teams = true;
   battle::Setup::GetInstance().trainer_id = battle::TrainerId::kNone;
   s_factory_battle_active = false;
 }

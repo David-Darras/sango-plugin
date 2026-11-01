@@ -23,6 +23,7 @@
 #pragma once
 
 #include "common.h"
+#include "core/event.h"
 
 namespace core {
 class ProcessManager;
@@ -44,7 +45,7 @@ public:
   /// Called with the vtable of each process that starts, before the patches
   /// of the library. Compare the vtable with the `kVtable` addresses.
   typedef void (*ProcessLoadCallback)(uptr vtable);
-  ProcessLoadCallback on_process_load = nullptr;
+  core::Event<void(uptr)> on_process_load;
 
   static void Initialize();
 

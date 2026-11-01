@@ -25,6 +25,7 @@
 #include <type_traits>
 
 #include "common.h"
+#include "core/event.h"
 #include "battle/native/entry_animation_data.h"
 #include "battle/native/level_up_data.h"
 #include "battle/native/team.h"
@@ -71,7 +72,7 @@ public:
   typedef void (*CapturedCallback)();
 
   CaptureAllowedCallback is_capture_allowed = nullptr;
-  CapturedCallback on_captured = nullptr;
+  core::Event<void()> on_captured;
 
   static void Initialize();
   /// Called at each frame of a battle.
