@@ -88,7 +88,7 @@ const SpeciesTable::NewSpeciesEntry* SpeciesTable::FindNewSpecies(u16 species) {
   auto& feat = GetInstance();
   if (species < kFirstNewSpecies) return nullptr;
   const u32 index = species - kFirstNewSpecies;
-  if (index >= feat.new_species_count_) return nullptr;
+  if (index >= feat.new_species_.Count()) return nullptr;
   return &feat.new_species_[index];
 }
 
@@ -100,7 +100,7 @@ SpeciesId SpeciesTable::AddSpecies(const c16* name, SpeciesId data_from,
     core::Problems::Add(u"NewSpecies: call it in SetUpHack()");
     return SpeciesId::kNone;
   }
-  if (feat.new_species_count_ >= kMaxNewSpecies) {
+  if (feat.new_species_.IsFull()) {
     core::Problems::Add(u"NewSpecies: more than %u new species",
                         kMaxNewSpecies);
     return SpeciesId::kNone;
@@ -110,13 +110,12 @@ SpeciesId SpeciesTable::AddSpecies(const c16* name, SpeciesId data_from,
     core::Problems::Add(u"NewSpecies: the name or the first data is not correct");
     return SpeciesId::kNone;
   }
-  NewSpeciesEntry& entry = feat.new_species_[feat.new_species_count_];
-  entry.name = name;
-  entry.data_from = data_from;
-  entry.model = model != SpeciesId::kNone ? model : data_from;
-  entry.model_form = model_form;
-  feat.new_species_count_++;
-  return static_cast<SpeciesId>(kFirstNewSpecies + feat.new_species_count_ - 1);
+  const NewSpeciesEntry entry = {
+      name, data_from, model != SpeciesId::kNone ? model : data_from,
+      model_form};
+  feat.new_species_.Add(entry);
+  return static_cast<SpeciesId>(kFirstNewSpecies + feat.new_species_.Count() -
+                                1);
 #else
   (void)name;
   (void)data_from;
@@ -196,7 +195,7 @@ void SpeciesTable::BuildTable(u8* game_table) {
   }
 
   // The species of the product start with the data of an other species.
-  for (u32 i = 0; i < feat.new_species_count_; i++) {
+  for (u32 i = 0; i < feat.new_species_.Count(); i++) {
     const NewSpeciesEntry& added = feat.new_species_[i];
     auto* entry =
         (SpeciesData*)(out + (SpeciesTable::kFirstNewSpecies + i) * kEntrySize);

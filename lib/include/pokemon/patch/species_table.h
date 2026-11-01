@@ -30,6 +30,7 @@
 #pragma once
 
 #include "common.h"
+#include "core/fixed_list.h"
 #include "pokemon/constant/form.h"
 #include "pokemon/constant/species.h"
 #include "system/native/string.h"
@@ -106,8 +107,7 @@ private:
   static void LoadMovepoolHook(u16 species, u8 form);
 
   bool is_built_ = false;
-  NewSpeciesEntry new_species_[kMaxNewSpecies] = {};
-  u32 new_species_count_ = 0;
+  core::FixedList<NewSpeciesEntry, kMaxNewSpecies> new_species_;
   alignas(4) u8 table_[kTotalEntries * kEntrySize];
 };
 

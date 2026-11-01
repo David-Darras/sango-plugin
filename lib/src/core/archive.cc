@@ -645,28 +645,27 @@ bool Archive::ReadFileAsync(void* file_manager, ArchiveInput* input) {
 
 bool Archive::ReplaceFile(ArchiveId archive_id, u32 from, u32 to) {
   auto& feat = GetInstance();
-  for (u32 i = 0; i < feat.replacement_count_; i++) {
-    Replacement& entry = feat.replacements_[i];
-    if (entry.archive_id == archive_id && entry.from == from) {
-      entry.to = to;
-      return true;
-    }
+  Replacement* same = feat.replacements_.Find([&](const Replacement& entry) {
+    return entry.archive_id == archive_id && entry.from == from;
+  });
+  if (same != nullptr) {
+    same->to = to;
+    return true;
   }
-  if (feat.replacement_count_ >= kMaxReplacements) {
+  if (feat.replacements_.IsFull()) {
     Problems::Add(u"archive %u: more than %u replaced files",
                   static_cast<u32>(archive_id), kMaxReplacements);
     return false;
   }
-  feat.replacements_[feat.replacement_count_++] = {archive_id, from, to};
+  feat.replacements_.Add({archive_id, from, to});
   return true;
 }
 
-void Archive::ClearReplacements() { GetInstance().replacement_count_ = 0; }
+void Archive::ClearReplacements() { GetInstance().replacements_.Clear(); }
 
 u32 Archive::ReplacedStreamFile(const u32* archive, u32 file_id) {
   const auto& feat = GetInstance();
-  for (u32 i = 0; i < feat.replacement_count_; i++) {
-    const Replacement& entry = feat.replacements_[i];
+  for (const Replacement& entry : feat.replacements_) {
     if (entry.from == file_id && IsArchive(archive, entry.archive_id)) {
       return entry.to;
     }
@@ -676,8 +675,7 @@ u32 Archive::ReplacedStreamFile(const u32* archive, u32 file_id) {
 
 u32 Archive::ReplacedQueuedFile(const ArchiveInput* input, u32 file_id) {
   const auto& feat = GetInstance();
-  for (u32 i = 0; i < feat.replacement_count_; i++) {
-    const Replacement& entry = feat.replacements_[i];
+  for (const Replacement& entry : feat.replacements_) {
     if (entry.from == file_id && IsArchive(input, entry.archive_id)) {
       return entry.to;
     }

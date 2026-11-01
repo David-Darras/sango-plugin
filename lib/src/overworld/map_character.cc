@@ -114,17 +114,17 @@ void MapCharacter::ChangeMapHook(core::GameManager* manager, MapId map_id,
 
 bool MapCharacter::Add(const MapCharacterRequest& request) {
   auto& ctx = GetInstance();
-  if (ctx.request_count_ >= kMaxRequests) {
+  if (ctx.requests_.IsFull()) {
     core::Problems::Add(u"character on map %u: more than %u characters",
                         static_cast<u32>(request.map_id), kMaxRequests);
     return false;
   }
-  ctx.requests_[ctx.request_count_++] = request;
+  ctx.requests_.Add(request);
   return true;
 }
 
 void MapCharacter::Clear() {
-  GetInstance().request_count_ = 0;
+  GetInstance().requests_.Clear();
   GetInstance().emptied_count_ = 0;
 }
 
@@ -140,12 +140,12 @@ bool MapCharacter::Empty(MapId map_id) {
 }
 
 u32 MapCharacter::GetCount() {
-  return GetInstance().request_count_;
+  return GetInstance().requests_.Count();
 }
 
 u16 MapCharacter::GetLocalId(ScriptId script_id) {
   auto& ctx = GetInstance();
-  for (u32 i = 0; i < ctx.request_count_; i++) {
+  for (u32 i = 0; i < ctx.requests_.Count(); i++) {
     if (ctx.requests_[i].script_id == script_id) {
       return ctx.requests_[i].local_id;
     }
@@ -155,7 +155,7 @@ u16 MapCharacter::GetLocalId(ScriptId script_id) {
 
 void MapCharacter::ReloadMapAfterBattleWith(u16 trainer_id) {
   auto& ctx = GetInstance();
-  for (u32 i = 0; i < ctx.request_count_; i++) {
+  for (u32 i = 0; i < ctx.requests_.Count(); i++) {
     const MapCharacterRequest& request = ctx.requests_[i];
     if (request.hide_when_flag_set == 0) continue;
     if (static_cast<u16>(request.script_id) != kFirstTrainerScript +
@@ -302,7 +302,7 @@ void MapCharacter::PlaceCharacters(MapEventData* events) {
   }
 
   u32 added = 0;
-  for (u32 i = 0; i < request_count_ && count < kMaxCharactersPerMap; i++) {
+  for (u32 i = 0; i < requests_.Count() && count < kMaxCharactersPerMap; i++) {
     MapCharacterRequest& request = requests_[i];
     if (request.map_id != map_id && !request.is_everywhere) continue;
     if (request.is_enabled != nullptr && !*request.is_enabled) continue;
@@ -377,7 +377,7 @@ void MapCharacter::AddMissingModels(CharacterManager* manager,
   // region, and it does not make it again when the player walks to the next
   // map without a loading screen: the models of all the requests must be
   // there from the start, or the game stops when the map sets up.
-  const u32 total = placement_count + request_count_;
+  const u32 total = placement_count + requests_.Count();
   for (u32 i = 0; i < total; i++) {
     if (count + 1 >= kMaxModelsPerRegion) {
       // A character without its model stops the game: say it in the log.

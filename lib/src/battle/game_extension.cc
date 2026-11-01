@@ -127,7 +127,7 @@ void ReplaceText(String* text, const c16* from, const c16* to) {
 bool GameExtension::AddMove(const MoveSpec& spec) {
   auto& self = GetInstance();
   const u32 id = static_cast<u32>(spec.id);
-  if (self.move_count_ >= kMaxMoves) {
+  if (self.moves_.IsFull()) {
     core::Problems::Add(u"move %u: more than %u new moves", id, kMaxMoves);
     return false;
   }
@@ -138,14 +138,14 @@ bool GameExtension::AddMove(const MoveSpec& spec) {
   if (id < static_cast<u32>(MoveId::kCount)) {
     core::Problems::Add(u"move %u: a move of the game has this id", id);
   }
-  self.moves_[self.move_count_++] = spec;
+  self.moves_.Add(spec);
   return true;
 }
 
 bool GameExtension::AddAbility(const AbilitySpec& spec) {
   auto& self = GetInstance();
   const u32 id = static_cast<u32>(spec.id);
-  if (self.ability_count_ >= kMaxAbilities) {
+  if (self.abilities_.IsFull()) {
     core::Problems::Add(u"ability %u: more than %u new abilities", id,
                         kMaxAbilities);
     return false;
@@ -157,7 +157,7 @@ bool GameExtension::AddAbility(const AbilitySpec& spec) {
   if (id < static_cast<u32>(AbilityId::kCount)) {
     core::Problems::Add(u"ability %u: an ability of the game has this id", id);
   }
-  self.abilities_[self.ability_count_++] = spec;
+  self.abilities_.Add(spec);
   return true;
 }
 
@@ -219,18 +219,13 @@ void GameExtension::SetTypeChart(const TypeMultiplier* table, u32 type_count) {
 
 const MoveSpec* GameExtension::FindMove(MoveId id) {
   auto& self = GetInstance();
-  for (u32 i = 0; i < self.move_count_; i++) {
-    if (self.moves_[i].id == id) return &self.moves_[i];
-  }
-  return nullptr;
+  return self.moves_.Find([id](const MoveSpec& spec) { return spec.id == id; });
 }
 
 const AbilitySpec* GameExtension::FindAbility(AbilityId id) {
   auto& self = GetInstance();
-  for (u32 i = 0; i < self.ability_count_; i++) {
-    if (self.abilities_[i].id == id) return &self.abilities_[i];
-  }
-  return nullptr;
+  return self.abilities_.Find(
+      [id](const AbilitySpec& spec) { return spec.id == id; });
 }
 
 // Hooks.

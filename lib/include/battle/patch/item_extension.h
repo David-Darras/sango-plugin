@@ -26,6 +26,7 @@
 #pragma once
 
 #include "common.h"
+#include "core/fixed_list.h"
 #include "battle/native/reaction_table.h"
 #include "pokemon/constant/item.h"
 #include "pokemon/constant/species.h"
@@ -155,7 +156,7 @@ public:
   static const ItemSpec* FindItem(ItemId id);
 
   /// Returns the number of added items.
-  static u32 GetCount() { return GetInstance().item_count_; }
+  static u32 GetCount() { return GetInstance().items_.Count(); }
   /// Returns an added item (index from 0 to GetCount() - 1).
   static const ItemSpec& GetItem(u32 index) {
     return GetInstance().items_[index < kMaxItems ? index : 0];
@@ -216,8 +217,7 @@ private:
   static void RegisterItemCheckedHook(Pokemon* pkm);
   static uptr RegisterTemporaryItemHook(Pokemon* pkm, ItemId item);
 
-  ItemSpec items_[kMaxItems];
-  u32 item_count_ = 0;
+  core::FixedList<ItemSpec, kMaxItems> items_;
   u32 icon_table_[kIconTableSize] = {};
   bool is_icon_table_ready_ = false;
   u32 current_text_file_ = 0;

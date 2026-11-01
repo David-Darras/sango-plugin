@@ -34,6 +34,7 @@
 
 #pragma once
 #include "common.h"
+#include "core/fixed_list.h"
 #include "battle/constant/type_multiplier.h"
 #include "battle/native/reaction_table.h"
 #include "pokemon/constant/ability.h"
@@ -259,10 +260,8 @@ private:
     return *pokemon::Database::GetInstance().move_names;
   }
 
-  MoveSpec moves_[kMaxMoves];
-  u32 move_count_ = 0;
-  AbilitySpec abilities_[kMaxAbilities];
-  u32 ability_count_ = 0;
+  core::FixedList<MoveSpec, kMaxMoves> moves_;
+  core::FixedList<AbilitySpec, kMaxAbilities> abilities_;
   TypeSpec types_[kMaxTypes];
   bool is_type_used_[kMaxTypes] = {};
 };

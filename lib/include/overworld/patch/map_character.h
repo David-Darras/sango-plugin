@@ -33,6 +33,7 @@
 #pragma once
 
 #include "common.h"
+#include "core/fixed_list.h"
 #include "battle/constant/trainer.h"
 #include "overworld/constant/map.h"
 #include "overworld/constant/model.h"
@@ -215,8 +216,7 @@ private:
                              ModelId model_id, ModelAppearance* out);
 
   MapEventData* loaded_events_ = nullptr; ///< The events of the last map.
-  MapCharacterRequest requests_[kMaxRequests];
-  u32 request_count_ = 0;
+  core::FixedList<MapCharacterRequest, kMaxRequests> requests_;
   bool is_reload_armed_ = false;
   MapId arrival_map_ = MapId::kNone;
   s32 arrival_tile_x_ = -1;

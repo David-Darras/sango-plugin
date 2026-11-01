@@ -81,14 +81,12 @@ void TrainerTeam::ApplyTo(Config& config) const {
 bool TrainerTeams::Add(TrainerId id, const TrainerTeam* team) {
   auto& ctx = GetInstance();
   if (team == nullptr) return false;
-  if (ctx.count_ >= kMaxTeams) {
+  if (ctx.teams_.IsFull()) {
     core::Problems::Add(u"trainer %u: more than %u teams (use SetTable)",
                         static_cast<u32>(id), kMaxTeams);
     return false;
   }
-  ctx.teams_[ctx.count_].id = id;
-  ctx.teams_[ctx.count_].team = team;
-  ctx.count_++;
+  ctx.teams_.Add({id, team});
   return true;
 }
 
@@ -100,15 +98,15 @@ void TrainerTeams::SetTable(const TrainerTeamEntry* table, u32 count) {
 
 void TrainerTeams::Clear() {
   auto& ctx = GetInstance();
-  ctx.count_ = 0;
+  ctx.teams_.Clear();
   ctx.table_ = nullptr;
   ctx.table_count_ = 0;
 }
 
 const TrainerTeam* TrainerTeams::Find(TrainerId id) {
   auto& ctx = GetInstance();
-  for (u32 i = 0; i < ctx.count_; i++) {
-    if (ctx.teams_[i].id == id) return ctx.teams_[i].team;
+  for (const TrainerTeamEntry& entry : ctx.teams_) {
+    if (entry.id == id) return entry.team;
   }
   for (u32 i = 0; i < ctx.table_count_; i++) {
     if (ctx.table_[i].id == id) return ctx.table_[i].team;

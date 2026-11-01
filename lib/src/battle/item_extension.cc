@@ -115,7 +115,7 @@ bool ItemExtension::AddItem(const ItemSpec& spec) {
   const u32 id = static_cast<u32>(spec.id);
   const bool is_game_item = id >= 1 && id < kGameItemCount;
   const bool is_new_item = id >= kFirstId && id <= kLastId;
-  if (self.item_count_ >= kMaxItems) {
+  if (self.items_.IsFull()) {
     core::Problems::Add(u"item %u: more than %u items", id, kMaxItems);
     return false;
   }
@@ -128,7 +128,7 @@ bool ItemExtension::AddItem(const ItemSpec& spec) {
     core::Problems::Add(u"item %u: the id is used two times", id);
     return false;
   }
-  self.items_[self.item_count_++] = spec;
+  self.items_.Add(spec);
   MakeIconTable();
   if (!self.is_icon_table_ready_) return true;
 
@@ -170,10 +170,7 @@ bool ItemExtension::GetIconPath(const ItemSpec& spec, c16* path,
 
 const ItemSpec* ItemExtension::FindItem(ItemId id) {
   auto& self = GetInstance();
-  for (u32 i = 0; i < self.item_count_; i++) {
-    if (self.items_[i].id == id) return &self.items_[i];
-  }
-  return nullptr;
+  return self.items_.Find([id](const ItemSpec& spec) { return spec.id == id; });
 }
 
 u32 ItemExtension::GetIconFile(ItemId id) {
@@ -234,12 +231,12 @@ void ItemExtension::PatchBattleLoad() {
 void ItemExtension::Update() {
 #ifdef GAME_ORAS
   auto& self = GetInstance();
-  if (self.is_data_given_ || self.item_count_ == 0) return;
+  if (self.is_data_given_ || self.items_.Count() == 0) return;
   if (core::GameManager::GetInstance().GetSystemHeap() == nullptr ||
       !core::ProcessManager::IsOverworldActive()) {
     return;
   }
-  for (u32 i = 0; i < self.item_count_; i++) {
+  for (u32 i = 0; i < self.items_.Count(); i++) {
     const ItemId id = self.items_[i].id;
     if (!IsNewItem(id)) continue;
     pokemon::ItemData data(id);
@@ -277,7 +274,7 @@ void ItemExtension::MakeIconTable() {
 void ItemExtension::PatchEvolution(SpeciesId species,
                                    pokemon::EvolutionData& table) {
   auto& self = GetInstance();
-  for (u32 i = 0; i < self.item_count_; i++) {
+  for (u32 i = 0; i < self.items_.Count(); i++) {
     const ItemSpec& spec = self.items_[i];
     if (spec.evolve_into == nullptr) continue;
     const SpeciesId target = spec.evolve_into(species, table);

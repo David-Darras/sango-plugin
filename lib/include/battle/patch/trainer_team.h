@@ -27,6 +27,7 @@
 #include <initializer_list>
 
 #include "common.h"
+#include "core/fixed_list.h"
 #include "pokemon/constant/ability.h"
 #include "battle/constant/ai.h"
 #include "battle/constant/background.h"
@@ -359,8 +360,7 @@ public:
   static void Apply(Config& config, TrainerId trainer_id);
 
 private:
-  TrainerTeamEntry teams_[kMaxTeams];
-  u32 count_ = 0;
+  core::FixedList<TrainerTeamEntry, kMaxTeams> teams_;
   const TrainerTeamEntry* table_ = nullptr;
   u32 table_count_ = 0;
 };

@@ -25,6 +25,7 @@
 #pragma once
 
 #include "common.h"
+#include "core/fixed_list.h"
 #include "core/constant/archive_id.h"
 #include "core/native/archive_input.h"
 
@@ -130,8 +131,7 @@ private:
                              void* buffer, u32 p4, u32 p5, u32 p6);
   static bool ReadFileAsync(void* file_manager, ArchiveInput* input);
 
-  Replacement replacements_[kMaxReplacements];
-  u32 replacement_count_ = 0;
+  FixedList<Replacement, kMaxReplacements> replacements_;
 };
 
 } // namespace core
