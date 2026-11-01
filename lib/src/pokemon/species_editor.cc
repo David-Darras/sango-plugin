@@ -263,6 +263,22 @@ bool SpeciesChanges::AddEvolutions(SpeciesId species,
   return true;
 }
 
+void SpeciesChanges::RemoveLists(bool (*is_removed)(const void* table)) {
+  auto& self = GetInstance();
+  u32 kept = 0;
+  for (u32 i = 0; i < self.learnset_count_; i++) {
+    if (is_removed(self.learnsets_[i].moves)) continue;
+    self.learnsets_[kept++] = self.learnsets_[i];
+  }
+  self.learnset_count_ = kept;
+  kept = 0;
+  for (u32 i = 0; i < self.evolution_count_; i++) {
+    if (is_removed(self.evolutions_[i].steps)) continue;
+    self.evolutions_[kept++] = self.evolutions_[i];
+  }
+  self.evolution_count_ = kept;
+}
+
 bool SpeciesChanges::GetEvolutionList(u32 index, SpeciesId* species,
                                       const EvolutionStep** steps, u32* count) {
   auto& self = GetInstance();

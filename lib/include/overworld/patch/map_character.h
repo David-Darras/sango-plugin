@@ -74,6 +74,9 @@ struct MapCharacterRequest {
   TrainerId trainer_id = TrainerId::kNone;
   /// The number of tiles that the trainer sees in front of it (1 to 10).
   u8 sight = 3;
+  /// Any address that names the code that added the character, for
+  /// MapCharacter::RemoveByOwner(). Null: no owner.
+  const void* owner = nullptr;
 };
 
 /**
@@ -163,6 +166,13 @@ public:
   }
   /// Removes all the added characters.
   static void Clear();
+  /// Removes the characters that `owner` added (MapCharacterRequest::owner).
+  /// The map shows the change at its next load.
+  static void RemoveByOwner(const void* owner);
+  /// Loads the current map again when the player moves, like a warp: the
+  /// map then shows the new characters and their models. Call it after a
+  /// change of the characters while the player is on a map.
+  static void ReloadMapWhenPlayerMoves();
   /// Removes the characters of the game from a map (64 maps at most).
   static bool Empty(MapId map_id);
   /// Returns the number of added characters.

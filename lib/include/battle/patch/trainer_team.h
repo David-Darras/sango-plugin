@@ -353,6 +353,8 @@ public:
   static void SetTable(const TrainerTeamEntry* table, u32 count);
   /// Removes all the teams.
   static void Clear();
+  /// Removes the teams of Add() for which `is_removed(entry)` is true.
+  static void Remove(bool (*is_removed)(const TrainerTeamEntry& entry));
   /// Returns the team of a trainer, or null.
   static const TrainerTeam* Find(TrainerId id);
   /// Replaces the team of the trainer, if it has a new team. The library calls

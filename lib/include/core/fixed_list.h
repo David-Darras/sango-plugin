@@ -74,6 +74,21 @@ public:
     return nullptr;
   }
 
+  /// Removes the values for which `predicate(value)` is true. The other
+  /// values keep their order. Returns the number of removed values.
+  template <typename Predicate>
+  u32 RemoveIf(Predicate predicate) {
+    u32 kept = 0;
+    for (u32 i = 0; i < count_; i++) {
+      if (predicate(items_[i])) continue;
+      if (kept != i) items_[kept] = items_[i];
+      kept++;
+    }
+    const u32 removed = count_ - kept;
+    count_ = kept;
+    return removed;
+  }
+
   /// Removes all the values.
   void Clear() { count_ = 0; }
 

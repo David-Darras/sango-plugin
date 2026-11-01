@@ -1112,6 +1112,7 @@ void OnStoryLine(Span line, bool is_section) {
     return;
   }
   Instruction in = {};
+  in.line = static_cast<u16>(current_line);
   if (!ParseCommand(line, &in)) {
     Report("unknown command:", line);
     return;
@@ -1277,6 +1278,36 @@ const Story* FindStory(u16 id) {
 
 const Instruction& GetInstruction(u32 index) {
   return instruction_pool[index < instruction_count ? index : 0];
+}
+
+const c8* GetCommandName(Op op) {
+  // The same order as Op.
+  static const c8* const kNames[] = {
+      "say", "sign", "ask", "choose", "if", "else", "end", "stop",
+      "face player", "give item", "take item", "give pokemon", "give money",
+      "take money", "set flag", "clear flag", "set var", "add var",
+      "battle trainer", "battle wild", "warp", "heal", "fade out", "fade in",
+      "music", "music end", "wait", "sound", "call",
+  };
+  static_assert(SIZE(kNames) == static_cast<u32>(Op::kCallScript) + 1,
+                "one name for each command");
+  const u32 index = static_cast<u32>(op);
+  return index < SIZE(kNames) ? kNames[index] : "?";
+}
+
+namespace {
+template <typename T, u32 N>
+bool IsIn(const void* address, const T (&pool)[N]) {
+  const u8* byte = static_cast<const u8*>(address);
+  const u8* start = reinterpret_cast<const u8*>(pool);
+  return byte >= start && byte < start + sizeof(pool);
+}
+} // namespace
+
+bool IsReaderMemory(const void* address) {
+  return IsIn(address, slot_pool) || IsIn(address, move_pool) ||
+         IsIn(address, step_pool) || IsIn(address, text_pool) ||
+         IsIn(address, story_text_pool);
 }
 
 void Clear() {

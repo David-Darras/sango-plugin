@@ -95,6 +95,9 @@ struct WildEncounter {
 
   /// Removes all the tables of SetTable().
   static void ClearTables();
+  /// Removes the tables for which `is_removed(table)` is true. The game shows
+  /// the change at the next load of the map.
+  static void RemoveTables(bool (*is_removed)(const EncounterTable& table));
 
   /// Called when the game reads the encounter table of a map. Change the
   /// table: the DexNav then shows the new Pokémon.

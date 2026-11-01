@@ -196,6 +196,11 @@ public:
   static bool AddEvolutions(SpeciesId species, const EvolutionStep* steps,
                             u32 count);
 
+  /// Removes the learnsets and the evolution lists whose table makes
+  /// `is_removed(table)` true (the address of the LevelMove or of the
+  /// EvolutionStep table). core::DataFiles uses it to read the files again.
+  static void RemoveLists(bool (*is_removed)(const void* table));
+
   /// Returns the number of evolution lists of the product.
   static u32 GetEvolutionListCount() { return GetInstance().evolution_count_; }
   /// Gives the evolution list number @a index of the product. Returns false

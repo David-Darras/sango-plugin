@@ -31,6 +31,7 @@
 #include "ui/performance_overlay.h"
 #include "ui/screenshot_mode.h"
 #include "ui/splash.h"
+#include "core/data_files.h"
 #include "core/frame_trace.h"
 #include "core/hook.h"
 #include "core/problems.h"
@@ -204,6 +205,8 @@ void UpdateFrame() {
   ui::ScreenshotMode::Update();
   core::CheatCodeManager::GetInstance().Update();
 
+  // The files of Sango Maker, before the characters that they add.
+  core::DataFiles::Update();
   overworld::MapCharacter::Update();
   overworld::PlacedDecorations::Update();
 #ifdef GAME_ORAS

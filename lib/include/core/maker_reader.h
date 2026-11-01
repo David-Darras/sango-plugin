@@ -156,6 +156,7 @@ struct Instruction {
   u16 c;
   u16 d;
   u16 jump; ///< The next instruction of "if" (when false) and of "else".
+  u16 line; ///< The line of the command in story.txt.
   const c16* text; ///< The text (the choices of "choose" follow each other).
 };
 
@@ -235,6 +236,12 @@ void ReadCharacters(const c8* text, u32 size, Sink& sink);
 const Story* FindStory(u16 id);
 /// Returns a command of the scripts of story.txt.
 const Instruction& GetInstruction(u32 index);
+/// Returns the name of a command, for example "give item".
+const c8* GetCommandName(Op op);
+
+/// Returns true when `address` is in the memory of the reader: the slots,
+/// the learnsets, the evolutions and the texts that the sink received.
+bool IsReaderMemory(const void* address);
 
 /// Forgets all the files that the reader read: the encounters, the texts,
 /// the learnsets and the scripts. The memory of the old files is then free

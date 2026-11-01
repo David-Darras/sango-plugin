@@ -26,6 +26,9 @@
 
 #include "core/data_files.h"
 
+#include <cstdarg>
+#include <cstdio>
+
 #include "battle/patch/trainer_team.h"
 #include "core/data_folder.h"
 #include "core/problems.h"
@@ -35,6 +38,7 @@
 #include "script/patch/native_script.h"
 #include "system/native/file.h"
 #include "system/native/sound.h"
+#include "ui/log.h"
 
 namespace core {
 namespace {
@@ -45,12 +49,35 @@ using maker::Op;
 
 void RunStory(script::Context& s);
 
+// The problems of the last read of the files, for the Sango Maker page.
+c8 problems[DataFiles::kMaxProblems][DataFiles::kMaxProblemLength];
+u32 problem_count = 0;
+// true while Reload() reads the files: the problems go to the log, not to
+// the screen of the problems of the start.
+bool is_reloading = false;
+
+void AddProblem(const c8* format, ...) {
+  if (problem_count < DataFiles::kMaxProblems) {
+    va_list args;
+    va_start(args, format);
+    std::vsnprintf(problems[problem_count], DataFiles::kMaxProblemLength,
+                   format, args);
+    va_end(args);
+  }
+  problem_count++;
+}
+
 // Gives the parts of the files to the features of the game.
 class GameSink : public maker::Sink {
 public:
   void OnProblem(const c8* file, u32 line, const c8* what,
                  const c8* word) override {
-    Problems::Add(u"%s %u: %s %s", file, line, what, word);
+    AddProblem("%s %u: %s %s", file, line, what, word);
+    if (is_reloading) {
+      ui::Log::Print(u"%s %u: %s %s", file, line, what, word);
+    } else {
+      Problems::Add(u"%s %u: %s %s", file, line, what, word);
+    }
   }
 
   void OnEncounterTable(MapId map, EncounterMethod method,
@@ -129,7 +156,10 @@ public:
   }
 
   void OnStory(u16 id) override {
-    script::NativeScript::Register(static_cast<ScriptId>(id), RunStory);
+    const ScriptId script = static_cast<ScriptId>(id);
+    // After Reload(), the script of the first read stays registered.
+    if (is_reloading && script::NativeScript::IsRegistered(script)) return;
+    script::NativeScript::Register(script, RunStory);
   }
 
   bool OnCharacter(const maker::Character& in) override {
@@ -143,8 +173,16 @@ public:
     request.script_id = in.script;
     request.trainer_id = in.trainer;
     request.sight = in.sight;
+    request.owner = this;
     return overworld::MapCharacter::Add(request);
   }
+
+  /// Returns true when the team comes from trainers.txt.
+  bool IsOwnTeam(const battle::TrainerTeam* team) const {
+    return team >= teams_ && team < teams_ + team_count_;
+  }
+  /// Forgets the teams. Remove them from TrainerTeams before.
+  void ClearTeams() { team_count_ = 0; }
 
 private:
   // The teams of trainers.txt: TrainerTeams keeps their addresses.
@@ -161,16 +199,69 @@ c8 file_buffer[maker::kMaxFileSize];
 
 typedef void (*ReadFunction)(const c8* text, u32 size, maker::Sink& sink);
 
-// Reads a file of the SD card and gives its parts to the game. Returns false
-// when the file does not exist.
-bool LoadFile(const c16* path, const c8* name, ReadFunction read) {
+// Reads a file of the SD card and gives its parts to the game. Returns the
+// size of the file (0: the file does not exist).
+u32 LoadFile(const c16* path, const c8* name, ReadFunction read) {
   const u32 size = sys::File::ReadAll(path, file_buffer, sizeof(file_buffer));
-  if (size == 0) return false;
+  if (size == 0) return 0;
   if (size >= sizeof(file_buffer)) {
-    Problems::Add(u"%s: the file is too big", name);
+    game_sink.OnProblem(name, 0, "the file is too big", "");
   }
   read(file_buffer, size, game_sink);
-  return true;
+  return size;
+}
+
+// The files of Load(), in their order.
+struct DataFile {
+  const c16* path;
+  const c8* name;
+  ReadFunction read;
+};
+
+const DataFile kFiles[] = {
+    {SANGO_DATA_PATH(u"encounters.txt"), "encounters.txt",
+     maker::ReadEncounters},
+    {SANGO_DATA_PATH(u"trainers.txt"), "trainers.txt", maker::ReadTrainers},
+    {SANGO_DATA_PATH(u"species.txt"), "species.txt", maker::ReadSpecies},
+    {SANGO_DATA_PATH(u"story.txt"), "story.txt", maker::ReadStory},
+    {SANGO_DATA_PATH(u"characters.txt"), "characters.txt",
+     maker::ReadCharacters},
+};
+constexpr u32 kFileCount = SIZE(kFiles);
+
+// Update() reads one file each kPollFrames frames, when `is_live` is on.
+constexpr u32 kPollFrames = 30;
+
+// The hash of each file at the last read: a new hash means a change.
+u32 file_hashes[kFileCount];
+u32 frame = 0;
+u32 reload_count = 0;
+bool is_loaded = false;
+bool is_reload_pending = false;
+
+u32 HashBytes(const c8* data, u32 size) {
+  u32 hash = 2166136261u ^ size;
+  for (u32 i = 0; i < size; i++) {
+    hash ^= static_cast<u8>(data[i]);
+    hash *= 16777619u;
+  }
+  return hash;
+}
+
+// Removes the data of the last read from the game, before a new read. The
+// changes of the stats, the types... of species.txt stay.
+void RemoveFileData() {
+  overworld::WildEncounter::RemoveTables(
+      [](const overworld::EncounterTable& table) {
+        return maker::IsReaderMemory(table.slots);
+      });
+  battle::TrainerTeams::Remove([](const battle::TrainerTeamEntry& entry) {
+    return game_sink.IsOwnTeam(entry.team);
+  });
+  game_sink.ClearTeams();
+  pokemon::SpeciesChanges::RemoveLists(maker::IsReaderMemory);
+  overworld::MapCharacter::RemoveByOwner(&game_sink);
+  maker::Clear();
 }
 
 // The values of the script that runs: the answers, the choice and the last
@@ -221,6 +312,10 @@ void RunStory(script::Context& s) {
   const u32 end = story->first + story->count;
   while (pc < end) {
     const maker::Instruction& in = maker::GetInstruction(pc++);
+    if (DataFiles::GetInstance().trace_story) {
+      ui::Log::Print(u"story %u line %u: %s", id, in.line,
+                     maker::GetCommandName(in.op));
+    }
     switch (in.op) {
       case Op::kSay: s.Talk(in.text); break;
       case Op::kSign: s.Talk(in.text, script::WindowType::kSign); break;
@@ -308,31 +403,77 @@ void RunStory(script::Context& s) {
 } // namespace
 
 bool DataFiles::LoadEncounters(const c16* path) {
-  return LoadFile(path, "encounters.txt", maker::ReadEncounters);
+  return LoadFile(path, "encounters.txt", maker::ReadEncounters) != 0;
 }
 
 bool DataFiles::LoadTrainers(const c16* path) {
-  return LoadFile(path, "trainers.txt", maker::ReadTrainers);
+  return LoadFile(path, "trainers.txt", maker::ReadTrainers) != 0;
 }
 
 bool DataFiles::LoadSpecies(const c16* path) {
-  return LoadFile(path, "species.txt", maker::ReadSpecies);
+  return LoadFile(path, "species.txt", maker::ReadSpecies) != 0;
 }
 
 bool DataFiles::LoadStory(const c16* path) {
-  return LoadFile(path, "story.txt", maker::ReadStory);
+  return LoadFile(path, "story.txt", maker::ReadStory) != 0;
 }
 
 bool DataFiles::LoadCharacters(const c16* path) {
-  return LoadFile(path, "characters.txt", maker::ReadCharacters);
+  return LoadFile(path, "characters.txt", maker::ReadCharacters) != 0;
 }
 
 void DataFiles::Load() {
-  LoadEncounters(SANGO_DATA_PATH(u"encounters.txt"));
-  LoadTrainers(SANGO_DATA_PATH(u"trainers.txt"));
-  LoadSpecies(SANGO_DATA_PATH(u"species.txt"));
-  LoadStory(SANGO_DATA_PATH(u"story.txt"));
-  LoadCharacters(SANGO_DATA_PATH(u"characters.txt"));
+  problem_count = 0;
+  for (u32 i = 0; i < kFileCount; i++) {
+    const DataFile& file = kFiles[i];
+    const u32 size = LoadFile(file.path, file.name, file.read);
+    file_hashes[i] = HashBytes(file_buffer, size);
+  }
+  is_loaded = true;
 }
+
+bool DataFiles::Reload() {
+  // A script of story.txt reads the commands of the reader: wait for its end.
+  if (script::NativeScript::GetCurrentId() != ScriptId::kNone) {
+    is_reload_pending = true;
+    return false;
+  }
+  is_reload_pending = false;
+  RemoveFileData();
+  is_reloading = true;
+  Load();
+  is_reloading = false;
+  reload_count++;
+  // The models of the characters of a region load with the map: a new
+  // model needs a new load.
+  overworld::MapCharacter::ReloadMapWhenPlayerMoves();
+  ui::Log::Print(u"Sango Maker: files read again, %u problems",
+                 problem_count);
+  return true;
+}
+
+void DataFiles::Update() {
+  if (is_reload_pending) {
+    Reload();
+    return;
+  }
+  if (!is_loaded || !GetInstance().is_live) return;
+  if (++frame % kPollFrames != 0) return;
+  // One file at each poll: a read of the SD card is slow.
+  const u32 index = (frame / kPollFrames) % kFileCount;
+  const u32 size = sys::File::ReadAll(kFiles[index].path, file_buffer,
+                                      sizeof(file_buffer));
+  if (HashBytes(file_buffer, size) != file_hashes[index]) Reload();
+}
+
+u32 DataFiles::GetProblemCount() { return problem_count; }
+
+const c8* DataFiles::GetProblem(u32 index) {
+  return problems[index < kMaxProblems ? index : 0];
+}
+
+u32 DataFiles::GetReloadCount() { return reload_count; }
+
+bool DataFiles::IsLoaded() { return is_loaded; }
 
 } // namespace core

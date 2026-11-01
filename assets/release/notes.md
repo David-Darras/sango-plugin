@@ -42,5 +42,6 @@ The zip has a `README.txt` with the same steps.
 
 **For the modders:** the zip also has **Sango Maker** (`sango_maker/`), the example text files and the web editor (`maker_editor/index.html`).
 Sango Maker makes a ROM hack with text files, without code. Part 2 of `README.txt` explains how to install it.
+Its menu page **Sango Maker** reads the files again without a restart (also when they change), lists their problems and changes the flags and the variables.
 
 Feedback and bug reports are welcome.

@@ -37,6 +37,9 @@
  * The Sango Maker product (maker/) calls DataFiles::Load(). A product in C++
  * can call it too, in SetUpHack().
  *
+ * Reload() reads the files again while the game runs (the Sango Maker page
+ * of the menu). With `is_live`, Update() reads them again when they change.
+ *
  * @see docs/tutorials/18-make-a-rom-hack-without-code.md
  */
 
@@ -49,10 +52,47 @@ namespace core {
 
 /// Reads the data files of the ROM hack.
 class DataFiles {
+  MAKE_SINGLETON(DataFiles)
+
 public:
+  /// The number of problems that GetProblem() keeps.
+  static constexpr u32 kMaxProblems = 16;
+  /// The length of a problem, with the end of the text.
+  static constexpr u32 kMaxProblemLength = 64;
+
+  bool is_live = false; ///< Reads the files again when they change.
+  bool trace_story = false; ///< Writes each command of story.txt to the log.
+
   /// Reads encounters.txt, trainers.txt, species.txt, story.txt and
   /// characters.txt. Call it in SetUpHack().
   static void Load();
+
+  /**
+   * @brief Removes the data of the files from the game, then reads the files
+   *        again.
+   *
+   * A change of the stats, of the types, of the abilities, of the TMs or of
+   * the catch rate stays until the next start when its line goes away. The
+   * map loads again at the next step of the player, with the new characters
+   * and wild Pokémon.
+   *
+   * @return false when a script of story.txt runs: Update() reads the files
+   *         after the script.
+   */
+  static bool Reload();
+
+  /// Reads the files again after a Reload() that waits, or when a file
+  /// changes (`is_live`). The library calls it at each frame.
+  static void Update();
+
+  /// Returns the number of problems of the last read of the files.
+  static u32 GetProblemCount();
+  /// Returns a problem of the last read of the files (UTF-8).
+  static const c8* GetProblem(u32 index);
+  /// Returns the number of Reload() since the start.
+  static u32 GetReloadCount();
+  /// Returns true after Load(): the product uses the files.
+  static bool IsLoaded();
 
   static bool LoadEncounters(const c16* path);
   static bool LoadTrainers(const c16* path);

@@ -55,6 +55,9 @@ struct Recorder : Sink {
   std::vector<u16> stories;
   std::vector<Character> characters;
   bool is_character_list_full = false;
+  // The addresses that the reader gives: they stay in its memory.
+  std::vector<const void*> slot_addresses;
+  const void* learnset_address = nullptr;
 
   void OnProblem(const c8* file, u32 line, const c8* what,
                  const c8* word) override {
@@ -66,6 +69,7 @@ struct Recorder : Sink {
                         u32 count) override {
     tables.push_back({map, method, std::vector<overworld::EncounterSlot>(
                                        slots, slots + count)});
+    slot_addresses.push_back(slots);
   }
   void OnTrainer(TrainerId trainer) override { trainers.push_back(trainer); }
   void OnTrainerFormat(Format value) override { format = value; }
@@ -109,6 +113,7 @@ struct Recorder : Sink {
   void OnSpeciesLearnset(SpeciesId, FormId, const pokemon::LevelMove* moves,
                          u32 count) override {
     learnset.assign(moves, moves + count);
+    learnset_address = moves;
   }
   void OnSpeciesEvolutions(SpeciesId, const pokemon::EvolutionStep* steps,
                            u32 count) override {
@@ -347,6 +352,39 @@ TEST(StoryLinksTheIfElseAndEnd) {
   CHECK_EQ(GetInstruction(first + 3).b, 3);
   // The "else" goes to the "end".
   CHECK_EQ(GetInstruction(first + 4).jump, first + 6);
+}
+
+TEST(StoryKeepsTheLineAndTheNameOfEachCommand) {
+  const Recorder r = ReadText(ReadStory,
+                              "# A comment\n"
+                              "[33000]\n"
+                              "say Hello.\n"
+                              "\n"
+                              "give item Potion 1\n");
+  CHECK_EQ(r.problems.size(), 0);
+  const Story* story = FindStory(33000);
+  CHECK(story != nullptr);
+  if (story == nullptr) return;
+  CHECK_EQ(GetInstruction(story->first).line, 3);
+  CHECK_EQ(GetInstruction(story->first + 1).line, 5);
+  CHECK(std::string(GetCommandName(Op::kSay)) == "say");
+  CHECK(std::string(GetCommandName(Op::kGiveItem)) == "give item");
+  CHECK(std::string(GetCommandName(Op::kCallScript)) == "call");
+}
+
+TEST(ReaderMemoryHasTheSlotsAndTheLearnsets) {
+  Recorder r = ReadText(ReadEncounters,
+                        "[Route 101, Walk]\n"
+                        "Pikachu, 3, 5\n");
+  CHECK_EQ(r.tables.size(), 1);
+  CHECK(IsReaderMemory(r.slot_addresses[0]));
+  r = ReadText(ReadSpecies,
+               "[Pikachu]\n"
+               "learnset = 1 Thunder Shock\n");
+  CHECK(r.learnset_address != nullptr && IsReaderMemory(r.learnset_address));
+  const int local = 0;
+  CHECK(!IsReaderMemory(&local));
+  CHECK(!IsReaderMemory(nullptr));
 }
 
 TEST(StoryReadsAllTheCommands) {

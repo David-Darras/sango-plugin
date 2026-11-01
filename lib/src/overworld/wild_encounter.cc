@@ -76,6 +76,17 @@ bool WildEncounter::SetTable(MapId map_id, EncounterMethod method,
 
 void WildEncounter::ClearTables() { GetInstance().table_count_ = 0; }
 
+void WildEncounter::RemoveTables(
+    bool (*is_removed)(const EncounterTable& table)) {
+  auto& self = GetInstance();
+  u32 kept = 0;
+  for (u32 i = 0; i < self.table_count_; i++) {
+    if (is_removed(self.tables_[i])) continue;
+    self.tables_[kept++] = self.tables_[i];
+  }
+  self.table_count_ = kept;
+}
+
 PokeInfoOnAction* WildEncounter::GetPlaces(EncounterData* data,
                                            EncounterMethod method,
                                            u32* count) {

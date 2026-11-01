@@ -21,6 +21,7 @@
  */
 
 #include "battle/patch/game_extension.h"
+#include "core/data_files.h"
 #include "core/native/event_manager.h"
 #include "core/patch/game_speed.h"
 #include "savedata/native/pokemon_team.h"
@@ -70,8 +71,13 @@ void LoadTopPage(MainApplication& app, void* args) {
      .WithDescription("The overworld scripts and the C++ scripts.")
      .Add("Game Text", LoadTextEditorPage)
      .WithDescription("The last texts that the game read: change the "
-         "dialogues and the names, add colors and pauses.")
-     .AddSection("Look And Sound")
+         "dialogues and the names, add colors and pauses.");
+  if (core::DataFiles::IsLoaded()) {
+    app.Add("Sango Maker", LoadMakerPage)
+       .WithDescription("Read the text files again without a restart, see "
+           "their problems, and change the flags and the variables.");
+  }
+  app.AddSection("Look And Sound")
      .Add("Graphics", LoadGraphicsPage)
      .WithDescription("Lighting, outlines, color filters, layouts and the "
          "model loader.")
@@ -86,6 +92,9 @@ void LoadTopPage(MainApplication& app, void* args) {
          "menu.")
      .Add("Log", LoadLogPage)
      .WithDescription("The last messages of the plugin.")
+     .Add("Problems", LoadProblemsPage)
+     .WithDescription("The problems that the plugin found at the start: "
+         "the ids, the lists that are full, the mistakes of the files.")
      .Add("System", LoadSystemPage)
      .WithDescription("The performance overlay and the clock of the "
          "game.")

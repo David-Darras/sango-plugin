@@ -226,7 +226,31 @@ Start the game. The changes are there at once: no build.
 
 If a name is wrong, the top screen shows the problems a few seconds after the
 start, with the file and the line: `encounters.txt 12: unknown species Pikachuu`.
-Correct the file and start the game again.
+Correct the file, then read it again without a restart (see the next step).
+
+## Step 8: Test without a restart
+
+Open the menu, then **Sango Maker**:
+
+| Entry | What it does |
+|---|---|
+| **Read The Files Again** | Reads the five files again. The problems of the files show below, with the file and the line. |
+| **Live Reload** | Reads the files again when they change. Copy a file to the SD card (for example with an FTP server on the console), and the game uses it some seconds later. |
+| **Trace story.txt** | Writes each command of `story.txt` to the log when it runs: `story 33000 line 12: give item`. See **Plugin > Log**. |
+| **Flag**, **Flag Is Set** | Shows and changes a flag of `story.txt` (`set flag`, `if flag`). |
+| **Variable**, **Variable Value** | Shows and changes a variable of `story.txt` (`set var`, `if var`). |
+
+The new data has some limits:
+
+- The map loads again at your next step, like after a warp: it then shows
+  the new characters and the new wild Pokémon.
+- When you remove a line of `species.txt` (stats, types, abilities, TMs,
+  catch rate), its change stays until the next start. A new value replaces
+  the old value at once.
+- When a script of `story.txt` runs, the files are read at the end of the
+  script.
+
+**Plugin > Problems** shows the problems of the start again.
 
 ## The editor on your computer
 
@@ -288,5 +312,7 @@ void SetUpHack() {
   menu give it to a character or to an event.
 - The editors of the menu write the other files in the same folder.
 - The screen of the problems shows the mistakes, with the file and the line.
+- The Sango Maker page reads the files again without a restart, shows their
+  problems and changes the flags and the variables.
 
 **Next:** [Tutorials](README.md)

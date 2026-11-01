@@ -131,6 +131,11 @@ Open them in a text editor (Notepad is good) and save them in UTF-8. The
 examples show the format. A mistake in a file shows on a screen of problems
 when the game starts: the screen gives the file and the line.
 
+Test without a restart: open the menu, then Sango Maker. "Read The Files
+Again" reads the files at once and lists their problems. "Live Reload" reads
+them when they change on the SD card. The page also changes the flags and the
+variables of story.txt.
+
 The editor (on a computer)
 --------------------------
 Open maker_editor/index.html in a web browser (double-click). Keep names.js

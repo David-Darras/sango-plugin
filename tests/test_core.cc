@@ -56,6 +56,18 @@ TEST(FixedListFindsAValue) {
   CHECK_EQ(kConstantList.Count(), 0);
 }
 
+TEST(FixedListRemovesValuesAndKeepsTheOrder) {
+  core::FixedList<int, 6> list;
+  for (int value = 1; value <= 6; value++) list.Add(value);
+  CHECK_EQ(list.RemoveIf([](int value) { return value % 2 == 0; }), 3);
+  CHECK_EQ(list.Count(), 3);
+  CHECK_EQ(list[0], 1);
+  CHECK_EQ(list[1], 3);
+  CHECK_EQ(list[2], 5);
+  CHECK_EQ(list.RemoveIf([](int value) { return value > 99; }), 0);
+  CHECK_EQ(list.Count(), 3);
+}
+
 TEST(Utf8ToUtf16ReadsOneTwoAndThreeBytes) {
   c16 out[16];
   // "aé€": 1, 2 and 3 bytes.

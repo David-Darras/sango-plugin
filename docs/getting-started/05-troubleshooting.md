@@ -45,6 +45,7 @@ Make sure that the size of each member is correct. Read [Game structures](../con
 The library checks your ROM hack when the game starts. A few seconds after the
 start, the top screen shows the problems that it found. Press **A** or **B** to
 close the list. The log of the plugin (**Plugin > Log**) also shows them.
+**Plugin > Problems** shows the list again.
 
 | Problem | Cause | Solution |
 |---|---|---|

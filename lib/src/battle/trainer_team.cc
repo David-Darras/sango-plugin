@@ -96,6 +96,10 @@ void TrainerTeams::SetTable(const TrainerTeamEntry* table, u32 count) {
   ctx.table_count_ = count;
 }
 
+void TrainerTeams::Remove(bool (*is_removed)(const TrainerTeamEntry& entry)) {
+  GetInstance().teams_.RemoveIf(is_removed);
+}
+
 void TrainerTeams::Clear() {
   auto& ctx = GetInstance();
   ctx.teams_.Clear();

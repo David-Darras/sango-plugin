@@ -123,6 +123,13 @@ bool MapCharacter::Add(const MapCharacterRequest& request) {
   return true;
 }
 
+void MapCharacter::RemoveByOwner(const void* owner) {
+  GetInstance().requests_.RemoveIf(
+      [owner](const MapCharacterRequest& request) {
+        return request.owner == owner;
+      });
+}
+
 void MapCharacter::Clear() {
   GetInstance().requests_.Clear();
   GetInstance().emptied_count_ = 0;
@@ -162,10 +169,15 @@ void MapCharacter::ReloadMapAfterBattleWith(u16 trainer_id) {
         trainer_id) {
       continue;
     }
-    ctx.is_reload_armed_ = true;
-    ctx.has_resting_spot_ = false;
+    ReloadMapWhenPlayerMoves();
     return;
   }
+}
+
+void MapCharacter::ReloadMapWhenPlayerMoves() {
+  auto& ctx = GetInstance();
+  ctx.is_reload_armed_ = true;
+  ctx.has_resting_spot_ = false;
 }
 
 void MapCharacter::Update() {

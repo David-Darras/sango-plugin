@@ -24,6 +24,7 @@
 #include "ui/main_application.h"
 #include "core/frame_trace.h"
 #include "core/patch/game_speed.h"
+#include "core/problems.h"
 #include "ui/page/pages.h"
 #include "ui/performance_overlay.h"
 
@@ -32,6 +33,8 @@ namespace {
 // The lines of the log as UTF-8: the names of the entries of the log page.
 constexpr u32 kLogLineLength = 96;
 c8 log_lines[Log::GetLineCount()][kLogLineLength];
+// The problems of the start as UTF-8.
+c8 problem_lines[core::Problems::kMaxProblems][kLogLineLength];
 
 // Converts a UTF-16 text into UTF-8.
 void ToUtf8(const c16* text, c8* out, u32 size) {
@@ -74,6 +77,24 @@ void LoadLogPage(MainApplication& app, void* args) {
     count++;
   }
   if (count == 0) app.Add("The log is empty.");
+}
+
+void LoadProblemsPage(MainApplication& app, void* args) {
+  using core::Problems;
+  app.AddSection("Problems Of The Start");
+  const u32 count = Problems::GetCount();
+  const u32 shown = count < Problems::kMaxProblems ? count
+                                                   : Problems::kMaxProblems;
+  for (u32 i = 0; i < shown; i++) {
+    ToUtf8(Problems::Get(i), problem_lines[i], kLogLineLength);
+    app.Add(problem_lines[i]).WithDescription(problem_lines[i]);
+  }
+  if (count > shown) {
+    app.Add("More problems: see the log.")
+       .WithDescription("The list keeps the first problems. The log of the "
+                        "plugin has all of them.");
+  }
+  if (count == 0) app.Add("No problem.");
 }
 
 void LoadSystemPage(MainApplication& app, void* args) {
