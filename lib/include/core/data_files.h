@@ -24,7 +24,7 @@
  * - `encounters.txt`: the wild Pokémon of the maps,
  * - `trainers.txt`: the teams and the data of the trainers,
  * - `species.txt`: the stats, the types, the TMs, the learnsets and the
- *   evolutions of the species,
+ *   evolutions of the species, and the new species ([new Sangoat, Skiddo]),
  * - `story.txt`: the scripts of the characters and of the events (talk,
  *   choices, conditions, battles, warps, gifts...),
  * - `characters.txt`: the characters and the trainers to add to the maps,

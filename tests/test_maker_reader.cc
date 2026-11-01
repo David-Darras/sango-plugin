@@ -156,6 +156,11 @@ struct Recorder : Sink {
   void OnMove(const MoveChange& change) override {
     move_changes.push_back(change);
   }
+  SpeciesId OnNewSpecies(const c16* name, SpeciesId data_from,
+                         SpeciesId model) override {
+    new_species.push_back({std::u16string(name), data_from, model});
+    return static_cast<SpeciesId>(1020 + new_species.size());
+  }
 
   std::vector<std::string> rules;
   std::vector<SpeciesId> starters;
@@ -168,6 +173,12 @@ struct Recorder : Sink {
   std::vector<u32> shop_prices;
   std::vector<ItemChange> item_changes;
   std::vector<MoveChange> move_changes;
+  struct NewSpecies {
+    std::u16string name;
+    SpeciesId data_from;
+    SpeciesId model;
+  };
+  std::vector<NewSpecies> new_species;
 };
 
 // Reads a text with a reader of core::maker.
@@ -664,4 +675,29 @@ TEST(MovesReportTheMistakes) {
                               "priority = --1\n"
                               "colour = blue\n");
   CHECK_EQ(r.problem_lines.size(), 9);
+}
+
+TEST(NewSpeciesHaveANameForTheOtherFiles) {
+  const Recorder r = ReadText(ReadSpecies,
+                              "[new Sangoat, Skiddo, Gogoat]\n"
+                              "stats = 80, 95, 70, 60, 75, 85\n"
+                              "[new Mewtwo, Mew]\n"
+                              "[new Bigcat, Skitty]\n");
+  CHECK_EQ(r.problems.size(), 1);  // Mewtwo is a name of the game.
+  CHECK_EQ(r.new_species.size(), 2);
+  if (r.new_species.size() != 2) return;
+  CHECK(r.new_species[0].name == u"Sangoat");
+  CHECK_EQ(r.new_species[0].data_from, SpeciesId::kSkiddo);
+  CHECK_EQ(r.new_species[0].model, SpeciesId::kGogoat);
+  // Without a model, the model is the species of the data.
+  CHECK_EQ(r.new_species[1].model, SpeciesId::kSkitty);
+  CHECK(r.species_changes.size() == 1);
+  // The other files find the new names, until Clear().
+  u32 value = 0;
+  CHECK(core::DataNames::Find(core::NameKind::kSpecies, "sangoat", 7, &value));
+  CHECK_EQ(value, 1021);
+  CHECK(core::DataNames::Find(core::NameKind::kSpecies, "BIGCAT", 6, &value));
+  CHECK_EQ(value, 1022);
+  Clear();
+  CHECK(!core::DataNames::Find(core::NameKind::kSpecies, "Sangoat", 7, &value));
 }

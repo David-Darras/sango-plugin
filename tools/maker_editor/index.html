@@ -174,12 +174,21 @@ function norm(text) {
 const NAMES = {};
 for (const kind in SANGO_NAMES) NAMES[kind] = new Set(SANGO_NAMES[kind].map(norm));
 
-// A name of the library, or a number.
-function known(kind, text) {
+// The names of the new species of species.txt ([new Sangoat, Skiddo]).
+// checkSpecies() fills the list.
+const newSpecies = new Set();
+
+// A name of the game, or a number.
+function knownGame(kind, text) {
   text = text.trim();
   if (/^\d+$/.test(text)) return true;
   const n = norm(text);
   return n !== "" && NAMES[kind].has(n);
+}
+
+// A name of the game, a new species, or a number.
+function known(kind, text) {
+  return knownGame(kind, text) || (kind === "species" && newSpecies.has(norm(text)));
 }
 
 function isNumber(text) { return /^\d+$/.test(text.trim()); }
@@ -327,12 +336,34 @@ function checkTrainers(text) {
   return errors;
 }
 
+// [new Sangoat, Skiddo, Gogoat]: returns a problem, or null.
+function checkNewSpecies(text) {
+  const parts = text.split(",").map((p) => p.trim());
+  if (parts.length < 2 || parts.length > 3) return "use [new name, species, model]";
+  const name = parts[0];
+  if (norm(name) === "") return "give a name";
+  if (known("species", name)) return "the name is used: " + name;
+  if (name.length > 12) return "use a name of 12 letters at most: " + name;
+  for (const species of parts.slice(1)) if (!knownGame("species", species)) return "unknown species: " + species;
+  if (newSpecies.size >= 64) return "too many new species: " + name;
+  newSpecies.add(norm(name));
+  return null;
+}
+
 function checkSpecies(text) {
   const errors = [];
   let open = false;
+  newSpecies.clear();
   for (const line of readLines(text)) {
     const err = (message) => errors.push({ n: line.n, message });
     if (line.isSection) {
+      const [word, rest] = splitWord(line.text);
+      if (norm(word) === "new" && rest !== "") {
+        const problem = checkNewSpecies(rest);
+        open = problem === null;
+        if (!open) err(problem);
+        continue;
+      }
       const parts = line.text.split(",").map((p) => p.trim());
       open = known("species", parts[0]);
       if (!open) err("unknown species: " + parts[0]);
@@ -733,6 +764,8 @@ function store(key, value) {
 for (const key in FILES) texts[key] = load(key);
 
 function validate() {
+  // The other files use the names of the new species of species.txt.
+  if (current !== "species") checkSpecies(texts.species || "");
   const errors = FILES[current].check(textarea.value);
   const list = document.getElementById("problems");
   list.innerHTML = "";
@@ -928,7 +961,20 @@ function speciesHelper(panel) {
   };
   addMove();
   addEvolution();
+  const newName = field("Name (12 letters)", null, { maxLength: 12 });
+  const newFrom = field("Data from", "species");
+  const newModel = field("Model of", "species");
   panel.append(
+    el("h2", { textContent: "A new species (Alpha Sapphire)" }),
+    el("div", { className: "row grid3" }, [newName, newFrom, newModel]),
+    el("div", { className: "buttons" }, [
+      button("New species", () => {
+        let text = "[new " + (value(newName) || "Sangoat") + ", " + (value(newFrom) || "Skiddo");
+        if (value(newModel) !== "") text += ", " + value(newModel);
+        insert(text + "]");
+      }),
+    ]),
+    el("p", { className: "hint", textContent: "Then add stats, types... below the line. The other files use the name." }),
     el("h2", { textContent: "Change a species" }),
     el("div", { className: "row grid2" }, [species, form]),
     el("label", { textContent: "Base stats (empty: no change)" }),

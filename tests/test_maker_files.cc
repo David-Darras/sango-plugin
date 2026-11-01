@@ -37,10 +37,15 @@ using namespace core::maker;
 
 struct ProblemLines : Sink {
   std::set<u32> lines;
+  u16 next_species = 1021;
   void OnProblem(const c8* file, u32 line, const c8* what,
                  const c8* word) override {
     lines.insert(line);
     std::printf("      %s %u: %s %s\n", file, line, what, word);
+  }
+  // The game gives the ids 1021, 1022... to the new species.
+  SpeciesId OnNewSpecies(const c16*, SpeciesId, SpeciesId) override {
+    return static_cast<SpeciesId>(next_species++);
   }
 };
 

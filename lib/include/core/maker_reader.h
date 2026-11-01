@@ -257,6 +257,15 @@ public:
   virtual void OnTrainerEnd() {}
 
   // species.txt. The learnsets and the evolutions stay in memory.
+
+  /// A new species: [new Sangoat, Skiddo, Gogoat]. `name` has 12 letters at
+  /// most, and the text does not stay in memory. Returns the id of the new
+  /// species, or SpeciesId::kNone when the game cannot add it. The other
+  /// files then find the species with its name.
+  virtual SpeciesId OnNewSpecies(const c16* name, SpeciesId data_from,
+                                 SpeciesId model) {
+    return SpeciesId::kNone;
+  }
   virtual void OnSpeciesStats(SpeciesId species, FormId form,
                               const u8* stats) {}
   virtual void OnSpeciesTypes(SpeciesId species, FormId form, TypeId first,
@@ -302,6 +311,12 @@ public:
 protected:
   ~Sink() {}
 };
+
+/// The number of new species of species.txt at most
+/// (pokemon::SpeciesTable::kMaxNewSpecies).
+constexpr u32 kMaxNewSpecies = 64;
+/// The length of the name of a new species at most.
+constexpr u32 kMaxSpeciesNameLength = 12;
 
 /// The size of the largest file, in bytes.
 constexpr u32 kMaxFileSize = 32 * 1024;

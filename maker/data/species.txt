@@ -19,3 +19,9 @@ abilities = Static, Static, Lightning Rod
 tms = 24, 25
 learnset = 1 Thunder Shock, 1 Growl, 5 Quick Attack, 13 Electro Ball, 20 Thunderbolt, 30 Dazzling Gleam
 evolutions = Level Up / 30 / Raichu, Item / Thunder Stone / Raichu
+
+# A new species (Alpha Sapphire): [new name, species of the data, species of
+# the model]. Remove the # at the start of the lines to use it.
+# [new Sangoat, Skiddo, Gogoat]
+# stats = 80, 95, 70, 60, 75, 85
+# types = Grass, Rock

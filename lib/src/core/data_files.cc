@@ -43,6 +43,7 @@
 #include "pokemon/patch/item_customizer.h"
 #include "pokemon/patch/shiny.h"
 #include "pokemon/patch/species_editor.h"
+#include "pokemon/patch/species_table.h"
 #include "script/patch/native_script.h"
 #include "system/native/file.h"
 #include "system/native/sound.h"
@@ -64,6 +65,17 @@ static_assert(maker::kAllShops == pokemon::CustomShop::kAnyShop,
               "the same id for all the shops");
 static_assert(maker::kMaxShopItems == pokemon::ShopData::kMaxItems,
               "the same number of items in a shop");
+static_assert(maker::kMaxNewSpecies == pokemon::SpeciesTable::kMaxNewSpecies,
+              "the same number of new species");
+
+// Returns true when two texts are the same.
+bool IsSameText(const c16* a, const c16* b) {
+  while (*a != 0 && *a == *b) {
+    a++;
+    b++;
+  }
+  return *a == *b;
+}
 
 // The problems of the last read of the files, for the Sango Maker page.
 c8 problems[DataFiles::kMaxProblems][DataFiles::kMaxProblemLength];
@@ -136,6 +148,32 @@ public:
     team_->Add(opponent);
   }
   void OnTrainerEnd() override { battle::TrainerTeams::Add(trainer_, team_); }
+
+  SpeciesId OnNewSpecies(const c16* name, SpeciesId data_from,
+                         SpeciesId model) override {
+    // After Reload(), the species of the first read keep their ids. The game
+    // cannot add a species after the start.
+    for (u32 i = 0; i < new_species_count_; i++) {
+      if (IsSameText(new_species_[i].name, name)) return new_species_[i].id;
+    }
+    if (is_reloading) {
+      OnProblem("species.txt", 0, "restart the game for a new species", "");
+      return SpeciesId::kNone;
+    }
+    if (new_species_count_ >= maker::kMaxNewSpecies) return SpeciesId::kNone;
+    // The game shows the name: it stays in memory.
+    NewSpeciesName& entry = new_species_[new_species_count_];
+    u32 length = 0;
+    for (; name[length] != 0 && length < maker::kMaxSpeciesNameLength;
+         length++) {
+      entry.name[length] = name[length];
+    }
+    entry.name[length] = 0;
+    entry.id = pokemon::NewSpecies(entry.name, data_from, model).GetSpecies();
+    if (entry.id == SpeciesId::kNone) return SpeciesId::kNone;
+    new_species_count_++;
+    return entry.id;
+  }
 
   void OnSpeciesStats(SpeciesId species, FormId form,
                       const u8* stats) override {
@@ -306,6 +344,13 @@ private:
   core::FixedList<maker::ItemChange, 256> item_changes_;
   // The changes of moves.txt.
   core::FixedList<maker::MoveChange, 256> move_changes_;
+  // The new species of species.txt. Reload() does not remove them.
+  struct NewSpeciesName {
+    c16 name[maker::kMaxSpeciesNameLength + 1];
+    SpeciesId id;
+  };
+  NewSpeciesName new_species_[maker::kMaxNewSpecies];
+  u32 new_species_count_ = 0;
 };
 
 GameSink game_sink;
@@ -351,11 +396,13 @@ struct DataFile {
   ReadFunction read;
 };
 
+// species.txt is the first: the other files use the names of its new
+// species.
 const DataFile kFiles[] = {
+    {SANGO_DATA_PATH(u"species.txt"), "species.txt", maker::ReadSpecies},
     {SANGO_DATA_PATH(u"encounters.txt"), "encounters.txt",
      maker::ReadEncounters},
     {SANGO_DATA_PATH(u"trainers.txt"), "trainers.txt", maker::ReadTrainers},
-    {SANGO_DATA_PATH(u"species.txt"), "species.txt", maker::ReadSpecies},
     {SANGO_DATA_PATH(u"story.txt"), "story.txt", maker::ReadStory},
     {SANGO_DATA_PATH(u"characters.txt"), "characters.txt",
      maker::ReadCharacters},

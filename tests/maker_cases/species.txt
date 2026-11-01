@@ -22,3 +22,19 @@ size = 2 # ERR
 [Charizard, Charizard Megax]
 stats = 78, 130, 111, 130, 85, 100
 [Nobody] # ERR
+[new Sangoat, Skiddo, Gogoat]
+stats = 80, 95, 70, 60, 75, 85
+types = Grass, Rock
+[Skiddo]
+evolutions = Level Up / 32 / Sangoat
+[new Sangoat, Skiddo] # ERR
+[new Pikachu, Skiddo] # ERR
+[new Averyverylongname, Skiddo] # ERR
+[new Sangot, Nobody] # ERR
+[new Sangot, Skiddo, Nobody] # ERR
+[new Sangot] # ERR
+[new Sangot, Skiddo, Gogoat, Pikachu] # ERR
+[new Sangot, Sangoat] # ERR
+[new] # ERR
+[new Sangot, 672]
+stats = 1, 2, 3, 4, 5, 6

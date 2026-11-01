@@ -118,6 +118,28 @@ evolutions = Level Up / 30 / Raichu, Item / Thunder Stone / Raichu
 
 For a form: `[Charizard, Charizard Megax]`.
 
+### A new species
+
+`[new name, species, model]` adds a species to the game (Alpha Sapphire):
+
+```text
+[new Sangoat, Skiddo, Gogoat]
+stats = 80, 95, 70, 60, 75, 85
+types = Grass, Rock
+
+[Skiddo]
+evolutions = Level Up / 40 / Sangoat
+```
+
+- The name has 12 letters at most.
+- The new species starts with the data and the learnset of the second
+  species. The third species gives the model (without it: the model of the
+  second species).
+- The other files use the name: `Sangoat, 30, 32` in `encounters.txt`,
+  `Sangoat` in a team of `trainers.txt`...
+- 64 new species at most. **Read The Files Again** changes their data, but a
+  new `[new ...]` needs a restart of the game.
+
 ## Step 5: Write the story
 
 Open `sango/maker/story.txt`. A script is a list of commands, one on each

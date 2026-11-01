@@ -476,6 +476,79 @@ struct SpeciesState {
   FormId form;
 } species_state = {false, SpeciesId::kNone, FormId::kNormal};
 
+// The names of the new species ([new Sangoat, Skiddo]), in the normalized
+// form. DataNames finds them for the other files.
+struct NewSpeciesName {
+  c8 name[24];
+  u16 id;
+};
+NewSpeciesName new_species_names[kMaxNewSpecies];
+u32 new_species_count = 0;
+
+bool FindNewSpecies(const c8* normalized, u32* value) {
+  for (u32 i = 0; i < new_species_count; i++) {
+    if (std::strcmp(new_species_names[i].name, normalized) == 0) {
+      *value = new_species_names[i].id;
+      return true;
+    }
+  }
+  return false;
+}
+
+// Finds a name of the game (or a number), without the new species.
+bool FindGameName(NameKind kind, Span span, u32* value);
+
+// [new Sangoat, Skiddo] or [new Sangoat, Skiddo, Gogoat]: the name, the
+// species of the first data, and the species of the model.
+void OpenNewSpecies(Span text) {
+  Span parts[4];
+  const u32 count = Split(text, ',', parts, SIZE(parts));
+  if (count < 2 || count > 3) {
+    Report("use [new name, species, model]:", text);
+    return;
+  }
+  const Span name = parts[0];
+  c8 normalized[sizeof(new_species_names[0].name)];
+  if (!Normalize(name, normalized, sizeof(normalized)) ||
+      normalized[0] == '\0') {
+    Report("give a name:", name);
+    return;
+  }
+  u32 used = 0;
+  if (DataNames::Find(NameKind::kSpecies, name.text, name.length, &used)) {
+    Report("the name is used:", name);
+    return;
+  }
+  c16 text16[kMaxSpeciesNameLength + 2];
+  if (Utf8ToUtf16(name.text, name.length, text16, SIZE(text16)) >
+      kMaxSpeciesNameLength) {
+    Report("use a name of 12 letters at most:", name);
+    return;
+  }
+  u32 data_from = 0;
+  u32 model = 0;
+  if (!FindGameName(NameKind::kSpecies, parts[1], &data_from)) {
+    Report("unknown species", parts[1]);
+    return;
+  }
+  model = data_from;
+  if (count == 3 && !FindGameName(NameKind::kSpecies, parts[2], &model)) {
+    Report("unknown species", parts[2]);
+    return;
+  }
+  if (new_species_count >= SIZE(new_species_names)) {
+    Report("too many new species:", name);
+    return;
+  }
+  const SpeciesId id = sink->OnNewSpecies(
+      text16, static_cast<SpeciesId>(data_from), static_cast<SpeciesId>(model));
+  if (id == SpeciesId::kNone) return;
+  NewSpeciesName& entry = new_species_names[new_species_count++];
+  std::memcpy(entry.name, normalized, sizeof(entry.name));
+  entry.id = static_cast<u16>(id);
+  species_state = {true, id, FormId::kNormal};
+}
+
 void ParseMachines(Span value, bool is_hm, bool can_learn) {
   Span numbers[32];
   const u32 count = Split(value, ',', numbers, SIZE(numbers));
@@ -567,6 +640,13 @@ void OnSpeciesLine(Span line, bool is_section) {
   if (is_section) {
     species_state.is_valid = false;
     if (line.length == 0) return;
+    Span word;
+    Span rest;
+    SplitWord(line, &word, &rest);
+    if (IsWord(word, "new") && rest.length != 0) {
+      OpenNewSpecies(rest);
+      return;
+    }
     // [Pikachu] or [Charizard, Charizard Megax]
     Span parts[2];
     const u32 count = Split(line, ',', parts, 2);
@@ -1800,13 +1880,18 @@ void Clear() {
   shop_state.is_valid = false;
   item_state.is_valid = false;
   move_state.is_valid = false;
+  new_species_count = 0;
 }
 
 } // namespace maker
 
-bool DataNames::Find(NameKind kind, const c8* text, u32 length, u32* value) {
-  using namespace maker;
-  const Span span = Trim(Span{text, length});
+namespace maker {
+namespace {
+
+// Finds a name (or a number). `with_new_species`: also the names of the new
+// species of species.txt.
+bool FindName(NameKind kind, Span span, bool with_new_species, u32* value) {
+  span = Trim(span);
   if (ParseNumber(span, value)) return true;
   c8 name[48];
   if (!Normalize(span, name, sizeof(name)) || name[0] == '\0') return false;
@@ -1826,7 +1911,19 @@ bool DataNames::Find(NameKind kind, const c8* text, u32 length, u32* value) {
       high = middle;
     }
   }
-  return false;
+  return with_new_species && kind == NameKind::kSpecies &&
+         FindNewSpecies(name, value);
+}
+
+bool FindGameName(NameKind kind, Span span, u32* value) {
+  return FindName(kind, span, false, value);
+}
+
+} // namespace
+} // namespace maker
+
+bool DataNames::Find(NameKind kind, const c8* text, u32 length, u32* value) {
+  return maker::FindName(kind, maker::Span{text, length}, true, value);
 }
 
 } // namespace core
