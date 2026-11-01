@@ -54,22 +54,22 @@ public:
   /// Links the accessor to the data of a Pokémon.
   void Initialize(CoreData* pkm_core_data,
                   RuntimeData* pkm_runtime_data) {
-    ((void (*)(DataAccessor*, CoreData*,
-               RuntimeData*))address::kDataAccessorInitialize)(
-        this, pkm_core_data, pkm_runtime_data);
+    core::GameFunction<void(DataAccessor*, CoreData*, RuntimeData*)>::Call(
+        address::kDataAccessorInitialize, this, pkm_core_data,
+        pkm_runtime_data);
   }
 
   /// Encrypts the data. Call it after each change.
   void Encrypt() {
     ShuffleBlocks();
-    ((void (*)(DataAccessor*))
-      address::kDataAccessorEncrypt)(this);
+    core::GameFunction<void(DataAccessor*)>::Call(
+        address::kDataAccessorEncrypt, this);
   }
 
   /// Decrypts the data. Call it before you read or change the data.
   void Decrypt() {
-    ((void (*)(DataAccessor*))
-      address::kDataAccessorDecrypt)(this);
+    core::GameFunction<void(DataAccessor*)>::Call(
+        address::kDataAccessorDecrypt, this);
     UnshuffleBlocks();
   }
 

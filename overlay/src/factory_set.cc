@@ -372,7 +372,8 @@ MoveChoice ChooseMoves(SpeciesId species, const Profile& profile, ItemId item) {
 }
 
 ItemId GetMegaStone(SpeciesId species) {
-  ((void (*)(SpeciesId))pokemon::address::kLoadMegaEvolutionTable)(species);
+  core::GameFunction<void(SpeciesId)>::Call(
+      pokemon::address::kLoadMegaEvolutionTable, species);
   const auto& table = *pokemon::Database::GetInstance().mega_evolution->data;
   ItemId stones[3];
   u32 count = 0;
@@ -458,8 +459,8 @@ void GetSpeciesName(SpeciesId species, c16* out, u32 length) {
   str.buffer = out;
   str.capacity = length;
   str.size = 0;
-  ((void (*)(sys::String*, SpeciesId))pokemon::address::kGetSpeciesName)(
-      &str, species);
+  core::GameFunction<void(sys::String*, SpeciesId)>::Call(
+      pokemon::address::kGetSpeciesName, &str, species);
 }
 } // namespace
 

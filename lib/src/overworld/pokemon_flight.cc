@@ -64,8 +64,9 @@ f32 WrapAngle(f32 angle) {
 // The game starts an action of a character: a number of the action and the
 // direction.
 void PlayAction(Model* model, ActionCommand action, Facing direction) {
-  ((u32 (*)(Model*, u32, u32))renderer::address::kModelPlayAnimation)(
-      model, static_cast<u32>(action), static_cast<u32>(direction));
+  core::GameFunction<u32(Model*, u32, u32)>::Call(
+      renderer::address::kModelPlayAnimation, model, static_cast<u32>(action),
+      static_cast<u32>(direction));
 }
 
 // One of the eight directions of the game for a direction in radians (atan2 of

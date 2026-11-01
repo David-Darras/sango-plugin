@@ -49,8 +49,9 @@ public:
 
     va_list args;
     va_start(args, message);
-    ((void (*)(c16*, u32, const c16*, va_list))sys::address::kStdVswprintf)(
-        buffer, sys::address::kBufferSize, message, args);
+    core::GameFunction<void(c16*, u32, const c16*, va_list)>::Call(
+        sys::address::kStdVswprintf, buffer, sys::address::kBufferSize, message,
+        args);
     va_end(args);
 
     for (u32 i = 0; i < kMaxEntries - 1; i++) {
@@ -88,8 +89,8 @@ public:
     va_list args;
     va_start(args, message);
 
-    ((void (*)(c16*, u32, const c16*, va_list))sys::address::kStdVswprintf)(
-        buffer, kMaxEntryLength, message, args);
+    core::GameFunction<void(c16*, u32, const c16*, va_list)>::Call(
+        sys::address::kStdVswprintf, buffer, kMaxEntryLength, message, args);
 
     va_end(args);
 

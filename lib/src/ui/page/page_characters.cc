@@ -127,8 +127,9 @@ void PlayCharacterAnimation(void*) {
       character_count == 0) {
     return;
   }
-  ((void (*)(Model*, u16, u8))renderer::address::kModelPlayAnimation)(
-      &GetSelectedModel(), character_animation, 3);
+  core::GameFunction<void(Model*, u16, u8)>::Call(
+      renderer::address::kModelPlayAnimation, &GetSelectedModel(),
+      character_animation, 3);
 }
 
 // A change of the page: the character moves for the game and on the screen,

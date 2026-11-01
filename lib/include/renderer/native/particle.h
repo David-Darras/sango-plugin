@@ -33,18 +33,18 @@ struct Particle {
   uptr vtable;
 
   INLINE s32 GetModelCount() {
-    return ((s32(*)(Particle*))
-      address::kParticleGetModelCount)(this);
+    return core::GameFunction<s32(Particle*)>::Call(
+        address::kParticleGetModelCount, this);
   }
 
   INLINE H3dModel* GetModel(s32 index) {
-    return ((H3dModel*(*)(Particle*, s32))
-      address::kParticleGetModel)(this, index);
+    return core::GameFunction<H3dModel*(Particle*, s32)>::Call(
+        address::kParticleGetModel, this, index);
   }
 
   INLINE void SetScale(f32 x, f32 y, f32 z) {
-    return ((void(*)(Particle*, f32, f32, f32))
-      address::kParticleSetScale)(this, x, y, z);
+    return core::GameFunction<void(Particle*, f32, f32, f32)>::Call(
+        address::kParticleSetScale, this, x, y, z);
   }
 };
 

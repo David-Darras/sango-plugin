@@ -154,8 +154,9 @@ public:
   void SetStringValue0(AppLayoutManager& manager, const c16* str, ...) const {
     va_list args;
     va_start(args, str);
-    ((void (*)(c16*, u32, const c16*, va_list))sys::address::kStdVswprintf)(
-        String::GetTmpBuf(), sys::address::kBufferSize, str, args);
+    core::GameFunction<void(c16*, u32, const c16*, va_list)>::Call(
+        sys::address::kStdVswprintf, String::GetTmpBuf(),
+        sys::address::kBufferSize, str, args);
     va_end(args);
 
     manager.SetTextBoxStringValue(0, id_0_, String::GetTmpBuf());
@@ -164,8 +165,9 @@ public:
   void SetStringValue1(AppLayoutManager& manager, const c16* str, ...) const {
     va_list args;
     va_start(args, str);
-    ((void (*)(c16*, u32, const c16*, va_list))sys::address::kStdVswprintf)(
-        String::GetTmpBuf(), sys::address::kBufferSize, str, args);
+    core::GameFunction<void(c16*, u32, const c16*, va_list)>::Call(
+        sys::address::kStdVswprintf, String::GetTmpBuf(),
+        sys::address::kBufferSize, str, args);
     va_end(args);
 
     manager.SetTextBoxStringValue(0, id_1_, String::GetTmpBuf());
@@ -552,8 +554,8 @@ void AppStatus::Update(savedata::PokemonParam& pokemon,
           READ32((uptr)process + kOffsetToRenderContext) +
           kOffsetToUpdatePokemonFlag, false);
     }
-    ((void(*)(void*, u32, bool))pokemon::address::kAppStatusUpdatePokemon)(process,
-      GetSlot(), false);
+    core::GameFunction<void(void*, u32, bool)>::Call(
+        pokemon::address::kAppStatusUpdatePokemon, process, GetSlot(), false);
     if (!new_model) {
       WRITEB(
           READ32((uptr)process + kOffsetToRenderContext) +

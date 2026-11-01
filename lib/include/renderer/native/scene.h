@@ -35,13 +35,13 @@ struct Scene {
 
   STATIC_INLINE bool Register1(void* scene, H3dShaderModel* model,
                                s32 x = 0) {
-    return ((bool (*)(void*, H3dShaderModel*, s32))
-      address::kSceneRegister1)(scene, model, x);
+    return core::GameFunction<bool(void*, H3dShaderModel*, s32)>::Call(
+        address::kSceneRegister1, scene, model, x);
   }
 
   STATIC_INLINE void Unregister(void* scene, H3dShaderModel* model) {
-    ((void (*)(void*, H3dShaderModel*))address::kSceneUnregister)(scene,
-      model);
+    core::GameFunction<void(void*, H3dShaderModel*)>::Call(
+        address::kSceneUnregister, scene, model);
   }
 };
 } // namespace renderer

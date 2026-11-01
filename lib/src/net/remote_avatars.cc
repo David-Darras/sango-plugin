@@ -168,8 +168,9 @@ void RemoteAvatars::Play(Model& model, Avatar& avatar, Pose pose,
   const ActionCommand action = pose == Pose::kWalking
                                    ? ActionCommand::kWalkInPlace8Frames
                                    : ActionCommand::kFace;
-  ((u32 (*)(Model*, u32, u32))renderer::address::kModelPlayAnimation)(
-      &model, static_cast<u32>(action), static_cast<u32>(facing));
+  core::GameFunction<u32(Model*, u32, u32)>::Call(
+      renderer::address::kModelPlayAnimation, &model, static_cast<u32>(action),
+      static_cast<u32>(facing));
 }
 
 void RemoteAvatars::Drive(Model& model, Avatar& avatar,

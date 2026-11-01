@@ -325,7 +325,8 @@ void LittlerootGreeter(Context& s) {
     if (fade_native != nullptr) {
       s.Call(fade_native, 2, 30);
     }
-    ((void (*)(u32, u32))renderer::address::kFadeRequestIn)(2, 30);
+    core::GameFunction<void(u32, u32)>::Call(
+        renderer::address::kFadeRequestIn, 2, 30);
     s.Wait(30);
 
     if (!s.WonLastBattle()) {

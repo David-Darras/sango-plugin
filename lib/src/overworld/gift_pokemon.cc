@@ -45,8 +45,8 @@ s32 GiftPokemon::AddPokemonWithoutRandomizer(u32* a1, u32* a2) {
   if (script_add_pokemon_to_team_hook.IsInitialized()) {
     return script_add_pokemon_to_team_hook(a1, a2);
   }
-  return ((s32(*)(u32*, u32*))pokemon::address::kScriptAddPokemonToTeam)(
-      a1, a2);
+  return core::GameFunction<s32(u32*, u32*)>::Call(
+      pokemon::address::kScriptAddPokemonToTeam, a1, a2);
 }
 
 void GiftPokemon::RandomizeSpecies(u32 idx) {

@@ -50,10 +50,12 @@ struct H3dShaderModel {
   }
 
   STATIC_INLINE H3dShaderModel* Create(void* heap) {
-    auto* model = (H3dShaderModel*)((void* (*)(void*, u32, u32))
-      sys::address::kHeapAlloc)(heap, kSize, 4);
+    auto* model = (H3dShaderModel*)core::GameFunction<void*(void*, u32,
+                                                            u32)>::Call(
+        sys::address::kHeapAlloc, heap, kSize, 4);
     if (model == nullptr) return nullptr;
-    ((void (*)(H3dShaderModel*))address::kH3dShaderModelInitialize)(model);
+    core::GameFunction<void(H3dShaderModel*)>::Call(
+        address::kH3dShaderModelInitialize, model);
     if (*(u32*)model != address::kH3dShaderModelVtable) return nullptr;
     return model;
   }
@@ -61,44 +63,45 @@ struct H3dShaderModel {
   INLINE void Build(void* heap_allocator, void* device_allocator,
                     H3dResource* resource, s32 index_in_resource,
                     Metadata* description) {
-    ((void (*)(H3dShaderModel*, void*, void*, H3dResource*, s32, Metadata*))
-      address::kH3dShaderModelCreate)(this, heap_allocator, device_allocator,
-                                       resource, index_in_resource,
-                                       description);
+    core::GameFunction<void(H3dShaderModel*, void*, void*, H3dResource*, s32,
+                            Metadata*)>::Call(
+        address::kH3dShaderModelCreate, this, heap_allocator, device_allocator,
+        resource, index_in_resource, description);
   }
 
   INLINE s32 GetMaterialCount() {
-    return ((s32 (*)(H3dShaderModel*))address::kH3dModelGetMaterialCount)(
-        this);
+    return core::GameFunction<s32(H3dShaderModel*)>::Call(
+        address::kH3dModelGetMaterialCount, this);
   }
 
   INLINE void SetTranslate(const Vec3& translate) {
-    ((void (*)(H3dShaderModel*, const Vec3*))address::kH3dModelSetTranslate)(
-        this, &translate);
+    core::GameFunction<void(H3dShaderModel*, const Vec3*)>::Call(
+        address::kH3dModelSetTranslate, this, &translate);
   }
 
   INLINE Vec3 GetTranslate() {
     Vec3 translate = {};
-    ((void (*)(H3dShaderModel*, Vec3*))address::kH3dModelGetTranslate)(
-        this, &translate);
+    core::GameFunction<void(H3dShaderModel*, Vec3*)>::Call(
+        address::kH3dModelGetTranslate, this, &translate);
     return translate;
   }
 
   INLINE void SetRotate(const Vec3& rot) {
-    ((void (*)(H3dShaderModel*, const Vec3*))address::kH3dModelSetRotate)(
-        this, &rot);
+    core::GameFunction<void(H3dShaderModel*, const Vec3*)>::Call(
+        address::kH3dModelSetRotate, this, &rot);
   }
 
   INLINE void SetScale(f32 x, f32 y, f32 z) {
-    ((void (*)(H3dShaderModel*, f32, f32, f32))address::kH3dModelSetScale)(
-        this, x, y, z);
+    core::GameFunction<void(H3dShaderModel*, f32, f32, f32)>::Call(
+        address::kH3dModelSetScale, this, x, y, z);
   }
 
   INLINE void SetShaderSymbol(const c8* name, const Color& value) {
     const s32 material_count = GetMaterialCount();
     for (s32 i = 0; i < material_count; ++i) {
-      ((void (*)(H3dShaderModel*, s32, const c8*, const Color&))
-        address::kH3dModelSetShaderSymbol)(this, i, name, value);
+      core::GameFunction<void(H3dShaderModel*, s32, const c8*,
+                              const Color&)>::Call(
+          address::kH3dModelSetShaderSymbol, this, i, name, value);
     }
   }
 
@@ -110,7 +113,8 @@ struct H3dShaderModel {
   }
 
   INLINE void Destroy() {
-    ((void (*)(H3dShaderModel*))address::kH3dModelDestroy)(this);
+    core::GameFunction<void(H3dShaderModel*)>::Call(
+        address::kH3dModelDestroy, this);
   }
 };
 } // namespace renderer

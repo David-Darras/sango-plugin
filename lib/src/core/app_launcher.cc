@@ -115,14 +115,16 @@ void AppLauncher::TownMapCallback(uptr* data, GameManager* manager) {
     u16 move_id;
   } result = {3, 0, static_cast<u16>(input->map_id), static_cast<u16>(MoveId::kFly)};
   uptr work[5] = {data[0], (uptr)&result, data[2], data[3], data[4]};
-  ((void(*)(uptr*, void*))address::kTownMapCallback)(work, manager);
+  core::GameFunction<void(uptr*, void*)>::Call(
+      address::kTownMapCallback, work, manager);
 }
 #else
 void AppLauncher::TownMapCallback(uptr* data, GameManager* manager) {
   auto* input = (TownMapAppInput*)data[1];
   input->result = 2;
   input->pokemon_index = 0;
-  ((void(*)(uptr*, void*))address::kTownMapCallback)(data, manager);
+  core::GameFunction<void(uptr*, void*)>::Call(
+      address::kTownMapCallback, data, manager);
 }
 #endif
 

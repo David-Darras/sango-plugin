@@ -88,12 +88,15 @@ The closed lists do not (`Nature`, `Gender`, `Format`...).
 
 ## Call a function of the game
 
-A game structure can call a function of the game. The plugin changes the
-address into a function pointer with the correct signature:
+A game structure can call a function of the game with
+`core::GameFunction<signature>::Call(address, arguments...)`
+(`core/game_function.h`). The signature has the same form as for
+`core::Hook`:
 
 ```cpp
 INLINE void HealAllPokemons() {
-  ((void(*)(PokemonTeam*))pokemon::address::kHealTeam)(this);
+  core::GameFunction<void(PokemonTeam*)>::Call(pokemon::address::kHealTeam,
+                                              this);
 }
 ```
 

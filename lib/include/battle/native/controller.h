@@ -42,34 +42,34 @@ class Controller {
 public:
   /// Makes a mutation. Cast it to its structure, fill it, then call Apply().
   INLINE Mutation* Create(MutationKind kind, UID owner) {
-    return ((Mutation*(*)(Controller*, MutationKind, UID))
-      address::kControllerCreateMutation)(this, kind, owner);
+    return core::GameFunction<Mutation*(Controller*, MutationKind, UID)>::Call(
+        address::kControllerCreateMutation, this, kind, owner);
   }
 
   /// Applies a mutation: the battle changes, with its animations and messages.
   INLINE void Apply(Mutation* mutation) {
-    ((void(*)(Controller*, Mutation*))
-      address::kControllerApplyMutation)(this, mutation);
+    core::GameFunction<void(Controller*, Mutation*)>::Call(
+        address::kControllerApplyMutation, this, mutation);
   }
 
   /// Sets the text of a message.
   STATIC_INLINE void SetMessage(Message* message, u8 p0,
                                 MutationMessageId id) {
-    ((void(*)(Message*, u8, MutationMessageId))
-      address::kControllerSetMessage)(message, p0, id);
+    core::GameFunction<void(Message*, u8, MutationMessageId)>::Call(
+        address::kControllerSetMessage, message, p0, id);
   }
 
   /// Fills a value of a message.
   STATIC_INLINE void FillMessageSlot(Message* message, u8 p0,
                                      MutationMessageId id) {
-    ((void(*)(Message*, u8, MutationMessageId))
-      address::kControllerFillMessageSlot)(message, p0, id);
+    core::GameFunction<void(Message*, u8, MutationMessageId)>::Call(
+        address::kControllerFillMessageSlot, message, p0, id);
   }
 
   /// Returns the battle data of a Pokémon.
   INLINE Pokemon* GetPokemon(UID uid) {
-    return ((Pokemon*(*)(Controller*, UID))
-      address::kControllerGetPokemon)(this, uid);
+    return core::GameFunction<Pokemon*(Controller*, UID)>::Call(
+        address::kControllerGetPokemon, this, uid);
   }
 
   /**
@@ -83,8 +83,8 @@ public:
    */
   INLINE void SetWeather(UID owner, Weather weather, ItemId item,
                          bool infinite) {
-    ((void(*)(Controller*, UID, Weather, ItemId, bool))
-      address::kControllerSetWeather)(this, owner, weather, item, infinite);
+    core::GameFunction<void(Controller*, UID, Weather, ItemId, bool)>::Call(
+        address::kControllerSetWeather, this, owner, weather, item, infinite);
   }
 
   /// Makes a Pokémon use a move.
@@ -107,8 +107,8 @@ public:
     action.fight.target = target;
     action.fight.move_id = static_cast<u16>(move);
 
-    ((void(*)(Controller*, Pokemon*, void*, u32, s32))
-      address::kControllerExecuteMove)(this, attacker, &action, 0, 0);
+    core::GameFunction<void(Controller*, Pokemon*, void*, u32, s32)>::Call(
+        address::kControllerExecuteMove, this, attacker, &action, 0, 0);
   }
 };
 } // namespace battle

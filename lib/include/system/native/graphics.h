@@ -48,25 +48,26 @@ public:
 
   /// Returns the image buffer of a screen.
   INLINE void* GetFramebuffer(Screen screen) {
-    return ((void* (*)(Graphics*, Screen))renderer::address::kGraphicsGetFramebuffer)(
-        this, screen);
+    return core::GameFunction<void*(Graphics*, Screen)>::Call(
+        renderer::address::kGraphicsGetFramebuffer, this, screen);
   }
 
   /// Selects the image buffer for the next drawings.
   INLINE bool BindFramebuffer(void* framebuffer) {
-    return ((bool (*)(Graphics*, void*))renderer::address::kGraphicsBindFramebuffer)(
-        this, framebuffer);
+    return core::GameFunction<bool(Graphics*, void*)>::Call(
+        renderer::address::kGraphicsBindFramebuffer, this, framebuffer);
   }
 
   /// Limits the next drawings to a rectangle.
   STATIC_INLINE void EnableScissor(u32 x, u32 y, u32 width, u32 height) {
-    ((void (*)(u32, u32, u32, u32))renderer::address::kGraphicsEnableScissor)(x, y, width,
-      height);
+    core::GameFunction<void(u32, u32, u32, u32)>::Call(
+        renderer::address::kGraphicsEnableScissor, x, y, width, height);
   }
 
   /// Removes the limit of EnableScissor().
   STATIC_INLINE void DisableScissor() {
-    ((void (*)())renderer::address::kGraphicsDisableScissor)();
+    core::GameFunction<void()>::Call(
+        renderer::address::kGraphicsDisableScissor);
   }
 
   /**
@@ -90,7 +91,8 @@ public:
 
   /// Starts the drawings on an image buffer.
   STATIC_INLINE void BeginRender(void* framebuffer) {
-    ((void (*)(void*))renderer::address::kGraphicsBeginRender)(framebuffer);
+    core::GameFunction<void(void*)>::Call(
+        renderer::address::kGraphicsBeginRender, framebuffer);
   }
 
   /**
@@ -186,8 +188,8 @@ public:
     if (GetCommandBytes() > kTextBytesLimit) return;
     budget.texts++;
     Color clr = color;
-    ((void (*)(s32, s32, const c16*, Color*, void*))renderer::address::kGraphicsDrawText)(
-        x, y, str, &clr, pFont);
+    core::GameFunction<void(s32, s32, const c16*, Color*, void*)>::Call(
+        renderer::address::kGraphicsDrawText, x, y, str, &clr, pFont);
   }
 
   /**
@@ -208,16 +210,17 @@ public:
         GetCommandBytes() < kShadowBytesLimit) {
       budget.shadows++;
       Color shadow(0, 0, 0, 0.6f * color.a);
-      ((void (*)(s32, s32, const c16*, Color*, void*))
-           renderer::address::kGraphicsDrawText)(x + 1, y + 1, str, &shadow,
-                                                 nullptr);
+      core::GameFunction<void(s32, s32, const c16*, Color*, void*)>::Call(
+          renderer::address::kGraphicsDrawText, x + 1, y + 1, str, &shadow,
+          nullptr);
     }
     DrawText(x, y, str, color);
   }
 
   /// Sets the size of the next texts. The menu uses 0.6.
   STATIC_INLINE void SetTextScale(f32 x, f32 y) {
-    ((void (*)(f32, f32))renderer::address::kGraphicsSetTextScale)(x, y);
+    core::GameFunction<void(f32, f32)>::Call(
+        renderer::address::kGraphicsSetTextScale, x, y);
   }
 
   /**
@@ -233,9 +236,8 @@ public:
       while (str[length] != 0) length++;
       return length * 9;
     }
-    return (s32)((f32 (*)(const c16*, void*))
-                     renderer::address::kGraphicsGetTextWidth)(str,
-                                                                  nullptr);
+    return (s32)core::GameFunction<f32(const c16*, void*)>::Call(
+        renderer::address::kGraphicsGetTextWidth, str, nullptr);
   }
 
   /**
@@ -329,11 +331,12 @@ public:
                 mat._8[2] = .3f;
     mat.color[0] = mat.color[1] =
                    mat.color[2] = mat.color[3] = 1.f;
-    ((void (*)(const Material*))renderer::address::kGraphicsSetMaterial)(&mat);
+    core::GameFunction<void(const Material*)>::Call(
+        renderer::address::kGraphicsSetMaterial, &mat);
 
     const Color c = color;
-    ((void (*)(s32, s32, s32, s32, const Color*))renderer::address::kGraphicsDrawRect)(
-        x, y, width, height, &c);
+    core::GameFunction<void(s32, s32, s32, s32, const Color*)>::Call(
+        renderer::address::kGraphicsDrawRect, x, y, width, height, &c);
 
     SetTextScale(0.6, 0.6);
   }

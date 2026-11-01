@@ -240,8 +240,8 @@ static u32 static_encounter_id = 0;
 
 static void StartStaticEncounter(void*) {
   if (!core::ProcessManager::IsOverworldActive()) return;
-  ((void(*)(core::GameManager*, u32, u32, s32))
-       overworld::address::kCallStaticEncounter)(
+  core::GameFunction<void(core::GameManager*, u32, u32, s32)>::Call(
+      overworld::address::kCallStaticEncounter,
       &core::GameManager::GetInstance(), static_encounter_id, 0, -1);
 }
 
@@ -564,8 +564,8 @@ void StartTrainerBattle(void*) {
   u8 param[16] = {};
   param[0] = static_cast<u8>(trainer_battle_rule);
   *reinterpret_cast<u16*>(param + 4) = static_cast<u16>(trainer_battle_id);
-  ((void* (*)(core::GameManager*, const void*))
-       overworld::address::kStartTrainerBattle)(
+  core::GameFunction<void*(core::GameManager*, const void*)>::Call(
+      overworld::address::kStartTrainerBattle,
       &core::GameManager::GetInstance(), param);
   MainApplication::GetInstance().ForceClose();
 }

@@ -119,7 +119,8 @@ void MusicLock::EndBattleMusicHook(u32 next_music) {
     // The kept music never stopped, but the battle faded it out when it ended:
     // fade it in again.
     ctx.battle_music_skipped_ = false;
-    ((void (*)(u32))sys::address::kSoundFadeInMusic)(kFadeInFrames);
+    core::GameFunction<void(u32)>::Call(
+        sys::address::kSoundFadeInMusic, kFadeInFrames);
     return;
   }
   end_battle_music_hook(next_music);

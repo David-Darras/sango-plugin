@@ -45,7 +45,8 @@ void NewGame::OnProcessUpdate(uptr vtable) {
   auto& feat = GetInstance();
   if (!feat.fade_in_pending_ || vtable != overworld::address::kVtable) return;
   feat.fade_in_pending_ = false;
-  ((void (*)(u32, u32))renderer::address::kFadeRequestIn)(kBothScreens, kFadeFrames);
+  core::GameFunction<void(u32, u32)>::Call(
+      renderer::address::kFadeRequestIn, kBothScreens, kFadeFrames);
 }
 
 void NewGame::OnProcessLoad(uptr vtable) {

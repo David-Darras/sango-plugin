@@ -46,76 +46,74 @@ public:
   }
 
   INLINE renderer::TextBox* GetTextBox(u32 layout_id, u32 pane_id) {
-    return ((renderer::TextBox*(*)(uptr, u32))
-      ui::address::kAppLayoutManagerGetTextBox)(GetToken(layout_id), pane_id);
+    return core::GameFunction<renderer::TextBox*(uptr, u32)>::Call(
+        ui::address::kAppLayoutManagerGetTextBox, GetToken(layout_id), pane_id);
   }
 
   INLINE renderer::Picture* GetPicture(u32 layout_id, u32 pane_id) {
-    return ((renderer::Picture*(*)(uptr, u32))
-      ui::address::kAppLayoutManagerGetPicture)(GetToken(layout_id), pane_id);
+    return core::GameFunction<renderer::Picture*(uptr, u32)>::Call(
+        ui::address::kAppLayoutManagerGetPicture, GetToken(layout_id), pane_id);
   }
 
   INLINE renderer::Pane* GetPane(u32 layout_id, u32 pane_id) {
-    return ((renderer::Pane*(*)(u32, u32))
-      ui::address::kAppLayoutManagerGetPane)(READ32(GetToken(layout_id) + 4), pane_id);
+    return core::GameFunction<renderer::Pane*(u32, u32)>::Call(
+        ui::address::kAppLayoutManagerGetPane, READ32(GetToken(layout_id) + 4),
+        pane_id);
   }
 
   void
   SetTextBoxStringValue(u32 layout_id, u32 pane_id, const c16* str, ...) {
     va_list args;
     va_start(args, str);
-    ((void (*)(c16*, u32, const c16*, va_list))sys::address::kStdVswprintf)(
-        String::GetTmpBuf(), sys::address::kBufferSize, str, args);
+    core::GameFunction<void(c16*, u32, const c16*, va_list)>::Call(
+        sys::address::kStdVswprintf, String::GetTmpBuf(),
+        sys::address::kBufferSize, str, args);
     va_end(args);
 
-    ((void(*)(renderer::TextBox*, String*))
-      ui::address::kAppLayoutManagerSetTextBoxString)(
+    core::GameFunction<void(renderer::TextBox*, String*)>::Call(
+        ui::address::kAppLayoutManagerSetTextBoxString,
         GetTextBox(layout_id, pane_id), String::GetTmpStr());
   }
 
   INLINE void SetTextBoxIntegerValue(u32 layout_id, u32 pane_id, u32 text_id,
                                      u32 value,
                                      u32 digit_count) {
-    return ((void(*)(AppLayoutManager*, u32, u32, u32, u32, u32, u32, u32, u32))
-      ui::address::kAppLayoutManagerSetTextBoxIntegerValue)(
-        this, layout_id, pane_id, text_id, value, digit_count, 0, 0, 1
-        );
+    return core::GameFunction<void(AppLayoutManager*, u32, u32, u32, u32, u32,
+                                   u32, u32, u32)>::Call(
+        ui::address::kAppLayoutManagerSetTextBoxIntegerValue, this, layout_id,
+        pane_id, text_id, value, digit_count, 0, 0, 1);
   }
 
   INLINE void SetTextBoxColor(u32 layout_id, u32 pane_id, Color8& top_color,
                               Color8& bottom_color) {
-    return ((void(*)(AppLayoutManager*, u32, u32, Color8*, Color8*))
-      ui::address::kAppLayoutManagerSetTextBoxColor)(
-        this, layout_id, pane_id, &top_color, &bottom_color
-        );
+    return core::GameFunction<void(AppLayoutManager*, u32, u32, Color8*,
+                                   Color8*)>::Call(
+        ui::address::kAppLayoutManagerSetTextBoxColor, this, layout_id, pane_id,
+        &top_color, &bottom_color);
   }
 
   INLINE void ShowPane(u32 layout_id, u32 pane_id) {
-    return ((void(*)(AppLayoutManager*, u32, u32, bool))
-      ui::address::kAppLayoutManagerShowPane)(
-        this, layout_id, pane_id, true
-        );
+    return core::GameFunction<void(AppLayoutManager*, u32, u32, bool)>::Call(
+        ui::address::kAppLayoutManagerShowPane, this, layout_id, pane_id, true);
   }
 
   INLINE void HidePane(u32 layout_id, u32 pane_id) {
-    return ((void(*)(AppLayoutManager*, u32, u32, bool))
-      ui::address::kAppLayoutManagerShowPane)(
-        this, layout_id, pane_id, false
-        );
+    return core::GameFunction<void(AppLayoutManager*, u32, u32, bool)>::Call(
+        ui::address::kAppLayoutManagerShowPane, this, layout_id, pane_id,
+        false);
   }
 
   INLINE void ShowAnimation(u32 layout_id, u32 anim_id) {
-    return ((void(*)(AppLayoutManager*, u32, u32, bool, bool))
-      ui::address::kAppLayoutManagerShowAnimation)(
-        this, layout_id, anim_id, true, true
-        );
+    return core::GameFunction<void(AppLayoutManager*, u32, u32, bool,
+                                   bool)>::Call(
+        ui::address::kAppLayoutManagerShowAnimation, this, layout_id, anim_id,
+        true, true);
   }
 
   INLINE void HideAnimation(u32 layout_id, u32 anim_id) {
-    return ((void(*)(AppLayoutManager*, u32, u32, bool))
-      ui::address::kAppLayoutManagerHideAnimation)(
-        this, layout_id, anim_id, false
-        );
+    return core::GameFunction<void(AppLayoutManager*, u32, u32, bool)>::Call(
+        ui::address::kAppLayoutManagerHideAnimation, this, layout_id, anim_id,
+        false);
   }
 };
 

@@ -502,19 +502,21 @@ void PageItem::GetValueText(c16* buffer) const {
       break;
     }
     case kTypeAbility:
-      ((void (*)(String*, u8))pokemon::address::kGetAbilityName)(
-          String::GetTmpStr(), *(u8*)address_);
+      core::GameFunction<void(String*, u8)>::Call(
+          pokemon::address::kGetAbilityName, String::GetTmpStr(),
+          *(u8*)address_);
       core::Utils::Format(buffer, u"%ls", String::GetTmpBuf());
       break;
     case kTypeSpecies:
-      ((void (*)(String*, u16))pokemon::address::kGetSpeciesName)(
-          String::GetTmpStr(), *(u16*)address_);
+      core::GameFunction<void(String*, u16)>::Call(
+          pokemon::address::kGetSpeciesName, String::GetTmpStr(),
+          *(u16*)address_);
       core::Utils::Format(buffer, u"N°%03d %ls", *(u16*)address_,
                           String::GetTmpBuf());
       break;
     case kTypeMove:
-      ((void (*)(u16, String*))pokemon::address::kGetMoveName)(
-          *(u16*)address_, String::GetTmpStr());
+      core::GameFunction<void(u16, String*)>::Call(
+          pokemon::address::kGetMoveName, *(u16*)address_, String::GetTmpStr());
       core::Utils::Format(buffer, u"%ls", String::GetTmpBuf());
       break;
     case kTypeItem: {

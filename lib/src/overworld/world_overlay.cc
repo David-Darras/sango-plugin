@@ -174,8 +174,8 @@ bool WorldOverlay::TryUseCamera(void* camera) {
   }
   Mtx34 view = {};
   Mtx44 projection = {};
-  ((void (*)(void*, Mtx34*, Mtx44*))
-       renderer::address::kCameraGetMatrices)(camera, &view, &projection);
+  core::GameFunction<void(void*, Mtx34*, Mtx44*)>::Call(
+      renderer::address::kCameraGetMatrices, camera, &view, &projection);
   if (!IsTopScreenProjection(projection)) {
     cameras_refused++;
     return false;

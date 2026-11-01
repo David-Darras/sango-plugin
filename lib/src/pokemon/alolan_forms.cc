@@ -99,10 +99,12 @@ bool AlolanForms::IsLifeOrbSpecies(u16 species) {
 u32 AlolanForms::GetMegaEvolvedFormNoHook(void* manager, void* poke) {
   if (poke != nullptr) {
     const u16 species =
-        ((u16 (*)(void*))address::kCoreDataGetSpecies)(poke);
+        core::GameFunction<u16(void*)>::Call(
+            address::kCoreDataGetSpecies, poke);
     if (HasForm(species)) {
       const auto item = static_cast<ItemId>(
-          ((u16 (*)(void*))address::kCoreDataGetItem)(poke));
+          core::GameFunction<u16(void*)>::Call(
+              address::kCoreDataGetItem, poke));
       const u32 form = GetFormByItem(species, item);
       if (form != 0) return form;
     }

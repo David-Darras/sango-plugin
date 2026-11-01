@@ -104,8 +104,9 @@ void HealerFollower::Play(Model& nurse, State state, Facing facing) {
   const ActionCommand action = state == State::kWalking
                                  ? ActionCommand::kWalkInPlace8Frames
                                  : ActionCommand::kFace;
-  ((u32 (*)(Model*, u32, u32))renderer::address::kModelPlayAnimation)(
-      &nurse, static_cast<u32>(action), static_cast<u32>(facing));
+  core::GameFunction<u32(Model*, u32, u32)>::Call(
+      renderer::address::kModelPlayAnimation, &nurse, static_cast<u32>(action),
+      static_cast<u32>(facing));
 }
 
 void HealerFollower::Follow(Model& nurse) {

@@ -209,16 +209,16 @@ bool CopyGameName(u32 index, u32 value, c16* out, u32 capacity) {
 bool AskGameName(NameSource source, u32 value, c16* out, u32 capacity) {
   switch (source) {
     case NameSource::kSpecies:
-      ((void (*)(String*, u16))pokemon::address::kGetSpeciesName)(
-          String::GetTmpStr(), (u16)value);
+      core::GameFunction<void(String*, u16)>::Call(
+          pokemon::address::kGetSpeciesName, String::GetTmpStr(), (u16)value);
       break;
     case NameSource::kMove:
-      ((void (*)(u16, String*))pokemon::address::kGetMoveName)(
-          (u16)value, String::GetTmpStr());
+      core::GameFunction<void(u16, String*)>::Call(
+          pokemon::address::kGetMoveName, (u16)value, String::GetTmpStr());
       break;
     case NameSource::kAbility:
-      ((void (*)(String*, u8))pokemon::address::kGetAbilityName)(
-          String::GetTmpStr(), (u8)value);
+      core::GameFunction<void(String*, u8)>::Call(
+          pokemon::address::kGetAbilityName, String::GetTmpStr(), (u8)value);
       break;
     case NameSource::kItem: {
       pokemon::ItemData item((ItemId)value);

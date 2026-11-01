@@ -140,8 +140,8 @@ void Problems::Add(const c16* format, ...) {
   c16 text[kMaxLength];
   va_list args;
   va_start(args, format);
-  ((void (*)(c16*, u32, const c16*, va_list))sys::address::kStdVswprintf)(
-      text, kMaxLength, format, args);
+  core::GameFunction<void(c16*, u32, const c16*, va_list)>::Call(
+      sys::address::kStdVswprintf, text, kMaxLength, format, args);
   va_end(args);
   text[kMaxLength - 1] = u'\0';
 

@@ -62,12 +62,13 @@ constexpr u32 kMaxArchives = 512;
 constexpr u32 kArchiveOpen = 1 << 0;
 
 void* GetHeap(s32 id) {
-  return ((void* (*)(s32))sys::address::kGetHeapById)(id);
+  return core::GameFunction<void*(s32)>::Call(sys::address::kGetHeapById, id);
 }
 
 u32 GetAllocatableSize(void* heap) {
   const uptr* table = *(const uptr**)heap;
-  const s32 size = ((s32 (*)(void*))table[kHeapGetAllocatableSize])(heap);
+  const s32 size = core::GameFunction<s32(void*)>::Call(
+      table[kHeapGetAllocatableSize], heap);
   return size > 0 ? (u32)size : 0;
 }
 
@@ -89,8 +90,8 @@ void LogHeaps() {
 }
 
 void* Allocate(void* heap, u32 size, u32 alignment) {
-  return ((void* (*)(void*, u32, u32))sys::address::kHeapAlloc)(heap, size,
-                                                                alignment);
+  return core::GameFunction<void*(void*, u32, u32)>::Call(
+      sys::address::kHeapAlloc, heap, size, alignment);
 }
 
 // Returns an archive object of the game, open for all the game.
@@ -123,8 +124,8 @@ void* OpenArchive(ArchiveId archive_id) {
   auto* archive = new u32[kArchiveSize / sizeof(u32)];
   if (archive == nullptr) return nullptr;
   memset(archive, 0, kArchiveSize);
-  ((void (*)(void*, void*, u32, u32))sys::address::kArchiveInitialize)(
-      archive, heap, index, kArchiveOpen);
+  core::GameFunction<void(void*, void*, u32, u32)>::Call(
+      sys::address::kArchiveInitialize, archive, heap, index, kArchiveOpen);
   archives[index] = archive;
   return archive;
 }
@@ -202,13 +203,13 @@ u8* GameFile::Read(ArchiveId archive_id, u32 file_id, bool compressed,
                               static_cast<u32>(archive_id));
     return nullptr;
   }
-  const u32 size = ((u32 (*)(void*, u32))sys::address::kArchiveGetFileSize)(
-      archive, file_id);
+  const u32 size = core::GameFunction<u32(void*, u32)>::Call(
+      sys::address::kArchiveGetFileSize, archive, file_id);
   if (size == 0) return nullptr;
   u8* file = new u8[size];
   if (file == nullptr) return nullptr;
-  ((void (*)(void*, u32, u32, u32, void*))sys::address::kArchiveLoadFile)(
-      archive, file_id, 0, size, file);
+  core::GameFunction<void(void*, u32, u32, u32, void*)>::Call(
+      sys::address::kArchiveLoadFile, archive, file_id, 0, size, file);
 
   u32 file_size = size;
   if (compressed) {

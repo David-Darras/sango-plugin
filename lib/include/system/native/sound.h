@@ -39,25 +39,26 @@ public:
 
   /// Plays the cry of a species.
   STATIC_INLINE void PlayPokemonCry(SpeciesId species) {
-    ((void (*)(u8, SpeciesId, u16, u8, u8))address::kSoundPlayPokemonCry)(
-        0, species, 0, 0, 0);
+    core::GameFunction<void(u8, SpeciesId, u16, u8, u8)>::Call(
+        address::kSoundPlayPokemonCry, 0, species, 0, 0, 0);
   }
 
   /// Changes the volume of the cries.
   STATIC_INLINE void ChangePokemonCryVolume(f32 volume) {
-    ((void (*)(u8, f32, u32))address::kSoundChangePokemonCryVolume)(
-        0, volume, 0);
+    core::GameFunction<void(u8, f32, u32)>::Call(
+        address::kSoundChangePokemonCryVolume, 0, volume, 0);
   }
 
   /// Plays a sound effect of the sound effect bank.
   STATIC_INLINE void PlaySoundEffect(u32 index) {
-    ((void (*)(u32, u32, s32, u32))address::kSoundPlaySoundEffect)(
-        kBankSoundEffect + index, 0, 0, 0);
+    core::GameFunction<void(u32, u32, s32, u32)>::Call(
+        address::kSoundPlaySoundEffect, kBankSoundEffect + index, 0, 0, 0);
   }
 
   /// Plays a background music.
   STATIC_INLINE void PlayBackgroundMusic(BackgroundMusicId music) {
-    ((void (*)(u32, u32, u32, u32))address::kSoundPlayBackgroundMusic)(
+    core::GameFunction<void(u32, u32, u32, u32)>::Call(
+        address::kSoundPlayBackgroundMusic,
         kBankBackgroundMusic + static_cast<u32>(music), 10, 10, 1);
   }
 };

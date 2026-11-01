@@ -62,16 +62,16 @@ public:
                                Facing facing, bool keep_background_music,
                                bool show_map_name) {
 #ifdef GAME_XY
-    ((void (*)(core::GameManager*, MapId, const Vec3*, Facing, u32, bool,
-               s32, s32))address::kChangeMap)(
-        &core::GameManager::GetInstance(), map_id, &position.coords, facing, 0,
-        keep_background_music, 1, 1);
+    core::GameFunction<void(core::GameManager*, MapId, const Vec3*, Facing, u32,
+                            bool, s32, s32)>::Call(
+        address::kChangeMap, &core::GameManager::GetInstance(), map_id,
+        &position.coords, facing, 0, keep_background_music, 1, 1);
     (void)show_map_name;
 #else
-    ((void (*)(core::GameManager*, MapId, const Position*, Facing, u8, bool, s32,
-               s32, s32, bool))address::kChangeMap)(
-        &core::GameManager::GetInstance(), map_id, &position, facing, 0,
-        keep_background_music, 1, 1, 1, show_map_name);
+    core::GameFunction<void(core::GameManager*, MapId, const Position*, Facing,
+                            u8, bool, s32, s32, s32, bool)>::Call(
+        address::kChangeMap, &core::GameManager::GetInstance(), map_id,
+        &position, facing, 0, keep_background_music, 1, 1, 1, show_map_name);
 #endif
   }
 

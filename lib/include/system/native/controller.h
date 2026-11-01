@@ -45,32 +45,32 @@ public:
 
   /// Returns true at the frame when the button goes down.
   INLINE bool IsKeyPressed(Key key) {
-    return ((bool (*)(Controller*, Key, u8))address::kControllerIsKeyPressed)(
-        this, key, Device::kCustomChannel);
+    return core::GameFunction<bool(Controller*, Key, u8)>::Call(
+        address::kControllerIsKeyPressed, this, key, Device::kCustomChannel);
   }
 
   /// Returns true at the frame when the button goes up.
   INLINE bool IsKeyReleased(Key key) {
-    return ((bool (*)(Controller*, Key, u8))address::kControllerIsKeyReleased)(
-        this, key, Device::kCustomChannel);
+    return core::GameFunction<bool(Controller*, Key, u8)>::Call(
+        address::kControllerIsKeyReleased, this, key, Device::kCustomChannel);
   }
 
   /// Returns true when the button goes down, then again at a regular interval while it stays down.
   INLINE bool IsKeyRepeated(Key key) {
-    return ((bool (*)(Controller*, Key, u8))address::kControllerIsKeyRepeated)(
-        this, key, Device::kCustomChannel);
+    return core::GameFunction<bool(Controller*, Key, u8)>::Call(
+        address::kControllerIsKeyRepeated, this, key, Device::kCustomChannel);
   }
 
   /// Returns true while the button is down.
   INLINE bool IsKeyDown(Key key) {
-    return ((bool (*)(Controller*, Key, u8))address::kControllerIsKeyDown)(
-        this, key, Device::kCustomChannel);
+    return core::GameFunction<bool(Controller*, Key, u8)>::Call(
+        address::kControllerIsKeyDown, this, key, Device::kCustomChannel);
   }
 
   /// Returns the buttons that IsKeyRepeated() would accept.
   INLINE Key GetRepeatedKey() {
-    return ((Key (*)(Controller*, u8))address::kControllerGetRepeatedKey)(
-        this, Device::kCustomChannel);
+    return core::GameFunction<Key(Controller*, u8)>::Call(
+        address::kControllerGetRepeatedKey, this, Device::kCustomChannel);
   }
 };
 

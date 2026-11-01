@@ -247,8 +247,8 @@ bool ModelLoader::LoadDecoration(LoadedModel* out, u32 decoration_index,
 void* ModelLoader::ReadSdPack(const c16* path, u32 capacity) {
   void* device_heap = DeviceHeap();
   if (device_heap == nullptr) return nullptr;
-  void* buffer = ((void* (*)(void*, u32, u32))sys::address::kHeapAlloc)(
-      device_heap, capacity, 128);
+  void* buffer = core::GameFunction<void*(void*, u32, u32)>::Call(
+      sys::address::kHeapAlloc, device_heap, capacity, 128);
   if (buffer == nullptr) return nullptr;
 
   sys::File file;
@@ -258,13 +258,13 @@ void* ModelLoader::ReadSdPack(const c16* path, u32 capacity) {
     file.Open(path, sys::File::kRead);
   }
   if (!file.IsOpen()) {
-    ((void (*)(void*))sys::address::kHeapFree)(buffer);
+    core::GameFunction<void(void*)>::Call(sys::address::kHeapFree, buffer);
     return nullptr;
   }
   const s32 read = file.Read(buffer, capacity);
   file.Close();
   if (read <= 0) {
-    ((void (*)(void*))sys::address::kHeapFree)(buffer);
+    core::GameFunction<void(void*)>::Call(sys::address::kHeapFree, buffer);
     return nullptr;
   }
   return buffer;
@@ -303,7 +303,7 @@ bool ModelLoader::LoadShared(LoadedModel* out, renderer::H3dResource* resource,
 
 void ModelLoader::FreeBuffer(void* buffer) {
   if (buffer != nullptr) {
-    ((void (*)(void*))sys::address::kHeapFree)(buffer);
+    core::GameFunction<void(void*)>::Call(sys::address::kHeapFree, buffer);
   }
 }
 
@@ -351,7 +351,8 @@ void ModelLoader::UpdatePokemonLight() {
   const Color& ambient = renderer::Lighting::GetInstance().ambient_color;
   const Color& diffuse = renderer::Lighting::GetInstance().diffuse_color;
   auto set = [](uptr function, void* light, f32 r, f32 g, f32 b) {
-    ((void (*)(void*, f32, f32, f32))function)(light, r, g, b);
+    core::GameFunction<void(void*, f32, f32, f32)>::Call(
+        function, light, r, g, b);
   };
   void* light = g_light_and_set[0];
   set(renderer::address::kLightSetAmbient, light, ambient.r, ambient.g,
@@ -376,11 +377,11 @@ void ModelLoader::ReleaseLight(void* scene) {
     }
   }
   Trace("light: set null");
-  ((void (*)(void*, s32, void*))renderer::address::kSceneSetLightSet)(
-      scene, kPokemonLightSet, nullptr);
+  core::GameFunction<void(void*, s32, void*)>::Call(
+      renderer::address::kSceneSetLightSet, scene, kPokemonLightSet, nullptr);
   Trace("light: remove node");
-  ((void (*)(void*, void*))renderer::address::kSceneRemoveNodeFromCalc)(
-      scene, g_light_and_set[0]);
+  core::GameFunction<void(void*, void*)>::Call(
+      renderer::address::kSceneRemoveNodeFromCalc, scene, g_light_and_set[0]);
   Trace("light: removed");
   g_light_scene = nullptr;
 #else
@@ -492,11 +493,11 @@ void* ModelLoader::OpenArchive(ArchiveId archive_id) {
 
   constexpr u32 kSizeOfArcFile = 120;
   constexpr u32 kOpen = 1 << 0;
-  void* archive = ((void* (*)(void*, u32, u32))sys::address::kHeapAlloc)(
-      heap, kSizeOfArcFile, 4);
+  void* archive = core::GameFunction<void*(void*, u32, u32)>::Call(
+      sys::address::kHeapAlloc, heap, kSizeOfArcFile, 4);
   if (archive == nullptr) return nullptr;
-  ((void (*)(void*, void*, u32, u32))sys::address::kArchiveInitialize)(
-      archive, heap, index, kOpen);
+  core::GameFunction<void(void*, void*, u32, u32)>::Call(
+      sys::address::kArchiveInitialize, archive, heap, index, kOpen);
   g_archives[index] = archive;
   return archive;
 }
@@ -511,18 +512,19 @@ void* ModelLoader::ReadFile(ArchiveId archive_id, u32 file_id, bool compressed,
   void* buffer = nullptr;
 
   if (compressed) {
-    buffer = ((void* (*)(void*, u32, void*, void*, s32, u32*))
-      sys::address::kArchiveLoadCompressedFile)(archive, file_id, Heap(),
-                                            device_heap, 128, &size);
+    buffer = core::GameFunction<void*(void*, u32, void*, void*, s32,
+                                      u32*)>::Call(
+        sys::address::kArchiveLoadCompressedFile, archive, file_id, Heap(),
+        device_heap, 128, &size);
   } else {
-    size = ((u32 (*)(void*, u32))sys::address::kArchiveGetFileSize)(archive,
-      file_id);
+    size = core::GameFunction<u32(void*, u32)>::Call(
+        sys::address::kArchiveGetFileSize, archive, file_id);
     if (size == 0) return nullptr;
-    buffer = ((void* (*)(void*, u32, u32))sys::address::kHeapAlloc)(
-        device_heap, size, 128);
+    buffer = core::GameFunction<void*(void*, u32, u32)>::Call(
+        sys::address::kHeapAlloc, device_heap, size, 128);
     if (buffer == nullptr) return nullptr;
-    ((void (*)(void*, u32, u32, u32, void*))sys::address::kArchiveLoadFile)(
-        archive, file_id, 0, size, buffer);
+    core::GameFunction<void(void*, u32, u32, u32, void*)>::Call(
+        sys::address::kArchiveLoadFile, archive, file_id, 0, size, buffer);
   }
 
   if (out_size != nullptr) *out_size = size;
@@ -703,9 +705,9 @@ void ModelLoader::Act(LoadedModel* entry, bool use_amie) {
   StartAction(entry, use_amie ? 1 : 0);
   entry->quiet_frames = 0;
   Trace("cry", static_cast<u32>(entry->species), static_cast<u32>(entry->form));
-  ((void (*)(u32, u32, u32, u32, bool))address::kPlayCry)(
-      0, static_cast<u32>(entry->species), static_cast<u32>(entry->form), 0,
-      false);
+  core::GameFunction<void(u32, u32, u32, u32, bool)>::Call(
+      address::kPlayCry, 0,
+      static_cast<u32>(entry->species), static_cast<u32>(entry->form), 0, false);
   Trace("cry played");
   // The cry is quiet in the overworld: raise the volume of the voice 0.
   if (READ32(address::kVoiceManager + 12) > 0) {
@@ -782,11 +784,9 @@ void ModelLoader::ApplyPokemonLight(renderer::H3dShaderModel* model,
   // one light for them, and a Pokémon of the overworld uses the set 15.
   // The light belongs to a scene: a new scene needs a new light.
   if (g_light_scene != scene) {
-    ((void (*)(void*, void*, void**, void*, s32, s32))
-        renderer::address::kCreateSceneLight)(HeapAllocator(),
-                                              DeviceAllocator(),
-                                              g_light_and_set, scene, 0,
-                                              kPokemonLightSet);
+    core::GameFunction<void(void*, void*, void**, void*, s32, s32)>::Call(
+        renderer::address::kCreateSceneLight, HeapAllocator(),
+        DeviceAllocator(), g_light_and_set, scene, 0, kPokemonLightSet);
     g_light_scene = scene;
   }
   auto* own = reinterpret_cast<renderer::H3dModel*>(model);

@@ -44,8 +44,8 @@ struct MoveData {
     } accessor = {nullptr, 0, 0, nullptr};
     static u32 buffer[16];
     accessor.data = (MoveData*)buffer;
-    ((void (*)(void*, u16))address::kLoadMoveData)(&accessor,
-                                                    static_cast<u16>(move));
+    core::GameFunction<void(void*, u16)>::Call(
+        address::kLoadMoveData, &accessor, static_cast<u16>(move));
     return *accessor.data;
   }
 #else

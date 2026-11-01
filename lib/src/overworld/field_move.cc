@@ -46,7 +46,8 @@ void FieldMove::Execute(FieldMoveId move) {
     MapManager* map_manager;
   } context = {8, 0, &map_manager};
 
-  ((void (*)(void*, FieldMoveId))core::address::kDoFieldMove)(&context, move);
+  core::GameFunction<void(void*, FieldMoveId)>::Call(
+      core::address::kDoFieldMove, &context, move);
 
   ui::MainApplication::GetInstance().ForceClose();
 }

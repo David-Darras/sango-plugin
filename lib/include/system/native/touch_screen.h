@@ -39,26 +39,26 @@ public:
 
   /// Returns the X position of the touch, from 0 to 319.
   INLINE s32 GetX() {
-    return ((s32 (*)(TouchScreen*, u8))address::kTouchscreenGetX)(
-        this, Device::kCustomChannel);
+    return core::GameFunction<s32(TouchScreen*, u8)>::Call(
+        address::kTouchscreenGetX, this, Device::kCustomChannel);
   }
 
   /// Returns the Y position of the touch, from 0 to 239.
   INLINE s32 GetY() {
-    return ((s32 (*)(TouchScreen*, u8))address::kTouchscreenGetY)(
-        this, Device::kCustomChannel);
+    return core::GameFunction<s32(TouchScreen*, u8)>::Call(
+        address::kTouchscreenGetY, this, Device::kCustomChannel);
   }
 
   /// Returns true at the frame when the touch ends.
   INLINE bool IsReleased() {
-    return ((bool (*)(TouchScreen*, u8))address::kTouchscreenIsReleased)(
-        this, Device::kCustomChannel);
+    return core::GameFunction<bool(TouchScreen*, u8)>::Call(
+        address::kTouchscreenIsReleased, this, Device::kCustomChannel);
   }
 
   /// Returns true while the screen is touched.
   INLINE bool IsDown() {
-    return ((bool (*)(TouchScreen*, u8))address::kTouchscreenIsDown)(
-        this, Device::kCustomChannel);
+    return core::GameFunction<bool(TouchScreen*, u8)>::Call(
+        address::kTouchscreenIsDown, this, Device::kCustomChannel);
   }
 };
 

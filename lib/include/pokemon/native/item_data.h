@@ -34,14 +34,16 @@ namespace pokemon {
 struct ItemData {
   /// Loads the data of an item.
   INLINE ItemData(const ItemId id) {
-    ((void(*)(ItemData*, ItemId, void*))address::kItemDataInitialize)
-        (this, id, core::GameManager::GetInstance().GetSystemHeap());
+    core::GameFunction<void(ItemData*, ItemId, void*)>::Call(
+        address::kItemDataInitialize, this, id,
+        core::GameManager::GetInstance().GetSystemHeap());
   }
 
   /// Writes the name of the item.
   INLINE void GetName(String* str) {
-    ((void(*)(ItemData*, String*, void*))address::kItemDataGetName)
-        (this, str, core::GameManager::GetInstance().GetSystemHeap());
+    core::GameFunction<void(ItemData*, String*, void*)>::Call(
+        address::kItemDataGetName, this, str,
+        core::GameManager::GetInstance().GetSystemHeap());
   }
 
   u16 price; ///< The price in a Poké Mart.

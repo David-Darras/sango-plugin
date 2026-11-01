@@ -51,20 +51,23 @@ u32 AutoSurf::CheckPushEventHook(uptr player, uptr event_manager,
   const u32 handled = check_push_event_hook(player, event_manager, request);
   if (handled || !GetInstance().is_enabled) return handled;
 
-  const u32 facing = ((u32(*)(uptr))address::kMoveModelGetFacing)(
-      READ32(player + kPlayerModel));
+  const u32 facing = core::GameFunction<u32(uptr)>::Call(
+      address::kMoveModelGetFacing, READ32(player + kPlayerModel));
   if (*(const u16*)(request + kRequestKeyDirection) != facing) return 0;
-  if (((u32(*)(uptr, u32))address::kPlayerIsSwimOn)(player, facing) == 0) {
+  if (core::GameFunction<u32(uptr, u32)>::Call(
+      address::kPlayerIsSwimOn, player, facing) == 0) {
     return 0;
   }
 
   const uptr game_manager = (uptr)&core::GameManager::GetInstance();
   const uptr party =
       READ32(READ32(game_manager + kGameManagerGameData) + kGameDataParty);
-  const uptr mount = ((uptr(*)(uptr, u32))address::kPartyGetMember)(party, 0);
+  const uptr mount = core::GameFunction<uptr(uptr, u32)>::Call(
+      address::kPartyGetMember, party, 0);
 
-  ((void (*)(uptr, uptr, uptr, bool))address::kPlayerCallSwimOnEvent)(
-      player, READ32(game_manager + kGameManagerEventManager), mount, false);
+  core::GameFunction<void(uptr, uptr, uptr, bool)>::Call(
+      address::kPlayerCallSwimOnEvent, player,
+      READ32(game_manager + kGameManagerEventManager), mount, false);
   return 1;
 }
 

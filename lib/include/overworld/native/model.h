@@ -38,12 +38,14 @@ struct Model {
 
   /// Returns the drawn part of the model.
   INLINE DrawModel& GetDrawModel() {
-    return *((DrawModel * (*)(Model*))address::kGetDrawModel)(this);
+    return *core::GameFunction<DrawModel *(Model*)>::Call(
+        address::kGetDrawModel, this);
   }
 
   /// Returns the drawn part of the model, or null.
   INLINE DrawModel* GetDrawModelOrNull() {
-    return ((DrawModel * (*)(Model*))address::kGetDrawModel)(this);
+    return core::GameFunction<DrawModel *(Model*)>::Call(
+        address::kGetDrawModel, this);
   }
 
   /// Returns the description of the model.

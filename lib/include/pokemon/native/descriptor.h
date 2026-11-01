@@ -64,9 +64,8 @@ struct Descriptor {
 
   /// Writes a new Pokémon with this description into `core`.
   void Create(CoreData* core) const {
-    ((void (*)(CoreData*, const Descriptor*))
-      address::kCreateCoreDataFromDescriptor)(
-        core, this);
+    core::GameFunction<void(CoreData*, const Descriptor*)>::Call(
+        address::kCreateCoreDataFromDescriptor, core, this);
   }
 
   u64 personal_random;

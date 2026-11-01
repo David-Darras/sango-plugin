@@ -35,7 +35,8 @@ class Movepool {
   SINGLETON(Movepool)
   /// Loads the learnset of a species and form, and returns it.
   STATIC_INLINE Movepool& GetInstance(SpeciesId species, FormId form) {
-    ((void(*)(SpeciesId, FormId))address::kLoadMovepool)(species, form);
+    core::GameFunction<void(SpeciesId, FormId)>::Call(
+        address::kLoadMovepool, species, form);
     return Object();
   }
 

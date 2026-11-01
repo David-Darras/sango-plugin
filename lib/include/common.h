@@ -36,6 +36,7 @@
 // Base tools of the library.
 #include "core/bitmask.h"
 #include "core/color.h"
+#include "core/game_function.h"
 #include "core/math.h"
 #include "core/memory.h"
 #include "core/option.h"

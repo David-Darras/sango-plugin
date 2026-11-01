@@ -201,7 +201,8 @@ struct CoreData {
   /// Sets the name of the species as the nickname.
   void ResetNickname() {
     c16 buffer[13];
-    ((void(*)(c16*, SpeciesId))address::kGetDefaultNickname)(buffer, species);
+    core::GameFunction<void(c16*, SpeciesId)>::Call(
+        address::kGetDefaultNickname, buffer, species);
     SetNickname(buffer);
     use_nickname = false;
   }

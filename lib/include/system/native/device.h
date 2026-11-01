@@ -44,17 +44,18 @@ public:
   }
 
   INLINE Controller& GetController() {
-    return ((Controller & (*)(Device*, u32))address::kDeviceGetController)(
-        this, 0);
+    return core::GameFunction<Controller &(Device*, u32)>::Call(
+        address::kDeviceGetController, this, 0);
   }
 
   INLINE DPad& GetDPad() {
-    return ((DPad & (*)(Device*, u32))address::kDeviceGetDpad)(this, 0);
+    return core::GameFunction<DPad &(Device*, u32)>::Call(
+        address::kDeviceGetDpad, this, 0);
   }
 
   INLINE TouchScreen& GetTouchScreen() {
-    return ((TouchScreen & (*)(Device*, u32))address::kDeviceGetTouchscreen)(
-        this, 0);
+    return core::GameFunction<TouchScreen &(Device*, u32)>::Call(
+        address::kDeviceGetTouchscreen, this, 0);
   }
 };
 

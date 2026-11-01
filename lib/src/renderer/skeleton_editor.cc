@@ -533,8 +533,8 @@ f32* SkeletonEditor::GetWorldMatrices(const H3dModel* model, u32* count,
 
 u32 SkeletonEditor::GetBoneCount(const H3dModel* model) {
 #ifdef GAME_ORAS
-  const s32 count = ((s32(*)(const H3dModel*))address::kH3dModelGetBonesCount)(
-      model);
+  const s32 count = core::GameFunction<s32(const H3dModel*)>::Call(
+      address::kH3dModelGetBonesCount, model);
   return count > 0 && count <= static_cast<s32>(kMaxBones)
              ? static_cast<u32>(count)
              : 0;
@@ -547,8 +547,8 @@ u32 SkeletonEditor::GetBoneCount(const H3dModel* model) {
 const c8* SkeletonEditor::GetBoneName(const H3dModel* model, u32 bone) {
 #ifdef GAME_ORAS
   if (bone >= GetBoneCount(model)) return "";
-  const c8* name = ((const c8* (*)(const H3dModel*, s32))
-                        address::kH3dModelGetBonesName)(model, bone);
+  const c8* name = core::GameFunction<const c8*(const H3dModel*, s32)>::Call(
+      address::kH3dModelGetBonesName, model, bone);
   if (name != nullptr &&
       sys::Graphics::IsDataAddress(reinterpret_cast<uptr>(name))) {
     return name;

@@ -95,7 +95,8 @@ bool CustomShop::PatchItemName(ItemId item, String* output) {
 }
 
 void CustomShop::GetSpeciesName(SpeciesId species, String* output) {
-  ((void(*)(String*, SpeciesId))address::kGetSpeciesName)(output, species);
+  core::GameFunction<void(String*, SpeciesId)>::Call(
+      address::kGetSpeciesName, output, species);
 }
 
 bool CustomShop::IsPokemonShop(const ShopData* data) {

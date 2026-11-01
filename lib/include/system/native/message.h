@@ -46,8 +46,8 @@ struct Message {
 
   /// Copies the text with the index `str_id` into `output`.
   INLINE void GetString(u32 str_id, String* output) {
-    return ((void(*)(Message*, u32, String*))
-      sys::address::kMessageGetString)(this, str_id, output);
+    return core::GameFunction<void(Message*, u32, String*)>::Call(
+        sys::address::kMessageGetString, this, str_id, output);
   }
 };
 

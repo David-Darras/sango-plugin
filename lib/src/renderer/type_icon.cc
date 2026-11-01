@@ -142,8 +142,8 @@ const LayoutTexture* LoadTypeImage(u32 type) {
 
   LayoutTexture texture;
   memset(&texture, 0, sizeof(texture));
-  ((void (*)(void*, const void*, u32, u32))address::kLayoutMakeImage)(
-      &texture, image, size, kMemoryFromFile);
+  core::GameFunction<void(void*, const void*, u32, u32)>::Call(
+      address::kLayoutMakeImage, &texture, image, size, kMemoryFromFile);
   if (!IsTypeIcon(texture)) {
     ui::Log::Print(u"type icon %u: the game refused the image (%ux%u)", type,
                    texture.width, texture.height);
@@ -228,7 +228,7 @@ void PlayMaterialAnimationHook(void* transform, u32 index, void* material) {
     bits = (bits & ~0xF00u) |
            ((static_cast<u32>(texture->format) << 8) & 0xF00u);
     memcpy(map + 16, &bits, sizeof(bits));
-    ((void (*)(void*))address::kLayoutRefreshImage)(map);
+    core::GameFunction<void(void*)>::Call(address::kLayoutRefreshImage, map);
   }
 }
 

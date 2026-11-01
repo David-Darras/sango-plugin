@@ -248,10 +248,9 @@ void GiveTypeTeam() {
   // The party has six slots: the game copies the first Pokémon into the new
   // slots, then each slot gets its own Pokémon.
   while (team.count < savedata::PokemonTeam::kMaxSlots) {
-    const bool is_added = ((bool (*)(savedata::PokemonTeam*,
-                                     savedata::PokemonParam*))
-                               pokemon::address::kAddPokemonToTeam)(
-        &team, team.pokemons[0]);
+    const bool is_added = core::GameFunction<bool(savedata::PokemonTeam*,
+                                                  savedata::PokemonParam*)>::Call(
+        pokemon::address::kAddPokemonToTeam, &team, team.pokemons[0]);
     if (!is_added) break;
   }
   for (u32 i = 0; i < team.count && i < SIZE(kTeam); i++) {

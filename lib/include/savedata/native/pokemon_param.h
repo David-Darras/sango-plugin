@@ -50,12 +50,14 @@ struct PokemonParam {
 
   /// Calculates the level, the HP and the stats again. Call it after a change of the saved data.
   INLINE void UpdateRuntimeData() {
-    ((void(*)(PokemonParam*))pokemon::address::kUpdateRuntimeData)(this);
+    core::GameFunction<void(PokemonParam*)>::Call(
+        pokemon::address::kUpdateRuntimeData, this);
   }
 
   /// Sets the name of the species as the nickname.
   INLINE void ResetNickname() {
-    ((void(*)(PokemonParam*))pokemon::address::kResetNickname)(this);
+    core::GameFunction<void(PokemonParam*)>::Call(
+        pokemon::address::kResetNickname, this);
   }
 };
 

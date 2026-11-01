@@ -423,15 +423,15 @@ bool MapCharacter::Contains(const ModelAppearance* models, u32 count,
 
 bool MapCharacter::LoadAppearance(const CharacterManager* manager,
                                   ModelId model_id, ModelAppearance* out) {
-  s32 index = ((s32 (*)(ModelId))address::kGetModelArchiveIndex)(
-      model_id);
+  s32 index = core::GameFunction<s32(ModelId)>::Call(
+      address::kGetModelArchiveIndex, model_id);
   if (index < 0) return false;
 
   void* archive = manager->model_param_archive;
   if (archive == nullptr) return false;
 
-  ((void (*)(void*, s32, void*))sys::address::kArchiveLoadData2)(archive, index,
-                                                             out);
+  core::GameFunction<void(void*, s32, void*)>::Call(
+      sys::address::kArchiveLoadData2, archive, index, out);
   return true;
 }
 

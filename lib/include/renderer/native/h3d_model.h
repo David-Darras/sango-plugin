@@ -79,111 +79,111 @@ struct H3dModel {
   uptr vtable;
 
   INLINE void SetMeshVisible(u8 index, bool is_visible) {
-    return ((void(*)(H3dModel*, u8, bool))
-      address::kH3dModelSetMeshVisible)(this, index, is_visible);
+    return core::GameFunction<void(H3dModel*, u8, bool)>::Call(
+        address::kH3dModelSetMeshVisible, this, index, is_visible);
   }
 
   INLINE s32 GetMaterialCount() {
-    return ((s32(*)(H3dModel*))
-      address::kH3dModelGetMaterialCount)(this);
+    return core::GameFunction<s32(H3dModel*)>::Call(
+        address::kH3dModelGetMaterialCount, this);
   }
 
 #ifdef GAME_ORAS
   /// Returns the light set of a material. -1: the model has none.
   INLINE s32 GetLightSet(s32 mat) {
-    return ((s32(*)(H3dModel*, s32))
-      address::kH3dModelGetMaterialLightSet)(this, mat);
+    return core::GameFunction<s32(H3dModel*, s32)>::Call(
+        address::kH3dModelGetMaterialLightSet, this, mat);
   }
 
   INLINE void SetLightSet(s32 mat, s32 light_set) {
-    ((void(*)(H3dModel*, s32, s32))
-      address::kH3dModelSetMaterialLightSet)(this, mat, light_set);
+    core::GameFunction<void(H3dModel*, s32, s32)>::Call(
+        address::kH3dModelSetMaterialLightSet, this, mat, light_set);
   }
 #endif
 
   INLINE void SetCombineRgb(s32 mat, s32 step, s32 combine) {
-    return ((void(*)(H3dModel*, s32, s32, s32))
-      address::kH3dModelSetCombinerCombineRgb)(this, mat, step, combine);
+    return core::GameFunction<void(H3dModel*, s32, s32, s32)>::Call(
+        address::kH3dModelSetCombinerCombineRgb, this, mat, step, combine);
   }
 
   INLINE void SetScaleRgb(s32 mat, s32 step, s32 scale) {
-    return ((void(*)(H3dModel*, s32, s32, s32))
-      address::kH3dModelSetCombinerScaleRgb)(this, mat, step, scale);
+    return core::GameFunction<void(H3dModel*, s32, s32, s32)>::Call(
+        address::kH3dModelSetCombinerScaleRgb, this, mat, step, scale);
   }
 
   INLINE void SetSourceRgb(s32 mat, s32 step, s32 no, s32 source) {
-    return ((void(*)(H3dModel*, s32, s32, s32, s32))
-      address::kH3dModelSetCombinerSourceRgb)(this, mat, step, no, source);
+    return core::GameFunction<void(H3dModel*, s32, s32, s32, s32)>::Call(
+        address::kH3dModelSetCombinerSourceRgb, this, mat, step, no, source);
   }
 
   INLINE void SetOperandRgb(s32 mat, s32 step, s32 no, s32 ope) {
-    return ((void(*)(H3dModel*, s32, s32, s32, s32))
-      address::kH3dModelSetCombinerOperandRgb)(this, mat, step, no, ope);
+    return core::GameFunction<void(H3dModel*, s32, s32, s32, s32)>::Call(
+        address::kH3dModelSetCombinerOperandRgb, this, mat, step, no, ope);
   }
 
   INLINE void SetCombinerConstantSlot(s32 mat, s32 step, s32 no) {
-    return ((void(*)(H3dModel*, s32, s32, s32))
-      address::kH3dModelSetCombinerConstant)(this, mat, step, no);
+    return core::GameFunction<void(H3dModel*, s32, s32, s32)>::Call(
+        address::kH3dModelSetCombinerConstant, this, mat, step, no);
   }
 
   INLINE void SetColorConstant(s32 mat, s32 no, const Color& c) {
-    return ((void(*)(H3dModel*, s32, s32, const Color&))
-      address::kH3dModelSetColorConstant)(this, mat, no, c);
+    return core::GameFunction<void(H3dModel*, s32, s32, const Color&)>::Call(
+        address::kH3dModelSetColorConstant, this, mat, no, c);
   }
 
   INLINE void SetCombineAlpha(s32 mat, s32 step, s32 combine) {
-    return ((void(*)(H3dModel*, s32, s32, s32))
-      address::kH3dModelSetCombinerCombineAlpha)(this, mat, step, combine);
+    return core::GameFunction<void(H3dModel*, s32, s32, s32)>::Call(
+        address::kH3dModelSetCombinerCombineAlpha, this, mat, step, combine);
   }
 
   INLINE void SetSourceAlpha(s32 mat, s32 step, s32 no, s32 source) {
-    return ((void(*)(H3dModel*, s32, s32, s32, s32))
-      address::kH3dModelSetCombinerSourceAlpha)(this, mat, step, no, source);
+    return core::GameFunction<void(H3dModel*, s32, s32, s32, s32)>::Call(
+        address::kH3dModelSetCombinerSourceAlpha, this, mat, step, no, source);
   }
 
   INLINE void SetOperandAlpha(s32 mat, s32 step, s32 no, s32 ope) {
-    return ((void(*)(H3dModel*, s32, s32, s32, s32))
-      address::kH3dModelSetCombinerOperandAlpha)(this, mat, step, no, ope);
+    return core::GameFunction<void(H3dModel*, s32, s32, s32, s32)>::Call(
+        address::kH3dModelSetCombinerOperandAlpha, this, mat, step, no, ope);
   }
 
   INLINE void SetTranslucencyKind(s32 mat, s32 kind) {
-    return ((void(*)(H3dModel*, s32, s32))
-      address::kH3dModelSetTranslucencyKind)(this, mat, kind);
+    return core::GameFunction<void(H3dModel*, s32, s32)>::Call(
+        address::kH3dModelSetTranslucencyKind, this, mat, kind);
   }
 
   INLINE void SetBufferInputRgb(s32 mat, s32 step, u8 value) {
-    return ((void(*)(H3dModel*, s32, s32, u8))
-      address::kH3dModelSetBufferInputRgb)(this, mat, step, value);
+    return core::GameFunction<void(H3dModel*, s32, s32, u8)>::Call(
+        address::kH3dModelSetBufferInputRgb, this, mat, step, value);
   }
 
   INLINE void SetBufferInputAlpha(s32 mat, s32 step, u8 value) {
-    return ((void(*)(H3dModel*, s32, s32, u8))
-      address::kH3dModelSetBufferInputAlpha)(this, mat, step, value);
+    return core::GameFunction<void(H3dModel*, s32, s32, u8)>::Call(
+        address::kH3dModelSetBufferInputAlpha, this, mat, step, value);
   }
 
   INLINE void SetBlendMode(s32 mat, s32 mode) {
-    return ((void(*)(H3dModel*, s32, s32))
-      address::kH3dModelSetBlendMode)(this, mat, mode);
+    return core::GameFunction<void(H3dModel*, s32, s32)>::Call(
+        address::kH3dModelSetBlendMode, this, mat, mode);
   }
 
   INLINE void SetBlendFuncSourceRgb(s32 mat, s32 factor) {
-    return ((void(*)(H3dModel*, s32, s32))
-      address::kH3dModelSetBlendFuncSourceRgb)(this, mat, factor);
+    return core::GameFunction<void(H3dModel*, s32, s32)>::Call(
+        address::kH3dModelSetBlendFuncSourceRgb, this, mat, factor);
   }
 
   INLINE void SetBlendFuncDestRgb(s32 mat, s32 factor) {
-    return ((void(*)(H3dModel*, s32, s32))
-      address::kH3dModelSetBlendFuncDestRgb)(this, mat, factor);
+    return core::GameFunction<void(H3dModel*, s32, s32)>::Call(
+        address::kH3dModelSetBlendFuncDestRgb, this, mat, factor);
   }
 
   INLINE void SetBlendEquationRgb(s32 mat, s32 equation) {
-    return ((void(*)(H3dModel*, s32, s32))
-      address::kH3dModelSetBlendEquationRgb)(this, mat, equation);
+    return core::GameFunction<void(H3dModel*, s32, s32)>::Call(
+        address::kH3dModelSetBlendEquationRgb, this, mat, equation);
   }
 
   INLINE void SetAlphaTestEnable(s32 mat, bool enable) {
-    return ((void(*)(H3dModel*, s32, bool))
-      address::kH3dModelSetAlphaTestEnable)(this, mat, enable);
+    return core::GameFunction<void(H3dModel*, s32, bool)>::Call(
+        address::kH3dModelSetAlphaTestEnable, this, mat, enable);
   }
 
   void ConfigureStage(s32 step, s32 combine,

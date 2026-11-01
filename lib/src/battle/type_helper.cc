@@ -60,8 +60,8 @@ TypeHelper::EffectivenessInfo TypeHelper::GetEffectivenessInfo(u8 result) {
 }
 
 void TypeHelper::GetMoveString(MoveId move) {
-  ((void (*)(MoveId, String*))pokemon::address::kGetMoveName)(
-      move, String::GetTmpStr());
+  core::GameFunction<void(MoveId, String*)>::Call(
+      pokemon::address::kGetMoveName, move, String::GetTmpStr());
 }
 
 void TypeHelper::DrawTop() {
@@ -89,8 +89,8 @@ void TypeHelper::DrawTop() {
   sys::Graphics::DrawText(x, y, title_buffer, Color{1.0f, 0.8f, 0.2f, 1.0f});
   y += y_offset * 2;
 
-  const u16 def_types = ((u16 (*)(const Pokemon*))
-      address::kGetPokemonTypes)(defender);
+  const u16 def_types = core::GameFunction<u16(const Pokemon*)>::Call(
+      address::kGetPokemonTypes, defender);
 
   for (const auto & move : attacker->moves) {
     MoveId move_id = move.core.id;
@@ -99,8 +99,8 @@ void TypeHelper::DrawTop() {
     GetMoveString(move_id);
     auto& move_data = pokemon::MoveData::GetInstance(move_id);
 
-    u8 result = ((u8 (*)(TypeId, u16))address::kGetEffectiveness)(
-        move_data.type, def_types);
+    u8 result = core::GameFunction<u8(TypeId, u16)>::Call(
+        address::kGetEffectiveness, move_data.type, def_types);
 
     auto info = GetEffectivenessInfo(result);
 

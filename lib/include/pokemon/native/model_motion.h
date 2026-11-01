@@ -52,7 +52,8 @@ struct ModelMotion {
   /// Makes a motion for a model. Returns null when the data or the model
   /// are not valid. @a heap_base is the heap of the game for the object.
   static void* Create(void* heap_base, void* motion_data, void* model) {
-    void* motion = ((void* (*)(u32, void*))address::kHeapNew)(kSize, heap_base);
+    void* motion = core::GameFunction<void*(u32, void*)>::Call(
+        address::kHeapNew, kSize, heap_base);
     if (motion == nullptr) return nullptr;
     u8* bytes = static_cast<u8*>(motion);
     for (u32 i = 0; i < kSize; ++i) bytes[i] = 0;
@@ -63,8 +64,9 @@ struct ModelMotion {
       *(f32*)(bytes + kRootScaleOffset + i * 4) = 1.0f;
       *(f32*)(bytes + kLastScaleOffset + i * 4) = 1.0f;
     }
-    ((void (*)(void*, void*, void*, void*, void*))address::kMotionInitialize)(
-        motion, motion_data, heap_base, model, nullptr);
+    core::GameFunction<void(void*, void*, void*, void*, void*)>::Call(
+        address::kMotionInitialize, motion, motion_data, heap_base, model,
+        nullptr);
     *(u32*)(bytes + kAttributeOffset) |= kNoCorrection | kLoop;
     bytes[kScaleFlagsOffset] = 1;
     bytes[kScaleFlagsOffset + 1] = 1;
@@ -75,13 +77,14 @@ struct ModelMotion {
   static bool Play(void* motion, s32 index) {
     // The change function is the 7th function of the vtable.
     uptr* vtable = *(uptr**)motion;
-    return ((bool (*)(void*, s32))vtable[6])(motion, kFirstMotion + index);
+    return core::GameFunction<bool(void*, s32)>::Call(
+        vtable[6], motion, kFirstMotion + index);
   }
 
   /// Returns true when the data has this motion.
   static bool IsAvailable(void* motion, s32 index) {
-    return ((u32 (*)(void*, s32))address::kMotionIsAvailable)(
-               motion, kFirstMotion + index) > 0;
+    return core::GameFunction<u32(void*, s32)>::Call(
+        address::kMotionIsAvailable, motion, kFirstMotion + index) > 0;
   }
 
   /// Returns true when the motion is at its last frame.
@@ -109,14 +112,16 @@ struct ModelMotion {
 
   /// Moves the motion forward one frame.
   static void Advance(void* motion) {
-    ((void (*)(void*, f32))address::kMotionUpdate)(motion, 1.0f);
+    core::GameFunction<void(void*, f32)>::Call(
+        address::kMotionUpdate, motion, 1.0f);
   }
 
   /// Writes the bones of the motion to the model. The game calculates the
   /// bones of a model before it draws it, so call this function after that
   /// calculation and before the draw.
   static void Apply(void* motion, void* model) {
-    ((void (*)(void*, void*))address::kMotionApplyToModel)(motion, model);
+    core::GameFunction<void(void*, void*)>::Call(
+        address::kMotionApplyToModel, motion, model);
   }
 
   static void SetSpeed(void* motion, f32 speed) {
@@ -126,7 +131,7 @@ struct ModelMotion {
   /// Destroys a motion that Create made.
   static void Destroy(void* motion) {
     uptr* vtable = *(uptr**)motion;
-    ((void (*)(void*))vtable[1])(motion);
+    core::GameFunction<void(void*)>::Call(vtable[1], motion);
   }
 #endif
 };

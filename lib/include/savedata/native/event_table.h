@@ -41,20 +41,20 @@ struct EventTable {
 
   /// Returns true when the flag is set.
   INLINE bool Check(EventFlag flag) {
-    return ((bool(*)(EventTable*, EventFlag))core::address::kEventTableCheckFlag)(
-        this, flag);
+    return core::GameFunction<bool(EventTable*, EventFlag)>::Call(
+        core::address::kEventTableCheckFlag, this, flag);
   }
 
   /// Clears the flag.
   INLINE void Reset(EventFlag flag) {
-    ((void(*)(EventTable*, EventFlag))core::address::kEventTableResetFlag)(
-        this, flag);
+    core::GameFunction<void(EventTable*, EventFlag)>::Call(
+        core::address::kEventTableResetFlag, this, flag);
   }
 
   /// Sets the flag.
   INLINE void Set(EventFlag flag) {
-    ((void(*)(EventTable*, EventFlag))core::address::kEventTableSetFlag)(
-        this, flag);
+    core::GameFunction<void(EventTable*, EventFlag)>::Call(
+        core::address::kEventTableSetFlag, this, flag);
   }
 };
 } // namespace savedata

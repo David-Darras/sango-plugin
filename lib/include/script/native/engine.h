@@ -64,7 +64,8 @@ public:
 
   /// Stops the Pawn program until the next frame.
   STATIC_INLINE void RaiseSleep(AmxRuntime* amx) {
-    ((s32 (*)(AmxRuntime*, s32))core::address::kScriptRaiseError)(amx, AMX_ERR_SLEEP);
+    core::GameFunction<s32(AmxRuntime*, s32)>::Call(
+        core::address::kScriptRaiseError, amx, AMX_ERR_SLEEP);
   }
 
 private:

@@ -42,11 +42,11 @@ public:
     *x = 0.0f;
     *y = 0.0f;
 #ifdef GAME_ORAS
-    void* stick = ((void* (*)(Device*, u32))address::kCirclePadDevice)(
-        &Device::GetInstance(), 0);
+    void* stick = core::GameFunction<void*(Device*, u32)>::Call(
+        address::kCirclePadDevice, &Device::GetInstance(), 0);
     if (stick == nullptr) return false;
-    *x = ((f32 (*)(void*))address::kCirclePadReadX)(stick);
-    *y = ((f32 (*)(void*))address::kCirclePadReadY)(stick);
+    *x = core::GameFunction<f32(void*)>::Call(address::kCirclePadReadX, stick);
+    *y = core::GameFunction<f32(void*)>::Call(address::kCirclePadReadY, stick);
     return true;
 #else
     return false;

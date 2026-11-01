@@ -31,22 +31,24 @@ class Situation {
 public:
   /// Starts a nested situation.
   STATIC_INLINE void Begin() {
-    ((void(*)())battle::address::kSituationBegin)();
+    core::GameFunction<void()>::Call(battle::address::kSituationBegin);
   }
 
   /// Ends a nested situation.
   STATIC_INLINE void End() {
-    ((void(*)())battle::address::kSituationEnd)();
+    core::GameFunction<void()>::Call(battle::address::kSituationEnd);
   }
 
   /// Sets a value of the current moment.
   STATIC_INLINE void Set(SituationKey key, s32 value) {
-    ((void(*)(SituationKey, s32))battle::address::kSituationSet)(key, value);
+    core::GameFunction<void(SituationKey, s32)>::Call(
+        battle::address::kSituationSet, key, value);
   }
 
   /// Returns a value of the current moment.
   STATIC_INLINE s32 Get(SituationKey key) {
-    return ((s32(*)(SituationKey))battle::address::kSituationGet)(key);
+    return core::GameFunction<s32(SituationKey)>::Call(
+        battle::address::kSituationGet, key);
   }
 };
 }

@@ -148,9 +148,10 @@ void Network::Start() {
     if (fields == 6) memcpy(name_, name, sizeof(name_));
   }
 
-  void* heap = ((void* (*)(int))sys::address::kGetHeapById)(kHeapIdNetwork);
-  void* raw = heap ? ((void* (*)(void*, u32, u32))sys::address::kHeapAlloc)(
-                         heap, kSocketBufferSize + 0x1000, 4)
+  void* heap = core::GameFunction<void*(int)>::Call(
+      sys::address::kGetHeapById, kHeapIdNetwork);
+  void* raw = heap ? core::GameFunction<void*(void*, u32, u32)>::Call(
+      sys::address::kHeapAlloc, heap, kSocketBufferSize + 0x1000, 4)
                    : nullptr;
   if (raw == nullptr) {
     worker_result_ = -ENOMEM;

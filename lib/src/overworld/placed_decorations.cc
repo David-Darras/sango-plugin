@@ -427,9 +427,10 @@ void PlacedDecorations::StartTallGrassBattle() {
   auto& randomizer = StaticRandomizer::GetInstance();
   const bool was_randomizing = randomizer.randomize_species;
   randomizer.randomize_species = false;
-  ((s32(*)(core::GameManager*, StaticEncounterId, u32, s32))
-    address::kCallStaticEncounter)(&core::GameManager::GetInstance(),
-                                   kBorrowedEncounter, 0, -1);
+  core::GameFunction<s32(core::GameManager*, StaticEncounterId, u32,
+                         s32)>::Call(
+      address::kCallStaticEncounter, &core::GameManager::GetInstance(),
+      kBorrowedEncounter, 0, -1);
   randomizer.randomize_species = was_randomizing;
 
   ctx.is_tall_grass_battle_pending_ = true;

@@ -49,27 +49,31 @@ struct H3dResource {
   }
 
   INLINE void SetData(void* data) {
-    ((void (*)(H3dResource*, void*))address::kH3dResourceSetData)(this, data);
+    core::GameFunction<void(H3dResource*, void*)>::Call(
+        address::kH3dResourceSetData, this, data);
   }
 
   INLINE bool Setup(void* heap_allocator, void* device_allocator,
                     H3dResource* other = nullptr, u32 common = kCommonNone) {
-    return ((bool (*)(H3dResource*, void*, void*, H3dResource*, u32))
-      address::kH3dResourceSetup)(this, heap_allocator, device_allocator, other,
-                            common);
+    return core::GameFunction<bool(H3dResource*, void*, void*, H3dResource*,
+                                   u32)>::Call(
+        address::kH3dResourceSetup, this, heap_allocator, device_allocator,
+        other, common);
   }
 
   INLINE void RemoveData(bool uninitialize = true) {
-    ((void (*)(H3dResource*, u32))address::kH3dResourceRemoveData)(
-        this, uninitialize);
+    core::GameFunction<void(H3dResource*, u32)>::Call(
+        address::kH3dResourceRemoveData, this, uninitialize);
   }
 
   /// Makes an empty resource in a heap.
   STATIC_INLINE H3dResource* Create(void* heap) {
-    auto* resource = (H3dResource*)((void* (*)(void*, u32, u32))
-      sys::address::kHeapAlloc)(heap, kSize, 4);
+    auto* resource = (H3dResource*)core::GameFunction<void*(void*, u32,
+                                                            u32)>::Call(
+        sys::address::kHeapAlloc, heap, kSize, 4);
     if (resource != nullptr) {
-      ((void (*)(H3dResource*))address::kH3dResourceInitialize)(resource);
+      core::GameFunction<void(H3dResource*)>::Call(
+          address::kH3dResourceInitialize, resource);
     }
     return resource;
   }

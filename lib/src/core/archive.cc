@@ -516,8 +516,8 @@ void* Archive::LoadCompressedHook(u32* archive, u32 file_id, void* heap_work,
   if (set != nullptr && !set->whole_file) {
     const u32 size = OverrideSize(*set, file_id);
     if (size) {
-      void* buffer = ((void* (*)(void*, u32, u32))sys::address::kHeapAlloc)(
-          heap_data, size, align ? align : 4);
+      void* buffer = core::GameFunction<void*(void*, u32, u32)>::Call(
+          sys::address::kHeapAlloc, heap_data, size, align ? align : 4);
       if (buffer != nullptr) {
         c16 path[64];
         Utils::Format(path, set->file_format, file_id);
@@ -530,7 +530,7 @@ void* Archive::LoadCompressedHook(u32* archive, u32 file_id, void* heap_work,
           if (out_size != nullptr) *out_size = size;
           return buffer;
         }
-        ((void (*)(void*))sys::address::kHeapFree)(buffer);
+        core::GameFunction<void(void*)>::Call(sys::address::kHeapFree, buffer);
       }
     }
   }

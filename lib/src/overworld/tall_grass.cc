@@ -121,9 +121,9 @@ bool TallGrass::LoadResources() {
   void* models = FindResidentModels();
   if (models == nullptr) return false;
   for (u32 i = 0; i < kKindCount; i++) {
-    ctx.resources_[i] = ((renderer::H3dResource * (*)(void*, u32))
-                             address::kGetResidentModel)(models,
-                                                         kGrassModelIndex[i]);
+    ctx.resources_[i] = core::GameFunction<renderer::H3dResource *(void*,
+                                                                   u32)>::Call(
+        address::kGetResidentModel, models, kGrassModelIndex[i]);
     if (ctx.resources_[i] == nullptr) {
       ui::Log::Print(u"tall grass: model %u is not in the game", i);
       are_models_missing = true;

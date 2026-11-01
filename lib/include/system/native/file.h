@@ -48,22 +48,26 @@ public:
 
   /// Makes the SD card available. The library calls it at start-up.
   STATIC_INLINE void MountSdmc(const c8* archiveName = "sdmc:") {
-    ((void (*)(const c8*))address::kFsMountSdmc)(archiveName);
+    core::GameFunction<void(const c8*)>::Call(
+        address::kFsMountSdmc, archiveName);
   }
 
   /// Makes an empty file.
   STATIC_INLINE void Create(const c16* filename, s64 size = 0) {
-    ((void (*)(const c16*, s64))address::kFsCreateFile)(filename, size);
+    core::GameFunction<void(const c16*, s64)>::Call(
+        address::kFsCreateFile, filename, size);
   }
 
   /// Deletes a file.
   STATIC_INLINE void Delete(const c16* filename) {
-    ((void (*)(const c16*))address::kFsDeleteFile)(filename);
+    core::GameFunction<void(const c16*)>::Call(
+        address::kFsDeleteFile, filename);
   }
 
   /// Makes a folder.
   STATIC_INLINE void CreateDirectory(const c16* path) {
-    ((void (*)(const c16*))address::kFsCreateDirectory)(path);
+    core::GameFunction<void(const c16*)>::Call(
+        address::kFsCreateDirectory, path);
   }
 
   File() : handle_(nullptr), pos_(0) {
@@ -81,8 +85,8 @@ public:
   INLINE void Open(const c16* filename, u32 mode = kRead | kWrite | kCreate) {
     handle_ = nullptr;
     pos_ = 0;
-    ((void (*)(void**, const c16*, u32))address::kFileOpen)(&handle_, filename,
-      mode);
+    core::GameFunction<void(void**, const c16*, u32)>::Call(
+        address::kFileOpen, &handle_, filename, mode);
   }
 
   /// Returns true when the file is open.
@@ -91,7 +95,7 @@ public:
   /// Closes the file. The destructor also closes it.
   INLINE void Close() {
     if (handle_) {
-      ((void (*)(void*))address::kFileClose)(handle_);
+      core::GameFunction<void(void*)>::Call(address::kFileClose, handle_);
       handle_ = nullptr;
     }
   }
@@ -100,8 +104,8 @@ public:
   INLINE s32 Read(void* buffer, u32 size, s64 offset = 0) {
     s32 out = 0;
     pos_ += offset;
-    ((void (*)(s32*, void*, s64, void*, u32))address::kFileRead)(
-        &out, handle_, pos_, buffer, size);
+    core::GameFunction<void(s32*, void*, s64, void*, u32)>::Call(
+        address::kFileRead, &out, handle_, pos_, buffer, size);
     pos_ += size;
     return out;
   }
@@ -121,8 +125,8 @@ public:
                     bool flush = true) {
     s32 out;
     pos_ += offset;
-    ((void (*)(s32*, void*, s64, const void*, u32, bool))address::kFileWrite)(
-        &out, handle_, pos_, buffer, size, flush);
+    core::GameFunction<void(s32*, void*, s64, const void*, u32, bool)>::Call(
+        address::kFileWrite, &out, handle_, pos_, buffer, size, flush);
     pos_ += size;
   }
 
@@ -131,8 +135,8 @@ public:
     c16 out[address::kBufferSize];
     va_list args;
     va_start(args, in);
-    ((void (*)(c16*, u32, const c16*, va_list))address::kStdVswprintf)(
-        out, address::kBufferSize, in, args);
+    core::GameFunction<void(c16*, u32, const c16*, va_list)>::Call(
+        address::kStdVswprintf, out, address::kBufferSize, in, args);
     va_end(args);
     Write(out, core::Utils::GetLength(out) * sizeof(c16));
   }

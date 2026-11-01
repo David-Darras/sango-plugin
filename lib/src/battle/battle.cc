@@ -220,8 +220,8 @@ Color8 Battle::GetHpGaugeColor(f32 ratio) {
 void Battle::UpdateGaugeHook(uptr gauge, u16 max_hp, u32 new_hp) {
   update_gauge_hook(gauge, max_hp, new_hp);
   if (!GetInstance().hp_gradient) return;
-  uptr res = ((uptr(*)(uptr))address::kGetHpGaugePane)(
-      READ32(gauge + 48));
+  uptr res = core::GameFunction<uptr(uptr)>::Call(
+      address::kGetHpGaugePane, READ32(gauge + 48));
 
   f32 ratio = (max_hp > 0) ? (f32)new_hp / (f32)max_hp : 0.0f;
   Color8 color = GetHpGaugeColor(ratio);

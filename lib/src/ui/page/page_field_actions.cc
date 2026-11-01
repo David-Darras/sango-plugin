@@ -62,7 +62,8 @@ void LoadOverworldFieldMovePage(MainApplication& app, void* args) {
 
 static void WonderTrade(void*) {
   static u32 input[] = {0, /*index*/0, /*team*/0xFE, /*team_index*/0};
-  ((void(*)(uptr, u32*))overworld::address::kTradePokemon)(0, input);
+  core::GameFunction<void(uptr, u32*)>::Call(
+      overworld::address::kTradePokemon, 0, input);
 
   MainApplication::GetInstance().ForceClose();
 }

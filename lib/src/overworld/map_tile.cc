@@ -40,7 +40,8 @@ void MapTile::Initialize() {
 
 Tile MapTile::GetOriginalTile(void* data, Vec3* pos) {
   if (get_map_tile_hook.IsInitialized()) return get_map_tile_hook(data, pos);
-  return ((Tile (*)(void*, Vec3*))address::kGetMapTile)(data, pos);
+  return core::GameFunction<Tile(void*, Vec3*)>::Call(
+      address::kGetMapTile, data, pos);
 }
 
 Tile MapTile::GetMapTileHook(void* data, Vec3* pos) {

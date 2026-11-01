@@ -138,8 +138,8 @@ const c8* ModelViewer::GetKindName(const H3dModel* model) {
 void ModelViewer::GetPosition(const H3dModel* model, f32 out[3]) {
 #ifdef GAME_ORAS
   Vec3 position = {};
-  ((void (*)(const H3dModel*, Vec3*))address::kH3dModelGetTranslate)(
-      model, &position);
+  core::GameFunction<void(const H3dModel*, Vec3*)>::Call(
+      address::kH3dModelGetTranslate, model, &position);
   out[0] = position.x;
   out[1] = position.y;
   out[2] = position.z;
@@ -154,7 +154,8 @@ bool ModelViewer::IsVisible(const H3dModel* model) {
 
 void ModelViewer::SetVisible(H3dModel* model, bool is_visible) {
 #ifdef GAME_ORAS
-  ((void (*)(H3dModel*, s32))address::kH3dModelSetVisible)(model, is_visible);
+  core::GameFunction<void(H3dModel*, s32)>::Call(
+      address::kH3dModelSetVisible, model, is_visible);
 #else
   (void)model;
   (void)is_visible;
@@ -164,7 +165,8 @@ void ModelViewer::SetVisible(H3dModel* model, bool is_visible) {
 u32 ModelViewer::GetPartCount(const H3dModel* model) {
 #ifdef GAME_ORAS
   const s32 count =
-      ((s32(*)(const H3dModel*))address::kH3dModelGetMeshNodeCount)(model);
+      core::GameFunction<s32(const H3dModel*)>::Call(
+          address::kH3dModelGetMeshNodeCount, model);
   return count > 0 && count < 512 ? static_cast<u32>(count) : 0;
 #else
   (void)model;
@@ -174,8 +176,8 @@ u32 ModelViewer::GetPartCount(const H3dModel* model) {
 
 const c8* ModelViewer::GetPartName(const H3dModel* model, u32 index) {
 #ifdef GAME_ORAS
-  const c8* name = ((const c8* (*)(const H3dModel*, s32))
-                        address::kH3dModelGetMeshNodeName)(model, index);
+  const c8* name = core::GameFunction<const c8*(const H3dModel*, s32)>::Call(
+      address::kH3dModelGetMeshNodeName, model, index);
   if (name != nullptr && sys::Graphics::IsDataAddress(
                              reinterpret_cast<uptr>(name))) {
     return name;
@@ -189,8 +191,8 @@ const c8* ModelViewer::GetPartName(const H3dModel* model, u32 index) {
 
 bool ModelViewer::IsPartVisible(const H3dModel* model, u32 index) {
 #ifdef GAME_ORAS
-  return ((bool (*)(const H3dModel*, s32))address::kH3dModelIsMeshNodeVisible)(
-      model, index);
+  return core::GameFunction<bool(const H3dModel*, s32)>::Call(
+      address::kH3dModelIsMeshNodeVisible, model, index);
 #else
   (void)model;
   (void)index;
@@ -200,8 +202,8 @@ bool ModelViewer::IsPartVisible(const H3dModel* model, u32 index) {
 
 void ModelViewer::SetPartVisible(H3dModel* model, u32 index, bool is_visible) {
 #ifdef GAME_ORAS
-  ((void (*)(H3dModel*, s32, s32))address::kH3dModelSetMeshNodeVisible)(
-      model, index, is_visible);
+  core::GameFunction<void(H3dModel*, s32, s32)>::Call(
+      address::kH3dModelSetMeshNodeVisible, model, index, is_visible);
 #else
   (void)model;
   (void)index;
@@ -216,8 +218,8 @@ u32 ModelViewer::GetMaterialCount(const H3dModel* model) {
 
 const c8* ModelViewer::GetMaterialName(const H3dModel* model, u32 index) {
 #ifdef GAME_ORAS
-  const c8* name = ((const c8* (*)(const H3dModel*, s32))
-                        address::kH3dModelGetMaterialName)(model, index);
+  const c8* name = core::GameFunction<const c8*(const H3dModel*, s32)>::Call(
+      address::kH3dModelGetMaterialName, model, index);
   if (name != nullptr && sys::Graphics::IsDataAddress(
                              reinterpret_cast<uptr>(name))) {
     return name;
@@ -293,12 +295,13 @@ void ModelViewer::WriteUv(H3dModel* model, u32 material, u32 unit,
   if (unit >= 3 || material >= GetMaterialCount(model)) return;
   const f32 scale[2] = {uv.scale[0], uv.scale[1]};
   const f32 translate[2] = {uv.translate[0], uv.translate[1]};
-  ((void (*)(H3dModel*, s32, s32, const f32*))address::kH3dModelSetUvScale)(
-      model, material, unit, scale);
-  ((void (*)(H3dModel*, s32, s32, f32))address::kH3dModelSetUvRotate)(
-      model, material, unit, uv.rotate * (3.14159265f / 180.0f));
-  ((void (*)(H3dModel*, s32, s32, const f32*))address::kH3dModelSetUvTranslate)(
-      model, material, unit, translate);
+  core::GameFunction<void(H3dModel*, s32, s32, const f32*)>::Call(
+      address::kH3dModelSetUvScale, model, material, unit, scale);
+  core::GameFunction<void(H3dModel*, s32, s32, f32)>::Call(
+      address::kH3dModelSetUvRotate, model, material, unit,
+      uv.rotate * (3.14159265f / 180.0f));
+  core::GameFunction<void(H3dModel*, s32, s32, const f32*)>::Call(
+      address::kH3dModelSetUvTranslate, model, material, unit, translate);
 #else
   (void)model;
   (void)material;

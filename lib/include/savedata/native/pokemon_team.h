@@ -68,7 +68,8 @@ struct PokemonTeam {
 
   /// Heals all the Pokémon of the party.
   INLINE void HealAllPokemons() {
-    ((void(*)(PokemonTeam*))pokemon::address::kHealTeam)(this);
+    core::GameFunction<void(PokemonTeam*)>::Call(
+        pokemon::address::kHealTeam, this);
   }
 
   /// Removes the fainted Pokémon from the party.
@@ -83,8 +84,8 @@ struct PokemonTeam {
     for (u8 i = 0; i < c; i++) {
       u8 end = c - i - 1;
       if (is_dead[end]) {
-        ((void(*)(PokemonTeam*, u8))
-          pokemon::address::kRemovePokemonFromTeam)(this, end);
+        core::GameFunction<void(PokemonTeam*, u8)>::Call(
+            pokemon::address::kRemovePokemonFromTeam, this, end);
       }
     }
   }

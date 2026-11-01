@@ -43,8 +43,9 @@ public:
   static void Format(c16* pOut, const c16* pIn, ...) {
     va_list args;
     va_start(args, pIn);
-    ((void (*)(c16*, u32, const c16*, va_list))sys::address::kStdVswprintf)(
-        pOut, sys::address::kBufferSize, pIn, args);
+    core::GameFunction<void(c16*, u32, const c16*, va_list)>::Call(
+        sys::address::kStdVswprintf, pOut, sys::address::kBufferSize, pIn,
+        args);
     va_end(args);
   }
 
@@ -52,15 +53,16 @@ public:
   static String* FormatString(const c16* pIn, ...) {
     va_list args;
     va_start(args, pIn);
-    ((void (*)(c16*, u32, const c16*, va_list))sys::address::kStdVswprintf)(
-        String::GetTmpBuf(), 128, pIn, args);
+    core::GameFunction<void(c16*, u32, const c16*, va_list)>::Call(
+        sys::address::kStdVswprintf, String::GetTmpBuf(), 128, pIn, args);
     va_end(args);
     return String::GetTmpStr();
   }
 
   /// Returns the number of characters of a UTF-16 text.
   STATIC_INLINE u32 GetLength(const c16* pIn) {
-    return ((u32 (*)(const c16*))sys::address::kStdWcslen)(pIn);
+    return core::GameFunction<u32(const c16*)>::Call(
+        sys::address::kStdWcslen, pIn);
   }
 
   /// Returns the class name of a game object from its vtable, or an empty text.
@@ -84,7 +86,8 @@ public:
 
   /// Returns a random number from 0 to `max - 1`. It uses the random generator of the game.
   STATIC_INLINE u32 GetRandomValue(u32 max = 0xFFFFFFFF) {
-    return ((u32(*)(u32))sys::address::kGetRandomValue)(max);
+    return core::GameFunction<u32(u32)>::Call(
+        sys::address::kGetRandomValue, max);
   }
 
   /// Returns a random value of an enum class, from 1 to T::kCount - 1.
@@ -98,12 +101,14 @@ public:
 
   /// Writes the time since the console started.
   STATIC_INLINE void GetElapsedTime(s64* time) {
-    return ((void(*)(s64*))sys::address::kGetElapsedTime)(time);
+    return core::GameFunction<void(s64*)>::Call(
+        sys::address::kGetElapsedTime, time);
   }
 
   /// Converts a time of GetElapsedTime() into seconds.
   STATIC_INLINE s32 ConvertTimeToSeconds(s64* time) {
-    return ((s32(*)(s64*))sys::address::kConvertTimeToSeconds)(time);
+    return core::GameFunction<s32(s64*)>::Call(
+        sys::address::kConvertTimeToSeconds, time);
   }
 
   /// Returns the readable name of a C++ symbol name.

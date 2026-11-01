@@ -501,7 +501,8 @@ void ItemExtension::RegisterItemCheckedHook(Pokemon* pkm) {
   }
   // The check of the game: it can refuse the registration.
   const bool is_refused =
-      ((u32(*)(u32, u32))address::kItemListenerCheck)(pkm->uid, kCheckNumber) !=
+      core::GameFunction<u32(u32, u32)>::Call(
+          address::kItemListenerCheck, pkm->uid, kCheckNumber) !=
       0;
   if (!is_refused) RegisterReactions(pkm, spec);
 }

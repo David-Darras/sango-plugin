@@ -31,7 +31,8 @@ namespace sys {
 struct Font {
   /// Returns true when the font can draw the character.
   INLINE bool HasGlyph(u16 c) {
-    return ((bool(*)(Font*, u16))ui::address::kFontHasGlyph)(this, c);
+    return core::GameFunction<bool(Font*, u16)>::Call(
+        ui::address::kFontHasGlyph, this, c);
   }
 };
 
