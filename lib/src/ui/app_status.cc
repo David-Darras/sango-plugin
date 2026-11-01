@@ -548,9 +548,6 @@ void AppStatus::Update(savedata::PokemonParam& pokemon,
     constexpr uptr kOffsetToUpdatePokemonFlag = 284;
     core::BaseProcess* process = core::ProcessManager::GetInstance().
         GetCurrentProcess();
-    bool update_pokemon = READB(
-        READ32((uptr)process + kOffsetToRenderContext) +
-        kOffsetToUpdatePokemonFlag);
     if (!new_model) {
       WRITEB(
           READ32((uptr)process + kOffsetToRenderContext) +

@@ -141,6 +141,8 @@ void ClearModels(void*) {
 
 namespace ui {
 void LoadModelLoaderPage(MainApplication& app, void* args) {
+  // The models go in the scene of the overworld.
+  if (app.CheckProcess(overworld::address::kVtable)) return;
   Settings& settings = GetSettings();
 
   app.AddSection("Following Pokemon")

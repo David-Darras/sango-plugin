@@ -113,6 +113,9 @@ void LoadGraphicsPage(MainApplication& app, void* args) {
      .Add("Model Viewer", LoadModelViewerPage)
      .WithDescription("Lists the 3D models of the screen. Hide their parts "
                       "and change the colors of their materials.")
+     .Add("Model Loader", LoadModelLoaderPage)
+     .WithDescription("Shows a Pokemon, a character or the first Pokemon of "
+                      "the team as a 3D model in the overworld.")
      .Add("Screenshot Mode", LoadScreenshotPage)
      .WithDescription("Hides the menu, the overlays and the menus of the "
                       "game, to take a clean screenshot.")
