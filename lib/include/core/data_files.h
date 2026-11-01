@@ -26,7 +26,8 @@
  * - `species.txt`: the stats, the types, the TMs, the learnsets and the
  *   evolutions of the species,
  * - `story.txt`: the scripts of the characters and of the events (talk,
- *   choices, conditions, battles, warps, gifts...).
+ *   choices, conditions, battles, warps, gifts...),
+ * - `characters.txt`: the characters and the trainers to add to the maps.
  *
  * The files use the names of the library, in English: "Pikachu",
  * "Thunder Shock", "Route 101". The case, the spaces and the signs do not
@@ -79,8 +80,8 @@ public:
 /// Reads the data files of the ROM hack.
 class DataFiles {
 public:
-  /// Reads encounters.txt, trainers.txt and species.txt. Call it in
-  /// SetUpHack().
+  /// Reads encounters.txt, trainers.txt, species.txt, story.txt and
+  /// characters.txt. Call it in SetUpHack().
   static void Load();
 
   static bool LoadEncounters(const c16* path);
@@ -89,6 +90,9 @@ public:
   /// Reads the scripts of story.txt, and registers them (ids 33000 to
   /// 33999).
   static bool LoadStory(const c16* path);
+  /// Reads the characters of characters.txt, and adds them to the maps with
+  /// overworld::MapCharacter::Add() (128 characters at most).
+  static bool LoadCharacters(const c16* path);
 };
 
 } // namespace core

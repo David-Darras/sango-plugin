@@ -30,6 +30,7 @@
 #include "core/data_folder.h"
 #include "core/patch/text_editor.h"
 #include "core/problems.h"
+#include "overworld/patch/map_character.h"
 #include "overworld/patch/wild_encounter.h"
 #include "pokemon/patch/species_editor.h"
 #include "script/patch/native_script.h"
@@ -1214,6 +1215,103 @@ void RunStory(script::Context& s) {
   if (is_talking) s.TalkEnd();
 }
 
+// characters.txt.
+
+struct CharacterState {
+  bool is_valid;
+  MapId map_id;
+} character_state = {false, MapId::kNone};
+
+// Reads "script 33000", "trainer Route 102 Kid 1" or "sight 4" into the
+// request. Returns false when the part is not correct.
+bool ParseCharacterPart(Span part, overworld::MapCharacterRequest* request) {
+  Span word;
+  Span rest;
+  SplitWord(Trim(part), &word, &rest);
+  u32 number = 0;
+  if (IsWord(word, "script")) {
+    if (!ParseNumber(rest, &number) || number == 0 || number > 0xFFFF) {
+      Report("give a script number:", part);
+      return false;
+    }
+    request->script_id = static_cast<ScriptId>(number);
+    return true;
+  }
+  if (IsWord(word, "trainer")) {
+    if (!FindOrReport(NameKind::kTrainer, rest, &number, "unknown trainer")) {
+      return false;
+    }
+    request->trainer_id = static_cast<TrainerId>(number);
+    return true;
+  }
+  if (IsWord(word, "sight")) {
+    if (!ParseNumber(rest, &number) || number < 1 || number > 10) {
+      Report("use a sight from 1 to 10:", part);
+      return false;
+    }
+    request->sight = static_cast<u8>(number);
+    return true;
+  }
+  Report("unknown part:", part);
+  return false;
+}
+
+void OnCharacterLine(Span line, bool is_section) {
+  if (is_section) {
+    character_state.is_valid = false;
+    if (line.length == 0) return;
+    // [Route 101]
+    u32 map = 0;
+    if (!FindOrReport(NameKind::kMap, line, &map, "unknown map")) return;
+    character_state = {true, static_cast<MapId>(map)};
+    return;
+  }
+  if (!character_state.is_valid) return;
+  // Youngster, 10, 12, 0, Down, script 33000
+  // Youngster, 14, 8, 0, Left, trainer Route 102 Kid 1, sight 4
+  Span parts[8];
+  const u32 count = Split(line, ',', parts, 8);
+  if (count < 6) {
+    Report("use model, x, z, height, facing, script N:", line);
+    return;
+  }
+  u32 model = 0;
+  u32 x = 0;
+  u32 z = 0;
+  u32 height = 0;
+  u8 facing = 0;
+  if (!FindOrReport(NameKind::kModel, parts[0], &model, "unknown model")) {
+    return;
+  }
+  if (!ParseNumber(parts[1], &x) || !ParseNumber(parts[2], &z) ||
+      !ParseNumber(parts[3], &height)) {
+    Report("give x, z and height after", parts[0]);
+    return;
+  }
+  if (!ParseFacing(parts[4], &facing)) {
+    Report("use Up, Down, Left or Right:", parts[4]);
+    return;
+  }
+  overworld::MapCharacterRequest request;
+  request.map_id = character_state.map_id;
+  request.model_id = static_cast<ModelId>(model);
+  request.tile_x = static_cast<u16>(x);
+  request.tile_z = static_cast<u16>(z);
+  request.height = static_cast<f32>(height);
+  request.facing = static_cast<overworld::Facing>(facing);
+  for (u32 i = 5; i < count; i++) {
+    if (!ParseCharacterPart(parts[i], &request)) return;
+  }
+  if (request.script_id == ScriptId::kNone &&
+      request.trainer_id == TrainerId::kNone) {
+    Report("give a script or a trainer:", line);
+    return;
+  }
+  if (!overworld::MapCharacter::Add(request)) {
+    Report("too many characters:", parts[0]);
+  }
+}
+
 } // namespace
 
 bool DataNames::Find(NameKind kind, const c8* text, u32 length, u32* value) {
@@ -1256,11 +1354,16 @@ bool DataFiles::LoadStory(const c16* path) {
   return ReadLines(path, "story.txt", OnStoryLine);
 }
 
+bool DataFiles::LoadCharacters(const c16* path) {
+  return ReadLines(path, "characters.txt", OnCharacterLine);
+}
+
 void DataFiles::Load() {
   LoadEncounters(SANGO_DATA_PATH(u"encounters.txt"));
   LoadTrainers(SANGO_DATA_PATH(u"trainers.txt"));
   LoadSpecies(SANGO_DATA_PATH(u"species.txt"));
   LoadStory(SANGO_DATA_PATH(u"story.txt"));
+  LoadCharacters(SANGO_DATA_PATH(u"characters.txt"));
 }
 
 } // namespace core

@@ -491,6 +491,52 @@ function checkStory(text) {
   return errors;
 }
 
+// [map], then "model, x, z, height, facing, script N" or
+// "model, x, z, height, facing, trainer TRAINER[, sight N]".
+function checkCharacters(text) {
+  const errors = [];
+  let open = false;
+  let count = 0;
+  for (const line of readLines(text)) {
+    const err = (message) => errors.push({ n: line.n, message });
+    if (line.isSection) {
+      open = known("map", line.text);
+      if (!open) err("unknown map: " + line.text);
+      continue;
+    }
+    if (!open) { err("a character before a valid [map]"); continue; }
+    const parts = line.text.split(",").map((p) => p.trim());
+    if (parts.length < 6) { err("use model, x, z, height, facing, script N"); continue; }
+    if (!known("model", parts[0])) { err("unknown model: " + parts[0]); continue; }
+    if (!parts.slice(1, 4).every(isNumber)) { err("give x, z and height after " + parts[0]); continue; }
+    if (!["up", "down", "left", "right"].includes(norm(parts[4]))) { err("use Up, Down, Left or Right: " + parts[4]); continue; }
+    let hasScript = false;
+    let hasTrainer = false;
+    let problem = null;
+    for (const part of parts.slice(5)) {
+      const [word, rest] = splitWord(part);
+      const w = norm(word);
+      if (w === "script") {
+        if (!isNumber(rest) || Number(rest) < 1 || Number(rest) > 65535) { problem = "give a script number: " + part; break; }
+        hasScript = true;
+      } else if (w === "trainer") {
+        if (!known("trainer", rest)) { problem = "unknown trainer: " + rest; break; }
+        hasTrainer = true;
+      } else if (w === "sight") {
+        if (!isNumber(rest) || Number(rest) < 1 || Number(rest) > 10) { problem = "use a sight from 1 to 10: " + part; break; }
+      } else {
+        problem = "unknown part: " + part;
+        break;
+      }
+    }
+    if (problem) { err(problem); continue; }
+    if (!hasScript && !hasTrainer) { err("give a script or a trainer"); continue; }
+    count++;
+    if (count === 129) err("too many characters: 128 at most");
+  }
+  return errors;
+}
+
 // The files ---------------------------------------------------------------
 
 const FILES = {
@@ -498,6 +544,7 @@ const FILES = {
   trainers: { file: "trainers.txt", label: "Trainers", check: checkTrainers },
   species: { file: "species.txt", label: "Species", check: checkSpecies },
   story: { file: "story.txt", label: "Story", check: checkStory },
+  characters: { file: "characters.txt", label: "Characters", check: checkCharacters },
 };
 
 const textarea = document.getElementById("text");
@@ -772,7 +819,45 @@ function storyHelper(panel) {
   );
 }
 
-const HELPERS = { encounters: encounterHelper, trainers: trainerHelper, species: speciesHelper, story: storyHelper };
+function charactersHelper(panel) {
+  const map = field("Map", "map");
+  const model = field("Model", "model");
+  const x = field("Tile X", null, { type: "number", min: 0 });
+  const z = field("Tile Z", null, { type: "number", min: 0 });
+  const height = field("Height", null, { type: "number", min: 0, value: 0 });
+  const facing = el("select");
+  for (const name of ["Down", "Up", "Left", "Right"]) facing.append(el("option", { textContent: name }));
+  const facingWrap = el("div", {}, [el("label", { textContent: "Facing" }), facing]);
+  facingWrap.input = facing;
+  const script = field("Script (33000 to 33999)", null, { type: "number", min: 1, max: 65535 });
+  const trainer = field("Or a trainer", "trainer");
+  const sight = field("Sight (1 to 10)", null, { type: "number", min: 1, max: 10 });
+  panel.append(
+    el("h2", { textContent: "Add a character" }),
+    el("div", { className: "row grid2" }, [map, model]),
+    el("div", { className: "row grid2" }, [x, z]),
+    el("div", { className: "row grid2" }, [height, facingWrap]),
+    el("div", { className: "row grid2" }, [script, trainer]),
+    sight,
+    el("div", { className: "buttons" }, [
+      button("New map", () => insert("[" + (value(map) || "Littleroot Town") + "]")),
+      button("Insert", () => {
+        let text = (value(model) || "Youngster") + ", " + (value(x) || "0") + ", " + (value(z) || "0") +
+          ", " + (value(height) || "0") + ", " + facing.value;
+        if (value(trainer) !== "") {
+          text += ", trainer " + value(trainer);
+          if (value(sight) !== "") text += ", sight " + value(sight);
+        } else {
+          text += ", script " + (value(script) || "33000");
+        }
+        insert(text);
+      }, true),
+    ]),
+    el("p", { className: "hint", textContent: "Stand on the tile in the game, then read Tile X, Tile Z and Height in the menu: Overworld > Location. A trainer battles the player like the trainers of the game. Put \"New map\" first, then the characters of the map." })
+  );
+}
+
+const HELPERS = { encounters: encounterHelper, trainers: trainerHelper, species: speciesHelper, story: storyHelper, characters: charactersHelper };
 
 // The tabs and the files --------------------------------------------------
 

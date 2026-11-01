@@ -21,6 +21,7 @@ folder `sdmc:/sango/maker`:
 | `trainers.txt` | The teams, the names, the AI and the items of the trainers. |
 | `species.txt` | The stats, the types, the abilities, the TMs, the learnsets and the evolutions. |
 | `story.txt` | The scripts: messages, choices, conditions, gifts, battles, warps. |
+| `characters.txt` | The characters and the trainers that you add to the maps. |
 
 The menu of Sango Maker has all the editors of Sango Plugin. They write more
 files in the same folder: the scripts (`scripts.txt`), the events of the maps
@@ -187,7 +188,39 @@ The conditions of `if`:
 
 `#` starts a comment: do not use it in a text.
 
-## Step 6: Test
+## Step 6: Place characters
+
+Open `sango/maker/characters.txt`. Put a character on a map, and give it the
+script of Step 5. Or put a trainer of the game on a map.
+
+```text
+[Littleroot Town]
+Researcher Male, 47, 77, 6, Down, script 33000
+
+[Route 102]
+Lass, 14, 8, 0, Left, trainer Route 102 Girl, sight 4
+```
+
+- `[map]` starts the characters of a map.
+- Each line: the model, the tile X, the tile Z, the height, the direction,
+  then the script or the trainer.
+
+| Part | Value |
+|---|---|
+| model | The look of the character: `Youngster`, `Lass`, `Researcher Male`... The names are in `lib/include/overworld/constant/model.h`, without the `k`. |
+| x, z, height | The position. Stand on the tile in the game, then read **Tile X**, **Tile Z** and **Height** in **Overworld > Location**. |
+| direction | `Up`, `Down`, `Left` or `Right`. |
+| `script N` | The script when the player talks to the character: a script of `story.txt`. |
+| `trainer TRAINER` | A trainer of the game: the names of `trainers.txt`. When the player walks in front of it or talks to it, the trainer battles, like the trainers of the game. After a win, it battles no more. |
+| `sight N` | The number of tiles that a trainer sees in front of it: 1 to 10. Without `sight`, the trainer sees 3 tiles. |
+
+You can add 128 characters, on all the maps. A map shows 32 characters at
+most: the characters of the game first.
+
+Put the characters on tiles where the player can walk. A character on a wall
+or on the tile of a warp can block the player.
+
+## Step 7: Test
 
 Start the game. The changes are there at once: no build.
 
@@ -200,12 +233,14 @@ Correct the file and start the game again.
 The project has an editor for these files: `tools/maker_editor/index.html`.
 Double-click it: it opens in your web browser. It works without internet.
 
-- The tabs are the four files: Encounters, Trainers, Species, Story.
+- The tabs are the five files: Encounters, Trainers, Species, Story,
+  Characters.
 - The editor checks the file while you type, with the same rules as Sango
   Maker. Click a problem to go to its line.
 - The fields propose the names (species, moves, items, maps...).
 - The forms on the right make a block (a table, a trainer, a species) and put
-  it in the file. In the tab Story, the buttons add the commands.
+  it in the file. In the tab Story, the buttons add the commands. In the tab
+  Characters, the form makes the line of a character or of a trainer.
 - **Open a file** reads a file of your computer. **Download** saves the file:
   copy it to `sango/maker` on the SD card.
 
@@ -223,6 +258,7 @@ The files use the names of the library, in English:
 | Abilities | `lib/include/pokemon/constant/ability.h` |
 | Maps | `lib/include/overworld/constant/map.h`, or the menu: **Overworld > Location** |
 | Trainers | `lib/include/battle/constant/trainer.h` |
+| Models of the characters | `lib/include/overworld/constant/model.h` |
 | Forms | `lib/include/pokemon/constant/form.h` |
 | Evolution methods | `lib/include/pokemon/constant/evolution_method.h` |
 
@@ -245,8 +281,9 @@ void SetUpHack() {
 
 ## What you learned
 
-- Sango Maker reads `encounters.txt`, `trainers.txt`, `species.txt` and
-  `story.txt` in `sdmc:/sango/maker`.
+- Sango Maker reads `encounters.txt`, `trainers.txt`, `species.txt`,
+  `story.txt` and `characters.txt` in `sdmc:/sango/maker`.
+- `characters.txt` puts characters with a script, and trainers, on the maps.
 - A script of `story.txt` has a number from 33000 to 33999. The editors of the
   menu give it to a character or to an event.
 - The editors of the menu write the other files in the same folder.
