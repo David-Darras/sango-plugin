@@ -85,9 +85,15 @@ void SetUpHack() {
 // The first page of the menu: the page that the player sees first.
 void LoadHackMenu(ui::MainApplication& app, void* args) {
   app.Add("Shiny rate", pokemon::Shiny::GetInstance().rate)
-     .Add("Battle", ui::LoadBattlePage);
+     .Add("Battle", ui::LoadBattlePage)
+     .Add("All the pages", ui::LoadTopPage);
 }
 ```
+
+`ui::LoadTopPage` is the first page of the overlay: it has all the pages of the
+library. The next tutorials use these pages. A path like
+**Overworld > Location** starts in **All the pages**. Remove this entry before
+you release your ROM hack, if the players must not see it.
 
 `sango.h` includes the features of the library. Include it in each file of
 your ROM hack.
@@ -129,7 +135,7 @@ The project folder now contains `myhack-release.3gx`.
    Remove the other `.3gx` files of this folder.
 2. Start the game.
 3. Walk in the tall grass. The wild Pokémon are shiny.
-4. Press **Start**. The menu shows your page with two entries.
+4. Press **Start**. The menu shows your page with three entries.
 
 > **Tip:** With `config.mk`, `make run-myhack` builds, copies and starts the game.
 

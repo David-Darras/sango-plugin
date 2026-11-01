@@ -66,16 +66,17 @@ in `SetUpHack()`:
 
 ```cpp
 namespace myhack {
-void InstallEncounters();
 void InstallTrainers();
 }
 
 void SetUpHack() {
   pokemon::Shiny::GetInstance().rate = pokemon::ShinyRate::k1_1;
-  myhack::InstallEncounters();
   myhack::InstallTrainers();
 }
 ```
+
+Keep the lines of the other tutorials that you did (for example
+`myhack::InstallEncounters()` of [Tutorial 7](07-change-wild-pokemon.md)).
 
 ## Step 3: Build and test
 
@@ -150,7 +151,7 @@ const battle::TrainerTeam kRivalTeam =
 
 `overworld::MapCharacter` can put a trainer of the game on any map. The
 trainer sees the player, talks and starts the battle, like the trainers of the
-game. After a win, it battles no more.
+game. After a win, it battles no more. Add this to `InstallTrainers()`:
 
 ```cpp
 overworld::MapCharacterRequest request;
@@ -180,6 +181,7 @@ const battle::TrainerTeamEntry kTeams[] = {
     {TrainerId::kRoute103Brendan1, &kRivalTeam},
 };
 
+// In InstallTrainers(), in the place of TrainerTeams::Add():
 battle::TrainerTeams::SetTable(kTeams, SIZE(kTeams));
 ```
 
@@ -200,11 +202,12 @@ each trainer battle. It can change all the settings of the battle.
 
 ```cpp
 void OnTrainerBattle(battle::Config& config, TrainerId& trainer_id) {
-  // Writes the id of the trainer to the log (Plugin > Log).
+  // Writes the id of the trainer to the log (All the pages > Log).
   ui::Log::Print(u"Trainer %u", static_cast<u32>(trainer_id));
   battle::TrainerTeams::Apply(config, trainer_id);
 }
 
+// In InstallTrainers():
 battle::Setup::GetInstance().on_trainer_battle = OnTrainerBattle;
 ```
 

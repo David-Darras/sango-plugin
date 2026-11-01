@@ -152,4 +152,4 @@ a known title keeps its name, written in words.
 - The file `list.txt` gives the menu the titles of your music.
 - A file with the name of a music of the game replaces this music.
 
-**Next:** [Tutorials](README.md)
+**Next:** [Tutorial 14: Add a type](14-add-a-type.md)

@@ -91,7 +91,7 @@ make myhack
 In the game:
 
 1. Catch a Pokémon or receive a gift Pokémon.
-2. Open **Plugin > Log** in the menu: the log shows `New Pokemon: species ...`.
+2. Open **All the pages > Log** in the menu: the log shows `New Pokemon: species ...`.
 3. Catch a Wurmple on Route 101 or Route 102. It does not join your party.
 
 ## Change the result or the parameters

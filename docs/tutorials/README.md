@@ -33,3 +33,5 @@ Before you start, build the plugin one time:
 - The code is for Alpha Sapphire v1.4.
 - Each tutorial gives the files to change and the code to add.
 - After each tutorial, build with `make myhack` and test in the game.
+- A path of the menu, like **Overworld > Location**, starts in the entry
+  **All the pages** of your menu ([Tutorial 1](01-create-your-rom-hack.md)).

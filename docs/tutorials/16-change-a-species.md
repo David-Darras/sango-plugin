@@ -86,7 +86,7 @@ make myhack
 ```
 
 1. Look at a Pikachu in the summary: it has the types Electric and Fairy.
-2. Open **Pokémon > Game Data > Species** in the overlay to see the stats.
+2. Open **Game Data > Species Data** in the menu to see the stats.
 3. Give Pikachu a level: it learns the moves of your learnset, and it evolves
    at level 30.
 

@@ -24,7 +24,7 @@ The game has 621 moves (ids 1 to 621). A new move has an id above 621.
 ## Step 1: Choose an id
 
 Choose an id above 621 that no other move uses.
-The overlay uses 863 and 864. Use a different id, for example 900.
+The overlay uses 863 to 868. Use a different id, for example 900.
 
 ## Step 2: Write the move
 

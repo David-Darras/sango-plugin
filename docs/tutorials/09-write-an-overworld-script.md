@@ -13,7 +13,8 @@ The gift happens one time only.
 
 You need the map id and the tile position of the new character.
 
-1. Install the overlay (`sango_plugin-release.3gx`) and start the game.
+1. Install the overlay (`sango_plugin-release.3gx`) and start the game. You
+   can also use your ROM hack: the pages are in **All the pages** of your menu.
 2. Walk to the place of the new character. Use an empty tile.
 3. Open the menu: **Overworld > Location**. Write down **Map ID**.
 4. Open the menu: **Overworld > Characters**. Write down **Tile X**, **Tile Z** and **Height** of the player.

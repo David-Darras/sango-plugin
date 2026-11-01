@@ -2,8 +2,8 @@
 
 In this tutorial, you add a new item: **Quick Charm**. When a Pokémon that holds
 it enters a battle, its Speed increases by one stage. The overlay already has
-two new items (Plasma Core and Dream Pillow) in `overlay/src/custom_items.cc`:
-you can use them as examples.
+new items (Plasma Core, Dream Pillow, Shiny Switch...) in
+`overlay/src/custom_items.cc`: you can use them as examples.
 
 **Time:** 20 minutes.
 **You need:** [Tutorial 4](04-add-a-move.md) and [Tutorial 5](05-add-an-ability.md).
@@ -29,19 +29,39 @@ effect. Your function then changes the data.
 
 ## Step 1: Choose an id
 
-Add the id to a header of your product:
+Make the file `myhack/include/myhack/my_new_items.h`. Other files include it to
+know the id of the item:
 
 ```cpp
+#pragma once
+
+#include "common.h"
+#include "pokemon/constant/item.h"
+
+namespace myhack {
+/// The id of Quick Charm.
 constexpr ItemId kItemQuickCharm = static_cast<ItemId>(810);
+
+/// Adds the new items of my ROM hack to the game.
+void RegisterItems();
+} // namespace myhack
 ```
 
-The overlay uses the ids 800 and 801. Use a different id.
+The overlay uses the ids 800 to 807. Use a different id.
 
 ## Step 2: Write the item
 
-Make the file `myhack/src/my_items.cc`:
+Make the file `myhack/src/my_new_items.cc` (`my_items.cc` is the file of
+[Tutorial 11](11-change-items-and-shops.md)):
 
 ```cpp
+/**
+ * @file my_new_items.cc
+ * @brief The new items of my ROM hack.
+ */
+
+#include "myhack/my_new_items.h"
+
 #include "battle/constant/moment_kind.h"
 #include "battle/constant/mutation_kind.h"
 #include "battle/constant/situation_key.h"
@@ -126,22 +146,28 @@ transparent). Then change it to the format that the game reads. The tool keeps
 python tools/png_to_item_icon.py "assets/items/Quick Charm.png" "Quick Charm.bclim"
 ```
 
-Copy the file to `sdmc:/sango/items` (for the emulator, the folder
-`sdmc/sango/items`). The release script makes the BCLIM files of all the PNG
-files of `assets/items` by itself, and it puts them in the zip: keep the PNG
-file in your project.
+Copy the file to the folder `items` of the data folder of your product:
 
-> **Note:** `sdmc:/sango` is the data folder of the overlay. Your ROM hack
-> has its own data folder: `sdmc:/sango/myhack/items/` for `myhack`.
-> See [Data folder](../reference/glossary.md).
+| Product | The file on the SD card |
+|---|---|
+| Your ROM hack `myhack` | `sdmc:/sango/myhack/items/Quick Charm.bclim` |
+| The overlay | `sdmc:/sango/items/Quick Charm.bclim` |
+
+See [Data folder](../reference/glossary.md). For the overlay, the release
+script (`make release-pack`) makes the BCLIM files of all the PNG files of
+`assets/items` by itself, and it puts them in the zip: keep the PNG file in
+the project.
 
 Without the file, the item shows the icon of the item `icon_item`.
 
 ## Step 4: Register the item
 
-Call your function in your `SetUpHack()` function:
+Include `myhack/my_new_items.h` at the top of `myhack/src/entrypoint.cc`, and
+call your function in your `SetUpHack()` function:
 
 ```cpp
+#include "myhack/my_new_items.h"
+
 void SetUpHack() {
   myhack::RegisterItems();
   // ...
@@ -150,11 +176,23 @@ void SetUpHack() {
 
 ## Step 5: Give the item to a Pokémon
 
-Write the id in the data of a Pokémon:
+Write the id in the data of a Pokémon. For a test, add a menu action to
+`myhack/src/my_pages.cc`, like in [Tutorial 4](04-add-a-move.md), and include
+`myhack/my_new_items.h` at the top of the file:
 
 ```cpp
-core->item = kItemQuickCharm;
+static void GiveQuickCharm(void* args) {
+  auto& team = savedata::PokemonTeam::GetInstance();
+  if (team.count == 0) return;
+
+  savedata::PokemonParam* pokemon = team.pokemons[0];
+  pokemon->accessor->Decrypt();
+  pokemon->core->item = myhack::kItemQuickCharm;
+  pokemon->accessor->Encrypt();
+}
 ```
+
+Add `.Add("Give Quick Charm", GiveQuickCharm)` to `LoadPartyPage`.
 
 The overlay does it for the test team: the button **Receive The New Type Team**
 (page **Pokémon**) gives Plasma Core to the first Pokémon and Dream Pillow to the
@@ -164,9 +202,16 @@ second.
 
 An item can also act on a Pokémon when the player uses it in the Bag, like a
 Rare Candy. Give two functions to the description: `can_use` tells if the item
-can act on a Pokémon, and `use` does the change.
+can act on a Pokémon, and `use` does the change. The examples of this part come
+from the overlay: give them your own ids (for example 811, 812...). Put the
+functions before `RegisterItems()`, and the calls of `AddItem()` in
+`RegisterItems()`. Include `pokemon/native/core_data.h`,
+`pokemon/native/evolution_data.h` and `pokemon/native/utils.h` at the top of
+the file.
 
 ```cpp
+constexpr ItemId kItemShinySwitch = static_cast<ItemId>(811);
+
 // The player can use the item on any Pokémon.
 bool CanUseShinySwitch(const pokemon::CoreData& pokemon) {
   return true;
@@ -200,7 +245,7 @@ The Bag then shows "Use" for the item. After the player chooses a Pokémon:
    message.
 
 The overlay has two examples: Shiny Switch (a shiny Pokémon) and Ability Switch
-(the next ability). The button **Put The New Items In The Bag** (page
+(the next ability). The button **Reset The Bag With The New Items** (page
 **Pokémon**) puts them in the Bag.
 
 ## Make an evolution stone
@@ -210,6 +255,8 @@ function. The game plays its own animation of evolution, checks the Pokémon, an
 removes the item.
 
 ```cpp
+constexpr ItemId kItemEvolutionPrism = static_cast<ItemId>(812);
+
 // Gives the species that the item makes: the first evolution, with any method.
 SpeciesId EvolveIntoFirstEvolution(SpeciesId species,
                                    const pokemon::EvolutionData& evolutions) {
@@ -243,14 +290,19 @@ chooses the effects with `battle::ItemMedicine` (`battle/patch/item_medicine.h`)
 Call `MakeUsable()` first, then add the effects:
 
 ```cpp
+#include "battle/patch/item_medicine.h"
+
+constexpr ItemId kItemMoonTonic = static_cast<ItemId>(813);
+
 void PatchMoonTonicData(pokemon::ItemData& item) {
-  ItemMedicine::MakeUsable(item);
-  ItemMedicine::RestoreHp(item, ItemMedicine::kHalf);
-  ItemMedicine::CureAllStatus(item);
+  battle::ItemMedicine::MakeUsable(item);
+  battle::ItemMedicine::RestoreHp(item, battle::ItemMedicine::kHalf);
+  battle::ItemMedicine::CureAllStatus(item);
 }
 
-ItemExtension::AddItem({kItemMoonTonic, u"Moon Tonic", u"...",
-                        ItemId::kHeartScale, PatchMoonTonicData});
+battle::ItemExtension::AddItem(
+    {kItemMoonTonic, u"Moon Tonic", u"Restores half of the HP\nand cures the status.",
+     ItemId::kHeartScale, PatchMoonTonicData});
 ```
 
 | Function | Effect |
@@ -277,7 +329,8 @@ bar like for a medicine, and the bar counts down when the HP go down.
 
 You can also change an item that the game has (ids 1 to 775) with the same
 function. Give the id of the item. A field that you leave empty keeps the value
-of the game:
+of the game. `kLeftoversReactions` is your own table of reactions, like
+`kQuickCharmReactions`:
 
 ```cpp
 // Leftovers restore 1/8 of the HP, not 1/16. The name, the data and the icon do
@@ -309,9 +362,10 @@ the new effect yourself.
 ## What the plugin does not change
 
 - A new item is in the Bag only when your product puts it there: the overlay
-  does it with the button **Put The New Items In The Bag**. The player cannot
-  buy it yet. The items that the player uses from the Bag (a candy, a capsule, a
-  mineral) are the next step.
+  does it with the button **Reset The Bag With The New Items**. The player cannot
+  buy it yet.
 - The data that your function `patch_data` writes (price, Fling...) is for the
   code that reads the item through the data of the item. The Bag reads the data
   of a Heart Scale for a new item.
+
+**Next:** [Tutorial 16: Change a species](16-change-a-species.md)

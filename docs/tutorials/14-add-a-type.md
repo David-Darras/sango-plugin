@@ -51,39 +51,56 @@ python tools/make_type_icon.py STORM assets/types/Storm.png 1f4e8c 7fc8f0
 You can also draw the PNG with any program: keep the size 50 × 20 pixels.
 
 The file has the name of the type, with a capital: `Storm.png`. Then change it
-to a BCLIM file, and copy the file to the SD card (for the emulator, the folder
-`sdmc/sango/types`):
+to a BCLIM file, and copy the file to the folder `types` of the data folder
+of your product on the SD card:
 
 ```bash
 python tools/png_to_bclim.py assets/types/Storm.png Storm.bclim
 ```
 
-The file goes to `sdmc:/sango/types/Storm.bclim`. The release script makes the
-BCLIM files of all the PNG files of `assets/types` by itself, and it puts them
-in the zip: keep the PNG file in your project.
+| Product | The file on the SD card |
+|---|---|
+| Your ROM hack `myhack` | `sdmc:/sango/myhack/types/Storm.bclim` |
+| The overlay | `sdmc:/sango/types/Storm.bclim` |
 
-> **Note:** `sdmc:/sango` is the data folder of the overlay. Your ROM hack
-> has its own data folder: `sdmc:/sango/myhack/types/` for `myhack`.
-> See [Data folder](../reference/glossary.md).
+See [Data folder](../reference/glossary.md). For the overlay, the release
+script (`make release-pack`) makes the BCLIM files of all the PNG files of
+`assets/types` by itself, and it puts them in the zip: keep the PNG file in
+the project.
 
 ## Step 2: Add the type
 
-Choose a number that no other type uses. In the overlay, add it to
-`overlay/include/custom_battle.h`:
+Choose a number that no other type uses. Put it in a header of your product,
+for example `myhack/include/myhack/my_types.h`. Other files include it to know
+the number of the type:
 
 ```cpp
+#pragma once
+
+#include "common.h"
+#include "pokemon/constant/type.h"
+
+namespace myhack {
+/// The number of the type Storm.
 constexpr TypeId kTypeStorm = static_cast<TypeId>(25);
+} // namespace myhack
 ```
 
-Then call `AddType()` in `RegisterCustomTypes()` (`overlay/src/custom_types.cc`).
-In your own product, call it in your `SetUpHack()` function:
+Then call `AddType()` in your `SetUpHack()` function. Include
+`myhack/my_types.h` at the top of `entrypoint.cc`:
 
 ```cpp
 #include "battle/patch/game_extension.h"
+#include "myhack/my_types.h"
 
-// The icon is the file sdmc:/sango/types/Storm.bclim.
-battle::GameExtension::AddType({kTypeStorm, u"Storm", TypeId::kWater});
+void SetUpHack() {
+  // The icon is the file types/Storm.bclim of the data folder.
+  battle::GameExtension::AddType({myhack::kTypeStorm, u"Storm", TypeId::kWater});
+}
 ```
+
+In the overlay, the numbers are in `overlay/include/custom_battle.h`, and
+`RegisterCustomTypes()` (`overlay/src/custom_types.cc`) calls `AddType()`.
 
 The fields are:
 
@@ -102,10 +119,12 @@ The type chart tells how much damage a type does to another type. There are
 two ways to give it.
 
 **One cell at a time.** `TypeChart::Set()` changes one cell. The other cells
-keep the value x1:
+keep the value x1. Put these lines in `SetUpHack()`, after `AddType()`, and
+include `battle/patch/type_chart.h` at the top of the file. Write
+`using myhack::kTypeStorm;` at the start of `SetUpHack()`, or write
+`myhack::kTypeStorm`:
 
 ```cpp
-#include "battle/patch/type_chart.h"
 
 // Storm hits Flying and Fire well, and Grass badly.
 battle::TypeChart::Set(kTypeStorm, TypeId::kFlying, battle::TypeMultiplier::k2);
@@ -122,16 +141,16 @@ of the table are the 18 types of the game, then the new types in the order of
 their numbers (19 is the number 18 of the table):
 
 ```cpp
-// 26 types: the 18 of the game and the 8 new types (19 to 26).
-static const battle::TypeMultiplier kChart[26 * 26] = { /* ... */ };
-battle::GameExtension::SetTypeChart(kChart, 26);
+// 25 types: the 18 of the game and the 7 new types (19 to 25).
+static const battle::TypeMultiplier kChart[25 * 25] = { /* ... */ };
+battle::GameExtension::SetTypeChart(kChart, 25);
 ```
 
 The cells of the types of the game replace the type chart of the game when a
 battle loads. The cells of the new types stay in the plugin, and the inverse
 battle changes them as it changes the other cells.
 
-You do not have to write the numbers by hand: the page **Battle > Type Chart**
+You do not have to write the numbers by hand: the page **Game Data > Type Chart**
 of the menu has a button "Open The Table". It shows the whole chart on the
 bottom screen, and a touch on a cell changes it (x0, x1/2, x1, x2). Use it to
 test your values.
@@ -139,20 +158,16 @@ test your values.
 ## Step 4: Give the type to a Pokémon and to a move
 
 Use the number of the type in the data of the game. The overlay does it in
-`overlay/src/type_team.cc`:
+`overlay/src/type_team.cc`. Include `pokemon/native/move_data.h` at the top
+of the file:
 
 ```cpp
-#include "pokemon/native/move_data.h"
-#include "pokemon/native/species_data.h"
-
 // A move of the game gets the type.
 pokemon::MoveData::GetInstance(MoveId::kThunderWave).type = kTypeStorm;
 
-// A species keeps one type of the game and gets the new type.
-auto& data = pokemon::SpeciesData::GetInstance(SpeciesId::kTornadus,
-                                               FormId::kNormal);
-data.type[0] = TypeId::kFlying;
-data.type[1] = kTypeStorm;
+// A species keeps one type of the game and gets the new type
+// (see Tutorial 16).
+pokemon::Species(SpeciesId::kTornadus).WithTypes(TypeId::kFlying, kTypeStorm);
 ```
 
 Run this code in your `SetUpHack()` function, after `AddType()`. In the menu
@@ -174,3 +189,5 @@ the species data and the page of the moves).
   They hide the icon of a new type, and they do not use it as a filter.
 - The effects of the battle that depend on a type of the game (for example the
   animation of a move) keep the choice of the game.
+
+**Next:** [Tutorial 15: Add an item](15-add-an-item.md)

@@ -87,7 +87,12 @@ The same functions exist for one effect: `ColorEffect(effect, color)`,
 `MoveAnimations::Define(move, builder)` makes a new animation from zero.
 The builder adds the steps one by one.
 
-Add this to `myhack/src/my_animations.cc`:
+Change `myhack/src/my_animations.cc`:
+
+1. Remove the function `RegisterAnimations()` of Part 1. The code below has a
+   new `RegisterAnimations()`.
+2. Add the code below at the end of the file. You can also move the
+   `#include` to the top of the file.
 
 ```cpp
 #include "myhack/my_moves.h"  // For kMoveThunderclap.

@@ -91,6 +91,7 @@ In `myhack/src/entrypoint.cc`:
    void LoadHackMenu(ui::MainApplication& app, void* args) {
      app.Add("Shiny rate", pokemon::Shiny::GetInstance().rate)
         .Add("Battle", ui::LoadBattlePage)
+        .Add("All the pages", ui::LoadTopPage)
         .Add("My options", myhack::LoadMyPage);
    }
    ```

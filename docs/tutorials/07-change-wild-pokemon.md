@@ -127,6 +127,7 @@ void OnWildPokemon(MapId map_id, overworld::WildPokemon* pokemons, u32 count) {
   }
 }
 
+// In SetUpHack():
 overworld::WildEncounter::GetInstance().on_wild_pokemon = OnWildPokemon;
 ```
 
@@ -137,7 +138,7 @@ gender. If you change the species there, set them too.
 ## Disable the wild Pokémon
 
 The overlay has the entry **Overworld > Wild Encounters**: Normal, Never or
-Always. Your menu can use it too:
+Always. Your menu can use it too. Add this to `LoadHackMenu()`:
 
 ```cpp
 static const c8* kModes[] = {"Normal", "Never", "Always"};

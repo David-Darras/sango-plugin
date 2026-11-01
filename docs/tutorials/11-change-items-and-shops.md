@@ -98,12 +98,12 @@ Some useful members:
 
 2. Build, install your product and start the game.
 3. Talk to the clerk of the shop and open the shop.
-4. Open **Plugin > Log** in the menu: the log shows `shop: type=... id=...`. Write down the id.
+4. Open **All the pages > Log** in the menu: the log shows `shop: type=... id=...`. Write down the id.
 5. Remove the line of step 1.
 
 ### Step 2: Set the items
 
-Add this to `myhack/src/my_items.cc`:
+Add this to `myhack/src/my_items.cc`, before `InstallItems()`:
 
 ```cpp
 namespace myhack {
@@ -141,7 +141,8 @@ pokemon::CustomShop::EnablePokemonShop(true);
 ```
 
 The player can also enable it in the menu with the cheat code
-`CheatCodeId::kPokemonShop` (the overlay shows it in **Pokemon > Pokemon Shop**):
+`CheatCodeId::kPokemonShop` (the overlay shows it in **Pokemon > Pokemon Shop**).
+Add this to `LoadHackMenu()`:
 
 ```cpp
 app.Add("Pokemon Shop", CheatCodeId::kPokemonShop);
@@ -149,7 +150,8 @@ app.Add("Pokemon Shop", CheatCodeId::kPokemonShop);
 
 The shops then sell the Pokémon of `kShopPokemons`
 (`lib/include/pokemon/patch/custom_shop.h`). To sell your own Pokémon, give
-your own list:
+your own list. Put the list before `InstallItems()`, and the two calls in
+`InstallItems()`:
 
 ```cpp
 const pokemon::ShopPokemon kPokemonForSale[] = {
@@ -158,6 +160,7 @@ const pokemon::ShopPokemon kPokemonForSale[] = {
     {SpeciesId::kLarvitar, FormId::kNormal, 15, 20000},
 };
 
+// In InstallItems():
 pokemon::CustomShop::SetPokemons(kPokemonForSale, SIZE(kPokemonForSale),
                                  kOldaleShopId);
 pokemon::CustomShop::EnablePokemonShop(true);
@@ -166,7 +169,7 @@ pokemon::CustomShop::EnablePokemonShop(true);
 > **Note:** A shop sells Pokémon **or** items. When a shop sells Pokémon,
 > `SetItems` does not change it.
 
-## Step 3: Install and test
+## Part 4: Install and test
 
 In `myhack/src/entrypoint.cc`, declare `myhack::InstallItems()` and call it in
 `SetUpHack()`. Then build:
