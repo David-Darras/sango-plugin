@@ -51,24 +51,23 @@ constexpr u16 kCandyReceived = 0;
 
 // The script. The game runs it when the player talks to the character.
 void CandyGiver(script::Context& s) {
-  s.TalkStart();
+  // The character turns to the player. At the end of the function, even
+  // after a return, it goes back to normal.
+  script::Conversation talk(s);
 
   if (s.GetHackFlag(kCandyReceived)) {
     s.Talk(u"Use the candies well!");
-    s.TalkEnd();
     return;
   }
 
   s.Talk(u"Hello, Trainer!\nDo you like candies?");
   if (!s.AskYesNo()) {
     s.Talk(u"Oh... Come back if you change your mind.");
-    s.TalkEnd();
     return;
   }
 
   if (!s.CanGiveItem(ItemId::kRareCandy, 5)) {
     s.Talk(u"Your Bag is full!");
-    s.TalkEnd();
     return;
   }
 
@@ -76,7 +75,6 @@ void CandyGiver(script::Context& s) {
   s.PlayJingle(script::kJingleItem);
   s.SetHackFlag(kCandyReceived);
   s.Talk(u"Here are 5 Rare Candies!");
-  s.TalkEnd();
 }
 
 } // namespace
@@ -165,6 +163,8 @@ See `undertow/src/scripts.cc`.
 - `MapCharacter::Add` and `overworld::Character` put a character with a script
   on a map.
 - `script::Context` has the functions of the script: messages, items, flags...
+- `script::Conversation` starts the conversation and ends it at the end of the
+  function.
 - A flag of the ROM hack (`SetHackFlag`) makes a gift happen one time only.
 
 **Next:** [Tutorial 10: Replace models](10-replace-models.md)

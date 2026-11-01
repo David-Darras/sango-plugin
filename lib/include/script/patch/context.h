@@ -878,5 +878,36 @@ private:
   LoadedMessage message_ = {nullptr, nullptr};
 };
 
+/**
+ * @brief A conversation with a character: TalkStart() now, and TalkEnd() at
+ * the end of the block. A `return` in the block is safe.
+ *
+ * @code
+ * void Greeter(script::Context& s) {
+ *   script::Conversation talk(s);
+ *   if (s.GetHackFlag(0)) {
+ *     s.Talk(u"Hello again!");
+ *     return;  // TalkEnd() runs here.
+ *   }
+ *   s.Talk(u"Hello!");
+ * }
+ * @endcode
+ */
+class Conversation {
+public:
+  explicit Conversation(Context& s, s32 object_id = kTalkTarget,
+                        TalkOption options = TalkOption::kMotion)
+    : s_(s) {
+    s_.TalkStart(object_id, options);
+  }
+  ~Conversation() { s_.TalkEnd(); }
+
+  Conversation(const Conversation&) = delete;
+  Conversation& operator=(const Conversation&) = delete;
+
+private:
+  Context& s_;
+};
+
 typedef void (*Function)(Context& script);
 } // namespace script

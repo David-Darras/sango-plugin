@@ -53,7 +53,7 @@ void HealerFollower::Initialize() {
 }
 
 void HealerFollower::Talk(script::Context& script) {
-  script.TalkStart();
+  script::Conversation talk(script);
   script.Talk(u"Hello! Would you like me to heal your Pokemon?");
   if (script.AskYesNo()) {
     savedata::PokemonTeam::GetInstance().HealAllPokemons();
@@ -62,7 +62,6 @@ void HealerFollower::Talk(script::Context& script) {
   } else {
     script.Talk(u"Take care!");
   }
-  script.TalkEnd();
 }
 
 Model* HealerFollower::FindModel() {

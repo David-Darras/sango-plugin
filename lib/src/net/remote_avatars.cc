@@ -115,9 +115,8 @@ void RemoteAvatars::TalkTo(script::Context& script, u32 index) {
   text[length++] = u'!';
   text[length] = 0;
 
-  script.TalkStart();
+  script::Conversation talk(script);
   script.Talk(text);
-  script.TalkEnd();
 }
 
 Model* RemoteAvatars::FindModel(u32 index) {

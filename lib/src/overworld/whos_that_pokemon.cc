@@ -151,9 +151,8 @@ bool WhosThatPokemon::AskName(script::Context& script, c16* name,
 }
 
 void WhosThatPokemon::Run(script::Context& script) {
-  script.TalkStart();
+  script::Conversation talk(script);
   Play(script);
-  script.TalkEnd();
 }
 
 void WhosThatPokemon::Play(script::Context& script) {

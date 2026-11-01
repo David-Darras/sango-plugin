@@ -28,14 +28,15 @@ With the plugin, you write a script in C++. The game runs it like a game script.
 #include "script/patch/native_script.h"
 
 void MyGreeter(script::Context& s) {
-  s.TalkStart();                     // The character turns to the player.
+  // The character turns to the player. At the end of the function, it goes
+  // back to normal.
+  script::Conversation talk(s);
   s.Talk(u"Hello! Welcome to my ROM hack.");
   if (s.AskYesNo()) {
     s.Talk(u"Here is a present for you.");
     s.GiveItem(ItemId::kRareCandy, 5);
     s.PlayJingle(script::kJingleItem);
   }
-  s.TalkEnd();                       // The character goes back to normal.
 }
 ```
 
@@ -85,7 +86,8 @@ models at most for your characters.
 
 | Function | What it does |
 |---|---|
-| `TalkStart()`, `TalkEnd()` | Starts and ends a conversation with the character. |
+| `script::Conversation talk(s);` | Starts a conversation with the character (`TalkStart()`), and ends it at the end of the block (`TalkEnd()`), also after a `return`. |
+| `TalkStart()`, `TalkEnd()` | Starts and ends a conversation by hand. |
 | `Talk(text)` | Shows a message and waits for the player to press a button. |
 | `ShowMessage(text)`, `CloseMessage()` | Shows a message without a wait. Closes it. |
 | `AskYesNo()` | Shows Yes / No. Returns `true` for Yes. |
@@ -124,9 +126,10 @@ a `script::BattleResult`: `kWon`, `kLost`, `kRan`, `kFoeRan` or `kCaught`.
 
 ```cpp
 void Rival(script::Context& s) {
-  s.TalkStart();
-  s.Talk(u"Let's battle!");
-  s.TalkEnd();
+  {
+    script::Conversation talk(s);
+    s.Talk(u"Let's battle!");
+  }  // The conversation ends before the battle.
   // A trainer of lib/include/battle/constant/trainer.h. battle::TrainerTeams
   // can give it a new team.
   s.TrainerBattle(TrainerId::kRoute103Brendan1);
@@ -206,13 +209,12 @@ constexpr u16 kRivalBeaten = 1;
 constexpr u16 kQuestStep = 0;
 
 void Rival(script::Context& s) {
-  s.TalkStart();
+  script::Conversation talk(s);
   if (!s.GetHackFlag(kRivalMet)) {
     s.Talk(u"Hi! I am your rival.");
     s.SetHackFlag(kRivalMet);
   }
   s.SetHackVariable(kQuestStep, 2);
-  s.TalkEnd();
 }
 ```
 

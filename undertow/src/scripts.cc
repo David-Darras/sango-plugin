@@ -35,6 +35,7 @@ namespace {
 // The boss gave the starter.
 constexpr EventFlag kStarterGiven = core::HackFlag(0);
 using script::Context;
+using script::Conversation;
 
 constexpr SpeciesId kAquaRecruitPokemon[ui::StarterChoice::kCount] = {
     SpeciesId::kZubat, SpeciesId::kPoochyena, SpeciesId::kCarvanha
@@ -60,18 +61,18 @@ constexpr CastMember kAquaHideoutCast[] = {
 };
 
 void AquaBossWelcome(Context& s) {
-  s.TalkStart();
-  if (s.GetFlag(kStarterGiven)) {
-    s.Talk(u"Take good care of your Pokémon, recruit.\n"
-        u"Team Aqua is counting on you!");
-    s.TalkEnd();
-    return;
+  {
+    Conversation talk(s);
+    if (s.GetFlag(kStarterGiven)) {
+      s.Talk(u"Take good care of your Pokémon, recruit.\n"
+          u"Team Aqua is counting on you!");
+      return;
+    }
+    s.Talk(u"Welcome aboard, new recruit!\n"
+        u"I'm the boss of Team Aqua.");
+    s.Talk(u"Every grunt needs a partner to serve the sea.\n"
+        u"Choose your Pokémon!");
   }
-  s.Talk(u"Welcome aboard, new recruit!\n"
-      u"I'm the boss of Team Aqua.");
-  s.Talk(u"Every grunt needs a partner to serve the sea.\n"
-      u"Choose your Pokémon!");
-  s.TalkEnd();
 
   auto& choice = ui::StarterChoice::GetInstance();
   for (u32 i = 0; i < ui::StarterChoice::kCount; i++) {
@@ -92,9 +93,8 @@ void AquaBossWelcome(Context& s) {
   overworld_menu.is_pokemon_list_visible = true;
   overworld_menu.pokemon_list_position = 0;
 
-  s.TalkStart();
+  Conversation talk(s);
   s.Talk(u"A fine choice. Now go and prove yourself!");
-  s.TalkEnd();
 }
 }
 

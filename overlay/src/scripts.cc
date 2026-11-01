@@ -235,20 +235,18 @@ static bool SelectRentals(Context& s, savedata::PokemonTeam& team,
 }
 
 void LittlerootGreeter(Context& s) {
-  s.TalkStart();
+  Conversation talk(s);
   s.Talk(
       u"Welcome to the Battle Factory!\nHere, only your battling skills matter.");
   s.ShowMessage(u"Would you like to take the rental challenge?");
   if (!s.AskYesNo()) {
     s.Talk(u"Come back when you are ready!");
-    s.TalkEnd();
     return;
   }
 
   auto battle_native = NativeTable::Find("_CallTrainerBattleCore");
   if (battle_native == nullptr) {
     s.Talk(u"Error: Unable to start battle.");
-    s.TalkEnd();
     return;
   }
 
@@ -271,7 +269,6 @@ void LittlerootGreeter(Context& s) {
     RestoreOriginalTeam();
     s.Talk(
         u"Here is your original team. See you next time at the Battle Factory!");
-    s.TalkEnd();
     return;
   }
 
@@ -386,15 +383,15 @@ void LittlerootGreeter(Context& s) {
   RestoreOriginalTeam();
   s.Talk(
       u"Here is your original team. See you next time at the Battle Factory!");
-  s.TalkEnd();
 }
 
 #ifdef GAME_XY
 void PokemonXGreeter(Context& s) {
-  s.TalkStart();
-  s.Talk(u"This is a new script generated with ZettaD's Sango plugin.");
-  s.Talk(u"I'm going to turn all your Pokémon into shinies.");
-  s.TalkEnd();
+  {
+    Conversation talk(s);
+    s.Talk(u"This is a new script generated with ZettaD's Sango plugin.");
+    s.Talk(u"I'm going to turn all your Pokémon into shinies.");
+  }
   s.PlayJingle(kJingleItem);
   auto& team = savedata::PokemonTeam::GetInstance();
   for (u32 i = 0; i < team.count; i++) {
