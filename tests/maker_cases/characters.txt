@@ -1,0 +1,16 @@
+# The cases of characters.txt. A line that ends with the comment ERR has a mistake.
+[Littleroot Town]
+Researcher Male, 47, 77, 6, Down, script 33000
+Lass, 50, 77, 6, Up, script 33002
+[Route 102]
+Lass, 14, 8, 0, Left, trainer Route 102 Girl, sight 4
+Youngster, 1, 2, 0, Right, trainer Route 102 Kid 1
+Youngster, 1, 2, 0, Down # ERR
+Nobody, 1, 2, 0, Down, script 33000 # ERR
+Lass, 1, 2, 0, Sideways, script 33000 # ERR
+Lass, x, 2, 0, Up, script 33000 # ERR
+Lass, 1, 2, 0, Up, sight 4 # ERR
+Lass, 1, 2, 0, Up, trainer Nobody # ERR
+Lass, 1, 2, 0, Up, trainer Route 102 Girl, sight 11 # ERR
+Lass, 1, 2, 0, Up, colour blue # ERR
+[Nowhere] # ERR

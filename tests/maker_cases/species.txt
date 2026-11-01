@@ -1,0 +1,24 @@
+# The cases of species.txt. A line that ends with the comment ERR has a mistake.
+[Pikachu]
+stats = 45, 70, 40, 60, 50, 100
+types = Electric, Fairy
+types = Electric
+abilities = Static, Static, Lightning Rod
+abilities = Static
+catch rate = 190
+tms = 24, 25
+hms = 5
+learnset = 1 Thunder Shock, 20 Thunderbolt
+evolutions = Level Up / 30 / Raichu, Item / Thunder Stone / Raichu
+stats = 1, 2, 3 # ERR
+types = Wood # ERR
+abilities = Static, Nothing # ERR
+tms = 24, x # ERR
+learnset = Thunder Shock # ERR
+learnset = 1 Nothing # ERR
+evolutions = Level Up / 30 # ERR
+evolutions = Fly / 30 / Raichu # ERR
+size = 2 # ERR
+[Charizard, Charizard Megax]
+stats = 78, 130, 111, 130, 85, 100
+[Nobody] # ERR

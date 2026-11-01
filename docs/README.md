@@ -52,4 +52,5 @@ See [the list of the tutorials](tutorials/README.md).
 
 - [Glossary](reference/glossary.md): the meaning of each term.
 - [Writing rules](reference/writing-rules.md): the style of the code, of the comments and of the documentation.
+- [Tests](reference/tests.md): the tests on a computer and the check of the singletons.
 - **API reference:** type `doxygen` in the project folder, then open `doxygen/html/index.html`.

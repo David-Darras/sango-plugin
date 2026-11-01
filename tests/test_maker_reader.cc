@@ -1,0 +1,440 @@
+/*
+ * Copyright (C) 2026  David Darras
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/**
+ * @file test_maker_reader.cc
+ * @brief The tests of the readers of the Sango Maker files (core::maker).
+ */
+
+#include <cstring>
+#include <string>
+#include <vector>
+
+#include "core/maker_reader.h"
+#include "test.h"
+
+namespace {
+using namespace core::maker;
+
+// A sink that keeps all the parts that the reader gives.
+struct Recorder : Sink {
+  struct Table {
+    MapId map;
+    EncounterMethod method;
+    std::vector<overworld::EncounterSlot> slots;
+  };
+
+  std::vector<u32> problem_lines;
+  std::vector<std::string> problems;
+  std::vector<Table> tables;
+  std::vector<TrainerId> trainers;
+  std::vector<Opponent> opponents;
+  std::vector<std::u16string> names;
+  std::vector<ItemId> items;
+  u32 money = 0;
+  AiFlags ai = AiFlags::kNone;
+  Format format = Format::kSingle;
+  u32 trainer_ends = 0;
+  std::vector<std::string> species_changes;
+  std::vector<pokemon::LevelMove> learnset;
+  std::vector<pokemon::EvolutionStep> evolutions;
+  std::vector<u16> stories;
+  std::vector<Character> characters;
+  bool is_character_list_full = false;
+
+  void OnProblem(const c8* file, u32 line, const c8* what,
+                 const c8* word) override {
+    problem_lines.push_back(line);
+    problems.push_back(std::string(what) + " " + word);
+  }
+  void OnEncounterTable(MapId map, EncounterMethod method,
+                        const overworld::EncounterSlot* slots,
+                        u32 count) override {
+    tables.push_back({map, method, std::vector<overworld::EncounterSlot>(
+                                       slots, slots + count)});
+  }
+  void OnTrainer(TrainerId trainer) override { trainers.push_back(trainer); }
+  void OnTrainerFormat(Format value) override { format = value; }
+  void OnTrainerName(const c16* name) override { names.push_back(name); }
+  void OnTrainerMoney(u8 value) override { money = value; }
+  void OnTrainerAi(AiFlags flags) override { ai = flags; }
+  void OnTrainerItems(const ItemId* list, u32 count) override {
+    items.assign(list, list + count);
+  }
+  void OnTrainerPokemon(const Opponent& pokemon) override {
+    opponents.push_back(pokemon);
+  }
+  void OnTrainerEnd() override { trainer_ends++; }
+  void OnSpeciesStats(SpeciesId, FormId, const u8* stats) override {
+    char text[64];
+    std::snprintf(text, sizeof(text), "stats %u %u %u %u %u %u", stats[0],
+                  stats[1], stats[2], stats[3], stats[4], stats[5]);
+    species_changes.push_back(text);
+  }
+  void OnSpeciesTypes(SpeciesId, FormId, TypeId first,
+                      TypeId second) override {
+    species_changes.push_back("types " + std::to_string(static_cast<u32>(first)) +
+                              " " + std::to_string(static_cast<u32>(second)));
+  }
+  void OnSpeciesAbilities(SpeciesId, FormId, AbilityId first, AbilityId second,
+                          AbilityId hidden) override {
+    species_changes.push_back(
+        "abilities " + std::to_string(static_cast<u32>(first)) + " " +
+        std::to_string(static_cast<u32>(second)) + " " +
+        std::to_string(static_cast<u32>(hidden)));
+  }
+  void OnSpeciesCatchRate(SpeciesId, FormId, u8 rate) override {
+    species_changes.push_back("catch " + std::to_string(rate));
+  }
+  void OnSpeciesMachine(SpeciesId, FormId, u8 number, bool is_hm,
+                        bool can_learn) override {
+    species_changes.push_back(std::string(is_hm ? "hm " : "tm ") +
+                              std::to_string(number) +
+                              (can_learn ? " on" : " off"));
+  }
+  void OnSpeciesLearnset(SpeciesId, FormId, const pokemon::LevelMove* moves,
+                         u32 count) override {
+    learnset.assign(moves, moves + count);
+  }
+  void OnSpeciesEvolutions(SpeciesId, const pokemon::EvolutionStep* steps,
+                           u32 count) override {
+    evolutions.assign(steps, steps + count);
+  }
+  void OnStory(u16 id) override { stories.push_back(id); }
+  bool OnCharacter(const Character& character) override {
+    if (is_character_list_full) return false;
+    characters.push_back(character);
+    return true;
+  }
+};
+
+// Reads a text with a reader of core::maker.
+template <typename Read>
+Recorder ReadText(Read read, const char* text) {
+  Clear();
+  Recorder recorder;
+  read(text, static_cast<u32>(std::strlen(text)), recorder);
+  return recorder;
+}
+
+std::u16string ScriptText(const Instruction& in) {
+  return in.text != nullptr ? std::u16string(in.text) : std::u16string();
+}
+
+} // namespace
+
+// The names.
+
+TEST(NamesIgnoreTheCaseTheSpacesAndTheSigns) {
+  u32 value = 0;
+  CHECK(core::DataNames::Find(core::NameKind::kMove, "Thunder Shock", 13, &value));
+  CHECK_EQ(value, MoveId::kThunderShock);
+  CHECK(core::DataNames::Find(core::NameKind::kMove, "THUNDER_SHOCK", 13, &value));
+  CHECK_EQ(value, MoveId::kThunderShock);
+  CHECK(core::DataNames::Find(core::NameKind::kSpecies, " pikachu ", 9, &value));
+  CHECK_EQ(value, SpeciesId::kPikachu);
+}
+
+TEST(NamesAcceptANumberAndAnAccent) {
+  u32 value = 0;
+  CHECK(core::DataNames::Find(core::NameKind::kMove, "84", 2, &value));
+  CHECK_EQ(value, 84);
+  // "Pokémon" in UTF-8: the é becomes an e.
+  const char* name = "Pok\xC3\xA9mon Center";
+  CHECK(!core::DataNames::Find(core::NameKind::kSpecies, name,
+                               static_cast<u32>(std::strlen(name)), &value));
+  CHECK(!core::DataNames::Find(core::NameKind::kSpecies, "Pikachuu", 8, &value));
+}
+
+// encounters.txt.
+
+TEST(EncountersGiveOneTableForEachSection) {
+  const Recorder r = ReadText(ReadEncounters,
+                              "# A comment\n"
+                              "[Route 101, Walk]\n"
+                              "Pikachu, 3, 5\n"
+                              "Eevee, 4   # The maximum level is 4.\n"
+                              "[Route 102, Surf]\n"
+                              "Shellos, 10, 12, Shellos East\n");
+  CHECK_EQ(r.problems.size(), 0);
+  CHECK_EQ(r.tables.size(), 2);
+  CHECK_EQ(r.tables[0].map, MapId::kRoute101);
+  CHECK_EQ(r.tables[0].method, EncounterMethod::kWalk);
+  CHECK_EQ(r.tables[0].slots.size(), 2);
+  CHECK_EQ(r.tables[0].slots[0].species, SpeciesId::kPikachu);
+  CHECK_EQ(r.tables[0].slots[0].min_level, 3);
+  CHECK_EQ(r.tables[0].slots[0].max_level, 5);
+  CHECK_EQ(r.tables[0].slots[1].max_level, 4);
+  CHECK_EQ(r.tables[1].method, EncounterMethod::kSurf);
+  CHECK_EQ(r.tables[1].slots[0].form, FormId::kShellosEast);
+}
+
+TEST(EncountersReportTheMistakesWithTheirLines) {
+  const Recorder r = ReadText(ReadEncounters,
+                              "[Route 101, Walk]\n"
+                              "Pikachuu, 3, 5\n"
+                              "Eevee\n"
+                              "[Route 999, Walk]\n"
+                              "Pikachu, 3, 5\n");
+  CHECK_EQ(r.problem_lines.size(), 3);
+  CHECK_EQ(r.problem_lines[0], 2);
+  CHECK_EQ(r.problem_lines[1], 3);
+  CHECK_EQ(r.problem_lines[2], 4);
+  // The Pokémon after an unknown map go nowhere.
+  CHECK_EQ(r.tables.size(), 0);
+}
+
+TEST(EncountersSkipTheMarkOfAUtf8File) {
+  const Recorder r = ReadText(ReadEncounters,
+                              "\xEF\xBB\xBF[Route 101, Walk]\nPikachu, 3, 5\n");
+  CHECK_EQ(r.problems.size(), 0);
+  CHECK_EQ(r.tables.size(), 1);
+}
+
+// trainers.txt.
+
+TEST(TrainersGiveAllThePartsOfATeam) {
+  const Recorder r = ReadText(
+      ReadTrainers,
+      "[Route 102 Kid 1]\n"
+      "format = Double\n"
+      "name = Jo\xC3\xA9\n"
+      "ai = Casual, Competitive\n"
+      "items = Potion, Full Heal\n"
+      "money = 8\n"
+      "pokemon = Pichu, level 7, item Oran Berry, ability Static, nature "
+      "Timid, form 0, ivs 31, evs 0/252/4/0/0/252, moves Thunder Shock / "
+      "Charm, shiny\n"
+      "pokemon = Riolu\n");
+  CHECK_EQ(r.problems.size(), 0);
+  CHECK_EQ(r.trainers.size(), 1);
+  CHECK_EQ(r.trainers[0], TrainerId::kRoute102Kid1);
+  CHECK_EQ(r.trainer_ends, 1);
+  CHECK_EQ(r.format, Format::kDouble);
+  CHECK(r.names.size() == 1 && r.names[0] == u"Joé");
+  CHECK_EQ(r.ai, AiFlags::kCasual | AiFlags::kCompetitive);
+  CHECK_EQ(r.items.size(), 4);
+  CHECK_EQ(r.items[0], ItemId::kPotion);
+  CHECK_EQ(r.items[1], ItemId::kFullHeal);
+  CHECK_EQ(r.items[2], ItemId::kNone);
+  CHECK_EQ(r.money, 8);
+  CHECK_EQ(r.opponents.size(), 2);
+  const Opponent& pichu = r.opponents[0];
+  CHECK_EQ(pichu.species, SpeciesId::kPichu);
+  CHECK(pichu.has_level && pichu.level == 7);
+  CHECK(pichu.has_item && pichu.item == ItemId::kOranBerry);
+  CHECK(pichu.has_ability && pichu.ability == AbilityId::kStatic);
+  CHECK(pichu.has_nature && pichu.nature == Nature::kTimid);
+  CHECK(pichu.has_ivs && pichu.ivs == 31);
+  CHECK(pichu.has_evs && pichu.evs[1] == 252 && pichu.evs[2] == 4);
+  CHECK(pichu.has_moves && pichu.moves[0] == MoveId::kThunderShock &&
+        pichu.moves[1] == MoveId::kCharm && pichu.moves[2] == MoveId::kNone);
+  CHECK(pichu.is_shiny);
+  // A Pokémon with only its species keeps the values of the game.
+  const Opponent& riolu = r.opponents[1];
+  CHECK(!riolu.has_level && !riolu.has_item && !riolu.has_moves &&
+        !riolu.is_shiny);
+}
+
+TEST(TrainersReportTheMistakes) {
+  const Recorder r = ReadText(ReadTrainers,
+                              "[Route 102 Kid 1]\n"
+                              "colour = blue\n"
+                              "pokemon = Pichu, evs 1/2/3\n"
+                              "ai = Lazy\n"
+                              "no equal sign\n"
+                              "[Nobody]\n"
+                              "pokemon = Pichu\n");
+  CHECK_EQ(r.problem_lines.size(), 5);
+  CHECK_EQ(r.problem_lines[0], 2);
+  CHECK_EQ(r.problem_lines[4], 6);
+  // The Pokémon after an unknown trainer go nowhere.
+  CHECK_EQ(r.opponents.size(), 1);
+  CHECK_EQ(r.trainer_ends, 1);
+}
+
+// species.txt.
+
+TEST(SpeciesGiveEachChange) {
+  const Recorder r = ReadText(
+      ReadSpecies,
+      "[Pikachu]\n"
+      "stats = 45, 70, 40, 60, 50, 100\n"
+      "types = Electric\n"
+      "abilities = Static, Lightning Rod\n"
+      "catch rate = 190\n"
+      "tms = 24, 25\n"
+      "hms off = 5\n"
+      "learnset = 1 Thunder Shock, 20 Thunderbolt\n"
+      "evolutions = Level Up / 30 / Raichu, Item / Thunder Stone / Raichu\n");
+  CHECK_EQ(r.problems.size(), 0);
+  CHECK(r.species_changes.size() == 7);
+  CHECK(r.species_changes[0] == "stats 45 70 40 60 50 100");
+  // One type: the second type is the same.
+  const std::string electric =
+      std::to_string(static_cast<u32>(TypeId::kElectric));
+  CHECK(r.species_changes[1] == "types " + electric + " " + electric);
+  // Two abilities: the last one is also the hidden ability.
+  const std::string lightning_rod =
+      std::to_string(static_cast<u32>(AbilityId::kLightningRod));
+  CHECK(r.species_changes[2] ==
+        "abilities " + std::to_string(static_cast<u32>(AbilityId::kStatic)) +
+            " " + lightning_rod + " " + lightning_rod);
+  CHECK(r.species_changes[3] == "catch 190");
+  CHECK(r.species_changes[4] == "tm 24 on");
+  CHECK(r.species_changes[5] == "tm 25 on");
+  CHECK(r.species_changes[6] == "hm 5 off");
+  CHECK_EQ(r.learnset.size(), 2);
+  CHECK_EQ(r.learnset[1].level, 20);
+  CHECK_EQ(r.learnset[1].move, MoveId::kThunderbolt);
+  CHECK_EQ(r.evolutions.size(), 2);
+  CHECK_EQ(r.evolutions[0].method, EvolutionMethod::kLevelUp);
+  CHECK_EQ(r.evolutions[0].value, 30);
+  CHECK_EQ(r.evolutions[1].value, ItemId::kThunderStone);
+  CHECK_EQ(r.evolutions[1].species, SpeciesId::kRaichu);
+}
+
+TEST(SpeciesReportTheMistakes) {
+  const Recorder r = ReadText(ReadSpecies,
+                              "[Pikachu]\n"
+                              "stats = 1, 2, 3\n"
+                              "learnset = Thunder Shock\n"
+                              "evolutions = Level Up / 30\n"
+                              "size = 2\n");
+  CHECK_EQ(r.problem_lines.size(), 4);
+}
+
+// story.txt.
+
+TEST(StoryLinksTheIfElseAndEnd) {
+  const Recorder r = ReadText(ReadStory,
+                              "[33000]\n"
+                              "face player\n"     // 0
+                              "ask Do you want it?\\nYes?\n"  // 1
+                              "if yes\n"          // 2
+                              "  give item Rare Candy 3\n"  // 3
+                              "else\n"            // 4
+                              "  say Too bad.\n"  // 5
+                              "end\n");           // 6
+  CHECK_EQ(r.problems.size(), 0);
+  CHECK(r.stories.size() == 1 && r.stories[0] == 33000);
+  const Story* story = FindStory(33000);
+  CHECK(story != nullptr);
+  if (story == nullptr) return;
+  CHECK_EQ(story->count, 7);
+  const u32 first = story->first;
+  CHECK_EQ(GetInstruction(first + 0).op, Op::kFacePlayer);
+  // "\n" in a text is a new line.
+  CHECK(ScriptText(GetInstruction(first + 1)) == u"Do you want it?\nYes?");
+  // A false "if" goes after the "else".
+  CHECK_EQ(GetInstruction(first + 2).condition, Condition::kYes);
+  CHECK_EQ(GetInstruction(first + 2).jump, first + 5);
+  CHECK_EQ(GetInstruction(first + 3).a, ItemId::kRareCandy);
+  CHECK_EQ(GetInstruction(first + 3).b, 3);
+  // The "else" goes to the "end".
+  CHECK_EQ(GetInstruction(first + 4).jump, first + 6);
+}
+
+TEST(StoryReadsAllTheCommands) {
+  const Recorder r = ReadText(ReadStory,
+                              "[33001]\n"
+                              "choose A / B / C\n"
+                              "if var 3 >= 10\n"
+                              "end\n"
+                              "warp Route 101, 10, 12, 2, Left\n"
+                              "give money 100000\n"
+                              "battle wild Pikachu\n"
+                              "fade out white\n"
+                              "music end\n");
+  CHECK_EQ(r.problems.size(), 0);
+  const Story* story = FindStory(33001);
+  CHECK(story != nullptr);
+  if (story == nullptr) return;
+  const u32 first = story->first;
+  CHECK_EQ(GetInstruction(first).a, 3);  // Three choices.
+  CHECK(ScriptText(GetInstruction(first)) == u"A");
+  CHECK_EQ(GetInstruction(first + 1).condition, Condition::kVarAtLeast);
+  const Instruction& warp = GetInstruction(first + 3);
+  CHECK_EQ(warp.a, MapId::kRoute101);
+  CHECK(warp.b == 10 && warp.c == 12 && warp.d == 2 && warp.extra == 2);
+  // The money has 32 bits, in a and b.
+  const Instruction& money = GetInstruction(first + 4);
+  CHECK_EQ(money.a | static_cast<u32>(money.b) << 16, 100000);
+  CHECK_EQ(GetInstruction(first + 5).b, 5);  // The level is 5 without a level.
+  CHECK_EQ(GetInstruction(first + 6).extra, 1);  // White.
+  CHECK_EQ(GetInstruction(first + 7).op, Op::kMusicEnd);
+}
+
+TEST(StoryReportsTheMistakes) {
+  const Recorder r = ReadText(ReadStory,
+                              "[33002]\n"
+                              "jump\n"
+                              "else\n"
+                              "if yes\n"
+                              "[40000]\n"
+                              "say Lost.\n");
+  // "jump", "else" without "if", the "if" without "end" (at the next section)
+  // and the script number.
+  CHECK_EQ(r.problems.size(), 4);
+  CHECK(FindStory(40000) == nullptr);
+}
+
+// characters.txt.
+
+TEST(CharactersGiveScriptsAndTrainers) {
+  const Recorder r = ReadText(
+      ReadCharacters,
+      "[Littleroot Town]\n"
+      "Researcher Male, 47, 77, 6, Down, script 33000\n"
+      "[Route 102]\n"
+      "Lass, 14, 8, 0, Left, trainer Route 102 Girl, sight 4\n"
+      "Youngster, 1, 2, 0, Up, trainer Route 102 Kid 1\n");
+  CHECK_EQ(r.problems.size(), 0);
+  CHECK_EQ(r.characters.size(), 3);
+  const Character& researcher = r.characters[0];
+  CHECK_EQ(researcher.map, MapId::kLittlerootTown);
+  CHECK_EQ(researcher.model, ModelId::kResearcherMale);
+  CHECK(researcher.tile_x == 47 && researcher.tile_z == 77 &&
+        researcher.height == 6 && researcher.facing == 1);
+  CHECK_EQ(researcher.script, 33000);
+  CHECK_EQ(researcher.trainer, TrainerId::kNone);
+  CHECK_EQ(r.characters[1].trainer, TrainerId::kRoute102Girl);
+  CHECK_EQ(r.characters[1].sight, 4);
+  CHECK_EQ(r.characters[2].sight, 3);  // 3 without a sight.
+}
+
+TEST(CharactersReportTheMistakes) {
+  Recorder r = ReadText(ReadCharacters,
+                        "[Route 101]\n"
+                        "Youngster, 1, 2, 0, Down\n"
+                        "Nobody, 1, 2, 0, Down, script 33000\n"
+                        "Lass, 1, 2, 0, Sideways, script 33000\n"
+                        "Lass, 1, 2, 0, Up, sight 4\n"
+                        "Lass, 1, 2, 0, Up, trainer Route 102 Girl, sight 11\n"
+                        "[Nowhere]\n");
+  CHECK_EQ(r.problem_lines.size(), 6);
+  CHECK_EQ(r.characters.size(), 0);
+
+  // A full list of characters.
+  Clear();
+  Recorder full;
+  full.is_character_list_full = true;
+  const char* text = "[Route 101]\nLass, 1, 2, 0, Up, script 33000\n";
+  ReadCharacters(text, static_cast<u32>(std::strlen(text)), full);
+  CHECK(full.problems.size() == 1 &&
+        full.problems[0].find("too many characters") == 0);
+}
