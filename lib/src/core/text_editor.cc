@@ -25,6 +25,7 @@
 #include "core/patch/text_editor.h"
 #include "core/data_folder.h"
 #include "core/line_reader.h"
+#include "core/utf8.h"
 
 #include <cstdio>
 #include <cstring>
@@ -287,37 +288,6 @@ u32 ToUtf8(c16 c, c8* out) {
   return 3;
 }
 
-// Reads a UTF-8 text (the characters over 0xFFFF are skipped) into `out`.
-u32 FromUtf8(const c8* in, u32 length, c16* out, u32 capacity) {
-  u32 count = 0;
-  u32 i = 0;
-  while (i < length && count + 1 < capacity) {
-    const u8 first = static_cast<u8>(in[i]);
-    u32 c;
-    u32 extra;
-    if (first < 0x80) {
-      c = first;
-      extra = 0;
-    } else if ((first & 0xE0) == 0xC0) {
-      c = first & 0x1F;
-      extra = 1;
-    } else if ((first & 0xF0) == 0xE0) {
-      c = first & 0x0F;
-      extra = 2;
-    } else {
-      i++;
-      continue;
-    }
-    if (i + extra >= length && extra != 0) break;
-    for (u32 k = 1; k <= extra; k++) {
-      c = (c << 6) | (static_cast<u8>(in[i + k]) & 0x3F);
-    }
-    out[count++] = static_cast<c16>(c);
-    i += 1 + extra;
-  }
-  out[count] = 0;
-  return count;
-}
 } // namespace
 
 TextEditor::Recent* TextEditor::FindRecent(const TextKey& key) {
@@ -550,7 +520,7 @@ void LoadLine(const c8* line, u32 length) {
   if (digits == 0 || i >= length || line[i] != '=') return;
   i++;
   c16 marked[TextEditor::kMaxMarked + 1];
-  FromUtf8(line + i, length - i, marked, TextEditor::kMaxMarked + 1);
+  Utf8ToUtf16(line + i, length - i, marked, TextEditor::kMaxMarked + 1);
   TextKey key;
   key.file = file;
   key.id = id;
@@ -668,7 +638,7 @@ u32 TextEditor::ToUtf8(const c16* text, c8* out, u32 capacity) {
 }
 
 u32 TextEditor::FromUtf8(const c8* in, u32 length, c16* out, u32 capacity) {
-  return ::core::FromUtf8(in, length, out, capacity);
+  return Utf8ToUtf16(in, length, out, capacity);
 }
 
 void TextEditor::MakePreview(const c16* raw, u32 length, c8* out, u32 size) {

@@ -19,16 +19,15 @@
  * @file data_files.cc
  * @brief A ROM hack without code: text files that change the game.
  *
- * The declarations are in core/data_files.h.
+ * The declarations are in core/data_files.h. core::maker reads the files
+ * (core/maker_reader.h). This file gives the parts to the game, and runs the
+ * scripts of story.txt.
  */
 
 #include "core/data_files.h"
 
-#include <cstring>
-
 #include "battle/patch/trainer_team.h"
 #include "core/data_folder.h"
-#include "core/patch/text_editor.h"
 #include "core/problems.h"
 #include "overworld/patch/map_character.h"
 #include "overworld/patch/wild_encounter.h"
@@ -40,1148 +39,138 @@
 namespace core {
 namespace {
 
-// The names of the values of the enums: tools/gen_data_names.py.
-struct DataName {
-  const c8* name;
-  u16 value;
-};
-#include "core/data_names.inc"
-
-struct NameTable {
-  const DataName* names;
-  u32 count;
-};
-
-NameTable GetTable(NameKind kind) {
-  switch (kind) {
-    case NameKind::kSpecies: return {kSpeciesNames, SIZE(kSpeciesNames)};
-    case NameKind::kMove: return {kMoveNames, SIZE(kMoveNames)};
-    case NameKind::kItem: return {kItemNames, SIZE(kItemNames)};
-    case NameKind::kAbility: return {kAbilityNames, SIZE(kAbilityNames)};
-    case NameKind::kNature: return {kNatureNames, SIZE(kNatureNames)};
-    case NameKind::kType: return {kTypeNames, SIZE(kTypeNames)};
-    case NameKind::kForm: return {kFormNames, SIZE(kFormNames)};
-    case NameKind::kTrainer: return {kTrainerNames, SIZE(kTrainerNames)};
-    case NameKind::kModel: return {kModelNames, SIZE(kModelNames)};
-    case NameKind::kEvolutionMethod:
-      return {kEvolutionMethodNames, SIZE(kEvolutionMethodNames)};
-    case NameKind::kEncounterMethod:
-      return {kEncounterMethodNames, SIZE(kEncounterMethodNames)};
-    case NameKind::kFormat: return {kFormatNames, SIZE(kFormatNames)};
-    case NameKind::kMap: return {kMapNames, SIZE(kMapNames)};
-    case NameKind::kMusic: return {kMusicNames, SIZE(kMusicNames)};
-  }
-  return {nullptr, 0};
-}
-
-// A part of a line of a file.
-struct Span {
-  const c8* text;
-  u32 length;
-};
-
-bool IsSpace(c8 c) { return c == ' ' || c == '\t' || c == '\r'; }
-
-Span Trim(Span span) {
-  while (span.length > 0 && IsSpace(span.text[0])) {
-    span.text++;
-    span.length--;
-  }
-  while (span.length > 0 && IsSpace(span.text[span.length - 1])) {
-    span.length--;
-  }
-  return span;
-}
-
-// Writes the name in lowercase without the spaces and the signs. The letters
-// é, è and ê of UTF-8 become e. Returns false when the name is too long.
-bool Normalize(Span span, c8* out, u32 capacity) {
-  u32 length = 0;
-  for (u32 i = 0; i < span.length; i++) {
-    c8 c = span.text[i];
-    const u8 byte = static_cast<u8>(c);
-    if (byte == 0xC3 && i + 1 < span.length) {
-      const u8 next = static_cast<u8>(span.text[i + 1]);
-      if (next == 0xA9 || next == 0xA8 || next == 0xAA || next == 0x89) {
-        c = 'e';
-        i++;
-      } else {
-        continue;
-      }
-    }
-    if (c >= 'A' && c <= 'Z') c = static_cast<c8>(c - 'A' + 'a');
-    if (!((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9'))) continue;
-    if (length + 1 >= capacity) return false;
-    out[length++] = c;
-  }
-  out[length] = '\0';
-  return true;
-}
-
-bool ParseNumber(Span span, u32* value) {
-  span = Trim(span);
-  if (span.length == 0) return false;
-  u32 result = 0;
-  for (u32 i = 0; i < span.length; i++) {
-    if (span.text[i] < '0' || span.text[i] > '9') return false;
-    result = result * 10 + static_cast<u32>(span.text[i] - '0');
-  }
-  *value = result;
-  return true;
-}
-
-// Cuts `span` at each `separator`. Returns the number of parts.
-u32 Split(Span span, c8 separator, Span* parts, u32 capacity) {
-  u32 count = 0;
-  u32 start = 0;
-  for (u32 i = 0; i <= span.length && count < capacity; i++) {
-    if (i < span.length && span.text[i] != separator) continue;
-    parts[count++] = Trim(Span{span.text + start, i - start});
-    start = i + 1;
-  }
-  return count;
-}
-
-// Cuts "level 8" into "level" and "8".
-void SplitWord(Span span, Span* word, Span* rest) {
-  span = Trim(span);
-  u32 i = 0;
-  while (i < span.length && !IsSpace(span.text[i])) i++;
-  *word = Span{span.text, i};
-  *rest = Trim(Span{span.text + i, span.length - i});
-}
-
-bool IsWord(Span span, const c8* word) {
-  c8 normalized[32];
-  return Normalize(span, normalized, sizeof(normalized)) &&
-         std::strcmp(normalized, word) == 0;
-}
-
-// The file that the reader reads, for the messages of the problems.
-const c8* current_file = "";
-u32 current_line = 0;
-
-void Report(const c8* what, Span word) {
-  c8 text[24];
-  const u32 length = word.length < sizeof(text) - 1 ? word.length
-                                                    : sizeof(text) - 1;
-  std::memcpy(text, word.text, length);
-  text[length] = '\0';
-  Problems::Add(u"%s %u: %s %s", current_file, current_line, what, text);
-}
-
-bool FindOrReport(NameKind kind, Span span, u32* value, const c8* what) {
-  span = Trim(span);
-  if (DataNames::Find(kind, span.text, span.length, value)) return true;
-  Report(what, span);
-  return false;
-}
-
-// The text of a file, then its lines one by one.
-c8 file_buffer[32 * 1024];
-
-typedef void (*LineHandler)(Span line, bool is_section);
-
-bool ReadLines(const c16* path, const c8* name, LineHandler handler) {
-  const u32 size = sys::File::ReadAll(path, file_buffer, sizeof(file_buffer));
-  if (size == 0) return false;
-  current_file = name;
-  if (size >= sizeof(file_buffer)) {
-    Problems::Add(u"%s: the file is too big", name);
-  }
-  u32 start = 0;
-  current_line = 0;
-  for (u32 i = 0; i <= size; i++) {
-    if (i < size && file_buffer[i] != '\n') continue;
-    current_line++;
-    Span line = {file_buffer + start, i - start};
-    start = i + 1;
-    // A comment starts with #.
-    for (u32 k = 0; k < line.length; k++) {
-      if (line.text[k] == '#') line.length = k;
-    }
-    // A UTF-8 file can start with a mark of 3 bytes.
-    if (current_line == 1 && line.length >= 3 &&
-        static_cast<u8>(line.text[0]) == 0xEF) {
-      line.text += 3;
-      line.length -= 3;
-    }
-    line = Trim(line);
-    if (line.length == 0) continue;
-    if (line.text[0] == '[' && line.text[line.length - 1] == ']') {
-      handler(Span{line.text + 1, line.length - 2}, true);
-    } else {
-      handler(line, false);
-    }
-  }
-  handler(Span{"", 0}, true);
-  return true;
-}
-
-// Cuts "key = value". Returns false when the line has no =.
-bool SplitKey(Span line, Span* key, Span* value) {
-  for (u32 i = 0; i < line.length; i++) {
-    if (line.text[i] != '=') continue;
-    *key = Trim(Span{line.text, i});
-    *value = Trim(Span{line.text + i + 1, line.length - i - 1});
-    return true;
-  }
-  return false;
-}
-
-// The texts of the names (UTF-16) that the teams use.
-c16 text_pool[4096];
-u32 text_pool_size = 0;
-
-const c16* StoreText(Span span) {
-  const u32 capacity = SIZE(text_pool) - text_pool_size;
-  if (capacity < 2) return nullptr;
-  c16* out = text_pool + text_pool_size;
-  const u32 count = TextEditor::FromUtf8(span.text, span.length, out, capacity);
-  if (count + 1 >= capacity) return nullptr;
-  out[count] = 0;
-  text_pool_size += count + 1;
-  return out;
-}
-
-// encounters.txt.
-
-overworld::EncounterSlot slot_pool[2048];
-u32 slot_count = 0;
-
-struct EncounterState {
-  bool is_valid;
-  MapId map_id;
-  EncounterMethod method;
-  u32 first_slot;
-} encounter = {false, MapId::kNone, EncounterMethod::kWalk, 0};
-
-void FlushEncounters() {
-  if (encounter.is_valid && slot_count > encounter.first_slot) {
-    overworld::WildEncounter::SetTable(encounter.map_id, encounter.method,
-                                       slot_pool + encounter.first_slot,
-                                       slot_count - encounter.first_slot);
-  }
-  encounter.is_valid = false;
-}
-
-void OnEncounterLine(Span line, bool is_section) {
-  if (is_section) {
-    FlushEncounters();
-    if (line.length == 0) return;
-    // [Route 101, Walk]
-    Span parts[2];
-    if (Split(line, ',', parts, 2) != 2) {
-      Report("use [map, method]:", line);
-      return;
-    }
-    u32 map = 0;
-    u32 method = 0;
-    if (!FindOrReport(NameKind::kMap, parts[0], &map, "unknown map") ||
-        !FindOrReport(NameKind::kEncounterMethod, parts[1], &method,
-                      "unknown method")) {
-      return;
-    }
-    encounter = {true, static_cast<MapId>(map),
-                 static_cast<EncounterMethod>(method), slot_count};
-    return;
-  }
-  if (!encounter.is_valid) return;
-  // Pikachu, 3, 5 (, form)
-  Span parts[4];
-  const u32 count = Split(line, ',', parts, 4);
-  u32 species = 0;
-  u32 min_level = 0;
-  u32 max_level = 0;
-  u32 form = 0;
-  if (!FindOrReport(NameKind::kSpecies, parts[0], &species,
-                    "unknown species")) {
-    return;
-  }
-  if (count < 2 || !ParseNumber(parts[1], &min_level)) {
-    Report("give a level after", parts[0]);
-    return;
-  }
-  if (count < 3 || !ParseNumber(parts[2], &max_level)) max_level = min_level;
-  if (count >= 4 &&
-      !FindOrReport(NameKind::kForm, parts[3], &form, "unknown form")) {
-    return;
-  }
-  if (slot_count >= SIZE(slot_pool)) {
-    Report("too many Pokemon:", parts[0]);
-    return;
-  }
-  slot_pool[slot_count++] = overworld::EncounterSlot(
-      static_cast<SpeciesId>(species), static_cast<u8>(min_level),
-      static_cast<u8>(max_level), static_cast<FormId>(form));
-}
-
-// trainers.txt.
-
-battle::TrainerTeam team_pool[256];
-u32 team_count = 0;
-
-struct TrainerState {
-  battle::TrainerTeam* team;
-  TrainerId id;
-} trainer = {nullptr, TrainerId::kNone};
-
-void FlushTrainer() {
-  if (trainer.team != nullptr) {
-    battle::TrainerTeams::Add(trainer.id, trainer.team);
-  }
-  trainer.team = nullptr;
-}
-
-void ParseOpponent(Span value) {
-  // Pichu, level 7, item Oran Berry, moves Thunder Shock / Charm, shiny
-  Span parts[12];
-  const u32 count = Split(value, ',', parts, SIZE(parts));
-  u32 species = 0;
-  if (!FindOrReport(NameKind::kSpecies, parts[0], &species,
-                    "unknown species")) {
-    return;
-  }
-  battle::TrainerOpponent opponent(static_cast<SpeciesId>(species));
-  for (u32 i = 1; i < count; i++) {
-    Span word;
-    Span rest;
-    SplitWord(parts[i], &word, &rest);
-    u32 number = 0;
-    if (IsWord(word, "level") && ParseNumber(rest, &number)) {
-      opponent.WithLevel(static_cast<u8>(number));
-    } else if (IsWord(word, "item")) {
-      if (FindOrReport(NameKind::kItem, rest, &number, "unknown item")) {
-        opponent.WithItem(static_cast<ItemId>(number));
-      }
-    } else if (IsWord(word, "ability")) {
-      if (FindOrReport(NameKind::kAbility, rest, &number, "unknown ability")) {
-        opponent.WithAbility(static_cast<AbilityId>(number));
-      }
-    } else if (IsWord(word, "nature")) {
-      if (FindOrReport(NameKind::kNature, rest, &number, "unknown nature")) {
-        opponent.WithNature(static_cast<Nature>(number));
-      }
-    } else if (IsWord(word, "form")) {
-      if (FindOrReport(NameKind::kForm, rest, &number, "unknown form")) {
-        opponent.WithForm(static_cast<FormId>(number));
-      }
-    } else if (IsWord(word, "ivs") && ParseNumber(rest, &number)) {
-      opponent.WithIvs(static_cast<u8>(number));
-    } else if (IsWord(word, "shiny")) {
-      opponent.WithShiny();
-    } else if (IsWord(word, "evs")) {
-      Span evs[6];
-      u32 values[6] = {};
-      if (Split(rest, '/', evs, 6) != 6) {
-        Report("give 6 EVs:", rest);
-        continue;
-      }
-      for (u32 k = 0; k < 6; k++) ParseNumber(evs[k], &values[k]);
-      opponent.WithEvs(static_cast<u8>(values[0]), static_cast<u8>(values[1]),
-                       static_cast<u8>(values[2]), static_cast<u8>(values[3]),
-                       static_cast<u8>(values[4]), static_cast<u8>(values[5]));
-    } else if (IsWord(word, "moves")) {
-      Span names[4];
-      MoveId moves[4] = {MoveId::kNone, MoveId::kNone, MoveId::kNone,
-                         MoveId::kNone};
-      const u32 move_count = Split(rest, '/', names, 4);
-      for (u32 k = 0; k < move_count; k++) {
-        if (FindOrReport(NameKind::kMove, names[k], &number, "unknown move")) {
-          moves[k] = static_cast<MoveId>(number);
-        }
-      }
-      opponent.WithMoves(moves[0], moves[1], moves[2], moves[3]);
-    } else {
-      Report("unknown value:", parts[i]);
-    }
-  }
-  trainer.team->Add(opponent);
-}
-
-void OnTrainerLine(Span line, bool is_section) {
-  if (is_section) {
-    FlushTrainer();
-    if (line.length == 0) return;
-    // [Route 102 Kid 1] or [42]
-    u32 id = 0;
-    if (!FindOrReport(NameKind::kTrainer, line, &id, "unknown trainer")) {
-      return;
-    }
-    if (team_count >= SIZE(team_pool)) {
-      Report("too many trainers:", line);
-      return;
-    }
-    trainer.team = &team_pool[team_count++];
-    *trainer.team = battle::TrainerTeam(Format::kSingle);
-    trainer.id = static_cast<TrainerId>(id);
-    return;
-  }
-  if (trainer.team == nullptr) return;
-  Span key;
-  Span value;
-  if (!SplitKey(line, &key, &value)) {
-    Report("use key = value:", line);
-    return;
-  }
-  battle::TrainerTeam& team = *trainer.team;
-  u32 number = 0;
-  if (IsWord(key, "pokemon")) {
-    ParseOpponent(value);
-  } else if (IsWord(key, "format")) {
-    if (FindOrReport(NameKind::kFormat, value, &number, "unknown format")) {
-      team.format = static_cast<Format>(number);
-    }
-  } else if (IsWord(key, "name")) {
-    team.WithName(StoreText(value));
-  } else if (IsWord(key, "money") && ParseNumber(value, &number)) {
-    team.WithMoney(static_cast<u8>(number));
-  } else if (IsWord(key, "ai")) {
-    Span names[5];
-    const u32 count = Split(value, ',', names, 5);
-    AiFlags flags = AiFlags::kNone;
-    for (u32 k = 0; k < count; k++) {
-      if (IsWord(names[k], "casual")) {
-        flags |= AiFlags::kCasual;
-      } else if (IsWord(names[k], "competitive")) {
-        flags |= AiFlags::kCompetitive;
-      } else if (IsWord(names[k], "strategist")) {
-        flags |= AiFlags::kStrategist;
-      } else if (IsWord(names[k], "multi")) {
-        flags |= AiFlags::kMulti;
-      } else if (IsWord(names[k], "horde")) {
-        flags |= AiFlags::kHorde;
-      } else {
-        Report("unknown AI:", names[k]);
-      }
-    }
-    team.WithAi(flags);
-  } else if (IsWord(key, "items")) {
-    Span names[4];
-    ItemId items[4] = {ItemId::kNone, ItemId::kNone, ItemId::kNone,
-                       ItemId::kNone};
-    const u32 count = Split(value, ',', names, 4);
-    for (u32 k = 0; k < count; k++) {
-      if (FindOrReport(NameKind::kItem, names[k], &number, "unknown item")) {
-        items[k] = static_cast<ItemId>(number);
-      }
-    }
-    team.WithItems(items[0], items[1], items[2], items[3]);
-  } else {
-    Report("unknown key:", key);
-  }
-}
-
-// species.txt.
-
-pokemon::LevelMove move_pool[4096];
-u32 move_count = 0;
-pokemon::EvolutionStep step_pool[512];
-u32 step_count = 0;
-
-struct SpeciesState {
-  bool is_valid;
-  SpeciesId species;
-  FormId form;
-} species_state = {false, SpeciesId::kNone, FormId::kNormal};
-
-void ParseMachines(pokemon::Species& species, Span value, bool is_hm,
-                   bool can_learn) {
-  Span numbers[32];
-  const u32 count = Split(value, ',', numbers, SIZE(numbers));
-  for (u32 k = 0; k < count; k++) {
-    u32 number = 0;
-    if (!ParseNumber(numbers[k], &number)) {
-      Report("give numbers:", numbers[k]);
-      continue;
-    }
-    if (is_hm) {
-      species.WithHm(static_cast<u8>(number), can_learn);
-    } else {
-      species.WithTm(static_cast<u8>(number), can_learn);
-    }
-  }
-}
-
-void ParseLearnset(pokemon::Species& species, Span value) {
-  // 1 Thunder Shock, 5 Quick Attack
-  Span parts[pokemon::Species::kMaxLearnsetMoves];
-  const u32 count = Split(value, ',', parts, SIZE(parts));
-  const u32 first = move_count;
-  for (u32 k = 0; k < count; k++) {
-    Span level_text;
-    Span name;
-    SplitWord(parts[k], &level_text, &name);
-    u32 level = 0;
-    u32 move = 0;
-    if (!ParseNumber(level_text, &level)) {
-      Report("give a level before the move:", parts[k]);
-      continue;
-    }
-    if (!FindOrReport(NameKind::kMove, name, &move, "unknown move")) continue;
-    if (move_count >= SIZE(move_pool)) {
-      Report("too many moves:", name);
-      return;
-    }
-    move_pool[move_count++] =
-        pokemon::LevelMove(static_cast<u8>(level), static_cast<MoveId>(move));
-  }
-  species.WithLearnset(move_pool + first, move_count - first);
-}
-
-void ParseEvolutions(pokemon::Species& species, Span value) {
-  // Level Up / 30 / Raichu, Item / Thunder Stone / Raichu
-  Span evolutions[pokemon::Species::kMaxEvolutions];
-  const u32 count = Split(value, ',', evolutions, SIZE(evolutions));
-  const u32 first = step_count;
-  for (u32 k = 0; k < count; k++) {
-    Span parts[3];
-    if (Split(evolutions[k], '/', parts, 3) != 3) {
-      Report("use method / value / species:", evolutions[k]);
-      continue;
-    }
-    u32 method = 0;
-    u32 into = 0;
-    u32 number = 0;
-    if (!FindOrReport(NameKind::kEvolutionMethod, parts[0], &method,
-                      "unknown method") ||
-        !FindOrReport(NameKind::kSpecies, parts[2], &into,
-                      "unknown species")) {
-      continue;
-    }
-    // The value: a number, an item, a move or a species.
-    const Span v = parts[1];
-    if (!ParseNumber(v, &number) &&
-        !DataNames::Find(NameKind::kItem, v.text, v.length, &number) &&
-        !DataNames::Find(NameKind::kMove, v.text, v.length, &number) &&
-        !DataNames::Find(NameKind::kSpecies, v.text, v.length, &number)) {
-      Report("unknown value:", v);
-      continue;
-    }
-    if (step_count >= SIZE(step_pool)) {
-      Report("too many evolutions:", evolutions[k]);
-      return;
-    }
-    step_pool[step_count++] = pokemon::EvolutionStep(
-        static_cast<EvolutionMethod>(method), static_cast<u16>(number),
-        static_cast<SpeciesId>(into));
-  }
-  species.WithEvolutions(step_pool + first, step_count - first);
-}
-
-void OnSpeciesLine(Span line, bool is_section) {
-  if (is_section) {
-    species_state.is_valid = false;
-    if (line.length == 0) return;
-    // [Pikachu] or [Charizard, Charizard Megax]
-    Span parts[2];
-    const u32 count = Split(line, ',', parts, 2);
-    u32 species = 0;
-    u32 form = 0;
-    if (!FindOrReport(NameKind::kSpecies, parts[0], &species,
-                      "unknown species")) {
-      return;
-    }
-    if (count == 2 &&
-        !FindOrReport(NameKind::kForm, parts[1], &form, "unknown form")) {
-      return;
-    }
-    species_state = {true, static_cast<SpeciesId>(species),
-                     static_cast<FormId>(form)};
-    return;
-  }
-  if (!species_state.is_valid) return;
-  Span key;
-  Span value;
-  if (!SplitKey(line, &key, &value)) {
-    Report("use key = value:", line);
-    return;
-  }
-  pokemon::Species species(species_state.species, species_state.form);
-  u32 number = 0;
-  if (IsWord(key, "stats")) {
-    Span parts[6];
-    u32 stats[6] = {};
-    if (Split(value, ',', parts, 6) != 6) {
-      Report("give 6 stats:", value);
-      return;
-    }
-    for (u32 k = 0; k < 6; k++) ParseNumber(parts[k], &stats[k]);
-    species.WithStats(static_cast<u8>(stats[0]), static_cast<u8>(stats[1]),
-                      static_cast<u8>(stats[2]), static_cast<u8>(stats[3]),
-                      static_cast<u8>(stats[4]), static_cast<u8>(stats[5]));
-  } else if (IsWord(key, "types")) {
-    Span parts[2];
-    const u32 count = Split(value, ',', parts, 2);
-    u32 first = 0;
-    u32 second = 0;
-    if (!FindOrReport(NameKind::kType, parts[0], &first, "unknown type")) {
-      return;
-    }
-    second = first;
-    if (count == 2 &&
-        !FindOrReport(NameKind::kType, parts[1], &second, "unknown type")) {
-      return;
-    }
-    species.WithTypes(static_cast<TypeId>(first), static_cast<TypeId>(second));
-  } else if (IsWord(key, "abilities")) {
-    Span parts[3];
-    u32 abilities[3] = {};
-    const u32 count = Split(value, ',', parts, 3);
-    for (u32 k = 0; k < 3; k++) {
-      // One or two abilities: the last one also fills the next places.
-      const Span name = parts[k < count ? k : count - 1];
-      if (!FindOrReport(NameKind::kAbility, name, &abilities[k],
-                        "unknown ability")) {
-        return;
-      }
-    }
-    species.WithAbilities(static_cast<AbilityId>(abilities[0]),
-                          static_cast<AbilityId>(abilities[1]),
-                          static_cast<AbilityId>(abilities[2]));
-  } else if (IsWord(key, "catchrate") && ParseNumber(value, &number)) {
-    species.WithCatchRate(static_cast<u8>(number));
-  } else if (IsWord(key, "tms")) {
-    ParseMachines(species, value, false, true);
-  } else if (IsWord(key, "tmsoff")) {
-    ParseMachines(species, value, false, false);
-  } else if (IsWord(key, "hms")) {
-    ParseMachines(species, value, true, true);
-  } else if (IsWord(key, "hmsoff")) {
-    ParseMachines(species, value, true, false);
-  } else if (IsWord(key, "learnset")) {
-    ParseLearnset(species, value);
-  } else if (IsWord(key, "evolutions")) {
-    ParseEvolutions(species, value);
-  } else {
-    Report("unknown key:", key);
-  }
-}
-
-// story.txt.
-
-// The commands of the scripts.
-enum class Op : u8 {
-  kSay, kSign, kAsk, kChoose, kIf, kElse, kEnd, kStop, kFacePlayer,
-  kGiveItem, kTakeItem, kGivePokemon, kGiveMoney, kTakeMoney,
-  kSetFlag, kClearFlag, kSetVariable, kAddVariable,
-  kBattleTrainer, kBattleWild, kWarp, kHeal, kFadeOut, kFadeIn,
-  kMusic, kMusicEnd, kWait, kSound, kCallScript,
-};
-
-// The conditions of "if".
-enum class Condition : u8 {
-  kNone, kYes, kNo, kChoice, kFlag, kNotFlag,
-  kVarEqual, kVarNotEqual, kVarAtLeast, kVarAtMost, kVarMore, kVarLess,
-  kHasItem, kMoney, kWon, kLost,
-};
-
-struct Instruction {
-  Op op;
-  Condition condition;
-  u8 extra; ///< The direction of a warp, or the colour of a fade.
-  u16 a;
-  u16 b;
-  u16 c;
-  u16 d;
-  u16 jump; ///< The next instruction of "if" (when false) and of "else".
-  const c16* text;
-};
-
-struct Story {
-  u16 id;
-  u16 first;
-  u16 count;
-};
-
-Instruction instruction_pool[2048];
-u32 instruction_count = 0;
-Story stories[128];
-u32 story_count = 0;
-c16 story_text_pool[8192];
-u32 story_text_size = 0;
-
-// The "if" and "else" that wait for their "end".
-u16 open_blocks[16];
-u32 open_block_count = 0;
-bool is_story_open = false;
-
-// Copies a text of a script. "\n" is a new line.
-const c16* StoreStoryText(Span span) {
-  const u32 capacity = SIZE(story_text_pool) - story_text_size;
-  if (capacity < 2) return nullptr;
-  c16* out = story_text_pool + story_text_size;
-  const u32 count = TextEditor::FromUtf8(span.text, span.length, out, capacity);
-  if (count + 1 >= capacity) return nullptr;
-  u32 write = 0;
-  for (u32 read = 0; read < count; read++) {
-    if (out[read] == u'\\' && read + 1 < count && out[read + 1] == u'n') {
-      out[write++] = u'\n';
-      read++;
-    } else {
-      out[write++] = out[read];
-    }
-  }
-  out[write] = 0;
-  story_text_size += write + 1;
-  return out;
-}
-
-// Cuts "Rare Candy 5" into "Rare Candy" and 5. Without a number at the end,
-// `number` keeps its value.
-Span SplitLastNumber(Span span, u32* number) {
-  span = Trim(span);
-  u32 i = span.length;
-  while (i > 0 && span.text[i - 1] >= '0' && span.text[i - 1] <= '9') i--;
-  if (i == span.length || i == 0 || !IsSpace(span.text[i - 1])) return span;
-  ParseNumber(Span{span.text + i, span.length - i}, number);
-  return Trim(Span{span.text, i});
-}
-
-bool ParseFacing(Span span, u8* facing) {
-  static const c8* const kNames[] = {"up", "down", "left", "right"};
-  for (u32 i = 0; i < SIZE(kNames); i++) {
-    if (IsWord(span, kNames[i])) {
-      *facing = static_cast<u8>(i);
-      return true;
-    }
-  }
-  return false;
-}
-
-void CloseStory() {
-  if (!is_story_open) return;
-  if (open_block_count != 0) {
-    Report("an if has no end in script", Span{"", 0});
-  }
-  Story& story = stories[story_count - 1];
-  story.count = static_cast<u16>(instruction_count - story.first);
-  is_story_open = false;
-}
+using maker::Condition;
+using maker::Instruction;
+using maker::Op;
 
 void RunStory(script::Context& s);
 
-bool ParseCondition(Span span, Instruction* instruction) {
-  Span word;
-  Span rest;
-  SplitWord(span, &word, &rest);
-  u32 number = 0;
-  if (IsWord(word, "yes")) {
-    instruction->condition = Condition::kYes;
-  } else if (IsWord(word, "no")) {
-    instruction->condition = Condition::kNo;
-  } else if (IsWord(word, "won")) {
-    instruction->condition = Condition::kWon;
-  } else if (IsWord(word, "lost")) {
-    instruction->condition = Condition::kLost;
-  } else if (IsWord(word, "choice") && ParseNumber(rest, &number)) {
-    instruction->condition = Condition::kChoice;
-    instruction->a = static_cast<u16>(number);
-  } else if (IsWord(word, "flag") && ParseNumber(rest, &number)) {
-    instruction->condition = Condition::kFlag;
-    instruction->a = static_cast<u16>(number);
-  } else if (IsWord(word, "not")) {
-    Span flag_word;
-    Span flag_number;
-    SplitWord(rest, &flag_word, &flag_number);
-    if (!IsWord(flag_word, "flag") || !ParseNumber(flag_number, &number)) {
-      return false;
+// Gives the parts of the files to the features of the game.
+class GameSink : public maker::Sink {
+public:
+  void OnProblem(const c8* file, u32 line, const c8* what,
+                 const c8* word) override {
+    Problems::Add(u"%s %u: %s %s", file, line, what, word);
+  }
+
+  void OnEncounterTable(MapId map, EncounterMethod method,
+                        const overworld::EncounterSlot* slots,
+                        u32 count) override {
+    overworld::WildEncounter::SetTable(map, method, slots, count);
+  }
+
+  void OnTrainer(TrainerId trainer) override {
+    team_ = &teams_[team_count_++];
+    *team_ = battle::TrainerTeam(Format::kSingle);
+    trainer_ = trainer;
+  }
+  void OnTrainerFormat(Format format) override { team_->format = format; }
+  void OnTrainerName(const c16* name) override { team_->WithName(name); }
+  void OnTrainerMoney(u8 money) override { team_->WithMoney(money); }
+  void OnTrainerAi(AiFlags flags) override { team_->WithAi(flags); }
+  void OnTrainerItems(const ItemId* items, u32 count) override {
+    ItemId all[4] = {ItemId::kNone, ItemId::kNone, ItemId::kNone,
+                     ItemId::kNone};
+    for (u32 i = 0; i < count && i < 4; i++) all[i] = items[i];
+    team_->WithItems(all[0], all[1], all[2], all[3]);
+  }
+  void OnTrainerPokemon(const maker::Opponent& in) override {
+    battle::TrainerOpponent opponent(in.species);
+    if (in.has_level) opponent.WithLevel(in.level);
+    if (in.has_item) opponent.WithItem(in.item);
+    if (in.has_ability) opponent.WithAbility(in.ability);
+    if (in.has_nature) opponent.WithNature(in.nature);
+    if (in.has_form) opponent.WithForm(in.form);
+    if (in.has_ivs) opponent.WithIvs(in.ivs);
+    if (in.is_shiny) opponent.WithShiny();
+    if (in.has_evs) {
+      opponent.WithEvs(in.evs[0], in.evs[1], in.evs[2], in.evs[3], in.evs[4],
+                       in.evs[5]);
     }
-    instruction->condition = Condition::kNotFlag;
-    instruction->a = static_cast<u16>(number);
-  } else if (IsWord(word, "money") && ParseNumber(rest, &number)) {
-    instruction->condition = Condition::kMoney;
-    instruction->a = static_cast<u16>(number & 0xFFFF);
-    instruction->b = static_cast<u16>(number >> 16);
-  } else if (IsWord(word, "has")) {
-    u32 count = 1;
-    const Span name = SplitLastNumber(rest, &count);
-    if (!FindOrReport(NameKind::kItem, name, &number, "unknown item")) {
-      return false;
+    if (in.has_moves) {
+      opponent.WithMoves(in.moves[0], in.moves[1], in.moves[2], in.moves[3]);
     }
-    instruction->condition = Condition::kHasItem;
-    instruction->a = static_cast<u16>(number);
-    instruction->b = static_cast<u16>(count);
-  } else if (IsWord(word, "var")) {
-    // var 3 >= 10
-    Span parts[3];
-    u32 count = 0;
-    Span remaining = rest;
-    while (count < 3 && remaining.length > 0) {
-      SplitWord(remaining, &parts[count], &remaining);
-      count++;
-    }
-    u32 variable = 0;
-    u32 value = 0;
-    if (count != 3 || !ParseNumber(parts[0], &variable) ||
-        !ParseNumber(parts[2], &value)) {
-      return false;
-    }
-    struct Operator {
-      const c8* text;
-      Condition condition;
-    };
-    static const Operator kOperators[] = {
-        {"=", Condition::kVarEqual},    {"==", Condition::kVarEqual},
-        {"!=", Condition::kVarNotEqual}, {">=", Condition::kVarAtLeast},
-        {"<=", Condition::kVarAtMost},  {">", Condition::kVarMore},
-        {"<", Condition::kVarLess},
-    };
-    instruction->condition = Condition::kNone;
-    for (const Operator& op : kOperators) {
-      if (parts[1].length == std::strlen(op.text) &&
-          std::memcmp(parts[1].text, op.text, parts[1].length) == 0) {
-        instruction->condition = op.condition;
-      }
-    }
-    if (instruction->condition == Condition::kNone) return false;
-    instruction->a = static_cast<u16>(variable);
-    instruction->b = static_cast<u16>(value);
-  } else {
-    return false;
+    team_->Add(opponent);
   }
-  return true;
-}
+  void OnTrainerEnd() override { battle::TrainerTeams::Add(trainer_, team_); }
 
-// The words of a command line: "give item Rare Candy 3" gives the first word
-// "give", the second word "item", `rest` "item Rare Candy 3" and `tail`
-// "Rare Candy 3".
-struct CommandWords {
-  Span rest; ///< The text after the first word.
-  Span tail; ///< The text after the second word.
-  /// For the commands with two first words ("give/take"): true for the first
-  /// one (give), false for the second one (take).
-  bool is_first_choice;
-};
-
-// The commands. Each function reads the values of one command into `in`, and
-// returns false when they are not correct.
-bool ParseText(const CommandWords& w, Instruction* in) {
-  in->text = StoreStoryText(w.rest);
-  return in->text != nullptr;
-}
-
-bool ParseSay(const CommandWords& w, Instruction* in) {
-  in->op = Op::kSay;
-  return ParseText(w, in);
-}
-
-bool ParseSign(const CommandWords& w, Instruction* in) {
-  in->op = Op::kSign;
-  return ParseText(w, in);
-}
-
-bool ParseAsk(const CommandWords& w, Instruction* in) {
-  in->op = Op::kAsk;
-  return ParseText(w, in);
-}
-
-bool ParseChoose(const CommandWords& w, Instruction* in) {
-  // choose Bulbasaur / Charmander / Squirtle: the texts follow each other.
-  Span choices[8];
-  const u32 count = Split(w.rest, '/', choices, SIZE(choices));
-  in->op = Op::kChoose;
-  in->a = static_cast<u16>(count);
-  for (u32 k = 0; k < count; k++) {
-    const c16* text = StoreStoryText(choices[k]);
-    if (text == nullptr) return false;
-    if (k == 0) in->text = text;
+  void OnSpeciesStats(SpeciesId species, FormId form,
+                      const u8* stats) override {
+    pokemon::Species(species, form)
+        .WithStats(stats[0], stats[1], stats[2], stats[3], stats[4], stats[5]);
   }
-  return true;
-}
-
-bool ParseIf(const CommandWords& w, Instruction* in) {
-  in->op = Op::kIf;
-  return ParseCondition(w.rest, in);
-}
-
-// The commands without values.
-template <Op kOp>
-bool ParseSimple(const CommandWords&, Instruction* in) {
-  in->op = kOp;
-  return true;
-}
-
-bool ParseFade(const CommandWords& w, Instruction* in) {
-  Span second;
-  Span tail;
-  SplitWord(w.rest, &second, &tail);
-  if (IsWord(second, "in")) {
-    in->op = Op::kFadeIn;
-    return true;
+  void OnSpeciesTypes(SpeciesId species, FormId form, TypeId first,
+                      TypeId second) override {
+    pokemon::Species(species, form).WithTypes(first, second);
   }
-  in->op = Op::kFadeOut;
-  // fade out (black) or fade out white.
-  in->extra = IsWord(tail, "white") ? 1 : 0;
-  return IsWord(second, "out");
-}
-
-bool ParseMusic(const CommandWords& w, Instruction* in) {
-  if (IsWord(w.rest, "end")) {
-    in->op = Op::kMusicEnd;
-    return true;
+  void OnSpeciesAbilities(SpeciesId species, FormId form, AbilityId first,
+                          AbilityId second, AbilityId hidden) override {
+    pokemon::Species(species, form).WithAbilities(first, second, hidden);
   }
-  u32 number = 0;
-  in->op = Op::kMusic;
-  if (!FindOrReport(NameKind::kMusic, w.rest, &number, "unknown music")) {
-    return false;
+  void OnSpeciesCatchRate(SpeciesId species, FormId form, u8 rate) override {
+    pokemon::Species(species, form).WithCatchRate(rate);
   }
-  in->a = static_cast<u16>(number);
-  return true;
-}
-
-// The commands with one number: wait, sound, call.
-template <Op kOp>
-bool ParseNumberCommand(const CommandWords& w, Instruction* in) {
-  u32 number = 0;
-  if (!ParseNumber(w.rest, &number)) return false;
-  in->op = kOp;
-  in->a = static_cast<u16>(number);
-  return true;
-}
-
-// give item / take item: the item, then the count (1 without a count).
-bool ParseItem(const CommandWords& w, Instruction* in) {
-  u32 number = 0;
-  u32 count = 1;
-  const Span name = SplitLastNumber(w.tail, &count);
-  if (!FindOrReport(NameKind::kItem, name, &number, "unknown item")) {
-    return false;
-  }
-  in->op = w.is_first_choice ? Op::kGiveItem : Op::kTakeItem;
-  in->a = static_cast<u16>(number);
-  in->b = static_cast<u16>(count);
-  return true;
-}
-
-// give money / take money: the money has 32 bits, in `a` and `b`.
-bool ParseMoney(const CommandWords& w, Instruction* in) {
-  u32 number = 0;
-  if (!ParseNumber(w.tail, &number)) return false;
-  in->op = w.is_first_choice ? Op::kGiveMoney : Op::kTakeMoney;
-  in->a = static_cast<u16>(number & 0xFFFF);
-  in->b = static_cast<u16>(number >> 16);
-  return true;
-}
-
-// give pokemon / battle wild: the species, then the level (5 without a level).
-bool ParseSpeciesLevel(const CommandWords& w, Instruction* in, Op op) {
-  u32 number = 0;
-  u32 level = 5;
-  const Span name = SplitLastNumber(w.tail, &level);
-  if (!FindOrReport(NameKind::kSpecies, name, &number, "unknown species")) {
-    return false;
-  }
-  in->op = op;
-  in->a = static_cast<u16>(number);
-  in->b = static_cast<u16>(level);
-  return true;
-}
-
-bool ParseGivePokemon(const CommandWords& w, Instruction* in) {
-  return ParseSpeciesLevel(w, in, Op::kGivePokemon);
-}
-
-bool ParseBattleWild(const CommandWords& w, Instruction* in) {
-  return ParseSpeciesLevel(w, in, Op::kBattleWild);
-}
-
-// set flag / clear flag.
-bool ParseFlag(const CommandWords& w, Instruction* in) {
-  u32 number = 0;
-  if (!ParseNumber(w.tail, &number)) return false;
-  in->op = w.is_first_choice ? Op::kSetFlag : Op::kClearFlag;
-  in->a = static_cast<u16>(number);
-  return true;
-}
-
-// set var / add var: set var 3 10.
-bool ParseVariable(const CommandWords& w, Instruction* in) {
-  Span variable;
-  Span amount;
-  SplitWord(w.tail, &variable, &amount);
-  u32 number = 0;
-  u32 value = 0;
-  if (!ParseNumber(variable, &number) || !ParseNumber(amount, &value)) {
-    return false;
-  }
-  in->op = w.is_first_choice ? Op::kSetVariable : Op::kAddVariable;
-  in->a = static_cast<u16>(number);
-  in->b = static_cast<u16>(value);
-  return true;
-}
-
-bool ParseBattleTrainer(const CommandWords& w, Instruction* in) {
-  u32 number = 0;
-  if (!FindOrReport(NameKind::kTrainer, w.tail, &number, "unknown trainer")) {
-    return false;
-  }
-  in->op = Op::kBattleTrainer;
-  in->a = static_cast<u16>(number);
-  return true;
-}
-
-bool ParseWarp(const CommandWords& w, Instruction* in) {
-  // warp Route 101, 10, 12, 2, Down
-  Span parts[5];
-  const u32 count = Split(w.rest, ',', parts, 5);
-  u32 number = 0;
-  u32 x = 0;
-  u32 z = 0;
-  u32 height = 0;
-  if (count < 4 ||
-      !FindOrReport(NameKind::kMap, parts[0], &number, "unknown map") ||
-      !ParseNumber(parts[1], &x) || !ParseNumber(parts[2], &z) ||
-      !ParseNumber(parts[3], &height)) {
-    return false;
-  }
-  in->op = Op::kWarp;
-  in->a = static_cast<u16>(number);
-  in->b = static_cast<u16>(x);
-  in->c = static_cast<u16>(z);
-  in->d = static_cast<u16>(height);
-  in->extra = 1; // Down.
-  if (count == 5 && !ParseFacing(parts[4], &in->extra)) return false;
-  return true;
-}
-
-// A command of story.txt: its first word (two words with "/", for example
-// "give/take"), its second word (or null), and the function that reads it.
-// The words have the normalized form (see Normalize()).
-struct CommandSpec {
-  const c8* first;
-  const c8* second;
-  bool (*parse)(const CommandWords& words, Instruction* in);
-};
-
-const CommandSpec kCommands[] = {
-    {"say", nullptr, ParseSay},
-    {"sign", nullptr, ParseSign},
-    {"ask", nullptr, ParseAsk},
-    {"choose", nullptr, ParseChoose},
-    {"if", nullptr, ParseIf},
-    {"else", nullptr, ParseSimple<Op::kElse>},
-    {"end", nullptr, ParseSimple<Op::kEnd>},
-    {"stop", nullptr, ParseSimple<Op::kStop>},
-    {"heal", nullptr, ParseSimple<Op::kHeal>},
-    {"face", "player", ParseSimple<Op::kFacePlayer>},
-    {"fade", nullptr, ParseFade},
-    {"music", nullptr, ParseMusic},
-    {"wait", nullptr, ParseNumberCommand<Op::kWait>},
-    {"sound", nullptr, ParseNumberCommand<Op::kSound>},
-    {"call", nullptr, ParseNumberCommand<Op::kCallScript>},
-    {"give/take", "item", ParseItem},
-    {"give/take", "money", ParseMoney},
-    {"give", "pokemon", ParseGivePokemon},
-    {"set/clear", "flag", ParseFlag},
-    {"set/add", "var", ParseVariable},
-    {"battle", "trainer", ParseBattleTrainer},
-    {"battle", "wild", ParseBattleWild},
-    {"warp", nullptr, ParseWarp},
-};
-
-// Returns the place of `word` in `first` ("give/take": 0 for give, 1 for
-// take), or -1 when `first` does not have the word.
-s32 MatchFirst(const c8* word, const c8* first) {
-  s32 index = 0;
-  const c8* start = first;
-  for (const c8* c = first;; c++) {
-    if (*c != '/' && *c != '\0') continue;
-    const u32 length = static_cast<u32>(c - start);
-    if (std::strlen(word) == length && std::strncmp(word, start, length) == 0) {
-      return index;
-    }
-    if (*c == '\0') return -1;
-    start = c + 1;
-    index++;
-  }
-}
-
-// Reads one command. Returns false when the command is not known.
-bool ParseCommand(Span line, Instruction* in) {
-  Span word;
-  Span second;
-  CommandWords words;
-  SplitWord(line, &word, &words.rest);
-  SplitWord(words.rest, &second, &words.tail);
-  // The first two words in the normalized form, one time for all the commands.
-  c8 first_name[16];
-  c8 second_name[16];
-  if (!Normalize(word, first_name, sizeof(first_name))) return false;
-  if (!Normalize(second, second_name, sizeof(second_name))) second_name[0] = 0;
-
-  for (const CommandSpec& command : kCommands) {
-    const s32 index = MatchFirst(first_name, command.first);
-    if (index < 0) continue;
-    if (command.second != nullptr &&
-        std::strcmp(second_name, command.second) != 0) {
-      continue;
-    }
-    words.is_first_choice = index == 0;
-    return command.parse(words, in);
-  }
-  return false;
-}
-
-void OnStoryLine(Span line, bool is_section) {
-  if (is_section) {
-    CloseStory();
-    if (line.length == 0) return;
-    // [33000]
-    u32 id = 0;
-    if (!ParseNumber(line, &id) || id < script::kFirstStoryScript ||
-        id > script::kLastStoryScript) {
-      Report("use a script from 33000 to 33999:", line);
-      return;
-    }
-    if (story_count >= SIZE(stories)) {
-      Report("too many scripts:", line);
-      return;
-    }
-    stories[story_count++] = {static_cast<u16>(id),
-                              static_cast<u16>(instruction_count), 0};
-    open_block_count = 0;
-    is_story_open = true;
-    script::NativeScript::Register(static_cast<ScriptId>(id), RunStory);
-    return;
-  }
-  if (!is_story_open) return;
-  if (instruction_count >= SIZE(instruction_pool)) {
-    Report("too many commands:", line);
-    return;
-  }
-  Instruction in = {};
-  if (!ParseCommand(line, &in)) {
-    Report("unknown command:", line);
-    return;
-  }
-  const u16 index = static_cast<u16>(instruction_count);
-  if (in.op == Op::kIf) {
-    if (open_block_count >= SIZE(open_blocks)) {
-      Report("too many if inside each other:", line);
-      return;
-    }
-    open_blocks[open_block_count++] = index;
-  } else if (in.op == Op::kElse || in.op == Op::kEnd) {
-    if (open_block_count == 0) {
-      Report("no if before", line);
-      return;
-    }
-    Instruction& opener = instruction_pool[open_blocks[open_block_count - 1]];
-    if (in.op == Op::kElse) {
-      if (opener.op != Op::kIf) {
-        Report("two else for one if:", line);
-        return;
-      }
-      // A false "if" goes after the "else".
-      opener.jump = static_cast<u16>(index + 1);
-      open_blocks[open_block_count - 1] = index;
+  void OnSpeciesMachine(SpeciesId species, FormId form, u8 number, bool is_hm,
+                        bool can_learn) override {
+    if (is_hm) {
+      pokemon::Species(species, form).WithHm(number, can_learn);
     } else {
-      opener.jump = index;
-      open_block_count--;
+      pokemon::Species(species, form).WithTm(number, can_learn);
     }
   }
-  instruction_pool[instruction_count++] = in;
+  void OnSpeciesLearnset(SpeciesId species, FormId form,
+                         const pokemon::LevelMove* moves, u32 count) override {
+    pokemon::Species(species, form).WithLearnset(moves, count);
+  }
+  void OnSpeciesEvolutions(SpeciesId species,
+                           const pokemon::EvolutionStep* steps,
+                           u32 count) override {
+    pokemon::Species(species).WithEvolutions(steps, count);
+  }
+
+  void OnStory(u16 id) override {
+    script::NativeScript::Register(static_cast<ScriptId>(id), RunStory);
+  }
+
+  bool OnCharacter(const maker::Character& in) override {
+    overworld::MapCharacterRequest request;
+    request.map_id = in.map;
+    request.model_id = in.model;
+    request.tile_x = in.tile_x;
+    request.tile_z = in.tile_z;
+    request.height = static_cast<f32>(in.height);
+    request.facing = static_cast<overworld::Facing>(in.facing);
+    request.script_id = in.script;
+    request.trainer_id = in.trainer;
+    request.sight = in.sight;
+    return overworld::MapCharacter::Add(request);
+  }
+
+private:
+  // The teams of trainers.txt: TrainerTeams keeps their addresses.
+  battle::TrainerTeam teams_[256];
+  u32 team_count_ = 0;
+  battle::TrainerTeam* team_ = nullptr;
+  TrainerId trainer_ = TrainerId::kNone;
+};
+
+GameSink game_sink;
+
+// The text of a file of the SD card.
+c8 file_buffer[maker::kMaxFileSize];
+
+typedef void (*ReadFunction)(const c8* text, u32 size, maker::Sink& sink);
+
+// Reads a file of the SD card and gives its parts to the game. Returns false
+// when the file does not exist.
+bool LoadFile(const c16* path, const c8* name, ReadFunction read) {
+  const u32 size = sys::File::ReadAll(path, file_buffer, sizeof(file_buffer));
+  if (size == 0) return false;
+  if (size >= sizeof(file_buffer)) {
+    Problems::Add(u"%s: the file is too big", name);
+  }
+  read(file_buffer, size, game_sink);
+  return true;
 }
 
 // The values of the script that runs: the answers, the choice and the last
@@ -1223,10 +212,7 @@ bool IsTrue(script::Context& s, const Instruction& in, const StoryState& st) {
 
 void RunStory(script::Context& s) {
   const u16 id = static_cast<u16>(script::NativeScript::GetCurrentId());
-  const Story* story = nullptr;
-  for (u32 i = 0; i < story_count; i++) {
-    if (stories[i].id == id) story = &stories[i];
-  }
+  const maker::Story* story = maker::FindStory(id);
   if (story == nullptr) return;
 
   StoryState state = {false, -1, script::BattleResult::kNotStarted};
@@ -1234,7 +220,7 @@ void RunStory(script::Context& s) {
   u32 pc = story->first;
   const u32 end = story->first + story->count;
   while (pc < end) {
-    const Instruction& in = instruction_pool[pc++];
+    const maker::Instruction& in = maker::GetInstruction(pc++);
     switch (in.op) {
       case Op::kSay: s.Talk(in.text); break;
       case Op::kSign: s.Talk(in.text, script::WindowType::kSign); break;
@@ -1319,147 +305,26 @@ void RunStory(script::Context& s) {
   if (is_talking) s.TalkEnd();
 }
 
-// characters.txt.
-
-struct CharacterState {
-  bool is_valid;
-  MapId map_id;
-} character_state = {false, MapId::kNone};
-
-// Reads "script 33000", "trainer Route 102 Kid 1" or "sight 4" into the
-// request. Returns false when the part is not correct.
-bool ParseCharacterPart(Span part, overworld::MapCharacterRequest* request) {
-  Span word;
-  Span rest;
-  SplitWord(Trim(part), &word, &rest);
-  u32 number = 0;
-  if (IsWord(word, "script")) {
-    if (!ParseNumber(rest, &number) || number == 0 || number > 0xFFFF) {
-      Report("give a script number:", part);
-      return false;
-    }
-    request->script_id = static_cast<ScriptId>(number);
-    return true;
-  }
-  if (IsWord(word, "trainer")) {
-    if (!FindOrReport(NameKind::kTrainer, rest, &number, "unknown trainer")) {
-      return false;
-    }
-    request->trainer_id = static_cast<TrainerId>(number);
-    return true;
-  }
-  if (IsWord(word, "sight")) {
-    if (!ParseNumber(rest, &number) || number < 1 || number > 10) {
-      Report("use a sight from 1 to 10:", part);
-      return false;
-    }
-    request->sight = static_cast<u8>(number);
-    return true;
-  }
-  Report("unknown part:", part);
-  return false;
-}
-
-void OnCharacterLine(Span line, bool is_section) {
-  if (is_section) {
-    character_state.is_valid = false;
-    if (line.length == 0) return;
-    // [Route 101]
-    u32 map = 0;
-    if (!FindOrReport(NameKind::kMap, line, &map, "unknown map")) return;
-    character_state = {true, static_cast<MapId>(map)};
-    return;
-  }
-  if (!character_state.is_valid) return;
-  // Youngster, 10, 12, 0, Down, script 33000
-  // Youngster, 14, 8, 0, Left, trainer Route 102 Kid 1, sight 4
-  Span parts[8];
-  const u32 count = Split(line, ',', parts, 8);
-  if (count < 6) {
-    Report("use model, x, z, height, facing, script N:", line);
-    return;
-  }
-  u32 model = 0;
-  u32 x = 0;
-  u32 z = 0;
-  u32 height = 0;
-  u8 facing = 0;
-  if (!FindOrReport(NameKind::kModel, parts[0], &model, "unknown model")) {
-    return;
-  }
-  if (!ParseNumber(parts[1], &x) || !ParseNumber(parts[2], &z) ||
-      !ParseNumber(parts[3], &height)) {
-    Report("give x, z and height after", parts[0]);
-    return;
-  }
-  if (!ParseFacing(parts[4], &facing)) {
-    Report("use Up, Down, Left or Right:", parts[4]);
-    return;
-  }
-  overworld::MapCharacterRequest request;
-  request.map_id = character_state.map_id;
-  request.model_id = static_cast<ModelId>(model);
-  request.tile_x = static_cast<u16>(x);
-  request.tile_z = static_cast<u16>(z);
-  request.height = static_cast<f32>(height);
-  request.facing = static_cast<overworld::Facing>(facing);
-  for (u32 i = 5; i < count; i++) {
-    if (!ParseCharacterPart(parts[i], &request)) return;
-  }
-  if (request.script_id == ScriptId::kNone &&
-      request.trainer_id == TrainerId::kNone) {
-    Report("give a script or a trainer:", line);
-    return;
-  }
-  if (!overworld::MapCharacter::Add(request)) {
-    Report("too many characters:", parts[0]);
-  }
-}
-
 } // namespace
 
-bool DataNames::Find(NameKind kind, const c8* text, u32 length, u32* value) {
-  const Span span = Trim(Span{text, length});
-  if (ParseNumber(span, value)) return true;
-  c8 name[48];
-  if (!Normalize(span, name, sizeof(name)) || name[0] == '\0') return false;
-  const NameTable table = GetTable(kind);
-  u32 low = 0;
-  u32 high = table.count;
-  while (low < high) {
-    const u32 middle = (low + high) / 2;
-    const s32 order = std::strcmp(table.names[middle].name, name);
-    if (order == 0) {
-      *value = table.names[middle].value;
-      return true;
-    }
-    if (order < 0) {
-      low = middle + 1;
-    } else {
-      high = middle;
-    }
-  }
-  return false;
-}
-
 bool DataFiles::LoadEncounters(const c16* path) {
-  return ReadLines(path, "encounters.txt", OnEncounterLine);
+  return LoadFile(path, "encounters.txt", maker::ReadEncounters);
 }
 
 bool DataFiles::LoadTrainers(const c16* path) {
-  return ReadLines(path, "trainers.txt", OnTrainerLine);
+  return LoadFile(path, "trainers.txt", maker::ReadTrainers);
 }
 
 bool DataFiles::LoadSpecies(const c16* path) {
-  return ReadLines(path, "species.txt", OnSpeciesLine);
+  return LoadFile(path, "species.txt", maker::ReadSpecies);
 }
 
 bool DataFiles::LoadStory(const c16* path) {
-  return ReadLines(path, "story.txt", OnStoryLine);
+  return LoadFile(path, "story.txt", maker::ReadStory);
 }
 
 bool DataFiles::LoadCharacters(const c16* path) {
-  return ReadLines(path, "characters.txt", OnCharacterLine);
+  return LoadFile(path, "characters.txt", maker::ReadCharacters);
 }
 
 void DataFiles::Load() {

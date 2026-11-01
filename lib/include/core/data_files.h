@@ -43,39 +43,9 @@
 #pragma once
 
 #include "common.h"
+#include "core/maker_reader.h"
 
 namespace core {
-
-/// The kinds of names of the data files.
-enum class NameKind : u8 {
-  kSpecies,
-  kMove,
-  kItem,
-  kAbility,
-  kNature,
-  kType,
-  kForm,
-  kTrainer,
-  kModel,
-  kEvolutionMethod,
-  kEncounterMethod,
-  kFormat,
-  kMap,
-  kMusic,
-};
-
-/// Finds the values of the names of the data files.
-class DataNames {
-public:
-  /**
-   * @brief Finds the value of a name ("Thunder Shock") or of a number ("84").
-   * @param text The name. It does not need a 0 at the end.
-   * @param length The number of bytes of the name.
-   * @param value The value.
-   * @return false when the name does not exist.
-   */
-  static bool Find(NameKind kind, const c8* text, u32 length, u32* value);
-};
 
 /// Reads the data files of the ROM hack.
 class DataFiles {

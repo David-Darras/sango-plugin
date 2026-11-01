@@ -68,45 +68,10 @@
 #include "pokemon/constant/move.h"
 #include "pokemon/constant/species.h"
 #include "pokemon/constant/type.h"
+#include "pokemon/patch/level_move.h"
 
 namespace pokemon {
 struct EvolutionData;
-
-/// A move of a learnset: the level, then the move.
-struct LevelMove {
-  u8 level;
-  MoveId move;
-
-  LevelMove() : level(1), move(MoveId::kNone) {}
-  LevelMove(u8 level, MoveId move) : level(level), move(move) {}
-};
-
-/**
- * @brief An evolution: the method, its value, then the species after the
- * evolution.
- *
- * The value depends on the method: a level (kLevelUp), an item (kItem,
- * kTradeItem...), a move (kKnowMove) or a species (kPartyPokemon). Give 0
- * when the method has no value.
- */
-struct EvolutionStep {
-  EvolutionMethod method;
-  u16 value;
-  SpeciesId species;
-
-  EvolutionStep()
-    : method(EvolutionMethod::kNone), value(0), species(SpeciesId::kNone) {}
-  EvolutionStep(EvolutionMethod method, u16 value, SpeciesId species)
-    : method(method), value(value), species(species) {}
-  /// An evolution with an item: EvolutionStep(EvolutionMethod::kItem,
-  /// ItemId::kThunderStone, SpeciesId::kRaichu).
-  EvolutionStep(EvolutionMethod method, ItemId item, SpeciesId species)
-    : method(method), value(static_cast<u16>(item)), species(species) {}
-  /// An evolution with a move: EvolutionStep(EvolutionMethod::kKnowMove,
-  /// MoveId::kAncientPower, SpeciesId::kYanmega).
-  EvolutionStep(EvolutionMethod method, MoveId move, SpeciesId species)
-    : method(method), value(static_cast<u16>(move)), species(species) {}
-};
 
 /**
  * @brief Changes the data of one species or of one form.

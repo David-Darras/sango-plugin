@@ -28,27 +28,12 @@
 #include "core/event.h"
 #include "overworld/constant/encounter_method.h"
 #include "overworld/constant/map.h"
+#include "overworld/patch/encounter_slot.h"
 #include "overworld/native/wild_pokemon.h"
 
 namespace overworld {
 struct EncounterData;
 struct PokeInfoOnAction;
-
-/// One wild Pokémon of an encounter table: its species and its levels.
-struct EncounterSlot {
-  SpeciesId species;
-  u8 min_level;
-  u8 max_level;
-  FormId form;
-
-  EncounterSlot()
-    : species(SpeciesId::kNone), min_level(1), max_level(1),
-      form(FormId::kNormal) {}
-  EncounterSlot(SpeciesId species, u8 min_level, u8 max_level,
-                FormId form = FormId::kNormal)
-    : species(species), min_level(min_level), max_level(max_level),
-      form(form) {}
-};
 
 /// The wild Pokémon of a map for one method (tall grass, surf...).
 struct EncounterTable {
