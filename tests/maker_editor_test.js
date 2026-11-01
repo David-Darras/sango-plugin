@@ -32,7 +32,8 @@ vm.runInContext(fs.readFileSync(path.join(editor, "names.js"), "utf8")
   .replace("const SANGO_NAMES", "var SANGO_NAMES"), context);
 vm.runInContext(code.slice(0, end) +
   "\nthis.checks = { encounters: checkEncounters, trainers: checkTrainers, " +
-  "species: checkSpecies, story: checkStory, characters: checkCharacters };",
+  "species: checkSpecies, story: checkStory, characters: checkCharacters, " +
+  "rules: checkRules };",
   context);
 
 let failures = 0;
@@ -56,7 +57,7 @@ function checkFile(file, kind) {
   if (extra.length) console.log("     unexpected mistakes on the lines " + extra.join(", "));
 }
 
-for (const kind of ["encounters", "trainers", "species", "story", "characters"]) {
+for (const kind of ["encounters", "trainers", "species", "story", "characters", "rules"]) {
   checkFile(path.join(root, "maker", "data", kind + ".txt"), kind);
   checkFile(path.join(root, "tests", "maker_cases", kind + ".txt"), kind);
 }

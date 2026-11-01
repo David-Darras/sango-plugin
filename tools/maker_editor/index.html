@@ -537,6 +537,63 @@ function checkCharacters(text) {
   return errors;
 }
 
+const RULE_SWITCHES = ["itemsinbattle", "onemegaevolution", "samecatchrate", "inversestats",
+  "metronomeonly", "typehelper", "randomgifts", "noevlimit"];
+const RULE_MULTIPLIERS = ["experience", "catchrate", "money"];
+
+// "2", "1.5" or "0.25" in hundredths, or null.
+function hundredths(text) {
+  const match = text.trim().match(/^(\d*)(?:\.(\d*))?$/);
+  if (!match || (match[1] + (match[2] || "")) === "") return null;
+  const fraction = ((match[2] || "") + "00").slice(0, 2);
+  return Number(match[1] || "0") * 100 + Number(fraction);
+}
+
+// "game", or "1/4096" with a power of 2 up to 1048576.
+function isShinyRate(text) {
+  if (norm(text) === "game") return true;
+  const parts = text.split("/").map((p) => p.trim());
+  if (parts.length !== 2 || parts[0] !== "1" || !isNumber(parts[1])) return false;
+  let count = Number(parts[1]);
+  if (count === 0) return false;
+  let index = 1;
+  for (; count > 1; count /= 2) {
+    if (count % 2 !== 0) return false;
+    index++;
+  }
+  return index <= 21;
+}
+
+function checkRules(text) {
+  const errors = [];
+  for (const line of readLines(text)) {
+    const err = (message) => errors.push({ n: line.n, message });
+    if (line.isSection) {
+      if (line.text !== "") err("rules.txt has no sections: " + line.text);
+      continue;
+    }
+    const kv = splitKey(line.text);
+    if (!kv) { err("use key = value"); continue; }
+    const [key, v] = kv;
+    if (RULE_SWITCHES.includes(key)) {
+      if (!["yes", "on", "no", "off"].includes(norm(v))) err("use yes or no: " + v);
+    } else if (RULE_MULTIPLIERS.includes(key)) {
+      const value = hundredths(v);
+      if (value === null || value > 2000) err("use a number from 0 to 20: " + v);
+    } else if (key === "shinyrate") {
+      if (!isShinyRate(v)) err("use game or 1/4096: " + v);
+    } else if (key === "starters") {
+      const names = v.split(",").map((p) => p.trim());
+      if (names.length !== 3) { err("give 3 species: " + v); continue; }
+      const bad = names.find((n) => !known("species", n));
+      if (bad !== undefined) err("unknown species: " + bad);
+    } else {
+      err("unknown key: " + key);
+    }
+  }
+  return errors;
+}
+
 // The files ---------------------------------------------------------------
 
 const FILES = {
@@ -545,6 +602,7 @@ const FILES = {
   species: { file: "species.txt", label: "Species", check: checkSpecies },
   story: { file: "story.txt", label: "Story", check: checkStory },
   characters: { file: "characters.txt", label: "Characters", check: checkCharacters },
+  rules: { file: "rules.txt", label: "Rules", check: checkRules },
 };
 
 const textarea = document.getElementById("text");
@@ -857,7 +915,35 @@ function charactersHelper(panel) {
   );
 }
 
-const HELPERS = { encounters: encounterHelper, trainers: trainerHelper, species: speciesHelper, story: storyHelper, characters: charactersHelper };
+function rulesHelper(panel) {
+  const lines = [
+    ["Items in battle", "items in battle = yes"],
+    ["One Mega Evolution", "one mega evolution = yes"],
+    ["Same catch rate", "same catch rate = no"],
+    ["Inverse stats", "inverse stats = no"],
+    ["Metronome only", "metronome only = no"],
+    ["Type helper", "type helper = no"],
+    ["Random gifts", "random gifts = no"],
+    ["No EV limit", "no ev limit = no"],
+    ["Experience", "experience = 1"],
+    ["Catch rate", "catch rate = 1"],
+    ["Money", "money = 1"],
+    ["Shiny rate", "shiny rate = 1/4096"],
+  ];
+  const starters = [1, 2, 3].map((i) => field("Starter " + i, "species"));
+  panel.append(
+    el("h2", { textContent: "Add a rule" }),
+    el("div", { className: "buttons" }, lines.map(([label, line]) => button(label, () => insert(line)))),
+    el("h2", { textContent: "The starters" }),
+    el("div", { className: "row grid3" }, starters),
+    el("div", { className: "buttons" }, [
+      button("Insert", () => insert("starters = " + starters.map((s) => value(s) || "Treecko").join(", ")), true),
+    ]),
+    el("p", { className: "hint", textContent: "yes or no for the rules. A multiplier is a number from 0 to 20 (1.5 is good). The shiny rate is game, or 1/N with N a power of 2." })
+  );
+}
+
+const HELPERS = { encounters: encounterHelper, trainers: trainerHelper, species: speciesHelper, story: storyHelper, characters: charactersHelper, rules: rulesHelper };
 
 // The tabs and the files --------------------------------------------------
 

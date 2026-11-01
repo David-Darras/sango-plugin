@@ -114,7 +114,7 @@ The game loads one plugin only. Sango Maker replaces Sango Plugin.
    the SD card. You get:
      luma/plugins/000400000011C500/sango_maker-release.3gx
      sango/maker/encounters.txt, trainers.txt, species.txt, story.txt,
-     characters.txt
+     characters.txt, rules.txt
 3. Start Alpha Sapphire. Sango Maker reads the files of sango/maker/ when
    the game starts.
 
@@ -126,6 +126,9 @@ species.txt      The stats, the types, the abilities, the TMs, the
                  learnsets and the evolutions of the species.
 story.txt        The scripts: messages, choices, gifts, battles, warps.
 characters.txt   The characters and the trainers to put on the maps.
+rules.txt        The rules of the battles, the multipliers of the
+                 experience, the catch rate and the money, the shiny rate
+                 and the starters.
 
 Open them in a text editor (Notepad is good) and save them in UTF-8. The
 examples show the format. A mistake in a file shows on a screen of problems

@@ -1,0 +1,25 @@
+# rules.txt: the rules of the ROM hack.
+# Each line is "key = value". A line that you remove keeps the value of the
+# plugin. See docs/tutorials/18-make-a-rom-hack-without-code.md.
+
+# The battles: yes or no.
+items in battle = yes
+one mega evolution = yes
+same catch rate = no
+inverse stats = no
+metronome only = no
+type helper = no
+
+# The multipliers: a number from 0 to 20. 1 is the normal value.
+experience = 1.5
+catch rate = 1
+money = 2
+
+# The Pokémon.
+random gifts = no
+no ev limit = no
+# game, or 1/N with N a power of 2: 1/4096, 1/1024, 1/512...
+shiny rate = 1/1024
+
+# The three Pokémon of the starter choice (Alpha Sapphire).
+starters = Treecko, Torchic, Mudkip

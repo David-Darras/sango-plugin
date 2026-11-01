@@ -125,6 +125,23 @@ struct Recorder : Sink {
     characters.push_back(character);
     return true;
   }
+  void OnRule(Rule rule, bool is_on) override {
+    rules.push_back(std::to_string(static_cast<u32>(rule)) +
+                    (is_on ? " on" : " off"));
+  }
+  void OnMultiplier(Multiplier multiplier, u32 hundredths) override {
+    rules.push_back("x" + std::to_string(static_cast<u32>(multiplier)) +
+                    " " + std::to_string(hundredths));
+  }
+  void OnShinyRate(pokemon::ShinyRate rate) override {
+    rules.push_back("shiny " + std::to_string(static_cast<u32>(rate)));
+  }
+  void OnStarters(const SpeciesId* species) override {
+    starters.assign(species, species + 3);
+  }
+
+  std::vector<std::string> rules;
+  std::vector<SpeciesId> starters;
 };
 
 // Reads a text with a reader of core::maker.
@@ -475,4 +492,43 @@ TEST(CharactersReportTheMistakes) {
   ReadCharacters(text, static_cast<u32>(std::strlen(text)), full);
   CHECK(full.problems.size() == 1 &&
         full.problems[0].find("too many characters") == 0);
+}
+
+TEST(RulesGiveEachRule) {
+  const Recorder r = ReadText(ReadRules,
+                              "items in battle = no\n"
+                              "One Mega Evolution = yes\n"
+                              "experience = 1.5\n"
+                              "money = 2\n"
+                              "catch rate = 0.25\n"
+                              "shiny rate = 1/4096\n"
+                              "shiny rate = game\n"
+                              "starters = Bulbasaur, Charmander, Squirtle\n");
+  CHECK_EQ(r.problems.size(), 0);
+  CHECK(r.rules.size() == 7);
+  CHECK(r.rules[0] == "0 off");
+  CHECK(r.rules[1] == "1 on");
+  CHECK(r.rules[2] == "x0 150");
+  CHECK(r.rules[3] == "x2 200");
+  CHECK(r.rules[4] == "x1 25");
+  // 1/4096 is 1 out of 2^12: ShinyRate::k1_4096.
+  CHECK(r.rules[5] == "shiny " + std::to_string(static_cast<u32>(
+                                    pokemon::ShinyRate::k1_4096)));
+  CHECK(r.rules[6] == "shiny 0");
+  CHECK(r.starters.size() == 3 && r.starters[1] == SpeciesId::kCharmander);
+}
+
+TEST(RulesReportTheMistakes) {
+  const Recorder r = ReadText(ReadRules,
+                              "[Battle]\n"
+                              "items in battle = maybe\n"
+                              "experience = 30\n"
+                              "money = a lot\n"
+                              "shiny rate = 1/3000\n"
+                              "starters = Bulbasaur, Charmander\n"
+                              "starters = Bulbasaur, Charmander, Nobody\n"
+                              "colour = blue\n"
+                              "no equal sign\n");
+  CHECK_EQ(r.problem_lines.size(), 9);
+  CHECK(r.rules.empty() && r.starters.empty());
 }

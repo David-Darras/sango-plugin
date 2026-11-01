@@ -1246,6 +1246,164 @@ void OnCharacterLine(Span line, bool is_section) {
   }
 }
 
+// rules.txt.
+
+struct RuleSpec {
+  const c8* key; // The normalized key.
+  Rule rule;
+};
+
+const RuleSpec kRules[] = {
+    {"itemsinbattle", Rule::kItemsInBattle},
+    {"onemegaevolution", Rule::kOneMegaEvolution},
+    {"samecatchrate", Rule::kSameCatchRate},
+    {"inversestats", Rule::kInverseStats},
+    {"metronomeonly", Rule::kMetronomeOnly},
+    {"typehelper", Rule::kTypeHelper},
+    {"randomgifts", Rule::kRandomGifts},
+    {"noevlimit", Rule::kNoEvLimit},
+};
+
+struct MultiplierSpec {
+  const c8* key; // The normalized key.
+  Multiplier multiplier;
+};
+
+const MultiplierSpec kMultipliers[] = {
+    {"experience", Multiplier::kExperience},
+    {"catchrate", Multiplier::kCatchRate},
+    {"money", Multiplier::kMoney},
+};
+
+// The largest multiplier, in hundredths (see the Battle page of the menu).
+constexpr u32 kMaxMultiplier = 2000;
+
+// "yes", "on", "no" or "off".
+bool ParseSwitch(Span value, bool* is_on) {
+  if (IsWord(value, "yes") || IsWord(value, "on")) {
+    *is_on = true;
+    return true;
+  }
+  if (IsWord(value, "no") || IsWord(value, "off")) {
+    *is_on = false;
+    return true;
+  }
+  return false;
+}
+
+// "2", "1.5" or "0.25", in hundredths.
+bool ParseHundredths(Span value, u32* hundredths) {
+  value = Trim(value);
+  u32 whole = 0;
+  u32 fraction = 0;
+  u32 digits = 0;
+  bool has_point = false;
+  bool has_digit = false;
+  for (u32 i = 0; i < value.length; i++) {
+    const c8 c = value.text[i];
+    if (c == '.' && !has_point) {
+      has_point = true;
+    } else if (c >= '0' && c <= '9') {
+      has_digit = true;
+      if (!has_point) {
+        whole = whole * 10 + (c - '0');
+        if (whole > 100000) return false;
+      } else if (digits < 2) {
+        fraction = fraction * 10 + (c - '0');
+        digits++;
+      }
+    } else {
+      return false;
+    }
+  }
+  if (!has_digit) return false;
+  if (digits == 1) fraction *= 10;
+  *hundredths = whole * 100 + fraction;
+  return true;
+}
+
+// "game", or "1/4096": a chance of 1 out of a power of 2 (see ShinyRate).
+bool ParseShinyRate(Span value, pokemon::ShinyRate* rate) {
+  if (IsWord(value, "game")) {
+    *rate = pokemon::ShinyRate::kOff;
+    return true;
+  }
+  Span parts[3];
+  u32 one = 0;
+  u32 count = 0;
+  if (Split(value, '/', parts, 3) != 2 || !ParseNumber(parts[0], &one) ||
+      one != 1 || !ParseNumber(parts[1], &count) || count == 0) {
+    return false;
+  }
+  u32 index = 1;
+  for (; count > 1; count /= 2) {
+    if (count % 2 != 0) return false;
+    index++;
+  }
+  if (index >= static_cast<u32>(pokemon::ShinyRate::kCount)) return false;
+  *rate = static_cast<pokemon::ShinyRate>(index);
+  return true;
+}
+
+void OnRulesLine(Span line, bool is_section) {
+  if (is_section) {
+    if (line.length != 0) Report("rules.txt has no sections:", line);
+    return;
+  }
+  Span key;
+  Span value;
+  if (!SplitKey(line, &key, &value)) {
+    Report("use key = value:", line);
+    return;
+  }
+  for (const RuleSpec& spec : kRules) {
+    if (!IsWord(key, spec.key)) continue;
+    bool is_on = false;
+    if (!ParseSwitch(value, &is_on)) {
+      Report("use yes or no:", value);
+      return;
+    }
+    sink->OnRule(spec.rule, is_on);
+    return;
+  }
+  for (const MultiplierSpec& spec : kMultipliers) {
+    if (!IsWord(key, spec.key)) continue;
+    u32 hundredths = 0;
+    if (!ParseHundredths(value, &hundredths) || hundredths > kMaxMultiplier) {
+      Report("use a number from 0 to 20:", value);
+      return;
+    }
+    sink->OnMultiplier(spec.multiplier, hundredths);
+    return;
+  }
+  if (IsWord(key, "shinyrate")) {
+    pokemon::ShinyRate rate = pokemon::ShinyRate::kOff;
+    if (!ParseShinyRate(value, &rate)) {
+      Report("use game or 1/4096:", value);
+      return;
+    }
+    sink->OnShinyRate(rate);
+  } else if (IsWord(key, "starters")) {
+    Span parts[4];
+    if (Split(value, ',', parts, 4) != 3) {
+      Report("give 3 species:", value);
+      return;
+    }
+    SpeciesId species[3];
+    for (u32 k = 0; k < 3; k++) {
+      u32 id = 0;
+      if (!FindOrReport(NameKind::kSpecies, parts[k], &id,
+                        "unknown species")) {
+        return;
+      }
+      species[k] = static_cast<SpeciesId>(id);
+    }
+    sink->OnStarters(species);
+  } else {
+    Report("unknown key:", key);
+  }
+}
+
 } // namespace
 
 void ReadEncounters(const c8* text, u32 size, Sink& sink) {
@@ -1266,6 +1424,10 @@ void ReadStory(const c8* text, u32 size, Sink& sink) {
 
 void ReadCharacters(const c8* text, u32 size, Sink& sink) {
   ReadLines(text, size, "characters.txt", sink, OnCharacterLine);
+}
+
+void ReadRules(const c8* text, u32 size, Sink& sink) {
+  ReadLines(text, size, "rules.txt", sink, OnRulesLine);
 }
 
 const Story* FindStory(u16 id) {

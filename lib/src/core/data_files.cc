@@ -29,15 +29,20 @@
 #include <cstdarg>
 #include <cstdio>
 
+#include "battle/patch/battle.h"
 #include "battle/patch/trainer_team.h"
 #include "core/data_folder.h"
 #include "core/problems.h"
+#include "overworld/patch/gift_pokemon.h"
 #include "overworld/patch/map_character.h"
 #include "overworld/patch/wild_encounter.h"
+#include "pokemon/patch/item_customizer.h"
+#include "pokemon/patch/shiny.h"
 #include "pokemon/patch/species_editor.h"
 #include "script/patch/native_script.h"
 #include "system/native/file.h"
 #include "system/native/sound.h"
+#include "ui/patch/starter_choice.h"
 #include "ui/log.h"
 
 namespace core {
@@ -177,6 +182,54 @@ public:
     return overworld::MapCharacter::Add(request);
   }
 
+  void OnRule(maker::Rule rule, bool is_on) override {
+    auto& battle = battle::Battle::GetInstance();
+    switch (rule) {
+      case maker::Rule::kItemsInBattle: battle.can_use_item = is_on; break;
+      case maker::Rule::kOneMegaEvolution:
+        battle.mega_restriction = is_on;
+        break;
+      case maker::Rule::kSameCatchRate:
+        battle.same_ratio_for_all_pokeball = is_on;
+        break;
+      case maker::Rule::kInverseStats: battle.inverse_stats = is_on; break;
+      case maker::Rule::kMetronomeOnly: battle.metronome_only = is_on; break;
+      case maker::Rule::kTypeHelper: battle.show_type_helper = is_on; break;
+      case maker::Rule::kRandomGifts:
+        overworld::GiftPokemon::GetInstance().randomize_species = is_on;
+        break;
+      case maker::Rule::kNoEvLimit:
+        pokemon::ItemCustomizer::GetInstance().remove_limit = is_on;
+        break;
+    }
+  }
+
+  void OnMultiplier(maker::Multiplier multiplier, u32 hundredths) override {
+    auto& battle = battle::Battle::GetInstance();
+    const f32 value = static_cast<f32>(hundredths) / 100.0f;
+    switch (multiplier) {
+      case maker::Multiplier::kExperience:
+        battle.exp_multiplier = value;
+        break;
+      case maker::Multiplier::kCatchRate:
+        battle.catch_multiplier = value;
+        break;
+      case maker::Multiplier::kMoney: battle.money_multiplier = value; break;
+    }
+  }
+
+  void OnShinyRate(pokemon::ShinyRate rate) override {
+    pokemon::Shiny::GetInstance().rate = rate;
+  }
+
+  void OnStarters(const SpeciesId* species) override {
+    auto& starters = ui::StarterChoice::GetInstance();
+    for (u32 i = 0; i < ui::StarterChoice::kCount; i++) {
+      starters.candidates[i] = species[i];
+      starters.is_egg[i] = false;
+    }
+  }
+
   /// Returns true when the team comes from trainers.txt.
   bool IsOwnTeam(const battle::TrainerTeam* team) const {
     return team >= teams_ && team < teams_ + team_count_;
@@ -226,6 +279,7 @@ const DataFile kFiles[] = {
     {SANGO_DATA_PATH(u"story.txt"), "story.txt", maker::ReadStory},
     {SANGO_DATA_PATH(u"characters.txt"), "characters.txt",
      maker::ReadCharacters},
+    {SANGO_DATA_PATH(u"rules.txt"), "rules.txt", maker::ReadRules},
 };
 constexpr u32 kFileCount = SIZE(kFiles);
 

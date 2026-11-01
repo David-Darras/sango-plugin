@@ -22,6 +22,7 @@ folder `sdmc:/sango/maker`:
 | `species.txt` | The stats, the types, the abilities, the TMs, the learnsets and the evolutions. |
 | `story.txt` | The scripts: messages, choices, conditions, gifts, battles, warps. |
 | `characters.txt` | The characters and the trainers that you add to the maps. |
+| `rules.txt` | The rules of the battles, the multipliers, the shiny rate and the starters. |
 
 The menu of Sango Maker has all the editors of Sango Plugin. They write more
 files in the same folder: the scripts (`scripts.txt`), the events of the maps
@@ -220,7 +221,36 @@ most: the characters of the game first.
 Put the characters on tiles where the player can walk. A character on a wall
 or on the tile of a warp can block the player.
 
-## Step 7: Test
+## Step 7: Set the rules
+
+Open `sango/maker/rules.txt`. Each line is `key = value`:
+
+```text
+items in battle = no
+experience = 1.5
+money = 2
+shiny rate = 1/1024
+starters = Treecko, Torchic, Mudkip
+```
+
+| Key | Value |
+|---|---|
+| `items in battle` | `yes` or `no`: the player uses items in battle. |
+| `one mega evolution` | `yes`: one Mega Evolution in each battle, like the game. `no`: no limit. |
+| `same catch rate` | `yes`: all the Poké Balls have the same catch rate, the Master Ball too. |
+| `inverse stats` | `yes`: the physical and the special stats change places. |
+| `metronome only` | `yes`: all the moves are Metronome. |
+| `type helper` | `yes`: the battle shows the effectiveness of the moves. |
+| `random gifts` | `yes`: the gift Pokémon get a random species. |
+| `no ev limit` | `yes`: the vitamins and the other items have no EV limit. |
+| `experience`, `catch rate`, `money` | A number from 0 to 20: `1` is the normal value, `1.5` is good. |
+| `shiny rate` | `game` (the rate of the game), or `1/N` with N a power of 2: `1/4096`, `1/512`... |
+| `starters` | The three Pokémon of the starter choice (Alpha Sapphire). |
+
+A line that you remove keeps the value of the plugin. The menu changes the
+same settings (**Battle**, **Pokemon**).
+
+## Step 8: Test
 
 Start the game. The changes are there at once: no build.
 
@@ -228,13 +258,13 @@ If a name is wrong, the top screen shows the problems a few seconds after the
 start, with the file and the line: `encounters.txt 12: unknown species Pikachuu`.
 Correct the file, then read it again without a restart (see the next step).
 
-## Step 8: Test without a restart
+## Step 9: Test without a restart
 
 Open the menu, then **Sango Maker**:
 
 | Entry | What it does |
 |---|---|
-| **Read The Files Again** | Reads the five files again. The problems of the files show below, with the file and the line. |
+| **Read The Files Again** | Reads the files again. The problems of the files show below, with the file and the line. |
 | **Live Reload** | Reads the files again when they change. Copy a file to the SD card (for example with an FTP server on the console), and the game uses it some seconds later. |
 | **Trace story.txt** | Writes each command of `story.txt` to the log when it runs: `story 33000 line 12: give item`. See **Plugin > Log**. |
 | **Flag**, **Flag Is Set** | Shows and changes a flag of `story.txt` (`set flag`, `if flag`). |
@@ -257,8 +287,8 @@ The new data has some limits:
 The project has an editor for these files: `tools/maker_editor/index.html`.
 Double-click it: it opens in your web browser. It works without internet.
 
-- The tabs are the five files: Encounters, Trainers, Species, Story,
-  Characters.
+- The tabs are the files: Encounters, Trainers, Species, Story, Characters,
+  Rules.
 - The editor checks the file while you type, with the same rules as Sango
   Maker. Click a problem to go to its line.
 - The fields propose the names (species, moves, items, maps...).
@@ -306,7 +336,7 @@ void SetUpHack() {
 ## What you learned
 
 - Sango Maker reads `encounters.txt`, `trainers.txt`, `species.txt`,
-  `story.txt` and `characters.txt` in `sdmc:/sango/maker`.
+  `story.txt`, `characters.txt` and `rules.txt` in `sdmc:/sango/maker`.
 - `characters.txt` puts characters with a script, and trainers, on the maps.
 - A script of `story.txt` has a number from 33000 to 33999. The editors of the
   menu give it to a character or to an event.

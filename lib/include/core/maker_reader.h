@@ -18,7 +18,7 @@
 /**
  * @file maker_reader.h
  * @brief Reads the text files of Sango Maker (encounters.txt, trainers.txt,
- * species.txt, story.txt, characters.txt).
+ * species.txt, story.txt, characters.txt, rules.txt).
  *
  * The reader only reads: it gives each part of a file to a maker::Sink, and
  * the sink applies it. core::DataFiles has the sink that changes the game.
@@ -53,6 +53,7 @@
 #include "pokemon/constant/item.h"
 #include "pokemon/constant/move.h"
 #include "pokemon/constant/nature.h"
+#include "pokemon/constant/shiny_rate.h"
 #include "pokemon/constant/species.h"
 #include "pokemon/constant/type.h"
 #include "pokemon/patch/level_move.h"
@@ -168,6 +169,26 @@ struct Story {
   u16 count;
 };
 
+/// The rules of rules.txt that are on or off. The key of each rule is its
+/// name with spaces: kItemsInBattle is "items in battle".
+enum class Rule : u8 {
+  kItemsInBattle,    ///< The player uses items in battle.
+  kOneMegaEvolution, ///< One Mega Evolution in each battle.
+  kSameCatchRate,    ///< All the Poké Balls have the same catch rate.
+  kInverseStats,     ///< The physical and the special stats change places.
+  kMetronomeOnly,    ///< All the moves are Metronome.
+  kTypeHelper,       ///< The battle shows the effectiveness of the moves.
+  kRandomGifts,      ///< The gift Pokémon get a random species.
+  kNoEvLimit,        ///< The items have no EV limit.
+};
+
+/// The multipliers of rules.txt ("experience", "catch rate", "money").
+enum class Multiplier : u8 {
+  kExperience, ///< The experience after a battle.
+  kCatchRate,  ///< The catch rate of the Poké Balls.
+  kMoney,      ///< The money after a battle.
+};
+
 /**
  * @brief Receives the parts that the reader reads. Override the functions
  *        that you need: the others do nothing.
@@ -217,6 +238,12 @@ public:
   // characters.txt. Returns false when the list of characters is full.
   virtual bool OnCharacter(const Character& character) { return true; }
 
+  // rules.txt. A multiplier is in hundredths: 150 is 1.5.
+  virtual void OnRule(Rule rule, bool is_on) {}
+  virtual void OnMultiplier(Multiplier multiplier, u32 hundredths) {}
+  virtual void OnShinyRate(pokemon::ShinyRate rate) {}
+  virtual void OnStarters(const SpeciesId* species) {} ///< 3 species.
+
 protected:
   ~Sink() {}
 };
@@ -231,6 +258,7 @@ void ReadTrainers(const c8* text, u32 size, Sink& sink);
 void ReadSpecies(const c8* text, u32 size, Sink& sink);
 void ReadStory(const c8* text, u32 size, Sink& sink);
 void ReadCharacters(const c8* text, u32 size, Sink& sink);
+void ReadRules(const c8* text, u32 size, Sink& sink);
 
 /// Returns the last script of story.txt with this id, or null.
 const Story* FindStory(u16 id);

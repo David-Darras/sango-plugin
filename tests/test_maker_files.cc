@@ -83,7 +83,7 @@ const struct {
 } kFiles[] = {
     {"encounters.txt", ReadEncounters}, {"trainers.txt", ReadTrainers},
     {"species.txt", ReadSpecies},       {"story.txt", ReadStory},
-    {"characters.txt", ReadCharacters},
+    {"characters.txt", ReadCharacters}, {"rules.txt", ReadRules},
 };
 
 // Checks the lines of the mistakes of one file.
