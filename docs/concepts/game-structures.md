@@ -102,20 +102,31 @@ and returns nothing. Call it with `this`."
 
 ## Encrypted Pokémon data
 
-The game encrypts the data of each Pokémon (`pokemon::CoreData`).
-Decrypt it before you read or change it. Encrypt it again after:
+The game encrypts the data of each Pokémon (`pokemon::CoreData`), and the
+calculated data of the party (`pokemon::RuntimeData`: level, HP, stats).
+Use `pokemon/edit_pokemon.h`:
 
 ```cpp
-savedata::PokemonParam* pokemon = team.pokemons[0];
-pokemon->accessor->Decrypt();
-pokemon->core->moves[0] = MoveId::kThunderbolt;
-pokemon->accessor->Encrypt();
+savedata::PokemonParam* first = team.Get(0);  // Null when the party is empty.
+if (first == nullptr) return;
+
+// Change: decrypted while `edit` lives, encrypted at the end of the block.
+{
+  pokemon::EditPokemon edit(*first);
+  edit->moves[0] = MoveId::kThunderbolt;
+} // Encrypts the data, then calculates the stats again.
+
+// Read: a decrypted copy. The Pokémon does not change.
+const pokemon::CoreData copy = pokemon::ReadPokemon(*first->core);
 ```
 
-If you forget `Encrypt()`, the game sees bad data and the Pokémon becomes a Bad Egg.
+`EditPokemon` also changes a Pokémon of a box: give its `CoreData`.
+Give `false` as the second parameter when the game must not calculate the stats
+again (a Pokémon of a battle, or data that you restore after).
 
-After you change the stats, the level or the species, call
-`pokemon->UpdateRuntimeData()`. It calculates the stats again.
+Do not call `accessor->Decrypt()` two times without `Encrypt()`: the data is
+then broken, and the Pokémon becomes a Bad Egg. `EditPokemon` does the two
+calls for you.
 
 ## Add a game structure
 

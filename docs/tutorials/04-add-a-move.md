@@ -138,17 +138,31 @@ In `myhack/src/my_pages.cc` (from [Tutorial 2](02-add-a-menu-page.md)):
 #include "myhack/my_moves.h"
 
 static void TeachThunderclap(void* args) {
-  auto& team = savedata::PokemonTeam::GetInstance();
-  if (team.count == 0) return;
+  // The first Pokémon of the party, or null when the party is empty.
+  savedata::PokemonParam* first = savedata::PokemonTeam::GetInstance().Get(0);
+  if (first == nullptr) return;
 
-  savedata::PokemonParam* pokemon = team.pokemons[0];
-  pokemon->accessor->Decrypt();
-  pokemon->core->moves[0] = myhack::kMoveThunderclap;  // The first move slot.
-  pokemon->core->pp[0] = 5;
-  pokemon->core->pp_up_count[0] = 0;
-  pokemon->accessor->Encrypt();
+  pokemon::EditPokemon edit(*first);
+  edit->moves[0] = myhack::kMoveThunderclap;  // The first move slot.
+  edit->pp[0] = 5;
+  edit->pp_up_count[0] = 0;
 }
 ```
+
+The data of a Pokémon is encrypted in the game. `pokemon::EditPokemon`
+decrypts it while the object lives: change the data with `->`. At the end of
+the block, it encrypts the data again and calculates the stats again. Add
+`#include "pokemon/edit_pokemon.h"` at the top of the file.
+
+| Function of `EditPokemon` | What it does |
+|---|---|
+| `edit->...` | Reads or changes the data (`pokemon::CoreData`): moves, item, ability, EVs... |
+| `edit.SetMoves(m1, m2, m3, m4)` | Sets the moves, with their PP. |
+| `edit.SetSpecies(species, form)` | Changes the species. The nickname becomes the new name. |
+| `edit.GetRuntimeData()` | The level, the HP and the stats. |
+
+To read without a change, use `pokemon::ReadPokemon(*first->core)`: it gives a
+decrypted copy.
 
 Add it to `LoadPartyPage`:
 
@@ -198,5 +212,6 @@ similar move.
 - `patch_data` changes the data of Pound into the data of your move.
 - A reaction changes the battle at a moment.
 - `GameExtension::AddMove` registers the move.
+- `pokemon::EditPokemon` changes the data of a Pokémon.
 
 **Next:** [Tutorial 5: Add an ability](05-add-an-ability.md)

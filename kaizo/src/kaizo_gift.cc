@@ -21,6 +21,7 @@
  */
 
 #include "pokemon/constant/species.h"
+#include "pokemon/edit_pokemon.h"
 #include "common.h"
 #include "core/hook.h"
 #include "savedata/native/pokemon_team.h"
@@ -109,9 +110,7 @@ HOOK(bool, AddPokemonToTeam,
      (savedata::PokemonTeam* team, savedata::PokemonParam* pokemon),
      pokemon::address::kAddPokemonToTeam) {
   if (team == &savedata::PokemonTeam::GetInstance()) {
-    pokemon->accessor->Decrypt();
-    SpeciesId species = pokemon->core->species;
-    pokemon->accessor->Encrypt();
+    const SpeciesId species = pokemon::ReadPokemon(*pokemon->core).species;
 
     if (IsSpecialPokemon(species)) {
       return false;

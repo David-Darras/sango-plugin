@@ -34,10 +34,12 @@ namespace savedata {
  * @brief A Pokémon of the party: its saved data, its calculated data and
  * its encryption.
  *
+ * Change it with pokemon::EditPokemon (pokemon/edit_pokemon.h): the class
+ * decrypts the data, and encrypts it at the end of the block.
+ *
  * @code
- * pokemon->accessor->Decrypt();
- * pokemon->core->moves[0] = MoveId::kSurf;
- * pokemon->accessor->Encrypt();
+ * pokemon::EditPokemon edit(*pokemon);
+ * edit->moves[0] = MoveId::kSurf;
  * @endcode
  */
 struct PokemonParam {

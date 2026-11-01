@@ -25,7 +25,7 @@
 #include "pokemon/patch/species_table.h"
 #include <cstring>
 #include "pokemon/native/ability_slot.h"
-#include "pokemon/native/data_accessor.h"
+#include "pokemon/edit_pokemon.h"
 #include "pokemon/native/movepool.h"
 #include "pokemon/native/move_data.h"
 #include "pokemon/native/species_data.h"
@@ -82,26 +82,26 @@ static bool PutInBox(u32 slot, SpeciesId species, FormId form,
 
   auto& team = savedata::PokemonTeam::GetInstance();
   auto& boxes = savedata::PokemonBox::GetInstance();
+  // A copy of the first Pokemon (encrypted) becomes the new Pokemon.
   static pokemon::CoreData scratch;
-  pokemon::DataAccessor accessor;
   std::memcpy(&scratch, team.pokemons[0]->core, sizeof(scratch));
-  accessor.Initialize(&scratch, nullptr);
-  accessor.Decrypt();
-  scratch.species = species;
-  scratch.form = form;
-  if (item != ItemId::kNone) scratch.item = item;
-  scratch.is_illegal_egg = false;
-  scratch.is_egg = false;
-  scratch.SetShiny(false);
-  pokemon::SetAbilitySlot(scratch, 0);
-  scratch.experience =
-      pokemon::Utils::GetExperienceFromLevel(species, data_form, 100);
-  MoveId learnt[4];
-  DefaultMoves(species, data_form, learnt);
-  scratch.SetMoves(learnt[0], learnt[1], learnt[2], learnt[3]);
-  for (u32 k = 0; k < 4; k++) scratch.pp[k] = 20;
-  scratch.ResetNickname();
-  accessor.Encrypt();
+  {
+    pokemon::EditPokemon edit(scratch);
+    edit->species = species;
+    edit->form = form;
+    if (item != ItemId::kNone) edit->item = item;
+    edit->is_illegal_egg = false;
+    edit->is_egg = false;
+    edit->SetShiny(false);
+    pokemon::SetAbilitySlot(*edit, 0);
+    edit->experience =
+        pokemon::Utils::GetExperienceFromLevel(species, data_form, 100);
+    MoveId learnt[4];
+    DefaultMoves(species, data_form, learnt);
+    edit->SetMoves(learnt[0], learnt[1], learnt[2], learnt[3]);
+    for (u32 k = 0; k < 4; k++) edit->pp[k] = 20;
+    edit->ResetNickname();
+  }
   std::memcpy(&boxes.boxes[box].pokemons[index], &scratch, sizeof(scratch));
   return true;
 }
@@ -142,28 +142,17 @@ static void FillBoxesWithAll(void*) {
 static void SetTeamSlot(u32 slot, SpeciesId species, ItemId item) {
   savedata::PokemonParam* pokemon =
       savedata::PokemonTeam::GetInstance().pokemons[slot];
-  pokemon->accessor->Decrypt();
-  pokemon::CoreData* core = pokemon->core;
-  core->species = species;
-  core->form = FormId::kNormal;
-  core->item = item;
-  core->is_egg = 0;
-  core->is_illegal_egg = 0;
-  core->SetShiny(false);
-  core->SetLevel(100);
-  pokemon::SetAbilitySlot(*core, 0);
+  pokemon::EditPokemon edit(*pokemon);
+  edit.SetSpecies(species);
+  edit->item = item;
+  edit->is_egg = 0;
+  edit->is_illegal_egg = 0;
+  edit->SetShiny(false);
+  edit->SetLevel(100);
+  pokemon::SetAbilitySlot(*edit, 0);
   MoveId learnt[4];
   DefaultMoves(species, FormId::kNormal, learnt);
-  core->SetMoves(learnt[0], learnt[1], learnt[2], learnt[3]);
-  for (u32 k = 0; k < 4; k++) {
-    core->pp[k] = learnt[k] == MoveId::kNone
-                    ? 0
-                    : pokemon::MoveData::GetInstance(learnt[k]).base_pp;
-    core->pp_up_count[k] = 0;
-  }
-  core->ResetNickname();
-  pokemon->accessor->Encrypt();
-  pokemon->UpdateRuntimeData();
+  edit.SetMoves(learnt[0], learnt[1], learnt[2], learnt[3]);
 }
 
 static u8 za_index = 0;

@@ -29,7 +29,7 @@
 #include "overworld/constant/model.h"
 #include "overworld/patch/map_character.h"
 #include "core/utils.h"
-#include "pokemon/native/core_data.h"
+#include "pokemon/edit_pokemon.h"
 #include "pokemon/patch/custom_shop.h"
 #include "savedata/native/pokemon_team.h"
 #include "script/patch/native_script.h"
@@ -128,12 +128,14 @@ bool WhosThatPokemon::AskName(script::Context& script, c16* name,
   pokemon::CoreData backup;
   std::memcpy(&backup, slot.core, sizeof(pokemon::CoreData));
 
-  slot.accessor->Decrypt();
-  slot.core->nickname[0] = u'\0';
-  slot.core->use_nickname = 1;
-  slot.core->species = pokemon::SpeciesId::kUnown;
-  slot.core->form = pokemon::FormId::kUnownQuestion;
-  slot.accessor->Encrypt();
+  {
+    // The backup restores the data at the end: no new stats.
+    pokemon::EditPokemon edit(slot, false);
+    edit->nickname[0] = u'\0';
+    edit->use_nickname = 1;
+    edit->species = pokemon::SpeciesId::kUnown;
+    edit->form = pokemon::FormId::kUnownQuestion;
+  }
 
   GetInstance().are_names_hidden_ = true;
   const bool validated = script.InputPartyNickname(0);
@@ -141,14 +143,13 @@ bool WhosThatPokemon::AskName(script::Context& script, c16* name,
 
   name[0] = u'\0';
   if (validated) {
-    slot.accessor->Decrypt();
+    const pokemon::CoreData core = pokemon::ReadPokemon(*slot.core);
     u32 length = 0;
-    while (length + 1 < capacity && slot.core->nickname[length] != u'\0') {
-      name[length] = slot.core->nickname[length];
+    while (length + 1 < capacity && core.nickname[length] != u'\0') {
+      name[length] = core.nickname[length];
       length++;
     }
     name[length] = u'\0';
-    slot.accessor->Encrypt();
   }
   std::memcpy(slot.core, &backup, sizeof(pokemon::CoreData));
   return validated;

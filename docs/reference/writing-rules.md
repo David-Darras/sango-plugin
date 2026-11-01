@@ -133,8 +133,8 @@ Never put a `///<` comment alone on the next line.
 Inside a function (in a `.cc` file), use `//` and full sentences:
 
 ```cpp
-// The data of a Pokemon is encrypted: decrypt it, read it, encrypt it.
-pokemon->accessor->Decrypt();
+// The data of a Pokemon is encrypted: read a decrypted copy.
+const SpeciesId species = pokemon::ReadPokemon(*pokemon->core).species;
 ```
 
 A short title of a group of lines is also a `//` comment: `// Hooks.`

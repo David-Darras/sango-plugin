@@ -23,6 +23,7 @@
  */
 
 #include "battle/patch/setup.h"
+#include "pokemon/edit_pokemon.h"
 #include "pokemon/native/ability_slot.h"
 #include "battle/patch/battle.h"
 #include "battle/patch/trainer_team.h"
@@ -112,11 +113,11 @@ void Setup::SetupWildHook(Config* config,
     config->is_capture_forced = ctx.is_capture_forced;
     config->no_money = ctx.no_money;
 
-    config->pokemon_teams[1]->pokemons[0]->accessor->Decrypt();
-    config->pokemon_teams[1]->pokemons[0]->core->species = ctx.species;
-    config->pokemon_teams[1]->pokemons[0]->core->form = ctx.form;
-    pokemon::AdjustAbilityToSpecies(*config->pokemon_teams[1]->pokemons[0]->core);
-    config->pokemon_teams[1]->pokemons[0]->accessor->Encrypt();
+    // The game calculates the stats of the wild Pokemon itself.
+    pokemon::EditPokemon wild(*config->pokemon_teams[1]->pokemons[0], false);
+    wild->species = ctx.species;
+    wild->form = ctx.form;
+    pokemon::AdjustAbilityToSpecies(*wild);
   }
   config->money_rate *= Battle::GetInstance().money_multiplier;
   if (ctx.on_wild_battle != nullptr) ctx.on_wild_battle(*config);

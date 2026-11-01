@@ -19,8 +19,8 @@
  * @file core_data.h
  * @brief The saved data of one Pokémon (the PK6 format).
  *
- * The game encrypts this data. Call DataAccessor::Decrypt() before you read
- * it, and DataAccessor::Encrypt() after.
+ * The game encrypts this data. Use pokemon::EditPokemon to change it and
+ * pokemon::ReadPokemon() to read it (pokemon/edit_pokemon.h).
  */
 
 #pragma once

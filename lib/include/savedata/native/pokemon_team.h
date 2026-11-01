@@ -23,6 +23,7 @@
 #pragma once
 #include "common.h"
 #include "core/native/data_manager.h"
+#include "pokemon/edit_pokemon.h"
 #include "savedata/native/pokemon_param.h"
 #include "pokemon/address.h"
 
@@ -34,6 +35,9 @@ namespace savedata {
  * @code
  * auto& team = savedata::PokemonTeam::GetInstance();
  * for (u32 i = 0; i < team.count; i++) { ... team.pokemons[i] ... }
+ *
+ * // The first Pokémon, or null when the party is empty:
+ * savedata::PokemonParam* first = team.Get(0);
  * @endcode
  */
 struct PokemonTeam {
@@ -42,17 +46,19 @@ struct PokemonTeam {
     return core::DataManager::GetInstance().GetPokemonTeam();
   }
 
+  /// Returns the Pokémon of a slot (0 to count - 1), or null when the slot
+  /// is empty.
+  PokemonParam* Get(u32 slot) const {
+    return slot < count ? pokemons[slot] : nullptr;
+  }
+
   /// Returns the highest level of the party.
   u8 GetMaxLevel() const {
     u8 max_level = 1;
     for (u32 i = 0; i < count; i++) {
-      pokemons[i]->accessor->Decrypt();
-      SpeciesId species = pokemons[i]->core->species;
-      FormId form = pokemons[i]->core->form;
-      u32 experience = pokemons[i]->core->experience;
-      pokemons[i]->accessor->Encrypt();
-      u8 level =
-          pokemon::Utils::GetLevelFromExperience(species, form, experience);
+      const pokemon::CoreData core = pokemon::ReadPokemon(*pokemons[i]->core);
+      u8 level = pokemon::Utils::GetLevelFromExperience(core.species, core.form,
+                                                        core.experience);
       if (level > max_level) {
         max_level = level;
       }
@@ -69,11 +75,9 @@ struct PokemonTeam {
   void ThrowAllDeadPokemons() {
     bool is_dead[6] = {0, 0, 0, 0, 0, 0};
     for (u32 i = 0; i < count; i++) {
-      pokemons[i]->accessor->Decrypt();
-      if (pokemons[i]->runtime->hp == 0) {
-        is_dead[i] = true;
-      }
-      pokemons[i]->accessor->Encrypt();
+      // The game encrypts the HP with the data.
+      pokemon::EditPokemon edit(*pokemons[i], false);
+      is_dead[i] = edit.GetRuntimeData()->hp == 0;
     }
     const u8 c = count;
     for (u8 i = 0; i < c; i++) {

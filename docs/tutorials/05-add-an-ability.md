@@ -107,13 +107,11 @@ Add this action to `myhack/src/my_pages.cc`, like in [Tutorial 4](04-add-a-move.
 
 ```cpp
 static void GiveQuickStart(void* args) {
-  auto& team = savedata::PokemonTeam::GetInstance();
-  if (team.count == 0) return;
+  savedata::PokemonParam* first = savedata::PokemonTeam::GetInstance().Get(0);
+  if (first == nullptr) return;
 
-  savedata::PokemonParam* pokemon = team.pokemons[0];
-  pokemon->accessor->Decrypt();
-  pokemon->core->ability = static_cast<AbilityId>(230);
-  pokemon->accessor->Encrypt();
+  pokemon::EditPokemon edit(*first);
+  edit->ability = static_cast<AbilityId>(230);
 }
 ```
 

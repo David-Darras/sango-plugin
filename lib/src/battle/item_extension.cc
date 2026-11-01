@@ -38,6 +38,7 @@
 #include "core/patch/archive.h"
 #include "pokemon/address.h"
 #include "pokemon/constant/evolution_method.h"
+#include "pokemon/edit_pokemon.h"
 #include "pokemon/native/core_data.h"
 #include "pokemon/native/evolution_data.h"
 #include "pokemon/native/item_data.h"
@@ -380,10 +381,9 @@ namespace {
 // in the game, so it is decrypted first and encrypted again after.
 template <typename F>
 void WithCoreData(void* pokemon, F function) {
-  auto* param = static_cast<savedata::PokemonParam*>(pokemon);
-  param->accessor->Decrypt();
-  function(*param->core);
-  param->accessor->Encrypt();
+  pokemon::EditPokemon edit(*static_cast<savedata::PokemonParam*>(pokemon),
+                            false);
+  function(*edit);
 }
 
 // Writes `text` in `out`, and replaces `{pokemon}` with the name of the Pokémon.
@@ -455,12 +455,12 @@ bool ItemExtension::RecoverHook(void* pokemon, u16 item, u16 move, u16 place,
   if (self.hp_delta_ != 0) {
     // The HP are in the calculated data, which is encrypted like the rest: change
     // them after the calculation, between a Decrypt and an Encrypt.
-    param->accessor->Decrypt();
-    s32 hp = param->runtime->hp + self.hp_delta_;
-    if (hp > param->runtime->max_hp) hp = param->runtime->max_hp;
+    pokemon::EditPokemon edit(*param, false);
+    pokemon::RuntimeData& runtime = *edit.GetRuntimeData();
+    s32 hp = runtime.hp + self.hp_delta_;
+    if (hp > runtime.max_hp) hp = runtime.max_hp;
     if (hp < 1) hp = 1;
-    param->runtime->hp = static_cast<u16>(hp);
-    param->accessor->Encrypt();
+    runtime.hp = static_cast<u16>(hp);
     self.hp_delta_ = 0;
   }
   return true;

@@ -182,13 +182,11 @@ Write the id in the data of a Pokémon. For a test, add a menu action to
 
 ```cpp
 static void GiveQuickCharm(void* args) {
-  auto& team = savedata::PokemonTeam::GetInstance();
-  if (team.count == 0) return;
+  savedata::PokemonParam* first = savedata::PokemonTeam::GetInstance().Get(0);
+  if (first == nullptr) return;
 
-  savedata::PokemonParam* pokemon = team.pokemons[0];
-  pokemon->accessor->Decrypt();
-  pokemon->core->item = myhack::kItemQuickCharm;
-  pokemon->accessor->Encrypt();
+  pokemon::EditPokemon edit(*first);
+  edit->item = myhack::kItemQuickCharm;
 }
 ```
 

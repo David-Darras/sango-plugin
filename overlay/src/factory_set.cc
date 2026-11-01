@@ -21,6 +21,7 @@
  */
 
 #include "factory_set.h"
+#include "pokemon/edit_pokemon.h"
 
 #include "core/utils.h"
 #include "pokemon/address.h"
@@ -506,32 +507,21 @@ PokemonSpec BuildSpec(SpeciesId species, const ItemId* used_items,
 }
 
 void ApplySpec(savedata::PokemonParam* pokemon, const PokemonSpec& spec) {
-  pokemon->accessor->Decrypt();
-  pokemon::CoreData* core = pokemon->core;
-
-  core->Set(spec.species, spec.item, spec.ability, spec.nature, false);
-  core->form = FormId::kNormal;
-  core->SetStats(spec.evs[kStatHp], spec.evs[kStatAttack],
+  pokemon::EditPokemon edit(*pokemon);
+  edit->Set(spec.species, spec.item, spec.ability, spec.nature, false);
+  edit->form = FormId::kNormal;
+  edit->SetStats(spec.evs[kStatHp], spec.evs[kStatAttack],
                  spec.evs[kStatDefense], spec.evs[kStatSpecialAttack],
                  spec.evs[kStatSpecialDefense], spec.evs[kStatSpeed]);
-  core->SetLevel(kLevel);
-  core->is_egg = 0;
-  core->is_illegal_egg = 0;
-  core->ball = spec.ball;
-  core->SetMoves(spec.moves[0], spec.moves[1], spec.moves[2], spec.moves[3]);
-  for (u32 i = 0; i < 4; i++) {
-    core->pp[i] = spec.moves[i] == MoveId::kNone
-                    ? 0
-                    : MoveData::GetInstance(spec.moves[i]).base_pp;
-    core->pp_up_count[i] = 0;
-  }
+  edit->SetLevel(kLevel);
+  edit->is_egg = 0;
+  edit->is_illegal_egg = 0;
+  edit->ball = spec.ball;
+  edit.SetMoves(spec.moves[0], spec.moves[1], spec.moves[2], spec.moves[3]);
 
   c16 name[13] = {};
   GetSpeciesName(spec.species, name, 13);
-  core->SetNickname(name);
-  core->use_nickname = false;
-
-  pokemon->accessor->Encrypt();
-  pokemon->UpdateRuntimeData();
+  edit->SetNickname(name);
+  edit->use_nickname = false;
 }
 } // namespace factory

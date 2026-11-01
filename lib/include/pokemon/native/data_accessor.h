@@ -33,6 +33,9 @@ struct RuntimeData;
 /**
  * @brief Encrypts and decrypts the CoreData of a Pokémon.
  *
+ * Prefer pokemon::EditPokemon (pokemon/edit_pokemon.h): it calls Encrypt()
+ * for you at the end of the block.
+ *
  * @code
  * pokemon->accessor->Decrypt();
  * pokemon->core->moves[0] = MoveId::kSurf;

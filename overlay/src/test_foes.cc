@@ -23,6 +23,7 @@
  */
 
 #include "custom_battle.h"
+#include "pokemon/edit_pokemon.h"
 
 #include "battle/native/config.h"
 #include "battle/patch/setup.h"
@@ -59,15 +60,12 @@ void OnWildPokemon(MapId map_id, overworld::WildPokemon* pokemons, u32 count) {
 void OnWildBattle(Config& config) {
   savedata::PokemonTeam* team = config.pokemon_teams[1];
   for (u32 i = 0; i < team->count; i++) {
-    team->pokemons[i]->accessor->Decrypt();
-    pokemon::CoreData* core = team->pokemons[i]->core;
-    core->ability = AbilityId::kIlluminate;
+    pokemon::EditPokemon foe(*team->pokemons[i]);
+    foe->ability = AbilityId::kIlluminate;
     for (u32 move = 0; move < 4; move++) {
-      core->moves[move] = kFoeMoves[move];
-      core->pp[move] = 10;
+      foe->moves[move] = kFoeMoves[move];
+      foe->pp[move] = 10;
     }
-    team->pokemons[i]->accessor->Encrypt();
-    team->pokemons[i]->UpdateRuntimeData();
   }
 }
 

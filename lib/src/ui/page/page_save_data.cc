@@ -24,6 +24,7 @@
 #include <cstring>
 
 #include "overworld/native/berry_tree_location.h"
+#include "pokemon/edit_pokemon.h"
 #include "pokemon/native/core_data.h"
 #include "pokemon/native/data_accessor.h"
 #include "pokemon/native/utils.h"
@@ -75,12 +76,7 @@ static struct {
 // Returns the species of a Pokemon of the save data. The function decrypts
 // a copy: the data does not change.
 static u16 GetSpecies(const pokemon::CoreData* core_data) {
-  static pokemon::CoreData copy;
-  static pokemon::DataAccessor accessor;
-  std::memcpy(&copy, core_data, sizeof(copy));
-  accessor.Initialize(&copy, nullptr);
-  accessor.Decrypt();
-  return static_cast<u16>(copy.species);
+  return static_cast<u16>(pokemon::ReadPokemon(*core_data).species);
 }
 
 // The Pokemon of "Copy Pokemon": encrypted, like the save data.
@@ -130,10 +126,8 @@ enum class BatchChange : u8 { kLevel100, kShiny, kMaxIvs, kClearEvs };
 // Changes one Pokemon of the save data. Returns false for an empty slot and
 // for an Egg: the change does not apply to them.
 static bool ChangePokemon(pokemon::CoreData* core_data, BatchChange change) {
-  static pokemon::DataAccessor accessor;
-  accessor.Initialize(core_data, nullptr);
-  accessor.Decrypt();
-  pokemon::CoreData* pkm = accessor.GetCoreData();
+  pokemon::EditPokemon edit(*core_data);
+  pokemon::CoreData* pkm = &*edit;
   const bool is_changed = pkm->species != SpeciesId::kNone && !pkm->is_egg;
   if (is_changed) {
     switch (change) {
@@ -156,7 +150,6 @@ static bool ChangePokemon(pokemon::CoreData* core_data, BatchChange change) {
         break;
     }
   }
-  accessor.Encrypt();
   return is_changed;
 }
 

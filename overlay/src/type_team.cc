@@ -28,6 +28,7 @@
  */
 
 #include "custom_battle.h"
+#include "pokemon/edit_pokemon.h"
 
 #include "core/native/process_manager.h"
 #include "pokemon/address.h"
@@ -103,21 +104,18 @@ constexpr TeamMember kTeam[] = {
 #ifdef GAME_ORAS
 // Gives a Pokémon of the team to a slot of the party.
 void FillSlot(savedata::PokemonParam* param, const TeamMember& member) {
-  param->accessor->Decrypt();
-  pokemon::CoreData* core = param->core;
-  core->species = member.species;
-  core->form = FormId::kNormal;
-  pokemon::SetAbilitySlot(*core, 0);
-  core->item = member.item;
-  core->use_nickname = false;
-  core->SetLevel(100);
-  core->SetMaxIVs();
-  for (u32 i = 0; i < 4; i++) {
-    core->moves[i] = member.moves[i];
-    core->pp[i] = pokemon::MoveData::GetInstance(member.moves[i]).base_pp;
-    core->pp_up_count[i] = 0;
+  {
+    pokemon::EditPokemon edit(*param, false);
+    edit->species = member.species;
+    edit->form = FormId::kNormal;
+    pokemon::SetAbilitySlot(*edit, 0);
+    edit->item = member.item;
+    edit->use_nickname = false;
+    edit->SetLevel(100);
+    edit->SetMaxIVs();
+    edit.SetMoves(member.moves[0], member.moves[1], member.moves[2],
+                  member.moves[3]);
   }
-  param->accessor->Encrypt();
   param->ResetNickname();
   param->UpdateRuntimeData();
 }
@@ -160,11 +158,8 @@ void GiveItemToFirstPokemon(ItemId item, const char* message) {
         "Use it in the overworld, with a Pokemon in the team.");
     return;
   }
-  savedata::PokemonParam* param = team.pokemons[0];
-  param->accessor->Decrypt();
-  param->core->item = item;
-  param->accessor->Encrypt();
-  param->UpdateRuntimeData();
+  pokemon::Edit(*team.pokemons[0],
+                [item](pokemon::CoreData& core) { core.item = item; });
   ui::MainApplication::GetInstance().ShowToast(message);
 #endif
 }

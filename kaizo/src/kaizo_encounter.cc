@@ -21,6 +21,7 @@
  */
 
 #include <cmath>
+#include "pokemon/edit_pokemon.h"
 
 #include "common.h"
 #include "core/native/process_manager.h"
@@ -170,12 +171,11 @@ u8 GetEncounterLevel() {
   f32 sum = 0.0f;
   f32 sumSq = 0.0f;
   for (u32 i = 0; i < team.count; i++) {
-    auto& pkm = *team.pokemons[i];
-    pkm.accessor->Decrypt();
-    f32 lvl = (f32)pkm.runtime->level;
+    // The game encrypts the level with the data.
+    pokemon::EditPokemon pkm(*team.pokemons[i], false);
+    f32 lvl = (f32)pkm.GetRuntimeData()->level;
     sum += lvl;
     sumSq += lvl * lvl;
-    pkm.accessor->Encrypt();
   }
 
   f32 count = static_cast<f32>(team.count);

@@ -27,7 +27,7 @@
  * between a Decrypt and an Encrypt.
  */
 
-#include "pokemon/native/data_accessor.h"
+#include "pokemon/edit_pokemon.h"
 #include "pokemon/native/runtime_data.h"
 #include "savedata/native/pokemon_param.h"
 #include "savedata/native/pokemon_team.h"
@@ -62,12 +62,12 @@ savedata::PokemonParam* GetSlot() {
   return team.pokemons[slot];
 }
 
-// Runs a function on the runtime data of a Pokemon.
+// Runs a function on the runtime data of a Pokemon. The game encrypts it with
+// the saved data.
 template <typename F>
 void WithRuntime(savedata::PokemonParam* pokemon, F function) {
-  pokemon->accessor->Decrypt();
-  function(*pokemon->runtime);
-  pokemon->accessor->Encrypt();
+  pokemon::EditPokemon edit(*pokemon, false);
+  function(*edit.GetRuntimeData());
 }
 
 u8 FindStatusIndex(u32 status) {

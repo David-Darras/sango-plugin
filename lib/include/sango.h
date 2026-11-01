@@ -77,6 +77,7 @@
 #include "battle/patch/type_chart.h"
 
 // Pokémon: species data, shiny rate, Mega Evolutions, shops, items, models.
+#include "pokemon/edit_pokemon.h"
 #include "pokemon/patch/species_editor.h"
 #include "pokemon/patch/custom_shop.h"
 #include "pokemon/patch/item_customizer.h"

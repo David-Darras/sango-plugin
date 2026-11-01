@@ -28,6 +28,7 @@
 #include "core/native/game_manager.h"
 #include "core/native/move_app_input.h"
 #include "core/native/town_map_app_input.h"
+#include "pokemon/edit_pokemon.h"
 #include "savedata/native/bag_manager.h"
 #include "savedata/native/battle_box.h"
 #include "savedata/native/box_manager.h"
@@ -92,17 +93,15 @@ bool AppLauncher::CheckAppRequestHook(uptr menu, u32 id) {
 void AppLauncher::MoveDeleterCallback(uptr* data, GameManager* manager) {
   auto* input = (MoveAppInput*)data[1];
   if (input->delete_move) {
-    input->pokemon->accessor->Decrypt();
-    input->pokemon->core->moves[input->move_index] = MoveId::kNone;
-    input->pokemon->accessor->Encrypt();
+    pokemon::EditPokemon edit(*input->pokemon, false);
+    edit->moves[input->move_index] = MoveId::kNone;
   }
 }
 
 void AppLauncher::MoveTutorCallback(uptr* data, GameManager* manager) {
   auto* input = (MoveAppInput*)data[1];
-  input->pokemon->accessor->Decrypt();
-  input->pokemon->core->moves[input->move_index] = input->move_id;
-  input->pokemon->accessor->Encrypt();
+  pokemon::EditPokemon edit(*input->pokemon, false);
+  edit->moves[input->move_index] = input->move_id;
 }
 
 #ifdef GAME_XY

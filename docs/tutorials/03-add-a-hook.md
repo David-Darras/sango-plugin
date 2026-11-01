@@ -44,6 +44,7 @@ Make the file `myhack/src/my_hooks.cc`:
 #include "common.h"
 #include "core/hook.h"
 #include "pokemon/address.h"
+#include "pokemon/edit_pokemon.h"
 #include "savedata/native/pokemon_team.h"
 #include "ui/log.h"
 
@@ -54,10 +55,8 @@ namespace myhack {
 HOOK(bool, AddPokemonToTeam,
      (savedata::PokemonTeam* team, savedata::PokemonParam* pokemon),
      pokemon::address::kAddPokemonToTeam) {
-  // The data of a Pokemon is encrypted: decrypt it, read it, encrypt it.
-  pokemon->accessor->Decrypt();
-  const SpeciesId species = pokemon->core->species;
-  pokemon->accessor->Encrypt();
+  // The data of a Pokemon is encrypted: read a decrypted copy.
+  const SpeciesId species = pokemon::ReadPokemon(*pokemon->core).species;
 
   ui::Log::Print(u"New Pokemon: species %u",
                             static_cast<u32>(species));
@@ -147,6 +146,8 @@ When a hook is useful for all the products, add a feature to the library:
 - `HOOK()` declares a hook. The plugin installs it at the start.
 - `original(...)` runs the original function.
 - A hook in a CRO needs the vtable of its process.
-- The data of a Pokémon is encrypted.
+- The data of a Pokémon is encrypted. `pokemon::ReadPokemon()` reads a
+  decrypted copy, and `pokemon::EditPokemon` changes it (see
+  [Tutorial 4](04-add-a-move.md)).
 
 **Next:** [Tutorial 4: Add a move](04-add-a-move.md)

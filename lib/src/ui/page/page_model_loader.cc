@@ -33,7 +33,7 @@
 #include "pokemon/patch/model_loader.h"
 #include "renderer/native/h3d_shader_model.h"
 #include "pokemon/native/core_data.h"
-#include "pokemon/native/data_accessor.h"
+#include "pokemon/edit_pokemon.h"
 #include "savedata/native/pokemon_team.h"
 #include "script/native/engine.h"
 #include "system/native/controller.h"
@@ -112,19 +112,11 @@ bool SpawnFollower() {
   if (team.count == 0) return false;
   auto& pkm = *team.pokemons[0];
 
-  // Read the Pokémon of the team without changing it. The data of the team is
-  // encrypted: decrypting it and leaving it decrypted breaks the Pokémon (the
-  // next decryption mixes the data again). The code keeps a copy of the
-  // encrypted data, and puts it back after the reading.
-  pokemon::CoreData backup;
-  std::memcpy(&backup, pkm.core, sizeof(backup));
-  pkm.accessor->Decrypt();
-  const SpeciesId species = pkm.core->species;
-  const FormId form = pkm.core->form;
-  const bool is_shiny =
-      pokemon::Utils::IsShiny(pkm.core->id, pkm.core->shiny_id);
-  pkm.accessor->Encrypt();
-  std::memcpy(pkm.core, &backup, sizeof(backup));
+  // Read the Pokémon of the team without changing it: a decrypted copy.
+  const pokemon::CoreData core = pokemon::ReadPokemon(*pkm.core);
+  const SpeciesId species = core.species;
+  const FormId form = core.form;
+  const bool is_shiny = pokemon::Utils::IsShiny(core.id, core.shiny_id);
   if (species == SpeciesId::kNone || species >= SpeciesId::kCount) return false;
 
   if (!pokemon::ModelLoader::LoadPokemon(&g_my_1st_pokemon, species, form,

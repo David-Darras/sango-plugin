@@ -21,6 +21,7 @@
  */
 
 #include "script/patch/native_script.h"
+#include "pokemon/edit_pokemon.h"
 #include "script/patch/native_table.h"
 #include "script/patch/context.h"
 #include "overworld/patch/map_character.h"
@@ -397,15 +398,8 @@ void PokemonXGreeter(Context& s) {
   s.PlayJingle(kJingleItem);
   auto& team = savedata::PokemonTeam::GetInstance();
   for (u32 i = 0; i < team.count; i++) {
-    auto& pkm = team.pokemons[i];
-    auto& core = *pkm->core;
-    pkm->accessor->Decrypt();
-    if (pokemon::Utils::IsShiny(core.id, core.shiny_id)) {
-      pokemon::Utils::ConvertToNormal(core.id, &core.shiny_id);
-    } else {
-      pokemon::Utils::ConvertToShiny(core.id, &core.shiny_id);
-    }
-    pkm->accessor->Encrypt();
+    pokemon::EditPokemon edit(*team.pokemons[i], false);
+    edit->SetShiny(!pokemon::Utils::IsShiny(edit->id, edit->shiny_id));
   }
 }
 #endif
