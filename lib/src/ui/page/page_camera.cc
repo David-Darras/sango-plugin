@@ -17,32 +17,33 @@
 
 /**
  * @file page_camera.cc
- * @brief The menu page of the camera of the overworld.
+ * @brief The menu page of the camera of the overworld, and the entries that
+ * the camera page of the battle shares (see camera_sections.h).
  */
 
 #include "overworld/patch/camera.h"
 #include "ui/free_camera_application.h"
 #include "ui/main_application.h"
 #include "ui/page/pages.h"
+#include "ui/page/camera_sections.h"
 #include "overworld/address.h"
 
 namespace ui {
-void LoadOverworldCameraPage(MainApplication& app, void* args) {
-  if (app.CheckProcess(overworld::address::kVtable)) return;
+const c8* kCameraStateNames[6] = {"Idle", "Third Person", "Rotate",
+                                  "Top", "First Person", "Free"};
 
-  static const c8* STATES[] = {"Idle", "Third Person", "Rotate",
-                               "Top", "First Person", "Free"};
-  auto& ctx = overworld::Camera::GetInstance();
-
+void AddCameraState(MainApplication& app, overworld::CameraState& state) {
   app.Add("Free Camera", [](void*) { FreeCameraApplication::Open(); })
      .WithDescription("Moves the camera with the buttons. The bottom screen "
          "shows the controls.")
-     .Add("State", ctx.overworld_state)
-     .WithArray(STATES, SIZE(STATES))
+     .Add("State", state)
+     .WithArray(kCameraStateNames, SIZE(kCameraStateNames))
      .WithRefresh();
+}
 
-  // The sections of the mode that the camera uses now.
-  switch (ctx.overworld_state) {
+void AddCameraStateSection(MainApplication& app, overworld::CameraState state) {
+  auto& ctx = overworld::Camera::GetInstance();
+  switch (state) {
     case overworld::CameraState::kFree:
       app.AddSection("Free Position")
          .Add("Free Pos X (Left/Right)", ctx.pos.x)
@@ -79,5 +80,14 @@ void LoadOverworldCameraPage(MainApplication& app, void* args) {
     default:
       break;
   }
+}
+
+void LoadOverworldCameraPage(MainApplication& app, void* args) {
+  if (app.CheckProcess(overworld::address::kVtable)) return;
+
+  auto& ctx = overworld::Camera::GetInstance();
+  AddCameraState(app, ctx.overworld_state);
+  // The section of the mode that the camera uses now.
+  AddCameraStateSection(app, ctx.overworld_state);
 }
 } // namespace ui

@@ -41,6 +41,15 @@ public:
    */
   void Draw(const c16* label, u32 offset_x, u32 offset_y) const;
 
+  /**
+   * @brief Draws the button as a box with its label in the center, in the
+   *        colors of the theme. The box is brighter while the player touches
+   *        it.
+   * @param label The text of the button (UTF-16).
+   * @param text_y The vertical space before the text.
+   */
+  void DrawBox(const c16* label, u32 text_y = 5) const;
+
   /// Returns true while the player touches the button.
   bool IsDown() const;
 

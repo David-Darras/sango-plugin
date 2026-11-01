@@ -585,19 +585,7 @@ void MapEditApplication::DrawPanel() {
       u"Home",  u"Save",  u"Done", is_events ? u"Events" : u"Tiles"};
   sys::Graphics::SetTextScale(0.5f, 0.5f);
   for (u32 i = 0; i < kButtonCount; i++) {
-    const Button& button = buttons_[i];
-    const bool is_down = button.IsDown();
-    Color fill = is_down ? theme.selected_text_color
-                         : theme.unselected_text_color;
-    fill.a = is_down ? 0.7f : 0.15f;
-    sys::Graphics::DrawRect(button.GetX(), button.GetY(), button.GetWidth(),
-                            button.GetHeight(), fill);
-    const s32 text_width = sys::Graphics::GetTextWidth(labels[i]);
-    sys::Graphics::DrawText(button.GetX() +
-                                (static_cast<s32>(button.GetWidth()) -
-                                 text_width) / 2,
-                            button.GetY() + 5, labels[i],
-                            theme.unselected_text_color);
+    buttons_[i].DrawBox(labels[i]);
   }
 
   sys::Graphics::SetTextScale(0.4f, 0.4f);

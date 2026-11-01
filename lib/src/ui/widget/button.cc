@@ -48,6 +48,17 @@ void Button::Draw(const c16* label, u32 offset_x, u32 offset_y) const {
   sys::Graphics::DrawText(x_ + offset_x, y_ + offset_y, label, foreground_color);
 }
 
+void Button::DrawBox(const c16* label, u32 text_y) const {
+  auto& theme = Theme::GetInstance();
+  const bool is_down = IsDown();
+  Color fill = is_down ? theme.selected_text_color : theme.unselected_text_color;
+  fill.a = is_down ? 0.7f : 0.15f;
+  sys::Graphics::DrawRect(x_, y_, width_, height_, fill);
+  const s32 text_width = sys::Graphics::GetTextWidth(label);
+  sys::Graphics::DrawText(x_ + (static_cast<s32>(width_) - text_width) / 2,
+                          y_ + text_y, label, theme.unselected_text_color);
+}
+
 bool Button::IsDown() const {
   sys::TouchScreen& touch_screen = sys::TouchScreen::GetInstance();
 

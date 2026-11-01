@@ -52,6 +52,19 @@ public:
         priority_tiebreak, owner_id.value, reaction_table, reaction_count);
   }
 
+  /// Register() with the constant reaction table of a feature of the plugin
+  /// (MoveSpec, AbilitySpec, ItemSpec). The game does not change the table.
+  /// Returns the listener as a number, like the hooks of the handlers.
+  STATIC_INLINE uptr RegisterReactions(ListenerSource source, u32 source_id,
+                                       PriorityTier base_priority,
+                                       u32 priority_tiebreak, UID owner_id,
+                                       const ReactionTable* reaction_table,
+                                       u32 reaction_count) {
+    return reinterpret_cast<uptr>(
+        Register(source, source_id, base_priority, priority_tiebreak, owner_id,
+                 const_cast<ReactionTable*>(reaction_table), reaction_count));
+  }
+
   /// Returns the listener of an owner, or null.
   STATIC_INLINE Listener* FindListener(ListenerSource source, u8 owner_id) {
     return core::GameFunction<Listener*(ListenerSource, u8)>::Call(

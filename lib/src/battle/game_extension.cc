@@ -349,10 +349,10 @@ bool GameExtension::PatchAbilityDescription(AbilityId ability, String* output) {
 uptr GameExtension::GetBattleAbilityHandlerHook(Pokemon* pkm) {
   const AbilitySpec* spec = FindAbility(pkm->ability);
   if (spec != nullptr) {
-    return (uptr)Broadcaster::Register(
+    return Broadcaster::RegisterReactions(
         ListenerSource::kAbility, static_cast<u32>(pkm->ability),
         PriorityTier::kActiveMoveDefault, 1000, UID{pkm->uid},
-        const_cast<ReactionTable*>(spec->reactions), spec->reaction_count);
+        spec->reactions, spec->reaction_count);
   }
   return get_battle_ability_handler_hook(pkm);
 }
@@ -363,10 +363,10 @@ uptr GameExtension::GetBattleMoveHandlerHook(Pokemon* pkm, MoveId move,
                                              u32 x) {
   const MoveSpec* spec = FindMove(move);
   if (spec != nullptr) {
-    return (uptr)Broadcaster::Register(
+    return Broadcaster::RegisterReactions(
         ListenerSource::kActiveMove, static_cast<u32>(move),
         PriorityTier::kActiveMoveDefault, x, UID{pkm->uid},
-        const_cast<ReactionTable*>(spec->reactions), spec->reaction_count);
+        spec->reactions, spec->reaction_count);
   }
   return get_battle_move_handler_hook(pkm, move, x);
 }

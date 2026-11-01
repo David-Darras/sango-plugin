@@ -81,10 +81,10 @@ bool HasReactions(const ItemSpec* spec) {
 // Registers the reactions of an item for a Pokémon that holds it.
 uptr RegisterReactions(Pokemon* pkm, const ItemSpec* spec) {
   if (spec->reactions == nullptr || spec->reaction_count == 0) return 0;
-  return (uptr)Broadcaster::Register(
+  return Broadcaster::RegisterReactions(
       ListenerSource::kHeldItem, static_cast<u32>(spec->id),
       PriorityTier::kHeldItemDefault, pkm->speed, UID{pkm->uid},
-      const_cast<ReactionTable*>(spec->reactions), spec->reaction_count);
+      spec->reactions, spec->reaction_count);
 }
 } // namespace
 
