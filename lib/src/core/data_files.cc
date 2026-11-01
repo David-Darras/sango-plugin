@@ -30,6 +30,7 @@
 #include <cstdio>
 
 #include "battle/patch/battle.h"
+#include "battle/patch/game_extension.h"
 #include "battle/patch/trainer_team.h"
 #include "core/data_folder.h"
 #include "core/problems.h"
@@ -37,6 +38,7 @@
 #include "overworld/patch/map_character.h"
 #include "overworld/patch/wild_encounter.h"
 #include "pokemon/native/item_data.h"
+#include "pokemon/native/move_data.h"
 #include "pokemon/patch/custom_shop.h"
 #include "pokemon/patch/item_customizer.h"
 #include "pokemon/patch/shiny.h"
@@ -56,6 +58,7 @@ using maker::Op;
 
 void RunStory(script::Context& s);
 void ApplyItemChange(pokemon::ItemData* item);
+void ApplyMoveChange(MoveId move, pokemon::MoveData* data);
 
 static_assert(maker::kAllShops == pokemon::CustomShop::kAnyShop,
               "the same id for all the shops");
@@ -250,6 +253,22 @@ public:
         ApplyItemChange);
   }
 
+  void OnMove(const maker::MoveChange& change) override {
+    if (!move_changes_.Add(change)) {
+      OnProblem("moves.txt", 0, "too many moves:", "256 at most");
+      return;
+    }
+    battle::GameExtension::GetInstance().on_move_data.Subscribe(
+        ApplyMoveChange);
+  }
+
+  /// Returns the change of a move of moves.txt, or null.
+  const maker::MoveChange* FindMoveChange(MoveId move) const {
+    return move_changes_.Find([move](const maker::MoveChange& change) {
+      return change.move == move;
+    });
+  }
+
   /// Returns the change of an item of items.txt, or null.
   const maker::ItemChange* FindItemChange(ItemId item) const {
     return item_changes_.Find([item](const maker::ItemChange& change) {
@@ -271,8 +290,11 @@ public:
   }
   /// Forgets the teams. Remove them from TrainerTeams before.
   void ClearTeams() { team_count_ = 0; }
-  /// Forgets the changes of items.txt.
-  void ClearItemChanges() { item_changes_.Clear(); }
+  /// Forgets the changes of items.txt and of moves.txt.
+  void ClearChanges() {
+    item_changes_.Clear();
+    move_changes_.Clear();
+  }
 
 private:
   // The teams of trainers.txt: TrainerTeams keeps their addresses.
@@ -282,6 +304,8 @@ private:
   TrainerId trainer_ = TrainerId::kNone;
   // The changes of items.txt.
   core::FixedList<maker::ItemChange, 256> item_changes_;
+  // The changes of moves.txt.
+  core::FixedList<maker::MoveChange, 256> move_changes_;
 };
 
 GameSink game_sink;
@@ -338,6 +362,7 @@ const DataFile kFiles[] = {
     {SANGO_DATA_PATH(u"rules.txt"), "rules.txt", maker::ReadRules},
     {SANGO_DATA_PATH(u"shops.txt"), "shops.txt", maker::ReadShops},
     {SANGO_DATA_PATH(u"items.txt"), "items.txt", maker::ReadItems},
+    {SANGO_DATA_PATH(u"moves.txt"), "moves.txt", maker::ReadMoves},
 };
 constexpr u32 kFileCount = SIZE(kFiles);
 
@@ -381,8 +406,20 @@ void RemoveFileData() {
                                      SIZE(pokemon::kShopPokemons));
     pokemon::CustomShop::EnablePokemonShop(false);
   }
-  game_sink.ClearItemChanges();
+  game_sink.ClearChanges();
   maker::Clear();
+}
+
+// Changes the data of a move that the game loads (moves.txt).
+void ApplyMoveChange(MoveId move, pokemon::MoveData* data) {
+  const maker::MoveChange* change = game_sink.FindMoveChange(move);
+  if (change == nullptr || data == nullptr) return;
+  if (change->has_type) data->type = change->type;
+  if (change->has_category) data->damage_category = change->category;
+  if (change->has_power) data->power = change->power;
+  if (change->has_accuracy) data->accuracy = change->accuracy;
+  if (change->has_pp) data->base_pp = change->pp;
+  if (change->has_priority) data->priority = change->priority;
 }
 
 // The values of the script that runs: the answers, the choice and the last

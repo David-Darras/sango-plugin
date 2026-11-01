@@ -18,7 +18,8 @@
 /**
  * @file maker_reader.h
  * @brief Reads the text files of Sango Maker (encounters.txt, trainers.txt,
- * species.txt, story.txt, characters.txt, rules.txt, shops.txt, items.txt).
+ * species.txt, story.txt, characters.txt, rules.txt, shops.txt, items.txt,
+ * moves.txt).
  *
  * The reader only reads: it gives each part of a file to a maker::Sink, and
  * the sink applies it. core::DataFiles has the sink that changes the game.
@@ -52,6 +53,7 @@
 #include "pokemon/constant/form.h"
 #include "pokemon/constant/item.h"
 #include "pokemon/constant/move.h"
+#include "pokemon/constant/move_data_kind.h"
 #include "pokemon/constant/nature.h"
 #include "pokemon/constant/shiny_rate.h"
 #include "pokemon/constant/species.h"
@@ -131,6 +133,24 @@ struct ItemChange {
   bool has_fling_power;
   bool has_hp_restore;
   bool has_evs;
+};
+
+/// The changes of a move of moves.txt. A part that the file does not give
+/// has its `has_...` value false: the game value stays.
+struct MoveChange {
+  MoveId move;
+  TypeId type;
+  DamageCategory category;
+  u8 power;
+  u8 accuracy; ///< 101: the move never misses.
+  u8 pp;
+  s8 priority;
+  bool has_type;
+  bool has_category;
+  bool has_power;
+  bool has_accuracy;
+  bool has_pp;
+  bool has_priority;
 };
 
 /// The shop id of "[all shops]" in shops.txt (pokemon::CustomShop::kAnyShop).
@@ -276,6 +296,9 @@ public:
   // items.txt.
   virtual void OnItem(const ItemChange& change) {}
 
+  // moves.txt.
+  virtual void OnMove(const MoveChange& change) {}
+
 protected:
   ~Sink() {}
 };
@@ -293,6 +316,7 @@ void ReadCharacters(const c8* text, u32 size, Sink& sink);
 void ReadRules(const c8* text, u32 size, Sink& sink);
 void ReadShops(const c8* text, u32 size, Sink& sink);
 void ReadItems(const c8* text, u32 size, Sink& sink);
+void ReadMoves(const c8* text, u32 size, Sink& sink);
 
 /// Returns the last script of story.txt with this id, or null.
 const Story* FindStory(u16 id);

@@ -670,6 +670,42 @@ function checkItems(text) {
   return errors;
 }
 
+function checkMoves(text) {
+  const errors = [];
+  let open = false;
+  const upTo = (v, max) => isNumber(v) && Number(v) <= max;
+  for (const line of readLines(text)) {
+    const err = (message) => errors.push({ n: line.n, message });
+    if (line.isSection) {
+      open = line.text !== "" && known("move", line.text);
+      if (line.text !== "" && !open) err("unknown move: " + line.text);
+      continue;
+    }
+    if (!open) continue;
+    const kv = splitKey(line.text);
+    if (!kv) { err("use key = value"); continue; }
+    const [key, v] = kv;
+    if (key === "type") {
+      if (!known("type", v)) err("unknown type: " + v);
+    } else if (key === "category") {
+      if (!["physical", "special", "status"].includes(norm(v))) err("use physical, special or status: " + v);
+    } else if (key === "power") {
+      if (!upTo(v, 255)) err("use a power from 0 to 255: " + v);
+    } else if (key === "accuracy") {
+      if (norm(v) !== "nevermisses" && !upTo(v, 100)) err("use 0 to 100, or never misses: " + v);
+    } else if (key === "pp") {
+      if (!upTo(v, 64) || Number(v) === 0) err("use PP from 1 to 64: " + v);
+    } else if (key === "priority") {
+      const match = v.trim().match(/^([-+]?)(\d{1,4})$/);
+      const number = match ? Number(match[2]) * (match[1] === "-" ? -1 : 1) : NaN;
+      if (!(number >= -7 && number <= 5)) err("use a priority from -7 to 5: " + v);
+    } else {
+      err("unknown key: " + key);
+    }
+  }
+  return errors;
+}
+
 // The files ---------------------------------------------------------------
 
 const FILES = {
@@ -681,6 +717,7 @@ const FILES = {
   rules: { file: "rules.txt", label: "Rules", check: checkRules },
   shops: { file: "shops.txt", label: "Shops", check: checkShops },
   items: { file: "items.txt", label: "Items", check: checkItems },
+  moves: { file: "moves.txt", label: "Moves", check: checkMoves },
 };
 
 const textarea = document.getElementById("text");
@@ -1074,7 +1111,40 @@ function itemsHelper(panel) {
   );
 }
 
-const HELPERS = { encounters: encounterHelper, trainers: trainerHelper, species: speciesHelper, story: storyHelper, characters: charactersHelper, rules: rulesHelper, shops: shopsHelper, items: itemsHelper };
+function movesHelper(panel) {
+  const move = field("Move", "move");
+  const type = field("Type", "type");
+  const category = el("select");
+  for (const name of ["", "Physical", "Special", "Status"]) category.append(el("option", { textContent: name }));
+  const categoryWrap = el("div", {}, [el("label", { textContent: "Category" }), category]);
+  categoryWrap.input = category;
+  const power = field("Power (0 to 255)", null, { type: "number", min: 0, max: 255 });
+  const accuracy = field("Accuracy (0 to 100)", null, { type: "number", min: 0, max: 100 });
+  const pp = field("PP (1 to 64)", null, { type: "number", min: 1, max: 64 });
+  const priority = field("Priority (-7 to 5)", null, { type: "number", min: -7, max: 5 });
+  panel.append(
+    el("h2", { textContent: "Change a move" }),
+    move,
+    el("div", { className: "row grid2" }, [type, categoryWrap]),
+    el("div", { className: "row grid2" }, [power, accuracy]),
+    el("div", { className: "row grid2" }, [pp, priority]),
+    el("div", { className: "buttons" }, [
+      button("Insert", () => {
+        let text = "[" + (value(move) || "Tackle") + "]\n";
+        if (value(type) !== "") text += "type = " + value(type) + "\n";
+        if (category.value !== "") text += "category = " + category.value + "\n";
+        if (value(power) !== "") text += "power = " + value(power) + "\n";
+        if (value(accuracy) !== "") text += "accuracy = " + value(accuracy) + "\n";
+        if (value(pp) !== "") text += "pp = " + value(pp) + "\n";
+        if (value(priority) !== "") text += "priority = " + value(priority) + "\n";
+        insert(text);
+      }, true),
+    ]),
+    el("p", { className: "hint", textContent: "An empty field keeps the value of the game. Write \"accuracy = never misses\" for a move that always hits." })
+  );
+}
+
+const HELPERS = { encounters: encounterHelper, trainers: trainerHelper, species: speciesHelper, story: storyHelper, characters: charactersHelper, rules: rulesHelper, shops: shopsHelper, items: itemsHelper, moves: movesHelper };
 
 // The tabs and the files --------------------------------------------------
 

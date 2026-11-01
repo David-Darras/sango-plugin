@@ -1,0 +1,18 @@
+# moves.txt: the data of the moves in the battles.
+# See docs/tutorials/18-make-a-rom-hack-without-code.md.
+#
+# [move]: the move. Then the changes, one on each line:
+#   type = Fire                The type.
+#   category = Physical        Physical, Special or Status.
+#   power = 0 to 255           0 for a status move.
+#   accuracy = 0 to 100        Or "never misses".
+#   pp = 1 to 64               The PP without PP Up.
+#   priority = -7 to 5         0 for most of the moves.
+# A line that you do not give keeps the value of the game.
+
+[Thunder Shock]
+power = 50
+
+[Bubble]
+power = 50
+pp = 25

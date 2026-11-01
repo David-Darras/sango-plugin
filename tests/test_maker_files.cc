@@ -85,6 +85,7 @@ const struct {
     {"species.txt", ReadSpecies},       {"story.txt", ReadStory},
     {"characters.txt", ReadCharacters}, {"rules.txt", ReadRules},
     {"shops.txt", ReadShops},           {"items.txt", ReadItems},
+    {"moves.txt", ReadMoves},
 };
 
 // Checks the lines of the mistakes of one file.

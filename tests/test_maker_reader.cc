@@ -153,6 +153,9 @@ struct Recorder : Sink {
   void OnItem(const ItemChange& change) override {
     item_changes.push_back(change);
   }
+  void OnMove(const MoveChange& change) override {
+    move_changes.push_back(change);
+  }
 
   std::vector<std::string> rules;
   std::vector<SpeciesId> starters;
@@ -164,6 +167,7 @@ struct Recorder : Sink {
   std::vector<Shop> shops;
   std::vector<u32> shop_prices;
   std::vector<ItemChange> item_changes;
+  std::vector<MoveChange> move_changes;
 };
 
 // Reads a text with a reader of core::maker.
@@ -622,4 +626,42 @@ TEST(ItemsReportTheMistakes) {
                               "colour = blue\n"
                               "no equal sign\n");
   CHECK_EQ(r.problem_lines.size(), 7);
+}
+
+TEST(MovesGiveTheChanges) {
+  const Recorder r = ReadText(ReadMoves,
+                              "[Thunder Shock]\n"
+                              "type = Fire\n"
+                              "category = Physical\n"
+                              "power = 60\n"
+                              "accuracy = never misses\n"
+                              "pp = 20\n"
+                              "priority = -1\n"
+                              "[Tackle]\n"
+                              "priority = +1\n");
+  CHECK_EQ(r.problems.size(), 0);
+  CHECK_EQ(r.move_changes.size(), 2);
+  if (r.move_changes.size() != 2) return;
+  const MoveChange& shock = r.move_changes[0];
+  CHECK(shock.move == MoveId::kThunderShock && shock.has_type &&
+        shock.type == TypeId::kFire && shock.has_category &&
+        shock.category == DamageCategory::kPhysical && shock.power == 60 &&
+        shock.accuracy == 101 && shock.pp == 20 && shock.priority == -1);
+  const MoveChange& tackle = r.move_changes[1];
+  CHECK(tackle.has_priority && tackle.priority == 1 && !tackle.has_power);
+}
+
+TEST(MovesReportTheMistakes) {
+  const Recorder r = ReadText(ReadMoves,
+                              "[Nothing]\n"
+                              "[Tackle]\n"
+                              "type = Wood\n"
+                              "category = magic\n"
+                              "power = 300\n"
+                              "accuracy = 101\n"
+                              "pp = 0\n"
+                              "priority = 6\n"
+                              "priority = --1\n"
+                              "colour = blue\n");
+  CHECK_EQ(r.problem_lines.size(), 9);
 }

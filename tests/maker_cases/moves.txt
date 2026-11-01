@@ -1,0 +1,26 @@
+# The cases of moves.txt. A line that ends with the comment ERR has a mistake.
+power = 10
+[Thunder Shock]
+type = Fire
+category = Physical
+power = 60
+accuracy = never misses
+accuracy = 100
+pp = 20
+priority = -1
+priority = +1
+priority = 5
+[Nothing] # ERR
+power = 10
+[Tackle]
+type = Wood # ERR
+category = magic # ERR
+power = 300 # ERR
+accuracy = 101 # ERR
+pp = 0 # ERR
+pp = 65 # ERR
+priority = 6 # ERR
+priority = -8 # ERR
+priority = --1 # ERR
+colour = blue # ERR
+no equal sign # ERR

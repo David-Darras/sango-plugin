@@ -25,6 +25,7 @@ folder `sdmc:/sango/maker`:
 | `rules.txt` | The rules of the battles, the multipliers, the shiny rate and the starters. |
 | `shops.txt` | The items and the Pokémon that the shops sell. |
 | `items.txt` | The price, the power of Fling, the HP and the EVs of the items. |
+| `moves.txt` | The type, the category, the power, the accuracy, the PP and the priority of the moves. |
 
 The menu of Sango Maker has all the editors of Sango Plugin. They write more
 files in the same folder: the scripts (`scripts.txt`), the events of the maps
@@ -288,6 +289,23 @@ To find the id of a shop: open the menu, **Sango Maker**, turn on **Log The
 Shop Ids**, open the shop in the game, then read **Plugin > Log**:
 `shop: type=0 id=1`.
 
+### The moves
+
+`moves.txt` changes the data of the moves:
+
+```text
+[Thunder Shock]
+type = Electric
+category = Special
+power = 60
+accuracy = never misses
+pp = 25
+priority = 1
+```
+
+A key that you do not give keeps the value of the game. The battles use the
+new data. In Alpha Sapphire, the summary screen shows the data of the game.
+
 ## Step 8: Test
 
 Start the game. The changes are there at once: no build.
@@ -326,7 +344,7 @@ The project has an editor for these files: `tools/maker_editor/index.html`.
 Double-click it: it opens in your web browser. It works without internet.
 
 - The tabs are the files: Encounters, Trainers, Species, Story, Characters,
-  Rules, Shops, Items.
+  Rules, Shops, Items, Moves.
 - The editor checks the file while you type, with the same rules as Sango
   Maker. Click a problem to go to its line.
 - The fields propose the names (species, moves, items, maps...).
@@ -374,8 +392,8 @@ void SetUpHack() {
 ## What you learned
 
 - Sango Maker reads `encounters.txt`, `trainers.txt`, `species.txt`,
-  `story.txt`, `characters.txt`, `rules.txt`, `shops.txt` and `items.txt` in
-  `sdmc:/sango/maker`.
+  `story.txt`, `characters.txt`, `rules.txt`, `shops.txt`, `items.txt` and
+  `moves.txt` in `sdmc:/sango/maker`.
 - `characters.txt` puts characters with a script, and trainers, on the maps.
 - A script of `story.txt` has a number from 33000 to 33999. The editors of the
   menu give it to a character or to an event.

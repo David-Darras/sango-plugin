@@ -305,6 +305,10 @@ u32 GameExtension::LoadMoveData(uptr self, MoveId move_id) {
     }
     WRITE16(self + 4, static_cast<u16>(move_id));
   }
+  const auto& on_move_data = GetInstance().on_move_data;
+  if (!on_move_data.IsEmpty()) {
+    on_move_data.Emit(move_id, (pokemon::MoveData*)(READ32(self + 8)));
+  }
   return result;
 }
 

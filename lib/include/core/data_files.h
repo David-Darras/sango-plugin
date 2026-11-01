@@ -31,7 +31,9 @@
  * - `rules.txt`: the rules of the battles, the shiny rate and the starters,
  * - `shops.txt`: the items and the Pokémon that the shops sell,
  * - `items.txt`: the price, the power of Fling, the HP and the EVs of the
- *   items.
+ *   items,
+ * - `moves.txt`: the type, the category, the power, the accuracy, the PP and
+ *   the priority of the moves.
  *
  * The files use the names of the library, in English: "Pikachu",
  * "Thunder Shock", "Route 101". The case, the spaces and the signs do not

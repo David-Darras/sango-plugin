@@ -1600,6 +1600,108 @@ void OnItemLine(Span line, bool is_section) {
   }
 }
 
+// moves.txt.
+
+struct MoveState {
+  bool is_valid;
+  MoveChange change;
+} move_state = {};
+
+void CloseMove() {
+  if (!move_state.is_valid) return;
+  move_state.is_valid = false;
+  sink->OnMove(move_state.change);
+}
+
+// "-1", "+1" or "1".
+bool ParseSigned(Span value, s32* number) {
+  value = Trim(value);
+  bool is_negative = false;
+  if (value.length > 0 && (value.text[0] == '-' || value.text[0] == '+')) {
+    is_negative = value.text[0] == '-';
+    value.text++;
+    value.length--;
+  }
+  u32 magnitude = 0;
+  if (value.length > 4 || !ParseNumber(value, &magnitude)) return false;
+  *number = is_negative ? -static_cast<s32>(magnitude)
+                        : static_cast<s32>(magnitude);
+  return true;
+}
+
+void OnMoveLine(Span line, bool is_section) {
+  if (is_section) {
+    CloseMove();
+    if (line.length == 0) return;
+    u32 move = 0;
+    if (!FindOrReport(NameKind::kMove, line, &move, "unknown move")) return;
+    move_state = {};
+    move_state.is_valid = true;
+    move_state.change.move = static_cast<MoveId>(move);
+    return;
+  }
+  if (!move_state.is_valid) return;
+  Span key;
+  Span value;
+  if (!SplitKey(line, &key, &value)) {
+    Report("use key = value:", line);
+    return;
+  }
+  MoveChange& change = move_state.change;
+  u32 number = 0;
+  s32 signed_number = 0;
+  if (IsWord(key, "type")) {
+    if (!FindOrReport(NameKind::kType, value, &number, "unknown type")) return;
+    change.type = static_cast<TypeId>(number);
+    change.has_type = true;
+  } else if (IsWord(key, "category")) {
+    if (IsWord(value, "physical")) {
+      change.category = DamageCategory::kPhysical;
+    } else if (IsWord(value, "special")) {
+      change.category = DamageCategory::kSpecial;
+    } else if (IsWord(value, "status")) {
+      change.category = DamageCategory::kStatus;
+    } else {
+      Report("use physical, special or status:", value);
+      return;
+    }
+    change.has_category = true;
+  } else if (IsWord(key, "power")) {
+    if (!ParseSmallNumber(value, 255, &number)) {
+      Report("use a power from 0 to 255:", value);
+      return;
+    }
+    change.power = static_cast<u8>(number);
+    change.has_power = true;
+  } else if (IsWord(key, "accuracy")) {
+    if (IsWord(value, "nevermisses")) {
+      number = 101;
+    } else if (!ParseSmallNumber(value, 100, &number)) {
+      Report("use 0 to 100, or never misses:", value);
+      return;
+    }
+    change.accuracy = static_cast<u8>(number);
+    change.has_accuracy = true;
+  } else if (IsWord(key, "pp")) {
+    if (!ParseSmallNumber(value, 64, &number) || number == 0) {
+      Report("use PP from 1 to 64:", value);
+      return;
+    }
+    change.pp = static_cast<u8>(number);
+    change.has_pp = true;
+  } else if (IsWord(key, "priority")) {
+    if (!ParseSigned(value, &signed_number) || signed_number < -7 ||
+        signed_number > 5) {
+      Report("use a priority from -7 to 5:", value);
+      return;
+    }
+    change.priority = static_cast<s8>(signed_number);
+    change.has_priority = true;
+  } else {
+    Report("unknown key:", key);
+  }
+}
+
 } // namespace
 
 void ReadEncounters(const c8* text, u32 size, Sink& sink) {
@@ -1632,6 +1734,10 @@ void ReadShops(const c8* text, u32 size, Sink& sink) {
 
 void ReadItems(const c8* text, u32 size, Sink& sink) {
   ReadLines(text, size, "items.txt", sink, OnItemLine);
+}
+
+void ReadMoves(const c8* text, u32 size, Sink& sink) {
+  ReadLines(text, size, "moves.txt", sink, OnMoveLine);
 }
 
 const Story* FindStory(u16 id) {
@@ -1693,6 +1799,7 @@ void Clear() {
   shop_pokemon_count = 0;
   shop_state.is_valid = false;
   item_state.is_valid = false;
+  move_state.is_valid = false;
 }
 
 } // namespace maker

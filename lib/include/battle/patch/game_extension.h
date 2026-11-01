@@ -34,6 +34,7 @@
 
 #pragma once
 #include "common.h"
+#include "core/event.h"
 #include "core/fixed_list.h"
 #include "battle/constant/type_multiplier.h"
 #include "battle/native/reaction_table.h"
@@ -157,6 +158,11 @@ public:
   /// The number of the types: the types of the game, "no type" (18) and the
   /// new types.
   static constexpr u32 kMaxTypes = 32;
+
+  /// Called each time the game loads the data of a move: in the battles
+  /// (and in all the screens of X and Y). Change the data. A new move of
+  /// AddMove() has the data of its `patch_data` before this event.
+  core::Event<void(MoveId, pokemon::MoveData*)> on_move_data;
 
   /// Installs the hooks. The library calls this function at start-up.
   static void Initialize();

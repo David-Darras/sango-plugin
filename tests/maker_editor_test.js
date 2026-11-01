@@ -33,7 +33,7 @@ vm.runInContext(fs.readFileSync(path.join(editor, "names.js"), "utf8")
 vm.runInContext(code.slice(0, end) +
   "\nthis.checks = { encounters: checkEncounters, trainers: checkTrainers, " +
   "species: checkSpecies, story: checkStory, characters: checkCharacters, " +
-  "rules: checkRules, shops: checkShops, items: checkItems };",
+  "rules: checkRules, shops: checkShops, items: checkItems, moves: checkMoves };",
   context);
 
 let failures = 0;
@@ -58,7 +58,7 @@ function checkFile(file, kind) {
 }
 
 for (const kind of ["encounters", "trainers", "species", "story", "characters", "rules", "shops",
-  "items"]) {
+  "items", "moves"]) {
   checkFile(path.join(root, "maker", "data", kind + ".txt"), kind);
   checkFile(path.join(root, "tests", "maker_cases", kind + ".txt"), kind);
 }
