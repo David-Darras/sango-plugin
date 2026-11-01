@@ -49,6 +49,9 @@ jobs:
       - name: Check the guards of the singletons
         run: sh tools/check_static_guards.sh
 
+      - name: Check the size of the plugins
+        run: sh tools/check_plugin_size.sh
+
       - name: Keep the plugin files
         uses: actions/upload-artifact@v7
         with:

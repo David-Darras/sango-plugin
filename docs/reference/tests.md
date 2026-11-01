@@ -61,5 +61,19 @@ make
 sh tools/check_static_guards.sh
 ```
 
+## The check of the size
+
+After the build, `tools/check_plugin_size.sh` shows the size of each plugin:
+the code, the data and the bss. Luma gives a plugin the memory of the
+`MemorySize` line of its `.plgInfo` (5 MiB). The check fails when a plugin
+uses more than this memory minus 512 KiB for its heap. It also shows a
+warning when the code and the data are bigger than 2 MiB, like 3gxtool.
+
+```bash
+make
+sh tools/check_plugin_size.sh
+HEAP_KIB=1024 sh tools/check_plugin_size.sh   # Keep 1 MiB for the heap.
+```
+
 The tests cannot check the hooks, the menu or the game itself: test them in
 the game.
