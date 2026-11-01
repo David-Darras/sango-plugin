@@ -25,6 +25,7 @@
 
 #include "overworld/patch/trigger_editor.h"
 #include "core/data_folder.h"
+#include "core/heap_buffer.h"
 #include "core/line_reader.h"
 
 #include <cstdio>
@@ -661,8 +662,10 @@ void TriggerEditor::Update() {
   auto& self = GetInstance();
   if (!self.is_live) return;
   if (++self.frame_ % 45 != 0) return;
-  static u8 buffer[8192];
-  const u32 size = sys::File::ReadAll(kPath, buffer, sizeof(buffer));
+  core::HeapBuffer file(8192);
+  if (!file.IsValid()) return;
+  const u8* buffer = file.Get();
+  const u32 size = sys::File::ReadAll(kPath, file.Get(), file.Size());
   u32 hash = 2166136261u ^ size;
   for (u32 i = 0; i < size; i++) {
     hash ^= buffer[i];

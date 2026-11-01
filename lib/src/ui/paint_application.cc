@@ -28,6 +28,7 @@
 #include <cstring>
 
 #include "core/game_file.h"
+#include "core/heap_buffer.h"
 #include "core/utils.h"
 #include "system/native/controller.h"
 #include "system/native/file.h"
@@ -93,7 +94,6 @@ Texture* canvases[6][6] = {};
 u32 visited_bits[(renderer::TextureEditor::kMaxSide *
                   renderer::TextureEditor::kMaxSide) / 32];
 constexpr u32 kFillStackSize = 4096;
-u32 fill_stack[kFillStackSize];
 
 // A button of the right side: the tab where it shows, its position and size.
 struct ButtonSpec {
@@ -390,6 +390,10 @@ void PaintApplication::Fill(s32 start_x, s32 start_y) {
            kFillTolerance;
   };
 
+  // The pixels to look at: from the heap, only while the bucket fills.
+  core::HeapBuffer stack(kFillStackSize * sizeof(u32));
+  if (!stack.IsValid()) return;
+  u32* fill_stack = stack.As<u32>();
   memset(visited_bits, 0, (target_.width * target_.height + 7) / 8);
   u32 stack_size = 0;
   fill_stack[stack_size++] = (static_cast<u32>(start_y) << 16) | start_x;

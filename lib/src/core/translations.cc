@@ -25,6 +25,7 @@
 #include "core/translations.h"
 
 #include "core/data_folder.h"
+#include "core/heap_buffer.h"
 #include "core/patch/text_editor.h"
 #include "core/problems.h"
 #include "system/native/core.h"
@@ -67,7 +68,6 @@ const c16* GetFilePath(Language language) {
   }
 }
 
-c8 file_buffer[Translations::kMaxFileSize];
 } // namespace
 
 bool Translations::Add(Language language, const c16* english,
@@ -112,9 +112,13 @@ void Translations::LoadFile(Language language) {
   if (path == nullptr) return;
   // The texts of the files of the other languages stay: each one keeps its
   // language.
-  const u32 size = sys::File::ReadAll(path, file_buffer, sizeof(file_buffer));
+  // The text of the file: only while the function reads it.
+  core::HeapBuffer buffer(kMaxFileSize);
+  if (!buffer.IsValid()) return;
+  const c8* file_buffer = buffer.As<c8>();
+  const u32 size = sys::File::ReadAll(path, buffer.Get(), buffer.Size());
   if (size == 0) return;
-  if (size >= sizeof(file_buffer)) {
+  if (size >= buffer.Size()) {
     Problems::Add(u"translations: the file is too big (%u bytes)",
                   kMaxFileSize);
   }

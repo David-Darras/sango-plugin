@@ -24,6 +24,8 @@
 
 #include "overworld/patch/map_editor.h"
 #include "core/data_folder.h"
+#include "core/heap_buffer.h"
+#include "core/line_reader.h"
 
 #include <cstdio>
 #include <cstring>
@@ -403,7 +405,9 @@ bool MapEditor::ExportText() {
   if (x0 < 0) x0 = 0;
   if (z0 < 0) z0 = 0;
 
-  static c8 text[kTextLimit];
+  core::HeapBuffer buffer(kTextLimit);
+  if (!buffer.IsValid()) return false;
+  c8* text = buffer.As<c8>();
   int used = snprintf(
       text, 400,
       "# Sango map, world %u. One character for each tile.\n"
@@ -439,7 +443,9 @@ bool MapEditor::ImportText(u32* changed) {
   if (self.loaded_layout_ == 0xFFFF) return false;
   c16 path[64];
   MakeTextPath(self.loaded_layout_, path);
-  static c8 text[kTextLimit];
+  core::HeapBuffer buffer(kTextLimit);
+  if (!buffer.IsValid()) return false;
+  c8* text = buffer.As<c8>();
   const u32 size = sys::File::ReadAll(path, text, kTextLimit - 1);
   if (size == 0) return false;
   text[size] = '\0';
@@ -459,9 +465,10 @@ bool MapEditor::ImportText(u32* changed) {
     if (*p == '#' && p[1] == ' ') {
       // A comment line.
     } else if (strncmp(p, "origin", 6) == 0) {
-      int a = 0;
-      int b = 0;
-      if (sscanf(p + 6, "%d %d", &a, &b) == 2) {
+      const c8* numbers = p + 6;
+      s32 a = 0;
+      s32 b = 0;
+      if (core::ParseInt(numbers, a) && core::ParseInt(numbers, b)) {
         x0 = a;
         z0 = b;
         has_origin = true;
@@ -490,10 +497,14 @@ bool MapEditor::ImportText(u32* changed) {
 void MapEditor::PollText() {
   c16 path[64];
   MakeTextPath(loaded_layout_, path);
-  static u8 buffer[kTextLimit];
-  const u32 size = sys::File::ReadAll(path, buffer, kTextLimit);
-  if (size == 0) return;
-  const u32 hash = HashBytes(buffer, size);
+  u32 hash = 0;
+  {
+    core::HeapBuffer buffer(kTextLimit);
+    if (!buffer.IsValid()) return;
+    const u32 size = sys::File::ReadAll(path, buffer.Get(), kTextLimit);
+    if (size == 0) return;
+    hash = HashBytes(buffer.Get(), size);
+  }  // ImportText() reads the file again: the buffer goes back first.
   if (!has_text_baseline_) {
     text_hash_ = hash;
     has_text_baseline_ = true;

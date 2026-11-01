@@ -12,6 +12,7 @@ CXXFLAGS := -std=gnu++11 -Wall -Wextra -Wno-unused-parameter -O1 -DGAME_ORAS \
 
 # The pure files of the library.
 LIB_SOURCES := $(ROOT)/lib/src/core/maker_reader.cc \
+               $(ROOT)/lib/src/core/parse_float.cc \
                $(ROOT)/lib/src/core/utf8.cc
 TEST_SOURCES := $(wildcard $(ROOT)/tests/*.cc)
 

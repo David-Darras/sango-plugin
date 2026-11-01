@@ -23,6 +23,7 @@
  */
 
 #include "overworld/patch/tile_editor.h"
+#include "core/heap_buffer.h"
 #include "overworld/native/map_manager.h"
 #include "overworld/patch/map_tile.h"
 #include <cstring>
@@ -278,8 +279,10 @@ bool TileEditor::Save() {
 
 bool TileEditor::Load() {
   auto& ctx = GetInstance();
-  static u8 buffer[8 + sizeof(TileEdit) * kMaxEdits];
-  const u32 size = sys::File::ReadAll(kFilename, buffer, sizeof(buffer));
+  core::HeapBuffer file(8 + sizeof(TileEdit) * kMaxEdits);
+  if (!file.IsValid()) return false;
+  const u8* buffer = file.Get();
+  const u32 size = sys::File::ReadAll(kFilename, file.Get(), file.Size());
   if (size < 8) return false;
   u32 header[2];
   std::memcpy(header, buffer, sizeof(header));

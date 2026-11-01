@@ -38,10 +38,10 @@ struct EncounterSlot {
   u8 max_level;
   FormId form;
 
-  EncounterSlot()
+  constexpr EncounterSlot()
     : species(SpeciesId::kNone), min_level(1), max_level(1),
       form(FormId::kNormal) {}
-  EncounterSlot(SpeciesId species, u8 min_level, u8 max_level,
+  constexpr EncounterSlot(SpeciesId species, u8 min_level, u8 max_level,
                 FormId form = FormId::kNormal)
     : species(species), min_level(min_level), max_level(max_level),
       form(form) {}

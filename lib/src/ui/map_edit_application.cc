@@ -26,6 +26,7 @@
 
 #include <cstring>
 
+#include "core/heap_buffer.h"
 #include "core/utils.h"
 #include "overworld/native/model_manager.h"
 #include "overworld/native/tile.h"
@@ -271,7 +272,11 @@ void MapEditApplication::FillArea(s32 x, s32 z) {
   if (!MapEditor::ReadAttr(x, z, target)) return;
   constexpr s32 kSide = 2 * kFillRadius + 1;
   static u8 visited[(kSide * kSide + 7) / 8];
-  static u32 stack[4096];
+  // The tiles to look at: from the heap, only while the fill runs.
+  constexpr u32 kStackSize = 4096;
+  core::HeapBuffer stack_memory(kStackSize * sizeof(u32));
+  if (!stack_memory.IsValid()) return;
+  u32* stack = stack_memory.As<u32>();
   memset(visited, 0, sizeof(visited));
   u32 top = 0;
   stack[top++] = (static_cast<u32>(x) << 16) | static_cast<u32>(z);
@@ -293,7 +298,7 @@ void MapEditApplication::FillArea(s32 x, s32 z) {
       return;
     }
     changed++;
-    if (top + 4 <= sizeof(stack) / sizeof(stack[0])) {
+    if (top + 4 <= kStackSize) {
       const s32 next[4][2] = {{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
       for (const auto& n : next) {
         const s32 nx = tile_x + n[0];

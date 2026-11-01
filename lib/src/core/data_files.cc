@@ -28,6 +28,7 @@
 
 #include <cstdarg>
 #include <cstdio>
+#include <new>
 
 #include "battle/patch/battle.h"
 #include "battle/patch/game_extension.h"
@@ -356,11 +357,22 @@ private:
   u32 new_species_count_ = 0;
 };
 
-GameSink game_sink;
+// Load() builds the sink. A global object with a constructor stays in all
+// the products, also the products that do not read the files: the memory of
+// the sink is a plain array.
+alignas(GameSink) u8 game_sink_memory[sizeof(GameSink)];
+GameSink* game_sink_pointer = nullptr;
+
+GameSink& GetGameSink() {
+  if (game_sink_pointer == nullptr) {
+    game_sink_pointer = new (game_sink_memory) GameSink();
+  }
+  return *game_sink_pointer;
+}
 
 // Changes the data of an item that the game reads (items.txt).
 void ApplyItemChange(pokemon::ItemData* item) {
-  const maker::ItemChange* change = game_sink.FindItemChange(item->id);
+  const maker::ItemChange* change = GetGameSink().FindItemChange(item->id);
   if (change == nullptr) return;
   if (change->has_price) item->price = change->price;
   if (change->has_fling_power) item->fling_power = change->fling_power;
@@ -386,9 +398,9 @@ u32 LoadFile(const c16* path, const c8* name, ReadFunction read) {
   const u32 size = sys::File::ReadAll(path, file_buffer, sizeof(file_buffer));
   if (size == 0) return 0;
   if (size >= sizeof(file_buffer)) {
-    game_sink.OnProblem(name, 0, "the file is too big", "");
+    GetGameSink().OnProblem(name, 0, "the file is too big", "");
   }
-  read(file_buffer, size, game_sink);
+  read(file_buffer, size, GetGameSink());
   return size;
 }
 
@@ -443,11 +455,11 @@ void RemoveFileData() {
         return maker::IsReaderMemory(table.slots);
       });
   battle::TrainerTeams::Remove([](const battle::TrainerTeamEntry& entry) {
-    return game_sink.IsOwnTeam(entry.team);
+    return GetGameSink().IsOwnTeam(entry.team);
   });
-  game_sink.ClearTeams();
+  GetGameSink().ClearTeams();
   pokemon::SpeciesChanges::RemoveLists(maker::IsReaderMemory);
-  overworld::MapCharacter::RemoveByOwner(&game_sink);
+  overworld::MapCharacter::RemoveByOwner(&GetGameSink());
   pokemon::CustomShop::RemoveItems([](const pokemon::ShopItem* items) {
     return maker::IsReaderMemory(items);
   });
@@ -456,13 +468,13 @@ void RemoveFileData() {
                                      SIZE(pokemon::kShopPokemons));
     pokemon::CustomShop::EnablePokemonShop(false);
   }
-  game_sink.ClearChanges();
+  GetGameSink().ClearChanges();
   maker::Clear();
 }
 
 // Changes the data of a move that the game loads (moves.txt).
 void ApplyMoveChange(MoveId move, pokemon::MoveData* data) {
-  const maker::MoveChange* change = game_sink.FindMoveChange(move);
+  const maker::MoveChange* change = GetGameSink().FindMoveChange(move);
   if (change == nullptr || data == nullptr) return;
   if (change->has_type) data->type = change->type;
   if (change->has_category) data->damage_category = change->category;

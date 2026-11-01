@@ -26,7 +26,6 @@
 #include <cstring>
 
 #include "common.h"
-#include <cxxabi.h>
 #include "system/address.h"
 
 
@@ -111,27 +110,42 @@ public:
         sys::address::kConvertTimeToSeconds, time);
   }
 
-  /// Returns the readable name of a C++ symbol name.
+  /**
+   * @brief Returns the readable name of a C++ class name of the game:
+   *        "N4demo6SampleE" gives "demo::Sample".
+   *
+   * It reads the simple names and the names in namespaces. Another name
+   * comes back as it is. The function returns the same buffer each time.
+   */
   static const char* Unmangle(const char* mangled_name) {
     static char buffer[sys::address::kBufferSize];
-
-    if (!mangled_name) {
-      return "";
+    if (mangled_name == nullptr) return "";
+    const char* in = mangled_name;
+    if (*in == 'N') in++;
+    u32 length = 0;
+    bool is_valid = *in >= '1' && *in <= '9';
+    while (is_valid && *in >= '0' && *in <= '9') {
+      u32 part = 0;
+      while (*in >= '0' && *in <= '9') part = part * 10 + (*in++ - '0');
+      if (length != 0) {
+        if (length + 2 >= sizeof(buffer)) break;
+        buffer[length++] = ':';
+        buffer[length++] = ':';
+      }
+      for (u32 i = 0; i < part; i++) {
+        if (in[i] == '\0') {
+          is_valid = false;
+          break;
+        }
+        if (length + 1 < sizeof(buffer)) buffer[length++] = in[i];
+      }
+      if (is_valid) in += part;
     }
-
-    int status = -1;
-    char* demangled =
-        abi::__cxa_demangle(mangled_name, nullptr, nullptr, &status);
-
-    if (status == 0 && demangled != nullptr) {
-      strncpy(buffer, demangled, sys::address::kBufferSize - 1);
-      buffer[sys::address::kBufferSize - 1] = '\0';
-      std::free(demangled);
-    } else {
-      strncpy(buffer, mangled_name, sys::address::kBufferSize - 1);
-      buffer[sys::address::kBufferSize - 1] = '\0';
+    if (!is_valid || (*in != '\0' && *in != 'E')) {
+      strncpy(buffer, mangled_name, sizeof(buffer) - 1);
+      length = sizeof(buffer) - 1;
     }
-
+    buffer[length < sizeof(buffer) ? length : sizeof(buffer) - 1] = '\0';
     return buffer;
   }
 };

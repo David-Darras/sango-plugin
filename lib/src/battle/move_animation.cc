@@ -23,6 +23,7 @@
  */
 
 #include "battle/patch/move_animation.h"
+#include <cstdlib>
 #include <cstring>
 #include "battle/patch/effect_style.h"
 #include "core/patch/archive.h"
@@ -99,8 +100,12 @@ u32 StepLength(const u8* data, u32 offset) {
   return kStepHeaderSize + kValueBytes[kind];
 }
 
+// A changed animation file, between PatchedSize() and Serve(). The data
+// (kSlotCapacity bytes) comes from the heap when the game loads a changed
+// animation, and goes back at the next ResetSlots(): the plugin does not keep
+// 288 KiB for the battles all the time.
 struct Slot {
-  alignas(4) u8 data[kSlotCapacity];
+  u8* data;
   u32 file_id;
   u32 owner;
   u32 size;
@@ -111,7 +116,11 @@ Slot slots[kSlotCount];
 u32 next_slot = 0;
 
 void ResetSlots() {
-  for (u32 i = 0; i < kSlotCount; i++) slots[i].ready = false;
+  for (u32 i = 0; i < kSlotCount; i++) {
+    std::free(slots[i].data);
+    slots[i].data = nullptr;
+    slots[i].ready = false;
+  }
 }
 
 } // namespace
@@ -655,6 +664,14 @@ static Slot* PrepareSlot(u32* archive, u32 file_id) {
   Slot& slot = slots[next_slot];
   next_slot = (next_slot + 1) % kSlotCount;
   slot.ready = false;
+  if (slot.data == nullptr) {
+    slot.data = static_cast<u8*>(std::malloc(kSlotCapacity));
+    if (slot.data == nullptr) {
+      // The game then plays its own animation.
+      ui::Log::Print(u"Animation %d: no memory", static_cast<s32>(file_id));
+      return nullptr;
+    }
+  }
 
   u32 used = 0;
   if (owner != MoveAnimations::kMaxDefinitions) {

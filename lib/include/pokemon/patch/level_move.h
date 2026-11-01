@@ -38,8 +38,8 @@ struct LevelMove {
   u8 level;
   MoveId move;
 
-  LevelMove() : level(1), move(MoveId::kNone) {}
-  LevelMove(u8 level, MoveId move) : level(level), move(move) {}
+  constexpr LevelMove() : level(1), move(MoveId::kNone) {}
+  constexpr LevelMove(u8 level, MoveId move) : level(level), move(move) {}
 };
 
 /**
@@ -55,17 +55,20 @@ struct EvolutionStep {
   u16 value;
   SpeciesId species;
 
-  EvolutionStep()
+  constexpr EvolutionStep()
     : method(EvolutionMethod::kNone), value(0), species(SpeciesId::kNone) {}
-  EvolutionStep(EvolutionMethod method, u16 value, SpeciesId species)
+  constexpr EvolutionStep(EvolutionMethod method, u16 value,
+                          SpeciesId species)
     : method(method), value(value), species(species) {}
   /// An evolution with an item: EvolutionStep(EvolutionMethod::kItem,
   /// ItemId::kThunderStone, SpeciesId::kRaichu).
-  EvolutionStep(EvolutionMethod method, ItemId item, SpeciesId species)
+  constexpr EvolutionStep(EvolutionMethod method, ItemId item,
+                          SpeciesId species)
     : method(method), value(static_cast<u16>(item)), species(species) {}
   /// An evolution with a move: EvolutionStep(EvolutionMethod::kKnowMove,
   /// MoveId::kAncientPower, SpeciesId::kYanmega).
-  EvolutionStep(EvolutionMethod method, MoveId move, SpeciesId species)
+  constexpr EvolutionStep(EvolutionMethod method, MoveId move,
+                          SpeciesId species)
     : method(method), value(static_cast<u16>(move)), species(species) {}
 };
 

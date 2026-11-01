@@ -32,6 +32,7 @@
 
 #include "core/hook.h"
 #include "core/ini.h"
+#include "core/parse_float.h"
 #include "core/native/process_manager.h"
 #include "core/utils.h"
 #include "renderer/address.h"
@@ -714,7 +715,7 @@ bool LayoutEditor::Load() {
     bool is_valid = true;
     for (f32* number_out : numbers) {
       c8* end = nullptr;
-      *number_out = strtof(cursor, &end);
+      *number_out = core::ParseFloat(cursor, &end);
       if (end == cursor || *end != ',') {
         is_valid = false;
         break;

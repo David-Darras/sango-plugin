@@ -23,6 +23,9 @@
  */
 
 #include "core/patch/script_loader.h"
+
+#include <cstdlib>
+
 #include "script/patch/native_script.h"
 #include "core/hook.h"
 #include "script/native/amx.h"
@@ -162,6 +165,7 @@ const void* ScriptLoader::LoadOverride(u32 id, u32* out_size) {
   Utils::Format(filename, u"sdmc:/pkpawn/%08x.amx", id);
 
   u8* buffer = OverrideBuffer();
+  if (buffer == nullptr) return nullptr;
   const u32 size = sys::File::ReadAll(filename, buffer, kMaxScriptBytes);
   if (!size) return nullptr;
 
@@ -195,7 +199,13 @@ void ScriptLoader::ReportInjected(u32 id, u32 size) {
 }
 
 u8* ScriptLoader::OverrideBuffer() {
-  alignas(4) static u8 buffer[kMaxScriptBytes];
+  // The game reads the script after LoadOverride(): the buffer stays. It
+  // comes from the heap the first time, so the plugin does not keep 64 KiB
+  // when it does not replace scripts.
+  static u8* buffer = nullptr;
+  if (buffer == nullptr) {
+    buffer = static_cast<u8*>(std::malloc(kMaxScriptBytes));
+  }
   return buffer;
 }
 

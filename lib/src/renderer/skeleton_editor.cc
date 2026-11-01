@@ -33,6 +33,7 @@
 
 #include "core/hook.h"
 #include "core/ini.h"
+#include "core/parse_float.h"
 #include "renderer/address.h"
 #include "renderer/native/h3d_model.h"
 #include "system/native/file.h"
@@ -813,7 +814,7 @@ bool SkeletonEditor::Load() {
     bool is_valid = true;
     for (u32 i = 0; i < 9; i++) {
       c8* end = nullptr;
-      *numbers[i] = strtof(cursor, &end);
+      *numbers[i] = core::ParseFloat(cursor, &end);
       if (end == cursor) {
         is_valid = false;
         break;

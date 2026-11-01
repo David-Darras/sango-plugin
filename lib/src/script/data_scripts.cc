@@ -24,6 +24,7 @@
 
 #include "script/patch/data_scripts.h"
 #include "core/data_folder.h"
+#include "core/heap_buffer.h"
 #include "core/line_reader.h"
 
 #include <cstdio>
@@ -166,8 +167,10 @@ bool DataScripts::Save() {
 }
 
 u32 DataScripts::HashFile() {
-  static u8 buffer[kFileLimit];
-  const u32 size = sys::File::ReadAll(kPath, buffer, kFileLimit);
+  core::HeapBuffer file(kFileLimit);
+  if (!file.IsValid()) return 0;
+  const u8* buffer = file.Get();
+  const u32 size = sys::File::ReadAll(kPath, file.Get(), file.Size());
   u32 hash = 2166136261u ^ size;
   for (u32 i = 0; i < size; i++) {
     hash ^= buffer[i];

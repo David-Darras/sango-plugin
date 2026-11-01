@@ -40,6 +40,14 @@ OVERWORLD_MODELS_URL ?= https://drive.google.com/file/d/1WghmLRZqxeH2gd0CmWTEP1V
 MUSIC_URL            ?= https://drive.google.com/file/d/16e-uJYl0zZbzPWCIFwjPsiPHwnlXFXBv/view?usp=sharing
 PYTHON     ?= $(shell command -v python3 2>/dev/null || command -v python)
 
+# The optimization of the release plugin. The plugin, its data and its heap
+# share the memory of the .plgInfo (MemorySize): a smaller plugin leaves a
+# bigger heap. -Os makes the smallest code. LTO=1 (the default) also removes
+# the code and the data that no function uses, in all the files. `make LTO=0`
+# builds without it, for example to compare the two.
+LTO        ?= 1
+LTO_FLAGS  := $(if $(filter 1,$(LTO)),-flto=auto)
+
 #---------------------------------------------------------------------------------
 # The target game.
 #   ORAS: Pokemon Alpha Sapphire v1.4 (title id 000400000011C500), the main game.
@@ -123,7 +131,7 @@ ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft
 
 CFLAGS	:=	-mword-relocations \
  			-ffunction-sections -fdata-sections -fno-strict-aliasing \
-			$(ARCH) $(BUILD_FLAGS) $(G) \
+			$(ARCH) $(BUILD_CFLAGS) $(G) \
 		   -DPLUGIN_CREATOR=\"$(PLUGIN_CREATOR)\" -DPLUGIN_VERSION=\"$(PLUGIN_VERSION)\" -DPLUGIN_NAME=\"$(PLUGIN_NAME)\" \
 		   -DUSE_SANGO_PLUGIN $(GAME_DEFINE) $(PRODUCT_DEFINES) # -DUSE_DEFAULT_CTRPF
 
@@ -132,10 +140,16 @@ CFLAGS		+=	$(INCLUDE) -D__3DS__ $(DEFINES)
 #-Wall -Wextra -Wdouble-promotion -Werror
 
 # The plugin runs inside the memory of the game: no exceptions, no RTTI.
-CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
+# -fno-threadsafe-statics: a static of a function has no guard, so no mutex
+# and no abort() (see core/singleton.h). -fcheck-new: the code checks the
+# result of new (core/allocation.cc gives null when the heap is full).
+CXX_ONLY	:= -fno-rtti -fno-exceptions -fno-threadsafe-statics -fcheck-new \
+		   -std=gnu++11
+CXXFLAGS	:= $(CFLAGS) $(CXX_ONLY)
 
 ASFLAGS		:= $(ARCH) $(G)
-LDFLAGS		:= -T $(TOPDIR)/3gx.ld $(ARCH) -Os -Wl,$(WL)--gc-sections,--section-start,.text=0x07000100 #-specs=3dsx.specs
+# With LTO, the link compiles the code: it needs the same options.
+LDFLAGS		:= -T $(TOPDIR)/3gx.ld $(ARCH) $(BUILD_CFLAGS) $(CXX_ONLY) -Wl,$(WL)--gc-sections,--section-start,.text=0x07000100 #-specs=3dsx.specs
 
 LIBS 		:=  $(BUILD_LIBS) -lm
 LIBDIRS		:= 	$(CTRPFLIB) $(CTRULIB) $(PORTLIBS)
@@ -234,7 +248,7 @@ release-$(PRODUCT) debug-$(PRODUCT):
 
 $(TARGET)-release.3gx : release-$(PRODUCT)
 	@$(MAKE) BUILD=release-$(PRODUCT) OUTPUT=$(CURDIR)/$@ BUILD_LIBS="-lctrpf -lctru" WL=--strip-discarded,--strip-debug, \
-	BUILD_CFLAGS="-DNDEBUG=1 -O2 -fomit-frame-pointer" DEPSDIR=$(CURDIR)/release-$(PRODUCT) \
+	BUILD_CFLAGS="-DNDEBUG=1 -Os -fomit-frame-pointer $(LTO_FLAGS)" DEPSDIR=$(CURDIR)/release-$(PRODUCT) \
 	--no-print-directory -C release-$(PRODUCT) -f $(CURDIR)/Makefile
 
 $(TARGET)-debug.3gx : debug-$(PRODUCT)

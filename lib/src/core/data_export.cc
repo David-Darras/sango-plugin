@@ -45,6 +45,10 @@ namespace {
 // A text that grows, then goes to a file of the data folder.
 class TextWriter {
 public:
+  // constexpr: the writer needs no constructor at the start, so the products
+  // that do not export do not contain it.
+  constexpr TextWriter() : text_(), used_(0) {}
+
   void Clear() { used_ = 0; }
 
   void Add(const c8* format, ...) {
@@ -77,7 +81,7 @@ public:
 
 private:
   c8 text_[8 * 1024];
-  u32 used_ = 0;
+  u32 used_;
 };
 
 // One text for all the exports: the menu writes one file at a time.

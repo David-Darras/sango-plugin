@@ -37,6 +37,7 @@
 #include <poll.h>
 #include <sys/socket.h>
 
+#include "core/line_reader.h"
 #include "core/native/process_manager.h"
 #include "overworld/native/map_manager.h"
 #include "overworld/native/model_manager.h"
@@ -137,15 +138,33 @@ void Network::Start() {
 
   c8 text[64] = {};
   if (sys::File::ReadAll(kConfigFilename, text, sizeof(text) - 1) > 0) {
-    unsigned a, b, c, d, port;
-    c8 name[wire::kNameLength] = {};
-    const int fields =
-        sscanf(text, "%u.%u.%u.%u %u %15s", &a, &b, &c, &d, &port, name);
-    if (fields >= 5) {
-      target_ip_ = (a << 24) | (b << 16) | (c << 8) | d;
-      target_port_ = (u16)port;
+    // "192.168.1.20 5000 Name": the address, the port, then the name.
+    const c8* p = text;
+    s32 parts[5] = {};
+    u32 fields = 0;
+    for (; fields < 5; fields++) {
+      if (!core::ParseInt(p, parts[fields], false)) break;
+      if (fields < 3) {
+        if (*p != '.') break;
+        p++;
+      }
     }
-    if (fields == 6) memcpy(name_, name, sizeof(name_));
+    if (fields == 5) {
+      target_ip_ = (static_cast<u32>(parts[0]) << 24) |
+                   (static_cast<u32>(parts[1]) << 16) |
+                   (static_cast<u32>(parts[2]) << 8) |
+                   static_cast<u32>(parts[3]);
+      target_port_ = static_cast<u16>(parts[4]);
+      while (*p == ' ') p++;
+      c8 name[wire::kNameLength] = {};
+      u32 length = 0;
+      while (p[length] != '\0' && p[length] != ' ' && p[length] != '\r' &&
+             p[length] != '\n' && length < sizeof(name) - 1) {
+        name[length] = p[length];
+        length++;
+      }
+      if (length != 0) memcpy(name_, name, sizeof(name_));
+    }
   }
 
   void* heap = core::GameFunction<void*(int)>::Call(

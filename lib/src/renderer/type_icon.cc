@@ -31,6 +31,7 @@
 #include "battle/address.h"
 #include "battle/patch/game_extension.h"
 #include "core/game_file.h"
+#include "core/heap_buffer.h"
 #include "core/hook.h"
 #include "pokemon/constant/type.h"
 #include "renderer/address.h"
@@ -120,8 +121,9 @@ const LayoutTexture* LoadTypeImage(u32 type) {
   if (!battle::GameExtension::GetTypeIconPath(*spec, path, SIZE(path))) {
     return nullptr;
   }
-  static u8 file[kMaxFileSize];
-  const u32 size = TypeIcon::ReadFile(path, file, sizeof(file));
+  core::HeapBuffer file(kMaxFileSize);
+  if (!file.IsValid()) return nullptr;
+  const u32 size = TypeIcon::ReadFile(path, file.Get(), file.Size());
   if (size == 0) {
     // A type of the game keeps its icon when its file is missing.
     if (type < kGameTypeCount) return nullptr;
@@ -136,7 +138,7 @@ const LayoutTexture* LoadTypeImage(u32 type) {
     ui::Log::Print(u"type icon %u: no GPU memory for the image", type);
     return nullptr;
   }
-  memcpy(image, file, size);
+  memcpy(image, file.Get(), size);
   svcFlushProcessDataCache(CUR_PROCESS_HANDLE, reinterpret_cast<u32>(image),
                            size);
 

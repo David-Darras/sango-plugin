@@ -33,6 +33,7 @@
 #include "core/game_file.h"
 #include "battle/patch/game_extension.h"
 #include "battle/patch/item_extension.h"
+#include "core/heap_buffer.h"
 #include "pokemon/constant/type.h"
 #include "renderer/patch/type_icon.h"
 #include "system/native/graphics.h"
@@ -545,10 +546,14 @@ void IconPool::LoadLayoutIcons(IconKind kind) {
         battle::GameExtension::GetTypeIconPath(*type_spec, type_path,
                                                SIZE(type_path))) {
       // A type that the plugin adds or changes: its image is on the SD card.
-      static u8 type_file[16 * 1024];
-      const u32 type_size = renderer::TypeIcon::ReadFile(type_path, type_file,
-                                                         sizeof(type_file));
-      if (type_size != 0 && WriteImage(slot, type_file, type_size, false)) {
+      core::HeapBuffer type_file(16 * 1024);
+      const u32 type_size =
+          type_file.IsValid()
+              ? renderer::TypeIcon::ReadFile(type_path, type_file.Get(),
+                                             type_file.Size())
+              : 0;
+      if (type_size != 0 &&
+          WriteImage(slot, type_file.Get(), type_size, false)) {
         continue;
       }
       // A new type without a file has no icon. A type of the game keeps its icon.

@@ -17,10 +17,12 @@
 
 /**
  * @file test_core.cc
- * @brief The tests of the small tools of core: FixedList and Utf8ToUtf16.
+ * @brief The tests of the small tools of core: FixedList, Utf8ToUtf16 and
+ * ParseFloat.
  */
 
 #include "core/fixed_list.h"
+#include "core/parse_float.h"
 #include "core/utf8.h"
 #include "test.h"
 
@@ -85,4 +87,22 @@ TEST(Utf8ToUtf16StopsAtTheCapacity) {
   CHECK_EQ(out[2], 0);
   // A character that the text cuts is not written.
   CHECK_EQ(core::Utf8ToUtf16("a\xC3", 2, out, 3), 1);
+}
+
+TEST(ParseFloatReadsTheNumbersOfTheFiles) {
+  const char* texts[] = {"1.5", "-0.25", " 3", "+2.", "1e2", "2.5e-1", "-.5"};
+  const f32 values[] = {1.5f, -0.25f, 3.0f, 2.0f, 100.0f, 0.25f, -0.5f};
+  for (u32 i = 0; i < 7; i++) {
+    c8* end = nullptr;
+    const f32 value = core::ParseFloat(texts[i], &end);
+    CHECK(value == values[i]);
+    CHECK(*end == '\0');
+  }
+  // The number stops at the comma, and "e" without digits is not a part.
+  c8* end = nullptr;
+  CHECK(core::ParseFloat("12.5,3", &end) == 12.5f && *end == ',');
+  CHECK(core::ParseFloat("4e", &end) == 4.0f && *end == 'e');
+  // No number: `end` stays at the start.
+  const char* text = "x1";
+  CHECK(core::ParseFloat(text, &end) == 0.0f && end == text);
 }
