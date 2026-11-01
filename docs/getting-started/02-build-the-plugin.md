@@ -46,7 +46,7 @@ When the build is complete, the project folder contains these files:
 |---|---|---|
 | `sango_plugin-release.3gx` | overlay | All the pages of the library in one menu. Use it to explore the game. |
 | `sango_kaizo-release.3gx` | kaizo | The ROM hack Pokémon Sango Kaizo. |
-| `sango_undertow-release.3gx` | undertow | The ROM hack Pokémon Undertow (work in progress). |
+| `sango_maker-release.3gx` | maker | Sango Maker: a ROM hack without code ([Tutorial 18](../tutorials/18-make-a-rom-hack-without-code.md)). |
 
 The `.elf` files are the same programs before `3gxtool`. You do not need them.
 
@@ -54,7 +54,7 @@ The `.elf` files are the same programs before `3gxtool`. You do not need them.
 
 | Command | What it does |
 |---|---|
-| `make overlay` | Builds only the overlay. Also `make kaizo` or `make undertow`. |
+| `make overlay` | Builds only the overlay. Also `make kaizo` or `make maker`. |
 | `make GAME=XY` | Builds for Pokémon X v1.5 (experimental, overlay only). |
 | `make clean` | Removes all the build output. Use it when a build has a strange error. |
 | `make run-overlay` | Builds the overlay, copies it to the SD card of the emulator and starts the game. See below. |

@@ -25,7 +25,7 @@ FILE_PATTERNS          = *.h *.inc *.md
 RECURSIVE              = YES
 EXCLUDE_PATTERNS       = */private/* */release-* */debug-*
 USE_MDFILE_AS_MAINPAGE = README.md
-EXAMPLE_PATH           = overlay/src kaizo/src undertow/src
+EXAMPLE_PATH           = overlay/src kaizo/src maker/src
 IMAGE_PATH             = assets
 INPUT_ENCODING         = UTF-8
 EXTENSION_MAPPING      = inc=C++

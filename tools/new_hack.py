@@ -26,7 +26,7 @@ PROJECT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # project.
 RESERVED = {
     "assets", "build", "debug", "dist", "docs", "kaizo", "lib", "maker", "overlay",
-    "private", "release", "release-overlay", "tools", "undertow",
+    "private", "release", "release-overlay", "tools",
 }
 
 PLGINFO = """\

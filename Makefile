@@ -4,7 +4,7 @@
 # Usage (from the devkitPro shell):
 #   make                  builds all the products of the selected game
 #   make overlay          builds one product (the name of its folder: overlay,
-#                         kaizo, undertow, myhack...)
+#                         kaizo, maker, myhack...)
 #   make GAME=XY          builds for Pokemon X instead of Alpha Sapphire
 #   make run-overlay      builds one product, copies it to the SD card of the
 #                         emulator and starts the game (needs config.mk)
@@ -104,7 +104,7 @@ LIB_INCLUDES	:=	lib/include \
 # The settings of each product:
 #   overlay/  sango_plugin.3gx: every page of the library under one menu
 #   kaizo/    sango_kaizo.3gx: the ROM hack
-#   undertow/ sango_undertow.3gx: the ROM hack where you play a Team Aqua grunt
+#   maker/    sango_maker.3gx: Sango Maker, a ROM hack without code
 # The data folder of a product on the SD card (see lib/include/core/data_folder.h):
 # sdmc:/sango for the overlay, sdmc:/sango/<product> for the others.
 define PRODUCT_SETTINGS

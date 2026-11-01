@@ -146,7 +146,6 @@ The overlay has a page to preview the overworld models: **Characters**.
 
 | File | Change |
 |---|---|
-| `undertow/src/entrypoint.cc` | The player as a Team Aqua Grunt (`ReplaceFile()`), the title screen Pokémon. |
 | `kaizo/src/kaizo_model.cc` | The overworld models of the Pokémon and of the characters. |
 | `kaizo/src/entrypoint.cc` | The icon of the player (`ArchiveId::kPlayerIcon`). |
 

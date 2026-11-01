@@ -232,4 +232,4 @@ Outside a script, use `savedata::HackSave::GetFlag()`, `SetFlag()`,
 ## Related pages
 
 - [Write an overworld script](../tutorials/09-write-an-overworld-script.md)
-- Examples: `overlay/src/scripts.cc`, `undertow/src/scripts.cc`
+- Example: `overlay/src/scripts.cc`

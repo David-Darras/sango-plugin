@@ -147,15 +147,18 @@ models at most for your characters.
 ## Remove the characters of a map
 
 `overworld::MapCharacter::Empty(map_id)` removes the characters of the game
-from a map. Then only your characters are on this map.
-See `undertow/src/scripts.cc`.
+from a map (64 maps at most). Call it in `SetUpHack()`, before
+`MapCharacter::Add()`. Then only your characters are on this map:
+
+```cpp
+overworld::MapCharacter::Empty(MapId::kLittlerootTown);
+```
 
 ## Examples in the project
 
 | File | Script |
 |---|---|
 | `overlay/src/scripts.cc` | A greeter, and a complete Battle Factory with team selection. |
-| `undertow/src/scripts.cc` | A boss that gives a starter Pokémon. |
 
 ## What you learned
 

@@ -336,7 +336,6 @@ enum class ScriptId : u16 {
   // not use, below the map ids (60000), works.
   kFirstCustom = 30500,
   kLittlerootGreeter = 30500,
-  kAquaBossWelcome = 30501,
   kPokemonXGreeter = 30502,
   kWhosThatPokemon = 30510,
   kHealerFollower = 30511,
