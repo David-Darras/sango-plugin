@@ -843,178 +843,282 @@ bool ParseCondition(Span span, Instruction* instruction) {
   return true;
 }
 
+// The words of a command line: "give item Rare Candy 3" gives the first word
+// "give", the second word "item", `rest` "item Rare Candy 3" and `tail`
+// "Rare Candy 3".
+struct CommandWords {
+  Span rest; ///< The text after the first word.
+  Span tail; ///< The text after the second word.
+  /// For the commands with two first words ("give/take"): true for the first
+  /// one (give), false for the second one (take).
+  bool is_first_choice;
+};
+
+// The commands. Each function reads the values of one command into `in`, and
+// returns false when they are not correct.
+bool ParseText(const CommandWords& w, Instruction* in) {
+  in->text = StoreStoryText(w.rest);
+  return in->text != nullptr;
+}
+
+bool ParseSay(const CommandWords& w, Instruction* in) {
+  in->op = Op::kSay;
+  return ParseText(w, in);
+}
+
+bool ParseSign(const CommandWords& w, Instruction* in) {
+  in->op = Op::kSign;
+  return ParseText(w, in);
+}
+
+bool ParseAsk(const CommandWords& w, Instruction* in) {
+  in->op = Op::kAsk;
+  return ParseText(w, in);
+}
+
+bool ParseChoose(const CommandWords& w, Instruction* in) {
+  // choose Bulbasaur / Charmander / Squirtle: the texts follow each other.
+  Span choices[8];
+  const u32 count = Split(w.rest, '/', choices, SIZE(choices));
+  in->op = Op::kChoose;
+  in->a = static_cast<u16>(count);
+  for (u32 k = 0; k < count; k++) {
+    const c16* text = StoreStoryText(choices[k]);
+    if (text == nullptr) return false;
+    if (k == 0) in->text = text;
+  }
+  return true;
+}
+
+bool ParseIf(const CommandWords& w, Instruction* in) {
+  in->op = Op::kIf;
+  return ParseCondition(w.rest, in);
+}
+
+// The commands without values.
+template <Op kOp>
+bool ParseSimple(const CommandWords&, Instruction* in) {
+  in->op = kOp;
+  return true;
+}
+
+bool ParseFade(const CommandWords& w, Instruction* in) {
+  Span second;
+  Span tail;
+  SplitWord(w.rest, &second, &tail);
+  if (IsWord(second, "in")) {
+    in->op = Op::kFadeIn;
+    return true;
+  }
+  in->op = Op::kFadeOut;
+  // fade out (black) or fade out white.
+  in->extra = IsWord(tail, "white") ? 1 : 0;
+  return IsWord(second, "out");
+}
+
+bool ParseMusic(const CommandWords& w, Instruction* in) {
+  if (IsWord(w.rest, "end")) {
+    in->op = Op::kMusicEnd;
+    return true;
+  }
+  u32 number = 0;
+  in->op = Op::kMusic;
+  if (!FindOrReport(NameKind::kMusic, w.rest, &number, "unknown music")) {
+    return false;
+  }
+  in->a = static_cast<u16>(number);
+  return true;
+}
+
+// The commands with one number: wait, sound, call.
+template <Op kOp>
+bool ParseNumberCommand(const CommandWords& w, Instruction* in) {
+  u32 number = 0;
+  if (!ParseNumber(w.rest, &number)) return false;
+  in->op = kOp;
+  in->a = static_cast<u16>(number);
+  return true;
+}
+
+// give item / take item: the item, then the count (1 without a count).
+bool ParseItem(const CommandWords& w, Instruction* in) {
+  u32 number = 0;
+  u32 count = 1;
+  const Span name = SplitLastNumber(w.tail, &count);
+  if (!FindOrReport(NameKind::kItem, name, &number, "unknown item")) {
+    return false;
+  }
+  in->op = w.is_first_choice ? Op::kGiveItem : Op::kTakeItem;
+  in->a = static_cast<u16>(number);
+  in->b = static_cast<u16>(count);
+  return true;
+}
+
+// give money / take money: the money has 32 bits, in `a` and `b`.
+bool ParseMoney(const CommandWords& w, Instruction* in) {
+  u32 number = 0;
+  if (!ParseNumber(w.tail, &number)) return false;
+  in->op = w.is_first_choice ? Op::kGiveMoney : Op::kTakeMoney;
+  in->a = static_cast<u16>(number & 0xFFFF);
+  in->b = static_cast<u16>(number >> 16);
+  return true;
+}
+
+// give pokemon / battle wild: the species, then the level (5 without a level).
+bool ParseSpeciesLevel(const CommandWords& w, Instruction* in, Op op) {
+  u32 number = 0;
+  u32 level = 5;
+  const Span name = SplitLastNumber(w.tail, &level);
+  if (!FindOrReport(NameKind::kSpecies, name, &number, "unknown species")) {
+    return false;
+  }
+  in->op = op;
+  in->a = static_cast<u16>(number);
+  in->b = static_cast<u16>(level);
+  return true;
+}
+
+bool ParseGivePokemon(const CommandWords& w, Instruction* in) {
+  return ParseSpeciesLevel(w, in, Op::kGivePokemon);
+}
+
+bool ParseBattleWild(const CommandWords& w, Instruction* in) {
+  return ParseSpeciesLevel(w, in, Op::kBattleWild);
+}
+
+// set flag / clear flag.
+bool ParseFlag(const CommandWords& w, Instruction* in) {
+  u32 number = 0;
+  if (!ParseNumber(w.tail, &number)) return false;
+  in->op = w.is_first_choice ? Op::kSetFlag : Op::kClearFlag;
+  in->a = static_cast<u16>(number);
+  return true;
+}
+
+// set var / add var: set var 3 10.
+bool ParseVariable(const CommandWords& w, Instruction* in) {
+  Span variable;
+  Span amount;
+  SplitWord(w.tail, &variable, &amount);
+  u32 number = 0;
+  u32 value = 0;
+  if (!ParseNumber(variable, &number) || !ParseNumber(amount, &value)) {
+    return false;
+  }
+  in->op = w.is_first_choice ? Op::kSetVariable : Op::kAddVariable;
+  in->a = static_cast<u16>(number);
+  in->b = static_cast<u16>(value);
+  return true;
+}
+
+bool ParseBattleTrainer(const CommandWords& w, Instruction* in) {
+  u32 number = 0;
+  if (!FindOrReport(NameKind::kTrainer, w.tail, &number, "unknown trainer")) {
+    return false;
+  }
+  in->op = Op::kBattleTrainer;
+  in->a = static_cast<u16>(number);
+  return true;
+}
+
+bool ParseWarp(const CommandWords& w, Instruction* in) {
+  // warp Route 101, 10, 12, 2, Down
+  Span parts[5];
+  const u32 count = Split(w.rest, ',', parts, 5);
+  u32 number = 0;
+  u32 x = 0;
+  u32 z = 0;
+  u32 height = 0;
+  if (count < 4 ||
+      !FindOrReport(NameKind::kMap, parts[0], &number, "unknown map") ||
+      !ParseNumber(parts[1], &x) || !ParseNumber(parts[2], &z) ||
+      !ParseNumber(parts[3], &height)) {
+    return false;
+  }
+  in->op = Op::kWarp;
+  in->a = static_cast<u16>(number);
+  in->b = static_cast<u16>(x);
+  in->c = static_cast<u16>(z);
+  in->d = static_cast<u16>(height);
+  in->extra = 1; // Down.
+  if (count == 5 && !ParseFacing(parts[4], &in->extra)) return false;
+  return true;
+}
+
+// A command of story.txt: its first word (two words with "/", for example
+// "give/take"), its second word (or null), and the function that reads it.
+// The words have the normalized form (see Normalize()).
+struct CommandSpec {
+  const c8* first;
+  const c8* second;
+  bool (*parse)(const CommandWords& words, Instruction* in);
+};
+
+const CommandSpec kCommands[] = {
+    {"say", nullptr, ParseSay},
+    {"sign", nullptr, ParseSign},
+    {"ask", nullptr, ParseAsk},
+    {"choose", nullptr, ParseChoose},
+    {"if", nullptr, ParseIf},
+    {"else", nullptr, ParseSimple<Op::kElse>},
+    {"end", nullptr, ParseSimple<Op::kEnd>},
+    {"stop", nullptr, ParseSimple<Op::kStop>},
+    {"heal", nullptr, ParseSimple<Op::kHeal>},
+    {"face", "player", ParseSimple<Op::kFacePlayer>},
+    {"fade", nullptr, ParseFade},
+    {"music", nullptr, ParseMusic},
+    {"wait", nullptr, ParseNumberCommand<Op::kWait>},
+    {"sound", nullptr, ParseNumberCommand<Op::kSound>},
+    {"call", nullptr, ParseNumberCommand<Op::kCallScript>},
+    {"give/take", "item", ParseItem},
+    {"give/take", "money", ParseMoney},
+    {"give", "pokemon", ParseGivePokemon},
+    {"set/clear", "flag", ParseFlag},
+    {"set/add", "var", ParseVariable},
+    {"battle", "trainer", ParseBattleTrainer},
+    {"battle", "wild", ParseBattleWild},
+    {"warp", nullptr, ParseWarp},
+};
+
+// Returns the place of `word` in `first` ("give/take": 0 for give, 1 for
+// take), or -1 when `first` does not have the word.
+s32 MatchFirst(const c8* word, const c8* first) {
+  s32 index = 0;
+  const c8* start = first;
+  for (const c8* c = first;; c++) {
+    if (*c != '/' && *c != '\0') continue;
+    const u32 length = static_cast<u32>(c - start);
+    if (std::strlen(word) == length && std::strncmp(word, start, length) == 0) {
+      return index;
+    }
+    if (*c == '\0') return -1;
+    start = c + 1;
+    index++;
+  }
+}
+
 // Reads one command. Returns false when the command is not known.
 bool ParseCommand(Span line, Instruction* in) {
   Span word;
-  Span rest;
-  SplitWord(line, &word, &rest);
   Span second;
-  Span tail;
-  SplitWord(rest, &second, &tail);
-  u32 number = 0;
-  u32 value = 0;
+  CommandWords words;
+  SplitWord(line, &word, &words.rest);
+  SplitWord(words.rest, &second, &words.tail);
+  // The first two words in the normalized form, one time for all the commands.
+  c8 first_name[16];
+  c8 second_name[16];
+  if (!Normalize(word, first_name, sizeof(first_name))) return false;
+  if (!Normalize(second, second_name, sizeof(second_name))) second_name[0] = 0;
 
-  if (IsWord(word, "say") || IsWord(word, "sign") || IsWord(word, "ask")) {
-    in->op = IsWord(word, "say") ? Op::kSay
-             : IsWord(word, "sign") ? Op::kSign : Op::kAsk;
-    in->text = StoreStoryText(rest);
-    return in->text != nullptr;
-  }
-  if (IsWord(word, "choose")) {
-    // choose Bulbasaur / Charmander / Squirtle: the texts follow each other.
-    Span choices[8];
-    const u32 count = Split(rest, '/', choices, SIZE(choices));
-    in->op = Op::kChoose;
-    in->a = static_cast<u16>(count);
-    for (u32 k = 0; k < count; k++) {
-      const c16* text = StoreStoryText(choices[k]);
-      if (text == nullptr) return false;
-      if (k == 0) in->text = text;
+  for (const CommandSpec& command : kCommands) {
+    const s32 index = MatchFirst(first_name, command.first);
+    if (index < 0) continue;
+    if (command.second != nullptr &&
+        std::strcmp(second_name, command.second) != 0) {
+      continue;
     }
-    return true;
-  }
-  if (IsWord(word, "if")) {
-    in->op = Op::kIf;
-    return ParseCondition(rest, in);
-  }
-  if (IsWord(word, "else")) {
-    in->op = Op::kElse;
-    return true;
-  }
-  if (IsWord(word, "end")) {
-    in->op = Op::kEnd;
-    return true;
-  }
-  if (IsWord(word, "stop")) {
-    in->op = Op::kStop;
-    return true;
-  }
-  if (IsWord(word, "heal")) {
-    in->op = Op::kHeal;
-    return true;
-  }
-  if (IsWord(word, "face") && IsWord(second, "player")) {
-    in->op = Op::kFacePlayer;
-    return true;
-  }
-  if (IsWord(word, "fade")) {
-    if (IsWord(second, "in")) {
-      in->op = Op::kFadeIn;
-      return true;
-    }
-    in->op = Op::kFadeOut;
-    // fade out (black) or fade out white.
-    in->extra = IsWord(tail, "white") ? 1 : 0;
-    return IsWord(second, "out");
-  }
-  if (IsWord(word, "music")) {
-    if (IsWord(rest, "end")) {
-      in->op = Op::kMusicEnd;
-      return true;
-    }
-    in->op = Op::kMusic;
-    if (!FindOrReport(NameKind::kMusic, rest, &number, "unknown music")) {
-      return false;
-    }
-    in->a = static_cast<u16>(number);
-    return true;
-  }
-  if ((IsWord(word, "wait") || IsWord(word, "sound") || IsWord(word, "call")) &&
-      ParseNumber(rest, &number)) {
-    in->op = IsWord(word, "wait") ? Op::kWait
-             : IsWord(word, "sound") ? Op::kSound : Op::kCallScript;
-    in->a = static_cast<u16>(number);
-    return true;
-  }
-  if ((IsWord(word, "give") || IsWord(word, "take")) &&
-      IsWord(second, "item")) {
-    u32 count = 1;
-    const Span name = SplitLastNumber(tail, &count);
-    if (!FindOrReport(NameKind::kItem, name, &number, "unknown item")) {
-      return false;
-    }
-    in->op = IsWord(word, "give") ? Op::kGiveItem : Op::kTakeItem;
-    in->a = static_cast<u16>(number);
-    in->b = static_cast<u16>(count);
-    return true;
-  }
-  if ((IsWord(word, "give") || IsWord(word, "take")) &&
-      IsWord(second, "money") && ParseNumber(tail, &number)) {
-    in->op = IsWord(word, "give") ? Op::kGiveMoney : Op::kTakeMoney;
-    in->a = static_cast<u16>(number & 0xFFFF);
-    in->b = static_cast<u16>(number >> 16);
-    return true;
-  }
-  if (IsWord(word, "give") && IsWord(second, "pokemon")) {
-    u32 level = 5;
-    const Span name = SplitLastNumber(tail, &level);
-    if (!FindOrReport(NameKind::kSpecies, name, &number, "unknown species")) {
-      return false;
-    }
-    in->op = Op::kGivePokemon;
-    in->a = static_cast<u16>(number);
-    in->b = static_cast<u16>(level);
-    return true;
-  }
-  if ((IsWord(word, "set") || IsWord(word, "clear")) &&
-      IsWord(second, "flag") && ParseNumber(tail, &number)) {
-    in->op = IsWord(word, "set") ? Op::kSetFlag : Op::kClearFlag;
-    in->a = static_cast<u16>(number);
-    return true;
-  }
-  if ((IsWord(word, "set") || IsWord(word, "add")) && IsWord(second, "var")) {
-    // set var 3 10
-    Span variable;
-    Span amount;
-    SplitWord(tail, &variable, &amount);
-    if (!ParseNumber(variable, &number) || !ParseNumber(amount, &value)) {
-      return false;
-    }
-    in->op = IsWord(word, "set") ? Op::kSetVariable : Op::kAddVariable;
-    in->a = static_cast<u16>(number);
-    in->b = static_cast<u16>(value);
-    return true;
-  }
-  if (IsWord(word, "battle") && IsWord(second, "trainer")) {
-    if (!FindOrReport(NameKind::kTrainer, tail, &number, "unknown trainer")) {
-      return false;
-    }
-    in->op = Op::kBattleTrainer;
-    in->a = static_cast<u16>(number);
-    return true;
-  }
-  if (IsWord(word, "battle") && IsWord(second, "wild")) {
-    u32 level = 5;
-    const Span name = SplitLastNumber(tail, &level);
-    if (!FindOrReport(NameKind::kSpecies, name, &number, "unknown species")) {
-      return false;
-    }
-    in->op = Op::kBattleWild;
-    in->a = static_cast<u16>(number);
-    in->b = static_cast<u16>(level);
-    return true;
-  }
-  if (IsWord(word, "warp")) {
-    // warp Route 101, 10, 12, 2, Down
-    Span parts[5];
-    const u32 count = Split(rest, ',', parts, 5);
-    u32 x = 0;
-    u32 z = 0;
-    u32 height = 0;
-    if (count < 4 ||
-        !FindOrReport(NameKind::kMap, parts[0], &number, "unknown map") ||
-        !ParseNumber(parts[1], &x) || !ParseNumber(parts[2], &z) ||
-        !ParseNumber(parts[3], &height)) {
-      return false;
-    }
-    in->op = Op::kWarp;
-    in->a = static_cast<u16>(number);
-    in->b = static_cast<u16>(x);
-    in->c = static_cast<u16>(z);
-    in->d = static_cast<u16>(height);
-    in->extra = 1; // Down.
-    if (count == 5 && !ParseFacing(parts[4], &in->extra)) return false;
-    return true;
+    words.is_first_choice = index == 0;
+    return command.parse(words, in);
   }
   return false;
 }
