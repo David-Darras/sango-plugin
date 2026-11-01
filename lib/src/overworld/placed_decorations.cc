@@ -60,6 +60,15 @@ constexpr u32 kTallGrassPokemonLevel = 100;
 constexpr battle::BackgroundId kTallGrassBackground =
     battle::BackgroundId::kShore;
 constexpr battle::GroundId kTallGrassGround = battle::GroundId::kShore;
+// X has no animation of Kyogre: it uses the animation of the legendary
+// Pokémon of X.
+#ifdef GAME_XY
+constexpr battle::EncounterAnimationId kTallGrassAnimation =
+    battle::EncounterAnimationId::kPokeX;
+#else
+constexpr battle::EncounterAnimationId kTallGrassAnimation =
+    battle::EncounterAnimationId::kKyogre;
+#endif
 const MoveId kTallGrassMoves[4] = {MoveId::kRoarOfTime, MoveId::kSpacialRend,
                                    MoveId::kShadowForce, MoveId::kJudgment};
 
@@ -413,7 +422,7 @@ void PlacedDecorations::StartTallGrassBattle() {
   encounter.kind = StaticEncounterKind::kNormal;
   encounter.background = kTallGrassBackground;
   encounter.ground = kTallGrassGround;
-  encounter.animation = EncounterAnimationId::kKyogre;
+  encounter.animation = kTallGrassAnimation;
 
   auto& randomizer = StaticRandomizer::GetInstance();
   const bool was_randomizing = randomizer.randomize_species;

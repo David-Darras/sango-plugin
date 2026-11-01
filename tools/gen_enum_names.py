@@ -18,6 +18,11 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import music_names
 
+def CppText(text):
+  """Escapes a text for a C++ string: "Cute 1" keeps its quotes."""
+  return text.replace("\\", "\\\\").replace('"', '\\"')
+
+
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # The Bulbapedia titles of some enums (see music_names.py).
@@ -145,7 +150,7 @@ def main():
         name = OVERRIDES.get(enum, {}).get(values[i]) or pretty(values[i])
       else:
         name = "%s %d" % (prefix, i)
-      source.append('    "%s",' % name)
+      source.append('    "%s",' % CppText(name))
     source.append("};")
     if condition:
       header.append("#endif")
@@ -159,7 +164,7 @@ def main():
     source += ["#ifndef GAME_XY", "const c8* kSoundEffectNames[%d] = {" % count]
     for i in range(count):
       name = pretty_sound(effects[i]) if i in effects else "Sound Effect %d" % i
-      source.append('    "%s",' % name)
+      source.append('    "%s",' % CppText(name))
     source += ["};", "#endif", ""]
   header += ["", "} // namespace ui", ""]
   source += ["} // namespace ui", ""]
