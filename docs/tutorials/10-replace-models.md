@@ -13,8 +13,8 @@ In this tutorial, you change two models:
 The game reads its models from **archives** (GARC files). Each model is one
 file of an archive, with a file id.
 
-- `core::Archive` calls your callbacks before the game reads a file.
-  Your callback can give a different file id. The game then loads a different model.
+- `core::Archive::ReplaceFile()` makes the game read a different file id.
+  The game then loads a different model.
 - `pokemon::ModelReplacement` calls your callback before the game makes a
   Pokémon model. Your callback can change the species, the form and the color.
 
@@ -22,9 +22,6 @@ file of an archive, with a file id.
 
 The overworld models are in the archive `ArchiveId::kOverworldModel`.
 The file id of a model is its `ModelId`.
-
-The game reads files in two ways: with a stream and with a queued read.
-Use the two callbacks.
 
 Make the file `myhack/src/my_models.cc`:
 
@@ -43,34 +40,15 @@ Make the file `myhack/src/my_models.cc`:
 namespace myhack {
 namespace {
 
-// Returns the model to use instead of `model`.
-ModelId ReplaceModel(ModelId model) {
-  if (model == ModelId::kBrendan) return ModelId::kTeamAquaGruntMale;
-  return model;
-}
-
-// The game streams a file of an archive.
-u32 OnStreamFile(const u32* archive, u32 file_id) {
-  if (core::Archive::IsArchive(archive, ArchiveId::kOverworldModel)) {
-    return static_cast<u32>(ReplaceModel(static_cast<ModelId>(file_id)));
-  }
-  return file_id;
-}
-
-// The game reads a file of an archive with a queued read.
-void OnReadFile(core::ArchiveInput* input) {
-  if (core::Archive::IsArchive(input, ArchiveId::kOverworldModel)) {
-    input->file_id =
-        static_cast<u32>(ReplaceModel(static_cast<ModelId>(input->file_id)));
-  }
-}
+// Step 2 adds its code here.
 
 } // namespace
 
 void InstallModels() {
-  auto& archive = core::Archive::GetInstance();
-  archive.on_stream_file = OnStreamFile;
-  archive.on_read_file = OnReadFile;
+  // The game reads the model of the Team Aqua Grunt in the place of the
+  // model of the player.
+  core::Archive::ReplaceFile(ArchiveId::kOverworldModel, ModelId::kBrendan,
+                             ModelId::kTeamAquaGruntMale);
 }
 
 } // namespace myhack
@@ -106,7 +84,7 @@ pokemon::ModelReplacement::GetInstance().on_create = OnPokemonModel;
 
 This changes only the model. The data of the Pokémon does not change.
 
-## Step 3: Install the callbacks
+## Step 3: Install the changes
 
 In `myhack/src/entrypoint.cc`, declare `myhack::InstallModels()` and call it in
 `SetUpHack()`.
@@ -119,6 +97,38 @@ make myhack
 
 1. On the title screen, a shiny Mega Camerupt replaces Groudon.
 2. Start the game with the male player. In the overworld, the player looks like a Team Aqua Grunt.
+
+## A change at some moments only: the archive callbacks
+
+`ReplaceFile()` changes the file always. To change it only at some moments
+(for example in one map), give two callbacks to `core::Archive`. The game reads
+files in two ways, with a stream and with a queued read: write the two.
+
+```cpp
+// The game streams a file of an archive. Return the file to read.
+u32 OnStreamFile(const u32* archive, u32 file_id) {
+  if (core::Archive::IsArchive(archive, ArchiveId::kOverworldModel) &&
+      file_id == static_cast<u32>(ModelId::kBrendan)) {
+    return static_cast<u32>(ModelId::kTeamAquaGruntMale);
+  }
+  return file_id;
+}
+
+// The game reads a file of an archive with a queued read.
+void OnReadFile(core::ArchiveInput* input) {
+  if (core::Archive::IsArchive(input, ArchiveId::kOverworldModel) &&
+      input->file_id == static_cast<u32>(ModelId::kBrendan)) {
+    input->file_id = static_cast<u32>(ModelId::kTeamAquaGruntMale);
+  }
+}
+
+// In InstallModels():
+auto& archive = core::Archive::GetInstance();
+archive.on_stream_file = OnStreamFile;
+archive.on_read_file = OnReadFile;
+```
+
+`kaizo/src/entrypoint.cc` uses the callbacks.
 
 ## Find the ids
 
@@ -136,13 +146,14 @@ The overlay has a page to preview the overworld models: **Characters**.
 
 | File | Change |
 |---|---|
-| `undertow/src/entrypoint.cc` | The player as a Team Aqua Grunt, the title screen Pokémon. |
+| `undertow/src/entrypoint.cc` | The player as a Team Aqua Grunt (`ReplaceFile()`), the title screen Pokémon. |
 | `kaizo/src/kaizo_model.cc` | The overworld models of the Pokémon and of the characters. |
 | `kaizo/src/entrypoint.cc` | The icon of the player (`ArchiveId::kPlayerIcon`). |
 
 ## What you learned
 
-- The models are files of archives. `core::Archive` changes the file id.
+- The models are files of archives. `core::Archive::ReplaceFile()` changes the
+  file id. The callbacks of `core::Archive` change it at some moments only.
 - `pokemon::ModelReplacement` changes the species, the form and the color of a Pokémon model.
 - `IsCurrentProcess` limits a change to one part of the game.
 

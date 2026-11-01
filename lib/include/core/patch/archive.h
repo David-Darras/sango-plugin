@@ -31,10 +31,20 @@
 namespace core {
 
 /**
- * @brief Calls the callbacks of the product before the game reads a file.
+ * @brief Changes the files that the game reads from its archives.
  *
- * The game reads files in two ways: with a stream and with a queued read.
- * Set the two callbacks.
+ * To read a different file always, use ReplaceFile():
+ *
+ * @code
+ * // The player looks like a Team Aqua Grunt.
+ * core::Archive::ReplaceFile(ArchiveId::kOverworldModel, ModelId::kBrendan,
+ *                            ModelId::kTeamAquaGruntMale);
+ * @endcode
+ *
+ * For a change that depends on the moment (for example on the title screen
+ * only), use the callbacks. The game reads files in two ways: with a stream
+ * and with a queued read. Set the two callbacks. ReplaceFile() applies before
+ * the callbacks.
  */
 class Archive {
   MAKE_SINGLETON(Archive)
@@ -51,7 +61,24 @@ public:
   StreamFileCallback on_stream_file = nullptr;
   ReadFileCallback on_read_file = nullptr;
 
+  /// The number of replacements of ReplaceFile().
+  static constexpr u32 kMaxReplacements = 128;
+
   static void Initialize();
+
+  /**
+   * @brief Makes the game read the file `to` when it reads the file `from` of
+   *        an archive. Call it in SetUpHack().
+   * @return false when the list is full (see the problems screen).
+   */
+  static bool ReplaceFile(ArchiveId archive_id, u32 from, u32 to);
+  /// ReplaceFile() with ids of an enum: ModelId, SpeciesId...
+  template <typename Id>
+  static bool ReplaceFile(ArchiveId archive_id, Id from, Id to) {
+    return ReplaceFile(archive_id, static_cast<u32>(from), static_cast<u32>(to));
+  }
+  /// Removes all the replacements of ReplaceFile().
+  static void ClearReplacements();
 
   /// Makes the game read a BCLIM file of the SD card as the file `file_id` of
   /// the archive of the item icons. The file id must be above the files of the
@@ -79,6 +106,18 @@ public:
   static u32 LoadOriginalData(u32* archive, u32 file_id, void* buffer);
 
 private:
+  /// A file that ReplaceFile() replaces.
+  struct Replacement {
+    ArchiveId archive_id;
+    u32 from;
+    u32 to;
+  };
+
+  /// Returns the file of ReplaceFile() for a stream, or `file_id`.
+  static u32 ReplacedStreamFile(const u32* archive, u32 file_id);
+  /// Returns the file of ReplaceFile() for a queued read, or `file_id`.
+  static u32 ReplacedQueuedFile(const ArchiveInput* input, u32 file_id);
+
   static void* LoadCompressedHook(u32* archive, u32 file_id, void* heap_work,
                                   void* heap_data, s32 align, u32* out_size);
   static u32 GetFileSizeHook(u32* archive, u32 file_id);
@@ -90,6 +129,9 @@ private:
   static bool ReadFileAsync2(u32* archive, void* heap, u32 file_id,
                              void* buffer, u32 p4, u32 p5, u32 p6);
   static bool ReadFileAsync(void* file_manager, ArchiveInput* input);
+
+  Replacement replacements_[kMaxReplacements];
+  u32 replacement_count_ = 0;
 };
 
 } // namespace core

@@ -42,28 +42,6 @@ void InstallScripts();
 }
 
 namespace {
-ModelId PlayerAsAquaGrunt(ModelId model) {
-  if (model == ModelId::kBrendan) return ModelId::kTeamAquaGruntMale;
-  return model;
-}
-
-u32 PlayerAsAquaGrunt(u32 file_id) {
-  return static_cast<u32>(PlayerAsAquaGrunt(static_cast<ModelId>(file_id)));
-}
-
-u32 OnStreamFile(const u32* archive, u32 file_id) {
-  if (core::Archive::IsArchive(archive, ArchiveId::kOverworldModel)) {
-    return PlayerAsAquaGrunt(file_id);
-  }
-  return file_id;
-}
-
-void OnReadFile(core::ArchiveInput* input) {
-  if (core::Archive::IsArchive(input, ArchiveId::kOverworldModel)) {
-    input->file_id = PlayerAsAquaGrunt(input->file_id);
-  }
-}
-
 void OnPokemonModel(PokeInfo* info) {
   if (!core::ProcessManager::GetInstance().IsCurrentProcess(
       core::address::kTitleScreenVtable)) {
@@ -120,9 +98,9 @@ void Initialize() {
   title.no_shadow = true;
   pokemon::ModelReplacement::GetInstance().on_create = OnPokemonModel;
 
-  auto& archive = core::Archive::GetInstance();
-  archive.on_stream_file = OnStreamFile;
-  archive.on_read_file = OnReadFile;
+  // The player looks like a Team Aqua Grunt.
+  core::Archive::ReplaceFile(ArchiveId::kOverworldModel, ModelId::kBrendan,
+                             ModelId::kTeamAquaGruntMale);
   overworld::RunAnimation::GetInstance().enabled = true;
 
   undertow::InstallScripts();

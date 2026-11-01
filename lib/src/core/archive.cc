@@ -29,6 +29,7 @@
 #include "battle/patch/item_extension.h"
 #include "renderer/patch/type_icon.h"
 #include "core/hook.h"
+#include "core/problems.h"
 #include "core/utils.h"
 #include "system/native/file.h"
 #include "system/address.h"
@@ -627,6 +628,7 @@ bool Archive::ReadFileAsync2(u32* archive, void* heap, u32 file_id,
                                   u32 p4, u32 p5, u32 p6) {
   auto& feat = GetInstance();
   file_id = RemapItemFile(archive, file_id);
+  file_id = ReplacedStreamFile(archive, file_id);
   if (feat.on_stream_file != nullptr) {
     file_id = feat.on_stream_file(archive, file_id);
   }
@@ -636,8 +638,51 @@ bool Archive::ReadFileAsync2(u32* archive, void* heap, u32 file_id,
 bool Archive::ReadFileAsync(void* file_manager, ArchiveInput* input) {
   auto& feat = GetInstance();
   battle::EffectStyles::TrackRead(input);
+  input->file_id = ReplacedQueuedFile(input, input->file_id);
   if (feat.on_read_file != nullptr) feat.on_read_file(input);
   return read_file_async_hook(file_manager, input);
+}
+
+bool Archive::ReplaceFile(ArchiveId archive_id, u32 from, u32 to) {
+  auto& feat = GetInstance();
+  for (u32 i = 0; i < feat.replacement_count_; i++) {
+    Replacement& entry = feat.replacements_[i];
+    if (entry.archive_id == archive_id && entry.from == from) {
+      entry.to = to;
+      return true;
+    }
+  }
+  if (feat.replacement_count_ >= kMaxReplacements) {
+    Problems::Add(u"archive %u: more than %u replaced files",
+                  static_cast<u32>(archive_id), kMaxReplacements);
+    return false;
+  }
+  feat.replacements_[feat.replacement_count_++] = {archive_id, from, to};
+  return true;
+}
+
+void Archive::ClearReplacements() { GetInstance().replacement_count_ = 0; }
+
+u32 Archive::ReplacedStreamFile(const u32* archive, u32 file_id) {
+  const auto& feat = GetInstance();
+  for (u32 i = 0; i < feat.replacement_count_; i++) {
+    const Replacement& entry = feat.replacements_[i];
+    if (entry.from == file_id && IsArchive(archive, entry.archive_id)) {
+      return entry.to;
+    }
+  }
+  return file_id;
+}
+
+u32 Archive::ReplacedQueuedFile(const ArchiveInput* input, u32 file_id) {
+  const auto& feat = GetInstance();
+  for (u32 i = 0; i < feat.replacement_count_; i++) {
+    const Replacement& entry = feat.replacements_[i];
+    if (entry.from == file_id && IsArchive(input, entry.archive_id)) {
+      return entry.to;
+    }
+  }
+  return file_id;
 }
 
 } // namespace core
