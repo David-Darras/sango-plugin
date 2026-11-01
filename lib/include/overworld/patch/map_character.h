@@ -19,6 +19,14 @@
  * @file map_character.h
  * @brief Adds characters with C++ scripts to the maps.
  *
+ * @code
+ * overworld::MapCharacter::Add(
+ *     overworld::Character(MapId::kLittlerootTown, ModelId::kResearcherMale)
+ *         .At(47, 77, 6)
+ *         .WithFacing(overworld::Facing::kDown)
+ *         .WithScript(kCandyGiver));
+ * @endcode
+ *
  * @see docs/tutorials/09-write-an-overworld-script.md
  */
 
@@ -67,6 +75,74 @@ struct MapCharacterRequest {
   u8 sight = 3;
 };
 
+/**
+ * @brief Describes a character to add to a map, one part at a time.
+ *
+ * Each function changes one part, and the parts that you do not give keep
+ * the default values of MapCharacterRequest. Give the result to
+ * MapCharacter::Add().
+ */
+class Character {
+public:
+  /// A character on one map, with a model.
+  Character(MapId map_id, ModelId model_id) {
+    request_.map_id = map_id;
+    request_.model_id = model_id;
+  }
+  /// A character on all the maps, with a model.
+  explicit Character(ModelId model_id) {
+    request_.model_id = model_id;
+    request_.is_everywhere = true;
+  }
+
+  /// The position in tiles, and the height (Tile X, Tile Z and Height in
+  /// Overworld > Location).
+  Character& At(u16 tile_x, u16 tile_z, f32 height = 0.0f) {
+    request_.tile_x = tile_x;
+    request_.tile_z = tile_z;
+    request_.height = height;
+    return *this;
+  }
+  /// The direction.
+  Character& WithFacing(Facing facing) {
+    request_.facing = facing;
+    return *this;
+  }
+  /// The script when the player talks to the character.
+  Character& WithScript(ScriptId script_id) {
+    request_.script_id = script_id;
+    return *this;
+  }
+  /// Makes the character a trainer of the game that sees `sight` tiles (1 to
+  /// 10) in front of it.
+  Character& AsTrainer(TrainerId trainer_id, u8 sight = 3) {
+    request_.trainer_id = trainer_id;
+    request_.sight = sight;
+    return *this;
+  }
+  /// The movement code. 0 is the default value.
+  Character& WithMovement(u16 movement_id) {
+    request_.movement_id = movement_id;
+    return *this;
+  }
+  /// The character is not there when this event flag is set.
+  Character& HiddenWhenFlagSet(u16 event_flag) {
+    request_.hide_when_flag_set = event_flag;
+    return *this;
+  }
+  /// The character is there only when this switch of the product is true.
+  Character& EnabledBy(const bool* is_enabled) {
+    request_.is_enabled = is_enabled;
+    return *this;
+  }
+
+  /// Gives the description.
+  const MapCharacterRequest& GetRequest() const { return request_; }
+
+private:
+  MapCharacterRequest request_;
+};
+
 /// Adds characters to the maps (128 at most).
 class MapCharacter {
   MAKE_SINGLETON(MapCharacter)
@@ -80,6 +156,10 @@ public:
   static void Initialize();
   /// Adds a character. Returns false when the list is full.
   static bool Add(const MapCharacterRequest& request);
+  /// Adds a character of overworld::Character.
+  static bool Add(const Character& character) {
+    return Add(character.GetRequest());
+  }
   /// Removes all the added characters.
   static void Clear();
   /// Removes the characters of the game from a map (64 maps at most).

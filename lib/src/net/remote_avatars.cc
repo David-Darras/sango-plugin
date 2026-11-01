@@ -46,7 +46,7 @@ namespace net {
 namespace {
 using overworld::ActionCommand;
 using overworld::MapCharacter;
-using overworld::MapCharacterRequest;
+using overworld::Character;
 using overworld::MapManager;
 using overworld::Model;
 using overworld::ModelManager;
@@ -85,14 +85,11 @@ void RemoteAvatars::Initialize() {
   script::NativeScript::Register(ScriptId::kRemotePlayer3, Talk<3>);
 
   for (u32 i = 0; i < kPoolSize; i++) {
-    MapCharacterRequest request;
-    request.model_id = ModelFor(i);
-    request.script_id = ScriptFor(i);
-    request.is_everywhere = true;
-    request.facing = Facing::kDown;
     // Only with a connection: without it, the maps keep their characters.
-    request.is_enabled = &self.has_connection_;
-    MapCharacter::Add(request);
+    MapCharacter::Add(Character(ModelFor(i))
+                          .WithFacing(Facing::kDown)
+                          .WithScript(ScriptFor(i))
+                          .EnabledBy(&self.has_connection_));
   }
 }
 

@@ -105,14 +105,10 @@ void InstallScripts() {
   overworld::MapCharacter::Empty(MapId::kAquaHideoutEntrance);
 
   for (const auto& member : kAquaHideoutCast) {
-    overworld::MapCharacterRequest request;
-    request.map_id = MapId::kAquaHideout;
-    request.model_id = member.model_id;
-    request.script_id = ScriptId::kAquaBossWelcome;
-    request.tile_x = member.tile_x;
-    request.tile_z = member.tile_z;
-    request.height = member.height;
-    overworld::MapCharacter::Add(request);
+    overworld::MapCharacter::Add(
+        overworld::Character(MapId::kAquaHideout, member.model_id)
+            .At(member.tile_x, member.tile_z, member.height)
+            .WithScript(ScriptId::kAquaBossWelcome));
   }
 }
 }

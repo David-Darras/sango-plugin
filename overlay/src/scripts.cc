@@ -409,28 +409,21 @@ void Install() {
 #ifdef GAME_XY
   NativeScript::Register(ScriptId::kPokemonXGreeter, PokemonXGreeter);
 
-  overworld::MapCharacterRequest greeter;
-  greeter.map_id = static_cast<MapId>(264);
-  greeter.model_id = ModelId::kTeamFlareAdminMale;
-  greeter.script_id = ScriptId::kPokemonXGreeter;
-  greeter.tile_x = 593;
-  greeter.tile_z = 492;
-  greeter.facing = overworld::Facing::kRight;
-  overworld::MapCharacter::Add(greeter);
+  overworld::MapCharacter::Add(
+      overworld::Character(static_cast<MapId>(264), ModelId::kTeamFlareAdminMale)
+          .At(593, 492)
+          .WithFacing(overworld::Facing::kRight)
+          .WithScript(ScriptId::kPokemonXGreeter));
 #else
   NativeScript::Register(ScriptId::kLittlerootGreeter,
                          LittlerootGreeter);
 
-  overworld::MapCharacterRequest greeter;
-  greeter.map_id = MapId::kBattleResortBA_2;
-  greeter.model_id = ModelId::kResearcherMale;
-  greeter.script_id = ScriptId::kLittlerootGreeter;
-  greeter.tile_x = 47;
-  greeter.tile_z = 77;
-  greeter.height = 6;
-  greeter.movement_id = 17;
-  greeter.facing = overworld::Facing::kDown;
-  overworld::MapCharacter::Add(greeter);
+  overworld::MapCharacter::Add(
+      overworld::Character(MapId::kBattleResortBA_2, ModelId::kResearcherMale)
+          .At(47, 77, 6)
+          .WithMovement(17)
+          .WithFacing(overworld::Facing::kDown)
+          .WithScript(ScriptId::kLittlerootGreeter));
 #endif
 }
 }

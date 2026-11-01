@@ -85,16 +85,13 @@ void InstallScripts() {
   // 1. Link the script id to the C++ function.
   script::NativeScript::Register(kCandyGiver, CandyGiver);
 
-  // 2. Put a character on the map, with this script.
-  overworld::MapCharacterRequest request;
-  request.map_id = MapId::kLittlerootTown;      // Your map.
-  request.model_id = ModelId::kResearcherMale;  // The look of the character.
-  request.script_id = kCandyGiver;
-  request.tile_x = 47;                          // Your Tile X.
-  request.tile_z = 77;                          // Your Tile Z.
-  request.height = 6;                           // Your Tile Y.
-  request.facing = overworld::Facing::kDown;
-  overworld::MapCharacter::Add(request);
+  // 2. Put a character on the map, with this script: your map, the look of
+  //    the character, then your Tile X, Tile Z and Height.
+  overworld::MapCharacter::Add(
+      overworld::Character(MapId::kLittlerootTown, ModelId::kResearcherMale)
+          .At(47, 77, 6)
+          .WithFacing(overworld::Facing::kDown)
+          .WithScript(kCandyGiver));
 }
 
 } // namespace myhack
@@ -130,18 +127,20 @@ make myhack
 
 ## The options of a character
 
-| Member of `MapCharacterRequest` | Meaning |
+| Function of `overworld::Character` | Meaning |
 |---|---|
-| `map_id` | The map. |
-| `model_id` | The model (`lib/include/overworld/constant/model.h`). |
-| `script_id` | The script that runs when the player talks to the character. |
-| `tile_x`, `tile_z`, `height` | The position. |
-| `facing` | The direction: `kUp`, `kDown`, `kLeft`, `kRight`. |
-| `movement_id` | The movement code of the character. 0 is the default value. |
-| `hide_when_flag_set` | An event flag. When it is set, the character is not there. 0 = always there. |
-| `is_everywhere` | `true`: the character is on all the maps. |
-| `is_enabled` | A pointer to a `bool` of your product. When the `bool` is `false`, the character is not there. |
-| `trainer_id`, `sight` | A trainer of the game, and the tiles that it sees. See [Tutorial 8](08-change-trainer-teams.md#a-new-trainer-on-a-map). |
+| `Character(map_id, model_id)` | The map and the model (`lib/include/overworld/constant/model.h`). |
+| `Character(model_id)` | A character on all the maps. |
+| `.At(tile_x, tile_z, height)` | The position. |
+| `.WithFacing(facing)` | The direction: `kUp`, `kDown`, `kLeft`, `kRight`. |
+| `.WithScript(script_id)` | The script that runs when the player talks to the character. |
+| `.WithMovement(movement_id)` | The movement code of the character. 0 is the default value. |
+| `.HiddenWhenFlagSet(flag)` | An event flag. When it is set, the character is not there. |
+| `.EnabledBy(&switch)` | A pointer to a `bool` of your product. When the `bool` is `false`, the character is not there. |
+| `.AsTrainer(trainer_id, sight)` | A trainer of the game, and the tiles that it sees. See [Tutorial 8](08-change-trainer-teams.md#a-new-trainer-on-a-map). |
+
+The same values are in the members of `overworld::MapCharacterRequest`:
+`MapCharacter::Add()` also takes this structure.
 
 You can add 128 characters at most, on all the maps. A map shows 32
 characters at most: the characters of the game first. Use 16 different
@@ -163,7 +162,8 @@ See `undertow/src/scripts.cc`.
 ## What you learned
 
 - `NativeScript::Register` links a script id to a C++ function.
-- `MapCharacter::Add` puts a character with a script on a map.
+- `MapCharacter::Add` and `overworld::Character` put a character with a script
+  on a map.
 - `script::Context` has the functions of the script: messages, items, flags...
 - A flag of the ROM hack (`SetHackFlag`) makes a gift happen one time only.
 

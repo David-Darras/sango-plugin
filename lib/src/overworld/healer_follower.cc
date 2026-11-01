@@ -46,13 +46,10 @@ f32 Abs(f32 value) { return value < 0.0f ? -value : value; }
 void HealerFollower::Initialize() {
   script::NativeScript::Register(ScriptId::kHealerFollower, Talk);
 
-  MapCharacterRequest nurse;
-  nurse.model_id = kNurseModel;
-  nurse.script_id = ScriptId::kHealerFollower;
-  nurse.is_everywhere = true;
-  nurse.facing = Facing::kDown;
-  nurse.is_enabled = &GetInstance().is_enabled;
-  MapCharacter::Add(nurse);
+  MapCharacter::Add(Character(kNurseModel)
+                        .WithFacing(Facing::kDown)
+                        .WithScript(ScriptId::kHealerFollower)
+                        .EnabledBy(&GetInstance().is_enabled));
 }
 
 void HealerFollower::Talk(script::Context& script) {

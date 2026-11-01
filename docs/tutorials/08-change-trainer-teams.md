@@ -154,15 +154,12 @@ trainer sees the player, talks and starts the battle, like the trainers of the
 game. After a win, it battles no more. Add this to `InstallTrainers()`:
 
 ```cpp
-overworld::MapCharacterRequest request;
-request.map_id = MapId::kRoute101;
-request.model_id = ModelId::kYoungster;
-request.trainer_id = TrainerId::kRoute102Kid1;  // Its team: kRoute102Kid1Team.
-request.sight = 4;                               // It sees 4 tiles.
-request.tile_x = 10;
-request.tile_z = 12;
-request.facing = overworld::Facing::kLeft;
-overworld::MapCharacter::Add(request);
+overworld::MapCharacter::Add(
+    overworld::Character(MapId::kRoute101, ModelId::kYoungster)
+        .At(10, 12)
+        .WithFacing(overworld::Facing::kLeft)
+        // Its team: kRoute102Kid1Team. It sees 4 tiles.
+        .AsTrainer(TrainerId::kRoute102Kid1, 4));
 ```
 
 The trainer says the texts of this trainer of the game. Use a trainer that the

@@ -51,15 +51,10 @@ c16 Fold(c16 c) {
 void WhosThatPokemon::Initialize() {
   script::NativeScript::Register(ScriptId::kWhosThatPokemon, Run);
 
-  MapCharacterRequest host;
-  host.map_id = static_cast<MapId>(6);
-  host.model_id = ModelId::kReporter;
-  host.script_id = ScriptId::kWhosThatPokemon;
-  host.tile_x = 97;
-  host.tile_z = 172;
-  host.height = 0;
-  host.facing = Facing::kDown;
-  MapCharacter::Add(host);
+  MapCharacter::Add(Character(static_cast<MapId>(6), ModelId::kReporter)
+                        .At(97, 172)
+                        .WithFacing(Facing::kDown)
+                        .WithScript(ScriptId::kWhosThatPokemon));
 }
 
 pokemon::SpeciesId WhosThatPokemon::PickSpecies() {

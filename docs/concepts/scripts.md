@@ -70,14 +70,11 @@ A script runs when the player talks to a character.
 `overworld::MapCharacter::Add()` puts a new character on a map with your script:
 
 ```cpp
-overworld::MapCharacterRequest request;
-request.map_id = MapId::kLittlerootTown;
-request.model_id = ModelId::kResearcherMale;
-request.script_id = kMyGreeter;
-request.tile_x = 47;
-request.tile_z = 77;
-request.facing = overworld::Facing::kDown;
-overworld::MapCharacter::Add(request);
+overworld::MapCharacter::Add(
+    overworld::Character(MapId::kLittlerootTown, ModelId::kResearcherMale)
+        .At(47, 77)
+        .WithFacing(overworld::Facing::kDown)
+        .WithScript(kMyGreeter));
 ```
 
 You can add 128 characters at most, on all the maps. A map shows 32
