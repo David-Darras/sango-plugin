@@ -1,4 +1,5 @@
-# Builds the products on GitHub. You do not need devkitPro on your computer.
+# Builds the products on GitHub, and runs the tests. You do not need
+# devkitPro on your computer.
 #
 # GitHub runs this workflow when you push a commit or open a pull request.
 # The .3gx files are in the "Artifacts" part of the run (Actions tab).
@@ -16,6 +17,16 @@ on:
         default: ""
 
 jobs:
+  # The tests of tests/: the readers of Sango Maker and the editor.
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get the source code
+        uses: actions/checkout@v5
+
+      - name: Run the tests
+        run: make -C tests
+
   build:
     runs-on: ubuntu-latest
     container: devkitpro/devkitarm:latest
@@ -34,6 +45,9 @@ jobs:
           # The Makefile calls 3gxtool without its path.
           export PATH="$DEVKITPRO/tools/bin:$PATH"
           make -j"$(nproc)" $PRODUCT_NAME
+
+      - name: Check the guards of the singletons
+        run: sh tools/check_static_guards.sh
 
       - name: Keep the plugin files
         uses: actions/upload-artifact@v7

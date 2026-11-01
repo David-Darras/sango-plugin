@@ -1,0 +1,30 @@
+# The singletons that the program builds at the first call (with a guard).
+# tools/check_static_guards.sh fails for a singleton that is not in this
+# list: give its members constant start values (see core/singleton.h).
+# Remove a name when its singleton becomes a constant of the program.
+battle::EffectStyles
+battle::GameExtension
+battle::MoveAnimations
+core::CheatCodeManager
+core::TextEditor
+kaizo::Painter
+net::Network
+overworld::Camera
+overworld::MapCharacter
+overworld::PlacedDecorations
+overworld::PlayerCheats
+overworld::TileEditor
+overworld::WorldOverlay
+pokemon::FollowingPokemon
+pokemon::SpeciesTable
+renderer::LayoutEditor
+renderer::Lighting
+script::NativeScript
+ui::AppStatus
+ui::FreeCameraApplication
+ui::MainAppPainter
+ui::MapEditApplication
+ui::PaintApplication
+ui::Theme
+ui::TileEditorApplication
+ui::TypeChartApplication
