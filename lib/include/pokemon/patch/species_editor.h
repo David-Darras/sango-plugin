@@ -44,7 +44,18 @@
  * the species is ready: the new species and the new forms of the library
  * exist only after the start.
  *
+ * pokemon::NewSpecies() adds a species to the game (Alpha Sapphire only):
+ *
+ * @code
+ * const SpeciesId kSangoat =
+ *     pokemon::NewSpecies(u"Sangoat", SpeciesId::kSkiddo, SpeciesId::kGogoat)
+ *         .WithStats(80, 95, 70, 60, 75, 85)
+ *         .WithTypes(TypeId::kGrass, TypeId::kRock)
+ *         .GetSpecies();
+ * @endcode
+ *
  * @see docs/tutorials/16-change-a-species.md
+ * @see docs/tutorials/12-add-a-new-pokemon.md
  */
 
 #pragma once
@@ -113,6 +124,9 @@ public:
   explicit Species(SpeciesId species, FormId form = FormId::kNormal)
     : species_(species), form_(form) {}
 
+  /// Returns the species that this object changes.
+  SpeciesId GetSpecies() const { return species_; }
+
   /// Sets the base stats, in the order of the summary: HP, Attack, Defense,
   /// Sp. Atk, Sp. Def, Speed.
   Species& WithStats(u8 hp, u8 attack, u8 defense, u8 sp_attack,
@@ -152,6 +166,38 @@ private:
   FormId form_;
 };
 
+/**
+ * @brief Adds a new species to the game. Alpha Sapphire only.
+ *
+ * Call it in SetUpHack(). The first new species gets the id
+ * kFirstNewSpeciesId (1021), the next one gets 1022, and so on (see
+ * NewSpeciesId()). 64 new species at most.
+ *
+ * The new species starts with the data and the learnset of @a data_from. It
+ * has no evolution. Change its data with the With functions of the result.
+ *
+ * @param name The name of the species. The text must stay in memory: use a
+ *        text in quotes (u"Sangoat").
+ * @param data_from The species that gives the first data and the learnset.
+ * @param model The species that gives its 3D model. SpeciesId::kNone: the
+ *        model of @a data_from.
+ * @param model_form The form of the model.
+ * @return The changes of the new species. Its species is SpeciesId::kNone
+ *         when the game cannot add it (see the problems screen).
+ */
+Species NewSpecies(const c16* name, SpeciesId data_from,
+                   SpeciesId model = SpeciesId::kNone,
+                   FormId model_form = FormId::kNormal);
+
+/// The id of the first species of NewSpecies().
+constexpr u16 kFirstNewSpeciesId = 1021;
+
+/// Returns the id that the call number @a number of NewSpecies() gives (0 for
+/// the first call). Use it to write the id in global tables.
+constexpr SpeciesId NewSpeciesId(u32 number) {
+  return static_cast<SpeciesId>(kFirstNewSpeciesId + number);
+}
+
 /// The changes of pokemon::Species. The library uses this class.
 class SpeciesChanges {
   MAKE_SINGLETON(SpeciesChanges)
@@ -184,6 +230,13 @@ public:
                           const LevelMove* moves, u32 count);
   static bool AddEvolutions(SpeciesId species, const EvolutionStep* steps,
                             u32 count);
+
+  /// Returns the number of evolution lists of the product.
+  static u32 GetEvolutionListCount() { return GetInstance().evolution_count_; }
+  /// Gives the evolution list number @a index of the product. Returns false
+  /// when @a index is too big.
+  static bool GetEvolutionList(u32 index, SpeciesId* species,
+                               const EvolutionStep** steps, u32* count);
 
   /// Replaces the learnset that the game loaded. The library calls it.
   static void PatchLearnset(SpeciesId species, FormId form);

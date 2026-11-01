@@ -25,6 +25,7 @@
 #include "pokemon/patch/pre_evolution.h"
 
 #include "pokemon/native/evolution_data.h"
+#include "pokemon/patch/species_editor.h"
 #include "pokemon/patch/species_table.h"
 
 namespace pokemon {
@@ -82,29 +83,48 @@ const u16 kPreEvolution[kGameSpeciesCount] = {
     0, 0,
 };
 
-// The species that the plugin adds (722 and after): the library has their
-// evolutions, so the table is built from them the first time.
+// The species that the plugin and the product add (722 and after): the
+// library has their evolutions, so the table is built from them the first time.
 constexpr u32 kExtraLimit = 1100;
+static_assert(SpeciesTable::kFirstNewSpecies + SpeciesTable::kMaxNewSpecies <=
+                  kExtraLimit,
+              "kExtraLimit is too small");
 u16 extra_pre_evolution[kExtraLimit];
 bool is_extra_built = false;
 
+// Keeps `from` as the species before `to`, when `to` is a species that the
+// plugin or the product adds.
+void KeepPreEvolution(u32 from, u32 to) {
+  if (to < kGameSpeciesCount || to >= kExtraLimit || to == from) return;
+  if (extra_pre_evolution[to] == 0) {
+    extra_pre_evolution[to] = static_cast<u16>(from);
+  }
+}
+
 void BuildExtraTable() {
   is_extra_built = true;
-  const u32 last = SpeciesTable::kFirstGen8Species + SpeciesTable::kGen8Count;
+  // The evolutions of the product (pokemon::Species::WithEvolutions) come
+  // first: they replace the evolutions of the library.
+  for (u32 i = 0; i < SpeciesChanges::GetEvolutionListCount(); i++) {
+    SpeciesId from = SpeciesId::kNone;
+    const EvolutionStep* steps = nullptr;
+    u32 count = 0;
+    if (!SpeciesChanges::GetEvolutionList(i, &from, &steps, &count)) break;
+    for (u32 k = 0; k < count; k++) {
+      if (steps[k].method == EvolutionMethod::kNone) continue;
+      KeepPreEvolution(static_cast<u32>(from),
+                       static_cast<u32>(steps[k].species));
+    }
+  }
+  const u32 last = SpeciesTable::kFirstNewSpecies + SpeciesTable::kMaxNewSpecies;
   for (u32 from = kGameSpeciesCount; from < last && from < kExtraLimit; from++) {
     EvolutionData table;
     if (!SpeciesTable::PatchEvolutionTable(static_cast<u16>(from), &table)) {
       continue;
     }
     for (const auto& entry : table.data) {
-      const u32 to = static_cast<u32>(entry.species);
-      if (entry.method == EvolutionMethod::kNone || to == 0 ||
-          to >= kExtraLimit || to == from) {
-        continue;
-      }
-      if (extra_pre_evolution[to] == 0) {
-        extra_pre_evolution[to] = static_cast<u16>(from);
-      }
+      if (entry.method == EvolutionMethod::kNone) continue;
+      KeepPreEvolution(from, static_cast<u32>(entry.species));
     }
   }
 }

@@ -14,12 +14,27 @@ You need
 
 What is in this zip
 -------------------
-luma/plugins/000400000011C500/sango_plugin.3gx   The plugin.
-README.txt                                       This file.
+For the players:
+  luma/plugins/000400000011C500/sango_plugin.3gx   The plugin.
+  sango/types/, sango/items/                       The icons of the plugin.
+
+For the modders (make a ROM hack without code, see the end of this file):
+  sango_maker/luma/plugins/000400000011C500/sango_maker-release.3gx
+                                                   The Sango Maker plugin.
+  sango_maker/sango/maker/                         The example text files.
+  maker_editor/index.html                          The editor of the text
+                                                   files, for a computer.
+
+README.txt                                         This file.
+
+=====================================================================
+PART 1: FOR THE PLAYERS
+=====================================================================
 
 Install the plugin
 ------------------
-1. Unzip the zip at the root of the SD card.
+1. Unzip the zip at the root of the SD card. The folders sango_maker and
+   maker_editor are for the modders: you can delete them from the SD card.
    Azahar on Windows:  %APPDATA%/Azahar/sdmc/
    A 3DS console:      the root of the SD card.
    You get luma/plugins/000400000011C500/sango_plugin.3gx .
@@ -79,6 +94,57 @@ Problems
 - Nothing happens: check that the plugin loader is on and that the .3gx
   file is the only one in the folder.
 - Report a bug: https://github.com/David-Darras/sango-plugin/issues
+
+=====================================================================
+PART 2: FOR THE MODDERS (SANGO MAKER)
+=====================================================================
+
+Sango Maker is a second plugin. It reads text files on the SD card and
+changes the game: the wild Pokemon, the trainers, the species and the
+scripts of the characters. You do not write code and you do not build a
+plugin. The menu of Sango Maker also has all the editors of Sango Plugin.
+
+Install Sango Maker
+-------------------
+The game loads one plugin only. Sango Maker replaces Sango Plugin.
+
+1. On the SD card, open luma/plugins/000400000011C500/ and remove
+   sango_plugin.3gx (keep a copy if you want to play with it again).
+2. Copy the CONTENT of the folder sango_maker/ of this zip to the root of
+   the SD card. You get:
+     luma/plugins/000400000011C500/sango_maker-release.3gx
+     sango/maker/encounters.txt, trainers.txt, species.txt, story.txt
+3. Start Alpha Sapphire. Sango Maker reads the files of sango/maker/ when
+   the game starts.
+
+The text files
+--------------
+encounters.txt   The wild Pokemon of the maps.
+trainers.txt     The teams, the names, the AI and the items of the trainers.
+species.txt      The stats, the types, the abilities, the TMs, the
+                 learnsets and the evolutions of the species.
+story.txt        The scripts: messages, choices, gifts, battles, warps.
+
+Open them in a text editor (Notepad is good) and save them in UTF-8. The
+examples show the format. A mistake in a file shows on a screen of problems
+when the game starts: the screen gives the file and the line.
+
+The editor (on a computer)
+--------------------------
+Open maker_editor/index.html in a web browser (double-click). Keep names.js
+in the same folder. The editor works without internet. It checks the lines
+of the files while you write. Click "Download" to save a file, then copy
+it to sango/maker/ on the SD card.
+
+Share your ROM hack
+-------------------
+Your ROM hack is the file sango_maker-release.3gx and the folder sango/maker.
+Give the two to the players, with the steps of "Install Sango Maker".
+
+The full guide (tutorial 18):
+https://github.com/David-Darras/sango-plugin/blob/master/docs/tutorials/18-make-a-rom-hack-without-code.md
+
+=====================================================================
 
 The plugin is free software (GPL-3.0). The models and the music of the packs
 come from other games: they are not part of the plugin.

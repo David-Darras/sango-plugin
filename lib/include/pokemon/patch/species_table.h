@@ -22,11 +22,15 @@
  * The new species come after the 721 species of the game. Their data is in
  * lib/src/pokemon/data/gen7_species.inc and gen8_species.inc. Their models
  * use the model slots of existing species (the carriers).
+ *
+ * After them, the table keeps kMaxNewSpecies places for the species of the
+ * product (see pokemon::NewSpecies()).
  */
 
 #pragma once
 
 #include "common.h"
+#include "pokemon/constant/form.h"
 #include "pokemon/constant/species.h"
 #include "system/native/string.h"
 
@@ -48,7 +52,11 @@ public:
   static constexpr u32 kGen7Count = 81;
   static constexpr u32 kGen8Count = 216;
   static constexpr u32 kExtraCount = kGen7Count + kGen8Count;
-  static constexpr u32 kTotalEntries = kEntries + kAlolanCount + kExtraCount;
+  /// The number of species that a product can add.
+  static constexpr u32 kMaxNewSpecies = 64;
+  /// The number of entries between the species of the game and their forms.
+  static constexpr u32 kAddedCount = kExtraCount + kMaxNewSpecies;
+  static constexpr u32 kTotalEntries = kEntries + kAlolanCount + kAddedCount;
 
   static void Initialize();
   /// Puts the bigger table in place. The library calls it at each frame.
@@ -57,20 +65,46 @@ public:
   static bool IsBuilt() { return GetInstance().is_built_; }
   /// Changes the model of a new species into the model of its carrier.
   static void PatchModelRequest(PokeInfo* info);
-  /// Returns true for a species that the plugin adds.
+  /// Returns true for a species that the plugin or the product adds.
   static bool IsGen7(u16 species);
+  /// Returns true for a species that the product adds.
+  static bool IsNewSpecies(u16 species);
+  /**
+   * @brief Adds a species of the product. pokemon::NewSpecies() calls it.
+   * @param name The name of the species. The text must stay in memory.
+   * @param data_from The species that gives the first data and the learnset.
+   * @param model The species that gives its model (the carrier).
+   * @param model_form The form of the model.
+   * @return The id of the new species, or SpeciesId::kNone.
+   */
+  static SpeciesId AddSpecies(const c16* name, SpeciesId data_from,
+                              SpeciesId model, FormId model_form);
   /// Writes the evolutions of a new species.
   static bool PatchEvolutionTable(u16 species, EvolutionData* table);
   static u16 kFirstGen7Species;
   static constexpr u16 kFirstGen8Species = 805;
   static constexpr u32 kGen8Skipped = 0;
+  /// The id of the first species of the product.
+  static constexpr u16 kFirstNewSpecies = kFirstGen8Species + kGen8Count;
 
 private:
+  /// A species of the product.
+  struct NewSpeciesEntry {
+    const c16* name;
+    SpeciesId data_from;
+    SpeciesId model;
+    FormId model_form;
+  };
+
+  /// Returns the entry of a species of the product, or null.
+  static const NewSpeciesEntry* FindNewSpecies(u16 species);
   static void BuildTable(u8* game_table);
   static void GetSpeciesNameHook(String* output, u16 species);
   static void LoadMovepoolHook(u16 species, u8 form);
 
   bool is_built_ = false;
+  NewSpeciesEntry new_species_[kMaxNewSpecies] = {};
+  u32 new_species_count_ = 0;
   alignas(4) u8 table_[kTotalEntries * kEntrySize];
 };
 

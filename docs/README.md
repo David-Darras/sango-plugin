@@ -46,7 +46,7 @@ See [the list of the tutorials](tutorials/README.md).
 | [3. Add a hook](tutorials/03-add-a-hook.md) | [9. Write an overworld script](tutorials/09-write-an-overworld-script.md) |
 | [4. Add a move](tutorials/04-add-a-move.md) | [10. Replace models](tutorials/10-replace-models.md) |
 | [5. Add an ability](tutorials/05-add-an-ability.md) | [11. Change items and shops](tutorials/11-change-items-and-shops.md) |
-| [6. Make a move animation](tutorials/06-make-a-move-animation.md) | [12. Add a new Pokémon](tutorials/12-add-a-new-pokemon.md) (coming soon) |
+| [6. Make a move animation](tutorials/06-make-a-move-animation.md) | [12. Add a new Pokémon](tutorials/12-add-a-new-pokemon.md) |
 
 ## Reference
 

@@ -40,4 +40,7 @@ Do not save the game with a new Pokémon in your party: this can corrupt your sa
 
 The zip has a `README.txt` with the same steps.
 
+**For the modders:** the zip also has **Sango Maker** (`sango_maker/`), the example text files and the web editor (`maker_editor/index.html`).
+Sango Maker makes a ROM hack with text files, without code. Part 2 of `README.txt` explains how to install it.
+
 Feedback and bug reports are welcome.

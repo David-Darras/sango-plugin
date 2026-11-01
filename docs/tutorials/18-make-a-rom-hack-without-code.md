@@ -5,9 +5,10 @@ C++ and you do not build the plugin. You change the wild Pokémon, a trainer and
 a species, and you write a script for a character.
 
 **Time:** 15 minutes.
-**You need:** the file `sango_maker-release.3gx` (build it with
+**You need:** the file `sango_maker-release.3gx`. It is in the release zip
+of Sango Plugin, in the folder `sango_maker/`. You can also build it with
 `make maker`, or get it from GitHub: see
-[Build without devkitPro](../getting-started/06-build-without-devkitpro.md)).
+[Build without devkitPro](../getting-started/06-build-without-devkitpro.md).
 
 ## How it works
 
@@ -36,6 +37,10 @@ the two to the players.
    SD card. Remove the other `.3gx` files of this folder.
 2. Make the folder `sango/maker` on the SD card.
 3. Copy the example files of `maker/data/` of the project into this folder.
+
+With the release zip, copy the content of the folder `sango_maker/` to the
+root of the SD card: it has the plugin and the example files. Then do step 1
+only (remove the other `.3gx` files).
 
 ## Step 2: Change the wild Pokémon
 

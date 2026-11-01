@@ -19,7 +19,7 @@ Before you start, build the plugin one time:
 | 9 | [Write an overworld script](09-write-an-overworld-script.md) | Add a character that talks and gives items. |
 | 10 | [Replace models](10-replace-models.md) | Change the look of the player and of the Pokémon. |
 | 11 | [Change items and shops](11-change-items-and-shops.md) | Change the data of items and the stock of a Poké Mart. |
-| 12 | [Add a new Pokémon](12-add-a-new-pokemon.md) | (coming soon) |
+| 12 | [Add a new Pokémon](12-add-a-new-pokemon.md) | Add a species with its name, data, learnset, evolutions and a carrier model (Alpha Sapphire). |
 | 13 | [Add your own music](13-add-your-own-music.md) | Play your own music files in the game. |
 | 14 | [Add a type](14-add-a-type.md) | Make a new type with its name, its icon and its type chart. |
 | 15 | [Add an item](15-add-an-item.md) | Make a new item (held item, or item that the player uses in the Bag) or change an item of the game. |

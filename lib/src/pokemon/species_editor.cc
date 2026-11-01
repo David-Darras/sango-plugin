@@ -138,6 +138,14 @@ Species& Species::WithEvolutions(const EvolutionStep* steps, u32 count) {
   return *this;
 }
 
+static_assert(kFirstNewSpeciesId == SpeciesTable::kFirstNewSpecies,
+              "the first id of NewSpecies() is not correct");
+
+Species NewSpecies(const c16* name, SpeciesId data_from, SpeciesId model,
+                   FormId model_form) {
+  return Species(SpeciesTable::AddSpecies(name, data_from, model, model_form));
+}
+
 // SpeciesChanges.
 
 bool SpeciesChanges::IsReady() {
@@ -151,6 +159,8 @@ bool SpeciesChanges::IsReady() {
 }
 
 void SpeciesChanges::Add(const Change& change) {
+  // NewSpecies() gives SpeciesId::kNone when it cannot add the species.
+  if (change.species == SpeciesId::kNone) return;
   if (IsReady()) {
     Apply(change);
     return;
@@ -204,7 +214,7 @@ void SpeciesChanges::Apply(const Change& change) {
 bool SpeciesChanges::AddLearnset(SpeciesId species, FormId form,
                                  const LevelMove* moves, u32 count) {
   auto& self = GetInstance();
-  if (moves == nullptr) return false;
+  if (moves == nullptr || species == SpeciesId::kNone) return false;
   if (count > Species::kMaxLearnsetMoves) {
     core::Problems::Add(u"species %u: more than %u learnset moves",
                         static_cast<u32>(species), Species::kMaxLearnsetMoves);
@@ -230,7 +240,7 @@ bool SpeciesChanges::AddLearnset(SpeciesId species, FormId form,
 bool SpeciesChanges::AddEvolutions(SpeciesId species,
                                    const EvolutionStep* steps, u32 count) {
   auto& self = GetInstance();
-  if (steps == nullptr) return false;
+  if (steps == nullptr || species == SpeciesId::kNone) return false;
   if (count > Species::kMaxEvolutions) {
     core::Problems::Add(u"species %u: more than %u evolutions",
                         static_cast<u32>(species), Species::kMaxEvolutions);
@@ -250,6 +260,17 @@ bool SpeciesChanges::AddEvolutions(SpeciesId species,
     return false;
   }
   self.evolutions_[self.evolution_count_++] = {species, steps, count};
+  return true;
+}
+
+bool SpeciesChanges::GetEvolutionList(u32 index, SpeciesId* species,
+                                      const EvolutionStep** steps, u32* count) {
+  auto& self = GetInstance();
+  if (index >= self.evolution_count_) return false;
+  const EvolutionList& list = self.evolutions_[index];
+  if (species != nullptr) *species = list.species;
+  if (steps != nullptr) *steps = list.steps;
+  if (count != nullptr) *count = list.count;
   return true;
 }
 

@@ -33,6 +33,7 @@
 #include "pokemon/native/movepool.h"
 #include "pokemon/native/species_data.h"
 #include "core/hook.h"
+#include "core/problems.h"
 #include "core/memory.h"
 #include "overworld/patch/whos_that_pokemon.h"
 #include "pokemon/data/alolan_form.inc"
@@ -64,12 +65,65 @@ bool SpeciesTable::IsGen7(u16 species) {
   for (u32 i = 0; i < SpeciesTable::kExtraCount; i++) {
     if (Extra(i).species == species) return true;
   }
-  return false;
+  return IsNewSpecies(species);
+}
+
+bool SpeciesTable::IsNewSpecies(u16 species) {
+  return FindNewSpecies(species) != nullptr;
+}
+
+const SpeciesTable::NewSpeciesEntry* SpeciesTable::FindNewSpecies(u16 species) {
+  auto& feat = GetInstance();
+  if (species < kFirstNewSpecies) return nullptr;
+  const u32 index = species - kFirstNewSpecies;
+  if (index >= feat.new_species_count_) return nullptr;
+  return &feat.new_species_[index];
+}
+
+SpeciesId SpeciesTable::AddSpecies(const c16* name, SpeciesId data_from,
+                                   SpeciesId model, FormId model_form) {
+#ifdef GAME_ORAS
+  auto& feat = GetInstance();
+  if (feat.is_built_) {
+    core::Problems::Add(u"NewSpecies: call it in SetUpHack()");
+    return SpeciesId::kNone;
+  }
+  if (feat.new_species_count_ >= kMaxNewSpecies) {
+    core::Problems::Add(u"NewSpecies: more than %u new species",
+                        kMaxNewSpecies);
+    return SpeciesId::kNone;
+  }
+  if (name == nullptr || data_from == SpeciesId::kNone ||
+      static_cast<u16>(data_from) >= kFirstNewSpecies) {
+    core::Problems::Add(u"NewSpecies: the name or the first data is not correct");
+    return SpeciesId::kNone;
+  }
+  NewSpeciesEntry& entry = feat.new_species_[feat.new_species_count_];
+  entry.name = name;
+  entry.data_from = data_from;
+  entry.model = model != SpeciesId::kNone ? model : data_from;
+  entry.model_form = model_form;
+  feat.new_species_count_++;
+  return static_cast<SpeciesId>(kFirstNewSpecies + feat.new_species_count_ - 1);
+#else
+  (void)name;
+  (void)data_from;
+  (void)model;
+  (void)model_form;
+  core::Problems::Add(u"NewSpecies: Alpha Sapphire only");
+  return SpeciesId::kNone;
+#endif
 }
 
 void SpeciesTable::PatchModelRequest(PokeInfo* info) {
   if (info == nullptr) return;
   const u16 species = static_cast<u16>(info->species);
+  const NewSpeciesEntry* added = FindNewSpecies(species);
+  if (added != nullptr) {
+    info->species = added->model;
+    info->form = added->model_form;
+    return;
+  }
   for (u32 i = 0; i < SpeciesTable::kExtraCount; i++) {
     if (Extra(i).species != species) continue;
     const u32 form_model = info->form != FormId::kNormal
@@ -107,15 +161,17 @@ void SpeciesTable::BuildTable(u8* game_table) {
 
   const u32 species_entries = kGen7Base;
   const u32 form_entries = kEntries - species_entries;
+  // The places of the species of the product stay empty when they are not used.
+  std::memset(out, 0, sizeof(feat.table_));
   std::memcpy(out, game_table, species_entries * kEntrySize);
-  std::memcpy(out + (species_entries + SpeciesTable::kExtraCount) * kEntrySize,
+  std::memcpy(out + (species_entries + SpeciesTable::kAddedCount) * kEntrySize,
               game_table + species_entries * kEntrySize,
               form_entries * kEntrySize);
 
   for (u32 i = 0; i < species_entries; i++) {
     auto* entry = (SpeciesData*)(out + i * kEntrySize);
-    if (entry->form_index != 0) entry->form_index += SpeciesTable::kExtraCount;
-    if (entry->form_index_2 != 0) entry->form_index_2 += SpeciesTable::kExtraCount;
+    if (entry->form_index != 0) entry->form_index += SpeciesTable::kAddedCount;
+    if (entry->form_index_2 != 0) entry->form_index_2 += SpeciesTable::kAddedCount;
   }
 
   for (u32 i = 0; i < SpeciesTable::kExtraCount; i++) {
@@ -127,7 +183,19 @@ void SpeciesTable::BuildTable(u8* game_table) {
     entry->form_count = 1;
   }
 
-  u32 next = kEntries + SpeciesTable::kExtraCount;
+  // The species of the product start with the data of an other species.
+  for (u32 i = 0; i < feat.new_species_count_; i++) {
+    const NewSpeciesEntry& added = feat.new_species_[i];
+    auto* entry =
+        (SpeciesData*)(out + (SpeciesTable::kFirstNewSpecies + i) * kEntrySize);
+    std::memcpy(entry, out + static_cast<u16>(added.data_from) * kEntrySize,
+                kEntrySize);
+    entry->form_index = 0;
+    entry->form_index_2 = 0;
+    entry->form_count = 1;
+  }
+
+  u32 next = kEntries + SpeciesTable::kAddedCount;
   for (u32 i = 0; i < kAlolanFormCount; i++) {
     const AlolanForm& form = kAlolanForms[i];
     auto* base = (SpeciesData*)(out + form.species * kEntrySize);
@@ -176,6 +244,11 @@ void SpeciesTable::GetSpeciesNameHook(String* output, u16 species) {
     if (output != nullptr) output->Set(Extra(i).name);
     return;
   }
+  const NewSpeciesEntry* added = FindNewSpecies(species);
+  if (added != nullptr) {
+    if (output != nullptr) output->Set(added->name);
+    return;
+  }
   get_species_name_hook(output, species);
 }
 
@@ -201,6 +274,17 @@ void SpeciesTable::LoadMovepoolHook(u16 species, u8 form) {
                                   static_cast<FormId>(form));
     return;
   }
+  const NewSpeciesEntry* added = FindNewSpecies(species);
+  if (added != nullptr) {
+    // The learnset of the first species, until the product changes it.
+    LoadMovepoolHook(static_cast<u16>(added->data_from), 0);
+    auto& pool = Movepool::Object();
+    pool.species = static_cast<SpeciesId>(species);
+    pool.form = static_cast<FormId>(form);
+    SpeciesChanges::PatchLearnset(static_cast<SpeciesId>(species),
+                                  static_cast<FormId>(form));
+    return;
+  }
   load_movepool_hook(species, form);
   SpeciesChanges::PatchLearnset(static_cast<SpeciesId>(species),
                                 static_cast<FormId>(form));
@@ -216,6 +300,11 @@ bool SpeciesTable::PatchEvolutionTable(u16 species, EvolutionData* table) {
       table->data[k].arg = evolution.arg;
       table->data[k].species = static_cast<SpeciesId>(evolution.species);
     }
+    return true;
+  }
+  if (IsNewSpecies(species)) {
+    // No evolution, until the product gives the evolutions.
+    std::memset(table, 0, sizeof(*table));
     return true;
   }
   return false;
