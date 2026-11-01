@@ -58,7 +58,7 @@ void OnWildPokemon(MapId map_id, overworld::WildPokemon* pokemons, u32 count) {
 
 // The battle is ready: the moves and the ability go in the data of the foes.
 void OnWildBattle(Config& config) {
-  savedata::PokemonTeam* team = config.pokemon_teams[1];
+  savedata::PokemonTeam* team = &config.GetOpponentTeam();
   for (u32 i = 0; i < team->count; i++) {
     pokemon::EditPokemon foe(*team->pokemons[i]);
     foe->ability = AbilityId::kIlluminate;

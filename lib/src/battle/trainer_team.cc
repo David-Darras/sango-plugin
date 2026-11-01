@@ -124,10 +124,7 @@ void TrainerTeams::Apply(Config& config, TrainerId trainer_id) {
   u32 count = team->opponent_count;
   if (count > 6) count = 6;
 
-  for (u32 i = 1; i < count; i++) {
-    *opponents->pokemons[i]->core = *opponents->pokemons[0]->core;
-    *opponents->pokemons[i]->runtime = *opponents->pokemons[0]->runtime;
-  }
+  config.CopyFirstOpponent(count);
 
   {
     // ApplyTo() changes all the Pokemon of the team at the same time.

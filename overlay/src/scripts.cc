@@ -91,24 +91,18 @@ static void FactoryBattleSetupHook(battle::Config& config,
                                    battle::TrainerId& trainer_id) {
   if (!s_factory_battle_active) return;
 
+  savedata::PokemonTeam& player = config.GetPlayerTeam();
+  savedata::PokemonTeam& opponent = config.GetOpponentTeam();
   config.format = battle::Format::kSingle;
-  config.pokemon_teams[0]->count = 3;
-  config.pokemon_teams[1]->count = 3;
-
-  for (u32 i = 1; i < 3; i++) {
-    *config.pokemon_teams[1]->pokemons[i]->core = *config.pokemon_teams[1]->
-        pokemons[0]->core;
-    *config.pokemon_teams[1]->pokemons[i]->runtime = *config.pokemon_teams[1]->
-        pokemons[0]->runtime;
-  }
+  player.count = 3;
+  opponent.count = 3;
+  config.CopyFirstOpponent(3);
 
   for (u32 i = 0; i < 3; i++) {
-    factory::ApplySpec(config.pokemon_teams[1]->pokemons[i],
-                       s_opponent_specs[i]);
+    factory::ApplySpec(opponent.pokemons[i], s_opponent_specs[i]);
   }
-  config.pokemon_teams[1]->HealAllPokemons();
-
-  config.pokemon_teams[0]->HealAllPokemons();
+  opponent.HealAllPokemons();
+  player.HealAllPokemons();
 
   if (config.trainer_data[1] != nullptr) {
     for (u32 i = 0; i < 4; i++) {

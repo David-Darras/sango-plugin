@@ -160,8 +160,7 @@ void Battle::PatchLoad() {
     ARM_NOP(address::kMegaRestrictionCheck2);
 
     if (feat.unlimited_mega_evolution) {
-      WRITE32(address::kCanMegaEvolved, 0xE3A00001);
-      ARM_RET(address::kCanMegaEvolved + 4);
+      ARM_RETURN_TRUE(address::kCanMegaEvolved);
     }
   }
 }

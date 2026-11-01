@@ -463,8 +463,8 @@ TeamStats GetTeamStats(savedata::PokemonTeam* team) {
 void PatchTrainer_Level(battle::Config& config,
                         f32 nerf_strength = 0.5f,
                         f32 team_weight = 0.5f) {
-  savedata::PokemonTeam* my_team = config.pokemon_teams[0];
-  savedata::PokemonTeam* enemy_team = config.pokemon_teams[1];
+  savedata::PokemonTeam* my_team = &config.GetPlayerTeam();
+  savedata::PokemonTeam* enemy_team = &config.GetOpponentTeam();
   if (!my_team || !enemy_team) {
     return;
   }
@@ -522,18 +522,13 @@ void PatchTrainerData(battle::Config& config, TrainerId& trainer_id) {
   battle.metronome_only = false;
 
   // Copy the first Pokémon to make a team of six Pokémon.
-  for (u32 i = 1; i < 6; i++) {
-    *config.pokemon_teams[1]->pokemons[i]->core = *config.pokemon_teams[1]->
-        pokemons[0]->core;
-    *config.pokemon_teams[1]->pokemons[i]->runtime = *config.pokemon_teams[1]
-        ->pokemons[0]->runtime;
-  }
+  config.CopyFirstOpponent(6);
 
   {
     // The two teams stay decrypted while the plugin changes them. The game
     // calculates the stats of the player again itself.
-    pokemon::EditTeam player(config.pokemon_teams[0]->pokemons, 6, false);
-    pokemon::EditTeam trainer(config.pokemon_teams[1]->pokemons, 6);
+    pokemon::EditTeam player(config.GetPlayerTeam().pokemons, 6, false);
+    pokemon::EditTeam trainer(config.GetOpponentTeam().pokemons, 6);
     for (u32 i = 0; i < 6; i++) trainer[i].experience = 0xFFFFFFFF;
 
     const battle::TrainerTeam* team = battle::TrainerTeams::Find(trainer_id);
@@ -545,7 +540,7 @@ void PatchTrainerData(battle::Config& config, TrainerId& trainer_id) {
     for (u32 i = 0; i < 6; i++) trainer[i].ResetNickname();
   }  // Encrypts the two teams, then calculates the stats of the trainer.
 
-  config.pokemon_teams[1]->HealAllPokemons();
+  config.GetOpponentTeam().HealAllPokemons();
 
   switch (trainer_id) {
     case TrainerId::kRustboroCityYoungsterJosh:

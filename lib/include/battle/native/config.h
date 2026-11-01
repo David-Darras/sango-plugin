@@ -91,6 +91,22 @@ struct Config {
       this->weather = weather;
   }
 
+  /// The team of the player (the first team).
+  savedata::PokemonTeam& GetPlayerTeam() const { return *pokemon_teams[0]; }
+  /// The team of the opponent (the second team).
+  savedata::PokemonTeam& GetOpponentTeam() const { return *pokemon_teams[1]; }
+
+  /// Copies the first Pokémon of the opponent into its slots 1 to
+  /// `count` - 1. The game makes only the Pokémon of its own team: a bigger
+  /// new team starts from these copies.
+  void CopyFirstOpponent(u32 count) {
+    savedata::PokemonTeam& team = GetOpponentTeam();
+    for (u32 i = 1; i < count && i < savedata::PokemonTeam::kMaxSlots; i++) {
+      *team.pokemons[i]->core = *team.pokemons[0]->core;
+      *team.pokemons[i]->runtime = *team.pokemons[0]->runtime;
+    }
+  }
+
   /// Exchanges the team of the player and the team of the opponent.
   void InverseTeams() {
     savedata::PokemonTeam* team = pokemon_teams[0];
@@ -105,7 +121,7 @@ struct Config {
 
   /// Returns the data of a Pokémon of the opponent.
   pokemon::CoreData& GetOpponent(u8 index) const {
-    return *pokemon_teams[1]->pokemons[index]->core;
+    return *GetOpponentTeam().pokemons[index]->core;
   }
 };
 } // namespace battle

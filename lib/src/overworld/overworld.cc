@@ -49,7 +49,7 @@ void Overworld::PatchLoad() {
   DayCare::PatchLoad();
 
   if (address::kSimulateButtonPress) {
-    WRITE32(address::kSimulateButtonPress, 0xE1A00000);
+    ARM_NOP(address::kSimulateButtonPress);
   }
 }
 

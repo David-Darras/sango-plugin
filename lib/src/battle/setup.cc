@@ -111,7 +111,7 @@ void Setup::SetupWildHook(Config* config,
     config->no_money = ctx.no_money;
 
     // The game calculates the stats of the wild Pokemon itself.
-    pokemon::EditPokemon wild(*config->pokemon_teams[1]->pokemons[0], false);
+    pokemon::EditPokemon wild(*config->GetOpponentTeam().pokemons[0], false);
     wild->species = ctx.species;
     wild->form = ctx.form;
     pokemon::AdjustAbilityToSpecies(*wild);
