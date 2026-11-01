@@ -24,8 +24,10 @@
 
 #include "core/patch/text_editor.h"
 #include "core/data_folder.h"
+#include "core/line_reader.h"
 
 #include <cstdio>
+#include <cstring>
 
 #include "system/native/file.h"
 
@@ -558,27 +560,12 @@ void LoadLine(const c8* line, u32 length) {
 } // namespace
 
 void TextEditor::Initialize() {
-  sys::File file;
-  file.Open(kPath, sys::File::kRead);
-  if (!file.IsOpen()) return;
-  c8 chunk[256];
+  LineReader reader;
+  if (!reader.Open(kPath)) return;
   c8 line[kLineSize];
-  u32 line_length = 0;
-  for (;;) {
-    const s32 read = file.Read(chunk, sizeof(chunk));
-    if (read <= 0) break;
-    for (s32 i = 0; i < read; i++) {
-      const c8 c = chunk[i];
-      if (c == '\n') {
-        LoadLine(line, line_length);
-        line_length = 0;
-      } else if (c != '\r' && line_length < kLineSize - 1) {
-        line[line_length++] = c;
-      }
-    }
-    if (static_cast<u32>(read) < sizeof(chunk)) break;
+  while (reader.Next(line, sizeof(line))) {
+    LoadLine(line, static_cast<u32>(std::strlen(line)));
   }
-  LoadLine(line, line_length);
 }
 
 bool TextEditor::Decode(const c16* marked, c16* raw, u32 capacity, u32& length,

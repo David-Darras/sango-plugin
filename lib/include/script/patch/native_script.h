@@ -25,6 +25,7 @@
 #pragma once
 
 #include "common.h"
+#include "core/fixed_list.h"
 #include "core/problems.h"
 #include "script/constant/script.h"
 #include "script/native/amx.h"
@@ -77,12 +78,12 @@ public:
       core::Problems::Add(u"script %u: the id is used two times", (u32)id);
       return false;
     }
-    if (ctx.count_ >= kMaxScripts) {
+    if (ctx.entries_.IsFull()) {
       core::Problems::Add(u"script %u: more than %u C++ scripts", (u32)id,
                           kMaxScripts);
       return false;
     }
-    ctx.entries_[ctx.count_++] = Entry{id, function};
+    ctx.entries_.Add(Entry{id, function});
     return true;
   }
 
@@ -92,7 +93,7 @@ public:
   }
 
   /// Returns the number of registered scripts.
-  static u32 GetCount() { return GetInstance().count_; }
+  static u32 GetCount() { return GetInstance().entries_.Count(); }
 
   /// Returns the id of the C++ script that runs now, or ScriptId::kNone.
   static ScriptId GetCurrentId() {
@@ -157,10 +158,7 @@ private:
   static constexpr u32 kStubStackSize = 0x1000;
 
   const Entry* Find(ScriptId id) const {
-    for (u32 i = 0; i < count_; i++) {
-      if (entries_[i].id == id) return &entries_[i];
-    }
-    return nullptr;
+    return entries_.Find([id](const Entry& entry) { return entry.id == id; });
   }
 
   bool IsSuspendedElsewhere(const Engine* engine,
@@ -257,8 +255,7 @@ private:
     header->overlay_table_offset = header->libraries_offset;
   }
 
-  Entry entries_[kMaxScripts];
-  u32 count_ = 0;
+  core::FixedList<Entry, kMaxScripts> entries_;
   const Entry* current_ = nullptr;
   Engine* engine_ = nullptr;
   ScriptVm* vm_ = nullptr;
