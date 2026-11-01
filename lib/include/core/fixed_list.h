@@ -47,7 +47,9 @@ namespace core {
 template <typename T, u32 N>
 class FixedList {
 public:
-  FixedList() : count_(0) {}
+  // constexpr: a singleton with a list stays a constant of the program (see
+  // core::Event).
+  constexpr FixedList() : items_(), count_(0) {}
 
   /// Adds a value at the end. Returns false when the list is full.
   bool Add(const T& value) {

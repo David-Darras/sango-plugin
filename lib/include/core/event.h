@@ -49,7 +49,10 @@ public:
   /// The type of the functions of the event.
   typedef void (*Listener)(Args...);
 
-  Event() : main_(nullptr), count_(0) {}
+  // constexpr: a singleton with an event stays a constant of the program. A
+  // singleton that the program builds at run time has a guard, and the guard
+  // calls abort() when two threads build it at the same time.
+  constexpr Event() : main_(nullptr), listeners_(), count_(0) {}
   Event(const Event&) = delete;
   Event& operator=(const Event&) = delete;
 
