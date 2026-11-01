@@ -892,7 +892,9 @@ bool MainApplication::HasSlider(const PageItem& entry) {
   return entry.GetRange(min, max) && max - min <= 0xFFFF && !entry.IsReadOnly();
 }
 
-void MainApplication::Update(sys::Controller& controller) {
+// The settings, the open and close button, and the walk mode. Returns true
+// when the frame of the menu ends here.
+bool MainApplication::UpdateOpenState(sys::Controller& controller) {
   // The settings file gives the theme and the buttons of the menu: read it
   // before the first frame of the menu.
   if (!are_settings_loaded_) {
@@ -914,7 +916,7 @@ void MainApplication::Update(sys::Controller& controller) {
     } else if (AreKeysReleased(controller)) {
       theme_.Play(theme_.error_sound);
     }
-    return;
+    return true;
   }
 
   if (AreKeysReleased(controller)) {
@@ -930,10 +932,10 @@ void MainApplication::Update(sys::Controller& controller) {
       RefreshIfPlaceChanged();
     }
     core::DevicePatch::GetInstance().use_redirection = is_opened_;
-    return;
+    return true;
   }
 
-  if (!IsOpened()) return;
+  if (!IsOpened()) return true;
   StepAnimations();
   ItemCategories::Step();
 
@@ -949,57 +951,34 @@ void MainApplication::Update(sys::Controller& controller) {
     } else {
       RefreshIfPlaceChanged();
     }
-    return;
+    return true;
   }
   if (combo_started) {
     SetWalking(true);
-    return;
+    return true;
   }
 
-  if (is_radial_open_) {
-    UpdateRadial(controller);
-    return;
-  }
-  if (entries_count_ == 0) {
-    if (controller.IsKeyReleased(Key::kB)) Close();
-    return;
-  }
-  if (is_filtering_) {
-    UpdateFilter(controller);
-    return;
-  }
-  if (is_help_open_) {
-    // B, A or a touch closes the help.
-    sys::TouchScreen& touch_screen = sys::TouchScreen::GetInstance();
-    static bool was_down = false;
-    const bool is_down = touch_screen.IsDown();
-    if (controller.IsKeyReleased(Key::kB) ||
-        controller.IsKeyReleased(Key::kA) || (was_down && !is_down)) {
-      theme_.Play(theme_.close_sound);
-      is_help_open_ = false;
-      for (u32 i = 0; i < kTouchMax; i++) touch_[i].Reset();
-    }
-    was_down = is_down;
-    return;
-  }
-  if (is_context_open_) {
-    UpdateContext(controller);
-    return;
-  }
+  return false;
+}
 
-  PageItem& entry = GetSelectedEntry();
-  // A copy: an action can build the page again.
-  const PageItem selected = entry;
-  const Editor editor = GetEditor(entry);
-  const u8 index = GetSelectedIndex();
-
-  // The numpad and the keyboard start with the value of the entry.
-  if (needs_prepare_ || index != prepared_index_) {
-    PrepareEditor(entry);
-    prepared_index_ = index;
-    needs_prepare_ = false;
+// The help of the controls: B, A or a touch closes it.
+void MainApplication::UpdateHelp(sys::Controller& controller) {
+  sys::TouchScreen& touch_screen = sys::TouchScreen::GetInstance();
+  static bool was_down = false;
+  const bool is_down = touch_screen.IsDown();
+  if (controller.IsKeyReleased(Key::kB) ||
+      controller.IsKeyReleased(Key::kA) || (was_down && !is_down)) {
+    theme_.Play(theme_.close_sound);
+    is_help_open_ = false;
+    for (u32 i = 0; i < kTouchMax; i++) touch_[i].Reset();
   }
+  was_down = is_down;
+}
 
+// The numpad, the keyboard or the color picker of the bottom screen. Returns
+// true when the search built the page again: the frame ends here.
+bool MainApplication::UpdateBottomEditor(PageItem& entry, Editor editor,
+                                         u8 index) {
   if (painter_->ShowBottom()) {
     if (editor == Editor::kText) {
       keyboard_.Update();
@@ -1017,7 +996,7 @@ void MainApplication::Update(sys::Controller& controller) {
             search_query_[i] = typed[i];
           }
           Refresh();
-          return;
+          return true;
         }
       }
     } else if (editor == Editor::kNumber) {
@@ -1037,8 +1016,15 @@ void MainApplication::Update(sys::Controller& controller) {
     }
   }
 
+  return false;
+}
+
+// Reads the buttons and the touch screen into `input`. Returns true when a
+// long press of Y or X opened a menu: the frame ends here.
+bool MainApplication::ReadInput(sys::Controller& controller,
+                                const PageItem& entry, Editor editor,
+                                Input& input) {
   // Read the buttons and the touch screen.
-  Input input;
   if (controller.IsKeyDown(Key::kUp) || controller.IsKeyDown(Key::kDown)) {
     hold_frames_++;
   } else {
@@ -1067,7 +1053,7 @@ void MainApplication::Update(sys::Controller& controller) {
   if (controller.IsKeyDown(Key::kY)) {
     if (++y_hold_frames_ == kLongPressFrames) {
       OpenContext();
-      return;
+      return true;
     }
   } else {
     if (controller.IsKeyReleased(Key::kY) &&
@@ -1091,10 +1077,18 @@ void MainApplication::Update(sys::Controller& controller) {
     radial_direction_ = -1;
     for (u32 i = 0; i < 8; i++) touch_[kTouchRadial0 + i].Reset();
     theme_.Play(theme_.next_sound);
-    return;
+    return true;
   }
   ReadTouch(entry, input);
 
+  return false;
+}
+
+// The actions of WithConfirm() need a long press, and L / R turn the pages of
+// the grid of values.
+void MainApplication::ApplyConfirm(sys::Controller& controller,
+                                   const PageItem& entry, Editor editor,
+                                   u8 index, Input& input) {
   // An action of WithConfirm() runs after a long press of A (or of the
   // button): the release does not run it.
   if (editor == Editor::kRun && entry.NeedsConfirm()) {
@@ -1125,50 +1119,58 @@ void MainApplication::Update(sys::Controller& controller) {
     input.section = 0;
   }
 
+}
+
+// The actions that do not change the value: help, walk, menu, back, pin,
+// filter, undo, search, reset, and the values of the grid and the numpad.
+// Returns true when an action ran.
+bool MainApplication::RunAction(Input& input, PageItem& entry,
+                                const PageItem& selected, Editor editor,
+                                u8 index) {
   // Do the actions.
   if (input.help) {
     theme_.Play(theme_.next_sound);
     is_help_open_ = true;
-    return;
+    return true;
   }
   if (input.walk) {
     SetWalking(true);
-    return;
+    return true;
   }
   if (input.context) {
     OpenContext();
-    return;
+    return true;
   }
   if (input.back) {
     Close();
-    return;
+    return true;
   }
   if (input.pin) {
     TogglePin(index);
-    return;
+    return true;
   }
   if (input.filter) {
     // Y: the filter of a grid of values. Nothing on another entry: the pin is
     // a touch button (Pin).
     if (editor == Editor::kPicker) OpenFilter(selected);
-    return;
+    return true;
   }
   if (input.undo) {
     Undo();
-    return;
+    return true;
   }
   if (input.search) {
     if (!is_search_page_) {
       theme_.Play(theme_.confirm_sound);
       Open(LoadSearchPage, nullptr, "Search");
     }
-    return;
+    return true;
   }
 
   // The grid, Reset, Min, Max and the slider write the value at once.
   if (input.reset) {
     ResetEntry(index);
-    return;
+    return true;
   }
   if (input.has_number) {
     s64 min;
@@ -1178,13 +1180,21 @@ void MainApplication::Update(sys::Controller& controller) {
       if (input.number > max) input.number = max;
       ApplyValue(index, (u64)input.number, false);
     }
-    return;
+    return true;
   }
   if (editor == Editor::kPicker && input.choice >= 0) {
     ApplyValue(index, (u32)input.choice, true);
-    return;
+    return true;
   }
 
+  return false;
+}
+
+// Changes the value of the entry, or runs its action. Returns true when the
+// action opened a page or ran a function: the frame ends here.
+bool MainApplication::ChangeEntry(const Input& input, PageItem& entry,
+                                  const PageItem& selected, Editor editor,
+                                  u8 index) {
   bool is_changed = false;
   const u8 type = entry.GetType();
   const bool is_switch = type == kTypeBoolean || type == kTypeCheatCode;
@@ -1209,10 +1219,10 @@ void MainApplication::Update(sys::Controller& controller) {
       if (type == kTypeMenu && shortcut != nullptr) {
         // A pinned page opens with the pages before it.
         OpenPageShortcut(*shortcut);
-        return;
+        return true;
       }
       entry.Execute(*this);
-      return;
+      return true;
     }
   } else if (input.step != 0 && can_change) {
     theme_.Play(theme_.next_sound);
@@ -1254,6 +1264,53 @@ void MainApplication::Update(sys::Controller& controller) {
     if (selected.NeedsRefresh()) Refresh();
     needs_prepare_ = true;
   }
+
+  return false;
+}
+
+void MainApplication::Update(sys::Controller& controller) {
+  if (UpdateOpenState(controller)) return;
+
+  if (is_radial_open_) {
+    UpdateRadial(controller);
+    return;
+  }
+  if (entries_count_ == 0) {
+    if (controller.IsKeyReleased(Key::kB)) Close();
+    return;
+  }
+  if (is_filtering_) {
+    UpdateFilter(controller);
+    return;
+  }
+  if (is_help_open_) {
+    UpdateHelp(controller);
+    return;
+  }
+  if (is_context_open_) {
+    UpdateContext(controller);
+    return;
+  }
+
+  PageItem& entry = GetSelectedEntry();
+  // A copy: an action can build the page again.
+  const PageItem selected = entry;
+  const Editor editor = GetEditor(entry);
+  const u8 index = GetSelectedIndex();
+
+  // The numpad and the keyboard start with the value of the entry.
+  if (needs_prepare_ || index != prepared_index_) {
+    PrepareEditor(entry);
+    prepared_index_ = index;
+    needs_prepare_ = false;
+  }
+  if (UpdateBottomEditor(entry, editor, index)) return;
+
+  Input input;
+  if (ReadInput(controller, entry, editor, input)) return;
+  ApplyConfirm(controller, entry, editor, index, input);
+  if (RunAction(input, entry, selected, editor, index)) return;
+  if (ChangeEntry(input, entry, selected, editor, index)) return;
 
   if (input.move != 0) {
     theme_.Play(theme_.next_sound);

@@ -824,6 +824,19 @@ private:
   /// Shows the previous (-1) or the next (1) page of the grid of values.
   void ChangePickerPage(const PageItem& entry, s32 direction);
 
+  // The steps of Update(). A step that returns true ends the frame.
+  bool UpdateOpenState(sys::Controller& controller);
+  void UpdateHelp(sys::Controller& controller);
+  bool UpdateBottomEditor(PageItem& entry, Editor editor, u8 index);
+  bool ReadInput(sys::Controller& controller, const PageItem& entry,
+                 Editor editor, Input& input);
+  void ApplyConfirm(sys::Controller& controller, const PageItem& entry,
+                    Editor editor, u8 index, Input& input);
+  bool RunAction(Input& input, PageItem& entry, const PageItem& selected,
+                 Editor editor, u8 index);
+  bool ChangeEntry(const Input& input, PageItem& entry,
+                   const PageItem& selected, Editor editor, u8 index);
+
   /// Builds the page again when the map or the part of the game changed: the
   /// pointers of the entries are then wrong. Returns true when it did.
   bool RefreshIfPlaceChanged();
