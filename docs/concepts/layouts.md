@@ -51,21 +51,21 @@ The page has these entries:
 
 ## The saved changes
 
-A change is for one pane on one screen. The key is the name of the screen (the
-class of the process) and the path of the pane, for example
-`field::FieldmapProc` and `RootPane@400/N_Menu/T_Title`. The root has the
-width of its layout (`@400` for the top screen, `@320` for the bottom screen):
-the two screens of one process often have panes with the same names.
+A change is for one pane on one screen. The key is the name of the screen and
+the path of the pane, for example `RootPane@400/N_Menu/T_Title`. The plugin
+reads the name of the screen from the game while the screen is open: the
+editor shows it. The root has the width of its layout (`@400` for the top
+screen, `@320` for the bottom screen): the two screens of one process often
+have panes with the same names.
 
 ```ini
 [layouts]
-edit1 = app::pokelist::Process|RootPane@400/N_Top/T_Title|0.000,12.000,0.000,0.000,0.000,0.000,1.500,1.500,120.000,30.000,255,1,2,FF0000FF,0000FFFF
+edit1 = <screen>|RootPane@400/N_Top/T_Title|0.000,12.000,0.000,0.000,0.000,0.000,1.500,1.500,120.000,30.000,255,1,2,FF0000FF,0000FFFF
 ```
 
 The values are: translate (3), rotate (3), scale (2), size (2), alpha, visible,
 the number of colors, then the colors as `RRGGBBAA`. A text box can have a
-last part after a second `|`: its text, in UTF-8, with `
-` for a new line. The
+last part after a second `|`: its text, in UTF-8, with `\n` for a new line. The
 plugin reads the file at the start. It keeps 24 changes at most.
 
 Two panes can have the same name. The path tells them apart.

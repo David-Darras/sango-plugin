@@ -49,7 +49,13 @@ The plugin runs inside the memory of the game. It must stay small.
 - C++11 (`-std=gnu++11`). Do not use C++14 or later.
 - No exceptions (`throw`, `try`).
 - No RTTI (`dynamic_cast`, `typeid`).
-- No `std::string`, no `std::vector`, no `new` in a loop. Use fixed arrays.
+- No `std::string`, no `std::vector`, no `new` in a loop. Use fixed arrays
+  (`core::FixedList`).
+- A member of a singleton has a constant start value (`= 0`, `= nullptr`,
+  `= {}`) or a `constexpr` constructor. Then the singleton is a constant of
+  the program. Else the program builds it at the first call, behind a guard,
+  and the guard calls `abort()` when the game and the plugin call it at the
+  same time.
 
 ### Structure
 

@@ -35,6 +35,12 @@
  *
  * MyFeature::GetInstance().is_enabled = true;
  * @endcode
+ *
+ * Give each member a constant start value (`= 0`, `= nullptr`, `= {}`), or a
+ * type with a `constexpr` constructor (core::Event, core::FixedList). The
+ * object is then a constant of the program. Else the program builds it at the
+ * first call of GetInstance(), behind a guard: the guard calls abort() when
+ * the game and the plugin call GetInstance() at the same time.
  */
 
 #pragma once
