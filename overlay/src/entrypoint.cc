@@ -20,6 +20,11 @@
  * @brief The overlay: all the pages of the library in one menu.
  *
  * Use the overlay to explore and to change the game while it runs.
+ *
+ * The test content (the test foes, the typed Pokémon, the test animations and
+ * the test entries of the menu) is in the plugin only with SANGO_TEST:
+ *   make overlay DEFINES=-DSANGO_TEST
+ * Without it, the link removes its code and its data.
  */
 
 #include "plugin.h"
@@ -54,12 +59,14 @@ void Initialize() {
   battle::RegisterCustomItems();
   battle::RegisterTypeMoves();
   battle::RegisterCustomTypes();
+#ifdef SANGO_TEST
   battle::RegisterTestFoes();
   battle::PatchTypedPokemon();
   ui::PageExtensions::GetInstance().pokemon_page = battle::AddTypeTestEntries;
   battle::RegisterAbsoluteZeroAnimation();
   battle::RegisterThunderboltAnimation();
   battle::RegisterTypeMovesAnimations();
+#endif
 
   script::Install();
 #ifdef GAME_ORAS
