@@ -47,7 +47,7 @@ void MegaEvolution::Initialize() {
 }
 
 void MegaEvolution::LoadMegaEvolutionTableHook(SpeciesId species) {
-  const bool extra = SpeciesTable::IsGen7(static_cast<u16>(species));
+  const bool extra = SpeciesTable::IsAddedSpecies(static_cast<u16>(species));
   load_mega_evolution_table_hook(extra ? static_cast<SpeciesId>(1) : species);
 
   auto& mega_evolve_table = *Database::GetInstance().mega_evolution;

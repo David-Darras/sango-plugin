@@ -39,8 +39,8 @@ class AlolanForms {
   MAKE_SINGLETON(AlolanForms)
 
 public:
-  static constexpr u32 kSpeciesEntries = 826;
-  static constexpr u32 kEntrySize = 0x50;
+  /// The number of extra forms. The sizes of the species table are in
+  /// pokemon::SpeciesTable.
   static constexpr u32 kFormCount = 138;
 
   /// Adds the extra forms of a species to its Mega Evolution table.

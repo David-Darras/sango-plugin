@@ -113,7 +113,7 @@ u32 AlolanForms::GetMegaEvolvedFormNoHook(void* manager, void* poke) {
 bool AlolanForms::PatchMegaTable(SpeciesId species, MegaEvolutionData* table) {
   const u32 count = FormCount(static_cast<u16>(species));
   if (count != 0) {
-    if (SpeciesTable::IsGen7(static_cast<u16>(species))) std::memset(table, 0, sizeof(*table));
+    if (SpeciesTable::IsAddedSpecies(static_cast<u16>(species))) std::memset(table, 0, sizeof(*table));
     u32 route = 0;
     for (u32 rank = 0; rank < count; rank++) {
       while (route < kMaxRoutes &&

@@ -45,7 +45,7 @@ void Evolution::Initialize() {
 }
 
 void Evolution::LoadEvolveTableHook(SpeciesId species, u32 b, u32 c, u32 d) {
-  const bool extra = SpeciesTable::IsGen7(static_cast<u16>(species));
+  const bool extra = SpeciesTable::IsAddedSpecies(static_cast<u16>(species));
   load_evolve_table_hook(extra ? static_cast<SpeciesId>(1) : species, b, c, d);
   PatchEvolve(species);
   battle::ItemExtension::PatchEvolution(species,

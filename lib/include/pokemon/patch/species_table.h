@@ -65,8 +65,11 @@ public:
   static bool IsBuilt() { return GetInstance().is_built_; }
   /// Changes the model of a new species into the model of its carrier.
   static void PatchModelRequest(PokeInfo* info);
-  /// Returns true for a species that the plugin or the product adds.
-  static bool IsGen7(u16 species);
+  /// Returns true for a species that the plugin or the product adds (the ids
+  /// after 723).
+  static bool IsAddedSpecies(u16 species);
+  /// The old name of IsAddedSpecies().
+  static bool IsGen7(u16 species) { return IsAddedSpecies(species); }
   /// Returns true for a species that the product adds.
   static bool IsNewSpecies(u16 species);
   /**

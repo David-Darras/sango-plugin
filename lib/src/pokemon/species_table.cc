@@ -61,11 +61,23 @@ static const Gen7Species& Extra(u32 i) {
 
 u16 SpeciesTable::kFirstGen7Species = kGen7Species[0].species;
 
-bool SpeciesTable::IsGen7(u16 species) {
-  for (u32 i = 0; i < SpeciesTable::kExtraCount; i++) {
-    if (Extra(i).species == species) return true;
+// Returns the data of a species of the library, or null. The ids follow the
+// order of the tables (724 to 1020): the index is the id minus the first id.
+static const Gen7Species* FindExtra(u16 species) {
+  const u32 index = static_cast<u32>(species - kGen7Species[0].species);
+  if (species >= kGen7Species[0].species && index < SpeciesTable::kExtraCount &&
+      Extra(index).species == species) {
+    return &Extra(index);
   }
-  return IsNewSpecies(species);
+  // A table with a gap: look at all the entries.
+  for (u32 i = 0; i < SpeciesTable::kExtraCount; i++) {
+    if (Extra(i).species == species) return &Extra(i);
+  }
+  return nullptr;
+}
+
+bool SpeciesTable::IsAddedSpecies(u16 species) {
+  return FindExtra(species) != nullptr || IsNewSpecies(species);
 }
 
 bool SpeciesTable::IsNewSpecies(u16 species) {
@@ -124,11 +136,11 @@ void SpeciesTable::PatchModelRequest(PokeInfo* info) {
     info->form = added->model_form;
     return;
   }
-  for (u32 i = 0; i < SpeciesTable::kExtraCount; i++) {
-    if (Extra(i).species != species) continue;
+  const Gen7Species* extra = FindExtra(species);
+  if (extra != nullptr) {
     const u32 form_model = info->form != FormId::kNormal
         ? AlolanForms::GetModelForm(species, static_cast<u32>(info->form)) : 0;
-    const u32 model = form_model != 0 ? form_model : Extra(i).model_form;
+    const u32 model = form_model != 0 ? form_model : extra->model_form;
     if ((model & kNativeModel) != 0) {
       info->species = static_cast<SpeciesId>(model & ~kNativeModel);
       info->form = FormId::kNormal;
@@ -239,9 +251,9 @@ void SpeciesTable::GetSpeciesNameHook(String* output, u16 species) {
     output->Set(u"???");
     return;
   }
-  for (u32 i = 0; i < SpeciesTable::kExtraCount; i++) {
-    if (Extra(i).species != species) continue;
-    if (output != nullptr) output->Set(Extra(i).name);
+  const Gen7Species* extra = FindExtra(species);
+  if (extra != nullptr) {
+    if (output != nullptr) output->Set(extra->name);
     return;
   }
   const NewSpeciesEntry* added = FindNewSpecies(species);
@@ -253,19 +265,19 @@ void SpeciesTable::GetSpeciesNameHook(String* output, u16 species) {
 }
 
 void SpeciesTable::LoadMovepoolHook(u16 species, u8 form) {
-  for (u32 i = 0; i < SpeciesTable::kExtraCount; i++) {
-    if (Extra(i).species != species) continue;
+  const Gen7Species* extra = FindExtra(species);
+  if (extra != nullptr) {
     load_movepool_hook(1, 0);
     auto& pool = Movepool::Object();
     pool.species = static_cast<SpeciesId>(species);
     pool.form = static_cast<FormId>(form);
     u32 count = 0;
     for (u32 k = 0; k < Gen7Species::kMoveMax; k++) {
-      const u16 move = Extra(i).moves[k].move;
+      const u16 move = extra->moves[k].move;
       if (move == 0) break;
       if (move >= static_cast<u16>(MoveId::kCount)) continue;
       pool.entry[count].move = static_cast<MoveId>(move);
-      pool.entry[count].level = Extra(i).moves[k].level;
+      pool.entry[count].level = extra->moves[k].level;
       pool.entry[count].padding = 0;
       count++;
     }
@@ -291,11 +303,11 @@ void SpeciesTable::LoadMovepoolHook(u16 species, u8 form) {
 }
 
 bool SpeciesTable::PatchEvolutionTable(u16 species, EvolutionData* table) {
-  for (u32 i = 0; i < SpeciesTable::kExtraCount; i++) {
-    if (Extra(i).species != species) continue;
+  const Gen7Species* extra = FindExtra(species);
+  if (extra != nullptr) {
     std::memset(table, 0, sizeof(*table));
     for (u32 k = 0; k < Gen7Species::kEvolutionMax; k++) {
-      const Gen7Evolution& evolution = Extra(i).evolutions[k];
+      const Gen7Evolution& evolution = extra->evolutions[k];
       table->data[k].method = static_cast<EvolutionMethod>(evolution.method);
       table->data[k].arg = evolution.arg;
       table->data[k].species = static_cast<SpeciesId>(evolution.species);
