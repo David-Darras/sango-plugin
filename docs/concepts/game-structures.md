@@ -124,6 +124,8 @@ const pokemon::CoreData copy = pokemon::ReadPokemon(*first->core);
 ```
 
 `EditPokemon` also changes a Pokémon of a box: give its `CoreData`.
+`pokemon::EditTeam` decrypts several Pokémon at the same time, for a change
+that needs all the team (for example `TrainerTeam::ApplyTo()`).
 Give `false` as the second parameter when the game must not calculate the stats
 again (a Pokémon of a battle, or data that you restore after).
 

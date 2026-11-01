@@ -129,19 +129,12 @@ void TrainerTeams::Apply(Config& config, TrainerId trainer_id) {
     *opponents->pokemons[i]->runtime = *opponents->pokemons[0]->runtime;
   }
 
-  for (u32 i = 0; i < count; i++) {
-    opponents->pokemons[i]->accessor->Decrypt();
-  }
-
-  team->ApplyTo(config);
-
-  for (u32 i = 0; i < count; i++) {
-    opponents->pokemons[i]->core->ResetNickname();
-    opponents->pokemons[i]->accessor->Encrypt();
-  }
-  for (u32 i = 0; i < count; i++) {
-    opponents->pokemons[i]->UpdateRuntimeData();
-  }
+  {
+    // ApplyTo() changes all the Pokemon of the team at the same time.
+    pokemon::EditTeam edit(opponents->pokemons, count);
+    team->ApplyTo(config);
+    for (u32 i = 0; i < edit.Count(); i++) edit[i].ResetNickname();
+  }  // Encrypts the team, then calculates the stats again.
   opponents->HealAllPokemons();
 }
 

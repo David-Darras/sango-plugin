@@ -91,6 +91,16 @@ public:
     accessor_->Decrypt();
   }
 
+  /// Changes the data of an accessor of the game (for example the accessor of
+  /// the summary screen). The game calculates the stats itself.
+  explicit EditPokemon(DataAccessor& accessor)
+    : param_(nullptr),
+      core_(accessor.GetCoreData()),
+      accessor_(&accessor),
+      update_stats_(false) {
+    accessor_->Decrypt();
+  }
+
   ~EditPokemon() {
     accessor_->Encrypt();
     if (update_stats_ && param_ != nullptr) param_->UpdateRuntimeData();
@@ -135,6 +145,54 @@ private:
   CoreData* core_;
   DataAccessor* accessor_;
   DataAccessor own_accessor_;
+  bool update_stats_;
+};
+
+/**
+ * @brief Decrypts several Pokémon while the object lives, for a change that
+ *        needs all of them at the same time (for example a team of a battle).
+ *
+ * @code
+ * pokemon::EditTeam edit(opponents->pokemons, opponents->count);
+ * for (u32 i = 0; i < edit.Count(); i++) edit[i].item = ItemId::kLeftovers;
+ * @endcode
+ */
+class EditTeam {
+public:
+  /// The number of Pokémon of a team at most.
+  static constexpr u32 kMaxCount = 6;
+
+  /**
+   * @param pokemons The Pokémon (for example PokemonTeam::pokemons).
+   * @param count The number of Pokémon to change (6 at most).
+   * @param update_stats true: at the end, the game calculates the stats of
+   *        each Pokémon again. See EditPokemon.
+   */
+  EditTeam(savedata::PokemonParam* const* pokemons, u32 count,
+           bool update_stats = true)
+    : pokemons_(pokemons),
+      count_(count < kMaxCount ? count : kMaxCount),
+      update_stats_(update_stats) {
+    for (u32 i = 0; i < count_; i++) pokemons_[i]->accessor->Decrypt();
+  }
+
+  ~EditTeam() {
+    for (u32 i = 0; i < count_; i++) pokemons_[i]->accessor->Encrypt();
+    if (!update_stats_) return;
+    for (u32 i = 0; i < count_; i++) pokemons_[i]->UpdateRuntimeData();
+  }
+
+  EditTeam(const EditTeam&) = delete;
+  EditTeam& operator=(const EditTeam&) = delete;
+
+  /// Returns the number of Pokémon that the object decrypted.
+  u32 Count() const { return count_; }
+  /// Gives the decrypted data of the Pokémon number `index`.
+  CoreData& operator[](u32 index) const { return *pokemons_[index]->core; }
+
+private:
+  savedata::PokemonParam* const* pokemons_;
+  u32 count_;
   bool update_stats_;
 };
 

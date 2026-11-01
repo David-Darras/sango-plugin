@@ -529,27 +529,21 @@ void PatchTrainerData(battle::Config& config, TrainerId& trainer_id) {
         ->pokemons[0]->runtime;
   }
 
-  for (u32 i = 0; i < 6; i++) {
-    config.pokemon_teams[0]->pokemons[i]->accessor->Decrypt();
-    config.pokemon_teams[1]->pokemons[i]->accessor->Decrypt();
-    config.pokemon_teams[1]->pokemons[i]->core->experience = 0xFFFFFFFF;
-  }
+  {
+    // The two teams stay decrypted while the plugin changes them. The game
+    // calculates the stats of the player again itself.
+    pokemon::EditTeam player(config.pokemon_teams[0]->pokemons, 6, false);
+    pokemon::EditTeam trainer(config.pokemon_teams[1]->pokemons, 6);
+    for (u32 i = 0; i < 6; i++) trainer[i].experience = 0xFFFFFFFF;
 
-  const battle::TrainerTeam* team = battle::TrainerTeams::Find(trainer_id);
-  if (team != nullptr) team->ApplyTo(config);
+    const battle::TrainerTeam* team = battle::TrainerTeams::Find(trainer_id);
+    if (team != nullptr) team->ApplyTo(config);
 
-  PatchTrainer_Level(config);
-  PatchTrainer_AI(config);
+    PatchTrainer_Level(config);
+    PatchTrainer_AI(config);
 
-  for (u32 i = 0; i < 6; i++) {
-    config.pokemon_teams[1]->pokemons[i]->core->ResetNickname();
-    config.pokemon_teams[1]->pokemons[i]->accessor->Encrypt();
-    config.pokemon_teams[0]->pokemons[i]->accessor->Encrypt();
-  }
-
-  for (u32 i = 0; i < 6; i++) {
-    config.pokemon_teams[1]->pokemons[i]->UpdateRuntimeData();
-  }
+    for (u32 i = 0; i < 6; i++) trainer[i].ResetNickname();
+  }  // Encrypts the two teams, then calculates the stats of the trainer.
 
   config.pokemon_teams[1]->HealAllPokemons();
 

@@ -23,6 +23,7 @@
  */
 
 #include "ui/patch/app_status.h"
+#include "pokemon/edit_pokemon.h"
 #include "savedata/native/pokemon_team.h"
 
 #include <type_traits>
@@ -492,40 +493,41 @@ void AppStatus::Update(savedata::PokemonParam& pokemon,
 
     case Mode::kEditing: {
       refresh = true;
-      accessor.Decrypt();
-      pokemon::CoreData& core = *accessor.GetCoreData();
-      switch (key) {
-        case Key::kX:
-          core.SetMaxContest();
-          core.SetMaxIVs();
-          core.SetStats(0, 0, 0, 0, 0, 0);
-          break;
-        case Key::kRight:
-          current_pane_->Next(core, 1);
-          break;
-        case Key::kLeft:
-          current_pane_->Prev(core, 1);
-          break;
-        case Key::kUp:
-          current_pane_->Next(core, 10);
-          break;
-        case Key::kDown:
-          current_pane_->Prev(core, 10);
-          break;
-        case Key::kR:
-          current_pane_->Next(core, 100);
-          break;
-        case Key::kL:
-          current_pane_->Prev(core, 100);
-          break;
-        case Key::kY:
-        case Key::kA:
-          ChangeMode(Mode::kNavigation);
-          break;
-        default:
-          break;
-      }
-      accessor.Encrypt();
+      {
+        pokemon::EditPokemon edit(accessor);
+        pokemon::CoreData& core = *edit;
+        switch (key) {
+          case Key::kX:
+            core.SetMaxContest();
+            core.SetMaxIVs();
+            core.SetStats(0, 0, 0, 0, 0, 0);
+            break;
+          case Key::kRight:
+            current_pane_->Next(core, 1);
+            break;
+          case Key::kLeft:
+            current_pane_->Prev(core, 1);
+            break;
+          case Key::kUp:
+            current_pane_->Next(core, 10);
+            break;
+          case Key::kDown:
+            current_pane_->Prev(core, 10);
+            break;
+          case Key::kR:
+            current_pane_->Next(core, 100);
+            break;
+          case Key::kL:
+            current_pane_->Prev(core, 100);
+            break;
+          case Key::kY:
+          case Key::kA:
+            ChangeMode(Mode::kNavigation);
+            break;
+          default:
+            break;
+        }
+      }  // Encrypts the data.
       // This corrects the PP.
       pokemon.UpdateRuntimeData();
       savedata::PokemonTeam::GetInstance().HealAllPokemons();
@@ -659,15 +661,16 @@ void AppStatus::Draw(Pane* panes[], u32 pane_count,
   static Color8 WHITE(255, 255, 255, 255);
   static Color8 BLACK(0, 0, 0, 255);
 
-  accessor.Decrypt();
-  for (u32 i = 0; i < pane_count; i++) {
-    if (panes[i]->IsWhite()) {
-      panes[i]->Print(manager, accessor, WHITE, WHITE);
-    } else {
-      panes[i]->Print(manager, accessor, BLACK, BLACK);
+  {
+    pokemon::EditPokemon edit(accessor);
+    for (u32 i = 0; i < pane_count; i++) {
+      if (panes[i]->IsWhite()) {
+        panes[i]->Print(manager, accessor, WHITE, WHITE);
+      } else {
+        panes[i]->Print(manager, accessor, BLACK, BLACK);
+      }
     }
   }
-  accessor.Encrypt();
 
   bool contains_current = false;
   for (u32 i = 0; i < pane_count; i++) {
