@@ -1,0 +1,26 @@
+# The cases of shops.txt. A line that ends with the comment ERR has a mistake.
+Potion, 100
+[shop 12]
+Potion, 100
+Rare Candy, 1000
+[all shops]
+Poke Ball, 200
+[Pokemon Shop]
+Eevee, 10, 5000
+[pokemon shop 3]
+Larvitar, 15, 20000
+[shop 1]
+Nothing, 100 # ERR
+Potion # ERR
+Potion, a lot # ERR
+Potion, 1, 2 # ERR
+[pokemon shop]
+Eevee, 101, 10 # ERR
+Eevee, 0, 10 # ERR
+Nobody, 5, 10 # ERR
+Eevee, 5 # ERR
+Eevee, 5, x # ERR
+[shop] # ERR
+Potion, 100
+[12] # ERR
+[pokemon shops] # ERR

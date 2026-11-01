@@ -1,0 +1,19 @@
+# The cases of items.txt. A line that ends with the comment ERR has a mistake.
+price = 10
+[Potion]
+price = 100
+hp restore = 30
+fling power = 30
+[Protein]
+evs = 0, 63, 0, 0, 0, 0
+[Nothing] # ERR
+price = 10
+[Potion]
+price = 70000 # ERR
+fling power = 300 # ERR
+hp restore = x # ERR
+evs = 1, 2, 3 # ERR
+evs = 0, 200, 0, 0, 0, 0 # ERR
+evs = 0, 1, 2, 3, 4, 5, 6 # ERR
+colour = blue # ERR
+no equal sign # ERR

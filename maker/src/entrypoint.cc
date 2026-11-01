@@ -20,10 +20,11 @@
  * @brief Sango Maker: a ROM hack without code.
  *
  * The files of the data folder (sdmc:/sango/maker) change the game:
- * encounters.txt, trainers.txt, species.txt, story.txt, characters.txt and
- * rules.txt (see core::DataFiles), and the files of the editors of the menu
- * (scripts.txt, map_events.txt, zones.txt, texts.txt, maps/, translations/).
- * The menu has all the pages of the library: the editors make the files.
+ * encounters.txt, trainers.txt, species.txt, story.txt, characters.txt,
+ * rules.txt, shops.txt and items.txt (see core::DataFiles), and the files of
+ * the editors of the menu (scripts.txt, map_events.txt, zones.txt, texts.txt,
+ * maps/, translations/). The menu has all the pages of the library: the
+ * editors make the files.
  */
 
 #include "sango.h"

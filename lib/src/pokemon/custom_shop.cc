@@ -25,6 +25,7 @@
 #include "pokemon/patch/custom_shop.h"
 #include "core/cheat_code_manager.h"
 #include "core/hook.h"
+#include "core/problems.h"
 #include "core/utils.h"
 #include "overworld/patch/gift_pokemon.h"
 #include "pokemon/native/gift_pokemon_data.h"
@@ -72,11 +73,26 @@ void CustomShop::EnablePokemonShop(bool is_enabled) {
   GetInstance().is_pokemon_shop_enabled_ = is_enabled;
 }
 
-void CustomShop::SetItems(const ShopItem* items, u32 count, u32 shop_id) {
+bool CustomShop::SetItems(const ShopItem* items, u32 count, u32 shop_id) {
   auto& shop = GetInstance();
-  shop.items = items;
-  shop.count = count;
-  shop.items_shop_id = shop_id;
+  const ItemList list = {items, count, shop_id};
+  ItemList* same = shop.item_lists_.Find(
+      [shop_id](const ItemList& entry) { return entry.shop_id == shop_id; });
+  if (same != nullptr) {
+    *same = list;
+    return true;
+  }
+  if (!shop.item_lists_.Add(list)) {
+    core::Problems::Add(u"shop %u: more than %u item lists", shop_id,
+                        kMaxItemLists);
+    return false;
+  }
+  return true;
+}
+
+void CustomShop::RemoveItems(bool (*is_removed)(const ShopItem* items)) {
+  GetInstance().item_lists_.RemoveIf(
+      [is_removed](const ItemList& list) { return is_removed(list.items); });
 }
 
 void CustomShop::SetPokemons(const ShopPokemon* pokemons, u32 count, u32 shop_id) {
@@ -206,14 +222,20 @@ void CustomShop::LoadShopItemsHook(ShopData* data, ShopType type, u32 id,
     return;
   }
 
-  if (shop.items == nullptr) return;
-  if (shop.items_shop_id != kAnyShop && shop.items_shop_id != id) return;
+  // The list of this shop, else the list for all the shops.
+  const ItemList* list = shop.item_lists_.Find(
+      [id](const ItemList& entry) { return entry.shop_id == id; });
+  if (list == nullptr) {
+    list = shop.item_lists_.Find(
+        [](const ItemList& entry) { return entry.shop_id == kAnyShop; });
+  }
+  if (list == nullptr || list->items == nullptr) return;
 
   const u32 count =
-      shop.count < ShopData::kMaxItems ? shop.count : ShopData::kMaxItems;
+      list->count < ShopData::kMaxItems ? list->count : ShopData::kMaxItems;
   for (u32 i = 0; i < count; i++) {
-    data->items[i].id = shop.items[i].id;
-    data->items[i].price = shop.items[i].price;
+    data->items[i].id = list->items[i].id;
+    data->items[i].price = list->items[i].price;
   }
   data->count = count;
 }

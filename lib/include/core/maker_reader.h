@@ -18,7 +18,7 @@
 /**
  * @file maker_reader.h
  * @brief Reads the text files of Sango Maker (encounters.txt, trainers.txt,
- * species.txt, story.txt, characters.txt, rules.txt).
+ * species.txt, story.txt, characters.txt, rules.txt, shops.txt, items.txt).
  *
  * The reader only reads: it gives each part of a file to a maker::Sink, and
  * the sink applies it. core::DataFiles has the sink that changes the game.
@@ -56,7 +56,9 @@
 #include "pokemon/constant/shiny_rate.h"
 #include "pokemon/constant/species.h"
 #include "pokemon/constant/type.h"
+#include "pokemon/native/shop_item.h"
 #include "pokemon/patch/level_move.h"
+#include "pokemon/patch/shop_pokemon.h"
 #include "script/constant/script.h"
 
 namespace core {
@@ -116,6 +118,25 @@ struct Opponent {
   bool has_moves;
   bool is_shiny;
 };
+
+/// The changes of an item of items.txt. A part that the file does not give
+/// has its `has_...` value false: the game value stays.
+struct ItemChange {
+  ItemId item;
+  u16 price;
+  u8 fling_power;
+  u8 hp_restore;
+  s8 evs[6]; ///< HP, Attack, Defense, Sp. Atk, Sp. Def, Speed.
+  bool has_price;
+  bool has_fling_power;
+  bool has_hp_restore;
+  bool has_evs;
+};
+
+/// The shop id of "[all shops]" in shops.txt (pokemon::CustomShop::kAnyShop).
+constexpr u32 kAllShops = 0xFFFFFFFF;
+/// The number of items or Pokémon of a shop at most.
+constexpr u32 kMaxShopItems = 60;
 
 /// A character or a trainer of characters.txt.
 struct Character {
@@ -244,6 +265,17 @@ public:
   virtual void OnShinyRate(pokemon::ShinyRate rate) {}
   virtual void OnStarters(const SpeciesId* species) {} ///< 3 species.
 
+  // shops.txt. `shop_id` is kAllShops for all the shops. The lists stay in
+  // memory.
+  virtual void OnShopItems(u32 shop_id, const pokemon::ShopItem* items,
+                           u32 count) {}
+  virtual void OnShopPokemons(u32 shop_id,
+                              const pokemon::ShopPokemon* pokemons,
+                              u32 count) {}
+
+  // items.txt.
+  virtual void OnItem(const ItemChange& change) {}
+
 protected:
   ~Sink() {}
 };
@@ -259,6 +291,8 @@ void ReadSpecies(const c8* text, u32 size, Sink& sink);
 void ReadStory(const c8* text, u32 size, Sink& sink);
 void ReadCharacters(const c8* text, u32 size, Sink& sink);
 void ReadRules(const c8* text, u32 size, Sink& sink);
+void ReadShops(const c8* text, u32 size, Sink& sink);
+void ReadItems(const c8* text, u32 size, Sink& sink);
 
 /// Returns the last script of story.txt with this id, or null.
 const Story* FindStory(u16 id);
@@ -268,7 +302,8 @@ const Instruction& GetInstruction(u32 index);
 const c8* GetCommandName(Op op);
 
 /// Returns true when `address` is in the memory of the reader: the slots,
-/// the learnsets, the evolutions and the texts that the sink received.
+/// the learnsets, the evolutions, the shop lists and the texts that the sink
+/// received.
 bool IsReaderMemory(const void* address);
 
 /// Forgets all the files that the reader read: the encounters, the texts,

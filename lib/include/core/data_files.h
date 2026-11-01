@@ -28,7 +28,10 @@
  * - `story.txt`: the scripts of the characters and of the events (talk,
  *   choices, conditions, battles, warps, gifts...),
  * - `characters.txt`: the characters and the trainers to add to the maps,
- * - `rules.txt`: the rules of the battles, the shiny rate and the starters.
+ * - `rules.txt`: the rules of the battles, the shiny rate and the starters,
+ * - `shops.txt`: the items and the Pokémon that the shops sell,
+ * - `items.txt`: the price, the power of Fling, the HP and the EVs of the
+ *   items.
  *
  * The files use the names of the library, in English: "Pikachu",
  * "Thunder Shock", "Route 101". The case, the spaces and the signs do not
@@ -64,8 +67,7 @@ public:
   bool is_live = false; ///< Reads the files again when they change.
   bool trace_story = false; ///< Writes each command of story.txt to the log.
 
-  /// Reads encounters.txt, trainers.txt, species.txt, story.txt,
-  /// characters.txt and rules.txt. Call it in SetUpHack().
+  /// Reads the files of the list above. Call it in SetUpHack().
   static void Load();
 
   /**

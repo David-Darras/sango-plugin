@@ -23,6 +23,8 @@ folder `sdmc:/sango/maker`:
 | `story.txt` | The scripts: messages, choices, conditions, gifts, battles, warps. |
 | `characters.txt` | The characters and the trainers that you add to the maps. |
 | `rules.txt` | The rules of the battles, the multipliers, the shiny rate and the starters. |
+| `shops.txt` | The items and the Pokémon that the shops sell. |
+| `items.txt` | The price, the power of Fling, the HP and the EVs of the items. |
 
 The menu of Sango Maker has all the editors of Sango Plugin. They write more
 files in the same folder: the scripts (`scripts.txt`), the events of the maps
@@ -250,6 +252,42 @@ starters = Treecko, Torchic, Mudkip
 A line that you remove keeps the value of the plugin. The menu changes the
 same settings (**Battle**, **Pokemon**).
 
+### The shops and the items
+
+`shops.txt` gives the stock of the shops. `items.txt` changes the data of the
+items.
+
+```text
+# shops.txt
+[shop 1]
+Rare Candy, 1000
+Potion, 100
+
+[pokemon shop]
+Eevee, 10, 5000
+```
+
+```text
+# items.txt
+[Potion]
+price = 100
+hp restore = 30
+
+[Protein]
+evs = 0, 63, 0, 0, 0, 0
+```
+
+| Line | What it does |
+|---|---|
+| `[shop N]` | The items of the shop with the id N. Each line: `item, price`. 60 items at most. |
+| `[all shops]` | The items of the shops that have no `[shop N]`. |
+| `[pokemon shop]`, `[pokemon shop N]` | The Poké Marts (or the shop N) sell these Pokémon instead of items. Each line: `species, level, price`. |
+| `price`, `fling power`, `hp restore`, `evs` | The data of the item of `[item]`. A key that you do not give keeps the value of the game. |
+
+To find the id of a shop: open the menu, **Sango Maker**, turn on **Log The
+Shop Ids**, open the shop in the game, then read **Plugin > Log**:
+`shop: type=0 id=1`.
+
 ## Step 8: Test
 
 Start the game. The changes are there at once: no build.
@@ -288,7 +326,7 @@ The project has an editor for these files: `tools/maker_editor/index.html`.
 Double-click it: it opens in your web browser. It works without internet.
 
 - The tabs are the files: Encounters, Trainers, Species, Story, Characters,
-  Rules.
+  Rules, Shops, Items.
 - The editor checks the file while you type, with the same rules as Sango
   Maker. Click a problem to go to its line.
 - The fields propose the names (species, moves, items, maps...).
@@ -336,7 +374,8 @@ void SetUpHack() {
 ## What you learned
 
 - Sango Maker reads `encounters.txt`, `trainers.txt`, `species.txt`,
-  `story.txt`, `characters.txt` and `rules.txt` in `sdmc:/sango/maker`.
+  `story.txt`, `characters.txt`, `rules.txt`, `shops.txt` and `items.txt` in
+  `sdmc:/sango/maker`.
 - `characters.txt` puts characters with a script, and trainers, on the maps.
 - A script of `story.txt` has a number from 33000 to 33999. The editors of the
   menu give it to a character or to an event.

@@ -25,20 +25,14 @@
 #pragma once
 
 #include "common.h"
+#include "core/fixed_list.h"
 #include "pokemon/constant/form.h"
 #include "pokemon/constant/item.h"
 #include "pokemon/constant/species.h"
 #include "pokemon/native/shop_data.h"
+#include "pokemon/patch/shop_pokemon.h"
 
 namespace pokemon {
-
-/// One Pokémon that a shop sells.
-struct ShopPokemon {
-  SpeciesId species;
-  FormId form;
-  u8 level;
-  u32 price;
-};
 
 /// The price unit of the default Pokémon list.
 constexpr u32 kCoin = 20;
@@ -62,6 +56,8 @@ public:
   /// A shop id that means "all the shops".
   static constexpr u32 kAnyShop = 0xFFFFFFFF;
   static constexpr u32 kDefaultShopId = kAnyShop;
+  /// The number of item lists of SetItems(): one for each shop id.
+  static constexpr u32 kMaxItemLists = 32;
 
   /// true: the normal Poké Marts sell Pokémon instead of items. Use
   /// EnablePokemonShop() to change it.
@@ -78,13 +74,20 @@ public:
 
   static void Initialize();
   /**
-   * @brief Replaces the items of a shop.
+   * @brief Replaces the items of a shop. Each shop id has its own list: a
+   *        second call with the same id replaces the list.
    * @param items The items and their prices. The array must stay in memory.
    * @param count The number of items (60 at most).
-   * @param shop_id The shop. The log shows the id when a shop opens.
+   * @param shop_id The shop. The log shows the id when a shop opens. With
+   *        kAnyShop, the list is for the shops that have no list.
+   * @return false when there are already kMaxItemLists lists.
    */
-  static void SetItems(const ShopItem* items, u32 count,
+  static bool SetItems(const ShopItem* items, u32 count,
                        u32 shop_id = kAnyShop);
+  /// Removes the item lists for which `is_removed(items)` is true.
+  static void RemoveItems(bool (*is_removed)(const ShopItem* items));
+  /// Returns the Pokémon of the Pokémon shop (see SetPokemons()).
+  static const ShopPokemon* GetPokemons() { return GetInstance().pokemons; }
   /**
    * @brief Sells Pokémon in a normal Poké Mart.
    * @param pokemons The Pokémon. The array must stay in memory. Null: sell no Pokémon.
@@ -129,9 +132,13 @@ private:
   static bool AddItemHook(void* bag, ItemId item, u16 count, void* heap);
   static s32 GetSelectedIndex(uptr event);
 
-  u32 count = 0;
-  const ShopItem* items = nullptr;
-  u32 items_shop_id = kAnyShop;
+  // The item lists of SetItems().
+  struct ItemList {
+    const ShopItem* items;
+    u32 count;
+    u32 shop_id;
+  };
+  core::FixedList<ItemList, kMaxItemLists> item_lists_;
   const ShopPokemon* pokemons = kShopPokemons;
   u32 pokemon_count = SIZE(kShopPokemons);
   u32 pokemon_shop_id = kDefaultShopId;

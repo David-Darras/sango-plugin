@@ -594,6 +594,82 @@ function checkRules(text) {
   return errors;
 }
 
+// "[shop 12]", "[all shops]", "[pokemon shop]" or "[pokemon shop 12]":
+// { isPokemonShop }, or null.
+function parseShopSection(text) {
+  const match = text.match(/^(.*\S)\s+(\d+)$/);
+  const name = norm(match ? match[1] : text);
+  if (name === "pokemonshop") return { isPokemonShop: true };
+  if (match ? name === "shop" : name === "allshops") return { isPokemonShop: false };
+  return null;
+}
+
+function checkShops(text) {
+  const errors = [];
+  let shop = null;
+  let count = 0;
+  let itemTotal = 0;
+  let pokemonTotal = 0;
+  for (const line of readLines(text)) {
+    const err = (message) => errors.push({ n: line.n, message });
+    if (line.isSection) {
+      count = 0;
+      shop = line.text === "" ? null : parseShopSection(line.text);
+      if (line.text !== "" && !shop) err("use [shop N], [all shops] or [pokemon shop]: " + line.text);
+      continue;
+    }
+    if (!shop) continue;
+    const parts = line.text.split(",").map((p) => p.trim());
+    if (shop.isPokemonShop) {
+      if (parts.length !== 3) { err("use species, level, price"); continue; }
+      if (!known("species", parts[0])) { err("unknown species: " + parts[0]); continue; }
+      if (!isNumber(parts[1]) || Number(parts[1]) < 1 || Number(parts[1]) > 100) { err("use a level from 1 to 100: " + parts[1]); continue; }
+      if (!isNumber(parts[2])) { err("give a price: " + parts[2]); continue; }
+      if (count >= 60 || pokemonTotal >= 128) { err("too many Pokémon: " + parts[0]); continue; }
+      pokemonTotal++;
+    } else {
+      if (parts.length !== 2) { err("use item, price"); continue; }
+      if (!known("item", parts[0])) { err("unknown item: " + parts[0]); continue; }
+      if (!isNumber(parts[1])) { err("give a price: " + parts[1]); continue; }
+      if (count >= 60 || itemTotal >= 1024) { err("too many items: " + parts[0]); continue; }
+      itemTotal++;
+    }
+    count++;
+  }
+  return errors;
+}
+
+function checkItems(text) {
+  const errors = [];
+  let open = false;
+  const upTo = (v, max) => isNumber(v) && Number(v) <= max;
+  for (const line of readLines(text)) {
+    const err = (message) => errors.push({ n: line.n, message });
+    if (line.isSection) {
+      open = line.text !== "" && known("item", line.text);
+      if (line.text !== "" && !open) err("unknown item: " + line.text);
+      continue;
+    }
+    if (!open) continue;
+    const kv = splitKey(line.text);
+    if (!kv) { err("use key = value"); continue; }
+    const [key, v] = kv;
+    if (key === "price") {
+      if (!upTo(v, 65535)) err("use a price from 0 to 65535: " + v);
+    } else if (key === "flingpower" || key === "hprestore") {
+      if (!upTo(v, 255)) err("use a number from 0 to 255: " + v);
+    } else if (key === "evs") {
+      const evs = v.split(",").map((p) => p.trim());
+      if (evs.length !== 6) { err("give 6 EVs: " + v); continue; }
+      const bad = evs.find((e) => !upTo(e, 127));
+      if (bad !== undefined) err("use EVs from 0 to 127: " + bad);
+    } else {
+      err("unknown key: " + key);
+    }
+  }
+  return errors;
+}
+
 // The files ---------------------------------------------------------------
 
 const FILES = {
@@ -603,6 +679,8 @@ const FILES = {
   story: { file: "story.txt", label: "Story", check: checkStory },
   characters: { file: "characters.txt", label: "Characters", check: checkCharacters },
   rules: { file: "rules.txt", label: "Rules", check: checkRules },
+  shops: { file: "shops.txt", label: "Shops", check: checkShops },
+  items: { file: "items.txt", label: "Items", check: checkItems },
 };
 
 const textarea = document.getElementById("text");
@@ -943,7 +1021,60 @@ function rulesHelper(panel) {
   );
 }
 
-const HELPERS = { encounters: encounterHelper, trainers: trainerHelper, species: speciesHelper, story: storyHelper, characters: charactersHelper, rules: rulesHelper };
+function shopsHelper(panel) {
+  const shop = field("Shop id (empty: all the shops)", null, { type: "number", min: 0 });
+  const item = field("Item", "item");
+  const price = field("Price", null, { type: "number", min: 0 });
+  const species = field("Pokémon", "species");
+  const level = field("Level", null, { type: "number", min: 1, max: 100 });
+  const pokemonPrice = field("Price", null, { type: "number", min: 0 });
+  panel.append(
+    el("h2", { textContent: "A shop" }),
+    shop,
+    el("div", { className: "buttons" }, [
+      button("New shop", () => insert(value(shop) === "" ? "[all shops]" : "[shop " + value(shop) + "]")),
+      button("New Pokémon shop", () => insert(value(shop) === "" ? "[pokemon shop]" : "[pokemon shop " + value(shop) + "]")),
+    ]),
+    el("h2", { textContent: "An item" }),
+    el("div", { className: "row grid2" }, [item, price]),
+    el("div", { className: "buttons" }, [
+      button("Insert", () => insert((value(item) || "Potion") + ", " + (value(price) || "200")), true),
+    ]),
+    el("h2", { textContent: "A Pokémon (Pokémon shop)" }),
+    el("div", { className: "row pokemon-row" }, [species, level, pokemonPrice]),
+    el("div", { className: "buttons" }, [
+      button("Insert", () => insert((value(species) || "Eevee") + ", " + (value(level) || "10") + ", " + (value(pokemonPrice) || "5000")), true),
+    ]),
+    el("p", { className: "hint", textContent: "Find the id of a shop: in the game, open the menu, Sango Maker, turn on Log The Shop Ids, then open the shop and read Plugin > Log. A shop has 60 items at most." })
+  );
+}
+
+function itemsHelper(panel) {
+  const item = field("Item", "item");
+  const price = field("Price (0 to 65535)", null, { type: "number", min: 0, max: 65535 });
+  const fling = field("Fling power", null, { type: "number", min: 0, max: 255 });
+  const hp = field("HP restore", null, { type: "number", min: 0, max: 255 });
+  const evs = ["HP", "Atk", "Def", "SpA", "SpD", "Spe"].map((s) => field(s + " EVs", null, { type: "number", min: 0, max: 127 }));
+  panel.append(
+    el("h2", { textContent: "Change an item" }),
+    item,
+    el("div", { className: "row grid3" }, [price, fling, hp]),
+    el("div", { className: "row grid6" }, evs),
+    el("div", { className: "buttons" }, [
+      button("Insert", () => {
+        let text = "[" + (value(item) || "Potion") + "]\n";
+        if (value(price) !== "") text += "price = " + value(price) + "\n";
+        if (value(fling) !== "") text += "fling power = " + value(fling) + "\n";
+        if (value(hp) !== "") text += "hp restore = " + value(hp) + "\n";
+        if (evs.some((e) => value(e) !== "")) text += "evs = " + evs.map((e) => value(e) || "0").join(", ") + "\n";
+        insert(text);
+      }, true),
+    ]),
+    el("p", { className: "hint", textContent: "An empty field keeps the value of the game. The selling price is half of the price." })
+  );
+}
+
+const HELPERS = { encounters: encounterHelper, trainers: trainerHelper, species: speciesHelper, story: storyHelper, characters: charactersHelper, rules: rulesHelper, shops: shopsHelper, items: itemsHelper };
 
 // The tabs and the files --------------------------------------------------
 

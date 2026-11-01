@@ -1404,6 +1404,202 @@ void OnRulesLine(Span line, bool is_section) {
   }
 }
 
+// shops.txt.
+
+pokemon::ShopItem shop_item_pool[1024];
+u32 shop_item_count = 0;
+pokemon::ShopPokemon shop_pokemon_pool[128];
+u32 shop_pokemon_count = 0;
+
+struct ShopState {
+  bool is_valid;
+  bool is_pokemon_shop;
+  u32 shop_id;
+  u32 first; // The first item or Pokémon of the shop in its pool.
+} shop_state = {false, false, kAllShops, 0};
+
+void CloseShop() {
+  if (!shop_state.is_valid) return;
+  shop_state.is_valid = false;
+  if (shop_state.is_pokemon_shop) {
+    sink->OnShopPokemons(shop_state.shop_id,
+                         shop_pokemon_pool + shop_state.first,
+                         shop_pokemon_count - shop_state.first);
+  } else {
+    sink->OnShopItems(shop_state.shop_id, shop_item_pool + shop_state.first,
+                      shop_item_count - shop_state.first);
+  }
+}
+
+// [shop 12], [all shops], [pokemon shop] or [pokemon shop 12].
+bool ParseShopSection(Span line) {
+  // The number at the end, if there is one.
+  Span name = line;
+  u32 shop_id = kAllShops;
+  u32 last = line.length;
+  while (last > 0 && !IsSpace(line.text[last - 1])) last--;
+  u32 number = 0;
+  if (last > 0 &&
+      ParseNumber(Span{line.text + last, line.length - last}, &number)) {
+    shop_id = number;
+    name = Trim(Span{line.text, last});
+  }
+  bool is_pokemon_shop = false;
+  if (IsWord(name, "pokemonshop")) {
+    is_pokemon_shop = true;
+  } else if (shop_id != kAllShops ? !IsWord(name, "shop")
+                                  : !IsWord(name, "allshops")) {
+    return false;
+  }
+  shop_state = {true, is_pokemon_shop, shop_id,
+                is_pokemon_shop ? shop_pokemon_count : shop_item_count};
+  return true;
+}
+
+void OnShopLine(Span line, bool is_section) {
+  if (is_section) {
+    CloseShop();
+    if (line.length == 0) return;
+    if (!ParseShopSection(line)) {
+      Report("use [shop N], [all shops] or [pokemon shop]:", line);
+    }
+    return;
+  }
+  if (!shop_state.is_valid) return;
+  Span parts[4];
+  const u32 count = Split(line, ',', parts, SIZE(parts));
+  if (shop_state.is_pokemon_shop) {
+    // Eevee, 10, 5000
+    u32 species = 0;
+    u32 level = 0;
+    u32 price = 0;
+    if (count != 3) {
+      Report("use species, level, price:", line);
+      return;
+    }
+    if (!FindOrReport(NameKind::kSpecies, parts[0], &species,
+                      "unknown species")) {
+      return;
+    }
+    if (!ParseNumber(parts[1], &level) || level < 1 || level > 100) {
+      Report("use a level from 1 to 100:", parts[1]);
+      return;
+    }
+    if (!ParseNumber(parts[2], &price)) {
+      Report("give a price:", parts[2]);
+      return;
+    }
+    if (shop_pokemon_count - shop_state.first >= kMaxShopItems ||
+        shop_pokemon_count >= SIZE(shop_pokemon_pool)) {
+      Report("too many Pokemon:", parts[0]);
+      return;
+    }
+    shop_pokemon_pool[shop_pokemon_count++] = {
+        static_cast<SpeciesId>(species), FormId::kNormal,
+        static_cast<u8>(level), price};
+    return;
+  }
+  // Potion, 300
+  u32 item = 0;
+  u32 price = 0;
+  if (count != 2) {
+    Report("use item, price:", line);
+    return;
+  }
+  if (!FindOrReport(NameKind::kItem, parts[0], &item, "unknown item")) return;
+  if (!ParseNumber(parts[1], &price)) {
+    Report("give a price:", parts[1]);
+    return;
+  }
+  if (shop_item_count - shop_state.first >= kMaxShopItems ||
+      shop_item_count >= SIZE(shop_item_pool)) {
+    Report("too many items:", parts[0]);
+    return;
+  }
+  pokemon::ShopItem& entry = shop_item_pool[shop_item_count++];
+  entry.id = static_cast<ItemId>(item);
+  entry._0 = 0;
+  entry.price = price;
+}
+
+// items.txt.
+
+struct ItemState {
+  bool is_valid;
+  ItemChange change;
+} item_state = {};
+
+void CloseItem() {
+  if (!item_state.is_valid) return;
+  item_state.is_valid = false;
+  sink->OnItem(item_state.change);
+}
+
+// Reads a number from 0 to `max`.
+bool ParseSmallNumber(Span value, u32 max, u32* number) {
+  return ParseNumber(value, number) && *number <= max;
+}
+
+void OnItemLine(Span line, bool is_section) {
+  if (is_section) {
+    CloseItem();
+    if (line.length == 0) return;
+    u32 item = 0;
+    if (!FindOrReport(NameKind::kItem, line, &item, "unknown item")) return;
+    item_state = {};
+    item_state.is_valid = true;
+    item_state.change.item = static_cast<ItemId>(item);
+    return;
+  }
+  if (!item_state.is_valid) return;
+  Span key;
+  Span value;
+  if (!SplitKey(line, &key, &value)) {
+    Report("use key = value:", line);
+    return;
+  }
+  ItemChange& change = item_state.change;
+  u32 number = 0;
+  if (IsWord(key, "price")) {
+    if (!ParseSmallNumber(value, 65535, &number)) {
+      Report("use a price from 0 to 65535:", value);
+      return;
+    }
+    change.price = static_cast<u16>(number);
+    change.has_price = true;
+  } else if (IsWord(key, "flingpower")) {
+    if (!ParseSmallNumber(value, 255, &number)) {
+      Report("use a number from 0 to 255:", value);
+      return;
+    }
+    change.fling_power = static_cast<u8>(number);
+    change.has_fling_power = true;
+  } else if (IsWord(key, "hprestore")) {
+    if (!ParseSmallNumber(value, 255, &number)) {
+      Report("use a number from 0 to 255:", value);
+      return;
+    }
+    change.hp_restore = static_cast<u8>(number);
+    change.has_hp_restore = true;
+  } else if (IsWord(key, "evs")) {
+    Span parts[7];
+    if (Split(value, ',', parts, SIZE(parts)) != 6) {
+      Report("give 6 EVs:", value);
+      return;
+    }
+    for (u32 k = 0; k < 6; k++) {
+      if (!ParseSmallNumber(parts[k], 127, &number)) {
+        Report("use EVs from 0 to 127:", parts[k]);
+        return;
+      }
+      change.evs[k] = static_cast<s8>(number);
+    }
+    change.has_evs = true;
+  } else {
+    Report("unknown key:", key);
+  }
+}
+
 } // namespace
 
 void ReadEncounters(const c8* text, u32 size, Sink& sink) {
@@ -1428,6 +1624,14 @@ void ReadCharacters(const c8* text, u32 size, Sink& sink) {
 
 void ReadRules(const c8* text, u32 size, Sink& sink) {
   ReadLines(text, size, "rules.txt", sink, OnRulesLine);
+}
+
+void ReadShops(const c8* text, u32 size, Sink& sink) {
+  ReadLines(text, size, "shops.txt", sink, OnShopLine);
+}
+
+void ReadItems(const c8* text, u32 size, Sink& sink) {
+  ReadLines(text, size, "items.txt", sink, OnItemLine);
 }
 
 const Story* FindStory(u16 id) {
@@ -1469,7 +1673,8 @@ bool IsIn(const void* address, const T (&pool)[N]) {
 bool IsReaderMemory(const void* address) {
   return IsIn(address, slot_pool) || IsIn(address, move_pool) ||
          IsIn(address, step_pool) || IsIn(address, text_pool) ||
-         IsIn(address, story_text_pool);
+         IsIn(address, story_text_pool) || IsIn(address, shop_item_pool) ||
+         IsIn(address, shop_pokemon_pool);
 }
 
 void Clear() {
@@ -1484,6 +1689,10 @@ void Clear() {
   open_block_count = 0;
   is_story_open = false;
   is_trainer_open = false;
+  shop_item_count = 0;
+  shop_pokemon_count = 0;
+  shop_state.is_valid = false;
+  item_state.is_valid = false;
 }
 
 } // namespace maker

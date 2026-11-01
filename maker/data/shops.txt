@@ -1,0 +1,23 @@
+# shops.txt: the items and the Pokémon that the shops sell.
+# See docs/tutorials/18-make-a-rom-hack-without-code.md.
+#
+# [shop N]: the items of the shop with the id N. To find the id: open the
+# menu, Sango Maker, turn on "Log The Shop Ids", open the shop in the game,
+# then read Plugin > Log.
+# [all shops]: the items of the shops that have no list.
+# Each line: item, price. 60 items at most for each shop.
+#
+# [pokemon shop]: the Poké Marts sell these Pokémon instead of items.
+# [pokemon shop N]: only the shop with the id N.
+# Each line: species, level, price.
+#
+# Remove the # at the start of the lines below to use them.
+
+# [shop 1]
+# Rare Candy, 1000
+# Master Ball, 50000
+# Potion, 100
+
+# [pokemon shop]
+# Eevee, 10, 5000
+# Larvitar, 15, 20000

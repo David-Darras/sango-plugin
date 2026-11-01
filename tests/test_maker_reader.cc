@@ -140,8 +140,30 @@ struct Recorder : Sink {
     starters.assign(species, species + 3);
   }
 
+  void OnShopItems(u32 shop_id, const pokemon::ShopItem* items,
+                   u32 count) override {
+    shops.push_back({shop_id, false, count});
+    if (count > 0) shop_prices.push_back(items[count - 1].price);
+  }
+  void OnShopPokemons(u32 shop_id, const pokemon::ShopPokemon* pokemons,
+                      u32 count) override {
+    shops.push_back({shop_id, true, count});
+    if (count > 0) shop_prices.push_back(pokemons[count - 1].price);
+  }
+  void OnItem(const ItemChange& change) override {
+    item_changes.push_back(change);
+  }
+
   std::vector<std::string> rules;
   std::vector<SpeciesId> starters;
+  struct Shop {
+    u32 id;
+    bool is_pokemon_shop;
+    u32 count;
+  };
+  std::vector<Shop> shops;
+  std::vector<u32> shop_prices;
+  std::vector<ItemChange> item_changes;
 };
 
 // Reads a text with a reader of core::maker.
@@ -531,4 +553,73 @@ TEST(RulesReportTheMistakes) {
                               "no equal sign\n");
   CHECK_EQ(r.problem_lines.size(), 9);
   CHECK(r.rules.empty() && r.starters.empty());
+}
+
+TEST(ShopsGiveTheListOfEachShop) {
+  const Recorder r = ReadText(ReadShops,
+                              "[shop 12]\n"
+                              "Potion, 100\n"
+                              "Rare Candy, 1000\n"
+                              "[all shops]\n"
+                              "Poke Ball, 200\n"
+                              "[Pokemon Shop]\n"
+                              "Eevee, 10, 5000\n"
+                              "[pokemon shop 3]\n"
+                              "Larvitar, 15, 20000\n");
+  CHECK_EQ(r.problems.size(), 0);
+  CHECK_EQ(r.shops.size(), 4);
+  if (r.shops.size() != 4) return;
+  CHECK(r.shops[0].id == 12 && !r.shops[0].is_pokemon_shop &&
+        r.shops[0].count == 2);
+  CHECK(r.shops[1].id == kAllShops && r.shops[1].count == 1);
+  CHECK(r.shops[2].id == kAllShops && r.shops[2].is_pokemon_shop);
+  CHECK(r.shops[3].id == 3 && r.shops[3].is_pokemon_shop);
+  CHECK(r.shop_prices == std::vector<u32>({1000, 200, 5000, 20000}));
+}
+
+TEST(ShopsReportTheMistakes) {
+  const Recorder r = ReadText(ReadShops,
+                              "[shop]\n"
+                              "[shop 1]\n"
+                              "Nothing, 100\n"
+                              "Potion\n"
+                              "Potion, a lot\n"
+                              "[pokemon shop]\n"
+                              "Eevee, 101, 10\n"
+                              "Nobody, 5, 10\n");
+  CHECK_EQ(r.problem_lines.size(), 6);
+  CHECK_EQ(r.shops.size(), 2);
+}
+
+TEST(ItemsGiveTheChanges) {
+  const Recorder r = ReadText(ReadItems,
+                              "[Potion]\n"
+                              "price = 100\n"
+                              "hp restore = 30\n"
+                              "[Protein]\n"
+                              "evs = 0, 63, 0, 0, 0, 0\n"
+                              "fling power = 90\n");
+  CHECK_EQ(r.problems.size(), 0);
+  CHECK_EQ(r.item_changes.size(), 2);
+  if (r.item_changes.size() != 2) return;
+  const ItemChange& potion = r.item_changes[0];
+  CHECK(potion.item == ItemId::kPotion && potion.has_price &&
+        potion.price == 100 && potion.has_hp_restore &&
+        potion.hp_restore == 30 && !potion.has_evs);
+  const ItemChange& protein = r.item_changes[1];
+  CHECK(protein.has_evs && protein.evs[1] == 63 && protein.has_fling_power &&
+        protein.fling_power == 90 && !protein.has_price);
+}
+
+TEST(ItemsReportTheMistakes) {
+  const Recorder r = ReadText(ReadItems,
+                              "[Nothing]\n"
+                              "[Potion]\n"
+                              "price = 70000\n"
+                              "fling power = 300\n"
+                              "evs = 1, 2, 3\n"
+                              "evs = 0, 200, 0, 0, 0, 0\n"
+                              "colour = blue\n"
+                              "no equal sign\n");
+  CHECK_EQ(r.problem_lines.size(), 7);
 }

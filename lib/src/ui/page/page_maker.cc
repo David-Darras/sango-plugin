@@ -22,6 +22,7 @@
  */
 
 #include "core/data_files.h"
+#include "pokemon/patch/custom_shop.h"
 #include "savedata/patch/hack_save.h"
 #include "ui/main_application.h"
 #include "ui/page/pages.h"
@@ -70,6 +71,9 @@ void LoadMakerPage(MainApplication& app, void* args) {
      .Add("Trace story.txt", files.trace_story)
      .WithDescription("Writes each command of story.txt to the log when it "
          "runs: see Plugin > Log.")
+     .Add("Log The Shop Ids", pokemon::CustomShop::GetInstance().log_shop_ids)
+     .WithDescription("Writes the id of each shop that opens to the log: "
+         "the N of [shop N] in shops.txt.")
      .AddSection("Problems Of The Files");
   const u32 count = DataFiles::GetProblemCount();
   const u32 shown = count < DataFiles::kMaxProblems ? count

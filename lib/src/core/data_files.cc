@@ -36,6 +36,8 @@
 #include "overworld/patch/gift_pokemon.h"
 #include "overworld/patch/map_character.h"
 #include "overworld/patch/wild_encounter.h"
+#include "pokemon/native/item_data.h"
+#include "pokemon/patch/custom_shop.h"
 #include "pokemon/patch/item_customizer.h"
 #include "pokemon/patch/shiny.h"
 #include "pokemon/patch/species_editor.h"
@@ -53,6 +55,12 @@ using maker::Instruction;
 using maker::Op;
 
 void RunStory(script::Context& s);
+void ApplyItemChange(pokemon::ItemData* item);
+
+static_assert(maker::kAllShops == pokemon::CustomShop::kAnyShop,
+              "the same id for all the shops");
+static_assert(maker::kMaxShopItems == pokemon::ShopData::kMaxItems,
+              "the same number of items in a shop");
 
 // The problems of the last read of the files, for the Sango Maker page.
 c8 problems[DataFiles::kMaxProblems][DataFiles::kMaxProblemLength];
@@ -222,6 +230,33 @@ public:
     pokemon::Shiny::GetInstance().rate = rate;
   }
 
+  void OnShopItems(u32 shop_id, const pokemon::ShopItem* items,
+                   u32 count) override {
+    pokemon::CustomShop::SetItems(items, count, shop_id);
+  }
+
+  void OnShopPokemons(u32 shop_id, const pokemon::ShopPokemon* pokemons,
+                      u32 count) override {
+    pokemon::CustomShop::SetPokemons(pokemons, count, shop_id);
+    pokemon::CustomShop::EnablePokemonShop(true);
+  }
+
+  void OnItem(const maker::ItemChange& change) override {
+    if (!item_changes_.Add(change)) {
+      OnProblem("items.txt", 0, "too many items:", "256 at most");
+      return;
+    }
+    pokemon::ItemCustomizer::GetInstance().on_item_data.Subscribe(
+        ApplyItemChange);
+  }
+
+  /// Returns the change of an item of items.txt, or null.
+  const maker::ItemChange* FindItemChange(ItemId item) const {
+    return item_changes_.Find([item](const maker::ItemChange& change) {
+      return change.item == item;
+    });
+  }
+
   void OnStarters(const SpeciesId* species) override {
     auto& starters = ui::StarterChoice::GetInstance();
     for (u32 i = 0; i < ui::StarterChoice::kCount; i++) {
@@ -236,6 +271,8 @@ public:
   }
   /// Forgets the teams. Remove them from TrainerTeams before.
   void ClearTeams() { team_count_ = 0; }
+  /// Forgets the changes of items.txt.
+  void ClearItemChanges() { item_changes_.Clear(); }
 
 private:
   // The teams of trainers.txt: TrainerTeams keeps their addresses.
@@ -243,9 +280,28 @@ private:
   u32 team_count_ = 0;
   battle::TrainerTeam* team_ = nullptr;
   TrainerId trainer_ = TrainerId::kNone;
+  // The changes of items.txt.
+  core::FixedList<maker::ItemChange, 256> item_changes_;
 };
 
 GameSink game_sink;
+
+// Changes the data of an item that the game reads (items.txt).
+void ApplyItemChange(pokemon::ItemData* item) {
+  const maker::ItemChange* change = game_sink.FindItemChange(item->id);
+  if (change == nullptr) return;
+  if (change->has_price) item->price = change->price;
+  if (change->has_fling_power) item->fling_power = change->fling_power;
+  if (change->has_hp_restore) item->hp_restore_value = change->hp_restore;
+  if (change->has_evs) {
+    item->hp_ev_value = change->evs[0];
+    item->attack_ev_value = change->evs[1];
+    item->defense_ev_value = change->evs[2];
+    item->sp_atk_ev_value = change->evs[3];
+    item->sp_def_ev_value = change->evs[4];
+    item->speed_ev_value = change->evs[5];
+  }
+}
 
 // The text of a file of the SD card.
 c8 file_buffer[maker::kMaxFileSize];
@@ -280,6 +336,8 @@ const DataFile kFiles[] = {
     {SANGO_DATA_PATH(u"characters.txt"), "characters.txt",
      maker::ReadCharacters},
     {SANGO_DATA_PATH(u"rules.txt"), "rules.txt", maker::ReadRules},
+    {SANGO_DATA_PATH(u"shops.txt"), "shops.txt", maker::ReadShops},
+    {SANGO_DATA_PATH(u"items.txt"), "items.txt", maker::ReadItems},
 };
 constexpr u32 kFileCount = SIZE(kFiles);
 
@@ -303,7 +361,7 @@ u32 HashBytes(const c8* data, u32 size) {
 }
 
 // Removes the data of the last read from the game, before a new read. The
-// changes of the stats, the types... of species.txt stay.
+// changes of the stats, the types... of species.txt and of rules.txt stay.
 void RemoveFileData() {
   overworld::WildEncounter::RemoveTables(
       [](const overworld::EncounterTable& table) {
@@ -315,6 +373,15 @@ void RemoveFileData() {
   game_sink.ClearTeams();
   pokemon::SpeciesChanges::RemoveLists(maker::IsReaderMemory);
   overworld::MapCharacter::RemoveByOwner(&game_sink);
+  pokemon::CustomShop::RemoveItems([](const pokemon::ShopItem* items) {
+    return maker::IsReaderMemory(items);
+  });
+  if (maker::IsReaderMemory(pokemon::CustomShop::GetPokemons())) {
+    pokemon::CustomShop::SetPokemons(pokemon::kShopPokemons,
+                                     SIZE(pokemon::kShopPokemons));
+    pokemon::CustomShop::EnablePokemonShop(false);
+  }
+  game_sink.ClearItemChanges();
   maker::Clear();
 }
 
