@@ -124,10 +124,9 @@ PokeInfoOnAction* WildEncounter::GetPlaces(EncounterData* data,
   }
 }
 
-void WildEncounter::ApplyTables(EncounterData* data) {
+void WildEncounter::ApplyTables(MapId map_id, EncounterData* data) {
   auto& self = GetInstance();
   if (self.table_count_ == 0) return;
-  const MapId map_id = MapManager::GetInstance().GetMap();
   for (u32 i = 0; i < self.table_count_; i++) {
     const EncounterTable& table = self.tables_[i];
     if (table.map_id != map_id) continue;
@@ -149,6 +148,9 @@ void WildEncounter::ApplyTables(EncounterData* data) {
       places[place].max_level =
           slot.max_level < slot.min_level ? slot.min_level : slot.max_level;
     }
+    ui::Log::Print(u"map %u: table applied, method %u, %u Pokemon",
+                   static_cast<u32>(map_id), static_cast<u32>(table.method),
+                   table.slot_count);
   }
 }
 
@@ -158,7 +160,7 @@ u16* WildEncounter::GetDexNavTable(EncounterData* data, s32 data_size,
   if (data_size <= 0 || data == nullptr) return nullptr;
 
   // The tables of the product first: the callback can still change them.
-  ApplyTables(data);
+  ApplyTables(MapManager::GetInstance().GetMap(), data);
   auto& feat = GetInstance();
   feat.on_encounter_table.Emit(data);
 

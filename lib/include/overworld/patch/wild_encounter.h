@@ -121,9 +121,12 @@ struct WildEncounter {
   static PokeInfoOnAction* GetPlaces(EncounterData* data,
                                      EncounterMethod method, u32* count);
 
+  /// Writes the tables of SetTable() for the map `map_id` into `data`. The
+  /// library calls it when the game loads a map and when the DexNav reads
+  /// the table.
+  static void ApplyTables(MapId map_id, EncounterData* data);
+
 private:
-  /// Writes the tables of SetTable() for the current map into `data`.
-  static void ApplyTables(EncounterData* data);
   static u16* GetDexNavTable(EncounterData* data, s32 data_size,
                               u32* count, void* heap,
                               u8 p4, bool p5);

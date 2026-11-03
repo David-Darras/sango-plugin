@@ -84,6 +84,10 @@ bool IsSameText(const c16* a, const c16* b) {
 // The problems of the last read of the files, for the Sango Maker page.
 c8 problems[DataFiles::kMaxProblems][DataFiles::kMaxProblemLength];
 u32 problem_count = 0;
+// What the last read applied: Load() writes it to maker_log.txt.
+u32 table_count = 0;
+u32 trainer_count = 0;
+u32 story_count = 0;
 // true while Reload() reads the files: the problems go to the log, not to
 // the screen of the problems of the start.
 bool is_reloading = false;
@@ -115,6 +119,7 @@ public:
   void OnEncounterTable(MapId map, EncounterMethod method,
                         const overworld::EncounterSlot* slots,
                         u32 count) override {
+    table_count++;
     overworld::WildEncounter::SetTable(map, method, slots, count);
   }
 
@@ -151,7 +156,10 @@ public:
     }
     team_->Add(opponent);
   }
-  void OnTrainerEnd() override { battle::TrainerTeams::Add(trainer_, team_); }
+  void OnTrainerEnd() override {
+    trainer_count++;
+    battle::TrainerTeams::Add(trainer_, team_);
+  }
 
   SpeciesId OnNewSpecies(const c16* name, SpeciesId data_from,
                          SpeciesId model) override {
@@ -214,6 +222,7 @@ public:
   }
 
   void OnStory(u16 id) override {
+    story_count++;
     const ScriptId script = static_cast<ScriptId>(id);
     // After Reload(), the script of the first read stays registered.
     if (is_reloading && script::NativeScript::IsRegistered(script)) return;
@@ -651,6 +660,31 @@ void AddMakerEntry(ui::MainApplication& app) {
 }
 } // namespace
 
+namespace {
+// The text of maker_log.txt: one line for each file of the last read.
+c8 log_text[1024];
+u32 log_length = 0;
+
+void AddLogLine(const c8* format, ...) {
+  if (log_length >= sizeof(log_text)) return;
+  va_list args;
+  va_start(args, format);
+  const int length = std::vsnprintf(log_text + log_length,
+                                    sizeof(log_text) - log_length, format,
+                                    args);
+  va_end(args);
+  if (length > 0) log_length += static_cast<u32>(length);
+  if (log_length > sizeof(log_text)) log_length = sizeof(log_text);
+}
+
+// Writes sdmc:/sango/maker/maker_log.txt: the user sees what Sango Maker
+// found on the SD card without the menu.
+void WriteLogFile() {
+  sys::File file(SANGO_DATA_PATH(u"maker_log.txt"), true);
+  if (file.IsOpen()) file.Write(log_text, log_length);
+}
+} // namespace
+
 void DataFiles::Load() {
   if (!is_loaded) {
     // Only the products that read the files contain the page and the
@@ -659,11 +693,32 @@ void DataFiles::Load() {
     ui::PageExtensions::GetInstance().data_section = AddMakerEntry;
   }
   problem_count = 0;
+  table_count = trainer_count = story_count = 0;
+  log_length = 0;
+  MakeDataFolder();
+  AddLogLine("Sango Maker, folder: " SANGO_DATA_TEXT("") "\n");
   for (u32 i = 0; i < kFileCount; i++) {
     const DataFile& file = kFiles[i];
+    const u32 problems_before = problem_count;
     const u32 size = LoadFile(file.path, file.name, file.read);
     file_hashes[i] = HashBytes(file_buffer, size);
+    if (size == 0) {
+      AddLogLine("%s: not found or empty\n", file.name);
+    } else {
+      AddLogLine("%s: read %lu bytes, %lu problems\n", file.name,
+                 static_cast<unsigned long>(size),
+                 static_cast<unsigned long>(problem_count - problems_before));
+    }
+    ui::Log::Print(u"Maker %s: %u bytes", file.name, size);
   }
+  AddLogLine("applied: %lu encounter tables, %lu trainers, %lu scripts\n",
+             static_cast<unsigned long>(table_count),
+             static_cast<unsigned long>(trainer_count),
+             static_cast<unsigned long>(story_count));
+  for (u32 i = 0; i < problem_count && i < kMaxProblems; i++) {
+    AddLogLine("problem: %s\n", problems[i]);
+  }
+  WriteLogFile();
   is_loaded = true;
 }
 

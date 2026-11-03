@@ -25,6 +25,7 @@
 #include "overworld/patch/map_data_loader.h"
 #include "core/hook.h"
 #include "overworld/patch/map_graft.h"
+#include "overworld/patch/wild_encounter.h"
 #include "overworld/native/map_data.h"
 #include "overworld/address.h"
 
@@ -50,6 +51,10 @@ bool MapDataLoader::LoadMapData(MapData* map_data) {
   if (MapGraft::GetTileOffset(loaded_map_id, dx, dz)) {
     MapGraft::OffsetSettings(map_data->GetSettings(), dx, dz);
   }
+
+  // The battles read the encounter table of the map from here: the tables
+  // of WildEncounter::SetTable() must be in it before the first step.
+  WildEncounter::ApplyTables(loaded_map_id, &map_data->GetEncounterData());
 
   if (!GetInstance().is_contact_enabled) {
     auto& data = map_data->GetEncounterData();
