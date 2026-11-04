@@ -303,7 +303,7 @@ enum class SpeciesId : u16 {
   kLudicolo = 272,
   kSeedot = 273,
   kNuzleaf = 274,
-  kShiftree = 275,
+  kShiftry = 275,
   kTaillow = 276,
   kSwellow = 277,
   kWingull = 278,

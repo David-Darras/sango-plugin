@@ -89,7 +89,12 @@ pokemon = Riolu, level 8, ivs 31, evs 0/252/4/0/0/252, moves Quick Attack / Endu
 | `pokemon` | One Pokémon (6 at most): the species, then `level N`, `item X`, `ability X`, `nature X`, `form X`, `ivs N`, `evs HP/Atk/Def/SpA/SpD/Spe`, `moves A / B / C / D`, `shiny`. |
 
 A trainer is a name of `lib/include/battle/constant/trainer.h` or a number:
-`[42]`.
+`[42]`. The name has the map, the title and the name of the trainer, for
+example `[Rustboro City Leader Roxanne]`; a rematch ends with `Rematch`.
+
+To start from the teams of the game, run `tools/export_trainers.py` with the
+`--maker` option. It writes all the trainers in this format. Copy the sections
+that you want to change (256 trainers at most).
 
 ## Step 4: Change a species
 
