@@ -146,8 +146,9 @@ variables of story.txt.
 
 The editor (on a computer)
 --------------------------
-Open maker_editor/index.html in a web browser (double-click). Keep names.js
-in the same folder. The editor works without internet. It checks the lines
+Unzip the whole zip first: the editor does not work inside the zip. Then open
+maker_editor/index.html in a web browser (double-click). Keep names.js in the
+same folder. The editor works without internet. It checks the lines
 of the files while you write. Click "Download" to save a file, then copy
 it to sango/maker/ on the SD card.
 

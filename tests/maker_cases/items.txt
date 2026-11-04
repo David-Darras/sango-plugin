@@ -1,5 +1,5 @@
 # The cases of items.txt. A line that ends with the comment ERR has a mistake.
-price = 10
+price = 10 # ERR
 [Potion]
 price = 100
 hp restore = 30

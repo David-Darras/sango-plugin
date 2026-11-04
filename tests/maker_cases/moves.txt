@@ -1,5 +1,5 @@
 # The cases of moves.txt. A line that ends with the comment ERR has a mistake.
-power = 10
+power = 10 # ERR
 [Thunder Shock]
 type = Fire
 category = Physical

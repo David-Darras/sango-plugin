@@ -165,6 +165,17 @@
 <script>
 "use strict";
 
+// Without names.js, the editor cannot check the names. This happens when the
+// player opens index.html inside the zip, before unzipping it.
+if (typeof SANGO_NAMES === "undefined") {
+  document.body.innerHTML = "<p style='font:16px sans-serif;margin:32px'>" +
+    "<b>names.js is missing.</b><br>Unzip the whole zip file first, then " +
+    "open <code>maker_editor/index.html</code> from the unzipped folder. " +
+    "The files <code>index.html</code> and <code>names.js</code> must stay " +
+    "in the same folder.</p>";
+  throw new Error("names.js is missing");
+}
+
 // The names --------------------------------------------------------------
 
 function norm(text) {
@@ -298,17 +309,19 @@ function checkOpponent(value, err) {
 
 function checkTrainers(text) {
   const errors = [];
+  let seen = false;
   let open = false;
   let pokemonCount = 0;
   for (const line of readLines(text)) {
     const err = (message) => errors.push({ n: line.n, message });
     if (line.isSection) {
+      seen = true;
       open = known("trainer", line.text);
       pokemonCount = 0;
       if (!open) err("unknown trainer: " + line.text);
       continue;
     }
-    if (!open) continue;
+    if (!open) { if (!seen) err("write a [section] line before this line"); continue; }
     const kv = splitKey(line.text);
     if (kv === null) { err("use key = value"); continue; }
     const [key, value] = kv;
@@ -352,11 +365,13 @@ function checkNewSpecies(text) {
 
 function checkSpecies(text) {
   const errors = [];
+  let seen = false;
   let open = false;
   newSpecies.clear();
   for (const line of readLines(text)) {
     const err = (message) => errors.push({ n: line.n, message });
     if (line.isSection) {
+      seen = true;
       const [word, rest] = splitWord(line.text);
       if (norm(word) === "new" && rest !== "") {
         const problem = checkNewSpecies(rest);
@@ -370,7 +385,7 @@ function checkSpecies(text) {
       else if (parts.length === 2 && !known("form", parts[1])) { err("unknown form: " + parts[1]); open = false; }
       continue;
     }
-    if (!open) continue;
+    if (!open) { if (!seen) err("write a [section] line before this line"); continue; }
     const kv = splitKey(line.text);
     if (kv === null) { err("use key = value"); continue; }
     const [key, value] = kv;
@@ -637,6 +652,7 @@ function parseShopSection(text) {
 
 function checkShops(text) {
   const errors = [];
+  let seen = false;
   let shop = null;
   let count = 0;
   let itemTotal = 0;
@@ -644,12 +660,13 @@ function checkShops(text) {
   for (const line of readLines(text)) {
     const err = (message) => errors.push({ n: line.n, message });
     if (line.isSection) {
+      seen = true;
       count = 0;
       shop = line.text === "" ? null : parseShopSection(line.text);
       if (line.text !== "" && !shop) err("use [shop N], [all shops] or [pokemon shop]: " + line.text);
       continue;
     }
-    if (!shop) continue;
+    if (!shop) { if (!seen) err("write a [section] line before this line"); continue; }
     const parts = line.text.split(",").map((p) => p.trim());
     if (shop.isPokemonShop) {
       if (parts.length !== 3) { err("use species, level, price"); continue; }
@@ -672,16 +689,18 @@ function checkShops(text) {
 
 function checkItems(text) {
   const errors = [];
+  let seen = false;
   let open = false;
   const upTo = (v, max) => isNumber(v) && Number(v) <= max;
   for (const line of readLines(text)) {
     const err = (message) => errors.push({ n: line.n, message });
     if (line.isSection) {
+      seen = true;
       open = line.text !== "" && known("item", line.text);
       if (line.text !== "" && !open) err("unknown item: " + line.text);
       continue;
     }
-    if (!open) continue;
+    if (!open) { if (!seen) err("write a [section] line before this line"); continue; }
     const kv = splitKey(line.text);
     if (!kv) { err("use key = value"); continue; }
     const [key, v] = kv;
@@ -703,16 +722,18 @@ function checkItems(text) {
 
 function checkMoves(text) {
   const errors = [];
+  let seen = false;
   let open = false;
   const upTo = (v, max) => isNumber(v) && Number(v) <= max;
   for (const line of readLines(text)) {
     const err = (message) => errors.push({ n: line.n, message });
     if (line.isSection) {
+      seen = true;
       open = line.text !== "" && known("move", line.text);
       if (line.text !== "" && !open) err("unknown move: " + line.text);
       continue;
     }
-    if (!open) continue;
+    if (!open) { if (!seen) err("write a [section] line before this line"); continue; }
     const kv = splitKey(line.text);
     if (!kv) { err("use key = value"); continue; }
     const [key, v] = kv;

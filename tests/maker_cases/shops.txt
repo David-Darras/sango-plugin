@@ -1,5 +1,5 @@
 # The cases of shops.txt. A line that ends with the comment ERR has a mistake.
-Potion, 100
+Potion, 100 # ERR
 [shop 12]
 Potion, 100
 Rare Candy, 1000
