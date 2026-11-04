@@ -2,25 +2,29 @@ Sango Plugin {{VERSION}} for Pokémon Alpha Sapphire v1.4 (no ROM patch).
 
 **New in {{VERSION}}**
 
-- **New Pokémon types** (`battle::GameExtension::AddType()`): add a type, or change the name and the icon of a type of the game.
-  Each type has its own icon, its own row and column in the type chart, and a table editor in the menu (Battle > Type Chart).
-  The overlay has six examples: **Cosmic**, **Sound**, **Light**, **Plasma**, **Dream** and **Time**. Their icons are in `sango/types/` of the zip
-  (the release script makes them from the PNG files of `assets/types`).
-- **Four new moves of these types**, each with its own effect in battle, its own reactions and its own animation:
-  Prism Lance (Light), Sonic Requiem (Sound), Ion Storm (Plasma) and Dreamfall (Dream).
-- **New items and changed items** (`battle::ItemExtension`): add an item (ids 800 to 1023) or change an item of the game (ids 1 to 775).
-  An item has a name, a description, an icon (a file `sango/items/<name>.bclim`, made from a PNG), data (price, Fling...) and reactions in battle.
-  The names show in the party, the summary, the Bag, the PC boxes and the overlay. The icons of the examples are in `sango/items/` of the zip
-  (the release script makes them from the PNG files of `assets/items`).
-- **Items that the player uses in the Bag**: the player chooses "Use" and a Pokémon, and a function of the product runs on it.
-  The overlay has examples: **Shiny Switch** (shiny on and off), **Ability Switch** (goes to the next ability), **Evolution Prism** (makes a Pokémon evolve),
-  **Devolution Stone** (goes back to the species before, with the evolution animation) and **Knife** (a Pokémon keeps 1 HP).
-- **Medicine effects with names** (`battle::ItemMedicine`): restore HP, revive, cure the status conditions, raise the level, restore or raise the PP,
-  change the EVs and the friendship. The game does the work and shows its own messages.
-- **Held items with reactions**: Plasma Core, Dream Pillow, a changed Leftovers and **Philosopher Stone** (the holder survives any hit and recovers its HP).
-- **Team Runtime Data** (Pokémon > Tools): changes the HP, the stats and the status condition of the team, refreshes the Pokémon and heals them.
-- The ability and its flag stay in agreement when you change the species, the form or the ability.
-- New tutorials: `docs/tutorials/14-add-a-type.md` and `docs/tutorials/15-add-an-item.md`.
+- **Sango Maker is complete: a ROM hack with text files, without code.** The files are in `sango/maker/` of the SD card:
+  `encounters.txt` (the wild Pokémon of each map), `trainers.txt` (the teams), `species.txt` (stats, types, abilities, learnsets, evolutions, and new species),
+  `story.txt` (the scripts of the characters), `characters.txt`, `rules.txt` (the rules of the battles, the shiny rate, the starters),
+  `shops.txt` (the items and the Pokémon of each shop), `items.txt` and `moves.txt` (the data of the items and of the moves).
+  The menu page **Sango Maker** shows the problems of the files. **Live Reload is on by default**: the plugin reads a file again a few seconds after you save it.
+  `maker_log.txt` in the same folder says which files were read, and how many problems each one has.
+- **A line outside a `[section]` is now reported** instead of being ignored (for example an item in `shops.txt` before `[shop N]` or `[all shops]`).
+- **The 948 trainers of the game have a name** (`TrainerId`): the map, the title and the name, for example `Rustboro City Leader Roxanne`. A rematch ends with `Rematch`.
+  Use the names in `trainers.txt`, in `story.txt` and in C++. `tools/export_trainers.py` lists the trainers with their maps and writes all the teams of the game in the format of `trainers.txt`.
+- **Export to the Maker format** (menu > Sango Maker): the wild Pokémon of the map, a species and the team of the player.
+- **A plugin twice as small, and a bigger heap.** The `.3gx` files are half the size of the files of 7.3.0 (the same tools build both):
+
+  | File | 7.3.0 | {{VERSION}} | Gain |
+  |---|---|---|---|
+  | `sango_plugin.3gx` (the overlay) | 2 258 KiB | 1 115 KiB | **-1 143 KiB (-51%)** |
+  | `sango_kaizo.3gx` | 1 547 KiB | 766 KiB | **-781 KiB (-50%)** |
+
+  The code alone is more than 50% smaller, and the memory that the plugin uses (code, data and variables) is 1.2 MB smaller for the overlay and 0.9 MB for Kaizo.
+  The causes: the build removes the code that nothing uses (`-Os` and LTO), the variables that were not needed are gone, the test content is out of the release,
+  the buffers come from the heap, and the plugin does not use libctrpf any more (it has its own start-up code: 186 KiB less alone, and about 700 KB of heap that libctrpf kept for itself).
+- **Fixed:** the wild Pokémon of `encounters.txt` now apply when the map loads (they applied only in the DexNav before), `moves.txt` now changes the moves in the battles, the menus and the PP,
+  and the name of Shiftry.
+- libctrpf is not needed to build the plugin any more: only devkitPro and 3gxtool. The tutorials, the Docker image and the GitHub workflow say so.
 
 **Install**
 

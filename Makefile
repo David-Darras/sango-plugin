@@ -29,7 +29,7 @@ include $(DEVKITARM)/3ds_rules
 # Local settings. The file is optional: only `make run-<product>` needs it.
 -include $(TOPDIR)/config.mk
 
-PLUGIN_VERSION  := 7.3.0
+PLUGIN_VERSION  := 7.4.0
 PLUGIN_CREATOR  := ZettaD
 PLUGIN_NAME     := Sango
 

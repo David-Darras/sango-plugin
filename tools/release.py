@@ -2,9 +2,9 @@
 """Builds the release zip of the plugin and publishes it on GitHub.
 
 Usage (the Makefile calls it):
-  release.py pack    --version 7.3.0 --plugin sango_plugin-release.3gx
+  release.py pack    --version 7.4.0 --plugin sango_plugin-release.3gx
                      --maker-plugin sango_maker-release.3gx
-  release.py publish --version 7.3.0 [--draft] [--yes]
+  release.py publish --version 7.4.0 [--draft] [--yes]
 
 The zip has the layout of the SD card for the players, and a folder for the
 modders:

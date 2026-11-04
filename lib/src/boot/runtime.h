@@ -17,67 +17,23 @@
 
 /**
  * @file runtime.h
- * @brief The thread data that the minimal boot shares with libctru.
+ * @brief The C runtime of the plugin: the heap, the threads and newlib.
  *
- * The code of the plugin runs on the threads of the game. These threads do
- * not have the thread data of libctru. The boot gives them one on the first
- * call (see runtime.c). This file has the structures of that data. They are
- * the structures of libctru, because the library does not export them.
+ * The code of the plugin also runs on the threads of the game (the hooks).
+ * The game made these threads, so they do not have the thread data that
+ * libctru needs for malloc(), snprintf() and errno. The runtime gives them
+ * this data the first time they need it.
  */
 
 #pragma once
 
-#include <sys/reent.h>
-#include <3ds.h>
+namespace boot {
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+/// Sets up the runtime on the thread that starts the plugin: the thread data,
+/// the heap and the static objects of the plugin.
+void InitializeRuntime();
 
-/// The value that marks the thread data of a thread that libctru made.
-#define THREADVARS_MAGIC 0x21545624 // !TV$
+/// Runs the destructors of the static objects and closes the runtime.
+void ShutDownRuntime();
 
-/// The data of a thread made by threadCreate().
-struct Thread_tag {
-  Handle handle;
-  ThreadFunc ep;
-  void* arg;
-  int rc;
-  bool detached, finished;
-  struct _reent reent;
-  void* stacktop;
-};
-
-/// The data that libctru keeps at the start of the TLS of each thread. It
-/// must stay under 0x80 bytes.
-typedef struct {
-  u32 magic;
-  Thread thread_ptr;
-  struct _reent* reent;
-  void* tls_tp; ///< The offset is used by __aeabi_read_tp.
-  u32 fs_magic;
-  Handle fs_session;
-  bool srv_blocking_policy;
-} ThreadVars;
-
-static inline ThreadVars* getThreadVars(void) {
-  return (ThreadVars*)getThreadLocalStorage();
-}
-
-static inline size_t alignTo(const size_t base, const size_t align) {
-  return (base + (align - 1)) & ~(align - 1);
-}
-
-/// Gives thread data to the current thread. thread is null for the main
-/// thread of the plugin.
-void initThreadVars(struct Thread_tag* thread);
-
-extern const size_t __tdata_align;
-extern const u8 __tdata_lma[];
-extern const u8 __tdata_lma_end[];
-extern u8 __tls_start[];
-extern u8 __tls_end[];
-
-#ifdef __cplusplus
-}
-#endif
+} // namespace boot

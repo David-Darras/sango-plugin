@@ -19,61 +19,63 @@
  * @file plgldr.h
  * @brief The service of the plugin loader (Luma3DS) that the boot uses.
  *
- * It is the part of the libctrpf file plgldr.h that the plugin needs: the
- * header that Luma3DS writes at the start of the plugin, the events of the
- * loader and the error message.
+ * The loader writes a header at the start of the plugin and sends events to
+ * it: the sleep mode, the HOME menu and the end of the game. The plugin must
+ * answer each event. This file has the part of libctrpf that does this.
  */
 
 #pragma once
 
 #include <3ds.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "core/types.h"
 
-/// The header that the plugin loader writes at 0x07000000.
-typedef struct {
+namespace boot {
+
+/// The header that the plugin loader writes at the start of the plugin.
+struct PluginHeader {
   u32 magic;
   u32 version;
-  u32 heapVA; ///< The start of the memory that the plugin can use as a heap.
-  u32 heapSize;
-  u32 exeSize;
-  u32 isDefaultPlugin;
-  s32* plgldrEvent; ///< Used for the synchronization with the loader.
-  s32* plgldrReply;
-  u8 notifyHomeEvent;
+  u32 heap_address; ///< The start of the memory that the plugin uses as a heap.
+  u32 heap_size;
+  u32 exe_size;
+  u32 is_default_plugin;
+  s32* event; ///< The event that the loader sends. Used to synchronize.
+  s32* reply; ///< The answer of the plugin. Used to synchronize.
+  u8 notify_home_event;
   u8 padding[3];
   u32 config[32];
-} PluginHeader;
+};
 
-/// Where the loader puts the header.
-#define PLUGIN_HEADER ((volatile PluginHeader*)0x07000000)
+/// The events that the plugin loader sends to the plugin.
+enum class PluginEvent : s32 {
+  kWait = -1,
+  kNone = 0,
+  kSleepEntry = 1,
+  kSleepExit = 2,
+  kAboutToSwap = 3,
+  kAboutToExit = 4,
+  kHomeEnter = 5,
+  kHomeExit = 6,
+};
 
-/// The events that the loader sends to the plugin.
-typedef enum {
-  PLG_WAIT = -1,
-  PLG_OK = 0,
-  PLG_SLEEP_ENTRY = 1,
-  PLG_SLEEP_EXIT = 2,
-  PLG_ABOUT_TO_SWAP = 3,
-  PLG_ABOUT_TO_EXIT = 4,
-  PLG_HOME_ENTER = 5,
-  PLG_HOME_EXIT = 6,
-} PLG_Event;
+/// Returns the header that the plugin loader wrote at the start of the plugin.
+const PluginHeader& GetPluginHeader();
 
-/// Connects to the plugin loader.
-Result plgLdrInit(void);
-/// Closes the connection.
-void plgLdrExit(void);
-/// Shows an error message on the screen (Luma3DS).
-Result PLGLDR__DisplayErrMessage(const char* title, const char* body,
-                                 u32 error);
-/// Returns the event that the loader waits for the plugin to handle.
-s32 PLGLDR__FetchEvent(void);
-/// Tells the loader that the plugin handled the event.
-void PLGLDR__Reply(s32 event);
+/// Connects to the plugin loader. Returns the result of the connection.
+Result ConnectToLoader();
 
-#ifdef __cplusplus
-}
-#endif
+/// Closes the connection to the plugin loader.
+void DisconnectFromLoader();
+
+/// Shows an error message on the screen with the code `error`.
+Result ShowError(const c8* title, const c8* body, u32 error);
+
+/// Returns the event that the plugin loader waits for the plugin to handle.
+PluginEvent FetchEvent();
+
+/// Tells the plugin loader that the plugin handled `event`. For
+/// PluginEvent::kAboutToExit, the function ends the thread.
+void Reply(PluginEvent event);
+
+} // namespace boot

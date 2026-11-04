@@ -4,7 +4,7 @@
 
 ### Make your own Pokémon Alpha Sapphire ROM hack, in C++, without changing a single game file.
 
-![Version](https://img.shields.io/badge/version-7.3.0-ff4f9a.svg)
+![Version](https://img.shields.io/badge/version-7.4.0-ff4f9a.svg)
 ![License](https://img.shields.io/badge/license-GPL--3.0-blue.svg)
 ![Language](https://img.shields.io/badge/language-C%2B%2B11-orange.svg)
 ![Platform](https://img.shields.io/badge/platform-3DS%20%7C%20Azahar-red.svg)
@@ -144,7 +144,12 @@ script::NativeScript::Register(kCandyGiver, CandyGiver);
 </td>
 </tr>
 <tr>
-<td colspan="2" valign="top">
+<td width="50%" valign="top">
+
+<img src="assets/readme/new-items.png" alt="The Bag with the Devolution Stone, and the list of the Pokémon that can use it">
+
+</td>
+<td width="50%" valign="top">
 
 ### 🎒 New items
 - **Add an item**, or change an item of the game: its name, its description, its icon, its data and its reactions in battle

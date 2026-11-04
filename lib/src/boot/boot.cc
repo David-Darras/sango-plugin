@@ -20,17 +20,17 @@
  * @brief The minimal boot of the plugin. It replaces libctrpf.
  *
  * The plugin loader (Luma3DS) loads the plugin in the memory of the game and
- * calls _start (crt0.s), which calls __entrypoint() below. The plugin has to
+ * calls _start (crt0.s), which calls __entrypoint() below. The plugin must
  * give the control back to the game very soon. So the boot makes a thread, the
  * keep thread, and waits until it has set up the runtime. Then the game runs.
  *
  * What the keep thread does:
  * 1. It sets up the runtime: the thread data, the heap and the static objects
- *    (runtime.c), and the connection to the plugin loader (plgldr.c).
+ *    (runtime.cc), and the connection to the plugin loader (plgldr.cc).
  * 2. It lets the game run.
  * 3. It waits for the game to finish its own start (kBootDelay).
  * 4. It starts the main thread, which calls the Initialize() function of the
- *    product. The hooks and the patches of the product are installed there.
+ *    product. The product installs its hooks and its patches there.
  * 5. It answers the events of the plugin loader (sleep mode, HOME menu, end of
  *    the game) until the game ends.
  *
@@ -40,41 +40,35 @@
 
 #include <3ds.h>
 
-#include "plgldr.h"
-
-extern "C" {
-/// A system call of Luma3DS (csvc.s).
-Result svcControlProcess(Handle process, int operation, u32 argument_2,
-                         u32 argument_3);
-int __entrypoint(int arg, void* temporary_stack);
-void initLib(void);
-void __ctru_exit(int rc);
-Result __sync_init(void);
-void __system_initSyscalls(void);
-}
+#include "boot/csvc.h"
+#include "boot/plgldr.h"
+#include "boot/runtime.h"
+#include "core/types.h"
 
 /// The function of the product. It installs the hooks and the patches.
 extern void Initialize();
 
+extern "C" int __entrypoint(int argument, void* temporary_stack);
+
+namespace boot {
+
 namespace {
 
-/// The stack of the keep thread. The static objects of the plugin are made on
-/// this stack, so it must not be smaller.
+/// The size of the stack of the keep thread. The static objects of the plugin
+/// are made on this stack, so it must not be smaller.
 constexpr u32 kKeepStackSize = 0x1000;
-/// The stack of the main thread, in the heap.
+/// The size of the stack of the main thread. It is in the heap.
 constexpr u32 kMainStackSize = 0x4000;
 /// The priority of the keep thread at the start, then after the start.
 constexpr s32 kKeepStartPriority = 0x1A;
 constexpr s32 kKeepPriority = 0x2F;
+/// The priority of the main thread.
 constexpr s32 kMainPriority = 0x30;
-/// The time that the game needs to finish its own start. Before it, the
-/// memory of the game is not ready for the hooks.
+/// The time that the game needs to finish its own start, in nanoseconds.
+/// Before it, the memory of the game is not ready for the hooks.
 constexpr u64 kBootDelay = 5000000000ull;
-/// The time between two checks of the plugin loader.
+/// The time between two checks of the plugin loader, in nanoseconds.
 constexpr u64 kPollTime = 250000000ull;
-/// The operation of svcControlProcess that gives an event. The event is
-/// signaled each time the memory layout of the game changes.
-constexpr int kGetOnMemoryChangeEvent = 2;
 /// The result of svcWaitSynchronization when the time ended.
 constexpr Result kTimeout = 0x09401BFE;
 
@@ -82,28 +76,30 @@ alignas(8) u8 keep_stack[kKeepStackSize];
 Handle continue_event = 0;
 Handle keep_thread = 0;
 
-void MainThread(void*) { Initialize(); }
+// Calls the function of the product.
+void MainThread(void* /*argument*/) { Initialize(); }
 
-/// Answers the events of the plugin loader until the game ends. Returns the
-/// last event, ABOUT_TO_EXIT.
-s32 RunEventLoop() {
+// Answers the events of the plugin loader until the game ends. Returns the
+// last event, kAboutToExit.
+PluginEvent RunEventLoop() {
   Handle memory_changed = 0;
-  svcControlProcess(CUR_PROCESS_HANDLE, kGetOnMemoryChangeEvent,
+  svcControlProcess(CUR_PROCESS_HANDLE,
+                    static_cast<u32>(ProcessOperation::kGetOnMemoryChangeEvent),
                     reinterpret_cast<u32>(&memory_changed), 0);
   for (;;) {
-    if (svcWaitSynchronization(memory_changed, kPollTime) != kTimeout) {
-      continue; // The memory of the game changed: nothing to do.
-    }
-    const s32 event = PLGLDR__FetchEvent();
+    // The memory of the game changed: nothing to do.
+    if (svcWaitSynchronization(memory_changed, kPollTime) != kTimeout) continue;
+
+    const PluginEvent event = FetchEvent();
     switch (event) {
-      case PLG_SLEEP_ENTRY:
-      case PLG_SLEEP_EXIT:
-      case PLG_HOME_ENTER:
-      case PLG_HOME_EXIT:
-      case PLG_ABOUT_TO_SWAP:
-        PLGLDR__Reply(event);
+      case PluginEvent::kSleepEntry:
+      case PluginEvent::kSleepExit:
+      case PluginEvent::kHomeEnter:
+      case PluginEvent::kHomeExit:
+      case PluginEvent::kAboutToSwap:
+        Reply(event);
         break;
-      case PLG_ABOUT_TO_EXIT:
+      case PluginEvent::kAboutToExit:
         return event;
       default:
         break;
@@ -111,59 +107,56 @@ s32 RunEventLoop() {
   }
 }
 
-void KeepThread(void*) {
-  // The runtime
-  __sync_init();
-  __system_initSyscalls();
-  initLib();
-  plgLdrInit();
+// The thread that stays during the whole game.
+void KeepThread(void* /*argument*/) {
+  InitializeRuntime();
+  ConnectToLoader();
 
   // The game can run now.
   svcSignalEvent(continue_event);
 
   svcSleepThread(kBootDelay);
-  if (!threadCreate(MainThread, nullptr, kMainStackSize, kMainPriority, -1,
-                    true)) {
-    PLGLDR__DisplayErrMessage("Fatal plugin error",
-                              "The main thread did not start.", 0);
+  if (threadCreate(MainThread, nullptr, kMainStackSize, kMainPriority, -1,
+                   true) == nullptr) {
+    ShowError("Fatal plugin error", "The main thread did not start.", 0);
     svcBreak(USERBREAK_PANIC);
   }
   svcSetThreadPriority(keep_thread, kKeepPriority);
 
-  const s32 event = RunEventLoop();
+  const PluginEvent event = RunEventLoop();
 
   // The game ends.
-  __ctru_exit(0);
-  PLGLDR__Reply(event); // This call does not return.
+  ShutDownRuntime();
+  Reply(event); // This call does not return.
   for (;;) {
   }
 }
 
 } // namespace
 
-/// Stops the plugin and shows the address that called it.
+} // namespace boot
+
+// Stops the plugin and shows the address of the code that called abort().
 extern "C" void abort(void) {
   void* caller = __builtin_return_address(0);
-  PLGLDR__DisplayErrMessage("Fatal plugin error",
-                            "abort() called from the following location:",
-                            reinterpret_cast<u32>(caller));
+  boot::ShowError("Fatal plugin error",
+                  "abort() called from the following location:",
+                  reinterpret_cast<u32>(caller));
   svcSleepThread(500000000ull);
   svcBreak(USERBREAK_PANIC);
   for (;;) {
   }
 }
 
-/// Called by crt0.s on the thread of the game, before the game runs.
-extern "C" int __entrypoint(int arg, void* temporary_stack) {
-  (void)arg;
-  (void)temporary_stack;
-
-  svcCreateEvent(&continue_event, RESET_ONESHOT);
-  svcCreateThread(&keep_thread, KeepThread, 0,
-                  reinterpret_cast<u32*>(&keep_stack[kKeepStackSize]),
-                  kKeepStartPriority, 0);
+// Called by crt0.s on the thread of the game, before the game runs.
+extern "C" int __entrypoint(int /*argument*/, void* /*temporary_stack*/) {
+  svcCreateEvent(&boot::continue_event, RESET_ONESHOT);
+  u32* stack_top = reinterpret_cast<u32*>(
+      &boot::keep_stack[boot::kKeepStackSize]);
+  svcCreateThread(&boot::keep_thread, boot::KeepThread, 0, stack_top,
+                  boot::kKeepStartPriority, 0);
   // The game continues after the keep thread has set up the runtime.
-  svcWaitSynchronization(continue_event, U64_MAX);
-  svcCloseHandle(continue_event);
+  svcWaitSynchronization(boot::continue_event, U64_MAX);
+  svcCloseHandle(boot::continue_event);
   return 0;
 }
