@@ -31,7 +31,6 @@
 #include <new>
 
 #include "battle/patch/battle.h"
-#include "battle/patch/game_extension.h"
 #include "battle/patch/trainer_team.h"
 #include "core/data_folder.h"
 #include "core/problems.h"
@@ -309,15 +308,16 @@ public:
       OnProblem("moves.txt", 0, "too many moves:", "256 at most");
       return;
     }
-    battle::GameExtension::GetInstance().on_move_data.Subscribe(
-        ApplyMoveChange);
+    // The table of the moves is changed at the end of the read.
+    move_changes_pending_ = true;
   }
 
-  /// Returns the change of a move of moves.txt, or null.
-  const maker::MoveChange* FindMoveChange(MoveId move) const {
-    return move_changes_.Find([move](const maker::MoveChange& change) {
-      return change.move == move;
-    });
+  /// The changes of moves.txt that the table of the moves does not have yet.
+  bool HasPendingMoveChanges() const { return move_changes_pending_; }
+  void SetMoveChangesApplied() { move_changes_pending_ = false; }
+  u32 GetMoveChangeCount() const { return move_changes_.Count(); }
+  const maker::MoveChange& GetMoveChange(u32 index) const {
+    return move_changes_[index];
   }
 
   /// Returns the change of an item of items.txt, or null.
@@ -357,6 +357,7 @@ private:
   core::FixedList<maker::ItemChange, 256> item_changes_;
   // The changes of moves.txt.
   core::FixedList<maker::MoveChange, 256> move_changes_;
+  bool move_changes_pending_ = false;
   // The new species of species.txt. Reload() does not remove them.
   struct NewSpeciesName {
     c16 name[maker::kMaxSpeciesNameLength + 1];
@@ -456,6 +457,68 @@ u32 HashBytes(const c8* data, u32 size) {
   return hash;
 }
 
+// The values of a move that moves.txt changes, as the game had them. Reload()
+// puts them back before it reads the file again.
+struct MoveBackup {
+  MoveId move;
+  TypeId type;
+  DamageCategory category;
+  u8 power;
+  u8 accuracy;
+  u8 pp;
+  s8 priority;
+};
+MoveBackup move_backups[256];
+u32 move_backup_count = 0;
+
+// Puts the moves back as the game had them.
+void RestoreMoves() {
+#ifdef GAME_ORAS
+  pokemon::MoveData* table = pokemon::MoveData::GetTable();
+  if (table != nullptr) {
+    for (u32 i = 0; i < move_backup_count; i++) {
+      const MoveBackup& backup = move_backups[i];
+      pokemon::MoveData& data = table[static_cast<u16>(backup.move)];
+      data.type = backup.type;
+      data.damage_category = backup.category;
+      data.power = backup.power;
+      data.accuracy = backup.accuracy;
+      data.base_pp = backup.pp;
+      data.priority = backup.priority;
+    }
+  }
+#endif
+  move_backup_count = 0;
+}
+
+// Writes the changes of moves.txt in the table of the moves of the game. The
+// battles, the menus and the PP of the Pokémon read this table. It does not
+// exist at the very start of the game: the next frame tries again.
+void ApplyMoveChanges() {
+#ifdef GAME_ORAS
+  pokemon::MoveData* table = pokemon::MoveData::GetTable();
+  if (table == nullptr) return;
+  auto& sink = GetGameSink();
+  for (u32 i = 0; i < sink.GetMoveChangeCount(); i++) {
+    const maker::MoveChange& change = sink.GetMoveChange(i);
+    pokemon::MoveData& data = table[static_cast<u16>(change.move)];
+    if (move_backup_count < SIZE(move_backups)) {
+      move_backups[move_backup_count++] = {change.move, data.type,
+                                           data.damage_category, data.power,
+                                           data.accuracy, data.base_pp,
+                                           data.priority};
+    }
+    if (change.has_type) data.type = change.type;
+    if (change.has_category) data.damage_category = change.category;
+    if (change.has_power) data.power = change.power;
+    if (change.has_accuracy) data.accuracy = change.accuracy;
+    if (change.has_pp) data.base_pp = change.pp;
+    if (change.has_priority) data.priority = change.priority;
+  }
+  sink.SetMoveChangesApplied();
+#endif
+}
+
 // Removes the data of the last read from the game, before a new read. The
 // changes of the stats, the types... of species.txt and of rules.txt stay.
 void RemoveFileData() {
@@ -477,20 +540,9 @@ void RemoveFileData() {
                                      SIZE(pokemon::kShopPokemons));
     pokemon::CustomShop::EnablePokemonShop(false);
   }
+  RestoreMoves();
   GetGameSink().ClearChanges();
   maker::Clear();
-}
-
-// Changes the data of a move that the game loads (moves.txt).
-void ApplyMoveChange(MoveId move, pokemon::MoveData* data) {
-  const maker::MoveChange* change = GetGameSink().FindMoveChange(move);
-  if (change == nullptr || data == nullptr) return;
-  if (change->has_type) data->type = change->type;
-  if (change->has_category) data->damage_category = change->category;
-  if (change->has_power) data->power = change->power;
-  if (change->has_accuracy) data->accuracy = change->accuracy;
-  if (change->has_pp) data->base_pp = change->pp;
-  if (change->has_priority) data->priority = change->priority;
 }
 
 // The values of the script that runs: the answers, the choice and the last
@@ -719,6 +771,7 @@ void DataFiles::Load() {
     AddLogLine("problem: %s\n", problems[i]);
   }
   WriteLogFile();
+  ApplyMoveChanges();
   is_loaded = true;
 }
 
@@ -743,6 +796,7 @@ bool DataFiles::Reload() {
 }
 
 void DataFiles::Update() {
+  if (GetGameSink().HasPendingMoveChanges()) ApplyMoveChanges();
   if (is_reload_pending) {
     Reload();
     return;

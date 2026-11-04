@@ -86,6 +86,12 @@ These files are at the root of `lib/include/`:
 
 ## The start of the plugin
 
+The plugin does not use a framework to start. The folder `lib/src/boot` has the
+code that the plugin loader calls: it makes the heap, gives the game threads the
+data that `malloc()` needs, waits 5 seconds for the game to start, and calls
+`Initialize()`. Then it answers the events of the plugin loader (sleep mode,
+HOME menu, end of the game).
+
 The library has a default entry point (`lib/src/hack.cc`). It calls the
 functions of `hack.h` that your product writes:
 

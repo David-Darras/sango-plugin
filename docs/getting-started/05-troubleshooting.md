@@ -11,15 +11,11 @@ The terminal does not know where devkitPro is.
 - **Windows:** use the devkitPro shell (`C:\devkitPro\msys2\msys2_shell.bat`), not the Windows command prompt.
 - **Linux:** close the terminal and open a new terminal. If the problem continues, type `source /etc/profile.d/devkit-env.sh`.
 
-### `CTRPluginFramework.hpp: No such file or directory`
-
-libctrpf is not installed. Do [step 3 and step 4 of the installation](01-install-the-tools.md) again.
-
 ### `3gxtool: command not found`
 
 3gxtool is not installed. Type `pacman -S 3gxtool` (Windows) or `sudo dkp-pacman -S 3gxtool` (Linux).
 
-### `pacman` does not find `libctrpf` or `3gxtool`
+### `pacman` does not find `3gxtool`
 
 1. Make sure that `pacman.conf` contains the lines of ThePixellizerOSS.
 2. Type `pacman -Sy` (Windows) or `sudo dkp-pacman -Sy` (Linux).

@@ -28,8 +28,7 @@ in the devkitPro shell.
         "${workspaceFolder}/overlay/include",
         "${workspaceFolder}/kaizo/include",
         "${workspaceFolder}/maker/include",
-        "C:/devkitPro/libctru/include",
-        "C:/devkitPro/libctrpf/include"
+        "C:/devkitPro/libctru/include"
       ],
       "defines": [
         "__3DS__",
@@ -67,8 +66,7 @@ set(CMAKE_CXX_STANDARD 11)
 
 include_directories(lib/include lib/src
                     overlay/include kaizo/include maker/include
-                    "C:/devkitPro/libctru/include"
-                    "C:/devkitPro/libctrpf/include")
+                    "C:/devkitPro/libctru/include")
 
 add_definitions(-D__3DS__ -DGAME_ORAS -DUSE_SANGO_PLUGIN
                 -DPLUGIN_NAME="Sango" -DPLUGIN_VERSION="dev"

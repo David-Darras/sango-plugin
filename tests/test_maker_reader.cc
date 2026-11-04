@@ -592,6 +592,29 @@ TEST(ShopsGiveTheListOfEachShop) {
   CHECK(r.shop_prices == std::vector<u32>({1000, 200, 5000, 20000}));
 }
 
+TEST(ALineBeforeTheFirstSectionIsReported) {
+  // The line is not in a [section]: nothing would use it.
+  Recorder r = ReadText(ReadShops,
+                        "# a comment\n"
+                        "Master Ball, 1\n");
+  CHECK_EQ(r.problem_lines.size(), 1);
+  CHECK_EQ(r.problem_lines[0], 2);
+  CHECK_EQ(r.shops.size(), 0);
+
+  // The lines of a section that was reported are not reported again.
+  r = ReadText(ReadMoves,
+               "[Nobody]\n"
+               "power = 50\n");
+  CHECK_EQ(r.problem_lines.size(), 1);
+
+  r = ReadText(ReadItems,
+               "price = 5\n"
+               "[Potion]\n"
+               "price = 9\n");
+  CHECK_EQ(r.problem_lines.size(), 1);
+  CHECK_EQ(r.item_changes.size(), 1);
+}
+
 TEST(ShopsReportTheMistakes) {
   const Recorder r = ReadText(ReadShops,
                               "[shop]\n"

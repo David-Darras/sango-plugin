@@ -8,7 +8,7 @@ You need to know some C++.
 
 Do these steps in order.
 
-1. [Install the tools](getting-started/01-install-the-tools.md): devkitPro, libctrpf, 3gxtool, Git.
+1. [Install the tools](getting-started/01-install-the-tools.md): devkitPro, 3gxtool, Git.
 2. [Build the plugin](getting-started/02-build-the-plugin.md): download the code and type `make`.
 3. [Run the plugin](getting-started/03-run-the-plugin.md): on the Azahar emulator or on a 3DS console.
 4. [Set up your editor](getting-started/04-set-up-your-editor.md): code completion and the API reference.

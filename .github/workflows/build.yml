@@ -35,7 +35,7 @@ jobs:
       - name: Get the source code
         uses: actions/checkout@v5
 
-      - name: Install libctrpf and 3gxtool
+      - name: Install 3gxtool
         run: sh tools/docker/install_tools.sh
 
       - name: Build

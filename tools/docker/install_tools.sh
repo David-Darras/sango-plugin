@@ -1,5 +1,5 @@
 #!/bin/sh
-# Installs libctrpf and 3gxtool in the devkitARM image of devkitPro.
+# Installs 3gxtool in the devkitARM image of devkitPro.
 #
 # The Dockerfile of this folder and the GitHub workflow
 # (.github/workflows/build.yml) use this script. The image already has
@@ -17,7 +17,7 @@ CONF="${DEVKITPRO:-/opt/devkitpro}/pacman/etc/pacman.conf"
 # The server of devkitPro refuses the automatic downloads (error 403 on
 # GitHub), and the image already has its packages. A second configuration
 # keeps the [options] of the image and has only the package source of
-# libctrpf and 3gxtool (ThePixellizerOSS).
+# 3gxtool (ThePixellizerOSS).
 ONLY_TPO=/tmp/pacman-thepixellizeross.conf
 awk '/^\[/ { keep = ($0 == "[options]") } keep' "$CONF" > "$ONLY_TPO"
 cat >> "$ONLY_TPO" <<'EOF'
@@ -32,15 +32,11 @@ SigLevel = Optional
 EOF
 
 $PACMAN --config "$ONLY_TPO" -Sy --noconfirm
-$PACMAN --config "$ONLY_TPO" -S --noconfirm --needed libctrpf 3gxtool
+$PACMAN --config "$ONLY_TPO" -S --noconfirm --needed 3gxtool
 rm -f "$ONLY_TPO"
 
 # Stop now if a tool is missing, not in the middle of a build.
 test -x "${DEVKITPRO:-/opt/devkitpro}/tools/bin/3gxtool" || {
   echo "error: 3gxtool is not installed" >&2
-  exit 1
-}
-test -f "${DEVKITPRO:-/opt/devkitpro}/libctrpf/lib/libctrpf.a" || {
-  echo "error: libctrpf is not installed" >&2
   exit 1
 }

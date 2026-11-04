@@ -1,6 +1,6 @@
 # 6. Build without devkitPro
 
-You can build the plugin without devkitPro, libctrpf and 3gxtool on your
+You can build the plugin without devkitPro and 3gxtool on your
 computer. Select one of these two methods:
 
 | Method | You need | Use it when |

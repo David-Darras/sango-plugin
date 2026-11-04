@@ -176,12 +176,23 @@ bool FindOrReport(NameKind kind, Span span, u32* value, const c8* what) {
 // ("[...]") have `is_section` true. The handler gets an empty section at the end.
 typedef void (*LineHandler)(Span line, bool is_section);
 
+// True when the file that ReadLines() reads has had a [section] line.
+bool is_section_seen = false;
+
+// A line of a file with sections, before the first section: nothing uses it.
+// Tell the user, who may have forgotten the [section] line.
+void ReportOrphan(Span line) {
+  if (is_section_seen) return;
+  Report("write a [section] line before this line:", line);
+}
+
 void ReadLines(const c8* text, u32 size, const c8* name, Sink& file_sink,
                LineHandler handler) {
   sink = &file_sink;
   current_file = name;
   u32 start = 0;
   current_line = 0;
+  is_section_seen = false;
   for (u32 i = 0; i <= size; i++) {
     if (i < size && text[i] != '\n') continue;
     current_line++;
@@ -200,6 +211,7 @@ void ReadLines(const c8* text, u32 size, const c8* name, Sink& file_sink,
     line = Trim(line);
     if (line.length == 0) continue;
     if (line.text[0] == '[' && line.text[line.length - 1] == ']') {
+      is_section_seen = true;
       handler(Span{line.text + 1, line.length - 2}, true);
     } else {
       handler(line, false);
@@ -276,7 +288,10 @@ void OnEncounterLine(Span line, bool is_section) {
                  static_cast<EncounterMethod>(method), slot_count};
     return;
   }
-  if (!encounter.is_valid) return;
+  if (!encounter.is_valid) {
+    ReportOrphan(line);
+    return;
+  }
   // Pikachu, 3, 5 (, form)
   Span parts[4];
   const u32 count = Split(line, ',', parts, 4);
@@ -409,7 +424,10 @@ void OnTrainerLine(Span line, bool is_section) {
     sink->OnTrainer(static_cast<TrainerId>(id));
     return;
   }
-  if (!is_trainer_open) return;
+  if (!is_trainer_open) {
+    ReportOrphan(line);
+    return;
+  }
   Span key;
   Span value;
   if (!SplitKey(line, &key, &value)) {
@@ -664,7 +682,10 @@ void OnSpeciesLine(Span line, bool is_section) {
                      static_cast<FormId>(form)};
     return;
   }
-  if (!species_state.is_valid) return;
+  if (!species_state.is_valid) {
+    ReportOrphan(line);
+    return;
+  }
   Span key;
   Span value;
   if (!SplitKey(line, &key, &value)) {
@@ -1277,7 +1298,10 @@ void OnCharacterLine(Span line, bool is_section) {
     character_state = {true, static_cast<MapId>(map)};
     return;
   }
-  if (!character_state.is_valid) return;
+  if (!character_state.is_valid) {
+    ReportOrphan(line);
+    return;
+  }
   // Youngster, 10, 12, 0, Down, script 33000
   // Youngster, 14, 8, 0, Left, trainer Route 102 Kid 1, sight 4
   Span parts[8];
@@ -1545,7 +1569,10 @@ void OnShopLine(Span line, bool is_section) {
     }
     return;
   }
-  if (!shop_state.is_valid) return;
+  if (!shop_state.is_valid) {
+    ReportOrphan(line);
+    return;
+  }
   Span parts[4];
   const u32 count = Split(line, ',', parts, SIZE(parts));
   if (shop_state.is_pokemon_shop) {
@@ -1631,7 +1658,10 @@ void OnItemLine(Span line, bool is_section) {
     item_state.change.item = static_cast<ItemId>(item);
     return;
   }
-  if (!item_state.is_valid) return;
+  if (!item_state.is_valid) {
+    ReportOrphan(line);
+    return;
+  }
   Span key;
   Span value;
   if (!SplitKey(line, &key, &value)) {
@@ -1720,7 +1750,10 @@ void OnMoveLine(Span line, bool is_section) {
     move_state.change.move = static_cast<MoveId>(move);
     return;
   }
-  if (!move_state.is_valid) return;
+  if (!move_state.is_valid) {
+    ReportOrphan(line);
+    return;
+  }
   Span key;
   Span value;
   if (!SplitKey(line, &key, &value)) {

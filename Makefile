@@ -83,8 +83,6 @@ ifneq ($(strip $(SDMC)),)
 DEST      ?= $(SDMC)/luma/plugins/$(TITLE_ID)
 endif
 
-CTRPFLIB	?=	$(DEVKITPRO)/libctrpf
-
 #---------------------------------------------------------------------------------
 # One library, several plugins built on it. `make` builds them all,
 # `make overlay` / `make kaizo` just one; each gets its own build directory.
@@ -95,6 +93,7 @@ CTRPFLIB	?=	$(DEVKITPRO)/libctrpf
 PRODUCTS	:=	$(GAME_PRODUCTS)
 
 LIB_SOURCES	:=	lib/src \
+				lib/src/boot \
 				lib/src/core \
 				lib/src/net \
 				lib/src/battle \
@@ -133,7 +132,7 @@ CFLAGS	:=	-mword-relocations \
  			-ffunction-sections -fdata-sections -fno-strict-aliasing \
 			$(ARCH) $(BUILD_CFLAGS) $(G) \
 		   -DPLUGIN_CREATOR=\"$(PLUGIN_CREATOR)\" -DPLUGIN_VERSION=\"$(PLUGIN_VERSION)\" -DPLUGIN_NAME=\"$(PLUGIN_NAME)\" \
-		   -DUSE_SANGO_PLUGIN $(GAME_DEFINE) $(PRODUCT_DEFINES) # -DUSE_DEFAULT_CTRPF
+		   -DUSE_SANGO_PLUGIN $(GAME_DEFINE) $(PRODUCT_DEFINES)
 
 CFLAGS		+=	$(INCLUDE) -D__3DS__ $(DEFINES)
 
@@ -152,7 +151,7 @@ ASFLAGS		:= $(ARCH) $(G)
 LDFLAGS		:= -T $(TOPDIR)/3gx.ld $(ARCH) $(BUILD_CFLAGS) $(CXX_ONLY) -Wl,$(WL)--gc-sections,--section-start,.text=0x07000100 #-specs=3dsx.specs
 
 LIBS 		:=  $(BUILD_LIBS) -lm
-LIBDIRS		:= 	$(CTRPFLIB) $(CTRULIB) $(PORTLIBS)
+LIBDIRS		:= 	$(CTRULIB) $(PORTLIBS)
 
 #---------------------------------------------------------------------------------
 ifeq ($(strip $(PRODUCT)),)
@@ -247,12 +246,12 @@ release-$(PRODUCT) debug-$(PRODUCT):
 	@[ -d $@ ] || mkdir -p $@
 
 $(TARGET)-release.3gx : release-$(PRODUCT)
-	@$(MAKE) BUILD=release-$(PRODUCT) OUTPUT=$(CURDIR)/$@ BUILD_LIBS="-lctrpf -lctru" WL=--strip-discarded,--strip-debug, \
+	@$(MAKE) BUILD=release-$(PRODUCT) OUTPUT=$(CURDIR)/$@ BUILD_LIBS="-lctru" WL=--strip-discarded,--strip-debug, \
 	BUILD_CFLAGS="-DNDEBUG=1 -Os -fomit-frame-pointer $(LTO_FLAGS)" DEPSDIR=$(CURDIR)/release-$(PRODUCT) \
 	--no-print-directory -C release-$(PRODUCT) -f $(CURDIR)/Makefile
 
 $(TARGET)-debug.3gx : debug-$(PRODUCT)
-	@$(MAKE) BUILD=debug-$(PRODUCT) OUTPUT=$(CURDIR)/$@ BUILD_LIBS="-lctrpfd -lctrud" BUILD_CFLAGS="-DDEBUG=1 -Og" G=-g \
+	@$(MAKE) BUILD=debug-$(PRODUCT) OUTPUT=$(CURDIR)/$@ BUILD_LIBS="-lctrud" BUILD_CFLAGS="-DDEBUG=1 -Og" G=-g \
 	DEPSDIR=$(CURDIR)/debug-$(PRODUCT) --no-print-directory -C debug-$(PRODUCT) -f $(CURDIR)/Makefile
 
 #---------------------------------------------------------------------------------

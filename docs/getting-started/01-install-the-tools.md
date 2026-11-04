@@ -8,7 +8,6 @@ You need these tools:
 | Tool | What it does |
 |---|---|
 | **devkitPro** (devkitARM + libctru) | Compiles C++ code for the Nintendo 3DS. |
-| **libctrpf** | The CTRPluginFramework library. The plugin uses it to run inside the game. |
 | **3gxtool** | Changes the compiled program into a `.3gx` plugin file. |
 | **Git** | Downloads the source code and keeps the history of your changes. |
 | **Azahar** (optional) | A 3DS emulator. You can test the plugin on your computer. |
@@ -52,10 +51,10 @@ A black window opens. This is the devkitPro shell.
 In this shell, the disk `C:\` is the folder `/c/`.
 For example, `C:\Users\Ash` is `/c/Users/Ash`.
 
-### Step 3: Add the package source of libctrpf and 3gxtool
+### Step 3: Add the package source of 3gxtool
 
-The team ThePixellizerOSS supplies libctrpf and 3gxtool.
-You must tell `pacman` (the package manager) where to find them.
+The team ThePixellizerOSS supplies 3gxtool.
+You must tell `pacman` (the package manager) where to find it.
 
 1. Open the file `C:\devkitPro\msys2\etc\pacman.conf` in a text editor (for example Notepad).
 2. Add these lines at the end of the file:
@@ -72,7 +71,7 @@ You must tell `pacman` (the package manager) where to find them.
 
 3. Save the file.
 
-### Step 4: Install libctrpf, 3gxtool and Git
+### Step 4: Install 3gxtool and Git
 
 In the devkitPro shell, type these commands. Press **Enter** after each command.
 
@@ -81,13 +80,13 @@ pacman -Sy
 ```
 
 ```bash
-pacman -S libctrpf 3gxtool git
+pacman -S 3gxtool git
 ```
 
 When `pacman` asks a question, type `Y` and press **Enter**.
 
 > **Note:** `pacman -Sy` downloads the list of packages. If you do not run it,
-> `pacman` does not find libctrpf.
+> `pacman` does not find 3gxtool.
 
 Go to [Check the installation](#check-the-installation).
 
@@ -123,7 +122,7 @@ The new terminal knows the variables `DEVKITPRO` and `DEVKITARM`.
 > For other Linux distributions, read the
 > [devkitPro getting started page](https://devkitpro.org/wiki/Getting_Started).
 
-### Step 2: Add the package source of libctrpf and 3gxtool
+### Step 2: Add the package source of 3gxtool
 
 1. Open the file `/opt/devkitpro/pacman/etc/pacman.conf` as an administrator:
 
@@ -145,14 +144,14 @@ The new terminal knows the variables `DEVKITPRO` and `DEVKITARM`.
 
 3. Save the file (**Ctrl + O**, **Enter**) and close the editor (**Ctrl + X**).
 
-### Step 3: Install libctrpf, 3gxtool, Git and make
+### Step 3: Install 3gxtool, Git and make
 
 ```bash
 sudo dkp-pacman -Sy
 ```
 
 ```bash
-sudo dkp-pacman -S libctrpf 3gxtool
+sudo dkp-pacman -S 3gxtool
 ```
 
 ```bash
@@ -187,12 +186,6 @@ The result starts with `arm-none-eabi-gcc`.
 ```
 
 The result starts with `3DS Game eXtension Tool`.
-
-```bash
-ls $DEVKITPRO/libctrpf/lib
-```
-
-The result shows `libctrpf.a` and `libctrpfd.a`.
 
 ```bash
 git --version

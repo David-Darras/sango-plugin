@@ -44,7 +44,6 @@
 #include "core/types.h"
 
 #include <functional>
-#include <CTRPluginFramework/System/Process.hpp>
 
 // The ids that most files use.
 #include "pokemon/constant/form.h"

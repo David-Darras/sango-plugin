@@ -19,12 +19,8 @@
  * @file types.h
  * @brief The base integer types (u8, u16, u32, s32...) for the whole project.
  *
- * The headers of libctrpf include a file with the name "types.h". The libctrpf
- * package does not always supply this file. This file supplies it.
- *
  * This file uses the types of libctru. Then it adds the macros that the
- * libctrpf headers need (for example NORETURN). You do not need a copy of
- * the CTRPluginFramework source code to build the plugin.
+ * code of the project needs (for example NORETURN).
  */
 
 #pragma once

@@ -31,5 +31,8 @@
 #include "core/data_files.h"
 
 void SetUpHack() {
+  // The files are read again when they change on the SD card. The player can
+  // turn it off on the page Sango Maker.
+  core::DataFiles::GetInstance().is_live = true;
   core::DataFiles::Load();
 }

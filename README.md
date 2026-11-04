@@ -173,8 +173,8 @@ Your ROM hack is the next line of this table. **[Start here.](docs/tutorials/01-
 
 ## Quick start
 
-You need [devkitPro](https://devkitpro.org), [libctrpf](https://gitlab.com/thepixellizeross/ctrpluginframework)
-and [3gxtool](https://gitlab.com/thepixellizeross/3gxtool).
+You need [devkitPro](https://devkitpro.org) and [3gxtool](https://gitlab.com/thepixellizeross/3gxtool).
+The plugin does not use libctrpf: it has its own small start-up code (`lib/src/boot`).
 The [installation guide](docs/getting-started/01-install-the-tools.md) explains each step for Windows and Linux.
 You can also build without these tools, on GitHub or with Docker:
 see [Build without devkitPro](docs/getting-started/06-build-without-devkitpro.md).
@@ -226,8 +226,9 @@ tools/        helper scripts and the Sango Maker Editor (tools/maker_editor)
 ## Credits
 
 - **David Darras (ZettaD)**: author.
-- [CTRPluginFramework](https://gitlab.com/thepixellizeross/ctrpluginframework) and
-  [3gxtool](https://gitlab.com/thepixellizeross/3gxtool) by ThePixellizerOSS.
+- [3gxtool](https://gitlab.com/thepixellizeross/3gxtool) by ThePixellizerOSS, and the
+  start-up code of the plugin (`lib/src/boot`), which comes from
+  [CTRPluginFramework](https://gitlab.com/thepixellizeross/ctrpluginframework) by the same team.
 - [Luma3DS](https://github.com/LumaTeam/Luma3DS), [devkitPro](https://devkitpro.org) and [Azahar](https://azahar-emu.org).
 
 ## License

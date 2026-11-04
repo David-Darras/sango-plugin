@@ -24,6 +24,8 @@
 
 #include "pokemon/patch/model_loader.h"
 
+#include <cstdio>
+
 #include "core/constant/archive_id.h"
 #include "core/native/process_manager.h"
 #include "core/utils.h"
