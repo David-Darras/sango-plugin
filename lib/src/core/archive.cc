@@ -26,6 +26,7 @@
 #include <cstring>
 #include "battle/patch/move_animation.h"
 #include "battle/patch/trainer_class.h"
+#include "battle/patch/trainer_model_extension.h"
 #include "battle/patch/effect_style.h"
 #include "battle/patch/item_extension.h"
 #include "renderer/patch/type_icon.h"
@@ -366,6 +367,9 @@ static void ServeFile(OverrideSet& set, u32 file_id, void* buffer, u32 size) {
   if (!OpenSd(&file, path)) return;
   file.Read(buffer, size);
   file.Close();
+  if (set.archive == ArchiveId::kBattleMoveAnimation) {
+    battle::TrainerModelExtension::PatchPlayerPicture(file_id, buffer, size);
+  }
 }
 
 static constexpr u32 kMaxRawSize = 0x4000;

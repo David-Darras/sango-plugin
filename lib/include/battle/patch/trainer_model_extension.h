@@ -96,6 +96,23 @@ public:
   u8 player_model = 1 + static_cast<u8>(TrainerModelId::kCount) +
                     static_cast<u8>(XyTrainerModelId::kLysandre);
 
+  /// true: the player has a 2D picture, the picture of a class (the
+  /// introduction of the game for the trainers with a 2D picture), and no 3D
+  /// model. The change applies at the next battle.
+  bool use_player_picture = false;
+  /// The class that gives the picture of the player.
+  u16 player_picture_class = 0;
+
+  /// The number of the file of the 2D introduction of the player.
+  static constexpr u32 kPictureSequenceFile = 1350;
+  /// Gives the class to the file of the 2D introduction of the player that
+  /// the archive layer just read (the placeholder in the file becomes the
+  /// class). Does nothing for another file.
+  static void PatchPlayerPicture(u32 file_id, void* data, u32 size);
+  /// Hides the 3D model of the player in the entry of the Pokémon when the
+  /// player has a picture. The battle hook of the entry calls it.
+  static void OnEntryAnimation(uptr scene, u32* trainer_models);
+
   static void Initialize();
 
   /// Looks for the place of the targets of the trainers in the battle scene,

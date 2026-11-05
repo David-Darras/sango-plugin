@@ -24,6 +24,7 @@
 
 #include "battle/patch/battle.h"
 #include "battle/patch/item_extension.h"
+#include "battle/patch/trainer_model_extension.h"
 
 #include "battle/native/manager.h"
 #include "battle/patch/game_extension.h"
@@ -262,6 +263,7 @@ void Battle::StartEntryAnimationHook(void* p0, EntryAnimationData* data) {
   if (kHasTrainerVisibilityFlag)
     data->dont_show_trainer = !config.show_trainer_animation;
 
+  TrainerModelExtension::OnEntryAnimation(data->view, data->trainer_model);
   start_entry_animation_hook(p0, data);
 }
 

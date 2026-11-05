@@ -14,6 +14,7 @@ Sango Plugin {{VERSION}} for Pokémon Alpha Sapphire v1.4 (no ROM patch).
 - **New trainer classes.** `[new class Warden, Lass]` in `trainers.txt` makes a class with the data of another class, and its own title and character on the map.
 - **New trainers.** `[new AZ]` in `trainers.txt` makes a trainer that the game does not have (100 at most). It has its own name, class, model and team.
   Use its name in `characters.txt` (`trainer AZ`) and in `story.txt`.
+- **A 2D picture for the player.** **Battle > Trainer Models > Player Picture** gives the player the 2D picture of any class (also the classes of Pokémon X and Y), with the 2D introduction of the game, and no 3D model.
 - **A model for the player.** **Battle > Trainer Models > Player Model** gives the player any of these models in the battles: the 13 models of X and Y, and the models of the game (Zinnia, Steven, Maxie, Archie, Wally...).
   Each model plays its own introduction when the player throws the first Poké Ball, with its effects and its camera.
   The Poké Ball and the Mega Evolution use the motions of the model, so the model is not in T-pose any more.

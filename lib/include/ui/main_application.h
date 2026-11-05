@@ -248,7 +248,8 @@ public:
 
   /// Gives the menu a function to call when a page closes: the player goes
   /// back to the page before, or the menu closes. A page that reads a file
-  /// into memory gives the memory back there.
+  /// into memory gives the memory back there. The menu keeps 4 functions at
+  /// most; a function that it has already is not added again.
   static void SetPageClosedCallback(page_closed_callback_t callback);
 
   /// Adds an entry that enables or disables a cheat code.

@@ -703,17 +703,33 @@ void MainApplication::DrawNavigation(bool is_pinned) const {
 }
 
 namespace {
-MainApplication::page_closed_callback_t page_closed_callback = nullptr;
+constexpr u32 kMaxClosedCallbacks = 4;
+MainApplication::page_closed_callback_t
+    page_closed_callbacks[kMaxClosedCallbacks] = {};
+
+void NotifyPageClosed(menu_callback_t page) {
+  for (auto callback : page_closed_callbacks) {
+    if (callback != nullptr) callback(page);
+  }
+}
 } // namespace
 
 void MainApplication::SetPageClosedCallback(page_closed_callback_t callback) {
-  page_closed_callback = callback;
+  for (auto& slot : page_closed_callbacks) {
+    if (slot == callback) return;
+  }
+  for (auto& slot : page_closed_callbacks) {
+    if (slot == nullptr) {
+      slot = callback;
+      return;
+    }
+  }
 }
 
 void MainApplication::ForceClose() {
-  if (page_closed_callback != nullptr && is_opened_) {
+  if (is_opened_) {
     for (u32 i = contexts_count_; i > 0; i--) {
-      page_closed_callback(contexts_[i - 1].load_menu);
+      NotifyPageClosed(contexts_[i - 1].load_menu);
     }
   }
   theme_.Play(IsOpened() ? theme_.close_sound : theme_.open_sound);
@@ -1612,9 +1628,7 @@ void MainApplication::Open(menu_callback_t load_menu, void* args,
 void MainApplication::Close() {
   if (contexts_count_ <= 1) return;
 
-  if (page_closed_callback != nullptr) {
-    page_closed_callback(GetContext().load_menu);
-  }
+  NotifyPageClosed(GetContext().load_menu);
   contexts_count_--;
   is_context_open_ = false;
   is_help_open_ = false;

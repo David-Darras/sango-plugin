@@ -55,6 +55,9 @@ constexpr u32 kTrainerModelsOffset = 0x118;
 // The numbers of the places of the trainers in the battle scene.
 constexpr u32 kPlayerPlace = 0;
 constexpr u32 kPlayerFriendPlace = 2;
+// The place of the 3D model of the player that has a picture (far from the
+// camera).
+constexpr f32 kFarPlaceX = 6000.0f;
 // The first introduction of ORAS that has a copy for the player.
 constexpr u32 kFirstOrasIntroduction = 793;
 } // namespace
@@ -369,12 +372,65 @@ bool TrainerModelExtension::StartSideEntryHook(uptr scene, bool is_player,
 #endif
 }
 
+void TrainerModelExtension::PatchPlayerPicture(u32 file_id, void* data,
+                                               u32 size) {
+  auto& self = GetInstance();
+  if (file_id != kPictureSequenceFile || data == nullptr) return;
+  // The placeholder "PICT" of the class number (see the tool that makes the
+  // file).
+  constexpr u32 kPlaceholder = 0x50494354;
+  u8* bytes = static_cast<u8*>(data);
+  for (u32 i = 0; i + 4 <= size; i++) {
+    const u32 value = bytes[i] | (bytes[i + 1] << 8) | (bytes[i + 2] << 16) |
+                      (static_cast<u32>(bytes[i + 3]) << 24);
+    if (value != kPlaceholder) continue;
+    const u32 number = self.player_picture_class;
+    for (u32 k = 0; k < 4; k++) {
+      bytes[i + k] = static_cast<u8>(number >> (8 * k));
+    }
+    i += 3;
+  }
+}
+
+void TrainerModelExtension::OnEntryAnimation(uptr scene,
+                                             u32* trainer_models) {
+#ifdef GAME_ORAS
+  auto& self = GetInstance();
+  if (!self.is_enabled || !self.use_player_picture || scene == 0) return;
+  const u32 player = READ32(scene + kTrainerModelsOffset + 4 * kPlayerPlace);
+  if (player == 0) return;
+  // The 3D model of the player never shows: it goes far from the camera. The
+  // game calls the function of its table that sets the place of the model.
+  constexpr u32 kSetPlaceSlot = 3;
+  const f32 far_place[3] = {kFarPlaceX, 0.0f, 360.0f};
+  for (u32 i = 0; i < 2; i++) {
+    if (trainer_models[i] != player) continue;
+    const uptr* table = reinterpret_cast<const uptr*>(READ32(player));
+    typedef void (*SetPlace)(uptr model, const f32* place);
+    reinterpret_cast<SetPlace>(table[kSetPlaceSlot])(player, far_place);
+    break;
+  }
+#else
+  (void)scene;
+  (void)trainer_models;
+#endif
+}
+
 void TrainerModelExtension::StartPlayerIntroduction(uptr scene) {
 #ifdef GAME_ORAS
   u32 sequence = 0;
-  if (!GetPlayerSequence(&sequence)) return;
+  const bool is_picture =
+      use_player_picture &&
+      core::Archive::HasSdFile(core::ArchiveId::kBattleMoveAnimation,
+                               kPictureSequenceFile);
+  if (is_picture) {
+    sequence = kPictureSequenceFile;
+  } else if (!GetPlayerSequence(&sequence)) {
+    return;
+  }
   // The introductions of X and Y have a layout of their own.
-  const bool needs_layout = sequence < kFirstOrasPlayerSequenceFile;
+  const bool needs_layout =
+      !is_picture && sequence < kFirstOrasPlayerSequenceFile;
   if (!core::Archive::HasSdFile(core::ArchiveId::kBattleMoveAnimation,
                                 sequence) ||
       (needs_layout &&

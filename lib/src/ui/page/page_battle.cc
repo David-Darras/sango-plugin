@@ -32,6 +32,7 @@
 #include "battle/patch/shiny_entry.h"
 #include "battle/patch/trainer_model_extension.h"
 #include "battle/patch/type_chart.h"
+#include "core/name_file.h"
 #include "core/native/process_manager.h"
 #include "overworld/address.h"
 #include "overworld/data/static_encounter.inc"
@@ -67,7 +68,40 @@ static_assert(SIZE(kPlayerModelNames) ==
               "one name for each choice of the player model");
 #endif
 
+#ifdef GAME_ORAS
+// The names of the classes, for the picture of the player. The page reads the
+// file when it opens and gives the memory back when it closes.
+static core::NameFile picture_classes;
+
+static void LoadPlayerPicturePage(MainApplication& app, void*) {
+  auto& extension = battle::TrainerModelExtension::GetInstance();
+  app.AddSection("Player Picture")
+     .Add("Use A Picture", extension.use_player_picture)
+     .WithDescription("On: the player shows the 2D picture of a class, like "
+                      "a trainer with a 2D picture, and no 3D model. The "
+                      "introduction needs the files of "
+                      "sango/trainer_model/sequence. Applies at the next "
+                      "battle.");
+  if (!picture_classes.IsLoaded()) picture_classes.Load("trainerclass");
+  if (picture_classes.IsLoaded()) {
+    app.Add("Class", extension.player_picture_class)
+       .WithArray(picture_classes.GetNames(), picture_classes.GetCount())
+       .WithDescription("The class that gives the picture. The classes of "
+                        "Pokemon X and Y have their pictures too.");
+  } else {
+    app.Add("The names are missing: copy the folder sango/names.");
+  }
+}
+
+static void OnBattlePageClosed(menu_callback_t page) {
+  if (page == LoadPlayerPicturePage) picture_classes.Unload();
+}
+#endif
+
 void LoadBattleSettingsPage(MainApplication& app, void* args) {
+#ifdef GAME_ORAS
+  MainApplication::SetPageClosedCallback(OnBattlePageClosed);
+#endif
   auto& ctx = battle::Battle::GetInstance();
 
   app.OnChange([](void*) { battle::ShinyEntry::Refresh(); })
@@ -134,6 +168,9 @@ void LoadBattleSettingsPage(MainApplication& app, void* args) {
      .WithDescription("The 3D model of the player in the battle: it throws "
                       "the Poke Ball. The models of X and Y need the files "
                       "of sango/trainer_model. Applies at the next battle.")
+     .Add("Player Picture", LoadPlayerPicturePage)
+     .WithDescription("A 2D picture of a class in place of the 3D model of "
+                      "the player.")
 #endif
      // The options that are already on in the game: the player rarely
      // changes them, so they come last.
