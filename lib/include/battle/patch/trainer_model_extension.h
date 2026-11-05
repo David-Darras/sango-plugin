@@ -133,6 +133,10 @@ public:
   /// The number of the new file of the layout of the background, in the
   /// archive of the layouts of the introductions.
   static constexpr u32 kLayoutFile = 41;
+  /// The models that trainers.txt gives to a trainer: the values 0 to 12 are
+  /// the models of X and Y (XyTrainerModelId), the values 13 to 27 are the
+  /// models of the game (TrainerModelId + 13).
+  static constexpr u8 kFirstGameModel = 13;
 
 private:
   struct Assignment {
@@ -159,6 +163,11 @@ private:
   void ApplyPlayerModel();
   // Puts the models of the player back, as the game has them.
   void RestorePlayerModel();
+  // Shows a model of the game for the trainer of the battle.
+  void SelectGameModel(u32 model);
+  // The number of the introduction that the game has for a model of the game
+  // (a number of TrainerModelId), or 0.
+  static u32 GetGameIntroduction(u32 model);
   // Gives the files of the model player_model. Returns false when a file of
   // X and Y is not on the SD card.
   bool GetPlayerFiles(TrainerModelFiles* files) const;
@@ -188,7 +197,7 @@ private:
   PlayerIntroduction player_introduction_ = PlayerIntroduction::kIdle;
   /// The place of the two targets of the trainers (two numbers) in the battle
   /// scene, or 0 when it is not known.
-  u32 target_offset_ = 0;
+  u32 target_offset_ = GAME_CONSTANT(0, 0x6D4);
   /// The files of the places of May and Brendan before the change.
   TrainerModelFiles player_original_[2] = {};
   bool is_player_changed_ = false;

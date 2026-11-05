@@ -91,6 +91,19 @@ def read_names(path, enum_name, game=None):
     return names
 
 
+def entry_names(array, path, enum_name, game):
+    """The names of an entry of ENUMS. The models of trainers for trainers.txt
+    are the 13 models of X and Y (the values 0 to 12), then the 15 models of
+    Alpha Sapphire (the values 13 to 27)."""
+    names = read_names(path, enum_name, game)
+    if array == "kXyTrainerModelNames" and game != "XY":
+        for name, value in read_names(
+                "lib/include/battle/constant/trainer_model.h",
+                "TrainerModelId", "ORAS"):
+            names.append((name, value + 13))
+    return names
+
+
 def normalize(name):
     return re.sub(r"[^a-z0-9]", "", name.lower())
 
@@ -104,7 +117,7 @@ def main():
     ]
     for array, path, enum, game in ENUMS:
         names = {}
-        for name, value in read_names(path, enum, game):
+        for name, value in entry_names(array, path, enum, game):
             # The first value of a name wins.
             names.setdefault(normalize(name), value)
         condition = {"XY": "#ifdef GAME_XY", "ORAS": "#ifndef GAME_XY"}.get(game)
@@ -150,7 +163,7 @@ def write_editor_names():
             continue
         seen = set()
         names = []
-        for name, _ in read_names(path, enum, game):
+        for name, _ in entry_names(array, path, enum, game):
             readable = pretty(name)
             # The values without a use for a ROM hack maker.
             if (readable in ("None", "XXX", "YYY") or
@@ -193,7 +206,7 @@ def write_name_files(folder):
         if kind in NAME_FOLDER_KINDS_SKIPPED:
             continue
         values = {}
-        for name, value in read_names(path, enum, game):
+        for name, value in entry_names(array, path, enum, game):
             readable = pretty(name)
             if readable in ("XXX", "YYY") or readable.startswith("Unknow"):
                 continue
@@ -240,7 +253,7 @@ def write_table_files(folder):
             continue
         kind = EDITOR_KINDS[array]
         names = {}
-        for name, value in read_names(path, enum, game):
+        for name, value in entry_names(array, path, enum, game):
             names.setdefault(normalize(name), value)
         keys = sorted(names)
         header = 8 + 8 * len(keys)

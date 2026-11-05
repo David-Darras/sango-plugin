@@ -25,6 +25,9 @@
 #             Flare Admin Male, Flare Admin Female, Aliana, Xerosic, Flare Grunt
 #             Male, Flare Grunt Female, Celosia, Bryony, Mable, Az, Lysandre Final.
 #             The files are in sango/trainer_model (tools/export_xy_trainer_models.py).
+#             Also a model of Alpha Sapphire: Serena, Calem, Malva, Holocaster, May,
+#             Brendan, Wally, Wally Alt, Steven, Maxie, Archie, Zinnia, Shauna,
+#             Tierno, Trevor. The trainer then has its introduction.
 #   pokemon = one Pokémon of the team (6 at most), with its values:
 #             level N, item X, ability X, nature X, form X, ivs N,
 #             evs HP/Atk/Def/SpA/SpD/Spe, moves A/B/C/D, shiny

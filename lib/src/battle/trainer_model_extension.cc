@@ -124,6 +124,14 @@ void TrainerModelExtension::Select(TrainerId trainer) {
       [trainer](const Assignment& item) { return item.trainer == trainer; });
   if (entry == nullptr) return;
 
+  // A model of the game: its files are in the archive, and its introduction
+  // is the one that the game has for this model.
+  const u8 value = static_cast<u8>(entry->model);
+  if (value >= kFirstGameModel) {
+    SelectGameModel(value - kFirstGameModel);
+    return;
+  }
+
   // A file that is not in the archive and not on the SD card makes the game
   // wait for ever: the battle starts without the model.
   const TrainerModelFiles files = GetFiles(entry->model);
@@ -147,7 +155,7 @@ void TrainerModelExtension::Select(TrainerId trainer) {
   selected_ = static_cast<s32>(entry->model);
 
   // The introduction of X and Y, with its background and its camera.
-  const u32 sequence = kFirstSequenceFile + static_cast<u32>(entry->model);
+  const u32 sequence = kFirstSequenceFile + value;
   if (core::Archive::HasSdFile(core::ArchiveId::kBattleMoveAnimation,
                                sequence) &&
       core::Archive::HasSdFile(core::ArchiveId::kMoveEffectLayout,
@@ -157,11 +165,50 @@ void TrainerModelExtension::Select(TrainerId trainer) {
     enemy_sequence_ = sequence;
     core::Archive::ReplaceFile(
         core::ArchiveId::kMoveEffectModel, kCarrierLoseCameraFile,
-        kLoseCameraFiles[static_cast<u32>(entry->model)]);
+        kLoseCameraFiles[value]);
     is_introduction_replaced_ = true;
   } else {
     ui::Log::Print(u"trainer model: no sequence in sango/trainer_model");
   }
+}
+
+void TrainerModelExtension::SelectGameModel(u32 model) {
+  if (model >= static_cast<u32>(TrainerModelId::kCount)) return;
+  const u16 first = static_cast<u16>(model * kFilesPerModel);
+  const TrainerModelFiles files = {first, static_cast<u16>(first + 1),
+                                   static_cast<u16>(first + 2),
+                                   static_cast<u16>(first + 3),
+                                   static_cast<u16>(first + 4)};
+  auto& table = TrainerModelManager::GetInstance();
+  original_ = table.GetFiles(kCarrier);
+  is_changed_ = true;
+  table.SetFiles(kCarrier, files);
+  selected_ = static_cast<s32>(model + kFirstGameModel);
+  // The introduction that the game has for the model, in the place of the one
+  // of the carrier. A model without an introduction of its own keeps it.
+  const u32 sequence = GetGameIntroduction(model);
+  if (sequence != 0 && sequence != kCarrierSequenceFile) {
+    core::Archive::ReplaceFile(core::ArchiveId::kBattleMoveAnimation,
+                               kCarrierSequenceFile, sequence);
+    enemy_sequence_ = sequence;
+    is_introduction_replaced_ = true;
+  }
+}
+
+u32 TrainerModelExtension::GetGameIntroduction(u32 model) {
+#ifdef GAME_ORAS
+  // The introduction that the game plays for each model, in the order of
+  // TrainerModelId (the same as the table of GetPlayerSequence()).
+  static const u16 kIntroductions[] = {793, 794, 793, 793, 795, 796, 797, 798,
+                                       799, 801, 802, 800, 794, 794, 794};
+  static_assert(SIZE(kIntroductions) ==
+                    static_cast<u32>(TrainerModelId::kCount),
+                "one introduction for each model of ORAS");
+  return model < SIZE(kIntroductions) ? kIntroductions[model] : 0;
+#else
+  (void)model;
+  return 0;
+#endif
 }
 
 bool TrainerModelExtension::GetPlayerFiles(TrainerModelFiles* files) const {

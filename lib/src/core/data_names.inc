@@ -3751,18 +3751,33 @@ const DataName kTrainerNames[] = {
 
 const DataName kXyTrainerModelNames[] = {
     {"aliana", 4},
+    {"archie", 23},
     {"az", 11},
+    {"brendan", 18},
     {"bryony", 9},
+    {"calem", 14},
     {"celosia", 8},
     {"flareadminfemale", 3},
     {"flareadminmale", 2},
     {"flaregruntfemale", 7},
     {"flaregruntmale", 6},
+    {"holocaster", 16},
     {"lysandre", 1},
     {"lysandrefinal", 12},
     {"mable", 10},
+    {"malva", 15},
+    {"maxie", 22},
+    {"may", 17},
+    {"serena", 13},
+    {"shauna", 25},
+    {"steven", 21},
     {"sycamore", 0},
+    {"tierno", 26},
+    {"trevor", 27},
+    {"wally", 19},
+    {"wallyalt", 20},
     {"xerosic", 5},
+    {"zinnia", 24},
 };
 
 const DataName kTrainerClassNames[] = {
