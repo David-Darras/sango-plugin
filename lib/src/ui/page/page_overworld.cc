@@ -343,6 +343,22 @@ static void LoadDecorationPage(MainApplication& app, void* args) {
          "Hold {A} to confirm.");
 }
 
+#ifdef GAME_ORAS
+static void PlaceXyGrass(void*) {
+  overworld::TallGrass::PlaceInFrontOfPlayer();
+}
+
+static void PlaceXyGrassSquare(void*) {
+  overworld::TallGrass::PlaceSquareInFrontOfPlayer(3);
+}
+
+static void RemoveXyGrass(void*) {
+  overworld::TallGrass::RemoveInFrontOfPlayer();
+}
+
+static void RemoveAllXyGrass(void*) { overworld::TallGrass::RemoveAllPlaced(); }
+#endif
+
 void LoadTallGrassPage(MainApplication& app, void* args) {
   static const c8* kMixNames[] = {"All", "Green", "Ferns", "Ash"};
   auto& grass = overworld::TallGrass::GetInstance();
@@ -355,6 +371,37 @@ void LoadTallGrassPage(MainApplication& app, void* args) {
      .WithBounds(1, overworld::TallGrass::kMaxRadius)
      .Add("Density (%)", grass.density)
      .WithBounds(1, 100);
+#ifdef GAME_ORAS
+  static const c8* kXyGrassNames[] = {"XY Grass 1", "XY Grass 2", "XY Grass 3",
+                                      "XY Grass 4", "XY Grass 5"};
+  app.AddSection("Grass Of X And Y")
+     .Add("Kind", grass.placed_kind)
+     .WithArray(kXyGrassNames, SIZE(kXyGrassNames))
+     .WithBounds(0, SIZE(kXyGrassNames) - 1)
+     .WithDescription("The grass of Pokemon X and Y. It needs the file "
+         "sango/grass/grass.pc.")
+     .WithCallback(PlaceXyGrassSquare)
+     .Add("Light Set", grass.placed_light_set)
+     .WithBounds(0, 31)
+     .WithDescription("Test: the light of the placed grass. 15 is the light "
+         "of the Pokemon models, the other numbers are lights of the game.")
+     .Add("Width (tiles)", grass.placed_width)
+     .WithBounds(1, overworld::TallGrass::kMaxSide)
+     .Add("Depth (tiles)", grass.placed_depth)
+     .WithBounds(1, overworld::TallGrass::kMaxSide)
+     .Add("Place In Front", PlaceXyGrass)
+     .WithDescription("Places the grass on the tiles in front of the player. "
+         "The map keeps it in a file.")
+     .Add("Place 3x3 Square", PlaceXyGrassSquare)
+     .WithDescription("Places a square of 3 x 3 tiles of this kind in front "
+         "of the player.")
+     .Add("Remove In Front", RemoveXyGrass)
+     .WithDescription("Removes the placed grass from the same tiles.")
+     .Add("Remove All Here", RemoveAllXyGrass)
+     .WithConfirm()
+     .WithDescription("Removes all the grass that you placed in this world. "
+         "Hold {A} to confirm.");
+#endif
 }
 
 void LoadHiddenItemPage(MainApplication& app, void* args) {
@@ -428,7 +475,8 @@ static void LoadWorldOverlayPage(MainApplication& app, void* args) {
      .Add("Decoration Spots", overlay.show_decoration_spots)
      .WithDescription("Purple: a decoration can stand on the tile.")
      .Add("Plain Tiles", overlay.show_plain_tiles)
-     .WithDescription("A pale tint on the tiles that the player can walk on, so that the whole ground is visible. It needs more drawings.")
+     .WithDescription(
+         "A pale tint on the tiles that the player can walk on, so that the whole ground is visible. It needs more drawings.")
      .Add("Fill In Perspective", overlay.fill_tiles)
      .WithDescription("On: each tile is filled like the ground. Off: a small "
          "square on each tile (fewer drawings).")

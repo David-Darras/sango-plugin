@@ -20,6 +20,9 @@ Sango Plugin {{VERSION}} for Pokémon Alpha Sapphire v1.4 (no ROM patch).
   The Poké Ball and the Mega Evolution use the motions of the model, so the model is not in T-pose any more.
 - **The 3D introduction is forced** when a trainer has a model, also if the class of the trainer shows a 2D picture.
 - The trainer models are a new optional pack (see **Install**). Without it the plugin works as before.
+- **The tall grass of Pokémon X and Y.** Five kinds of grass (the plain grass, flowers and tall grass) that you place by hand.
+  Menu page **Overworld > Tall Grass > Grass Of X And Y**: choose the kind, then **Place In Front** (a rectangle of 1 to 8 tiles each side) or **Place 3x3 Square**.
+  The grass sways when the player walks into it. The map keeps the grass in a file, and **Light Set** changes its light. The pack `grass.pc` is optional (see **Install**).
 
 **Install**
 
@@ -34,6 +37,8 @@ Sango Plugin {{VERSION}} for Pokémon Alpha Sapphire v1.4 (no ROM patch).
      → unzip in `sango/bgm/` (the pack has its own `list.txt`)
    - Optional, the trainer models of Pokémon X and Y (the models, their introductions and their motions): {{TRAINER_MODELS_URL}}
      → unzip in `sango/trainer_model/` (the pack has the folders `sequence` and `layout`)
+   - Optional, the tall grass of Pokémon X and Y (one file, `grass.pc`, not in an archive): {{GRASS_URL}}
+     → copy the file to `sango/grass/grass.pc`
 3. Azahar: Emulation > Configure > System > Enable 3GX Plugin Loader.
 4. Start the game, and press Start in the overworld to open the menu.
 

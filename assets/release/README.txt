@@ -79,9 +79,14 @@ Make the "sango" folder if it does not exist.
    You must get files like sango/trainer_model/index.bin and 75.bin, and
    the folders sango/trainer_model/sequence and sango/trainer_model/layout .
 
+5. Tall grass (the 5 kinds of grass of Pokemon X and Y, optional):
+     {{GRASS_URL}}
+   This is one file, not an archive. Make the folder  sango/grass/  and copy
+   the file in it. You must get sango/grass/grass.pc .
+
 If a file is in sango/ and not in its folder, the plugin does not find it.
 Without the packs the plugin works, but the new Pokemon, the new characters,
-the extra music and the trainer models are missing.
+the extra music, the trainer models and the tall grass of X and Y are missing.
 
 First steps
 -----------
