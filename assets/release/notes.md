@@ -2,6 +2,8 @@ Sango Plugin {{VERSION}} for Pokémon Alpha Sapphire v1.4 (no ROM patch).
 
 **New in {{VERSION}}**
 
+- **Fixed: a black screen at the first start of a new game.** Without a save file, the game stayed black after the choice of the language, and the introduction with the Professor never started.
+  The plugin changed the table of the species while the game loaded its data again: the game then freed a table that was not its own. The plugin now waits for the overworld or a battle.
 - **The trainers of Pokémon X and Y in your battles.** Thirteen 3D models of X and Y are now in Alpha Sapphire: Professor Sycamore, Lysandre (two models), the Team Flare admins and grunts (male and female),
   Aliana, Xerosic, Celosia, Bryony, Mable and AZ. A trainer shows its model in the battle with **the introduction of X and Y**: the animated background, the particles and the camera of the game.
   In `trainers.txt` of Sango Maker, add one line to a trainer: `model = Lysandre`. The names are in the web editor (menu of the `model` key).
@@ -23,6 +25,8 @@ Sango Plugin {{VERSION}} for Pokémon Alpha Sapphire v1.4 (no ROM patch).
 - **The tall grass of Pokémon X and Y.** Five kinds of grass (the plain grass, flowers and tall grass) that you place by hand.
   Menu page **Overworld > Tall Grass > Grass Of X And Y**: choose the kind, then **Place In Front** (a rectangle of 1 to 8 tiles each side) or **Place 3x3 Square**.
   The grass sways when the player walks into it. The map keeps the grass in a file, and **Light Set** changes its light. The pack `grass.pc` is optional (see **Install**).
+- **The battle backgrounds of Pokémon X and Y.** The page **Battle > Static Encounter** has four lists: **Ground**, **Far Ground**, **Background** and **Plate**. Each list has the piece of the game, the pieces of ORAS and the pieces of X and Y
+  (`ORAS - Grass`, `XY - Cave`...), so you can mix them in the battle that the page starts. The pack of the backgrounds is optional (see **Install**).
 
 **Install**
 
@@ -39,6 +43,8 @@ Sango Plugin {{VERSION}} for Pokémon Alpha Sapphire v1.4 (no ROM patch).
      → unzip in `sango/trainer_model/` (the pack has the folders `sequence` and `layout`)
    - Optional, the tall grass of Pokémon X and Y (one file, `grass.pc`, not in an archive): {{GRASS_URL}}
      → copy the file to `sango/grass/grass.pc`
+   - Optional, the battle backgrounds of Pokémon X and Y: {{BACKGROUNDS_URL}}
+     → unzip in `sango/` (the pack has the folders `battle_background` and `names`)
 3. Azahar: Emulation > Configure > System > Enable 3GX Plugin Loader.
 4. Start the game, and press Start in the overworld to open the menu.
 

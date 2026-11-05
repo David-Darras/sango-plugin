@@ -84,9 +84,17 @@ Make the "sango" folder if it does not exist.
    This is one file, not an archive. Make the folder  sango/grass/  and copy
    the file in it. You must get sango/grass/grass.pc .
 
+6. Battle backgrounds (the backgrounds of the battles of Pokemon X and Y,
+   optional):
+     {{BACKGROUNDS_URL}}
+   Unzip the pack in  sango/ . The pack has its own folders:
+   sango/battle_background/ and sango/names/ . You must get files like
+   sango/battle_background/index.bin and sango/names/bgground.bin .
+
 If a file is in sango/ and not in its folder, the plugin does not find it.
 Without the packs the plugin works, but the new Pokemon, the new characters,
-the extra music, the trainer models and the tall grass of X and Y are missing.
+the extra music, the trainer models, the tall grass and the battle
+backgrounds of X and Y are missing.
 
 First steps
 -----------

@@ -29,7 +29,7 @@ include $(DEVKITARM)/3ds_rules
 # Local settings. The file is optional: only `make run-<product>` needs it.
 -include $(TOPDIR)/config.mk
 
-PLUGIN_VERSION  := 7.5.0
+PLUGIN_VERSION  := 7.6.0
 PLUGIN_CREATOR  := ZettaD
 PLUGIN_NAME     := Sango
 
@@ -40,6 +40,7 @@ OVERWORLD_MODELS_URL ?= https://drive.google.com/file/d/1WghmLRZqxeH2gd0CmWTEP1V
 MUSIC_URL            ?= https://drive.google.com/file/d/16e-uJYl0zZbzPWCIFwjPsiPHwnlXFXBv/view?usp=sharing
 TRAINER_MODELS_URL   ?= https://drive.google.com/file/d/1ph_P6EI7QYiVbTJeHZSUxzml-wrt1lsF/view?usp=sharing
 GRASS_URL            ?= https://drive.google.com/file/d/1e54uM764ne0L0SSxjbT6bAY6Uq5h5Hfl/view?usp=sharing
+BACKGROUNDS_URL      ?= https://drive.google.com/file/d/16jckbnAk6luJBVWIDAOiRWpp11xOjfUk/view?usp=sharing
 PYTHON     ?= $(shell command -v python3 2>/dev/null || command -v python)
 
 # The optimization of the release plugin. The plugin, its data and its heap
@@ -187,7 +188,8 @@ release-pack:
 		--overworld-models-url "$(OVERWORLD_MODELS_URL)" \
 		--music-url "$(MUSIC_URL)" \
 		--trainer-models-url "$(TRAINER_MODELS_URL)" \
-		--grass-url "$(GRASS_URL)"
+		--grass-url "$(GRASS_URL)" \
+		--backgrounds-url "$(BACKGROUNDS_URL)"
 
 release: release-pack
 	@$(PYTHON) tools/release.py publish --version $(PLUGIN_VERSION) \

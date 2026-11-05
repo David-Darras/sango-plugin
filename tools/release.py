@@ -2,9 +2,9 @@
 """Builds the release zip of the plugin and publishes it on GitHub.
 
 Usage (the Makefile calls it):
-  release.py pack    --version 7.5.0 --plugin sango_plugin-release.3gx
+  release.py pack    --version 7.6.0 --plugin sango_plugin-release.3gx
                      --maker-plugin sango_maker-release.3gx
-  release.py publish --version 7.5.0 [--draft] [--yes]
+  release.py publish --version 7.6.0 [--draft] [--yes]
 
 The zip has the layout of the SD card for the players, and a folder for the
 modders:
@@ -35,7 +35,7 @@ MAKER_PLUGIN_NAME = "sango_maker-release.3gx"
 
 
 def fill(text, version, pokemon_url, overworld_url, music_url, trainer_url="",
-         grass_url=""):
+         grass_url="", backgrounds_url=""):
     """Replaces the placeholders of a template."""
     default = "(the link is on the release page)"
     return (text.replace("{{VERSION}}", version)
@@ -43,7 +43,8 @@ def fill(text, version, pokemon_url, overworld_url, music_url, trainer_url="",
                 .replace("{{OVERWORLD_MODELS_URL}}", overworld_url or default)
                 .replace("{{MUSIC_URL}}", music_url or default)
                 .replace("{{TRAINER_MODELS_URL}}", trainer_url or default)
-                .replace("{{GRASS_URL}}", grass_url or default))
+                .replace("{{GRASS_URL}}", grass_url or default)
+                .replace("{{BACKGROUNDS_URL}}", backgrounds_url or default))
 
 
 def read_asset(name):
@@ -95,10 +96,12 @@ def pack(args):
 
     readme = fill(read_asset("README.txt"), args.version, args.pokemon_models_url,
                   args.overworld_models_url, args.music_url,
-                  args.trainer_models_url, args.grass_url)
+                  args.trainer_models_url, args.grass_url,
+                  args.backgrounds_url)
     notes = fill(read_asset("notes.md"), args.version, args.pokemon_models_url,
                  args.overworld_models_url, args.music_url,
-                 args.trainer_models_url, args.grass_url)
+                 args.trainer_models_url, args.grass_url,
+                 args.backgrounds_url)
     with open(notes_path(), "w", encoding="utf-8", newline="\n") as f:
         f.write(notes)
 
@@ -206,6 +209,7 @@ def main():
     p.add_argument("--music-url", default="")
     p.add_argument("--trainer-models-url", default="")
     p.add_argument("--grass-url", default="")
+    p.add_argument("--backgrounds-url", default="")
     p.set_defaults(func=pack)
 
     p = sub.add_parser("publish")

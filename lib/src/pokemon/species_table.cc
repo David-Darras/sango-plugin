@@ -35,6 +35,7 @@
 #include "core/hook.h"
 #include "core/problems.h"
 #include "core/memory.h"
+#include "core/native/process_manager.h"
 #include "overworld/patch/whos_that_pokemon.h"
 #include "pokemon/data/alolan_form.inc"
 #include "pokemon/data/gen7_species.inc"
@@ -234,6 +235,13 @@ void SpeciesTable::Update() {
 #ifdef GAME_ORAS
   auto& feat = GetInstance();
   if (feat.is_built_) return;
+  // The game loads its data of Pokémon again when the player chooses the
+  // language of a new game, and it frees the table that it had: the table of
+  // the plugin must not be there yet. Wait for the overworld or a battle.
+  if (!core::ProcessManager::IsOverworldActive() &&
+      !core::ProcessManager::IsBattleActive()) {
+    return;
+  }
   auto& db = Database::GetInstance();
   u8* game_table = (u8*)db.species;
   if (game_table == nullptr) return;
