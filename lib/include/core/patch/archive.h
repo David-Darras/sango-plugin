@@ -63,7 +63,7 @@ public:
   ReadFileCallback on_read_file = nullptr;
 
   /// The number of replacements of ReplaceFile().
-  static constexpr u32 kMaxReplacements = 128;
+  static constexpr u32 kMaxReplacements = 256;
 
   static void Initialize();
 

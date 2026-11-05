@@ -33,6 +33,7 @@
 #include "battle/patch/trainer_model_extension.h"
 #include "battle/patch/type_chart.h"
 #include "core/name_file.h"
+#include "battle/patch/xy_background.h"
 #include "core/native/process_manager.h"
 #include "overworld/address.h"
 #include "overworld/data/static_encounter.inc"
@@ -93,8 +94,14 @@ static void LoadPlayerPicturePage(MainApplication& app, void*) {
   }
 }
 
+// The pieces of the backgrounds of X and Y, for the page of the encounters.
+static core::NameFile xy_background_names[battle::XyBackground::kKindCount];
+
 static void OnBattlePageClosed(menu_callback_t page) {
   if (page == LoadPlayerPicturePage) picture_classes.Unload();
+  if (page == LoadStaticEncounterPage) {
+    for (auto& names : xy_background_names) names.Unload();
+  }
 }
 #endif
 
@@ -307,6 +314,7 @@ static u32 static_encounter_id = 0;
 
 static void StartStaticEncounter(void*) {
   if (!core::ProcessManager::IsOverworldActive()) return;
+  battle::XyBackground::Apply();
   core::GameFunction<void(core::GameManager*, u32, u32, s32)>::Call(
       overworld::address::kCallStaticEncounter,
       &core::GameManager::GetInstance(), static_encounter_id, 0, -1);
@@ -355,6 +363,28 @@ void LoadStaticEncounterPage(MainApplication& app, void* args) {
      .WithArray(GROUNDS, SIZE(GROUNDS))
      .Add("Encounter Animation", encounter.animation)
      .WithArray(ENCOUNTER_ANIMATIONS, SIZE(ENCOUNTER_ANIMATIONS));
+
+  // The pieces of the background of the battle that this page starts: each
+  // list has the game default, the pieces of ORAS and the pieces of X and Y.
+  auto& xy_background = battle::XyBackground::GetInstance();
+  static const c8* kKindTitles[] = {"Ground", "Far Ground", "Background",
+                                    "Plate"};
+  app.AddSection("Pieces Of The Background");
+  for (u32 kind = 0; kind < battle::XyBackground::kKindCount; kind++) {
+    core::NameFile& names = xy_background_names[kind];
+    if (!names.IsLoaded()) names.Load(battle::XyBackground::GetKindName(kind));
+    if (names.IsLoaded()) {
+      app.Add(kKindTitles[kind], xy_background.choices[kind])
+         .WithArray(names.GetNames(), names.GetCount())
+         .WithDescription("Game Default: the game chooses. ORAS: a piece of "
+                          "ORAS. XY: a piece of Pokemon X and Y (it needs the "
+                          "folder sango/battle_background). Applies to the "
+                          "battle that this page starts.");
+    } else {
+      app.Add("The names are missing: copy the folder sango/names.");
+      break;
+    }
+  }
 }
 #endif
 

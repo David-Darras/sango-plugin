@@ -129,6 +129,7 @@ static constexpr u32 kItemDataToken = 0xB0000000;
 static constexpr u32 kTrainerModelToken = 0xA0000000;
 static constexpr u32 kTrainerSequenceToken = 0x90000000;
 static constexpr u32 kTrainerLayoutToken = 0x70000000;
+static constexpr u32 kBackgroundToken = 0x60000000;
 static constexpr u32 kTokenMask = 0xF0000000;
 static constexpr u32 kFileIdMask = ~kTokenMask;
 static OverrideEntry pokemon_entries[6144];
@@ -139,6 +140,7 @@ static OverrideEntry matrix_entries[512];
 static OverrideEntry trainer_model_entries[256];
 static OverrideEntry trainer_sequence_entries[64];
 static OverrideEntry trainer_layout_entries[8];
+static OverrideEntry background_entries[128];
 // The icons of the new items: RegisterItemIcon() fills this list.
 static constexpr u32 kMaxItemIcons = 128;
 static OverrideEntry item_icon_entries[kMaxItemIcons];
@@ -178,6 +180,11 @@ static OverrideSet override_sets[] = {
     {ArchiveId::kMoveEffectLayout, u"sdmc:/sango/trainer_model/layout/index.bin",
      u"sdmc:/sango/trainer_model/layout/%d.bin", kTrainerLayoutToken, true,
      trainer_layout_entries, 8, 0, false},
+    // The pieces of the battle backgrounds of X and Y: new files after the
+    // last file of the archive (see battle::XyBackground).
+    {ArchiveId::kBattleBackground, u"sdmc:/sango/battle_background/index.bin",
+     u"sdmc:/sango/battle_background/%d.bin", kBackgroundToken, true,
+     background_entries, 128, 0, false},
     // The files of the icons have the paths that RegisterItemIcon() got. The
     // list is in memory: no index file, so the set is already loaded.
     {ArchiveId::kItemIcon, u"", u"", kItemIconToken, true, item_icon_entries,

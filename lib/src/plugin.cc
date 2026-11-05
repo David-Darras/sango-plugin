@@ -27,6 +27,7 @@
 #include "battle/patch/item_extension.h"
 #include "battle/patch/setup.h"
 #include "battle/patch/shiny_entry.h"
+#include "battle/patch/xy_background.h"
 #include "battle/patch/trainer_model_extension.h"
 #include "battle/patch/type_helper.h"
 #include "ui/performance_overlay.h"
@@ -220,6 +221,7 @@ void UpdateFrame() {
   overworld::PlacedDecorations::Update();
 #ifdef GAME_ORAS
   overworld::TallGrass::Update();
+  battle::XyBackground::Update();
   battle::ItemExtension::Update();
   overworld::HealerFollower::Update();
   UpdateFollowingPokemon();
