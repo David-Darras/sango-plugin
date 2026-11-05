@@ -59,7 +59,7 @@ if flag 1
   stop
 end
 say I am your rival! Let's battle!
-battle trainer Route 102 Kid 1
+battle trainer Route 102 Youngster Calvin
 if won
   set flag 1
   say Wow, you won! Take this.

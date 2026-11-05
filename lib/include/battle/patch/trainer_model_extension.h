@@ -60,7 +60,7 @@ namespace battle {
  * A battle against two trainers (a multi battle) shows the model for both.
  *
  * @code
- * TrainerModelExtension::GetInstance().Assign(TrainerId::kRoute102Kid1,
+ * TrainerModelExtension::GetInstance().Assign(TrainerId::kRoute102YoungsterCalvin,
  *                                             XyTrainerModelId::kLysandre);
  * @endcode
  */

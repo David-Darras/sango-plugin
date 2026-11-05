@@ -36,6 +36,10 @@ constexpr u32 kMaxModelsPerRegion = 33;
 /// known: the list of the models of the current region.
 struct CharacterManager {
   static constexpr u32 kArchiveOffset = GAME_CONSTANT(0x14A8, 14004);
+  /// The place of a byte that lets the game read the description of a model
+  /// that is not in the list of the region, when a character needs it. The
+  /// byte is 0 in the game, and a missing model then stops the game. ORAS only.
+  static constexpr u32 kLoadMissingModelOffset = GAME_CONSTANT(0, 0x3C20);
   u8 _0[kArchiveOffset];
   void* model_param_archive;
   u8 _1[12];

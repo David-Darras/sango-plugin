@@ -220,6 +220,8 @@ private:
   void AddMissingModels(CharacterManager* manager,
                         const CharacterPlacement* placements,
                         u32 placement_count);
+  // Returns true when the map is in the current region of the game.
+  static bool IsInRegion(MapId map_id);
   static bool Contains(const ModelAppearance* models, u32 count,
                        ModelId model_id);
   static bool LoadAppearance(const CharacterManager* manager,

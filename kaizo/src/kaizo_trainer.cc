@@ -94,7 +94,7 @@ static const TrainerSpec kMaySpec(
          MoveId::kNone, FormId::kNormal, nullptr, 1},
     });
 
-static const TrainerSpec kRoute102Kid1Spec(
+static const TrainerSpec kRoute102YoungsterCalvinSpec(
     2, Format::kDouble, BackgroundId::kAquaBoss,
     GroundId::kAquaBoss, PlatformId::kWater,
     EncounterAnimationId::kKyogre, Weather::kHeavyRain,
@@ -108,7 +108,7 @@ static const TrainerSpec kRoute102Kid1Spec(
          MoveId::kFacade, MoveId::kFireFang},
     });
 
-static const TrainerSpec kRoute102Kid2Spec(
+static const TrainerSpec kRoute102BugCatcherRickSpec(
     3, Format::kTriple, BackgroundId::kMagmaBoss,
     GroundId::kMagmaBoss, PlatformId::kVolcano,
     EncounterAnimationId::kGroudon, Weather::kExtremelyHarshSunlight,
@@ -124,7 +124,7 @@ static const TrainerSpec kRoute102Kid2Spec(
          MoveId::kFlameWheel, MoveId::kUTurn},
     });
 
-static const TrainerSpec kRoute102Kid3Spec(
+static const TrainerSpec kRoute102YoungsterAllenSpec(
     2, Format::kSingle, BackgroundId::kDeoxys, GroundId::kDeoxys,
     PlatformId::kFlyingGymLeader, EncounterAnimationId::kDeoxys,
     Weather::kHail,
@@ -137,7 +137,7 @@ static const TrainerSpec kRoute102Kid3Spec(
          MoveId::kUTurn},
     });
 
-static const TrainerSpec kRoute102GirlSpec(
+static const TrainerSpec kRoute102LassTianaSpec(
     3, Format::kRotation, BackgroundId::kAbandonedShip,
     GroundId::kAbandonedShip, PlatformId::kShip,
     EncounterAnimationId::kHoopa, Weather::kNone,
@@ -153,7 +153,7 @@ static const TrainerSpec kRoute102GirlSpec(
          MoveId::kCalmMind, MoveId::kScald},
     });
 
-static const TrainerSpec kRoute104YoungsterBillySpec(
+static const TrainerSpec kRoute104SouthYoungsterBillySpec(
     2, Format::kSingle, BackgroundId::kSkyBattle,
     GroundId::kSkyBattle, PlatformId::kSky,
     EncounterAnimationId::kGymLeaderFlying, Weather::kInvalid,
@@ -166,7 +166,7 @@ static const TrainerSpec kRoute104YoungsterBillySpec(
          MoveId::kHiddenPower, MoveId::kBraveBird},
     });
 
-static const TrainerSpec kRoute104RichBoyWinstonSpec(
+static const TrainerSpec kRoute104SouthRichBoyWinstonSpec(
     2, Format::kDouble, BackgroundId::kSkyBattle,
     GroundId::kSkyBattle, PlatformId::kSky,
     EncounterAnimationId::kGymLeaderFlying, Weather::kInvalid,
@@ -233,7 +233,7 @@ static const TrainerSpec kPetalburgWoodsBugCatcherJamesSpec(
          MoveId::kDrillRun, MoveId::kKnockOff},
     });
 
-static const TrainerSpec kRoute104LadyCindySpec(
+static const TrainerSpec kRoute104NorthLadyCindySpec(
     1, Format::kSingle, BackgroundId::kShore, GroundId::kShore,
     PlatformId::kShore, EncounterAnimationId::kKyogre, Weather::kRain,
     {
@@ -242,7 +242,7 @@ static const TrainerSpec kRoute104LadyCindySpec(
          MoveId::kWaterfall, MoveId::kIcePunch, MoveId::kSuperpower},
     });
 
-static const TrainerSpec kRoute104LassHaleySpec(
+static const TrainerSpec kRoute104NorthLassHaleySpec(
     2, Format::kSingle, BackgroundId::kShore, GroundId::kShore,
     PlatformId::kShore, EncounterAnimationId::kKyogre, Weather::kRain,
     {
@@ -254,7 +254,7 @@ static const TrainerSpec kRoute104LassHaleySpec(
          MoveId::kAquaJet},
     });
 
-static const TrainerSpec kRoute104TwinsGinaAndMiaSpec(
+static const TrainerSpec kRoute104NorthTwinsGinaMiaSpec(
     2, Format::kDouble, BackgroundId::kShore, GroundId::kShore,
     PlatformId::kShore, EncounterAnimationId::kKyogre,
     Weather::kHeavyRain,
@@ -267,7 +267,7 @@ static const TrainerSpec kRoute104TwinsGinaAndMiaSpec(
          MoveId::kIcePunch, MoveId::kPowerUpPunch},
     });
 
-static const TrainerSpec kRoute104FishermanIvanSpec(
+static const TrainerSpec kRoute104NorthFishermanIvanSpec(
     5, Format::kHorde, BackgroundId::kShore, GroundId::kShore,
     PlatformId::kShore, EncounterAnimationId::kKyogre,
     Weather::kHeavyRain,
@@ -289,7 +289,7 @@ static const TrainerSpec kRoute104FishermanIvanSpec(
          MoveId::kBounce, FormId::kNormal, nullptr, 1},
     });
 
-static const TrainerSpec kRustboroCityYoungsterJoshSpec(
+static const TrainerSpec kRustboroCityGymYoungsterJoshSpec(
     4, Format::kDouble, BackgroundId::kRockGymLeader2,
     GroundId::kRockGymLeader2, PlatformId::kRockGymLeader,
     EncounterAnimationId::kGymLeaderRock, Weather::kSandstorm,
@@ -308,7 +308,7 @@ static const TrainerSpec kRustboroCityYoungsterJoshSpec(
          MoveId::kRapidSpin, MoveId::kRockBlast, MoveId::kKnockOff},
     });
 
-static const TrainerSpec kRustboroCityYoungsterTommySpec(
+static const TrainerSpec kRustboroCityGymYoungsterTommySpec(
     4, Format::kDouble, BackgroundId::kRockGymLeader2,
     GroundId::kRockGymLeader2, PlatformId::kRockGymLeader,
     EncounterAnimationId::kGymLeaderRock, Weather::kSandstorm,
@@ -327,7 +327,7 @@ static const TrainerSpec kRustboroCityYoungsterTommySpec(
          MoveId::kAcrobatics, MoveId::kEarthquake},
     });
 
-static const TrainerSpec kRustboroCitySchoolkidGeorgiaSpec(
+static const TrainerSpec kRustboroCityGymSchoolkidGeorgiaSpec(
     1, Format::kSingle, BackgroundId::kRockGymLeader2,
     GroundId::kRockGymLeader2, PlatformId::kRockGymLeader,
     EncounterAnimationId::kRegirock, Weather::kSandstorm,
@@ -338,7 +338,7 @@ static const TrainerSpec kRustboroCitySchoolkidGeorgiaSpec(
     },
     /* force_wild_battle_type = */ true);
 
-static const TrainerSpec kRustboroCityLeaderRoxanneSpec(
+static const TrainerSpec kRustboroCityGymLeaderRoxanneSpec(
     3, Format::kRotation, BackgroundId::kRockGymLeader2,
     GroundId::kRockGymLeader2, PlatformId::kRockGymLeader,
     EncounterAnimationId::kGymLeaderRock, Weather::kSandstorm,
@@ -355,37 +355,37 @@ static const TrainerSpec kRustboroCityLeaderRoxanneSpec(
     });
 
 static const TrainerEntry TRAINERS[] = {
-    {TrainerId::kRoute103May1, &kMaySpec},
-    {TrainerId::kRoute103May2, &kMaySpec},
-    {TrainerId::kRoute103May3, &kMaySpec},
-    {TrainerId::kRoute102Kid1, &kRoute102Kid1Spec},
-    {TrainerId::kRoute102Kid2, &kRoute102Kid2Spec},
-    {TrainerId::kRoute102Kid3, &kRoute102Kid3Spec},
-    {TrainerId::kRoute102Girl, &kRoute102GirlSpec},
-    {TrainerId::kRoute104YoungsterBilly,
-     &kRoute104YoungsterBillySpec},
-    {TrainerId::kRoute104RichBoyWinston,
-     &kRoute104RichBoyWinstonSpec},
+    {TrainerId::kRoute103PokemonTrainerMay, &kMaySpec},
+    {TrainerId::kRoute103PokemonTrainerMay2, &kMaySpec},
+    {TrainerId::kRoute103PokemonTrainerMay3, &kMaySpec},
+    {TrainerId::kRoute102YoungsterCalvin, &kRoute102YoungsterCalvinSpec},
+    {TrainerId::kRoute102BugCatcherRick, &kRoute102BugCatcherRickSpec},
+    {TrainerId::kRoute102YoungsterAllen, &kRoute102YoungsterAllenSpec},
+    {TrainerId::kRoute102LassTiana, &kRoute102LassTianaSpec},
+    {TrainerId::kRoute104SouthYoungsterBilly,
+     &kRoute104SouthYoungsterBillySpec},
+    {TrainerId::kRoute104SouthRichBoyWinston,
+     &kRoute104SouthRichBoyWinstonSpec},
     {TrainerId::kPetalburgWoodsBugCatcherLyle,
      &kPetalburgWoodsBugCatcherLyleSpec},
     {TrainerId::kPetalburgWoodsTeamAquaGrunt,
      &kPetalburgWoodsTeamAquaGruntSpec},
     {TrainerId::kPetalburgWoodsBugCatcherJames,
      &kPetalburgWoodsBugCatcherJamesSpec},
-    {TrainerId::kRoute104LadyCindy, &kRoute104LadyCindySpec},
-    {TrainerId::kRoute104LassHaley, &kRoute104LassHaleySpec},
-    {TrainerId::kRoute104TwinsGinaAndMia,
-     &kRoute104TwinsGinaAndMiaSpec},
-    {TrainerId::kRoute104FishermanIvan, &kRoute104FishermanIvanSpec},
+    {TrainerId::kRoute104NorthLadyCindy, &kRoute104NorthLadyCindySpec},
+    {TrainerId::kRoute104NorthLassHaley, &kRoute104NorthLassHaleySpec},
+    {TrainerId::kRoute104NorthTwinsGinaMia,
+     &kRoute104NorthTwinsGinaMiaSpec},
+    {TrainerId::kRoute104NorthFishermanIvan, &kRoute104NorthFishermanIvanSpec},
 
-    {TrainerId::kRustboroCityYoungsterJosh,
-     &kRustboroCityYoungsterJoshSpec},
-    {TrainerId::kRustboroCityYoungsterTommy,
-     &kRustboroCityYoungsterTommySpec},
-    {TrainerId::kRustboroCitySchoolkidGeorgia,
-     &kRustboroCitySchoolkidGeorgiaSpec},
-    {TrainerId::kRustboroCityLeaderRoxanne,
-     &kRustboroCityLeaderRoxanneSpec},
+    {TrainerId::kRustboroCityGymYoungsterJosh,
+     &kRustboroCityGymYoungsterJoshSpec},
+    {TrainerId::kRustboroCityGymYoungsterTommy,
+     &kRustboroCityGymYoungsterTommySpec},
+    {TrainerId::kRustboroCityGymSchoolkidGeorgia,
+     &kRustboroCityGymSchoolkidGeorgiaSpec},
+    {TrainerId::kRustboroCityGymLeaderRoxanne,
+     &kRustboroCityGymLeaderRoxanneSpec},
 };
 
 void PatchTrainer_AI(battle::Config& config) {
@@ -543,18 +543,18 @@ void PatchTrainerData(battle::Config& config, TrainerId& trainer_id) {
   config.GetOpponentTeam().HealAllPokemons();
 
   switch (trainer_id) {
-    case TrainerId::kRustboroCityYoungsterJosh:
+    case TrainerId::kRustboroCityGymYoungsterJosh:
       config.InverseTypes();
       break;
-    case TrainerId::kRustboroCityYoungsterTommy:
+    case TrainerId::kRustboroCityGymYoungsterTommy:
       SaveTeamBeforeBattle();
       config.InverseTeams();
       break;
-    case TrainerId::kRustboroCitySchoolkidGeorgia:
+    case TrainerId::kRustboroCityGymSchoolkidGeorgia:
       SaveTeamBeforeBattle();
       battle.metronome_only = true;
       break;
-    case TrainerId::kRustboroCityLeaderRoxanne:
+    case TrainerId::kRustboroCityGymLeaderRoxanne:
       battle.sync_team_hp = true;
       break;
     default:

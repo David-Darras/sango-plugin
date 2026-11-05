@@ -134,6 +134,8 @@
   .checks { display: flex; gap: 12px; flex-wrap: wrap; }
   .checks label { display: flex; gap: 4px; align-items: center; color: var(--text); font-size: 13px; margin: 0; }
   .checks input { width: auto; }
+  label.inline { display: flex; gap: 6px; align-items: center; color: var(--text); font-size: 13px; margin: 6px 0; }
+  label.inline input { width: auto; }
   .hint { color: var(--muted); font-size: 12px; margin: 6px 0 0; }
 </style>
 </head>
@@ -188,6 +190,11 @@ for (const kind in SANGO_NAMES) NAMES[kind] = new Set(SANGO_NAMES[kind].map(norm
 // The names of the new species of species.txt ([new Sangoat, Skiddo]).
 // checkSpecies() fills the list.
 const newSpecies = new Set();
+// The names of the new trainers of trainers.txt ([new AZ]). checkTrainers()
+// fills the list.
+const newTrainers = new Set();
+// The names of the new classes of trainers.txt ([new class Warden, Lass]).
+const newClasses = new Set();
 
 // A name of the game, or a number.
 function knownGame(kind, text) {
@@ -199,7 +206,10 @@ function knownGame(kind, text) {
 
 // A name of the game, a new species, or a number.
 function known(kind, text) {
-  return knownGame(kind, text) || (kind === "species" && newSpecies.has(norm(text)));
+  return knownGame(kind, text) ||
+    (kind === "species" && newSpecies.has(norm(text))) ||
+    (kind === "trainer" && newTrainers.has(norm(text))) ||
+    (kind === "trainerclass" && newClasses.has(norm(text)));
 }
 
 function isNumber(text) { return /^\d+$/.test(text.trim()); }
@@ -312,12 +322,41 @@ function checkTrainers(text) {
   let seen = false;
   let open = false;
   let pokemonCount = 0;
+  let inClass = false;
+  newTrainers.clear();
+  newClasses.clear();
   for (const line of readLines(text)) {
     const err = (message) => errors.push({ n: line.n, message });
     if (line.isSection) {
       seen = true;
-      open = known("trainer", line.text);
       pokemonCount = 0;
+      inClass = false;
+      const [word, rest] = splitWord(line.text);
+      const [word2, rest2] = splitWord(rest);
+      if (norm(word) === "new" && norm(word2) === "class" && rest2 !== "") {
+        // [new class Warden, Lass]: a trainer class that the game does not have.
+        open = false;
+        const parts = rest2.split(",").map((p) => p.trim());
+        if (parts.length > 2) err("use [new class name, class]");
+        else if (norm(parts[0]) === "") err("give a name");
+        else if (known("trainerclass", parts[0])) err("the name is used: " + parts[0]);
+        else if (parts[0].length > 20) err("use a name of 20 letters at most: " + parts[0]);
+        else if (parts.length === 2 && !known("trainerclass", parts[1])) err("unknown trainer class: " + parts[1]);
+        else if (newClasses.size >= 64) err("too many new classes: " + parts[0]);
+        else { newClasses.add(norm(parts[0])); open = true; inClass = true; }
+        continue;
+      }
+      if (norm(word) === "new" && rest !== "") {
+        // [new AZ]: a trainer that the game does not have (100 at most).
+        open = false;
+        if (norm(rest) === "") err("give a name");
+        else if (known("trainer", rest)) err("the name is used: " + rest);
+        else if (rest.length > 16) err("use a name of 16 letters at most: " + rest);
+        else if (newTrainers.size >= 100) err("too many new trainers: " + rest);
+        else { newTrainers.add(norm(rest)); open = true; }
+        continue;
+      }
+      open = known("trainer", line.text);
       if (!open) err("unknown trainer: " + line.text);
       continue;
     }
@@ -325,6 +364,16 @@ function checkTrainers(text) {
     const kv = splitKey(line.text);
     if (kv === null) { err("use key = value"); continue; }
     const [key, value] = kv;
+    if (inClass) {
+      if (key === "overworld") {
+        if (!known("model", value)) err("unknown model: " + value);
+      } else if (key === "picture" || key === "introduction" || key === "music") {
+        if (!known("trainerclass", value)) err("unknown trainer class: " + value);
+      } else if (key !== "title") {
+        err("unknown key: " + key);
+      }
+      continue;
+    }
     if (key === "pokemon") {
       if (++pokemonCount > 6) err("6 Pokémon at most");
       checkOpponent(value, err);
@@ -336,6 +385,8 @@ function checkTrainers(text) {
       if (!isNumber(value) || Number(value) > 255) err("money: give a number from 0 to 255");
     } else if (key === "model") {
       if (!known("trainermodel", value)) err("unknown trainer model: " + value);
+    } else if (key === "class") {
+      if (!known("trainerclass", value)) err("unknown trainer class: " + value);
     } else if (key === "ai") {
       for (const ai of value.split(",").map(norm)) {
         if (!["casual", "competitive", "strategist", "multi", "horde"].includes(ai)) err("unknown AI: " + ai);
@@ -789,6 +840,7 @@ for (const key in FILES) texts[key] = load(key);
 function validate() {
   // The other files use the names of the new species of species.txt.
   if (current !== "species") checkSpecies(texts.species || "");
+  if (current !== "trainers") checkTrainers(texts.trainers || "");
   const errors = FILES[current].check(textarea.value);
   const list = document.getElementById("problems");
   list.innerHTML = "";
@@ -901,9 +953,13 @@ function encounterHelper(panel) {
 
 function trainerHelper(panel) {
   const trainer = field("Trainer (name or number)", "trainer");
+  const isNew = el("input", { type: "checkbox" });
+  const isNewLabel = el("label", { className: "inline" }, [isNew, " A new trainer (the name is the one that you give)"]);
   const format = select("Format", "format");
   const name = field("Name in the battle");
   const money = field("Money", null, { type: "number", min: 0, max: 255 });
+  const trainerClass = field("Class (optional)", "trainerclass");
+  const model = field("3D model of X and Y (optional)", "trainermodel");
   const items = field("Items (comma between them)", "item");
   const aiNames = ["Casual", "Competitive", "Strategist"];
   const aiBoxes = aiNames.map((n) => el("input", { type: "checkbox", checked: n !== "Strategist" }));
@@ -915,27 +971,35 @@ function trainerHelper(panel) {
     const item = field("Item", "item");
     const ability = field("Ability", "ability");
     const nature = field("Nature", "nature");
+    const form = field("Form", "form");
+    const shiny = el("input", { type: "checkbox" });
+    const shinyLabel = el("label", { className: "inline" }, [shiny, " Shiny"]);
     const moves = [1, 2, 3, 4].map((m) => field("Move " + m, "move"));
     const box = el("div", { className: "box" }, [
       el("div", { className: "row pokemon-row" }, [species, level, item]),
       el("div", { className: "row grid2" }, [ability, nature]),
+      el("div", { className: "row grid2" }, [form, shinyLabel]),
       el("div", { className: "row grid2" }, moves.slice(0, 2)),
       el("div", { className: "row grid2" }, moves.slice(2)),
     ]);
-    box.fields = { species, level, item, ability, nature, moves };
+    box.fields = { species, level, item, ability, nature, form, shiny, moves };
     team.append(box);
   }
   panel.append(
     el("h2", { textContent: "Add a trainer" }),
     el("div", { className: "row grid2" }, [trainer, format]),
+    isNewLabel,
     el("div", { className: "row grid2" }, [name, money]),
+    el("div", { className: "row grid2" }, [trainerClass, model]),
     items,
     el("label", { textContent: "AI" }), ai,
     team,
     el("div", { className: "buttons" }, [
       button("Insert", () => {
-        let text = "[" + value(trainer) + "]\nformat = " + value(format) + "\n";
+        let text = (isNew.checked ? "[new " : "[") + value(trainer) + "]\nformat = " + value(format) + "\n";
         if (value(name)) text += "name = " + value(name) + "\n";
+        if (value(trainerClass)) text += "class = " + value(trainerClass) + "\n";
+        if (value(model)) text += "model = " + value(model) + "\n";
         const chosen = aiNames.filter((n, i) => aiBoxes[i].checked);
         if (chosen.length) text += "ai = " + chosen.join(", ") + "\n";
         if (value(items)) text += "items = " + value(items) + "\n";
@@ -948,13 +1012,44 @@ function trainerHelper(panel) {
           if (value(f.item)) parts.push("item " + value(f.item));
           if (value(f.ability)) parts.push("ability " + value(f.ability));
           if (value(f.nature)) parts.push("nature " + value(f.nature));
+          if (value(f.form)) parts.push("form " + value(f.form));
+          if (f.shiny.checked) parts.push("shiny");
           const moves = f.moves.map(value).filter((m) => m);
           if (moves.length) parts.push("moves " + moves.join(" / "));
           text += "pokemon = " + parts.join(", ") + "\n";
         }
         insert(text);
       }, true),
-    ])
+    ]),
+    el("p", { className: "hint", textContent: "A new trainer takes an empty trainer of the game (100 at most). Use its name in characters.txt (trainer Name) and in story.txt. Write a new class before the trainers that use it." })
+  );
+
+  // A new trainer class.
+  const className = field("Name of the class");
+  const copyOf = field("Copy of (a class)", "trainerclass");
+  const title = field("Title in the battle");
+  const overworld = field("Character on the map", "model");
+  const picture = field("2D picture of (a class)", "trainerclass");
+  const introduction = field("Introduction and 3D model of (a class)", "trainerclass");
+  const music = field("Music of the sight of (a class)", "trainerclass");
+  panel.append(
+    el("h2", { textContent: "Add a trainer class" }),
+    el("div", { className: "row grid2" }, [className, copyOf]),
+    el("div", { className: "row grid2" }, [title, overworld]),
+    el("div", { className: "row grid2" }, [picture, introduction]),
+    music,
+    el("div", { className: "buttons" }, [
+      button("Insert the class", () => {
+        let text = "[new class " + value(className) + (value(copyOf) ? ", " + value(copyOf) : "") + "]\n";
+        if (value(title)) text += "title = " + value(title) + "\n";
+        if (value(overworld)) text += "overworld = " + value(overworld) + "\n";
+        if (value(picture)) text += "picture = " + value(picture) + "\n";
+        if (value(introduction)) text += "introduction = " + value(introduction) + "\n";
+        if (value(music)) text += "music = " + value(music) + "\n";
+        insert(text);
+      }, true),
+    ]),
+    el("p", { className: "hint", textContent: "The class has the data of the class after the comma (Youngster if you give none). The lines are all optional. Then give the class to a trainer with class = Name." })
   );
 }
 
@@ -1042,7 +1137,7 @@ function storyHelper(panel) {
     ["Give item", "give item Rare Candy 1"],
     ["Give Pokémon", "give pokemon Pikachu 5"],
     ["Give money", "give money 1000"],
-    ["Trainer battle", "battle trainer Route 102 Kid 1\nif won\n  say You are strong!\nend"],
+    ["Trainer battle", "battle trainer Route 102 Youngster Calvin\nif won\n  say You are strong!\nend"],
     ["Wild battle", "battle wild Rayquaza 70\nif won\n  say It is gone... or caught!\nend"],
     ["Warp", "warp Littleroot Town, 47, 77, 6, Down"],
     ["Heal", "fade out\nheal\nfade in"],

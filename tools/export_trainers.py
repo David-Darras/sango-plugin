@@ -8,6 +8,9 @@ that has them:
   python tools/export_trainers.py <folder of the archives> [output file]
       [--pkpawn <pkpawn-local>] [--sango <source folder>]
       [--enum lib/include/battle/constant/trainer.h] [--maker trainers.txt]
+      [--classes lib/include/battle/constant/trainer_class.h]
+      [--free-slots lib/include/battle/constant/trainer_free_slots.h]
+      [--class-records lib/include/battle/constant/trainer_class_records.h]
 
 With --pkpawn, the tool also reads the scripts of the maps (it decompiles them
 with pkpawn-local) to find the trainers that scripts start: rivals, leaders and
@@ -15,7 +18,13 @@ the Elite Four. With --sango, it also reads the rematches of the trainers. With
 --enum, it writes the names of all the trainers into the header of TrainerId
 (after the marker line): a map, a title and a name. With --maker, it writes the
 trainers of the game in the format of trainers.txt (Sango Maker), to change
-them in the tool of tools/maker_editor.
+them in the tool of tools/maker_editor. With --classes, it writes the names of
+the trainer classes (Youngster, Lass...) into the header of TrainerClassId. With
+--free-slots, it writes the numbers of the empty trainers of the game (no name,
+no map, a Zigzagoon of level 5): Sango Maker gives them to the new trainers.
+With --class-records, it writes the data of the 280 trainer classes and the
+numbers of the classes that no trainer uses: Sango Maker gives them to the new
+classes.
 
 Without an output file, the list goes to the screen. The list is for you:
 keep it in private/, not in the repository.
@@ -185,6 +194,190 @@ def camel(text):
 
 def words_of(name):
   return " ".join(re.findall(r"[A-Z][a-z]+|[A-Z]+(?![a-z])|\d+|[a-z]+", name))
+
+
+CLASS_HEADER = """/*
+ * Copyright (C) 2026  David Darras
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/**
+ * @file trainer_class.h
+ * @brief The ids of the trainer classes.
+ *
+ * The class of a trainer gives its title (Youngster, Lass...), its pictures,
+ * its 3D model, its music and its character on the map. The names come from
+ * tools/export_trainers.py (see its --classes option). A second class with the
+ * same title ends with its number: kPokemonTrainer2. A class without a title
+ * is kClass<n>.
+ */
+
+#pragma once
+
+#include <types.h>
+
+namespace battle {
+
+/// The id of a trainer class of the game.
+enum class TrainerClassId : u16 {
+"""
+
+
+FREE_SLOTS_HEADER = """/*
+ * Copyright (C) 2026  David Darras
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/**
+ * @file trainer_free_slots.h
+ * @brief The trainers of the game that nothing uses.
+ *
+ * These trainers have no name, no map and a Zigzagoon of level 5. Sango Maker
+ * gives them to the new trainers of trainers.txt. The list comes from
+ * tools/export_trainers.py (see its --free-slots option).
+ */
+
+#pragma once
+
+#include <types.h>
+
+namespace battle {
+
+/// The numbers of the empty trainers of the game.
+constexpr u16 kFreeTrainerSlots[] = {
+"""
+
+
+def write_free_slots(path, numbers):
+  """Writes the numbers of the trainers that nothing uses."""
+  lines = []
+  for i in range(0, len(numbers), 10):
+    lines.append("    " + ", ".join(str(n) for n in numbers[i:i + 10]) + ",")
+  with open(path, "w", encoding="utf-8", newline="\n") as f:
+    f.write(FREE_SLOTS_HEADER + "\n".join(lines) +
+            "\n};\n\n/// The number of the empty trainers.\n"
+            "constexpr u32 kFreeTrainerSlotCount =\n"
+            "    sizeof(kFreeTrainerSlots) / sizeof(kFreeTrainerSlots[0]);\n\n"
+            "} // namespace battle\n")
+  print("%d free trainers in %s" % (len(numbers), path))
+
+
+CLASS_RECORDS_HEADER = """/*
+ * Copyright (C) 2026  David Darras
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/**
+ * @file trainer_class_records.h
+ * @brief The data of the trainer classes of the game.
+ *
+ * Each class has 16 bytes: the model sequence, the sex and the plural, the
+ * group, the battle effect, the 3D model, the 2D picture, the character on the
+ * map and the music of the sight. Sango Maker copies these data to make a new
+ * class. The list comes from tools/export_trainers.py (see its
+ * --class-records option).
+ */
+
+#pragma once
+
+#include <types.h>
+
+namespace battle {
+
+/// The size of the data of a class, in bytes.
+constexpr u32 kTrainerClassRecordSize = 16;
+
+/// The data of each class of the game, in the order of TrainerClassId.
+constexpr u8 kTrainerClassRecords[][kTrainerClassRecordSize] = {
+"""
+
+
+def write_class_records(path, records, used):
+  """Writes the data of the classes and the numbers of the unused classes."""
+  lines = []
+  for data in records:
+    padded = (list(data) + [0] * 16)[:16]
+    lines.append("    {" + ", ".join(str(b) for b in padded) + "},")
+  free = [n for n in range(1, len(records)) if n not in used]
+  rows = []
+  for i in range(0, len(free), 10):
+    rows.append("    " + ", ".join(str(n) for n in free[i:i + 10]) + ",")
+  with open(path, "w", encoding="utf-8", newline="\n") as f:
+    f.write(CLASS_RECORDS_HEADER + "\n".join(lines) +
+            "\n};\n\n/// The classes that no trainer of the game uses.\n"
+            "constexpr u16 kFreeTrainerClasses[] = {\n" + "\n".join(rows) +
+            "\n};\n\n/// The number of the unused classes.\n"
+            "constexpr u32 kFreeTrainerClassCount =\n"
+            "    sizeof(kFreeTrainerClasses) / sizeof(kFreeTrainerClasses[0]);\n"
+            "\n} // namespace battle\n")
+  print("%d classes, %d free in %s" % (len(records), len(free), path))
+
+
+def write_classes(path, classes, used):
+  """Writes the names of the trainer classes (the texts of the game).
+
+  A title that several classes have goes to the class that the trainers of the
+  game use (the classes of X and Y that Alpha Sapphire does not use come
+  after, with their number).
+  """
+  bases = {}
+  for number, title in enumerate(classes):
+    base = camel(title) if title else ""
+    bases.setdefault(base, []).append(number)
+  names = {}
+  for base, numbers in bases.items():
+    if not base:
+      for number in numbers:
+        names[number] = "kClass%d" % number
+      continue
+    preferred = [n for n in numbers if n in used] or numbers
+    names[preferred[0]] = "k" + base
+    for number in numbers:
+      if number != preferred[0]:
+        names[number] = "k%s%d" % (base, number)
+  lines = ["  %s = %d," % (names[number], number)
+           for number in range(len(classes))]
+  with open(path, "w", encoding="utf-8", newline="\n") as f:
+    f.write(CLASS_HEADER + "\n".join(lines) + "\n  kCount = %d,\n};\n\n"
+            "} // namespace battle\n\nusing battle::TrainerClassId;\n" %
+            len(classes))
+  print("%d classes in %s" % (len(classes), path))
 
 
 def write_enum(path, rows, places, maps, rematches):
@@ -429,6 +622,21 @@ def main():
     at = arguments.index("--enum")
     enum_path = arguments[at + 1]
     del arguments[at:at + 2]
+  records_path = None
+  if "--class-records" in arguments:
+    at = arguments.index("--class-records")
+    records_path = arguments[at + 1]
+    del arguments[at:at + 2]
+  free_path = None
+  if "--free-slots" in arguments:
+    at = arguments.index("--free-slots")
+    free_path = arguments[at + 1]
+    del arguments[at:at + 2]
+  classes_path = None
+  if "--classes" in arguments:
+    at = arguments.index("--classes")
+    classes_path = arguments[at + 1]
+    del arguments[at:at + 2]
   sango = None
   if "--sango" in arguments:
     at = arguments.index("--sango")
@@ -482,6 +690,7 @@ def main():
   out.append("# number | constant | class | name | format | maps | team "
              "(species level)")
   out.append("")
+  free_numbers = []
   for number, parts in enumerate(trainers):
     data = parts[0]
     if len(data) < 16 or number == 0:
@@ -499,6 +708,10 @@ def main():
     where = ", ".join(
         "%s (%d)" % (maps.get(zone, "Map"), zone)
         for zone, _ in places.get(number, [])) or "-"
+    if (where == "-" and members == "Zigzagoon 5" and
+        not (names[number] if number < len(names) else "") and
+        number not in rematches):
+      free_numbers.append(number)
     out.append("%4d | %-34s | %-18s | %-22s | %-8s | %s | %s" % (
         number, constants.get(number, ""),
         classes[trainer_class] if trainer_class < len(classes) else "?",
@@ -511,6 +724,18 @@ def main():
 
   if enum_path:
     write_enum(enum_path, rows, places, maps, rematches)
+  used_classes = set()
+  for number, parts in enumerate(trainers):
+    if number and len(parts[0]) >= 16:
+      used_classes.add(struct.unpack_from("<H", parts[0], 2)[0])
+  if classes_path:
+    write_classes(classes_path, classes, used_classes)
+  if free_path:
+    write_free_slots(free_path, free_numbers)
+  if records_path:
+    class_data = garc.read_garc(os.path.join(folder, "TrTypeData.garc"))
+    write_class_records(records_path, [entry[0] for entry in class_data],
+                        used_classes)
   if maker_path:
     write_maker(maker_path, trainers, teams, texts,
                 os.path.join(here, "..", "lib", "include", "battle",

@@ -31,6 +31,8 @@ ENUMS = [
     ("kTrainerNames", "lib/include/battle/constant/trainer.h", "TrainerId", None),
     ("kXyTrainerModelNames", "lib/include/battle/constant/xy_trainer_model.h",
      "XyTrainerModelId", None),
+    ("kTrainerClassNames", "lib/include/battle/constant/trainer_class.h",
+     "TrainerClassId", None),
     ("kModelNames", "lib/include/overworld/constant/model.h", "ModelId", None),
     ("kEvolutionMethodNames", "lib/include/pokemon/constant/evolution_method.h",
      "EvolutionMethod", None),
@@ -129,6 +131,7 @@ EDITOR_KINDS = {
     "kAbilityNames": "ability", "kNatureNames": "nature", "kTypeNames": "type",
     "kFormNames": "form", "kTrainerNames": "trainer", "kModelNames": "model",
     "kXyTrainerModelNames": "trainermodel",
+    "kTrainerClassNames": "trainerclass",
     "kEvolutionMethodNames": "evolution", "kEncounterMethodNames": "method",
     "kFormatNames": "format", "kMusicNames": "music", "kMapNames": "map",
 }
@@ -168,5 +171,94 @@ def write_editor_names():
     print("wrote " + EDITOR_OUTPUT)
 
 
+NAME_FOLDER_KINDS_SKIPPED = ("form",)
+
+
+def write_name_files(folder):
+    """Writes the lists of names that the menus of the plugin load.
+
+    One file for each kind of name (species.bin, move.bin...), for Alpha
+    Sapphire. The file has the size of the file, the number of names, one
+    offset for each name (from the start of the file), then the names: the
+    plugin reads the file, adds the address of the file to the offsets, and
+    gives the result to WithArray(). The index of a name is its value.
+    """
+    import struct
+    os.makedirs(folder, exist_ok=True)
+    count_written = 0
+    for array, path, enum, game in ENUMS:
+        if game == "XY":
+            continue
+        kind = EDITOR_KINDS[array]
+        if kind in NAME_FOLDER_KINDS_SKIPPED:
+            continue
+        values = {}
+        for name, value in read_names(path, enum, game):
+            readable = pretty(name)
+            if readable in ("XXX", "YYY") or readable.startswith("Unknow"):
+                continue
+            if value < 20000:
+                values.setdefault(value, readable)
+        if not values:
+            continue
+        count = max(values) + 1
+        if count > 20000:
+            continue
+        header = 8 + 4 * count
+        body = bytearray(b"\0")  # The empty name.
+        offsets = []
+        for value in range(count):
+            text = values.get(value, "")
+            if text == "":
+                offsets.append(header)
+                continue
+            offsets.append(header + len(body))
+            body += text.encode("utf-8") + b"\0"
+        data = struct.pack("<II", header + len(body), count)
+        data += struct.pack("<%dI" % count, *offsets) + bytes(body)
+        with open(os.path.join(folder, kind + ".bin"), "wb") as f:
+            f.write(data)
+        count_written += 1
+    print("wrote %d name files in %s" % (count_written, folder))
+    write_table_files(folder)
+
+
+def write_table_files(folder):
+    """Writes the tables that the reader of the data files uses.
+
+    One file for each kind of name (species.tab...): the size of the file, the
+    number of names, then for each name its offset (from the start of the file),
+    its value (16 bits) and 16 bits of padding, sorted by name, then the names
+    in lowercase without spaces and signs. The reader adds the address of the
+    file to the offsets, and searches the table like the tables of
+    data_names.inc.
+    """
+    import struct
+    count_written = 0
+    for array, path, enum, game in ENUMS:
+        if game == "XY":
+            continue
+        kind = EDITOR_KINDS[array]
+        names = {}
+        for name, value in read_names(path, enum, game):
+            names.setdefault(normalize(name), value)
+        keys = sorted(names)
+        header = 8 + 8 * len(keys)
+        body = bytearray()
+        entries = bytearray()
+        for key in keys:
+            entries += struct.pack("<IHH", header + len(body), names[key], 0)
+            body += key.encode("ascii") + b"\0"
+        data = struct.pack("<II", header + len(body), len(keys))
+        data += bytes(entries) + bytes(body)
+        with open(os.path.join(folder, kind + ".tab"), "wb") as f:
+            f.write(data)
+        count_written += 1
+    print("wrote %d table files in %s" % (count_written, folder))
+
+
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) == 3 and sys.argv[1] == "--names":
+        write_name_files(sys.argv[2])
+    else:
+        main()

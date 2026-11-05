@@ -33,4 +33,4 @@ Youngster, 10, 12, 0, Down, script 33001
 
 [Route 102]
 # A trainer of the game. She sees 4 tiles in front of her.
-Lass, 14, 8, 0, Left, trainer Route 102 Girl, sight 4
+Lass, 14, 8, 0, Left, trainer Route 102 Lass Tiana, sight 4

@@ -89,7 +89,13 @@ TextWriter writer;
 
 } // namespace
 
+// Gives the tables of names back when an export ends.
+struct NamesReleaser {
+  ~NamesReleaser() { DataNames::Release(); }
+};
+
 bool DataExport::WriteEncounters() {
+  NamesReleaser releaser;
 #ifdef GAME_ORAS
   if (!ProcessManager::IsOverworldActive()) return false;
   const MapId map = overworld::MapManager::GetInstance().GetMap();
@@ -124,6 +130,7 @@ bool DataExport::WriteEncounters() {
 }
 
 bool DataExport::WriteSpecies(SpeciesId species) {
+  NamesReleaser releaser;
   const pokemon::SpeciesData& data = pokemon::SpeciesData::GetInstance(species);
   writer.Clear();
   writer.Add("# Copy the species to species.txt.\n[");
@@ -144,6 +151,7 @@ bool DataExport::WriteSpecies(SpeciesId species) {
 }
 
 bool DataExport::WriteTeam() {
+  NamesReleaser releaser;
   savedata::PokemonTeam& team = savedata::PokemonTeam::GetInstance();
   if (team.count == 0) return false;
   writer.Clear();

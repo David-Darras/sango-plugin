@@ -10,6 +10,7 @@ The zip has the layout of the SD card for the players, and a folder for the
 modders:
   luma/plugins/000400000011C500/sango_plugin.3gx    the plugin (players)
   sango/types/, sango/items/                        the icons of the plugin
+  sango/names/                                      the names of the menus
   sango_maker/luma/plugins/000400000011C500/sango_maker-release.3gx
   sango_maker/sango/maker/*.txt                     the examples (maker/data)
   maker_editor/index.html, maker_editor/names.js    the web editor
@@ -21,6 +22,7 @@ import os
 import shutil
 import subprocess
 import sys
+import tempfile
 import zipfile
 
 TITLE_ID = "000400000011C500"
@@ -122,6 +124,18 @@ def pack(args):
                 with Image.open(os.path.join(items_dir, name)) as image:
                     data = png_to_item_icon.convert(image)
                 z.writestr("sango/items/%s.bclim" % name[:-4], data)
+        # The names of the menus and of the data files (sdmc:/sango/names):
+        # the plugin reads them from the SD card, they are not in the plugin.
+        names_dir = tempfile.mkdtemp(prefix="sango-names-")
+        try:
+            subprocess.run([sys.executable,
+                            os.path.join(ROOT, "tools", "gen_data_names.py"),
+                            "--names", names_dir], check=True,
+                           stdout=subprocess.DEVNULL)
+            for name in sorted(os.listdir(names_dir)):
+                z.write(os.path.join(names_dir, name), "sango/names/%s" % name)
+        finally:
+            shutil.rmtree(names_dir, ignore_errors=True)
         add_maker(z, args.maker_plugin)
     shutil.copyfile(args.plugin, os.path.join(DIST, "sango_plugin.3gx"))
 

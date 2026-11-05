@@ -45,6 +45,7 @@
 #include "battle/constant/ai.h"
 #include "battle/constant/format.h"
 #include "battle/constant/trainer.h"
+#include "battle/constant/trainer_class.h"
 #include "battle/constant/xy_trainer_model.h"
 #include "overworld/constant/encounter_method.h"
 #include "overworld/constant/map.h"
@@ -83,6 +84,7 @@ enum class NameKind : u8 {
   kMap,
   kMusic,
   kTrainerModel,
+  kTrainerClass,
 };
 
 /// Finds the values of the names of the data files.
@@ -103,6 +105,19 @@ public:
    * @return The name, or null when the value has no name.
    */
   static const c8* GetName(NameKind kind, u32 value);
+
+  /**
+   * @brief Gives back the memory of the tables of names. The console plugin
+   *        reads a table from the SD card (sango/names) when it needs it and
+   *        keeps it: call this function when the reading of the files ends.
+   *        The tests of the computer have the tables in the program: the
+   *        function does nothing.
+   */
+  static void Release();
+
+  /// Returns true when the tables of names are available (the files of
+  /// sango/names are on the SD card).
+  static bool IsAvailable();
 };
 
 namespace maker {
@@ -257,11 +272,26 @@ public:
   // trainers.txt: OnTrainer() starts a trainer, the next functions change it,
   // and OnTrainerEnd() ends it. The name stays in memory.
   virtual void OnTrainer(TrainerId trainer) {}
+  // [new Name]: gives the number of a free trainer, or kNone when there is
+  // none. OnTrainer() with this number follows at once.
+  virtual TrainerId OnNewTrainer(const c16* name) { return TrainerId::kNone; }
+  // [new class Name, Lass]: makes a class with the data of another class.
+  // Returns TrainerClassId::kCount when there is none free. The next
+  // functions change the class.
+  virtual TrainerClassId OnNewClass(const c16* title, TrainerClassId from) {
+    return TrainerClassId::kCount;
+  }
+  virtual void OnClassTitle(TrainerClassId id, const c16* title) {}
+  virtual void OnClassOverworld(TrainerClassId id, ModelId model) {}
+  virtual void OnClassPicture(TrainerClassId id, TrainerClassId from) {}
+  virtual void OnClassIntroduction(TrainerClassId id, TrainerClassId from) {}
+  virtual void OnClassMusic(TrainerClassId id, TrainerClassId from) {}
   virtual void OnTrainerFormat(Format format) {}
   virtual void OnTrainerName(const c16* name) {}
   virtual void OnTrainerMoney(u8 money) {}
   virtual void OnTrainerAi(AiFlags flags) {}
   virtual void OnTrainerModel(XyTrainerModelId model) {}
+  virtual void OnTrainerClass(TrainerClassId trainer_class) {}
   virtual void OnTrainerItems(const ItemId* items, u32 count) {}
   virtual void OnTrainerPokemon(const Opponent& pokemon) {}
   virtual void OnTrainerEnd() {}
@@ -325,6 +355,11 @@ protected:
 /// The number of new species of species.txt at most
 /// (pokemon::SpeciesTable::kMaxNewSpecies).
 constexpr u32 kMaxNewSpecies = 64;
+/// The number of new trainers of trainers.txt at most (the free trainers of
+/// the game, see battle/constant/trainer_free_slots.h).
+constexpr u32 kMaxNewTrainers = 100;
+/// The number of new classes of trainers.txt at most.
+constexpr u32 kMaxNewClasses = 64;
 /// The length of the name of a new species at most.
 constexpr u32 kMaxSpeciesNameLength = 12;
 

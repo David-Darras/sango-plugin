@@ -390,13 +390,8 @@ void MapCharacter::AddMissingModels(CharacterManager* manager,
   // map without a loading screen: the models of all the requests must be
   // there from the start, or the game stops when the map sets up.
   const u32 total = placement_count + requests_.Count();
+  bool needs_loading = false;
   for (u32 i = 0; i < total; i++) {
-    if (count + 1 >= kMaxModelsPerRegion) {
-      // A character without its model stops the game: say it in the log.
-      ui::Log::Print(u"characters: the list of models is full (%u)",
-                     kMaxModelsPerRegion);
-      break;
-    }
     ModelId model_id;
     if (i < placement_count) {
       if (placements == nullptr) continue;
@@ -404,9 +399,21 @@ void MapCharacter::AddMissingModels(CharacterManager* manager,
     } else {
       const MapCharacterRequest& request = requests_[i - placement_count];
       if (request.is_enabled != nullptr && !*request.is_enabled) continue;
+      // A region has its own list. The game makes the list again when the
+      // player goes to another region, so only the characters of the maps of
+      // this region need a model now.
+      if (!request.is_everywhere && !IsInRegion(request.map_id)) continue;
       model_id = request.model_id;
     }
     if (Contains(models, count, model_id)) continue;
+    if (count + 1 >= kMaxModelsPerRegion) {
+      // The list has no room for the model: the game will read its
+      // description when the character appears (see below).
+      ui::Log::Print(u"characters: no room for the model %u (%u at most)",
+                     static_cast<u32>(model_id), kMaxModelsPerRegion);
+      needs_loading = true;
+      continue;
+    }
     if (!LoadAppearance(manager, model_id, &models[count])) {
       if (is_logging_enabled) {
         ui::Log::Print(u"model %u unknown", model_id);
@@ -420,9 +427,27 @@ void MapCharacter::AddMissingModels(CharacterManager* manager,
     }
   }
 
+  // A character without its model in the list stops the game, unless this
+  // byte tells the game to read the model of the character itself.
+  if (needs_loading && CharacterManager::kLoadMissingModelOffset != 0) {
+    *reinterpret_cast<u8*>(reinterpret_cast<uptr>(manager) +
+                           CharacterManager::kLoadMissingModelOffset) = 1;
+  }
   if (count == initial_count) return;
   manager->model_count = count;
   manager->model_count_original = count;
+}
+
+bool MapCharacter::IsInRegion(MapId map_id) {
+  const WorldLayout& layout = WorldLayout::GetInstance();
+  const u32 cells = layout.width * WorldLayout::kCellsPerBlockSide *
+                    layout.height * WorldLayout::kCellsPerBlockSide;
+  // The layout is not loaded: every map can be in the region.
+  if (cells == 0 || cells > WorldLayout::kMaxCells) return true;
+  for (u32 i = 0; i < cells; i++) {
+    if (layout.map_id[i] == map_id) return true;
+  }
+  return false;
 }
 
 bool MapCharacter::Contains(const ModelAppearance* models, u32 count,

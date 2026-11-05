@@ -243,6 +243,14 @@ public:
   /// Builds the current page again. The page stays open.
   void Refresh();
 
+  /// The type of a function that the menu calls when a page closes.
+  typedef void (*page_closed_callback_t)(menu_callback_t page);
+
+  /// Gives the menu a function to call when a page closes: the player goes
+  /// back to the page before, or the menu closes. A page that reads a file
+  /// into memory gives the memory back there.
+  static void SetPageClosedCallback(page_closed_callback_t callback);
+
   /// Adds an entry that enables or disables a cheat code.
   MainApplication& Add(const c8* name, CheatCodeId id) {
     if (entries_count_ < kMaxEntries) {

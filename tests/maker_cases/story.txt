@@ -32,7 +32,7 @@ set flag 12
 clear flag 12
 set var 3 10
 add var 3 1
-battle trainer Route 102 Kid 1
+battle trainer Route 102 Youngster Calvin
 battle wild Pikachu 70
 warp Route 101, 10, 12, 2, Down
 heal

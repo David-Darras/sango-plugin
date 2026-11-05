@@ -31,6 +31,8 @@
 #include <new>
 
 #include "battle/patch/battle.h"
+#include "battle/constant/trainer_free_slots.h"
+#include "battle/patch/trainer_class.h"
 #include "battle/patch/trainer_model_extension.h"
 #include "battle/patch/trainer_team.h"
 #include "core/data_folder.h"
@@ -123,6 +125,32 @@ public:
     overworld::WildEncounter::SetTable(map, method, slots, count);
   }
 
+  TrainerClassId OnNewClass(const c16* title, TrainerClassId from) override {
+    return battle::TrainerClasses::Define(title, from);
+  }
+  void OnClassTitle(TrainerClassId id, const c16* title) override {
+    battle::TrainerClasses::SetTitle(id, title);
+  }
+  void OnClassOverworld(TrainerClassId id, ModelId model) override {
+    battle::TrainerClasses::SetOverworld(id, static_cast<u32>(model));
+  }
+  void OnClassPicture(TrainerClassId id, TrainerClassId from) override {
+    battle::TrainerClasses::CopyPicture(id, from);
+  }
+  void OnClassIntroduction(TrainerClassId id, TrainerClassId from) override {
+    battle::TrainerClasses::CopyIntroduction(id, from);
+  }
+  void OnClassMusic(TrainerClassId id, TrainerClassId from) override {
+    battle::TrainerClasses::CopyMusic(id, from);
+  }
+  TrainerId OnNewTrainer(const c16* name) override {
+    // A new trainer takes an empty trainer of the game.
+    if (new_trainer_count_ >= battle::kFreeTrainerSlotCount) {
+      return TrainerId::kNone;
+    }
+    return static_cast<TrainerId>(
+        battle::kFreeTrainerSlots[new_trainer_count_++]);
+  }
   void OnTrainer(TrainerId trainer) override {
     team_ = &teams_[team_count_++];
     *team_ = battle::TrainerTeam(Format::kSingle);
@@ -132,6 +160,11 @@ public:
   void OnTrainerName(const c16* name) override { team_->WithName(name); }
   void OnTrainerMoney(u8 money) override { team_->WithMoney(money); }
   void OnTrainerAi(AiFlags flags) override { team_->WithAi(flags); }
+  void OnTrainerClass(TrainerClassId trainer_class) override {
+    if (battle::TrainerClasses::Set(trainer_, trainer_class)) {
+      class_trainers_.Add(trainer_);
+    }
+  }
   void OnTrainerModel(XyTrainerModelId model) override {
     if (battle::TrainerModelExtension::GetInstance().Assign(trainer_,
                                                             model)) {
@@ -347,7 +380,10 @@ public:
     return team >= teams_ && team < teams_ + team_count_;
   }
   /// Forgets the teams. Remove them from TrainerTeams before.
-  void ClearTeams() { team_count_ = 0; }
+  void ClearTeams() {
+    team_count_ = 0;
+    new_trainer_count_ = 0;
+  }
   /// Forgets the changes of items.txt and of moves.txt, and the models of
   /// the trainers.
   void ClearChanges() {
@@ -356,6 +392,11 @@ public:
           model_trainers_[i]);
     }
     model_trainers_.Clear();
+    for (u32 i = 0; i < class_trainers_.Count(); i++) {
+      battle::TrainerClasses::Remove(class_trainers_[i]);
+    }
+    class_trainers_.Clear();
+    battle::TrainerClasses::ClearDefinitions();
     item_changes_.Clear();
     move_changes_.Clear();
   }
@@ -368,6 +409,8 @@ private:
   TrainerId trainer_ = TrainerId::kNone;
   // The trainers that trainers.txt gave a model to.
   core::FixedList<TrainerId, 64> model_trainers_;
+  core::FixedList<TrainerId, 64> class_trainers_;
+  u32 new_trainer_count_ = 0;
   // The changes of items.txt.
   core::FixedList<maker::ItemChange, 256> item_changes_;
   // The changes of moves.txt.
@@ -699,23 +742,35 @@ void RunStory(script::Context& s) {
 } // namespace
 
 bool DataFiles::LoadEncounters(const c16* path) {
-  return LoadFile(path, "encounters.txt", maker::ReadEncounters) != 0;
+  const bool is_read =
+      LoadFile(path, "encounters.txt", maker::ReadEncounters) != 0;
+  DataNames::Release();
+  return is_read;
 }
 
 bool DataFiles::LoadTrainers(const c16* path) {
-  return LoadFile(path, "trainers.txt", maker::ReadTrainers) != 0;
+  const bool is_read = LoadFile(path, "trainers.txt", maker::ReadTrainers) != 0;
+  DataNames::Release();
+  return is_read;
 }
 
 bool DataFiles::LoadSpecies(const c16* path) {
-  return LoadFile(path, "species.txt", maker::ReadSpecies) != 0;
+  const bool is_read = LoadFile(path, "species.txt", maker::ReadSpecies) != 0;
+  DataNames::Release();
+  return is_read;
 }
 
 bool DataFiles::LoadStory(const c16* path) {
-  return LoadFile(path, "story.txt", maker::ReadStory) != 0;
+  const bool is_read = LoadFile(path, "story.txt", maker::ReadStory) != 0;
+  DataNames::Release();
+  return is_read;
 }
 
 bool DataFiles::LoadCharacters(const c16* path) {
-  return LoadFile(path, "characters.txt", maker::ReadCharacters) != 0;
+  const bool is_read =
+      LoadFile(path, "characters.txt", maker::ReadCharacters) != 0;
+  DataNames::Release();
+  return is_read;
 }
 
 namespace {
@@ -764,6 +819,10 @@ void DataFiles::Load() {
   log_length = 0;
   MakeDataFolder();
   AddLogLine("Sango Maker, folder: " SANGO_DATA_TEXT("") "\n");
+  if (!DataNames::IsAvailable()) {
+    AddProblem("names: copy the folder sango/names to the SD card", "");
+    AddLogLine("The names are missing: copy the folder sango/names.\n");
+  }
   for (u32 i = 0; i < kFileCount; i++) {
     const DataFile& file = kFiles[i];
     const u32 problems_before = problem_count;
@@ -788,6 +847,8 @@ void DataFiles::Load() {
   WriteLogFile();
   ApplyMoveChanges();
   is_loaded = true;
+  // The tables of names go back to the SD card until the next reading.
+  DataNames::Release();
 }
 
 bool DataFiles::Reload() {

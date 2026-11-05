@@ -26,6 +26,7 @@
 #include "core/data_folder.h"
 #include "battle/patch/item_extension.h"
 #include "battle/patch/type_chart.h"
+#include "battle/patch/trainer_class.h"
 #include "battle/patch/trainer_model_extension.h"
 #include "battle/patch/move_animation.h"
 #include "pokemon/patch/custom_shop.h"
@@ -76,6 +77,7 @@ constexpr u32 kItemNameFile2 = 116;
 constexpr u32 kItemPluralFile = 115;
 constexpr u32 kItemDescriptionFile = 117;
 constexpr u32 kBagFile = 164;
+constexpr u32 kTrainerClassFile = 21;
 
 // The move that lends its data to a new move before patch_data runs.
 constexpr u32 kTemplateMove = static_cast<u32>(MoveId::kPound);
@@ -423,6 +425,9 @@ void GameExtension::MessageGetStringHook(Message* self, u32 str_id,
       break;
     case kTypeNameFile:
       PatchTypeName(str_id, output);
+      break;
+    case kTrainerClassFile:
+      TrainerClasses::PatchTitle(str_id, output);
       break;
     case kItemNameFile1:
     case kItemNameFile2:

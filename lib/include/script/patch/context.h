@@ -460,7 +460,7 @@ public:
    * battle::TrainerTeams when the product adds a team for this trainer.
    *
    * @code
-   * if (s.TrainerBattle(TrainerId::kRoute103Brendan1) == BattleResult::kWon) {
+   * if (s.TrainerBattle(TrainerId::kRoute103PokemonTrainerBrendan) == BattleResult::kWon) {
    *   s.Talk(u"You are strong!");
    * }
    * @endcode

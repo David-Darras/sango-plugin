@@ -70,7 +70,7 @@ Riolu, 4, 6
 Open `sango/maker/trainers.txt`:
 
 ```text
-[Route 102 Kid 1]
+[Route 102 Youngster Calvin]
 format = Single
 name = Joey
 ai = Casual, Competitive
@@ -91,7 +91,7 @@ pokemon = Riolu, level 8, ivs 31, evs 0/252/4/0/0/252, moves Quick Attack / Endu
 
 A trainer is a name of `lib/include/battle/constant/trainer.h` or a number:
 `[42]`. The name has the map, the title and the name of the trainer, for
-example `[Rustboro City Leader Roxanne]`; a rematch ends with `Rematch`.
+example `[Rustboro City Gym Leader Roxanne]`; a rematch ends with `Rematch`.
 
 To start from the teams of the game, run `tools/export_trainers.py` with the
 `--maker` option. It writes all the trainers in this format. Copy the sections
@@ -230,7 +230,7 @@ script of Step 5. Or put a trainer of the game on a map.
 Researcher Male, 47, 77, 6, Down, script 33000
 
 [Route 102]
-Lass, 14, 8, 0, Left, trainer Route 102 Girl, sight 4
+Lass, 14, 8, 0, Left, trainer Route 102 Lass Tiana, sight 4
 ```
 
 - `[map]` starts the characters of a map.
@@ -390,6 +390,22 @@ Double-click it: it opens in your web browser. It works without internet.
   Characters, the form makes the line of a character or of a trainer.
 - **Open a file** reads a file of your computer. **Download** saves the file:
   copy it to `sango/maker` on the SD card.
+
+## The menus in the game
+
+The plugin has menus that change the files too: **Sango Maker > Edit The
+Files**. Each file has a menu with the list of its sections.
+
+- **Change The Section** opens the values of the section. A list has a filter:
+  press the button of the filter and write a part of the name.
+- **Add A Section** makes a section (a trainer of the game, a new trainer, a
+  new class, a map...). **Delete The Section** removes it.
+- **Save And Read The File** writes the file. The comments of the file stay,
+  and the old file stays as a `.bak` file.
+
+The lists of names are files in `sango/names` of the SD card. The zip of the
+release has them. Without them the menus have no list, and Sango Maker reports
+that the names are missing.
 
 The editor keeps your texts in the browser between two visits.
 

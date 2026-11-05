@@ -132,7 +132,7 @@ void Rival(script::Context& s) {
   }  // The conversation ends before the battle.
   // A trainer of lib/include/battle/constant/trainer.h. battle::TrainerTeams
   // can give it a new team.
-  s.TrainerBattle(TrainerId::kRoute103Brendan1);
+  s.TrainerBattle(TrainerId::kRoute103PokemonTrainerBrendan);
   s.Talk(u"You won!");
 }
 ```

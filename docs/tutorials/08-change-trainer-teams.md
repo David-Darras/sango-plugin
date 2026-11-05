@@ -31,7 +31,7 @@ namespace {
 // A team: the format of the battle, then each Pokémon. Give the species,
 // then the values that you want to change. The other values come from the
 // game.
-const battle::TrainerTeam kRoute102Kid1Team =
+const battle::TrainerTeam kRoute102YoungsterCalvinTeam =
     battle::TrainerTeam(Format::kSingle)
         .Add(battle::TrainerOpponent(SpeciesId::kPichu)
                  .WithLevel(7)
@@ -53,7 +53,7 @@ const battle::TrainerTeam kRoute102Kid1Team =
 } // namespace
 
 void InstallTrainers() {
-  battle::TrainerTeams::Add(TrainerId::kRoute102Kid1, &kRoute102Kid1Team);
+  battle::TrainerTeams::Add(TrainerId::kRoute102YoungsterCalvin, &kRoute102YoungsterCalvinTeam);
 }
 
 } // namespace myhack
@@ -158,8 +158,8 @@ overworld::MapCharacter::Add(
     overworld::Character(MapId::kRoute101, ModelId::kYoungster)
         .At(10, 12)
         .WithFacing(overworld::Facing::kLeft)
-        // Its team: kRoute102Kid1Team. It sees 4 tiles.
-        .AsTrainer(TrainerId::kRoute102Kid1, 4));
+        // Its team: kRoute102YoungsterCalvinTeam. It sees 4 tiles.
+        .AsTrainer(TrainerId::kRoute102YoungsterCalvin, 4));
 ```
 
 The trainer says the texts of this trainer of the game. Use a trainer that the
@@ -174,8 +174,8 @@ player cannot meet elsewhere, or remove the trainer of the game from its map
 
 ```cpp
 const battle::TrainerTeamEntry kTeams[] = {
-    {TrainerId::kRoute102Kid1, &kRoute102Kid1Team},
-    {TrainerId::kRoute103Brendan1, &kRivalTeam},
+    {TrainerId::kRoute102YoungsterCalvin, &kRoute102YoungsterCalvinTeam},
+    {TrainerId::kRoute103PokemonTrainerBrendan, &kRivalTeam},
 };
 
 // In InstallTrainers(), in the place of TrainerTeams::Add():

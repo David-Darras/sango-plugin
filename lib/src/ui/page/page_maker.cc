@@ -72,6 +72,9 @@ void LoadMakerPage(MainApplication& app, void* args) {
   auto& files = DataFiles::GetInstance();
   ReadValues(nullptr);
   app.AddSection("Files")
+     .Add("Edit The Files", LoadMakerEditorPage)
+     .WithDescription("Menus to add, change and delete the sections of the "
+         "text files: trainers, classes, wild Pokemon, shops, items...")
      .Add("Read The Files Again", ReadFilesAgain)
      .WithDescription("Reads the text files again. The map loads again at "
          "your next step, with the new characters and wild Pokemon.")

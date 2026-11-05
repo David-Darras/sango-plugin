@@ -1,7 +1,9 @@
 # The cases of trainers.txt. A line that ends with the comment ERR has a mistake.
-[Route 102 Kid 1]
+[Route 102 Youngster Calvin]
 model = Lysandre Final
 model = Nobody # ERR
+class = Lass
+class = Nobody # ERR
 format = Double
 name = Joey
 ai = Casual, Competitive

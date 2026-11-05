@@ -25,6 +25,7 @@
 #include "core/patch/archive.h"
 #include <cstring>
 #include "battle/patch/move_animation.h"
+#include "battle/patch/trainer_class.h"
 #include "battle/patch/effect_style.h"
 #include "battle/patch/item_extension.h"
 #include "renderer/patch/type_icon.h"
@@ -531,7 +532,13 @@ u32 Archive::LoadDataHook2(u32* archive, u32 file_id, void* buffer) {
       return LzStoreSize(size);
     }
   }
-  return load_data2_hook(archive, file_id, buffer);
+  const u32 loaded = load_data2_hook(archive, file_id, buffer);
+  if (IsArchive(archive, ArchiveId::kTrainerData)) {
+    battle::TrainerClasses::Patch(file_id, buffer, loaded);
+  } else if (IsArchive(archive, ArchiveId::kTrainerTypeData)) {
+    battle::TrainerClasses::PatchRecord(file_id, buffer, loaded);
+  }
+  return loaded;
 }
 
 void* Archive::LoadCompressedHook(u32* archive, u32 file_id, void* heap_work,

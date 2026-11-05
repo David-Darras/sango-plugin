@@ -48,6 +48,12 @@ struct Recorder : Sink {
   u32 money = 0;
   AiFlags ai = AiFlags::kNone;
   std::vector<XyTrainerModelId> models;
+  std::vector<TrainerClassId> classes;
+  std::vector<std::u16string> new_trainer_names;
+  std::vector<std::u16string> new_class_titles;
+  std::vector<TrainerClassId> new_class_sources;
+  std::vector<ModelId> class_models;
+  std::vector<TrainerClassId> class_pictures;
   Format format = Format::kSingle;
   u32 trainer_ends = 0;
   std::vector<std::string> species_changes;
@@ -79,6 +85,24 @@ struct Recorder : Sink {
   void OnTrainerAi(AiFlags flags) override { ai = flags; }
   void OnTrainerModel(XyTrainerModelId value) override {
     models.push_back(value);
+  }
+  void OnTrainerClass(TrainerClassId value) override {
+    classes.push_back(value);
+  }
+  TrainerClassId OnNewClass(const c16* title, TrainerClassId from) override {
+    new_class_titles.push_back(title);
+    new_class_sources.push_back(from);
+    return static_cast<TrainerClassId>(100 + new_class_titles.size());
+  }
+  void OnClassOverworld(TrainerClassId id, ModelId model) override {
+    class_models.push_back(model);
+  }
+  void OnClassPicture(TrainerClassId id, TrainerClassId from) override {
+    class_pictures.push_back(from);
+  }
+  TrainerId OnNewTrainer(const c16* name) override {
+    new_trainer_names.push_back(name);
+    return static_cast<TrainerId>(50 + new_trainer_names.size());
   }
   void OnTrainerItems(const ItemId* list, u32 count) override {
     items.assign(list, list + count);
@@ -273,7 +297,7 @@ TEST(EncountersSkipTheMarkOfAUtf8File) {
 TEST(TrainersGiveAllThePartsOfATeam) {
   const Recorder r = ReadText(
       ReadTrainers,
-      "[Route 102 Kid 1]\n"
+      "[Route 102 Youngster Calvin]\n"
       "format = Double\n"
       "name = Jo\xC3\xA9\n"
       "ai = Casual, Competitive\n"
@@ -285,7 +309,7 @@ TEST(TrainersGiveAllThePartsOfATeam) {
       "pokemon = Riolu\n");
   CHECK_EQ(r.problems.size(), 0);
   CHECK_EQ(r.trainers.size(), 1);
-  CHECK_EQ(r.trainers[0], TrainerId::kRoute102Kid1);
+  CHECK_EQ(r.trainers[0], TrainerId::kRoute102YoungsterCalvin);
   CHECK_EQ(r.trainer_ends, 1);
   CHECK_EQ(r.format, Format::kDouble);
   CHECK(r.names.size() == 1 && r.names[0] == u"Joé");
@@ -315,7 +339,7 @@ TEST(TrainersGiveAllThePartsOfATeam) {
 
 TEST(TrainersReportTheMistakes) {
   const Recorder r = ReadText(ReadTrainers,
-                              "[Route 102 Kid 1]\n"
+                              "[Route 102 Youngster Calvin]\n"
                               "colour = blue\n"
                               "pokemon = Pichu, evs 1/2/3\n"
                               "ai = Lazy\n"
@@ -497,8 +521,8 @@ TEST(CharactersGiveScriptsAndTrainers) {
       "[Littleroot Town]\n"
       "Researcher Male, 47, 77, 6, Down, script 33000\n"
       "[Route 102]\n"
-      "Lass, 14, 8, 0, Left, trainer Route 102 Girl, sight 4\n"
-      "Youngster, 1, 2, 0, Up, trainer Route 102 Kid 1\n");
+      "Lass, 14, 8, 0, Left, trainer Route 102 Lass Tiana, sight 4\n"
+      "Youngster, 1, 2, 0, Up, trainer Route 102 Youngster Calvin\n");
   CHECK_EQ(r.problems.size(), 0);
   CHECK_EQ(r.characters.size(), 3);
   const Character& researcher = r.characters[0];
@@ -508,7 +532,7 @@ TEST(CharactersGiveScriptsAndTrainers) {
         researcher.height == 6 && researcher.facing == 1);
   CHECK_EQ(researcher.script, 33000);
   CHECK_EQ(researcher.trainer, TrainerId::kNone);
-  CHECK_EQ(r.characters[1].trainer, TrainerId::kRoute102Girl);
+  CHECK_EQ(r.characters[1].trainer, TrainerId::kRoute102LassTiana);
   CHECK_EQ(r.characters[1].sight, 4);
   CHECK_EQ(r.characters[2].sight, 3);  // 3 without a sight.
 }
@@ -520,7 +544,7 @@ TEST(CharactersReportTheMistakes) {
                         "Nobody, 1, 2, 0, Down, script 33000\n"
                         "Lass, 1, 2, 0, Sideways, script 33000\n"
                         "Lass, 1, 2, 0, Up, sight 4\n"
-                        "Lass, 1, 2, 0, Up, trainer Route 102 Girl, sight 11\n"
+                        "Lass, 1, 2, 0, Up, trainer Route 102 Lass Tiana, sight 11\n"
                         "[Nowhere]\n");
   CHECK_EQ(r.problem_lines.size(), 6);
   CHECK_EQ(r.characters.size(), 0);
@@ -576,13 +600,57 @@ TEST(RulesReportTheMistakes) {
 
 TEST(TrainersGiveTheModelOfXAndY) {
   const Recorder r = ReadText(ReadTrainers,
-                              "[Route 102 Kid 1]\n"
+                              "[Route 102 Youngster Calvin]\n"
                               "model = Lysandre Final\n"
-                              "[Route 102 Kid 2]\n"
+                              "[Route 102 Bug Catcher Rick]\n"
                               "model = Nobody\n");
   CHECK_EQ(r.models.size(), 1);
   if (r.models.size() != 1) return;
   CHECK(r.models[0] == XyTrainerModelId::kLysandreFinal);
+  CHECK_EQ(r.problem_lines.size(), 1);
+}
+
+TEST(TrainersCanBeNew) {
+  const Recorder r = ReadText(ReadTrainers,
+                              "[new AZ]\n"
+                              "format = Single\n"
+                              "[new Route 102 Youngster Calvin]\n"
+                              "[new AZ]\n");
+  CHECK_EQ(r.new_trainer_names.size(), 1);
+  if (r.new_trainer_names.size() != 1) return;
+  CHECK(r.new_trainer_names[0] == u"AZ");
+  CHECK_EQ(r.problem_lines.size(), 2);
+}
+
+TEST(TrainersCanHaveANewClass) {
+  const Recorder r = ReadText(ReadTrainers,
+                              "[new class Warden, Lass]\n"
+                              "title = Warden\n"
+                              "overworld = Az\n"
+                              "picture = Youngster\n"
+                              "colour = Red\n"
+                              "[new class Lass]\n"
+                              "[new AZ]\n"
+                              "class = Warden\n");
+  CHECK_EQ(r.new_class_titles.size(), 1);
+  if (r.new_class_titles.size() != 1) return;
+  CHECK(r.new_class_titles[0] == u"Warden");
+  CHECK(r.new_class_sources[0] == TrainerClassId::kLass);
+  CHECK_EQ(r.class_models.size(), 1);
+  CHECK_EQ(r.class_pictures.size(), 1);
+  CHECK_EQ(r.classes.size(), 1);
+  CHECK_EQ(r.problem_lines.size(), 2);
+}
+
+TEST(TrainersGiveTheClass) {
+  const Recorder r = ReadText(ReadTrainers,
+                              "[Route 102 Youngster Calvin]\n"
+                              "class = Lass\n"
+                              "[Route 102 Bug Catcher Rick]\n"
+                              "class = Nobody\n");
+  CHECK_EQ(r.classes.size(), 1);
+  if (r.classes.size() != 1) return;
+  CHECK(r.classes[0] == TrainerClassId::kLass);
   CHECK_EQ(r.problem_lines.size(), 1);
 }
 

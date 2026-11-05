@@ -28,6 +28,10 @@
 #include <cstring>
 
 #include "core/utf8.h"
+#ifdef __3DS__
+#include <cstdlib>
+#include "system/native/file.h"
+#endif
 
 namespace core {
 namespace maker {
@@ -38,14 +42,102 @@ struct DataName {
   const c8* name;
   u16 value;
 };
-#include "core/data_names.inc"
 
 struct NameTable {
   const DataName* names;
   u32 count;
 };
 
+// The plugin for the console reads the tables from the files of
+// sdmc:/sango/names, when it reads the data files (the strings are not in the
+// plugin). The tests of the computer and the plugin for X and Y use the tables
+// of data_names.inc.
+#if defined(__3DS__) && !defined(GAME_XY)
+#define SANGO_NAME_FILES 1
+#endif
+
+#ifndef SANGO_NAME_FILES
+#include "core/data_names.inc"
+#else
+constexpr u32 kNameKindCount = 16;
+const c8* const kTableFiles[kNameKindCount] = {
+    "species", "move", "item", "ability", "nature", "type", "form",
+    "trainer", "model", "evolution", "method", "format", "map", "music",
+    "trainermodel", "trainerclass"};
+
+struct LoadedTable {
+  u8* data;
+  NameTable table;
+  bool is_tried;
+};
+LoadedTable loaded_tables[kNameKindCount];
+
+// Reads the file of a kind of names: its size, the number of names, the
+// entries (an offset, a value and a padding) and the names. The offsets become
+// addresses, so the entries are an array of DataName.
+NameTable LoadTable(NameKind kind) {
+  const u32 index = static_cast<u32>(kind);
+  if (index >= kNameKindCount) return {nullptr, 0};
+  LoadedTable& loaded = loaded_tables[index];
+  if (loaded.is_tried) return loaded.table;
+  loaded.is_tried = true;
+  loaded.table = {nullptr, 0};
+
+  c16 path[64];
+  static const c16 kPrefix[] = u"sdmc:/sango/names/";
+  u32 length = 0;
+  for (const c16* p = kPrefix; *p != 0; p++) path[length++] = *p;
+  for (const c8* p = kTableFiles[index]; *p != 0; p++) {
+    path[length++] = static_cast<c16>(static_cast<u8>(*p));
+  }
+  static const c16 kSuffix[] = u".tab";
+  for (const c16* p = kSuffix; *p != 0; p++) path[length++] = *p;
+  path[length] = 0;
+
+  sys::File file;
+  file.Open(path, sys::File::kRead);
+  if (!file.IsOpen()) return loaded.table;
+  u32 header[2] = {};
+  if (file.Read(header, 8) != 8) return loaded.table;
+  const u32 size = header[0];
+  const u32 count = header[1];
+  if (size < 8 + 8 * count || size > 96 * 1024 || count > 20000) {
+    return loaded.table;
+  }
+  u8* data = static_cast<u8*>(std::malloc(size));
+  if (data == nullptr) return loaded.table;
+  std::memcpy(data, header, 8);
+  if (size > 8 && file.Read(data + 8, size - 8) !=
+                      static_cast<s32>(size - 8)) {
+    std::free(data);
+    return loaded.table;
+  }
+  u32* entries = reinterpret_cast<u32*>(data + 8);
+  for (u32 i = 0; i < count; i++) {
+    if (entries[2 * i] >= size) {
+      std::free(data);
+      return loaded.table;
+    }
+    entries[2 * i] += reinterpret_cast<u32>(data);
+  }
+  data[size - 1] = 0;
+  loaded.data = data;
+  loaded.table = {reinterpret_cast<const DataName*>(entries), count};
+  return loaded.table;
+}
+
+void ReleaseTables() {
+  for (u32 i = 0; i < kNameKindCount; i++) {
+    std::free(loaded_tables[i].data);
+    loaded_tables[i] = {nullptr, {nullptr, 0}, false};
+  }
+}
+#endif
+
 NameTable GetTable(NameKind kind) {
+#ifdef SANGO_NAME_FILES
+  return LoadTable(kind);
+#else
   switch (kind) {
     case NameKind::kSpecies: return {kSpeciesNames, SIZE(kSpeciesNames)};
     case NameKind::kMove: return {kMoveNames, SIZE(kMoveNames)};
@@ -65,8 +157,11 @@ NameTable GetTable(NameKind kind) {
     case NameKind::kMusic: return {kMusicNames, SIZE(kMusicNames)};
     case NameKind::kTrainerModel:
       return {kXyTrainerModelNames, SIZE(kXyTrainerModelNames)};
+    case NameKind::kTrainerClass:
+      return {kTrainerClassNames, SIZE(kTrainerClassNames)};
   }
   return {nullptr, 0};
+#endif
 }
 
 // A part of a line of a file.
@@ -408,10 +503,185 @@ void ParseOpponent(Span value) {
   sink->OnTrainerPokemon(opponent);
 }
 
+// The names of the new trainers ([new AZ]), in the normalized form. DataNames
+// finds them for the other files (characters.txt, story.txt).
+struct NewTrainerName {
+  c8 name[48];
+  u16 id;
+};
+NewTrainerName new_trainer_names[kMaxNewTrainers];
+u32 new_trainer_count = 0;
+
+bool FindNewTrainer(const c8* normalized, u32* value) {
+  for (u32 i = 0; i < new_trainer_count; i++) {
+    if (std::strcmp(new_trainer_names[i].name, normalized) == 0) {
+      *value = new_trainer_names[i].id;
+      return true;
+    }
+  }
+  return false;
+}
+
+// The names of the new classes ([new class Warden, Lass]).
+struct NewClassName {
+  c8 name[48];
+  u16 id;
+};
+NewClassName new_class_names[kMaxNewClasses];
+u32 new_class_count = 0;
+bool is_class_open = false;
+TrainerClassId open_class = TrainerClassId::kCount;
+
+bool FindNewClass(const c8* normalized, u32* value) {
+  for (u32 i = 0; i < new_class_count; i++) {
+    if (std::strcmp(new_class_names[i].name, normalized) == 0) {
+      *value = new_class_names[i].id;
+      return true;
+    }
+  }
+  return false;
+}
+
+// [new class Warden, Lass]: a trainer class that the game does not have, with
+// the data of another class.
+void OpenNewClass(Span text) {
+  Span parts[3];
+  const u32 count = Split(text, ',', parts, 3);
+  if (count > 2) {
+    Report("use [new class name, class]:", text);
+    return;
+  }
+  const Span name = parts[0];
+  c8 normalized[sizeof(new_class_names[0].name)];
+  if (!Normalize(name, normalized, sizeof(normalized)) ||
+      normalized[0] == '\0') {
+    Report("give a name:", name);
+    return;
+  }
+  u32 used = 0;
+  if (DataNames::Find(NameKind::kTrainerClass, name.text, name.length, &used)) {
+    Report("the name is used:", name);
+    return;
+  }
+  c16 text16[24];
+  if (Utf8ToUtf16(name.text, name.length, text16, SIZE(text16)) > 20) {
+    Report("use a name of 20 letters at most:", name);
+    return;
+  }
+  u32 from = static_cast<u32>(TrainerClassId::kYoungster);
+  if (count == 2 && !FindOrReport(NameKind::kTrainerClass, parts[1], &from,
+                                  "unknown trainer class")) {
+    return;
+  }
+  if (new_class_count >= SIZE(new_class_names)) {
+    Report("too many new classes:", name);
+    return;
+  }
+  const TrainerClassId id =
+      sink->OnNewClass(text16, static_cast<TrainerClassId>(from));
+  if (id == TrainerClassId::kCount) {
+    Report("no free class for:", name);
+    return;
+  }
+  NewClassName& entry = new_class_names[new_class_count++];
+  std::memcpy(entry.name, normalized, sizeof(entry.name));
+  entry.id = static_cast<u16>(id);
+  is_class_open = true;
+  open_class = id;
+}
+
+// A line of a class: title, overworld, picture, introduction, music.
+void ParseClassLine(Span line) {
+  Span key;
+  Span value;
+  if (!SplitKey(line, &key, &value)) {
+    Report("use key = value:", line);
+    return;
+  }
+  u32 number = 0;
+  if (IsWord(key, "title")) {
+    sink->OnClassTitle(open_class, StoreText(value));
+  } else if (IsWord(key, "overworld")) {
+    if (FindOrReport(NameKind::kModel, value, &number, "unknown model")) {
+      sink->OnClassOverworld(open_class, static_cast<ModelId>(number));
+    }
+  } else if (IsWord(key, "picture")) {
+    if (FindOrReport(NameKind::kTrainerClass, value, &number,
+                     "unknown trainer class")) {
+      sink->OnClassPicture(open_class, static_cast<TrainerClassId>(number));
+    }
+  } else if (IsWord(key, "introduction")) {
+    if (FindOrReport(NameKind::kTrainerClass, value, &number,
+                     "unknown trainer class")) {
+      sink->OnClassIntroduction(open_class,
+                                static_cast<TrainerClassId>(number));
+    }
+  } else if (IsWord(key, "music")) {
+    if (FindOrReport(NameKind::kTrainerClass, value, &number,
+                     "unknown trainer class")) {
+      sink->OnClassMusic(open_class, static_cast<TrainerClassId>(number));
+    }
+  } else {
+    Report("unknown key:", key);
+  }
+}
+
+// [new AZ]: a trainer that the game does not have. The name of the trainer is
+// the name of the section.
+void OpenNewTrainer(Span name) {
+  c8 normalized[sizeof(new_trainer_names[0].name)];
+  if (!Normalize(name, normalized, sizeof(normalized)) ||
+      normalized[0] == '\0') {
+    Report("give a name:", name);
+    return;
+  }
+  u32 used = 0;
+  if (DataNames::Find(NameKind::kTrainer, name.text, name.length, &used)) {
+    Report("the name is used:", name);
+    return;
+  }
+  c16 text16[20];
+  if (Utf8ToUtf16(name.text, name.length, text16, SIZE(text16)) >
+      SIZE(text16) - 2) {
+    Report("use a name of 16 letters at most:", name);
+    return;
+  }
+  if (new_trainer_count >= SIZE(new_trainer_names)) {
+    Report("too many new trainers:", name);
+    return;
+  }
+  const TrainerId id = sink->OnNewTrainer(text16);
+  if (id == TrainerId::kNone) {
+    Report("no free trainer for:", name);
+    return;
+  }
+  NewTrainerName& entry = new_trainer_names[new_trainer_count++];
+  std::memcpy(entry.name, normalized, sizeof(entry.name));
+  entry.id = static_cast<u16>(id);
+  team_count++;
+  is_trainer_open = true;
+  sink->OnTrainer(id);
+  sink->OnTrainerName(StoreText(name));
+}
+
 void OnTrainerLine(Span line, bool is_section) {
   if (is_section) {
     FlushTrainer();
     if (line.length == 0) return;
+    Span first;
+    Span rest;
+    SplitWord(line, &first, &rest);
+    if (IsWord(first, "new") && rest.length != 0) {
+      Span second;
+      Span rest2;
+      SplitWord(rest, &second, &rest2);
+      if (IsWord(second, "class") && rest2.length != 0) {
+        OpenNewClass(rest2);
+      } else {
+        OpenNewTrainer(rest);
+      }
+      return;
+    }
     // [Route 102 Kid 1] or [42]
     u32 id = 0;
     if (!FindOrReport(NameKind::kTrainer, line, &id, "unknown trainer")) {
@@ -424,6 +694,10 @@ void OnTrainerLine(Span line, bool is_section) {
     team_count++;
     is_trainer_open = true;
     sink->OnTrainer(static_cast<TrainerId>(id));
+    return;
+  }
+  if (is_class_open) {
+    ParseClassLine(line);
     return;
   }
   if (!is_trainer_open) {
@@ -451,6 +725,11 @@ void OnTrainerLine(Span line, bool is_section) {
     if (FindOrReport(NameKind::kTrainerModel, value, &number,
                      "unknown trainer model")) {
       sink->OnTrainerModel(static_cast<XyTrainerModelId>(number));
+    }
+  } else if (IsWord(key, "class")) {
+    if (FindOrReport(NameKind::kTrainerClass, value, &number,
+                     "unknown trainer class")) {
+      sink->OnTrainerClass(static_cast<TrainerClassId>(number));
     }
   } else if (IsWord(key, "ai")) {
     Span names[5];
@@ -1921,6 +2200,9 @@ void Clear() {
   item_state.is_valid = false;
   move_state.is_valid = false;
   new_species_count = 0;
+  new_trainer_count = 0;
+  new_class_count = 0;
+  is_class_open = false;
 }
 
 } // namespace maker
@@ -1951,8 +2233,10 @@ bool FindName(NameKind kind, Span span, bool with_new_species, u32* value) {
       high = middle;
     }
   }
-  return with_new_species && kind == NameKind::kSpecies &&
-         FindNewSpecies(name, value);
+  if (!with_new_species) return false;
+  if (kind == NameKind::kTrainer) return FindNewTrainer(name, value);
+  if (kind == NameKind::kTrainerClass) return FindNewClass(name, value);
+  return kind == NameKind::kSpecies && FindNewSpecies(name, value);
 }
 
 bool FindGameName(NameKind kind, Span span, u32* value) {
@@ -1961,6 +2245,16 @@ bool FindGameName(NameKind kind, Span span, u32* value) {
 
 } // namespace
 } // namespace maker
+
+void DataNames::Release() {
+#ifdef SANGO_NAME_FILES
+  maker::ReleaseTables();
+#endif
+}
+
+bool DataNames::IsAvailable() {
+  return maker::GetTable(NameKind::kSpecies).count != 0;
+}
 
 bool DataNames::Find(NameKind kind, const c8* text, u32 length, u32* value) {
   return maker::FindName(kind, maker::Span{text, length}, true, value);
@@ -1971,6 +2265,18 @@ const c8* DataNames::GetName(NameKind kind, u32 value) {
   const NameTable table = GetTable(kind);
   for (u32 i = 0; i < table.count; i++) {
     if (table.names[i].value == value) return table.names[i].name;
+  }
+  if (kind == NameKind::kTrainerClass) {
+    for (u32 i = 0; i < new_class_count; i++) {
+      if (new_class_names[i].id == value) return new_class_names[i].name;
+    }
+    return nullptr;
+  }
+  if (kind == NameKind::kTrainer) {
+    for (u32 i = 0; i < new_trainer_count; i++) {
+      if (new_trainer_names[i].id == value) return new_trainer_names[i].name;
+    }
+    return nullptr;
   }
   if (kind != NameKind::kSpecies) return nullptr;
   for (u32 i = 0; i < new_species_count; i++) {

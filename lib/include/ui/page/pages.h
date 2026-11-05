@@ -141,6 +141,8 @@ void LoadProblemsPage(MainApplication& app, void* args);
 /// The files of Sango Maker: read them again, their problems, the flags and
 /// the variables of the ROM hack (core::DataFiles).
 void LoadMakerPage(MainApplication& app, void* args);
+/// The menus that change the data files of Sango Maker (page_maker_editor.cc).
+void LoadMakerEditorPage(MainApplication& app, void* args);
 void LoadSoundPage(MainApplication& app, void* args);
 void LoadGameTimePage(MainApplication& app, void* args);
 
