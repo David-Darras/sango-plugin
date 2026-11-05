@@ -32,6 +32,11 @@ constexpr uptr kConfigSetupWild = GAME_ADDRESS(0x001CCC9C, 0x001D6CD8);
 constexpr uptr kConfigSetupTrainer = GAME_ADDRESS(0x001CCDD0, 0x001D6E0C);
 
 constexpr uptr kVtable = GAME_ADDRESS(0x00783DD0, 0x007D85D0);
+/// The model of the trainer class: a number of TrainerModelId, or -1 for no
+/// 3D model. It is in the main code, not in the battle CRO.
+constexpr uptr kGetTrainerClassModel = GAME_ADDRESS(0, 0x004E7BD4);
+/// The kind of entrance of the model of the trainer class: -1 for no model.
+constexpr uptr kGetTrainerClassModelEntrance = GAME_ADDRESS(0, 0x004E7C14);
 constexpr uptr kMainProcess = GAME_ADDRESS(0, 0x08C69214);
 constexpr uptr kLevelUp = GAME_ADDRESS(0x0070DEB0, 0x0075D73C);
 constexpr uptr kStartMegaEvolutionAnimation = GAME_ADDRESS(0x006E465C, 0x0072EF18);
@@ -88,6 +93,17 @@ constexpr uptr kItemLimitCheck2 = GAME_ADDRESS(0, 0x007962D4);
 constexpr uptr kItemListenerCheck = GAME_ADDRESS(0, 0x0077526C);
 
 constexpr uptr kLoadAnimation = GAME_ADDRESS(0x006FF9EC, 0x0074E908);
+/// The step of the battle scene that shows the trainer of a side and its first
+/// Pokémon (the scene, true for the player, true for the fade). Returns true
+/// when the step is finished. ORAS only.
+constexpr uptr kStartSideEntry = GAME_ADDRESS(0, 0x00750BB8);
+/// Adds the 3D model of a trainer to the battle scene. ORAS only.
+constexpr uptr kAddTrainerModelToScene = GAME_ADDRESS(0, 0x0074E05C);
+/// Loads a sequence of the battle scene and starts it (the scene, the file),
+/// and the function that returns true when the sequence is finished (the scene,
+/// true to keep the resources). ORAS only.
+constexpr uptr kStartSequence = GAME_ADDRESS(0, 0x007510A8);
+constexpr uptr kIsSequenceFinished = GAME_ADDRESS(0, 0x00750954);
 constexpr uptr kLoadEffect = GAME_ADDRESS(0, 0x0076728C);
 
 constexpr uptr kGetHpGaugePane = GAME_ADDRESS(0x0048D760, 0x004BCD08);

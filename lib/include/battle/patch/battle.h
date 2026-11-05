@@ -34,11 +34,11 @@ namespace battle {
 
 /// The settings of battle::Battle.
 struct BattleSettings {
-  bool is_long_mega_evolve_animation = false;
-  bool is_long_encounter_animation = false;
+  bool is_long_mega_evolve_animation = true;
+  bool is_long_encounter_animation = true;
   bool show_enemy_pov = false;
-  bool show_trainer_animation = false;
-  bool show_pokeball_animation = false;
+  bool show_trainer_animation = true;
+  bool show_pokeball_animation = true;
   bool show_fade_in = false;
   bool show_shiny_animation = true; ///< The stars of the game when a shiny Pokémon comes out.
 

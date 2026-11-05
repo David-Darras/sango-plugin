@@ -67,9 +67,17 @@ public:
 
   static void Initialize();
 
+  /// Returns true when a file of the SD card replaces or adds the file
+  /// `file_id` of the archive (for example the files of sdmc:/sango/pokemodel).
+  /// The game reads a file that is not in the archive and not on the SD card
+  /// without an answer: check it before you use a new file number.
+  static bool HasSdFile(ArchiveId archive_id, u32 file_id);
+
   /**
    * @brief Makes the game read the file `to` when it reads the file `from` of
-   *        an archive. Call it in SetUpHack().
+   *        an archive. The change also applies to the reads of a whole file
+   *        (the sequences and the camera clips of the battles, for example).
+   *        Call it in SetUpHack(), or at any time for a temporary change.
    * @return false when the list is full (see the problems screen).
    */
   static bool ReplaceFile(ArchiveId archive_id, u32 from, u32 to);
@@ -80,6 +88,8 @@ public:
   }
   /// Removes all the replacements of ReplaceFile().
   static void ClearReplacements();
+  /// Removes the replacement of the file `from` of an archive.
+  static void RemoveReplacement(ArchiveId archive_id, u32 from);
 
   /// Makes the game read a BCLIM file of the SD card as the file `file_id` of
   /// the archive of the item icons. The file id must be above the files of the

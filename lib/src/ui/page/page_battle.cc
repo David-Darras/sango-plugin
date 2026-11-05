@@ -30,6 +30,7 @@
 #include "battle/patch/battle.h"
 #include "battle/patch/setup.h"
 #include "battle/patch/shiny_entry.h"
+#include "battle/patch/trainer_model_extension.h"
 #include "battle/patch/type_chart.h"
 #include "core/native/process_manager.h"
 #include "overworld/address.h"
@@ -51,6 +52,20 @@ namespace ui {
 #endif
 
 // The battle options.
+
+#ifdef GAME_ORAS
+// The choices of TrainerModelExtension::player_model.
+static const c8* kPlayerModelNames[] = {
+    "Game Model", "Serena", "Calem", "Malva", "Holocaster", "May", "Brendan",
+    "Wally", "Wally Awake", "Steven", "Maxie", "Archie", "Zinnia", "Shauna",
+    "Tierno", "Trevor", "Sycamore", "Lysandre", "Flare Admin Male",
+    "Flare Admin Female", "Aliana", "Xerosic", "Flare Grunt Male",
+    "Flare Grunt Female", "Celosia", "Bryony", "Mable", "AZ",
+    "Lysandre Final"};
+static_assert(SIZE(kPlayerModelNames) ==
+                  battle::TrainerModelExtension::kPlayerModelCount,
+              "one name for each choice of the player model");
+#endif
 
 void LoadBattleSettingsPage(MainApplication& app, void* args) {
   auto& ctx = battle::Battle::GetInstance();
@@ -105,6 +120,20 @@ void LoadBattleSettingsPage(MainApplication& app, void* args) {
      .WithDescription("Big stars and a flash of all the colors when a shiny "
                       "Pokemon comes out of its Poke Ball. Applies at the "
                       "next battle.")
+#endif
+#ifdef GAME_ORAS
+     .AddSection("Trainer Models")
+     .Add("XY Trainer Models",
+          battle::TrainerModelExtension::GetInstance().is_enabled)
+     .WithDescription("On: the trainers that have a model of Pokemon X and Y "
+                      "(see trainers.txt) show it in the battle. Applies at "
+                      "the next battle.")
+     .Add("Player Model",
+          battle::TrainerModelExtension::GetInstance().player_model)
+     .WithArray(kPlayerModelNames, SIZE(kPlayerModelNames))
+     .WithDescription("The 3D model of the player in the battle: it throws "
+                      "the Poke Ball. The models of X and Y need the files "
+                      "of sango/trainer_model. Applies at the next battle.")
 #endif
      // The options that are already on in the game: the player rarely
      // changes them, so they come last.

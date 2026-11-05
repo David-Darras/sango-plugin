@@ -334,6 +334,8 @@ function checkTrainers(text) {
       if (value === "") err("give a name");
     } else if (key === "money") {
       if (!isNumber(value) || Number(value) > 255) err("money: give a number from 0 to 255");
+    } else if (key === "model") {
+      if (!known("trainermodel", value)) err("unknown trainer model: " + value);
     } else if (key === "ai") {
       for (const ai of value.split(",").map(norm)) {
         if (!["casual", "competitive", "strategist", "multi", "horde"].includes(ai)) err("unknown AI: " + ai);

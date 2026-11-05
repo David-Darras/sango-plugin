@@ -45,6 +45,7 @@
 #include "battle/constant/ai.h"
 #include "battle/constant/format.h"
 #include "battle/constant/trainer.h"
+#include "battle/constant/xy_trainer_model.h"
 #include "overworld/constant/encounter_method.h"
 #include "overworld/constant/map.h"
 #include "overworld/constant/model.h"
@@ -81,6 +82,7 @@ enum class NameKind : u8 {
   kFormat,
   kMap,
   kMusic,
+  kTrainerModel,
 };
 
 /// Finds the values of the names of the data files.
@@ -259,6 +261,7 @@ public:
   virtual void OnTrainerName(const c16* name) {}
   virtual void OnTrainerMoney(u8 money) {}
   virtual void OnTrainerAi(AiFlags flags) {}
+  virtual void OnTrainerModel(XyTrainerModelId model) {}
   virtual void OnTrainerItems(const ItemId* items, u32 count) {}
   virtual void OnTrainerPokemon(const Opponent& pokemon) {}
   virtual void OnTrainerEnd() {}

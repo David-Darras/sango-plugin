@@ -27,6 +27,7 @@
 #include "battle/patch/item_extension.h"
 #include "battle/patch/setup.h"
 #include "battle/patch/shiny_entry.h"
+#include "battle/patch/trainer_model_extension.h"
 #include "battle/patch/type_helper.h"
 #include "ui/performance_overlay.h"
 #include "ui/screenshot_mode.h"
@@ -157,6 +158,7 @@ void InitializeEngine() {
   ui::AppStatus::Initialize();
   pokemon::Shiny::Initialize();
   battle::GameExtension::Initialize();
+  battle::TrainerModelExtension::Initialize();
   battle::ItemExtension::Initialize();
   pokemon::MegaEvolution::Initialize();
   pokemon::AlolanForms::Initialize();

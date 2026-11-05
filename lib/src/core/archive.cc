@@ -124,6 +124,9 @@ static constexpr u32 kAreaToken = 0xD0000000;
 static constexpr u32 kMatrixToken = 0xE0000000;
 static constexpr u32 kItemIconToken = 0xF0000000;
 static constexpr u32 kItemDataToken = 0xB0000000;
+static constexpr u32 kTrainerModelToken = 0xA0000000;
+static constexpr u32 kTrainerSequenceToken = 0x90000000;
+static constexpr u32 kTrainerLayoutToken = 0x70000000;
 static constexpr u32 kTokenMask = 0xF0000000;
 static constexpr u32 kFileIdMask = ~kTokenMask;
 static OverrideEntry pokemon_entries[6144];
@@ -131,6 +134,9 @@ static OverrideEntry overworld_entries[1024];
 static OverrideEntry land_entries[1024];
 static OverrideEntry area_entries[512];
 static OverrideEntry matrix_entries[512];
+static OverrideEntry trainer_model_entries[256];
+static OverrideEntry trainer_sequence_entries[64];
+static OverrideEntry trainer_layout_entries[8];
 // The icons of the new items: RegisterItemIcon() fills this list.
 static constexpr u32 kMaxItemIcons = 128;
 static OverrideEntry item_icon_entries[kMaxItemIcons];
@@ -155,6 +161,21 @@ static OverrideSet override_sets[] = {
     {ArchiveId::kMapMatrix, u"sdmc:/sango/matrix/index.bin",
      u"sdmc:/sango/matrix/%d.bin", kMatrixToken, true, matrix_entries, 512, 0,
      false},
+    // The models of the trainers of X and Y: the files after the last file of
+    // the archive (see battle::TrainerModelExtension).
+    {ArchiveId::kTrainerModel, u"sdmc:/sango/trainer_model/index.bin",
+     u"sdmc:/sango/trainer_model/%d.bin", kTrainerModelToken, true,
+     trainer_model_entries, 256, 0, false},
+    // The introductions and the background of the trainers of X and Y: new
+    // files of the archive of the battle animations and of the layouts of the
+    // intros. The game gets them with the replacements of the extension.
+    {ArchiveId::kBattleMoveAnimation,
+     u"sdmc:/sango/trainer_model/sequence/index.bin",
+     u"sdmc:/sango/trainer_model/sequence/%d.bin", kTrainerSequenceToken, true,
+     trainer_sequence_entries, 64, 0, false},
+    {ArchiveId::kMoveEffectLayout, u"sdmc:/sango/trainer_model/layout/index.bin",
+     u"sdmc:/sango/trainer_model/layout/%d.bin", kTrainerLayoutToken, true,
+     trainer_layout_entries, 8, 0, false},
     // The files of the icons have the paths that RegisterItemIcon() got. The
     // list is in memory: no index file, so the set is already loaded.
     {ArchiveId::kItemIcon, u"", u"", kItemIconToken, true, item_icon_entries,
@@ -415,6 +436,7 @@ static u32 ReplacedSize(OverrideSet* set, u32 file_id) {
 
 u32 Archive::GetFileSizeHook(u32* archive, u32 file_id) {
   file_id = RemapItemFile(archive, file_id);
+  file_id = ReplacedStreamFile(archive, file_id);
   if (IsArchive(archive, ArchiveId::kBattleMoveAnimation)) {
     const u32 patched = battle::MoveAnimations::PatchedSize(archive, file_id);
     if (patched) return patched;
@@ -430,6 +452,7 @@ u32 Archive::GetFileSizeHook(u32* archive, u32 file_id) {
 
 u32 Archive::GetFileSizeHook2(u32* archive, u32 file_id) {
   file_id = RemapItemFile(archive, file_id);
+  file_id = ReplacedStreamFile(archive, file_id);
   if (IsArchive(archive, ArchiveId::kBattleMoveAnimation)) {
     const u32 patched = battle::MoveAnimations::PatchedSize(archive, file_id);
     if (patched) return patched;
@@ -445,6 +468,7 @@ u32 Archive::GetFileSizeHook2(u32* archive, u32 file_id) {
 
 void Archive::GetInfoHook(u32* archive, u32 file_id, u32* info) {
   file_id = RemapItemFile(archive, file_id);
+  file_id = ReplacedStreamFile(archive, file_id);
   OverrideSet* set = FindSet(archive);
   const u32 replaced = info != nullptr ? ReplacedSize(set, file_id) : 0;
   if (replaced) {
@@ -478,6 +502,7 @@ void Archive::ReadHook(u32* archive, u32 offset, u32 size,
 
 u32 Archive::LoadDataHook2(u32* archive, u32 file_id, void* buffer) {
   file_id = RemapItemFile(archive, file_id);
+  file_id = ReplacedStreamFile(archive, file_id);
   if (IsArchive(archive, ArchiveId::kBattleMoveAnimation)) {
     u32 patched = 0;
     if (battle::MoveAnimations::Serve(archive, file_id, buffer, &patched)) {
@@ -512,6 +537,7 @@ u32 Archive::LoadDataHook2(u32* archive, u32 file_id, void* buffer) {
 void* Archive::LoadCompressedHook(u32* archive, u32 file_id, void* heap_work,
                                   void* heap_data, s32 align, u32* out_size) {
   file_id = RemapItemFile(archive, file_id, false);
+  file_id = ReplacedStreamFile(archive, file_id);
   OverrideSet* set = FindSet(archive);
   if (set != nullptr && !set->whole_file) {
     const u32 size = OverrideSize(*set, file_id);
@@ -613,6 +639,13 @@ bool Archive::RegisterItemData(u32 item_id, const u8* data) {
   return true;
 }
 
+bool Archive::HasSdFile(ArchiveId archive_id, u32 file_id) {
+  for (OverrideSet& set : override_sets) {
+    if (set.archive == archive_id) return OverrideSize(set, file_id) != 0;
+  }
+  return false;
+}
+
 bool Archive::IsArchive(const u32* archive_data,
                              const ArchiveId archive_id) {
   u32* archive_table = (u32*)sys::address::kArchiveFilenameTable;
@@ -662,6 +695,12 @@ bool Archive::ReplaceFile(ArchiveId archive_id, u32 from, u32 to) {
 }
 
 void Archive::ClearReplacements() { GetInstance().replacements_.Clear(); }
+
+void Archive::RemoveReplacement(ArchiveId archive_id, u32 from) {
+  GetInstance().replacements_.RemoveIf([&](const Replacement& entry) {
+    return entry.archive_id == archive_id && entry.from == from;
+  });
+}
 
 u32 Archive::ReplacedStreamFile(const u32* archive, u32 file_id) {
   const auto& feat = GetInstance();

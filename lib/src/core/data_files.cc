@@ -31,6 +31,7 @@
 #include <new>
 
 #include "battle/patch/battle.h"
+#include "battle/patch/trainer_model_extension.h"
 #include "battle/patch/trainer_team.h"
 #include "core/data_folder.h"
 #include "core/problems.h"
@@ -131,6 +132,12 @@ public:
   void OnTrainerName(const c16* name) override { team_->WithName(name); }
   void OnTrainerMoney(u8 money) override { team_->WithMoney(money); }
   void OnTrainerAi(AiFlags flags) override { team_->WithAi(flags); }
+  void OnTrainerModel(XyTrainerModelId model) override {
+    if (battle::TrainerModelExtension::GetInstance().Assign(trainer_,
+                                                            model)) {
+      model_trainers_.Add(trainer_);
+    }
+  }
   void OnTrainerItems(const ItemId* items, u32 count) override {
     ItemId all[4] = {ItemId::kNone, ItemId::kNone, ItemId::kNone,
                      ItemId::kNone};
@@ -341,8 +348,14 @@ public:
   }
   /// Forgets the teams. Remove them from TrainerTeams before.
   void ClearTeams() { team_count_ = 0; }
-  /// Forgets the changes of items.txt and of moves.txt.
+  /// Forgets the changes of items.txt and of moves.txt, and the models of
+  /// the trainers.
   void ClearChanges() {
+    for (u32 i = 0; i < model_trainers_.Count(); i++) {
+      battle::TrainerModelExtension::GetInstance().Remove(
+          model_trainers_[i]);
+    }
+    model_trainers_.Clear();
     item_changes_.Clear();
     move_changes_.Clear();
   }
@@ -353,6 +366,8 @@ private:
   u32 team_count_ = 0;
   battle::TrainerTeam* team_ = nullptr;
   TrainerId trainer_ = TrainerId::kNone;
+  // The trainers that trainers.txt gave a model to.
+  core::FixedList<TrainerId, 64> model_trainers_;
   // The changes of items.txt.
   core::FixedList<maker::ItemChange, 256> item_changes_;
   // The changes of moves.txt.

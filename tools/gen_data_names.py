@@ -29,6 +29,8 @@ ENUMS = [
     ("kTypeNames", "lib/include/pokemon/constant/type.h", "TypeId", None),
     ("kFormNames", "lib/include/pokemon/constant/form.h", "FormId", None),
     ("kTrainerNames", "lib/include/battle/constant/trainer.h", "TrainerId", None),
+    ("kXyTrainerModelNames", "lib/include/battle/constant/xy_trainer_model.h",
+     "XyTrainerModelId", None),
     ("kModelNames", "lib/include/overworld/constant/model.h", "ModelId", None),
     ("kEvolutionMethodNames", "lib/include/pokemon/constant/evolution_method.h",
      "EvolutionMethod", None),
@@ -126,6 +128,7 @@ EDITOR_KINDS = {
     "kSpeciesNames": "species", "kMoveNames": "move", "kItemNames": "item",
     "kAbilityNames": "ability", "kNatureNames": "nature", "kTypeNames": "type",
     "kFormNames": "form", "kTrainerNames": "trainer", "kModelNames": "model",
+    "kXyTrainerModelNames": "trainermodel",
     "kEvolutionMethodNames": "evolution", "kEncounterMethodNames": "method",
     "kFormatNames": "format", "kMusicNames": "music", "kMapNames": "map",
 }

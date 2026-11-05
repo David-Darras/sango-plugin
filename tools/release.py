@@ -2,9 +2,9 @@
 """Builds the release zip of the plugin and publishes it on GitHub.
 
 Usage (the Makefile calls it):
-  release.py pack    --version 7.4.0 --plugin sango_plugin-release.3gx
+  release.py pack    --version 7.5.0 --plugin sango_plugin-release.3gx
                      --maker-plugin sango_maker-release.3gx
-  release.py publish --version 7.4.0 [--draft] [--yes]
+  release.py publish --version 7.5.0 [--draft] [--yes]
 
 The zip has the layout of the SD card for the players, and a folder for the
 modders:
@@ -32,13 +32,14 @@ MAKER_EDITOR = os.path.join(ROOT, "tools", "maker_editor")
 MAKER_PLUGIN_NAME = "sango_maker-release.3gx"
 
 
-def fill(text, version, pokemon_url, overworld_url, music_url):
+def fill(text, version, pokemon_url, overworld_url, music_url, trainer_url=""):
     """Replaces the placeholders of a template."""
     default = "(the link is on the release page)"
     return (text.replace("{{VERSION}}", version)
                 .replace("{{POKEMON_MODELS_URL}}", pokemon_url or default)
                 .replace("{{OVERWORLD_MODELS_URL}}", overworld_url or default)
-                .replace("{{MUSIC_URL}}", music_url or default))
+                .replace("{{MUSIC_URL}}", music_url or default)
+                .replace("{{TRAINER_MODELS_URL}}", trainer_url or default))
 
 
 def read_asset(name):
@@ -89,9 +90,11 @@ def pack(args):
     os.makedirs(DIST, exist_ok=True)
 
     readme = fill(read_asset("README.txt"), args.version, args.pokemon_models_url,
-                  args.overworld_models_url, args.music_url)
+                  args.overworld_models_url, args.music_url,
+                  args.trainer_models_url)
     notes = fill(read_asset("notes.md"), args.version, args.pokemon_models_url,
-                 args.overworld_models_url, args.music_url)
+                 args.overworld_models_url, args.music_url,
+                 args.trainer_models_url)
     with open(notes_path(), "w", encoding="utf-8", newline="\n") as f:
         f.write(notes)
 
@@ -126,8 +129,10 @@ def pack(args):
     with zipfile.ZipFile(target) as z:
         for info in z.infolist():
             print("  %-52s %8d bytes" % (info.filename, info.file_size))
-    if not (args.pokemon_models_url and args.overworld_models_url and args.music_url):
-        print("Note: POKEMON_MODELS_URL, OVERWORLD_MODELS_URL or MUSIC_URL is empty. Set them in config.mk.")
+    if not (args.pokemon_models_url and args.overworld_models_url and
+            args.music_url and args.trainer_models_url):
+        print("Note: POKEMON_MODELS_URL, OVERWORLD_MODELS_URL, MUSIC_URL or "
+              "TRAINER_MODELS_URL is empty. Set them in config.mk.")
 
 
 def git(*args):
@@ -183,6 +188,7 @@ def main():
     p.add_argument("--pokemon-models-url", default="")
     p.add_argument("--overworld-models-url", default="")
     p.add_argument("--music-url", default="")
+    p.add_argument("--trainer-models-url", default="")
     p.set_defaults(func=pack)
 
     p = sub.add_parser("publish")

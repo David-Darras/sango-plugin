@@ -47,6 +47,7 @@ struct Recorder : Sink {
   std::vector<ItemId> items;
   u32 money = 0;
   AiFlags ai = AiFlags::kNone;
+  std::vector<XyTrainerModelId> models;
   Format format = Format::kSingle;
   u32 trainer_ends = 0;
   std::vector<std::string> species_changes;
@@ -76,6 +77,9 @@ struct Recorder : Sink {
   void OnTrainerName(const c16* name) override { names.push_back(name); }
   void OnTrainerMoney(u8 value) override { money = value; }
   void OnTrainerAi(AiFlags flags) override { ai = flags; }
+  void OnTrainerModel(XyTrainerModelId value) override {
+    models.push_back(value);
+  }
   void OnTrainerItems(const ItemId* list, u32 count) override {
     items.assign(list, list + count);
   }
@@ -568,6 +572,18 @@ TEST(RulesReportTheMistakes) {
                               "no equal sign\n");
   CHECK_EQ(r.problem_lines.size(), 9);
   CHECK(r.rules.empty() && r.starters.empty());
+}
+
+TEST(TrainersGiveTheModelOfXAndY) {
+  const Recorder r = ReadText(ReadTrainers,
+                              "[Route 102 Kid 1]\n"
+                              "model = Lysandre Final\n"
+                              "[Route 102 Kid 2]\n"
+                              "model = Nobody\n");
+  CHECK_EQ(r.models.size(), 1);
+  if (r.models.size() != 1) return;
+  CHECK(r.models[0] == XyTrainerModelId::kLysandreFinal);
+  CHECK_EQ(r.problem_lines.size(), 1);
 }
 
 TEST(ShopsGiveTheListOfEachShop) {

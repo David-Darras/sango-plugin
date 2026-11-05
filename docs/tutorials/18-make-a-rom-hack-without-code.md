@@ -86,6 +86,7 @@ pokemon = Riolu, level 8, ivs 31, evs 0/252/4/0/0/252, moves Quick Attack / Endu
 | `ai` | `Casual`, `Competitive`, `Strategist`: one or more. |
 | `items` | The items that the trainer uses (4 at most). |
 | `money` | The prize money. The game multiplies it by the level of the last Pokémon. |
+| `model` | A 3D model of Pokémon X and Y for the battle: `Sycamore`, `Lysandre`, `Flare Admin Male`, `Flare Admin Female`, `Aliana`, `Xerosic`, `Flare Grunt Male`, `Flare Grunt Female`, `Celosia`, `Bryony`, `Mable`, `Az` or `Lysandre Final`. The files of the models are in `sango/trainer_model` (made by `tools/export_xy_trainer_models.py`). |
 | `pokemon` | One Pokémon (6 at most): the species, then `level N`, `item X`, `ability X`, `nature X`, `form X`, `ivs N`, `evs HP/Atk/Def/SpA/SpD/Spe`, `moves A / B / C / D`, `shiny`. |
 
 A trainer is a name of `lib/include/battle/constant/trainer.h` or a number:

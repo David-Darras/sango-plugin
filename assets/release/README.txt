@@ -72,9 +72,16 @@ Make the "sango" folder if it does not exist.
    Make the folder  sango/bgm/  and unzip the pack in it.
    You must get sango/bgm/list.txt and the music files next to it.
 
+4. Trainer models (the battle models of the trainers of Pokemon X and Y,
+   optional):
+     {{TRAINER_MODELS_URL}}
+   Make the folder  sango/trainer_model/  and unzip the pack in it.
+   You must get files like sango/trainer_model/index.bin and 75.bin, and
+   the folders sango/trainer_model/sequence and sango/trainer_model/layout .
+
 If a file is in sango/ and not in its folder, the plugin does not find it.
-Without the packs the plugin works, but the new Pokemon, the new characters
-and the extra music are missing.
+Without the packs the plugin works, but the new Pokemon, the new characters,
+the extra music and the trainer models are missing.
 
 First steps
 -----------

@@ -26,6 +26,7 @@
 #include "core/data_folder.h"
 #include "battle/patch/item_extension.h"
 #include "battle/patch/type_chart.h"
+#include "battle/patch/trainer_model_extension.h"
 #include "battle/patch/move_animation.h"
 #include "pokemon/patch/custom_shop.h"
 
@@ -265,6 +266,7 @@ void GameExtension::BattleLoadEffectHook(uptr self, u32 archive_id,
 }
 
 void GameExtension::BattleLoadAnimationHook(uptr self, u32 id, bool is_move) {
+  TrainerModelExtension::OnPlaySequence(self, id, is_move);
   MoveAnimations::LoadEffectsOnDemand(false);
   // A new move has an id after the last animation of the game: the game
   // would not take it for a move.

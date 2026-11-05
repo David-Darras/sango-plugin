@@ -63,6 +63,8 @@ NameTable GetTable(NameKind kind) {
     case NameKind::kFormat: return {kFormatNames, SIZE(kFormatNames)};
     case NameKind::kMap: return {kMapNames, SIZE(kMapNames)};
     case NameKind::kMusic: return {kMusicNames, SIZE(kMusicNames)};
+    case NameKind::kTrainerModel:
+      return {kXyTrainerModelNames, SIZE(kXyTrainerModelNames)};
   }
   return {nullptr, 0};
 }
@@ -445,6 +447,11 @@ void OnTrainerLine(Span line, bool is_section) {
     sink->OnTrainerName(StoreText(value));
   } else if (IsWord(key, "money") && ParseNumber(value, &number)) {
     sink->OnTrainerMoney(static_cast<u8>(number));
+  } else if (IsWord(key, "model")) {
+    if (FindOrReport(NameKind::kTrainerModel, value, &number,
+                     "unknown trainer model")) {
+      sink->OnTrainerModel(static_cast<XyTrainerModelId>(number));
+    }
   } else if (IsWord(key, "ai")) {
     Span names[5];
     const u32 count = Split(value, ',', names, 5);

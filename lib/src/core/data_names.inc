@@ -3749,6 +3749,22 @@ const DataName kTrainerNames[] = {
     {"zinnia", 898},
 };
 
+const DataName kXyTrainerModelNames[] = {
+    {"aliana", 4},
+    {"az", 11},
+    {"bryony", 9},
+    {"celosia", 8},
+    {"flareadminfemale", 3},
+    {"flareadminmale", 2},
+    {"flaregruntfemale", 7},
+    {"flaregruntmale", 6},
+    {"lysandre", 1},
+    {"lysandrefinal", 12},
+    {"mable", 10},
+    {"sycamore", 0},
+    {"xerosic", 5},
+};
+
 const DataName kModelNames[] = {
     {"3ddungeonenemy", 149},
     {"abomasnow", 462},

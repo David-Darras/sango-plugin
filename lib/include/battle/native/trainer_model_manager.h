@@ -28,6 +28,16 @@
 
 namespace battle {
 
+/// The five files of a trainer model, as numbers in the archive of the trainer
+/// models.
+struct TrainerModelFiles {
+  u16 model; ///< The 3D model.
+  u16 base; ///< The base pack: the textures and the parts.
+  u16 battle_motions; ///< The animations of the battle.
+  u16 idle_motions; ///< The other animations.
+  u16 cinematic_motions; ///< The animations of the cinematics.
+};
+
 /// The table of the files of the trainer models in battle.
 class TrainerModelManager {
   SINGLETON(TrainerModelManager)
@@ -41,6 +51,23 @@ private:
 public:
   STATIC_INLINE TrainerModelManager& GetInstance() {
     return *(TrainerModelManager*)core::address::kTrainerModelTable;
+  }
+
+  /// Returns the files that the game reads for the model `slot`.
+  INLINE TrainerModelFiles GetFiles(TrainerModelId slot) const {
+    const u8 i = static_cast<u8>(slot);
+    return {assets[i], textures[i], battle_animations[i], idle_animations[i],
+            cinematic_animations[i]};
+  }
+
+  /// Makes the game read these files for the model `slot`.
+  INLINE void SetFiles(TrainerModelId slot, const TrainerModelFiles& files) {
+    const u8 i = static_cast<u8>(slot);
+    assets[i] = files.model;
+    textures[i] = files.base;
+    battle_animations[i] = files.battle_motions;
+    idle_animations[i] = files.idle_motions;
+    cinematic_animations[i] = files.cinematic_motions;
   }
 
   /// Shows the model `dst` instead of the model `src`.
