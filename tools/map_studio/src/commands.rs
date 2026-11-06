@@ -227,7 +227,7 @@ pub fn copy_near(
         return Err("nothing near this place".into());
     }
     let groups = found.len();
-    let added = edited.copy_groups(&[CopyRequest { source: found, delta }])?;
+    let added = edited.copy_groups(&[CopyRequest { source: found, centre: [0.0, 0.0], yaw: 0.0, delta }])?;
     let vertices: usize = added[0].iter().map(|(_, _, count)| count).sum();
     let path = edited.save(out_dir)?;
     println!("added {vertices} vertices in {groups} groups; written {}", path.display());
@@ -290,11 +290,33 @@ pub fn editor_test(arc_dir: &str, block: usize, out_dir: &str) -> Result<(), Str
     println!("pine object {wanted}: {} parts, box x {:.0}..{:.0} z {:.0}..{:.0}", c.parts.len(), c.low[0], c.high[0], c.low[2], c.high[2]);
     let triangles = |e: &Editor| e.meshes().iter().map(|(_, m)| m.indices.len() / 3).sum::<usize>();
     let before = triangles(&editor);
-    editor.change(|v| v.push(Instance { cluster: wanted, offset: [54.0, 0.0, 0.0], copy: true, deleted: false }))?;
+    editor.change(|v| v.push(Instance { cluster: wanted, offset: [54.0, 0.0, 0.0], yaw: 0.0, copy: true, deleted: false }))?;
     println!("after a copy: {} -> {} triangles", before, triangles(&editor));
     let copy = editor.instances.len() - 1;
     editor.change(|v| v[copy].offset[0] += 18.0)?;
     println!("after moving the copy: {} triangles", triangles(&editor));
+    // Turn the copy by 90 degrees: its real vertices must turn, not only the box.
+    let real_box = |e: &Editor| {
+        let (mut low, mut high) = ([f32::MAX; 3], [f32::MIN; 3]);
+        for (m, (_, mesh)) in e.meshes().iter().enumerate() {
+            for v in 0..mesh.positions.len() {
+                if e.owner(m, v) == Some(copy) {
+                    for a in 0..3 {
+                        low[a] = low[a].min(mesh.positions[v][a]);
+                        high[a] = high[a].max(mesh.positions[v][a]);
+                    }
+                }
+            }
+        }
+        (high[0] - low[0], high[1] - low[1], high[2] - low[2])
+    };
+    let before_turn = real_box(&editor);
+    editor.change(|v| v[copy].yaw = std::f32::consts::FRAC_PI_2)?;
+    let after_turn = real_box(&editor);
+    println!(
+        "turned the copy by 90 degrees: real size x {:.1} y {:.1} z {:.1} -> x {:.1} y {:.1} z {:.1}; {} triangles",
+        before_turn.0, before_turn.1, before_turn.2, after_turn.0, after_turn.1, after_turn.2, triangles(&editor)
+    );
     editor.change(|v| v[wanted].deleted = true)?;
     println!("after deleting the original: {} triangles", triangles(&editor));
     editor.undo()?;

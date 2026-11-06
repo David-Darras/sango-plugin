@@ -24,6 +24,8 @@ pub struct Mesh {
     /// Where the three numbers of each position are in the file, so that
     /// a tool can change them in place.
     pub position_offsets: Vec<usize>,
+    /// Where the three numbers of each normal are in the file.
+    pub normal_offsets: Vec<usize>,
     /// Where the lists of the mesh are in the file. A tool changes them to
     /// remove or add triangles.
     pub places: Places,
@@ -455,7 +457,10 @@ impl<'a> Bch<'a> {
                             mesh.positions.push([values[0], values[1], values[2]]);
                             mesh.position_offsets.push(attribute_at);
                         }
-                        Field::Normal => mesh.normals.push([values[0], values[1], values[2]]),
+                        Field::Normal => {
+                            mesh.normals.push([values[0], values[1], values[2]]);
+                            mesh.normal_offsets.push(attribute_at);
+                        }
                         Field::Uv => mesh.uvs.push([values[0], values[1]]),
                         Field::Color => mesh.colors.push([values[0] as u8, values[1] as u8, values[2] as u8, values[3] as u8]),
                         Field::Other => {}

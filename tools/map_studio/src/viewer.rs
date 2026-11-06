@@ -507,6 +507,7 @@ struct Row {
 }
 
 enum Action {
+    Rotate(f32),
     SaveProject,
     LoadProject,
     Duplicate,
@@ -832,6 +833,7 @@ impl Viewer {
                     v.push(Instance {
                         cluster: source.cluster,
                         offset: [source.offset[0] + TILE, source.offset[1], source.offset[2]],
+                        yaw: source.yaw,
                         copy: true,
                         deleted: false,
                     });
@@ -840,6 +842,14 @@ impl Viewer {
                     self.selected = Some(self.editor.instances.len() - 1);
                 }
                 self.report(result, "Copied one tile to the side.");
+            }
+            Action::Rotate(angle) => {
+                let Some(selected) = self.selected else { return };
+                let result = self.editor.change(|v| {
+                    let turned = v[selected].yaw + angle;
+                    v[selected].yaw = (turned + std::f32::consts::PI).rem_euclid(std::f32::consts::TAU) - std::f32::consts::PI;
+                });
+                self.report(result, "Turned.");
             }
             Action::Delete => {
                 let Some(selected) = self.selected else { return };
@@ -894,6 +904,9 @@ impl eframe::App for Viewer {
                     action = Some(Action::Delete);
                 } else if i.key_pressed(egui::Key::D) {
                     action = Some(Action::Duplicate);
+                } else if i.key_pressed(egui::Key::R) {
+                    let quarter = std::f32::consts::FRAC_PI_2;
+                    action = Some(Action::Rotate(if i.modifiers.shift { -quarter } else { quarter }));
                 } else if i.key_pressed(egui::Key::ArrowLeft) {
                     action = Some(Action::Nudge([-step, 0.0, 0.0]));
                 } else if i.key_pressed(egui::Key::ArrowRight) {
@@ -947,6 +960,15 @@ impl eframe::App for Viewer {
                 }
                 if ui.add_enabled(has_selection, egui::Button::new("Delete")).clicked() {
                     action = Some(Action::Delete);
+                }
+            });
+            ui.horizontal(|ui| {
+                let quarter = std::f32::consts::FRAC_PI_2;
+                if ui.add_enabled(has_selection, egui::Button::new("Turn left (Shift+R)")).clicked() {
+                    action = Some(Action::Rotate(-quarter));
+                }
+                if ui.add_enabled(has_selection, egui::Button::new("Turn right (R)")).clicked() {
+                    action = Some(Action::Rotate(quarter));
                 }
             });
             ui.checkbox(&mut self.snap, "Snap to the tiles");

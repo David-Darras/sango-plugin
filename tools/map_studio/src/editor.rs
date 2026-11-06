@@ -38,6 +38,9 @@ pub struct Cluster {
 pub struct Instance {
     pub cluster: usize,
     pub offset: [f32; 3],
+    /// The turn around the vertical axis through the centre of the object
+    /// (radians).
+    pub yaw: f32,
     pub copy: bool,
     pub deleted: bool,
 }
@@ -228,7 +231,7 @@ impl Editor {
         }
 
         let instances = (0..clusters.len())
-            .map(|cluster| Instance { cluster, offset: [0.0; 3], copy: false, deleted: false })
+            .map(|cluster| Instance { cluster, offset: [0.0; 3], yaw: 0.0, copy: false, deleted: false })
             .collect();
         let attributes = original.attributes()?;
         let mut editor = Editor {
@@ -264,12 +267,28 @@ impl Editor {
         &self.original.meshes[mesh].1.material
     }
 
-    /// The box of an instance, with its offset.
+    /// The horizontal centre of an object of the original block.
+    fn cluster_centre(&self, cluster: usize) -> [f32; 2] {
+        let c = &self.clusters[cluster];
+        [(c.low[0] + c.high[0]) / 2.0, (c.low[2] + c.high[2]) / 2.0]
+    }
+
+    /// The box of an instance, with its turn and its offset.
     pub fn instance_bounds(&self, instance: usize) -> ([f32; 3], [f32; 3]) {
         let i = &self.instances[instance];
         let c = &self.clusters[i.cluster];
-        let mut low = c.low;
-        let mut high = c.high;
+        let centre = self.cluster_centre(i.cluster);
+        let (sin, cos) = i.yaw.sin_cos();
+        let mut low = [f32::MAX, c.low[1], f32::MAX];
+        let mut high = [f32::MIN, c.high[1], f32::MIN];
+        for (x, z) in [(c.low[0], c.low[2]), (c.low[0], c.high[2]), (c.high[0], c.low[2]), (c.high[0], c.high[2])] {
+            let (dx, dz) = (x - centre[0], z - centre[1]);
+            let (tx, tz) = (centre[0] + cos * dx - sin * dz, centre[1] + sin * dx + cos * dz);
+            low[0] = low[0].min(tx);
+            high[0] = high[0].max(tx);
+            low[2] = low[2].min(tz);
+            high[2] = high[2].max(tz);
+        }
         for a in 0..3 {
             low[a] += i.offset[a];
             high[a] += i.offset[a];
@@ -286,6 +305,8 @@ impl Editor {
             .iter()
             .map(|&i| CopyRequest {
                 source: self.clusters[self.instances[i].cluster].parts.clone(),
+                centre: self.cluster_centre(self.instances[i].cluster),
+                yaw: self.instances[i].yaw,
                 delta: self.instances[i].offset,
             })
             .collect();
@@ -296,11 +317,12 @@ impl Editor {
             if instance.copy {
                 continue;
             }
+            let centre = self.cluster_centre(instance.cluster);
             for (mesh, vertices) in &self.clusters[instance.cluster].parts {
                 if instance.deleted {
                     block.delete_group(*mesh, vertices)?;
-                } else if instance.offset != [0.0; 3] {
-                    block.translate(*mesh, vertices, instance.offset)?;
+                } else if instance.offset != [0.0; 3] || instance.yaw != 0.0 {
+                    block.transform(*mesh, vertices, centre, instance.yaw, instance.offset)?;
                 }
             }
             let _ = index;
@@ -435,12 +457,13 @@ impl Editor {
         let _ = writeln!(out, "objects {}", self.clusters.len());
         for instance in &self.instances {
             let [x, y, z] = instance.offset;
+            let yaw = instance.yaw;
             if instance.copy {
-                let _ = writeln!(out, "copy {} {x} {y} {z} {}", instance.cluster, u8::from(instance.deleted));
+                let _ = writeln!(out, "copy {} {x} {y} {z} {} {yaw}", instance.cluster, u8::from(instance.deleted));
             } else if instance.deleted {
                 let _ = writeln!(out, "delete {}", instance.cluster);
-            } else if instance.offset != [0.0; 3] {
-                let _ = writeln!(out, "move {} {x} {y} {z}", instance.cluster);
+            } else if instance.offset != [0.0; 3] || yaw != 0.0 {
+                let _ = writeln!(out, "move {} {x} {y} {z} {yaw}", instance.cluster);
             }
         }
         for (i, (now, before)) in self.tiles.iter().zip(&self.original_tiles).enumerate() {
@@ -459,7 +482,7 @@ impl Editor {
             return Err("this is not a project of Map Studio".into());
         }
         let mut instances: Vec<Instance> = (0..self.clusters.len())
-            .map(|cluster| Instance { cluster, offset: [0.0; 3], copy: false, deleted: false })
+            .map(|cluster| Instance { cluster, offset: [0.0; 3], yaw: 0.0, copy: false, deleted: false })
             .collect();
         let mut tiles = self.original_tiles.clone();
         let number = |word: Option<&str>| -> Result<f32, String> {
@@ -494,9 +517,12 @@ impl Editor {
                     let offset = [number(words.next())?, number(words.next())?, number(words.next())?];
                     if kind == "move" {
                         instances[cluster].offset = offset;
+                        // A project of an older version has no turn.
+                        instances[cluster].yaw = words.next().and_then(|w| w.parse().ok()).unwrap_or(0.0);
                     } else {
                         let deleted = number(words.next())? != 0.0;
-                        instances.push(Instance { cluster, offset, copy: true, deleted });
+                        let yaw = words.next().and_then(|w| w.parse().ok()).unwrap_or(0.0);
+                        instances.push(Instance { cluster, offset, yaw, copy: true, deleted });
                     }
                 }
                 Some("tile") => {

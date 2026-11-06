@@ -31,7 +31,39 @@ pub struct EditableBlock {
 pub struct CopyRequest {
     /// The number of a mesh and the vertices of this mesh to copy.
     pub source: Vec<(usize, Vec<usize>)>,
+    /// The copy turns by this angle (radians) around the vertical axis that
+    /// goes through this point (x and z), then moves by `delta`.
+    pub centre: [f32; 2],
+    pub yaw: f32,
     pub delta: [f32; 3],
+}
+
+/// Turns the position and the normal of a vertex around a vertical axis,
+/// then moves the position. `bytes` is the vertex as the file stores it.
+fn transform_vertex(bytes: &mut [u8], position: usize, normal: Option<usize>, centre: [f32; 2], yaw: f32, delta: [f32; 3]) {
+    let read = |b: &[u8], at: usize| f32::from_le_bytes([b[at], b[at + 1], b[at + 2], b[at + 3]]);
+    if yaw == 0.0 {
+        // No turn: only the position moves, and every other byte stays.
+        for (axis, d) in delta.iter().enumerate() {
+            let at = position + 4 * axis;
+            let value = read(bytes, at) + d;
+            bytes[at..at + 4].copy_from_slice(&value.to_le_bytes());
+        }
+        return;
+    }
+    let (sin, cos) = yaw.sin_cos();
+    let (x, y, z) = (read(bytes, position) - centre[0], read(bytes, position + 4), read(bytes, position + 8) - centre[1]);
+    let turned = [centre[0] + cos * x - sin * z + delta[0], y + delta[1], centre[1] + sin * x + cos * z + delta[2]];
+    for (axis, value) in turned.iter().enumerate() {
+        bytes[position + 4 * axis..position + 4 * axis + 4].copy_from_slice(&value.to_le_bytes());
+    }
+    if let Some(at) = normal {
+        let (nx, ny, nz) = (read(bytes, at), read(bytes, at + 4), read(bytes, at + 8));
+        let turned = [cos * nx - sin * nz, ny, sin * nx + cos * nz];
+        for (axis, value) in turned.iter().enumerate() {
+            bytes[at + 4 * axis..at + 4 * axis + 4].copy_from_slice(&value.to_le_bytes());
+        }
+    }
 }
 
 /// The vertices that a copy added to a mesh: the number of the mesh, the
@@ -145,21 +177,40 @@ impl EditableBlock {
         Ok(())
     }
 
-    /// Moves a group of vertices of a mesh.
-    pub fn translate(&mut self, mesh: usize, vertices: &[usize], delta: [f32; 3]) -> Result<(), String> {
+    /// Turns a group of vertices of a mesh around a vertical axis, then moves
+    /// it. The positions and the normals change in the file.
+    pub fn transform(
+        &mut self,
+        mesh: usize,
+        vertices: &[usize],
+        centre: [f32; 2],
+        yaw: f32,
+        delta: [f32; 3],
+    ) -> Result<(), String> {
         let (part, mesh) = self.meshes.get_mut(mesh).ok_or("no such mesh")?;
         let base = self.ranges[*part].0;
         for &v in vertices {
-            let at = base + *mesh.position_offsets.get(v).ok_or("no such vertex")?;
-            for axis in 0..3 {
-                let place = at + 4 * axis;
-                let bytes: [u8; 4] = self.pack[place..place + 4].try_into().map_err(|_| "bad offset")?;
-                let value = f32::from_le_bytes(bytes) + delta[axis];
-                self.pack[place..place + 4].copy_from_slice(&value.to_le_bytes());
-                mesh.positions[v][axis] = value;
-            }
+            let position = base + *mesh.position_offsets.get(v).ok_or("no such vertex")?;
+            let normal = mesh.normal_offsets.get(v).map(|n| base + n);
+            // The numbers of a vertex are close to each other in the file.
+            let from = position.min(normal.unwrap_or(position));
+            let to = position.max(normal.unwrap_or(position)) + 12;
+            let mut bytes = self.pack[from..to].to_vec();
+            transform_vertex(&mut bytes, position - from, normal.map(|n| n - from), centre, yaw, delta);
+            self.pack[from..to].copy_from_slice(&bytes);
+            let at = position;
+            mesh.positions[v] = [
+                f32::from_le_bytes(self.pack[at..at + 4].try_into().map_err(|_| "bad offset")?),
+                f32::from_le_bytes(self.pack[at + 4..at + 8].try_into().map_err(|_| "bad offset")?),
+                f32::from_le_bytes(self.pack[at + 8..at + 12].try_into().map_err(|_| "bad offset")?),
+            ];
         }
         Ok(())
+    }
+
+    /// Moves a group of vertices of a mesh.
+    pub fn translate(&mut self, mesh: usize, vertices: &[usize], delta: [f32; 3]) -> Result<(), String> {
+        self.transform(mesh, vertices, [0.0, 0.0], 0.0, delta)
     }
 
     /// Removes the triangles of a group of vertices from a mesh.
@@ -265,18 +316,15 @@ impl EditableBlock {
             let mut indices: Vec<u32> = mesh.indices.clone();
             let mut next = vertex_count;
             for (request, chosen) in copies {
-                let delta = requests[*request].delta;
+                let (centre, yaw, delta) = (requests[*request].centre, requests[*request].yaw, requests[*request].delta);
                 let new_id: HashMap<usize, u32> =
                     chosen.iter().enumerate().map(|(j, &v)| (v, (next + j) as u32)).collect();
                 for &v in chosen {
                     let from = places.vertices_at + v * stride;
                     let mut bytes = old[from..from + stride].to_vec();
                     let inside = mesh.position_offsets[v] - from;
-                    for axis in 0..3 {
-                        let at = inside + 4 * axis;
-                        let value = f32::from_le_bytes([bytes[at], bytes[at + 1], bytes[at + 2], bytes[at + 3]]);
-                        bytes[at..at + 4].copy_from_slice(&(value + delta[axis]).to_le_bytes());
-                    }
+                    let normal = mesh.normal_offsets.get(v).map(|n| n - from);
+                    transform_vertex(&mut bytes, inside, normal, centre, yaw, delta);
                     data.extend_from_slice(&bytes);
                 }
                 // The triangles of the copy.
