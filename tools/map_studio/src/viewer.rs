@@ -143,6 +143,8 @@ struct Gpu {
     /// The 3D models of the characters, and their pictures (kept by name).
     props: Vec<GpuProp>,
     prop_pictures: HashMap<String, wgpu::BindGroup>,
+    /// The blocks around the block (read only), already put in their place.
+    neighbours: Vec<GpuMesh>,
 }
 
 fn buffers(device: &wgpu::Device, mesh: &Mesh) -> (wgpu::Buffer, wgpu::Buffer, u32) {
@@ -273,6 +275,7 @@ struct SceneCallback {
     direct_v: bool,
     show_tiles: bool,
     show_events: bool,
+    show_neighbours: bool,
 }
 
 impl egui_wgpu::CallbackTrait for SceneCallback {
@@ -320,6 +323,19 @@ impl egui_wgpu::CallbackTrait for SceneCallback {
                 pass.set_bind_group(0, &gpu.uniform_group, &[]);
                 pass.set_vertex_buffer(0, buffer.slice(..));
                 pass.draw(0..*count, 0..1);
+            }
+        }
+        if self.show_neighbours {
+            pass.set_pipeline(&gpu.pipeline);
+            pass.set_bind_group(0, &gpu.uniform_group, &[]);
+            for mesh in &gpu.neighbours {
+                if mesh.index_count == 0 {
+                    continue;
+                }
+                pass.set_bind_group(1, &mesh.picture, &[]);
+                pass.set_vertex_buffer(0, mesh.vertices.slice(..));
+                pass.set_index_buffer(mesh.indices.slice(..), wgpu::IndexFormat::Uint32);
+                pass.draw_indexed(0..mesh.index_count, 0, 0..1);
             }
         }
         if self.show_events {
@@ -530,6 +546,7 @@ fn build_gpu(state: &egui_wgpu::RenderState, meshes: &[(usize, Mesh)], textures:
         events: None,
         props: Vec::new(),
         prop_pictures: HashMap::new(),
+        neighbours: Vec::new(),
     }
 }
 
@@ -886,6 +903,7 @@ impl Viewer {
 
     /// Starts or ends the mode of the events.
     fn events_toggled(&mut self, frame: &eframe::Frame) {
+        // (the blocks around are made after the events are read)
         if self.events_mode {
             self.selected.clear();
             self.placing = false;
@@ -897,6 +915,7 @@ impl Viewer {
             self.events_enter();
         }
         self.refresh(frame);
+        self.refresh_neighbours(frame);
     }
 
     /// Sends the geometry and the selection to the graphics card.
@@ -1685,6 +1704,7 @@ impl eframe::App for Viewer {
             if changed {
                 self.refresh_events(frame);
             }
+            self.refresh_neighbours(frame);
         }
 
         let mut click: Option<(Vec3, Vec3)> = None;
@@ -1741,6 +1761,7 @@ impl eframe::App for Viewer {
                     direct_v: self.direct_v,
                     show_tiles: self.tile_mode,
                     show_events: self.events_mode,
+                    show_neighbours: self.events_mode && self.ev.neigh_radius > 0,
                 },
             ));
         });

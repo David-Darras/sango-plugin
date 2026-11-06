@@ -1849,3 +1849,35 @@ fn model_sheet_with(bank: &mut crate::models::ModelBank, ids: &[usize], out: &st
     }
     write_png(out, SIZE * columns, SIZE * rows, &sheet)
 }
+
+/// Reads the matrix of the zones of a block, loads the blocks around and says
+/// how long it takes, then writes the matrix with a change and reads it again.
+pub fn neighbours_test(arc_dir: &str, block: usize) -> Result<(), String> {
+    let zones = crate::events::zones_of_block(arc_dir, block)?;
+    let at = zones.first().ok_or("no zone")?;
+    let matrix = crate::events::read_matrix(arc_dir, "", at.matrix)?;
+    println!("zone {} matrix {} {}x{}, block at ({}, {}); ids {:?}", at.zone, at.matrix, matrix.width, matrix.height, at.column, at.row, &matrix.ids[..matrix.ids.len().min(16)]);
+    println!("area of the zone: {:?}", crate::events::zone_area(arc_dir, at.zone));
+    let start = std::time::Instant::now();
+    let mut ids = Vec::new();
+    for r in at.row.saturating_sub(1)..=(at.row + 1).min(matrix.height - 1) {
+        for c in at.column.saturating_sub(1)..=(at.column + 1).min(matrix.width - 1) {
+            let id = matrix.ids[r * matrix.width + c] as usize;
+            if id < 857 && (c, r) != (at.column, at.row) {
+                ids.push(id);
+            }
+        }
+    }
+    let blocks = data::blocks_meshes(arc_dir, &ids)?;
+    println!("{} neighbours loaded in {:.2} s ({} meshes)", blocks.len(), start.elapsed().as_secs_f32(), blocks.iter().map(|b| b.1.len()).sum::<usize>());
+    let sd = std::env::temp_dir().join("map_studio_matrix_test");
+    let sd = sd.to_str().unwrap_or(".").to_string();
+    let mut changed = matrix.clone();
+    changed.ids[0] = 5;
+    println!("{}", crate::events::write_matrix_override(arc_dir, &sd, at.matrix, &changed)?);
+    let back = crate::events::read_matrix(arc_dir, &sd, at.matrix)?;
+    println!("first block after the change: {} (was {}), rest same: {}", back.ids[0], matrix.ids[0], back.ids[1..] == matrix.ids[1..]);
+    crate::events::reset_matrix(&sd, at.matrix)?;
+    println!("after reset: {}", crate::events::read_matrix(arc_dir, &sd, at.matrix)? == matrix);
+    Ok(())
+}

@@ -5,6 +5,7 @@ mod bch_edit;
 mod catalog;
 mod events;
 mod models;
+mod names;
 mod thumb;
 mod commands;
 mod data;
@@ -144,6 +145,7 @@ fn main() {
         Some("model-vertices") if args.len() >= 4 => commands::model_vertices(&args[2], number(3).unwrap_or(0)),
         Some("models-skin") if args.len() >= 3 => commands::models_skin(&args[2]),
         Some("xy-models-test") if args.len() >= 5 => commands::xy_models_test(&args[2], &args[3], &args[4]),
+        Some("neighbours-test") if args.len() >= 4 => commands::neighbours_test(&args[2], block),
         Some("check") if args.len() >= 5 => commands::check(&args[2], block, &args[4]),
         _ => Err(USAGE.to_string()),
     };

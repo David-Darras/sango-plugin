@@ -75,6 +75,20 @@ fn find_area(files: &[Vec<Vec<u8>>], wanted: &HashSet<&str>) -> Option<usize> {
     best.filter(|(hits, _)| *hits > 0).map(|(_, i)| i)
 }
 
+/// The meshes of the model of several blocks (the archive is read once).
+pub fn blocks_meshes(arc_dir: &str, ids: &[usize]) -> Result<Vec<(usize, Vec<Mesh>)>, String> {
+    let files = garc::read(&PathBuf::from(arc_dir).join("map_land_data.garc"))?;
+    let mut out = Vec::new();
+    for &id in ids {
+        let Some(raw) = files.get(id).and_then(|f| f.first()) else { continue };
+        let Ok(parts) = open_pack(raw) else { continue };
+        if let Ok(meshes) = block_meshes(&parts) {
+            out.push((id, meshes));
+        }
+    }
+    Ok(out)
+}
+
 /// The names of the pictures of every area pack, in the order of the archive.
 pub fn area_pictures(arc_dir: &str) -> Result<Vec<HashSet<String>>, String> {
     let files = garc::read(&PathBuf::from(arc_dir).join("field_area_bin.garc"))?;

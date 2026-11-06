@@ -360,6 +360,72 @@ pub fn zones_of_block(arc_dir: &str, block: usize) -> Result<Vec<ZoneAt>, String
     Ok(found)
 }
 
+/// The number of the area pack of a zone (its pictures and its light).
+pub fn zone_area(arc_dir: &str, zone: usize) -> Option<usize> {
+    let zones = garc::read(&PathBuf::from(arc_dir).join("zonedata_y.garc")).ok()?;
+    let parts = zone_parts(zones.get(zone)?.first()?).ok()?;
+    let settings = parts.first().filter(|p| p.len() >= 4)?;
+    Some(u16_at(settings, 2) as usize)
+}
+
+/// The blocks of a matrix: the width and the height in blocks, and the number
+/// of the block of each place (row after row).
+#[derive(Clone, Debug, PartialEq)]
+pub struct MatrixLayout {
+    pub width: usize,
+    pub height: usize,
+    pub ids: Vec<u16>,
+}
+
+/// Reads a matrix, from the file that the tool wrote on the SD card if there
+/// is one, else from the archive.
+pub fn read_matrix(arc_dir: &str, sd_dir: &str, matrix: usize) -> Result<MatrixLayout, String> {
+    let own = PathBuf::from(sd_dir).join("matrix").join(format!("{matrix}.bin"));
+    // An empty folder name means "the archive only".
+    let found = if sd_dir.is_empty() { None } else { std::fs::read(&own).ok() };
+    let raw = match found {
+        Some(bytes) => bytes,
+        None => {
+            let files = garc::read(&PathBuf::from(arc_dir).join("map_matrix.garc"))?;
+            files.get(matrix).and_then(|f| f.first()).ok_or("no such matrix")?.clone()
+        }
+    };
+    let (width, height, ids) = matrix_blocks(&raw)?;
+    Ok(MatrixLayout { width, height, ids })
+}
+
+/// Writes a matrix with other blocks in the folder `matrix` of the SD card.
+pub fn write_matrix_override(arc_dir: &str, sd_dir: &str, matrix: usize, layout: &MatrixLayout) -> Result<String, String> {
+    let files = garc::read(&PathBuf::from(arc_dir).join("map_matrix.garc"))?;
+    let raw = files.get(matrix).and_then(|f| f.first()).ok_or("no such matrix")?;
+    let compressed = raw.first() == Some(&0x11);
+    let mut data = unpack(raw)?;
+    if data.len() < 24 + 2 * layout.ids.len() {
+        return Err("the matrix is too short".into());
+    }
+    for (i, id) in layout.ids.iter().enumerate() {
+        put16(&mut data, 24 + 2 * i, *id);
+    }
+    let bytes = if compressed { lz11::compress(&data)? } else { data };
+    let folder = PathBuf::from(sd_dir).join("matrix");
+    std::fs::create_dir_all(&folder).map_err(|e| format!("{}: {e}", folder.display()))?;
+    let path = folder.join(format!("{matrix}.bin"));
+    std::fs::write(&path, &bytes).map_err(|e| format!("{}: {e}", path.display()))?;
+    crate::edit::write_index(&folder, matrix, bytes.len())?;
+    Ok(format!("{} ({} bytes)", path.display(), bytes.len()))
+}
+
+/// Gives a matrix its blocks of the game again.
+pub fn reset_matrix(sd_dir: &str, matrix: usize) -> Result<(), String> {
+    let folder = PathBuf::from(sd_dir).join("matrix");
+    let file = folder.join(format!("{matrix}.bin"));
+    if file.exists() {
+        std::fs::remove_file(&file).map_err(|e| format!("{}: {e}", file.display()))?;
+        crate::edit::remove_index(&folder, matrix)?;
+    }
+    Ok(())
+}
+
 /// The events of a zone, as the game has them.
 pub fn read_zone_events(arc_dir: &str, zone: usize) -> Result<ZoneEvents, String> {
     let zones = garc::read(&PathBuf::from(arc_dir).join("zonedata_y.garc"))?;

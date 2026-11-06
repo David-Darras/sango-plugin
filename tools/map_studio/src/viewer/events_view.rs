@@ -56,6 +56,14 @@ pub struct EventsState {
     pub labels: bool,
     /// The character of the game whose values a new character takes.
     pub npc: Option<Character>,
+    /// How many blocks around the block are drawn (0: none).
+    pub neigh_radius: u32,
+    /// What the blocks around were made for (to make them again when it changes).
+    pub neigh_key: Option<(bool, u32, usize, Vec<u16>)>,
+    /// The blocks of the matrix of the zone, and the place that is chosen in it.
+    pub matrix: Option<events::MatrixLayout>,
+    pub original_matrix: Option<events::MatrixLayout>,
+    pub cell: Option<(usize, usize)>,
 }
 
 impl Default for EventsState {
@@ -72,6 +80,11 @@ impl Default for EventsState {
             show: [true; 5],
             labels: true,
             npc: None,
+            neigh_radius: ALL_BLOCKS,
+            neigh_key: None,
+            matrix: None,
+            original_matrix: None,
+            cell: None,
         }
     }
 }
@@ -85,7 +98,12 @@ pub struct EventBox {
     pub high: [f32; 2],
     pub label: String,
     pub colour: [u8; 4],
+    /// The height of the event (from its data).
+    pub height: f32,
 }
+
+/// A radius that takes all the blocks of the matrix.
+const ALL_BLOCKS: u32 = 64;
 
 const MAX_SIGNS: usize = 40;
 const MAX_TRIGGERS: usize = 40;
@@ -138,6 +156,9 @@ impl Viewer {
                 self.ev.base = base;
                 self.ev.now = now;
                 self.ev.selected = None;
+                self.ev.matrix = events::read_matrix(&self.arc_dir, &self.export_dir, at.matrix).ok();
+                self.ev.original_matrix = events::read_matrix(&self.arc_dir, "", at.matrix).ok();
+                self.ev.neigh_key = None;
                 self.status = format!(
                     "Zone {}: {} signs, {} characters, {} warps, {} triggers.",
                     at.zone,
@@ -167,37 +188,37 @@ impl Viewer {
         if self.ev.show[0] {
             for (i, s) in self.ev.now.signs.iter().enumerate() {
                 let (low, high) = rect(s.x as f32, s.z as f32, s.width.max(1) as f32, s.depth.max(1) as f32);
-                out.push(EventBox { kind: Kind::Sign, index: i, low, high, label: format!("S{i} id {}", s.id), colour: Kind::Sign.colour(0) });
+                out.push(EventBox { kind: Kind::Sign, index: i, low, high, label: format!("S{i} id {}", s.id), colour: Kind::Sign.colour(0), height: s.height as f32 });
             }
         }
         if self.ev.show[1] {
             for (i, t) in self.ev.now.triggers.iter().enumerate() {
                 let (low, high) = rect(t.x as f32, t.z as f32, t.width.max(1) as f32, t.depth.max(1) as f32);
-                out.push(EventBox { kind: Kind::Trigger, index: i, low, high, label: format!("T{i} id {}", t.id), colour: Kind::Trigger.colour(0) });
+                out.push(EventBox { kind: Kind::Trigger, index: i, low, high, label: format!("T{i} id {}", t.id), colour: Kind::Trigger.colour(0), height: t.height as f32 });
             }
         }
         if self.ev.show[2] {
             for (i, w) in self.ev.now.warps.iter().enumerate() {
                 let (wd, dp) = (w.width.max(1) as f32, w.depth.max(1) as f32);
                 let (low, high) = rect(w.x as f32 / events::TILE - 0.5, w.z as f32 / events::TILE - 0.5, wd, dp);
-                out.push(EventBox { kind: Kind::Warp, index: i, low, high, label: format!("W{i} to {}.{}", w.zone, w.exit), colour: Kind::Warp.colour(0) });
+                out.push(EventBox { kind: Kind::Warp, index: i, low, high, label: format!("W{i} to {} ({})", zone_name(w.zone), w.exit), colour: Kind::Warp.colour(0), height: w.y as f32 });
             }
         }
         if self.ev.show[3] {
             for (i, c) in self.ev.now.characters.iter().enumerate() {
                 let (low, high) = rect(c.x as f32, c.z as f32, 1.0, 1.0);
                 let label = if (3000..4000).contains(&c.script) {
-                    format!("C{i} trainer {} m{}", c.script - 3000, c.model)
+                    format!("C{i} {} (trainer {})", model_name(c.model), c.script - 3000)
                 } else {
-                    format!("C{i} s{} m{}", c.script, c.model)
+                    format!("C{i} {} (script {})", model_name(c.model), c.script)
                 };
-                out.push(EventBox { kind: Kind::Character, index: i, low, high, label, colour: Kind::Character.colour(c.script) });
+                out.push(EventBox { kind: Kind::Character, index: i, low, high, label, colour: Kind::Character.colour(c.script), height: c.height });
             }
         }
         if self.ev.show[4] {
             for (i, d) in self.editor.doors.iter().enumerate() {
                 let (low, high) = rect(d.x / events::TILE - 0.5, d.z / events::TILE - 0.5, 1.0, 1.0);
-                out.push(EventBox { kind: Kind::Door, index: i, low, high, label: format!("D{i} model {}", d.kind), colour: Kind::Door.colour(0) });
+                out.push(EventBox { kind: Kind::Door, index: i, low, high, label: format!("D{i} model {}", d.kind), colour: Kind::Door.colour(0), height: d.y });
             }
         }
         out
@@ -213,7 +234,7 @@ impl Viewer {
             let selected = self.ev.selected == Some((b.kind, b.index));
             let colour = if selected { [255, 235, 40, 210] } else { b.colour };
             let centre = [(b.low[0] + b.high[0]) / 2.0, (b.low[1] + b.high[1]) / 2.0];
-            let y = self.ground_at(centre[0], centre[1]).unwrap_or(0.0) + 1.5;
+            let y = b.height + 1.5;
             let v = |x: f32, y: f32, z: f32| Vertex { position: [x, y, z], uv: [0.0, 0.0], colour };
             let (a, b2, c, d) = (v(b.low[0], y, b.low[1]), v(b.high[0], y, b.low[1]), v(b.high[0], y, b.high[1]), v(b.low[0], y, b.high[1]));
             out.extend_from_slice(&[a, b2, c, a, c, d]);
@@ -270,7 +291,7 @@ impl Viewer {
             self.npcs.ids = ids;
         }
         ui.horizontal(|ui| {
-            ui.label("Search (model number or name):");
+            ui.label("Search (name or number):");
             ui.text_edit_singleline(&mut self.npcs.search);
         });
         let words: Vec<String> = self.npcs.search.to_lowercase().split_whitespace().map(String::from).collect();
@@ -280,11 +301,8 @@ impl Viewer {
             .iter()
             .copied()
             .filter(|&id| {
-                words.iter().all(|w| {
-                    id.to_string() == *w
-                        || self.npcs.names.get(&id).map_or(false, |n| n.to_lowercase().contains(w.as_str()))
-                        || (self.npcs.names.get(&id).is_none() && w.chars().all(|c| c.is_ascii_digit()) && id.to_string().contains(w.as_str()))
-                })
+                let name = model_name(id).to_lowercase();
+                words.iter().all(|w| id.to_string() == *w || name.contains(w.as_str()))
             })
             .collect();
         ui.label(format!("{} models. Click one, then click a tile of the map. The new character has the script 65535 until you give it one.", shown.len()));
@@ -313,10 +331,6 @@ impl Viewer {
                                                 indices: m.indices.chunks_exact(3).flat_map(|t| [t[0], t[2], t[1]]).collect(),
                                             })
                                             .collect();
-                                        if let Some(first) = model.meshes.first() {
-                                            let name = first.picture.split(['_', '-']).next().unwrap_or("").to_string();
-                                            self.npcs.names.insert(id, format!("{name} {id}"));
-                                        }
                                         let pixels = crate::thumb::render(&parts, &model.textures, THUMB);
                                         let image = egui::ColorImage::from_rgba_unmultiplied([THUMB, THUMB], &pixels);
                                         let h = ctx.load_texture(format!("npc{id}"), image, egui::TextureOptions::LINEAR);
@@ -332,7 +346,7 @@ impl Viewer {
                             .npcs
                             .templates
                             .get(&id)
-                            .map_or(format!("Model {id}"), |c| format!("Model {id}\nmovement {}, interaction {}", c.movement, c.interaction));
+                            .map_or(format!("{} ({id})", model_name(id)), |c| format!("{} ({id})\nmovement {}, interaction {}", model_name(id), c.movement, c.interaction));
                         let response = match handle {
                             Some(h) => ui.add(egui::ImageButton::new(egui::load::SizedTexture::new(h.id(), [THUMB as f32, THUMB as f32]))),
                             None => {
@@ -361,12 +375,18 @@ impl Viewer {
         for (index, model_id, facing) in list {
             let Some(model) = self.models.load(model_id) else { continue };
             let Some(centre) = self.event_centre(Kind::Character, index) else { continue };
-            let ground = self.ground_at(centre[0], centre[1]).unwrap_or(0.0);
-            // The model looks toward +z. Facing: 0 down (+z), 1 left (-x), 2 right (+x), 3 up (-z).
+            let ground = self.ev.now.characters.get(index).map_or(0.0, |c| c.height);
+            // The model looks toward +z. The numbers are the ones of the plugin:
+            // 0 up (-z), 1 down (+z), 2 left (-x), 3 right (+x), 4 up-left, 5 up-right, 6 down-left, 7 down-right.
+            let pi = std::f32::consts::PI;
             let yaw = match facing {
-                1 => -std::f32::consts::FRAC_PI_2,
-                2 => std::f32::consts::FRAC_PI_2,
-                3 => std::f32::consts::PI,
+                0 => pi,
+                2 => -pi / 2.0,
+                3 => pi / 2.0,
+                4 => 5.0 * pi / 4.0,
+                5 => 3.0 * pi / 4.0,
+                6 => -pi / 4.0,
+                7 => pi / 4.0,
                 _ => 0.0,
             };
             let (sin, cos) = yaw.sin_cos();
@@ -402,7 +422,7 @@ impl Viewer {
         }
         for b in self.event_boxes() {
             let centre = [(b.low[0] + b.high[0]) / 2.0, (b.low[1] + b.high[1]) / 2.0];
-            let y = self.ground_at(centre[0], centre[1]).unwrap_or(0.0) + 34.0;
+            let y = b.height + 34.0;
             let clip = self.matrix * Vec4::new(centre[0], y, centre[1], 1.0);
             if clip.w <= 0.0 {
                 continue;
@@ -592,6 +612,55 @@ impl Viewer {
         moved
     }
 
+    /// Draws again the blocks around the block when something changed.
+    pub(super) fn refresh_neighbours(&mut self, frame: &eframe::Frame) {
+        let ids_key = self.ev.matrix.as_ref().map(|m| m.ids.clone()).unwrap_or_default();
+        let key = (self.events_mode, self.ev.neigh_radius, self.ev.zone, ids_key);
+        if self.ev.neigh_key.as_ref() == Some(&key) {
+            return;
+        }
+        self.ev.neigh_key = Some(key);
+        let Some(state) = frame.wgpu_render_state() else { return };
+        let mut shifted: Vec<(usize, Mesh)> = Vec::new();
+        let mut textures: HashMap<String, Texture> = HashMap::new();
+        if self.events_mode && self.ev.neigh_radius > 0 {
+            if let (Some(at), Some(matrix)) = (self.ev.at().cloned(), self.ev.matrix.clone()) {
+                let radius = self.ev.neigh_radius as usize;
+                let mut wanted: Vec<(usize, i32, i32)> = Vec::new();
+                for r in at.row.saturating_sub(radius)..=(at.row + radius).min(matrix.height.saturating_sub(1)) {
+                    for c in at.column.saturating_sub(radius)..=(at.column + radius).min(matrix.width.saturating_sub(1)) {
+                        let id = matrix.ids.get(r * matrix.width + c).copied().unwrap_or(0xFFFF) as usize;
+                        if (c, r) != (at.column, at.row) && id < 857 {
+                            wanted.push((id, c as i32 - at.column as i32, r as i32 - at.row as i32));
+                        }
+                    }
+                }
+                let ids: Vec<usize> = wanted.iter().map(|w| w.0).collect();
+                // The pictures are the ones of the area of the zone.
+                if let Some(area) = events::zone_area(&self.arc_dir, at.zone) {
+                    textures = crate::data::area_textures(&self.arc_dir, area).unwrap_or_default();
+                }
+                if let Ok(blocks) = crate::data::blocks_meshes(&self.arc_dir, &ids) {
+                    for (id, meshes) in blocks {
+                        for &(_, dx, dz) in wanted.iter().filter(|w| w.0 == id) {
+                            for m in meshes.iter().filter(|m| !m.encounter) {
+                                let mut m = m.clone();
+                                for p in m.positions.iter_mut() {
+                                    p[0] += dx as f32 * 720.0;
+                                    p[2] += dz as f32 * 720.0;
+                                }
+                                shifted.push((1, m));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        let mut renderer = state.renderer.write();
+        let Some(gpu) = renderer.callback_resources.get_mut::<Gpu>() else { return };
+        gpu.neighbours = make_gpu_meshes(&state.device, &state.queue, &gpu.picture_layout, &gpu.sampler, &shifted, &textures);
+    }
+
     /// The tile of the zone under a point of the block.
     fn tile_under(&self, point: Vec3) -> Option<(i32, i32)> {
         let at = self.ev.at()?;
@@ -600,7 +669,16 @@ impl Viewer {
 
     /// A click in the mode of the events: put, move or select.
     pub(super) fn events_click(&mut self, origin: Vec3, direction: Vec3, frame: &eframe::Frame) {
-        let Some(hit) = self.pick(origin, direction, true) else { return };
+        // The ground of the block, or (outside of it) the plane of the middle height.
+        let point = match self.pick(origin, direction, true) {
+            Some(hit) => hit.point,
+            None if direction.y.abs() > 1e-4 => {
+                let height = self.ev.now.characters.first().map_or(0.0, |c| c.height);
+                origin + direction * ((height - origin.y) / direction.y)
+            }
+            None => return,
+        };
+        let hit = Hit { point, owner: None, mesh: 0 };
         let Some((tx, tz)) = self.tile_under(hit.point) else { return };
         if tx < 0 || tz < 0 {
             self.status = "This is outside the zone.".into();
@@ -623,14 +701,14 @@ impl Viewer {
                 }
             }
         } else {
-            // The smallest event under the click; a character before the others.
+            // The event that the ray of the click reaches first: each event is a
+            // volume above its square (as high as the pole).
             let mut found: Option<(f32, Kind, usize)> = None;
             for b in self.event_boxes() {
-                let inside = hit.point.x >= b.low[0] && hit.point.x <= b.high[0] && hit.point.z >= b.low[1] && hit.point.z <= b.high[1];
-                if inside {
-                    let weight = (b.high[0] - b.low[0]) * (b.high[1] - b.low[1]) - if b.kind == Kind::Character { 1.0 } else { 0.0 };
-                    if found.map_or(true, |(w, _, _)| weight < w) {
-                        found = Some((weight, b.kind, b.index));
+                let (lo, hi) = (Vec3::new(b.low[0], b.height, b.low[1]), Vec3::new(b.high[0], b.height + 34.0, b.high[1]));
+                if let Some(t) = ray_box(origin, direction, lo, hi) {
+                    if found.map_or(true, |(best, _, _)| t < best) {
+                        found = Some((t, b.kind, b.index));
                     }
                 }
             }
@@ -921,6 +999,94 @@ impl Viewer {
         }
     }
 
+    /// The blocks of the matrix of the zone: a grid to see them and to put
+    /// another block in a place (to stick a map to another).
+    fn matrix_ui(&mut self, ui: &mut egui::Ui) -> bool {
+        let mut changed = false;
+        let Some(at) = self.ev.at().cloned() else { return false };
+        let Some(mut matrix) = self.ev.matrix.clone() else { return false };
+        let original = self.ev.original_matrix.clone();
+        egui::CollapsingHeader::new(format!("Map of the zone (matrix {}, {}x{} blocks)", at.matrix, matrix.width, matrix.height))
+            .default_open(false)
+            .show(ui, |ui| {
+                ui.label("Each square is a block. Yellow: the block that you edit. Click a square to choose a place.");
+                let mut chosen = self.ev.cell;
+                egui::Grid::new("matrix_grid").spacing([2.0, 2.0]).show(ui, |ui| {
+                    for r in 0..matrix.height {
+                        for c in 0..matrix.width {
+                            let id = matrix.ids.get(r * matrix.width + c).copied().unwrap_or(0xFFFF);
+                            let is_here = (c, r) == (at.column, at.row);
+                            let is_chosen = chosen == Some((c, r));
+                            let changed_here = original.as_ref().map_or(false, |o| o.ids.get(r * o.width + c) != Some(&id));
+                            let text = if id < 857 { format!("{id}") } else { "-".to_string() };
+                            let mut rich = egui::RichText::new(text).monospace();
+                            if is_here {
+                                rich = rich.color(egui::Color32::from_rgb(255, 220, 40)).strong();
+                            } else if changed_here {
+                                rich = rich.color(egui::Color32::from_rgb(120, 240, 120));
+                            }
+                            if ui.add(egui::Button::new(rich).selected(is_chosen).min_size(egui::vec2(34.0, 20.0))).clicked() {
+                                chosen = Some((c, r));
+                            }
+                        }
+                        ui.end_row();
+                    }
+                });
+                self.ev.cell = chosen;
+                if let Some((c, r)) = chosen {
+                    let slot = r * matrix.width + c;
+                    let mut id = matrix.ids.get(slot).copied().unwrap_or(0xFFFF);
+                    ui.horizontal(|ui| {
+                        ui.label(format!("Place ({c}, {r}): block"));
+                        if ui.add(egui::DragValue::new(&mut id).range(0..=857)).changed() {
+                            if let Some(v) = matrix.ids.get_mut(slot) {
+                                *v = id;
+                            }
+                            changed = true;
+                        }
+                        if ui.button("Empty").clicked() {
+                            if let Some(v) = matrix.ids.get_mut(slot) {
+                                *v = 0xFFFF;
+                            }
+                            changed = true;
+                        }
+                    });
+                    if id < 857 && (c, r) != (at.column, at.row) {
+                        if ui.button("Open this block in a new window").clicked() {
+                            let exe = std::env::current_exe();
+                            let started = exe.and_then(|e| std::process::Command::new(e).args(["view", &self.arc_dir, &id.to_string()]).spawn());
+                            self.status = match started {
+                                Ok(_) => format!("Block {id} opens in a new window."),
+                                Err(e) => format!("Cannot open the block: {e}"),
+                            };
+                        }
+                    }
+                }
+                ui.horizontal(|ui| {
+                    if ui.button("Save the map of the zone").on_hover_text("Writes the matrix on the SD card (sango/matrix): every zone that uses it has the new blocks").clicked() {
+                        self.status = match events::write_matrix_override(&self.arc_dir, &self.export_dir, at.matrix, &matrix) {
+                            Ok(message) => format!("Matrix {} written in {message}. Start the game again.", at.matrix),
+                            Err(e) => format!("Cannot write the matrix: {e}"),
+                        };
+                    }
+                    if ui.button("Reset the map of the zone").clicked() {
+                        self.status = match events::reset_matrix(&self.export_dir, at.matrix) {
+                            Ok(()) => {
+                                if let Some(o) = &self.ev.original_matrix {
+                                    matrix = o.clone();
+                                }
+                                changed = true;
+                                format!("Matrix {} has the blocks of the game again.", at.matrix)
+                            }
+                            Err(e) => format!("Cannot reset the matrix: {e}"),
+                        };
+                    }
+                });
+            });
+        self.ev.matrix = Some(matrix);
+        changed
+    }
+
     /// The panel of the events, in the panel on the left. Returns true when
     /// an event changed (the squares must be drawn again).
     pub(super) fn events_ui(&mut self, ui: &mut egui::Ui) -> bool {
@@ -951,6 +1117,23 @@ impl Viewer {
             }
         });
         ui.checkbox(&mut self.ev.labels, "Names over the events");
+        ui.horizontal(|ui| {
+            ui.label("Blocks drawn around:");
+            let mut radius = self.ev.neigh_radius.min(ALL_BLOCKS);
+            if ui.add(egui::DragValue::new(&mut radius).range(0..=ALL_BLOCKS).custom_formatter(|v, _| if v >= ALL_BLOCKS as f64 { "all".to_string() } else { format!("{v}") })).changed() {
+                self.ev.neigh_radius = radius;
+                changed = true;
+            }
+            if ui.button("All the area").clicked() && self.ev.neigh_radius != ALL_BLOCKS {
+                self.ev.neigh_radius = ALL_BLOCKS;
+                changed = true;
+            }
+            if ui.button("None").clicked() && self.ev.neigh_radius != 0 {
+                self.ev.neigh_radius = 0;
+                changed = true;
+            }
+        });
+        changed |= self.matrix_ui(ui);
         ui.horizontal(|ui| {
             for (kind, text) in [(Kind::Sign, "+ Sign"), (Kind::Trigger, "+ Trigger"), (Kind::Warp, "+ Warp"), (Kind::Character, "+ Character")] {
                 if ui.selectable_label(self.ev.put == Some(kind), text).clicked() {
@@ -1040,11 +1223,103 @@ fn number<T: egui::emath::Numeric>(ui: &mut egui::Ui, label: &str, value: &mut T
     .inner
 }
 
+/// The name of a model of a character.
+pub fn model_name(model: u16) -> String {
+    match crate::names::MODEL_NAMES.get(model as usize) {
+        Some(name) => name.to_string(),
+        None => format!("Model {model}"),
+    }
+}
+
+/// The name of a zone.
+pub fn zone_name(zone: u16) -> String {
+    match crate::names::ZONE_NAMES.get(zone as usize) {
+        Some(name) => format!("{name} [{zone}]"),
+        None => format!("Zone {zone}"),
+    }
+}
+
+/// A list of choices for a number: the name of each choice, with its number.
+fn choice(ui: &mut egui::Ui, label: &str, value: &mut u16, options: &[(u16, String)]) -> bool {
+    let current = options.iter().find(|(v, _)| v == value).map_or(format!("{value}"), |(v, n)| format!("{v}: {n}"));
+    let mut changed = false;
+    ui.horizontal(|ui| {
+        ui.label(label);
+        egui::ComboBox::from_id_salt(label).selected_text(current).width(190.0).show_ui(ui, |ui| {
+            egui::ScrollArea::vertical().max_height(320.0).show(ui, |ui| {
+                for (v, name) in options {
+                    if ui.selectable_label(*value == *v, format!("{v}: {name}")).clicked() {
+                        *value = *v;
+                        changed = true;
+                    }
+                }
+            });
+        });
+        // The number can also be typed, for a value that the list does not have.
+        changed |= ui.add(egui::DragValue::new(value)).changed();
+    });
+    changed
+}
+
+fn choice_u8(ui: &mut egui::Ui, label: &str, value: &mut u8, options: &[(u16, String)]) -> bool {
+    let mut v = *value as u16;
+    let changed = choice(ui, label, &mut v, options);
+    *value = v.min(255) as u8;
+    changed
+}
+
+fn named(list: &[&str]) -> Vec<(u16, String)> {
+    list.iter().enumerate().map(|(i, n)| (i as u16, n.to_string())).collect()
+}
+
+/// The direction of a character or of the exit of a warp.
+fn facing_options() -> Vec<(u16, String)> {
+    named(&["Up", "Down", "Left", "Right", "Up left", "Up right", "Down left", "Down right"])
+}
+
+/// The side from which a sign reacts.
+fn talk_options() -> Vec<(u16, String)> {
+    named(&["From below (the player looks up)", "From the left", "From the right", "From above", "From all sides", "From the sides", "From above and below"])
+}
+
+fn check_options() -> Vec<(u16, String)> {
+    let mut v = named(&["Step on it", "(unused 1)", "(unused 2)", "(unused 3)", "(unused 4)", "Push up", "Push down", "Push left", "Push right", "Push up-left", "Push up-right", "Push down-left", "Push down-right"]);
+    v.truncate(13);
+    v
+}
+
+fn exit_options() -> Vec<(u16, String)> {
+    let mut v = named(&[
+        "Nothing", "Fade only", "Mat (walk in)", "Door", "Script only", "Stairs", "Warp (teleport)", "Secret base", "Mat without fade-in", "Stairs without fade-in",
+        "Ladder up", "Ladder down",
+    ]);
+    for k in 12..50u16 {
+        v.push((k, format!("Special {}", k - 12 + 1)));
+    }
+    v
+}
+
+fn interaction_options() -> Vec<(u16, String)> {
+    let mut v = vec![(0, "Talk only".to_string()), (1, "Trainer (looks ahead)".to_string()), (2, "Trainer (sees all sides)".to_string())];
+    for k in 3..24u16 {
+        v.push((k, format!("Kind {k}")));
+    }
+    v
+}
+
+fn model_options() -> Vec<(u16, String)> {
+    crate::names::MODEL_NAMES.iter().enumerate().map(|(i, n)| (i as u16, n.to_string())).collect()
+}
+
+fn zone_options() -> Vec<(u16, String)> {
+    crate::names::ZONE_NAMES.iter().enumerate().map(|(i, n)| (i as u16, n.to_string())).collect()
+}
+
 fn sign_fields(ui: &mut egui::Ui, s: &mut Sign) -> bool {
     let mut c = false;
     c |= number(ui, "Script (id)", &mut s.id);
     c |= number(ui, "Kind (0..10)", &mut s.kind);
-    c |= number(ui, "Talk from (0 down 1 left 2 right 3 up 4 all 5 sides 6 up/down)", &mut s.facing);
+    c |= choice_u8(ui, "Talk from", &mut s.facing, &talk_options());
     c |= number(ui, "Tile x", &mut s.x);
     c |= number(ui, "Tile z", &mut s.z);
     c |= number(ui, "Width (tiles)", &mut s.width);
@@ -1058,7 +1333,7 @@ fn trigger_fields(ui: &mut egui::Ui, t: &mut Trigger) -> bool {
     c |= number(ui, "Script (id)", &mut t.id);
     c |= number(ui, "Work (0 = always)", &mut t.work_id);
     c |= number(ui, "Value of the work", &mut t.param);
-    c |= number(ui, "Check (0 step, 5..12 push)", &mut t.check_kind);
+    c |= choice(ui, "Starts when", &mut t.check_kind, &check_options());
     c |= number(ui, "Tile x", &mut t.x);
     c |= number(ui, "Tile z", &mut t.z);
     c |= number(ui, "Width (tiles)", &mut t.width);
@@ -1069,26 +1344,30 @@ fn trigger_fields(ui: &mut egui::Ui, t: &mut Trigger) -> bool {
 
 fn warp_fields(ui: &mut egui::Ui, w: &mut Warp) -> bool {
     let mut c = false;
-    c |= number(ui, "Goes to the zone", &mut w.zone);
+    c |= choice(ui, "Goes to", &mut w.zone, &zone_options());
     c |= number(ui, "Exit number", &mut w.exit);
-    c |= number(ui, "Facing at the exit", &mut w.facing);
-    c |= number(ui, "Kind of exit", &mut w.kind);
+    c |= choice_u8(ui, "Facing at the exit", &mut w.facing, &facing_options());
+    let mut kind = w.kind as u16;
+    if choice(ui, "Kind of exit", &mut kind, &exit_options()) {
+        w.kind = kind.min(255) as u8;
+        c = true;
+    }
     c |= number(ui, "x (units, tile x 18 + 9)", &mut w.x);
     c |= number(ui, "y (height)", &mut w.y);
     c |= number(ui, "z (units, tile x 18 + 9)", &mut w.z);
     c |= number(ui, "Width (tiles)", &mut w.width);
     c |= number(ui, "Depth (tiles)", &mut w.depth);
-    ui.label("A zone or an exit that does not exist can freeze the game.");
+    ui.label("A zone or an exit that does not exist can freeze the game. A door must be on a wall tile.");
     c
 }
 
 fn character_fields(ui: &mut egui::Ui, ch: &mut Character) -> bool {
     let mut c = false;
     c |= number(ui, "Script (3000 + trainer)", &mut ch.script);
-    c |= number(ui, "Model", &mut ch.model);
-    c |= number(ui, "Facing", &mut ch.facing);
+    c |= choice(ui, "Model", &mut ch.model, &model_options());
+    c |= choice_u8(ui, "Facing", &mut ch.facing, &facing_options());
     c |= number(ui, "Movement", &mut ch.movement);
-    c |= number(ui, "Interaction kind", &mut ch.interaction);
+    c |= choice(ui, "Interaction", &mut ch.interaction, &interaction_options());
     c |= number(ui, "Hidden when this flag is set", &mut ch.hide_flag);
     c |= number(ui, "Parameter 0 (sight range)", &mut ch.param[0]);
     c |= number(ui, "Parameter 1", &mut ch.param[1]);
@@ -1125,4 +1404,22 @@ pub struct NpcPanel {
     pub names: std::collections::HashMap<u16, String>,
     pub thumbs: std::collections::HashMap<u16, egui::TextureHandle>,
     pub search: String,
+}
+
+/// The distance along a ray to a box (the slab method), if the ray hits it.
+fn ray_box(origin: Vec3, direction: Vec3, low: Vec3, high: Vec3) -> Option<f32> {
+    let (mut near, mut far) = (f32::MIN, f32::MAX);
+    for a in 0..3 {
+        let (o, d) = (origin[a], direction[a]);
+        if d.abs() < 1e-9 {
+            if o < low[a] || o > high[a] {
+                return None;
+            }
+            continue;
+        }
+        let (t1, t2) = ((low[a] - o) / d, (high[a] - o) / d);
+        near = near.max(t1.min(t2));
+        far = far.min(t1.max(t2));
+    }
+    (near <= far && far > 0.0).then_some(near.max(0.0))
 }
