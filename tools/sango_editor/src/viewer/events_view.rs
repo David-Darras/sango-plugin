@@ -53,7 +53,6 @@ pub struct EventsState {
     /// The next click moves the selected event.
     pub moving: bool,
     pub show: [bool; 5],
-    pub labels: bool,
     /// The character of the game whose values a new character takes.
     pub npc: Option<Character>,
     /// How many blocks around the block are drawn (0: none).
@@ -83,7 +82,6 @@ impl Default for EventsState {
             put: None,
             moving: false,
             show: [true; 5],
-            labels: true,
             npc: None,
             neigh_radius: ALL_BLOCKS,
             neigh_key: None,
@@ -312,6 +310,44 @@ impl Viewer {
         !self.tile_mode
     }
 
+    /// The object whose blue mark (the square on the ground or the pole) a ray goes
+    /// through: the nearest one.
+    pub(super) fn object_mark_under(&self, origin: Vec3, direction: Vec3) -> Option<usize> {
+        if !self.show_objects {
+            return None;
+        }
+        let mut best: Option<(f32, usize)> = None;
+        for (i, instance) in self.editor.instances.iter().enumerate() {
+            if instance.deleted || instance.replaces.is_some() {
+                continue;
+            }
+            let (low, high) = self.editor.instance_bounds(i);
+            let y = low[1] + 1.5;
+            let (mx, mz) = ((low[0] + high[0]) / 2.0, (low[2] + high[2]) / 2.0);
+            // The square on the ground (a little thick, to be easy to hit) and the pole in the middle.
+            let square = ray_box(origin, direction, Vec3::new(low[0], y - 2.0, low[2]), Vec3::new(high[0], y + 3.0, high[2]));
+            let pole = ray_box(origin, direction, Vec3::new(mx - 4.0, y - 2.0, mz - 4.0), Vec3::new(mx + 4.0, y + 24.0, mz + 4.0));
+            let t = match (square, pole) {
+                (Some(a), Some(b)) => a.min(b),
+                (Some(a), None) | (None, Some(a)) => a,
+                (None, None) => continue,
+            };
+            if best.map_or(true, |(d, _)| t < d) {
+                best = Some((t, i));
+            }
+        }
+        best.map(|(_, i)| i)
+    }
+
+    /// The name of the nearest event that a ray goes through.
+    pub(super) fn event_label_under(&self, origin: Vec3, direction: Vec3) -> Option<String> {
+        self.event_boxes()
+            .into_iter()
+            .filter_map(|b| ray_box(origin, direction, Vec3::new(b.low[0], b.height, b.low[1]), Vec3::new(b.high[0], b.height + 34.0, b.high[1])).map(|t| (t, b.label)))
+            .min_by(|a, b| a.0.partial_cmp(&b.0).unwrap_or(std::cmp::Ordering::Equal))
+            .map(|(_, label)| label)
+    }
+
     /// The distance to the nearest event that a ray goes through.
     pub(super) fn event_hit(&self, origin: Vec3, direction: Vec3) -> Option<f32> {
         self.event_boxes()
@@ -355,6 +391,29 @@ impl Viewer {
                     v(centre[0] - dx, top, centre[1] - dz),
                 );
                 out.extend_from_slice(&[p0, p1, p2, p0, p2, p3]);
+            }
+        }
+        // The door models of the blocks around (the ones of the open block are in the boxes above).
+        // Their places are in units of the world, like the ones of the open block.
+        if self.ev.show[4] {
+            if let Some(at) = self.ev.at() {
+                let (col, row) = (at.column, at.row);
+                for (id, _, _) in self.world_cells() {
+                    let Some(editor) = self.world.get(&id) else { continue };
+                    for d in &editor.props {
+                        let (x0, x1) = (events::tile_to_local(d.x / events::TILE - 0.5, col), events::tile_to_local(d.x / events::TILE + 0.5, col));
+                        let (z0, z1) = (events::tile_to_local(d.z / events::TILE - 0.5, row), events::tile_to_local(d.z / events::TILE + 0.5, row));
+                        let colour = Kind::Prop.colour(0);
+                        let y = d.y + 1.5;
+                        let v = |x: f32, y: f32, z: f32| Vertex { position: [x, y, z], uv: [0.0, 0.0], colour };
+                        out.extend_from_slice(&[v(x0, y, z0), v(x1, y, z0), v(x1, y, z1), v(x0, y, z0), v(x1, y, z1), v(x0, y, z1)]);
+                        let (mx, mz) = ((x0 + x1) / 2.0, (z0 + z1) / 2.0);
+                        for (dx, dz) in [(1.6, 0.0), (0.0, 1.6)] {
+                            let top = y + 26.0;
+                            out.extend_from_slice(&[v(mx - dx, y, mz - dz), v(mx + dx, y, mz + dz), v(mx + dx, top, mz + dz), v(mx - dx, y, mz - dz), v(mx + dx, top, mz + dz), v(mx - dx, top, mz - dz)]);
+                        }
+                    }
+                }
             }
         }
         out
@@ -572,39 +631,6 @@ impl Viewer {
         out
     }
 
-    /// Writes the names of the events over the scene.
-    pub(super) fn events_labels(&self, painter: &egui::Painter, rect: egui::Rect) {
-        if !self.overlay_on() || !self.ev.labels {
-            return;
-        }
-        for b in self.event_boxes() {
-            let centre = [(b.low[0] + b.high[0]) / 2.0, (b.low[1] + b.high[1]) / 2.0];
-            // The names are for a close view: from far they would cover the map. (The selected event keeps its name.)
-            let selected_box = self.ev.selected == Some((b.kind, b.index)) && b.map == self.ev.map;
-            let near = self.distance < 450.0 && (centre[0] - self.target.x).hypot(centre[1] - self.target.z) < 260.0;
-            if !near && !selected_box {
-                continue;
-            }
-            let y = b.height + 34.0;
-            let clip = self.matrix * Vec4::new(centre[0], y, centre[1], 1.0);
-            if clip.w <= 0.0 {
-                continue;
-            }
-            let (nx, ny) = (clip.x / clip.w, clip.y / clip.w);
-            if nx.abs() > 1.0 || ny.abs() > 1.0 {
-                continue;
-            }
-            let pos = egui::pos2(rect.min.x + (nx * 0.5 + 0.5) * rect.width(), rect.min.y + (1.0 - (ny * 0.5 + 0.5)) * rect.height());
-            let selected = self.ev.selected == Some((b.kind, b.index)) && b.map == self.ev.map;
-            let colour = if selected { egui::Color32::from_rgb(255, 235, 40) } else { egui::Color32::WHITE };
-            let font = egui::FontId::proportional(12.0);
-            let galley = painter.layout_no_wrap(b.label.clone(), font, colour);
-            let shade = egui::Rect::from_center_size(pos, galley.size() + egui::vec2(6.0, 2.0));
-            painter.rect_filled(shade, 3.0, egui::Color32::from_black_alpha(170));
-            painter.galley(pos - galley.size() / 2.0, galley, colour);
-        }
-    }
-
     /// The middle of an event on the ground of the block (units).
     fn event_centre(&self, kind: Kind, index: usize) -> Option<[f32; 2]> {
         let at = self.ev.at()?;
@@ -711,6 +737,56 @@ impl Viewer {
     /// The events whose middle is under objects that moved move with them,
     /// by whole tiles. `low` and `high` are the box of the objects before the
     /// move, `delta` the move in units. Returns how many events moved.
+    pub(super) fn events_copy_with_objects(&mut self, low: [f32; 3], high: [f32; 3], delta: [f32; 3]) -> usize {
+        if !self.events_follow || !self.ev.loaded {
+            return 0;
+        }
+        let (dx, dz) = ((delta[0] / events::TILE).round() as i32, (delta[2] / events::TILE).round() as i32);
+        let dy = delta[1];
+        let inside = |c: [f32; 2]| c[0] >= low[0] && c[0] <= high[0] && c[1] >= low[2] && c[1] <= high[2];
+        let mut copied = 0;
+        // (The characters stay where they are: a copy of a house does not copy the people.)
+        let signs: Vec<Sign> = (0..self.ev.now.signs.len()).filter(|&i| self.event_centre(Kind::Sign, i).is_some_and(inside)).map(|i| self.ev.now.signs[i].clone()).collect();
+        for mut s in signs {
+            s.x += dx as i16;
+            s.z += dz as i16;
+            s.height += dy as i32;
+            self.ev.now.signs.push(s);
+            copied += 1;
+        }
+        let triggers: Vec<Trigger> = (0..self.ev.now.triggers.len()).filter(|&i| self.event_centre(Kind::Trigger, i).is_some_and(inside)).map(|i| self.ev.now.triggers[i].clone()).collect();
+        for mut t in triggers {
+            t.x = (t.x as i32 + dx).max(0) as u16;
+            t.z = (t.z as i32 + dz).max(0) as u16;
+            t.height += dy as i16;
+            self.ev.now.triggers.push(t);
+            copied += 1;
+        }
+        let warps: Vec<Warp> = (0..self.ev.now.warps.len()).filter(|&i| self.event_centre(Kind::Warp, i).is_some_and(inside)).map(|i| self.ev.now.warps[i].clone()).collect();
+        for mut w in warps {
+            w.x += (events::TILE as i32 * dx) as i16;
+            w.z += (events::TILE as i32 * dz) as i16;
+            w.y += dy as i16;
+            self.ev.now.warps.push(w);
+            copied += 1;
+        }
+        // The door models: the copy of the building gets its own.
+        let mut props = self.editor.props.clone();
+        let wanted: Vec<usize> = (0..props.len()).filter(|&i| self.event_centre(Kind::Prop, i).is_some_and(inside)).collect();
+        for i in wanted {
+            let mut p = props[i].clone();
+            p.x += events::TILE * dx as f32;
+            p.z += events::TILE * dz as f32;
+            p.y += dy;
+            props.push(p);
+            copied += 1;
+        }
+        if props.len() != self.editor.props.len() {
+            let _ = self.editor.set_props(props);
+        }
+        copied
+    }
+
     pub(super) fn events_follow_objects(&mut self, low: [f32; 3], high: [f32; 3], delta: [f32; 3]) -> usize {
         if !self.events_follow || !self.ev.loaded {
             return 0;
@@ -1087,7 +1163,7 @@ impl Viewer {
     /// Writes the pack of each map that changed on the SD card (a map that
     /// is as in the game again loses its file). The lines of these maps leave
     /// `map_events.txt`: the packs have the changes now.
-    fn events_save(&mut self) {
+    pub(super) fn events_save(&mut self) {
         let mut done: Vec<String> = Vec::new();
         let mut failed: Vec<String> = Vec::new();
         let path = events::file_path(&self.export_dir);
@@ -1256,7 +1332,7 @@ impl Viewer {
                     let mut id = matrix.ids.get(slot).copied().unwrap_or(0xFFFF);
                     ui.horizontal(|ui| {
                         ui.label(format!("Place ({c}, {r}): block"));
-                        if ui.add(egui::DragValue::new(&mut id).range(0..=857)).changed() {
+                        if super::chrome::spin_with(ui, &mut id, 0.0, 857.0, |d| d) {
                             if let Some(v) = matrix.ids.get_mut(slot) {
                                 *v = id;
                             }
@@ -1330,7 +1406,6 @@ impl Viewer {
                 }
             }
         });
-        ui.checkbox(&mut self.ev.labels, "Names over the events");
         egui::CollapsingHeader::new(format!("Maps shown ({})", self.ev.map_shown.iter().filter(|s| **s).count())).default_open(false).show(ui, |ui| {
             ui.horizontal(|ui| {
                 if ui.button("All").clicked() {
@@ -1357,7 +1432,7 @@ impl Viewer {
         ui.horizontal(|ui| {
             ui.label("Blocks drawn around:");
             let mut radius = self.ev.neigh_radius.min(ALL_BLOCKS);
-            if ui.add(egui::DragValue::new(&mut radius).range(0..=ALL_BLOCKS).custom_formatter(|v, _| if v >= ALL_BLOCKS as f64 { "all".to_string() } else { format!("{v}") })).changed() {
+            if super::chrome::spin_with(ui, &mut radius, 0.0, ALL_BLOCKS as f64, |d| d.custom_formatter(|v, _| if v >= ALL_BLOCKS as f64 { "all".to_string() } else { format!("{v}") })) {
                 self.ev.neigh_radius = radius;
                 changed = true;
             }
@@ -1450,7 +1525,7 @@ impl Viewer {
 fn number<T: egui::emath::Numeric>(ui: &mut egui::Ui, label: &str, value: &mut T) -> bool {
     ui.horizontal(|ui| {
         ui.label(label);
-        ui.add(egui::DragValue::new(value)).changed()
+        super::chrome::spin(ui, value)
     })
     .inner
 }
@@ -1488,7 +1563,7 @@ fn choice(ui: &mut egui::Ui, label: &str, value: &mut u16, options: &[(u16, Stri
             });
         });
         // The number can also be typed, for a value that the list does not have.
-        changed |= ui.add(egui::DragValue::new(value)).changed();
+        changed |= super::chrome::spin(ui, value);
     });
     changed
 }
@@ -1659,7 +1734,8 @@ fn ray_box(origin: Vec3, direction: Vec3, low: Vec3, high: Vec3) -> Option<f32> 
 /// square and a pole. `offset` is the place of the block in the world.
 fn object_marks(editor: &crate::editor::Editor, offset: [f32; 2], selected: &[usize], out: &mut Vec<Vertex>) {
     for (i, instance) in editor.instances.iter().enumerate() {
-        if instance.deleted {
+        // (A tile of ground or a piece of grass that was put on a tile is not an object.)
+        if instance.deleted || instance.replaces.is_some() {
             continue;
         }
         let (low, high) = editor.instance_bounds(i);

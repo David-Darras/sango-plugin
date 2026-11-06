@@ -8,8 +8,51 @@ use super::*;
 pub enum Tool {
     /// Select, move, copy and delete the objects.
     Select,
-    /// Paint the tiles (the walls, the grass, the water).
+    /// Paint the tiles (the blocked zones, the grass, the ledges, the water).
     Tiles,
+}
+
+/// A number that can be typed, dragged, or changed with two small arrows (up
+/// and down). Shift makes the arrows go by ten. `customize` changes how the
+/// number is written. Returns true when the number changed.
+pub fn spin_with<N: egui::emath::Numeric>(
+    ui: &mut egui::Ui,
+    value: &mut N,
+    min: f64,
+    max: f64,
+    customize: impl for<'b> FnOnce(egui::DragValue<'b>) -> egui::DragValue<'b>,
+) -> bool {
+    let mut changed = false;
+    ui.horizontal(|ui| {
+        ui.spacing_mut().item_spacing.x = 2.0;
+        changed |= ui.add(customize(egui::DragValue::new(&mut *value).range(min..=max))).changed();
+        let mut delta = 0.0;
+        ui.vertical(|ui| {
+            ui.spacing_mut().item_spacing.y = 0.0;
+            ui.spacing_mut().button_padding = egui::vec2(3.0, 0.0);
+            let arrow = |text: &str| egui::Button::new(egui::RichText::new(text).size(8.0)).min_size(egui::vec2(16.0, 10.0));
+            let step = if ui.input(|i| i.modifiers.shift) { 10.0 } else { 1.0 };
+            if ui.add(arrow("\u{25B2}")).on_hover_text("More (Shift: by ten)").clicked() {
+                delta = step;
+            }
+            if ui.add(arrow("\u{25BC}")).on_hover_text("Less (Shift: by ten)").clicked() {
+                delta = -step;
+            }
+        });
+        if delta != 0.0 {
+            let next = (value.to_f64() + delta).clamp(min, max);
+            if next != value.to_f64() {
+                *value = N::from_f64(next);
+                changed = true;
+            }
+        }
+    });
+    changed
+}
+
+/// A number with its two arrows (see `spin_with`), over all the values of its type.
+pub fn spin<N: egui::emath::Numeric>(ui: &mut egui::Ui, value: &mut N) -> bool {
+    spin_with(ui, value, N::MIN.to_f64(), N::MAX.to_f64(), |d| d)
 }
 
 /// What the menu, the tool bar and the keys ask for in a frame.
@@ -28,6 +71,7 @@ pub enum Confirm {
     ResetMatrix,
     ResetBlock,
     ResetWorld,
+    ClearBlock,
 }
 
 /// A move of the camera that runs over a few frames.
@@ -229,7 +273,14 @@ impl Viewer {
         if pressed(egui::Key::C) {
             self.catalog_open = !self.catalog_open;
         }
-        if pressed(egui::Key::S) {
+        // Undo and redo work whatever is selected (an object or an event).
+        if ctrl && pressed(egui::Key::Z) {
+            cmd.action = Some(if shift { Action::Redo } else { Action::Undo });
+        }
+        if ctrl && pressed(egui::Key::Y) {
+            cmd.action = Some(Action::Redo);
+        }
+        if pressed(egui::Key::S) && !ctrl {
             cmd.tool = Some(Tool::Select);
         }
         if pressed(egui::Key::T) {
@@ -263,10 +314,10 @@ impl Viewer {
                 });
                 ui.menu_button("Edit", |ui| {
                     let selected = !self.selected.is_empty();
-                    if menu_item(ui, "Undo", "Ctrl+Z", self.editor.can_undo()) {
+                    if menu_item(ui, "Undo", "Ctrl+Z", self.can_undo()) {
                         cmd.action = Some(Action::Undo);
                     }
-                    if menu_item(ui, "Redo", "Ctrl+Y", self.editor.can_redo()) {
+                    if menu_item(ui, "Redo", "Ctrl+Y", self.can_redo()) {
                         cmd.action = Some(Action::Redo);
                     }
                     ui.separator();
@@ -283,6 +334,9 @@ impl Viewer {
                         cmd.action = Some(Action::Delete);
                     }
                     ui.separator();
+                    if menu_item(ui, "Clear the whole block...", "", true) {
+                        self.confirm = Some(Confirm::ClearBlock);
+                    }
                     if menu_item(ui, "Restore the original block...", "", true) {
                         self.confirm = Some(Confirm::ResetBlock);
                     }
@@ -316,7 +370,6 @@ impl Viewer {
                     if ui.checkbox(&mut self.show_objects, "Movable objects (marks)").changed() {
                         cmd.refresh = true;
                     }
-                    ui.checkbox(&mut self.ev.labels, "Names over the events");
                     ui.checkbox(&mut self.direct_v, "Pictures: direct V");
                     ui.separator();
                     ui.label("Blocks of the world drawn:");
@@ -356,7 +409,7 @@ impl Viewer {
                 if tool_button(ui, current, Tool::Select, "Select", "Select, move, copy and delete the objects and the events (S)") {
                     cmd.tool = Some(Tool::Select);
                 }
-                if tool_button(ui, current, Tool::Tiles, "Tiles", "Paint the tiles: walls, tall grass, water (T)") {
+                if tool_button(ui, current, Tool::Tiles, "Tiles", "Paint the tiles: blocked zones, tall grass, ledges, water (T)") {
                     cmd.tool = Some(Tool::Tiles);
                 }
                 ui.separator();
@@ -365,10 +418,10 @@ impl Viewer {
                     self.catalog_open = !self.catalog_open;
                 }
                 ui.separator();
-                if ui.add_enabled(self.editor.can_undo(), egui::Button::new("Undo").min_size(egui::vec2(56.0, 28.0))).on_hover_text("Undo the last change (Ctrl+Z)").clicked() {
+                if ui.add_enabled(self.can_undo(), egui::Button::new("Undo").min_size(egui::vec2(56.0, 28.0))).on_hover_text("Undo the last change (Ctrl+Z)").clicked() {
                     cmd.action = Some(Action::Undo);
                 }
-                if ui.add_enabled(self.editor.can_redo(), egui::Button::new("Redo").min_size(egui::vec2(56.0, 28.0))).on_hover_text("Redo (Ctrl+Y)").clicked() {
+                if ui.add_enabled(self.can_redo(), egui::Button::new("Redo").min_size(egui::vec2(56.0, 28.0))).on_hover_text("Redo (Ctrl+Y)").clicked() {
                     cmd.action = Some(Action::Redo);
                 }
                 ui.separator();
@@ -423,6 +476,9 @@ impl Viewer {
             let zx = crate::events::local_to_tile(p.x, at.column).floor() as i32;
             let zz = crate::events::local_to_tile(p.z, at.row).floor() as i32;
             text += &format!("  map tile ({zx}, {zz})");
+        }
+        if let Some(name) = &self.hover_event {
+            text += &format!("   -   {name}");
         }
         text
     }
@@ -491,6 +547,11 @@ impl Viewer {
                 "The events of this map (file and lines of map_events.txt) go back to the game, and so do the blocks where the map has events: the objects that you moved or added there are lost.",
                 "Reset the map",
             ),
+            Confirm::ClearBlock => (
+                "Clear the whole block?",
+                "Every object (trees, buildings...), all the tall grass, all the ledges (the bumps of earth) and all the events (characters, signs, warps, triggers) of the maps in this block are taken away, and the events are written on the SD card. You can undo the objects and the grass, not the events.",
+                "Clear the block",
+            ),
             Confirm::ResetWorld => (
                 "Reset the whole world to the game?",
                 "Every map of this world, every block of this world and the grid of the blocks go back to the game. All your changes in this world are lost, in the window too.",
@@ -511,6 +572,9 @@ impl Viewer {
         egui::Window::new(title).collapsible(false).resizable(false).anchor(egui::Align2::CENTER_CENTER, [0.0, 0.0]).show(ctx, |ui| {
             ui.set_max_width(380.0);
             ui.label(text);
+            if question == Confirm::ClearBlock {
+                ui.checkbox(&mut self.clear_blocked, "Also free the blocked tiles (where one cannot walk)");
+            }
             ui.add_space(8.0);
             ui.horizontal(|ui| {
                 if ui.add(egui::Button::new(egui::RichText::new(yes).color(egui::Color32::WHITE)).fill(egui::Color32::from_rgb(170, 60, 60))).clicked() {
@@ -713,6 +777,13 @@ impl Viewer {
     pub(super) fn update_hover(&mut self, rect: egui::Rect, response: &egui::Response) {
         self.hover = match response.hover_pos() {
             Some(pos) if rect.contains(pos) => self.point_under(rect, pos),
+            _ => None,
+        };
+        self.hover_event = match response.hover_pos() {
+            Some(pos) if rect.contains(pos) && self.overlay_on() => {
+                let (origin, direction) = self.ray(rect, pos);
+                self.event_label_under(origin, direction)
+            }
             _ => None,
         };
     }

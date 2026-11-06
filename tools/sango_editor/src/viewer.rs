@@ -13,6 +13,7 @@ use wgpu::util::DeviceExt;
 use crate::bch::{Mesh, Texture};
 use crate::data::picture_of;
 use crate::editor::{Editor, Instance};
+use crate::events::MapEvents;
 
 /// The size of a tile of the game, in units.
 const TILE: f32 = 18.0;
@@ -676,16 +677,19 @@ fn corner_heights(editor: &Editor) -> Vec<f32> {
     out
 }
 
-/// The name and the colour of a tile, from its attribute. The number of the
-/// ground is in the high byte. The numbers come from the game: wall 1, plain
-/// 0, tall grass 31 to 37, water 148 to 151.
+/// The name and the colour of a tile, from its attribute. The kind of the
+/// tile is in the high byte: 0 free to walk, 1 blocked (a zone where one
+/// cannot walk, it is not always a wall), 31 to 37 tall grass, 104 to 127 a
+/// ledge (a bump of earth that one jumps over), 144 to 159 water. The other
+/// kinds are not named yet.
 fn tile_style(value: u32) -> (String, [u8; 4]) {
     match value >> 24 {
-        0 => ("plain".into(), [255, 255, 255, 14]),
-        1 => ("wall".into(), [235, 50, 50, 120]),
+        0 => ("free to walk".into(), [120, 120, 120, 70]),
+        1 => ("blocked (cannot walk)".into(), [235, 50, 50, 120]),
         31..=37 => ("tall grass".into(), [50, 205, 70, 120]),
-        148..=151 => ("water".into(), [50, 120, 245, 130]),
-        id => (format!("ground {id}"), [205, 80, 225, 120]),
+        104..=127 => ("ledge (jump)".into(), [245, 160, 40, 140]),
+        144..=159 => ("water".into(), [50, 120, 245, 130]),
+        id => (format!("other kind {id}"), [205, 80, 225, 120]),
     }
 }
 
@@ -742,7 +746,7 @@ pub struct Viewer {
     snap: bool,
     /// The events under objects move with the objects.
     events_follow: bool,
-    /// The walls (the collision) under the objects move with them.
+    /// The blocked tiles (the collision) under the objects move with them.
     walls_follow: bool,
     status: String,
     export_dir: String,
@@ -776,6 +780,18 @@ pub struct Viewer {
     show_objects: bool,
     /// What the panel showed at the last frame: an event (true) or an object (false).
     last_focus: bool,
+    /// The name of the event under the pointer (shown in the status bar, not in the 3D view).
+    hover_event: Option<String>,
+    /// In the question before clearing a block: free the blocked tiles too.
+    clear_blocked: bool,
+    /// The tileset to use for the next block that opens (the one of the world).
+    tileset_hint: Option<usize>,
+    /// What can be undone: the changes of the objects and of the events, in order.
+    history: Vec<HistoryEntry>,
+    future: Vec<HistoryEntry>,
+    /// The events and the props as they were at the end of the last frame (with the block and the map).
+    history_base: Option<((usize, usize), MapEvents, Vec<crate::edit::Prop>)>,
+    history_depth: usize,
     ev: events_view::EventsState,
     /// All the worlds of the game, for the list of the tilesets.
     worlds: Vec<crate::events::WorldInfo>,
@@ -814,6 +830,14 @@ pub struct Viewer {
     grass: Option<crate::edit::Portable>,
     /// The tiles that the grass tool already did in this stroke.
     grass_done: std::collections::HashSet<(usize, usize)>,
+}
+
+/// One step of what can be undone: how many changes of the objects it holds,
+/// and the events and the props before and after it (when it changed them).
+struct HistoryEntry {
+    editor_steps: usize,
+    before: Option<(MapEvents, Vec<crate::edit::Prop>)>,
+    after: Option<(MapEvents, Vec<crate::edit::Prop>)>,
 }
 
 /// The state of the panel of the catalogue.
@@ -922,6 +946,13 @@ impl Viewer {
             events_mode: false,
             show_objects: true,
             last_focus: false,
+            tileset_hint: None,
+            clear_blocked: true,
+            hover_event: None,
+            history: Vec::new(),
+            future: Vec::new(),
+            history_base: None,
+            history_depth: 0,
             ev: Default::default(),
             worlds: Vec::new(),
             world_filter: String::new(),
@@ -1038,8 +1069,7 @@ impl Viewer {
         ui.horizontal(|ui| {
             ui.label("Blocks of the world drawn:");
             let mut radius = self.ev.neigh_radius.min(64);
-            let format = |v: f64, _: std::ops::RangeInclusive<usize>| if v >= 64.0 { "all".to_string() } else { format!("{v}") };
-            if ui.add(egui::DragValue::new(&mut radius).range(0..=64).custom_formatter(format)).changed() {
+            if chrome::spin_with(ui, &mut radius, 0.0, 64.0, |d| d.custom_formatter(|v, _| if v >= 64.0 { "all".to_string() } else { format!("{v}") })) {
                 self.ev.neigh_radius = radius;
             }
             if ui.button("All").clicked() {
@@ -1107,6 +1137,7 @@ impl Viewer {
                     };
                 }
             }
+            Confirm::ClearBlock => self.clear_block(frame),
             Confirm::ResetBlock => {
                 let id = self.editor.block_id();
                 match self.restore_block(id) {
@@ -1148,8 +1179,13 @@ impl Viewer {
             self.editor.end_stroke();
             self.stroking = false;
         }
+        // The pictures are the ones of the tileset of the world (guessing from the models can pick another one).
+        let hint = self.tileset_hint.take().or_else(|| {
+            let in_world = self.ev.matrix.as_ref().is_some_and(|m| m.ids.contains(&(block as u16)));
+            self.ev.at().filter(|_| in_world).and_then(|at| crate::events::map_tileset(&self.arc_dir, at.map))
+        });
         let cached = self.world.remove(&block);
-        let loaded = crate::data::load_scene(&self.arc_dir, block, None).and_then(|scene| {
+        let loaded = crate::data::load_scene(&self.arc_dir, block, hint).and_then(|scene| {
             let mut editor = match cached {
                 Some(editor) => editor,
                 None => Editor::new(&self.arc_dir, block)?,
@@ -1178,11 +1214,9 @@ impl Viewer {
         self.title = format!("Block {block}");
         self.project_path = format!("block_{block}.msproj");
         let keep_show = self.ev.show;
-        let keep_labels = self.ev.labels;
         let keep_radius = self.ev.neigh_radius;
         self.ev = Default::default();
         self.ev.show = keep_show;
-        self.ev.labels = keep_labels;
         self.ev.neigh_radius = keep_radius;
         // Look at the middle of the new block.
         let (mut low, mut high) = (Vec3::splat(f32::MAX), Vec3::splat(f32::MIN));
@@ -1206,6 +1240,105 @@ impl Viewer {
         self.status = format!("Block {block} is open.");
     }
 
+    pub(super) fn can_undo(&self) -> bool {
+        !self.history.is_empty() || self.editor.can_undo()
+    }
+
+    pub(super) fn can_redo(&self) -> bool {
+        !self.future.is_empty() || self.editor.can_redo()
+    }
+
+    /// Notes what the user changed in this frame (objects, events, props) as
+    /// one step that Ctrl+Z can undo.
+    fn track_history(&mut self) {
+        let key = (self.editor.block_id(), self.ev.map);
+        let depth = self.editor.undo_depth();
+        let current = (self.ev.now.clone(), self.editor.props.clone());
+        match self.history_base.take() {
+            Some((k, events, props)) if k == key && self.ev.loaded => {
+                let steps = depth.saturating_sub(self.history_depth);
+                let events_changed = events != current.0 || props != current.1;
+                if steps > 0 || events_changed {
+                    self.history.push(HistoryEntry {
+                        editor_steps: steps,
+                        before: events_changed.then(|| (events, props)),
+                        after: events_changed.then(|| current.clone()),
+                    });
+                    self.future.clear();
+                    if self.history.len() > 200 {
+                        self.history.remove(0);
+                    }
+                }
+            }
+            Some(_) => {
+                // Another block or map: its history starts here.
+                self.history.clear();
+                self.future.clear();
+            }
+            None => {}
+        }
+        self.history_base = Some((key, current.0, current.1));
+        self.history_depth = depth;
+    }
+
+    /// Empties the open block: the objects, the tall grass and the events of
+    /// the maps that are in it.
+    fn clear_block(&mut self, frame: &eframe::Frame) {
+        self.selected.clear();
+        self.placing = false;
+        self.stamp = None;
+        let objects = self.editor.change(|v| {
+            for instance in v.iter_mut() {
+                if instance.replaces.is_none() {
+                    instance.deleted = true;
+                }
+            }
+        });
+        let grass = objects.and_then(|_| self.editor.clear_grass()).and_then(|_| self.editor.clear_ledges());
+        if let Err(message) = grass {
+            self.status = format!("Cannot clear the block: {message}");
+            self.refresh(frame);
+            return;
+        }
+        // The tiles: no more grass for the encounters, and (when asked) no more blocked tiles.
+        let (width, height) = self.editor.grid();
+        let plain = self.plain_value();
+        let free_blocked = self.clear_blocked;
+        self.editor.begin_stroke();
+        for row in 0..height {
+            for column in 0..width {
+                let kind = self.editor.tiles[row * width + column] >> 24;
+                if (31..=37).contains(&kind) || (104..=127).contains(&kind) || (free_blocked && kind == 1) {
+                    self.editor.paint(column, row, 1, plain);
+                }
+            }
+        }
+        self.editor.end_stroke();
+        // The events whose tile is in this block, in every map of the world.
+        let mut removed = 0;
+        if let Some(at) = self.ev.at().cloned() {
+            let (x0, z0) = ((at.column * crate::events::BLOCK_TILES) as i32, (at.row * crate::events::BLOCK_TILES) as i32);
+            let inside = |x: i32, z: i32| x >= x0 && x < x0 + crate::events::BLOCK_TILES as i32 && z >= z0 && z < z0 + crate::events::BLOCK_TILES as i32;
+            let tile = crate::events::TILE as i32;
+            let clean = |events: &mut MapEvents| {
+                let before = events.signs.len() + events.triggers.len() + events.warps.len() + events.characters.len();
+                events.signs.retain(|s| !inside(s.x as i32, s.z as i32));
+                events.triggers.retain(|t| !inside(t.x as i32, t.z as i32));
+                events.warps.retain(|w| !inside((w.x as i32).div_euclid(tile), (w.z as i32).div_euclid(tile)));
+                events.characters.retain(|c| !inside(c.x as i32, c.z as i32));
+                before - (events.signs.len() + events.triggers.len() + events.warps.len() + events.characters.len())
+            };
+            removed += clean(&mut self.ev.now);
+            for other in self.ev.others.iter_mut().flatten() {
+                removed += clean(&mut other.1);
+            }
+            self.ev.selected = None;
+            self.events_save();
+        }
+        self.refresh(frame);
+        self.status = format!("Block {} is clear: no object, no grass, no ledge, {removed} events taken away. Export to write the block.", self.editor.block_id());
+    }
+
     /// Gives a block back to the game: its file is taken off the SD card and
     /// the changes in the window are dropped (the open block is read again).
     fn restore_block(&mut self, id: usize) -> Result<(), String> {
@@ -1218,7 +1351,8 @@ impl Viewer {
         self.world.remove(&id);
         self.neigh_heights.remove(&id);
         if id == self.editor.block_id() {
-            let scene = crate::data::load_scene(&self.arc_dir, id, None)?;
+            let hint = self.ev.at().and_then(|at| crate::events::map_tileset(&self.arc_dir, at.map));
+            let scene = crate::data::load_scene(&self.arc_dir, id, hint)?;
             let mut editor = Editor::new(&self.arc_dir, id)?;
             editor.set_tileset(scene.tileset);
             self.editor = editor;
@@ -1234,10 +1368,9 @@ impl Viewer {
 
     /// Reads the events and the grid of the blocks again (after a reset).
     fn reset_events_state(&mut self) {
-        let (show, labels, radius) = (self.ev.show, self.ev.labels, self.ev.neigh_radius);
+        let (show, radius) = (self.ev.show, self.ev.neigh_radius);
         self.ev = Default::default();
         self.ev.show = show;
-        self.ev.labels = labels;
         self.ev.neigh_radius = radius;
         self.events_enter();
     }
@@ -1314,7 +1447,10 @@ impl Viewer {
     fn switch_world(&mut self, matrix: usize, frame: &eframe::Frame) {
         match crate::events::read_matrix(&self.arc_dir, &self.export_dir, matrix) {
             Ok(layout) => match layout.ids.iter().find(|&&b| (b as usize) < 857) {
-                Some(&block) => self.switch_block(block as usize, frame),
+                Some(&block) => {
+                    self.tileset_hint = crate::events::maps_of_matrix(&self.arc_dir, matrix).ok().and_then(|maps| maps.first().and_then(|&m| crate::events::map_tileset(&self.arc_dir, m)));
+                    self.switch_block(block as usize, frame)
+                }
                 None => self.status = "This world has no block.".into(),
             },
             Err(e) => self.status = format!("Cannot read the matrix: {e}"),
@@ -1411,6 +1547,32 @@ impl Viewer {
         best.map(|(_, hit)| hit)
     }
 
+    /// The ground under a ray: the ground of the block, else the low flat pieces
+    /// that the tool counts as objects but that look like ground (earth, paths).
+    fn ground_hit(&self, origin: Vec3, direction: Vec3) -> Option<Hit> {
+        if let Some(hit) = self.pick(origin, direction, true) {
+            return Some(hit);
+        }
+        let mut best: Option<(f32, Hit)> = None;
+        for (i, (part, mesh)) in self.editor.meshes().iter().enumerate() {
+            if *part != 1 || !self.visible.get(i).copied().unwrap_or(false) {
+                continue;
+            }
+            for t in mesh.indices.chunks_exact(3) {
+                let (Some(a), Some(b), Some(c)) = (mesh.positions.get(t[0] as usize), mesh.positions.get(t[1] as usize), mesh.positions.get(t[2] as usize)) else { continue };
+                if a[1].max(b[1]).max(c[1]) > 8.0 {
+                    continue;
+                }
+                if let Some(distance) = ray_triangle(origin, direction, Vec3::from(*a), Vec3::from(*b), Vec3::from(*c)) {
+                    if best.as_ref().map_or(true, |(d, _)| distance < *d) {
+                        best = Some((distance, Hit { point: origin + direction * distance, owner: None, mesh: i }));
+                    }
+                }
+            }
+        }
+        best.map(|(_, hit)| hit)
+    }
+
     /// The height of the ground at the corners of the tiles: a ray goes down
     /// on each corner.
     fn ground_heights(&self) -> Vec<f32> {
@@ -1463,11 +1625,11 @@ impl Viewer {
     /// Paints the tile under a ray, or takes its attribute with the pipette.
     fn paint_tile(&mut self, origin: Vec3, direction: Vec3, frame: &eframe::Frame) {
         let mut origin = origin;
-        let mut found = self.pick(origin, direction, true);
+        let mut found = self.ground_hit(origin, direction);
         if found.is_none() {
             if let Some(shift) = self.enter_world_block(origin, direction, frame) {
                 origin -= shift;
-                found = self.pick(origin, direction, true);
+                found = self.ground_hit(origin, direction);
             }
         }
         let Some(hit) = found else { return };
@@ -1568,13 +1730,41 @@ impl Viewer {
     fn apply(&mut self, action: Action, frame: &eframe::Frame) {
         match action {
             Action::Undo => {
-                let r = self.editor.undo();
-                self.report(r, "Undone.");
+                if let Some(entry) = self.history.pop() {
+                    let mut result = Ok(());
+                    for _ in 0..entry.editor_steps {
+                        result = result.and(self.editor.undo());
+                    }
+                    if let Some((events, props)) = &entry.before {
+                        self.ev.now = events.clone();
+                        result = result.and(self.editor.set_props(props.clone()));
+                    }
+                    self.future.push(entry);
+                    self.history_base = None;
+                    self.report(result, "Undone.");
+                } else {
+                    let r = self.editor.undo();
+                    self.report(r, "Undone.");
+                }
                 self.selected.clear();
             }
             Action::Redo => {
-                let r = self.editor.redo();
-                self.report(r, "Redone.");
+                if let Some(entry) = self.future.pop() {
+                    let mut result = Ok(());
+                    for _ in 0..entry.editor_steps {
+                        result = result.and(self.editor.redo());
+                    }
+                    if let Some((events, props)) = &entry.after {
+                        self.ev.now = events.clone();
+                        result = result.and(self.editor.set_props(props.clone()));
+                    }
+                    self.history.push(entry);
+                    self.history_base = None;
+                    self.report(result, "Redone.");
+                } else {
+                    let r = self.editor.redo();
+                    self.report(r, "Redone.");
+                }
                 self.selected.clear();
             }
             Action::SaveProject => {
@@ -1615,12 +1805,15 @@ impl Viewer {
                     return;
                 }
                 let sources: Vec<Instance> = self.selected.iter().map(|&i| self.editor.instances[i].clone()).collect();
+                let before = self.selection_box();
+                // The copy goes next to the original, not on it: a whole width and one tile to the side.
+                let step = before.map_or(TILE, |(low, high)| (((high[0] - low[0]) / TILE).ceil() + 1.0) * TILE);
                 let first = self.editor.instances.len();
                 let result = self.editor.change(|v| {
                     for source in &sources {
                         v.push(Instance {
                             cluster: source.cluster,
-                            offset: [source.offset[0] + TILE, source.offset[1], source.offset[2]],
+                            offset: [source.offset[0] + step, source.offset[1], source.offset[2]],
                             yaw: source.yaw,
                             copy: true,
                             deleted: false,
@@ -1629,10 +1822,20 @@ impl Viewer {
                         });
                     }
                 });
-                if result.is_ok() {
+                let ok = result.is_ok();
+                if ok {
                     self.selected = (first..first + sources.len()).collect();
                 }
-                self.report(result, "Copied one tile to the side.");
+                self.report(result, "Copied next to the original.");
+                // The door of a building: its warp, its door model and its blocked tiles are copied too.
+                if let (true, Some((low, high))) = (ok, before) {
+                    let delta = [step, 0.0, 0.0];
+                    let n = self.events_copy_with_objects(low, high, delta);
+                    let w = self.copy_walls(low, high, delta);
+                    if n > 0 || w > 0 {
+                        self.status = format!("Copied next to the original with {n} events (door...) and {w} blocked tiles (save the events to keep them).");
+                    }
+                }
             }
             Action::CopyOut => {
                 if self.selected.is_empty() {
@@ -1895,6 +2098,41 @@ impl Viewer {
         counts.into_iter().max_by_key(|(_, n)| *n).map_or(0x20, |(v, _)| v)
     }
 
+    /// Copies the blocked tiles that are under a box by whole tiles (the
+    /// original tiles stay). Returns how many tiles were copied.
+    fn copy_walls(&mut self, low: [f32; 3], high: [f32; 3], delta: [f32; 3]) -> usize {
+        if !self.walls_follow {
+            return 0;
+        }
+        let (width, height) = self.editor.grid();
+        let (dx, dz) = ((delta[0] / TILE).round() as i32, (delta[2] / TILE).round() as i32);
+        if dx == 0 && dz == 0 {
+            return 0;
+        }
+        let tile = |v: f32| ((v + BLOCK_HALF) / TILE).floor() as i32;
+        let (c0, c1, r0, r1) = (tile(low[0] + 0.5), tile(high[0] - 0.5), tile(low[2] + 0.5), tile(high[2] - 0.5));
+        let mut walls: Vec<(i32, i32, u32)> = Vec::new();
+        for r in r0.max(0)..=r1.min(height as i32 - 1) {
+            for c in c0.max(0)..=c1.min(width as i32 - 1) {
+                let v = self.editor.tiles[r as usize * width + c as usize];
+                if v >> 24 == 1 {
+                    walls.push((c, r, v));
+                }
+            }
+        }
+        let mut copied = 0;
+        self.editor.begin_stroke();
+        for (c, r, v) in walls {
+            let (nc, nr) = (c + dx, r + dz);
+            if nc >= 0 && nr >= 0 && (nc as usize) < width && (nr as usize) < height {
+                self.editor.paint(nc as usize, nr as usize, 1, v);
+                copied += 1;
+            }
+        }
+        self.editor.end_stroke();
+        copied
+    }
+
     /// Moves the wall tiles (a building, its door) that are under a box by
     /// whole tiles: the tiles that they leave become free. Returns how many
     /// tiles moved.
@@ -2145,7 +2383,7 @@ impl eframe::App for Viewer {
                             });
                             egui::CollapsingHeader::new(chrome::section_title("Options")).default_open(true).show(ui, |ui| {
                                 ui.checkbox(&mut self.snap, "Snap to the tiles").on_hover_text("An object that you place goes to the middle of a tile");
-                                ui.checkbox(&mut self.walls_follow, "Walls follow the objects").on_hover_text("The collision (the wall tiles) under an object moves with it");
+                                ui.checkbox(&mut self.walls_follow, "Blocked tiles follow the objects").on_hover_text("The blocked tiles (where one cannot walk) under an object move with it");
                                 ui.checkbox(&mut self.events_follow, "Events follow the objects").on_hover_text("The warps, signs, props and characters under an object move with it");
                             });
                             egui::CollapsingHeader::new(chrome::section_title("Events")).default_open(true).open(force_events).show(ui, |ui| {
@@ -2156,7 +2394,7 @@ impl eframe::App for Viewer {
                             egui::CollapsingHeader::new(chrome::section_title("Tiles")).default_open(true).show(ui, |ui| {
                                 ui.horizontal(|ui| {
                                     ui.label("Brush");
-                                    ui.add(egui::DragValue::new(&mut self.brush_size).range(1..=6).suffix(" tiles"));
+                                    chrome::spin_with(ui, &mut self.brush_size, 1.0, 6.0, |d| d.suffix(" tiles"));
                                     if ui.selectable_label(self.pipette, "Pipette").on_hover_text("Click a tile to take its value").clicked() {
                                         self.pipette = !self.pipette;
                                         self.grass_tool = None;
@@ -2301,7 +2539,6 @@ impl eframe::App for Viewer {
                     click = Some(self.ray(rect, pos));
                 }
             }
-            self.events_labels(&ui.painter_at(rect), rect);
             self.camera_overlay(ctx, rect);
             ui.painter().add(egui_wgpu::Callback::new_paint_callback(
                 rect,
@@ -2361,11 +2598,11 @@ impl eframe::App for Viewer {
                 self.events_click(origin, direction, frame);
             } else if self.stamp.is_some() {
                 let mut origin = origin;
-                let mut hit = self.pick(origin, direction, true);
+                let mut hit = self.ground_hit(origin, direction);
                 if hit.is_none() {
                     if let Some(shift) = self.enter_world_block(origin, direction, frame) {
                         origin -= shift;
-                        hit = self.pick(origin, direction, true);
+                        hit = self.ground_hit(origin, direction);
                     }
                 }
                 if let Some(hit) = hit {
@@ -2373,7 +2610,7 @@ impl eframe::App for Viewer {
                 }
             } else if self.placing {
                 let mut origin = origin;
-                let mut hit = self.pick(origin, direction, true);
+                let mut hit = self.ground_hit(origin, direction);
                 if hit.is_none() && !self.selected.is_empty() {
                     // The object goes to another block of the world: it leaves this block and enters that one.
                     if let Some((block, _)) = self.block_under_ray(origin, direction).filter(|(b, _)| *b != self.editor.block_id()) {
@@ -2391,7 +2628,7 @@ impl eframe::App for Viewer {
                                         Ok(i) => {
                                             self.selected = vec![i];
                                             self.refresh(frame);
-                                            hit = self.pick(origin, direction, true);
+                                            hit = self.ground_hit(origin, direction);
                                         }
                                         Err(message) => self.status = format!("Block {block} cannot take the object: {message}"),
                                     }
@@ -2423,11 +2660,12 @@ impl eframe::App for Viewer {
                         hit = self.pick(origin, direction, false);
                     }
                 }
-                let piece = hit.as_ref().and_then(|h| h.owner);
+                // A click on the blue mark of an object (its square or its pole) selects the object too.
+                let piece = hit.as_ref().and_then(|h| h.owner).or_else(|| self.object_mark_under(origin, direction));
                 // The pieces that this click takes: the whole building with Ctrl,
                 // else the piece.
                 let taken: Vec<usize> = match (piece, &hit) {
-                    (Some(i), Some(h)) if ctrl && self.editor.original_mesh(h.mesh).is_some() => match self.editor.building_of(i, self.editor.original_mesh(h.mesh).unwrap_or(0)) {
+                    (Some(i), Some(h)) if ctrl && h.owner.is_some() && self.editor.original_mesh(h.mesh).is_some() => match self.editor.building_of(i, self.editor.original_mesh(h.mesh).unwrap_or(0)) {
                         Ok(pieces) => pieces,
                         Err(message) => {
                             self.status = format!("Cannot select the building: {message}");
@@ -2482,6 +2720,7 @@ impl eframe::App for Viewer {
             self.switch_world(matrix, frame);
         }
         self.refresh_neighbours(frame);
+        self.track_history();
         if self.ev.neigh_key.is_none() && self.ev.neigh_radius > 0 {
             // The blocks around are still being opened.
             ctx.request_repaint();

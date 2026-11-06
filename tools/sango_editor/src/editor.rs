@@ -72,6 +72,9 @@ type Snapshot = (Vec<Instance>, Vec<u32>);
 /// The part of a block that holds the model of the tall grass.
 pub const GRASS_PART: usize = 5;
 
+/// The mark of a cluster that takes ledge models away (it holds nothing).
+const LEDGE_ERASER: (usize, usize) = (crate::edit::NO_ORIGIN, 1);
+
 /// True when an object is made of tall grass only (or of nothing).
 fn grass_only(object: &Portable) -> bool {
     object.parts.iter().all(|p| is_grass_material(&p.material))
@@ -599,9 +602,12 @@ impl Editor {
         // The tiles that were replaced lose their ground.
         let mut ground_cells: std::collections::BTreeSet<(usize, usize)> = Default::default();
         let mut grass_cells: std::collections::BTreeSet<(usize, usize)> = Default::default();
+        let mut ledge_cells: std::collections::BTreeSet<(usize, usize)> = Default::default();
         for i in self.instances.iter().filter(|i| i.copy && !i.deleted) {
             if let Some(cell) = i.replaces {
-                if self.cluster_is_grass(i.cluster) {
+                if self.cluster_is_ledge_eraser(i.cluster) {
+                    ledge_cells.insert(cell);
+                } else if self.cluster_is_grass(i.cluster) {
                     grass_cells.insert(cell);
                 } else {
                     ground_cells.insert(cell);
@@ -613,6 +619,14 @@ impl Editor {
                 let part = block.meshes[mesh].0;
                 let ground = part == 1 && !self.selectable[mesh] && ground_cells.contains(&(column, row));
                 if ground || part == GRASS_PART {
+                    block.delete_triangles_in_tile(mesh, column, row)?;
+                }
+            }
+        }
+        // The models of the ledges (the bumps of earth that one jumps over) go away from their tiles.
+        for &(column, row) in &ledge_cells {
+            for mesh in 0..block.meshes.len() {
+                if block.meshes[mesh].0 == 1 && block.meshes[mesh].1.material.contains("jump") {
                     block.delete_triangles_in_tile(mesh, column, row)?;
                 }
             }
@@ -759,6 +773,11 @@ impl Editor {
         let mut props = self.props.clone();
         *props.get_mut(index).ok_or("no such door")? = original;
         self.set_props(props)
+    }
+
+    /// How many changes can be undone.
+    pub fn undo_depth(&self) -> usize {
+        self.undo.len()
     }
 
     pub fn can_undo(&self) -> bool {
@@ -958,8 +977,22 @@ impl Editor {
     /// middle of the piece (None: the height it had).
     pub fn stamp_tile(&mut self, mut object: Portable, column: usize, row: usize, ground: Option<f32>) -> Result<usize, String> {
         // The tall grass is cut in bands of five tiles, one mesh for each band.
-        for part in object.parts.iter_mut().filter(|p| is_grass_material(&p.material)) {
-            part.material = format!("blc{}0", row / 5);
+        // A band that the block does not have is replaced by the nearest band that it has.
+        if object.parts.iter().any(|p| is_grass_material(&p.material)) {
+            let want = row / 5;
+            let bands: Vec<(usize, String)> = self
+                .original
+                .meshes
+                .iter()
+                .filter(|(part, mesh)| *part == GRASS_PART && is_grass_material(&mesh.material))
+                .map(|(_, mesh)| (mesh.material[3..4].parse::<usize>().unwrap_or(0), mesh.material.clone()))
+                .collect();
+            let Some((_, name)) = bands.iter().min_by_key(|(band, _)| band.abs_diff(want)) else {
+                return Err("this block has no tall grass model, and the tool cannot make one yet".into());
+            };
+            for part in object.parts.iter_mut().filter(|p| is_grass_material(&p.material)) {
+                part.material = name.clone();
+            }
         }
         self.original.can_host(&object)?;
         let new_grass = grass_only(&object);
@@ -994,9 +1027,52 @@ impl Editor {
         }
     }
 
+    /// Takes all the tall grass of the block away (one step for the undo).
+    pub fn clear_grass(&mut self) -> Result<(), String> {
+        let (width, height) = self.grid;
+        let cluster = self.clusters.len();
+        let nothing = Portable { origin: (crate::edit::NO_ORIGIN, 0), low: [0.0; 3], high: [0.0; 3], parts: Vec::new() };
+        self.clusters.push(Cluster { parts: Vec::new(), low: [0.0; 3], high: [0.0; 3], foreign: Some(nothing) });
+        let result = self.change(|v| {
+            for row in 0..height {
+                for column in 0..width {
+                    v.push(Instance { cluster, offset: [0.0; 3], yaw: 0.0, copy: true, deleted: false, only: None, replaces: Some((column, row)) });
+                }
+            }
+        });
+        if result.is_err() {
+            self.clusters.pop();
+        }
+        result
+    }
+
     /// True when the cluster is made of tall grass only (or of nothing).
     fn cluster_is_grass(&self, cluster: usize) -> bool {
-        self.clusters[cluster].foreign.as_ref().map_or(false, grass_only)
+        self.clusters[cluster].foreign.as_ref().map_or(false, |o| grass_only(o) && o.origin != LEDGE_ERASER)
+    }
+
+    /// True when the cluster only takes the ledge models away from the tile.
+    fn cluster_is_ledge_eraser(&self, cluster: usize) -> bool {
+        self.clusters[cluster].foreign.as_ref().map_or(false, |o| o.parts.is_empty() && o.origin == LEDGE_ERASER)
+    }
+
+    /// Takes the models of all the ledges of the block away (one step for the undo).
+    pub fn clear_ledges(&mut self) -> Result<(), String> {
+        let (width, height) = self.grid;
+        let cluster = self.clusters.len();
+        let nothing = Portable { origin: LEDGE_ERASER, low: [0.0; 3], high: [0.0; 3], parts: Vec::new() };
+        self.clusters.push(Cluster { parts: Vec::new(), low: [0.0; 3], high: [0.0; 3], foreign: Some(nothing) });
+        let result = self.change(|v| {
+            for row in 0..height {
+                for column in 0..width {
+                    v.push(Instance { cluster, offset: [0.0; 3], yaw: 0.0, copy: true, deleted: false, only: None, replaces: Some((column, row)) });
+                }
+            }
+        });
+        if result.is_err() {
+            self.clusters.pop();
+        }
+        result
     }
 
     /// The tall grass of one tile, taken from this block: the piece that the

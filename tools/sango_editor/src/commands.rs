@@ -1933,7 +1933,7 @@ pub fn grass_test(arc_dir: &str, block: usize, out_dir: &str) -> Result<(), Stri
     println!("sample: {} parts, {} bytes of vertices", sample.parts.len(), sample.parts.iter().map(|p| p.vertices.len()).sum::<usize>());
     let count = |e: &crate::editor::Editor| e.meshes().iter().filter(|(p, _)| *p == 5).map(|(_, m)| m.indices.len() / 3).sum::<usize>();
     println!("grass triangles at the start: {}", count(&editor));
-    for (column, row) in [(20, 20), (20, 20), (21, 20)] {
+    for (column, row) in [(20, 20), (20, 20), (21, 20), (10, 37), (30, 2)] {
         editor.stamp_grass(Some(&sample), column, row, 0.0)?;
         println!("after grass in ({column}, {row}): {}", count(&editor));
     }
@@ -1943,6 +1943,54 @@ pub fn grass_test(arc_dir: &str, block: usize, out_dir: &str) -> Result<(), Stri
     println!("after erasing (5, 5): {}", count(&editor));
     editor.undo()?;
     println!("after undo: {}", count(&editor));
+    editor.redo()?;
+    println!("{}", editor.export(out_dir)?);
+    Ok(())
+}
+
+/// Lists the attributes of the tiles of all the blocks, with how many tiles have each.
+pub fn attribute_values(arc_dir: &str) -> Result<(), String> {
+    for (value, count) in data::attribute_values(arc_dir)? {
+        println!("{value:08x} {count}");
+    }
+    Ok(())
+}
+
+/// The attributes of the tiles under the vertices of the meshes whose material has a word in its name.
+pub fn tiles_under(arc_dir: &str, block: usize, word: &str) -> Result<(), String> {
+    let editor = crate::editor::Editor::new(arc_dir, block)?;
+    let (width, height) = editor.grid();
+    let mut counts: std::collections::BTreeMap<u32, usize> = Default::default();
+    let mut cells: std::collections::BTreeSet<(usize, usize)> = Default::default();
+    for (_, mesh) in editor.meshes().iter().filter(|(_, m)| m.material.contains(word)) {
+        for p in &mesh.positions {
+            let (c, r) = (((p[0] + 360.0) / 18.0).floor(), ((p[2] + 360.0) / 18.0).floor());
+            if c >= 0.0 && r >= 0.0 && (c as usize) < width && (r as usize) < height {
+                cells.insert((c as usize, r as usize));
+            }
+        }
+    }
+    for (c, r) in &cells {
+        *counts.entry(editor.tiles[r * width + c]).or_default() += 1;
+    }
+    println!("{} tiles under '{word}'", cells.len());
+    for (value, n) in counts {
+        println!("  {value:08x} x{n}");
+    }
+    Ok(())
+}
+
+/// Takes every object and all the grass out of a block, undoes, does again, and writes the block.
+pub fn clear_test(arc_dir: &str, block: usize, out_dir: &str) -> Result<(), String> {
+    let mut editor = crate::editor::Editor::new(arc_dir, block)?;
+    let count = |e: &crate::editor::Editor, part: usize| e.meshes().iter().filter(|(p, _)| *p == part).map(|(_, m)| m.indices.len() / 3).sum::<usize>();
+    println!("start: {} triangles in the ground and objects, {} of grass", count(&editor, 1), count(&editor, 5));
+    editor.change(|v| v.iter_mut().filter(|i| i.replaces.is_none()).for_each(|i| i.deleted = true))?;
+    editor.clear_grass()?;
+    editor.clear_ledges()?;
+    println!("cleared: {} triangles in the ground and objects, {} of grass", count(&editor, 1), count(&editor, 5));
+    editor.undo()?;
+    println!("undo of the grass: {} of grass", count(&editor, 5));
     editor.redo()?;
     println!("{}", editor.export(out_dir)?);
     Ok(())
