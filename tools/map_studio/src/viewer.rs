@@ -91,6 +91,8 @@ struct Vertex {
     colour: [u8; 4],
 }
 
+mod events_view;
+
 struct GpuMesh {
     vertices: wgpu::Buffer,
     indices: wgpu::Buffer,
@@ -119,6 +121,8 @@ struct Gpu {
     tiles: Option<(wgpu::Buffer, u32)>,
     picture_layout: wgpu::BindGroupLayout,
     sampler: wgpu::Sampler,
+    /// The squares and poles of the events: the buffer and the number of vertices.
+    events: Option<(wgpu::Buffer, u32)>,
 }
 
 fn buffers(device: &wgpu::Device, mesh: &Mesh) -> (wgpu::Buffer, wgpu::Buffer, u32) {
@@ -172,6 +176,19 @@ impl Gpu {
         };
     }
 
+    fn set_events(&mut self, device: &wgpu::Device, vertices: &[Vertex]) {
+        self.events = if vertices.is_empty() {
+            None
+        } else {
+            let buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("events"),
+                contents: bytemuck::cast_slice(vertices),
+                usage: wgpu::BufferUsages::VERTEX,
+            });
+            Some((buffer, vertices.len() as u32))
+        };
+    }
+
     fn set_highlight(&mut self, device: &wgpu::Device, lists: Vec<(usize, Vec<u32>)>) {
         self.highlight = lists
             .into_iter()
@@ -186,6 +203,7 @@ struct SceneCallback {
     visible: Vec<bool>,
     direct_v: bool,
     show_tiles: bool,
+    show_events: bool,
 }
 
 impl egui_wgpu::CallbackTrait for SceneCallback {
@@ -229,6 +247,14 @@ impl egui_wgpu::CallbackTrait for SceneCallback {
         }
         if self.show_tiles {
             if let Some((buffer, count)) = &gpu.tiles {
+                pass.set_pipeline(&gpu.tiles_pipeline);
+                pass.set_bind_group(0, &gpu.uniform_group, &[]);
+                pass.set_vertex_buffer(0, buffer.slice(..));
+                pass.draw(0..*count, 0..1);
+            }
+        }
+        if self.show_events {
+            if let Some((buffer, count)) = &gpu.events {
                 pass.set_pipeline(&gpu.tiles_pipeline);
                 pass.set_bind_group(0, &gpu.uniform_group, &[]);
                 pass.set_vertex_buffer(0, buffer.slice(..));
@@ -423,6 +449,7 @@ fn build_gpu(state: &egui_wgpu::RenderState, meshes: &[(usize, Mesh)], textures:
         tiles: None,
         picture_layout,
         sampler,
+        events: None,
     }
 }
 
@@ -590,6 +617,9 @@ pub struct Viewer {
     area_pictures: std::collections::HashSet<String>,
     catalog_open: bool,
     catalog: CatalogPanel,
+    /// True while the user works on the events (characters, warps...).
+    events_mode: bool,
+    ev: events_view::EventsState,
     /// The emulator and the game that the Launch button starts.
     emulator_path: String,
     game_path: String,
@@ -702,6 +732,8 @@ impl Viewer {
             area_pictures: textures.keys().cloned().collect(),
             textures,
             catalog_open: false,
+            events_mode: false,
+            ev: Default::default(),
             emulator_path: first_existing(&["C:/Program Files/Azahar/azahar.exe"]),
             game_path: first_existing(&["C:/Users/David/Desktop/ctr/cia/sango.3ds"]),
             catalog: CatalogPanel { hide_ground: true, only_fit: true, ..Default::default() },
@@ -739,6 +771,30 @@ impl Viewer {
         self.visible = vec![true; count];
     }
 
+    /// Sends only the squares of the events to the graphics card.
+    fn refresh_events(&mut self, frame: &eframe::Frame) {
+        let Some(state) = frame.wgpu_render_state() else { return };
+        let vertices = self.event_vertices();
+        let mut renderer = state.renderer.write();
+        let Some(gpu) = renderer.callback_resources.get_mut::<Gpu>() else { return };
+        gpu.set_events(&state.device, &vertices);
+    }
+
+    /// Starts or ends the mode of the events.
+    fn events_toggled(&mut self, frame: &eframe::Frame) {
+        if self.events_mode {
+            self.selected.clear();
+            self.placing = false;
+            self.stamp = None;
+            if self.tile_mode {
+                self.tile_mode = false;
+                self.toggle_tiles(frame);
+            }
+            self.events_enter();
+        }
+        self.refresh(frame);
+    }
+
     /// Sends the geometry and the selection to the graphics card.
     fn refresh(&mut self, frame: &eframe::Frame) {
         self.sync_meshes(frame);
@@ -747,6 +803,7 @@ impl Viewer {
         let Some(gpu) = renderer.callback_resources.get_mut::<Gpu>() else { return };
         gpu.set_geometry(&state.device, self.editor.meshes());
         gpu.set_tiles(&state.device, &self.tile_vertices());
+        gpu.set_events(&state.device, &self.event_vertices());
         let lists = self
             .editor
             .meshes()
@@ -1184,7 +1241,17 @@ impl eframe::App for Viewer {
         let mut tiles_toggled = false;
         let mut select_mesh: Option<usize> = None;
 
-        if !ctx.wants_keyboard_input() {
+        let mut events_toggled = false;
+        if !ctx.wants_keyboard_input() && ctx.input(|i| i.key_pressed(egui::Key::V) && !i.modifiers.command) {
+            self.events_mode = !self.events_mode;
+            events_toggled = true;
+        }
+        if !ctx.wants_keyboard_input() && self.events_mode {
+            self.events_keys(ctx, frame);
+            if ctx.input(|i| i.key_pressed(egui::Key::F5)) {
+                action = Some(Action::Launch);
+            }
+        } else if !ctx.wants_keyboard_input() {
             ctx.input(|i| {
                 let step = if i.modifiers.shift { 2.0 } else { TILE };
                 let copy_event = i.events.iter().any(|e| matches!(e, egui::Event::Copy));
@@ -1257,6 +1324,11 @@ impl eframe::App for Viewer {
             ui.heading(&self.title);
             ui.separator();
             ui.checkbox(&mut self.catalog_open, "Catalogue of objects");
+            let was_events = self.events_mode;
+            ui.checkbox(&mut self.events_mode, "Events: characters, warps, signs, triggers (V)");
+            if self.events_mode != was_events {
+                events_toggled = true;
+            }
             ui.horizontal(|ui| {
                 if ui.add_enabled(self.editor.can_undo(), egui::Button::new("Undo")).clicked() {
                     action = Some(Action::Undo);
@@ -1406,6 +1478,21 @@ impl eframe::App for Viewer {
             });
         });
 
+        if events_toggled {
+            self.events_toggled(frame);
+        }
+        if self.events_mode {
+            let mut changed = false;
+            egui::Window::new("Events").default_pos([420.0, 60.0]).default_width(340.0).show(ctx, |ui| {
+                egui::ScrollArea::vertical().max_height(620.0).show(ui, |ui| {
+                    changed = self.events_ui(ui);
+                });
+            });
+            if changed {
+                self.refresh_events(frame);
+            }
+        }
+
         let mut click: Option<(Vec3, Vec3)> = None;
         let mut paint: Option<(Vec3, Vec3)> = None;
         egui::CentralPanel::default().frame(egui::Frame::none()).show(ctx, |ui| {
@@ -1451,6 +1538,7 @@ impl eframe::App for Viewer {
                     click = Some(self.ray(rect, pos));
                 }
             }
+            self.events_labels(&ui.painter_at(rect), rect);
             ui.painter().add(egui_wgpu::Callback::new_paint_callback(
                 rect,
                 SceneCallback {
@@ -1458,6 +1546,7 @@ impl eframe::App for Viewer {
                     visible: self.visible.clone(),
                     direct_v: self.direct_v,
                     show_tiles: self.tile_mode,
+                    show_events: self.events_mode,
                 },
             ));
         });
@@ -1497,7 +1586,9 @@ impl eframe::App for Viewer {
             self.stroking = false;
         }
         if let Some((origin, direction)) = click {
-            if self.stamp.is_some() {
+            if self.events_mode {
+                self.events_click(origin, direction, frame);
+            } else if self.stamp.is_some() {
                 if let Some(hit) = self.pick(origin, direction, true) {
                     self.stamp_at(hit.point, frame);
                 }

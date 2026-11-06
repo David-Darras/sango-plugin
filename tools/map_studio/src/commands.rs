@@ -1326,3 +1326,204 @@ pub fn model_strings(arc_dir: &str, catalog: &str, name: &str, block: usize) -> 
     }
     Ok(())
 }
+
+/// Puts the same tile in two tiles, one after the other, and says which
+/// tiles stay empty.
+pub fn tile_twice_test(arc_dir: &str, tiles: &str, first: usize, count: usize, block: usize) -> Result<(), String> {
+    let entries = crate::catalog::load(std::path::Path::new(tiles))?;
+    let in_cell = |e: &crate::editor::Editor, column: usize, row: usize| -> usize {
+        let (x0, z0) = (-360.0 + 18.0 * column as f32, -360.0 + 18.0 * row as f32);
+        let mut n = 0;
+        for (part, m) in e.meshes() {
+            if *part != 1 { continue; }
+            for t in m.indices.chunks_exact(3) {
+                let (mut x, mut z) = (0.0, 0.0);
+                for &i in t {
+                    let p = m.positions.get(i as usize).copied().unwrap_or([0.0; 3]);
+                    x += p[0] / 3.0;
+                    z += p[2] / 3.0;
+                }
+                if x >= x0 && x < x0 + 18.0 && z >= z0 && z < z0 + 18.0 { n += 1; }
+            }
+        }
+        n
+    };
+    let probe = crate::editor::Editor::new(arc_dir, block)?;
+    for (k, entry) in entries.iter().enumerate().skip(first).take(count) {
+        if !probe.has_layouts(&entry.portable) { continue; }
+        let mut editor = crate::editor::Editor::new(arc_dir, block)?;
+        let r1 = editor.stamp_tile(entry.portable.clone(), 22, 29, Some(0.0));
+        let a = in_cell(&editor, 22, 29);
+        let r2 = editor.stamp_tile(entry.portable.clone(), 23, 29, Some(0.0));
+        let (b, a2) = (in_cell(&editor, 23, 29), in_cell(&editor, 22, 29));
+        let flag = if a == 0 || b == 0 || a2 == 0 { "  <-- EMPTY" } else { "" };
+        let owned: Vec<String> = (0..editor.instances.len())
+            .filter(|&i| editor.instances[i].replaces.is_some() && !editor.instances[i].deleted)
+            .map(|i| {
+                let mut names: Vec<String> = (0..editor.meshes().len())
+                    .filter(|&m| (0..editor.meshes()[m].1.positions.len()).any(|v| editor.owner(m, v) == Some(i)))
+                    .map(|m| editor.meshes()[m].1.material.clone())
+                    .collect();
+                names.dedup();
+                names.join("+")
+            })
+            .collect();
+        println!("{k:4} {:28} first {} ({a} tri), second {:?} ({b} tri), first again {a2}{flag}  materials {owned:?}", entry.name, r1.is_ok(), r2.as_ref().err());
+    }
+    Ok(())
+}
+
+/// Lists the zones that have a block, and checks that the events of the zone
+/// fall on the ground of the block: for each character, the height of the
+/// record and the height of the ground under it.
+pub fn zone_check(arc_dir: &str, block: usize) -> Result<(), String> {
+    let zones = crate::events::zones_of_block(arc_dir, block)?;
+    println!("block {block} is in {} zones", zones.len());
+    let editor = crate::editor::Editor::new(arc_dir, block)?;
+    let ground = |x: f32, z: f32| -> Option<f32> {
+        let mut best: Option<f32> = None;
+        for (i, (part, mesh)) in editor.meshes().iter().enumerate() {
+            if *part != 1 || editor.selectable[i] {
+                continue;
+            }
+            for t in mesh.indices.chunks_exact(3) {
+                let (a, b, c) = (mesh.positions[t[0] as usize], mesh.positions[t[1] as usize], mesh.positions[t[2] as usize]);
+                let d = (b[2] - c[2]) * (a[0] - c[0]) + (c[0] - b[0]) * (a[2] - c[2]);
+                if d.abs() < 1e-6 { continue; }
+                let l1 = ((b[2] - c[2]) * (x - c[0]) + (c[0] - b[0]) * (z - c[2])) / d;
+                let l2 = ((c[2] - a[2]) * (x - c[0]) + (a[0] - c[0]) * (z - c[2])) / d;
+                let l3 = 1.0 - l1 - l2;
+                if l1 >= 0.0 && l2 >= 0.0 && l3 >= 0.0 {
+                    let y = l1 * a[1] + l2 * b[1] + l3 * c[1];
+                    best = Some(best.map_or(y, |h: f32| h.max(y)));
+                }
+            }
+        }
+        best
+    };
+    for zone in &zones {
+        let events = crate::events::read_zone_events(arc_dir, zone.zone)?;
+        println!(
+            "zone {} matrix {} ({}x{}), block at column {} row {}: {} signs, {} characters, {} warps, {} triggers",
+            zone.zone, zone.matrix, zone.width, zone.height, zone.column, zone.row,
+            events.signs.len(), events.characters.len(), events.warps.len(), events.triggers.len()
+        );
+        for (i, c) in events.characters.iter().enumerate().take(12) {
+            let (x, z) = (crate::events::tile_to_local(c.x as f32 + 0.5, zone.column), crate::events::tile_to_local(c.z as f32 + 0.5, zone.row));
+            println!("  character {i}: tile ({}, {}) model {} script {} height {} -> local ({x:.0}, {z:.0}), ground {:?}", c.x, c.z, c.model, c.script, c.height, ground(x, z));
+        }
+        for (i, w) in events.warps.iter().enumerate().take(6) {
+            let (x, z) = (crate::events::tile_to_local(w.x as f32 / 18.0, zone.column), crate::events::tile_to_local(w.z as f32 / 18.0, zone.row));
+            println!("  warp {i}: to zone {} exit {} at ({}, {}, {}) size {}x{} -> local ({x:.0}, {z:.0}), ground {:?}", w.zone, w.exit, w.x, w.y, w.z, w.width, w.depth, ground(x, z));
+        }
+        for (i, s) in events.signs.iter().enumerate().take(6) {
+            let (x, z) = (crate::events::tile_to_local(s.x as f32 + 0.5, zone.column), crate::events::tile_to_local(s.z as f32 + 0.5, zone.row));
+            println!("  sign {i}: tile ({}, {}) size {}x{} id {} height {} -> local ({x:.0}, {z:.0}), ground {:?}", s.x, s.z, s.width, s.depth, s.id, s.height, ground(x, z));
+        }
+    }
+    Ok(())
+}
+
+/// Changes some events of a zone, writes them as lines of the file, reads the
+/// lines again and checks that the events are the same.
+pub fn events_file_test(arc_dir: &str, zone: usize) -> Result<(), String> {
+    use crate::events::{self, ZoneEvents};
+    let base = events::read_zone_events(arc_dir, zone)?;
+    let mut now: ZoneEvents = base.clone();
+    if let Some(c) = now.characters.first_mut() {
+        c.script = 777;
+        c.x += 1;
+    }
+    if let Some(w) = now.warps.first_mut() {
+        w.exit = 3;
+    }
+    now.signs.push(events::Sign { raw: Vec::new(), id: 65535, kind: 1, facing: 4, x: 5, z: 6, width: 1, depth: 2, height: -72 });
+    now.triggers.push(events::Trigger { raw: Vec::new(), id: 65535, param: 1, work_id: 2, check_kind: 0, x: 7, z: 8, width: 1, depth: 1, height: -72 });
+    now.warps.push(events::Warp { raw: Vec::new(), zone: zone as u16, exit: 0, facing: 2, kind: 1, x: 99, y: -72, z: 117, width: 1, depth: 1 });
+    now.characters.push(events::new_character(zone as u16, 50, 4, 5, -72.0));
+    // A line of another zone must stay.
+    let old = "# comment\n12 S+ 0 1 2 1 1 0 65535 4 0\n";
+    let text = events::merge_file(old, zone, &base, &now);
+    println!("{text}");
+    let mut back = base.clone();
+    events::apply_file(zone, &mut back, &text);
+    println!("same events after reading the file again: {}", back == now || {
+        // The tail and the head are not in the file; the lists must be the same.
+        back.signs == now.signs && back.triggers == now.triggers && back.warps == now.warps
+            && back.characters.iter().zip(&now.characters).all(|(a, b)| a.script == b.script && a.x == b.x && a.z == b.z && a.model == b.model && a.height == b.height)
+            && back.characters.len() == now.characters.len()
+    });
+    println!("line of the other zone kept: {}", text.contains("12 S+ 0"));
+    // Writing again must give the same text.
+    let again = events::merge_file(&text, zone, &base, &now);
+    println!("writing twice gives the same file: {}", again == text);
+    Ok(())
+}
+
+/// Writes every zone again from its events and checks that the data is the
+/// same as the data of the game; then adds and takes away events and checks
+/// that the pack can be read again.
+pub fn zone_roundtrip(arc_dir: &str) -> Result<(), String> {
+    let zones = crate::garc::read(&std::path::PathBuf::from(arc_dir).join("zonedata_y.garc"))?;
+    let (mut same, mut different, mut unreadable) = (0, 0, 0);
+    for (zone, file) in zones.iter().enumerate() {
+        let Some(raw) = file.first() else { continue };
+        let data = if raw.first() == Some(&0x11) { crate::lz11::decompress(raw)? } else { raw.clone() };
+        let Ok((_, parts)) = crate::pack::split(&data) else {
+            unreadable += 1;
+            continue;
+        };
+        let Some(part) = parts.get(1) else { continue };
+        let Ok(events) = crate::events::ZoneEvents::parse(part) else {
+            unreadable += 1;
+            continue;
+        };
+        let rebuilt = events.to_bytes();
+        if rebuilt == *part || rebuilt[..part.len().min(rebuilt.len())] == part[..part.len().min(rebuilt.len())] && rebuilt.len() - part.len().min(rebuilt.len()) < 4 {
+            same += 1;
+        } else {
+            different += 1;
+            if different <= 3 {
+                println!("zone {zone}: {} bytes before, {} after", part.len(), rebuilt.len());
+            }
+        }
+    }
+    println!("{same} zones identical, {different} different, {unreadable} unreadable");
+
+    // A change: add a character, take away a warp; write the pack, read it again.
+    let sd = std::env::temp_dir().join("map_studio_zone_test");
+    let sd = sd.to_str().unwrap_or(".").to_string();
+    let zone = 100;
+    let mut events = crate::events::read_zone_events(arc_dir, zone)?;
+    let (chars, warps) = (events.characters.len(), events.warps.len());
+    events.characters.push(crate::events::new_character(zone as u16, 77, 3, 4, -72.0));
+    events.warps.remove(0);
+    println!("{}", crate::events::write_zone_override(arc_dir, &sd, zone, &events)?);
+    let back = crate::events::read_zone_override(&sd, zone).ok_or("cannot read the pack again")?;
+    println!(
+        "characters {chars} -> {}, warps {warps} -> {}; same lists after reading: {}; size field {} for {} bytes of records",
+        back.characters.len(), back.warps.len(), back.characters.len() == chars + 1 && back.warps.len() == warps - 1,
+        u32::from_le_bytes([back.head[0], back.head[1], back.head[2], back.head[3]]),
+        20 * back.signs.len() + 48 * back.characters.len() + 24 * back.warps.len() + 24 * back.triggers.len()
+    );
+    // The parts after the events must be the same as in the game.
+    let raw = std::fs::read(std::path::Path::new(&sd).join("zone").join(format!("{zone}.bin"))).map_err(|e| e.to_string())?;
+    let data = crate::lz11::decompress(&raw)?;
+    let (_, now_parts) = crate::pack::split(&data)?;
+    let game = crate::lz11::decompress(zones[zone].first().ok_or("no zone")?)?;
+    let (_, game_parts) = crate::pack::split(&game)?;
+    for i in 0..game_parts.len() {
+        if i != 1 {
+            println!("part {i} same: {}", game_parts[i] == now_parts[i]);
+        }
+    }
+    // The reset takes the file and the index away.
+    println!("{}", crate::events::reset_zone(&sd, zone)?);
+    println!(
+        "file gone: {}, index gone: {}, reading gives the game again: {}",
+        !std::path::Path::new(&sd).join("zone").join("100.bin").exists(),
+        !std::path::Path::new(&sd).join("zone").join("index.bin").exists(),
+        crate::events::read_zone_override(&sd, zone).is_none()
+    );
+    Ok(())
+}

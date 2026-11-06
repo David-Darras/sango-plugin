@@ -29,8 +29,14 @@ pub const ALIGNMENT: usize = 0x80;
 /// the table of offsets follows. `new_part` must have a size that is a
 /// multiple of the alignment.
 pub fn replace_part(pack: &[u8], index: usize, new_part: &[u8]) -> Result<Vec<u8>, String> {
+    replace_part_with(pack, index, new_part, ALIGNMENT)
+}
+
+/// Like `replace_part`, for a pack whose parts have another alignment (the
+/// packs of the zones: 4 bytes).
+pub fn replace_part_with(pack: &[u8], index: usize, new_part: &[u8], alignment: usize) -> Result<Vec<u8>, String> {
     let ranges = ranges(pack)?;
-    if index >= ranges.len() || new_part.len() % ALIGNMENT != 0 {
+    if index >= ranges.len() || new_part.len() % alignment != 0 {
         return Err("cannot replace this part".into());
     }
     let header_size = ranges[0].0;

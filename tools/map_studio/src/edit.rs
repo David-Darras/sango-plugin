@@ -601,10 +601,13 @@ impl EditableBlock {
             let blob = piece.blob.as_ref().ok_or_else(|| format!("the material {} was not copied with the object", piece.material))?;
             // A mesh of this block that is made like the piece gives the shape of the new mesh.
             let needed = piece.vertices.len() / piece.stride.max(1);
+            // The mesh that has the same material (an earlier import, or the
+            // block itself) is the model, so that the new mesh shows the same picture.
             let template = self
                 .meshes
                 .iter()
-                .position(|(p, m)| *p == 1 && m.places.layout == piece.layout && (m.places.index_width == 2 || needed <= 256))
+                .position(|(p, m)| *p == 1 && m.material == piece.material && m.places.layout == piece.layout && (m.places.index_width == 2 || needed <= 256))
+                .or_else(|| self.meshes.iter().position(|(p, m)| *p == 1 && m.places.layout == piece.layout && (m.places.index_width == 2 || needed <= 256)))
                 .or_else(|| self.meshes.iter().position(|(p, m)| *p == 1 && m.places.layout == piece.layout))
                 .ok_or_else(|| format!("this block has no mesh with the vertices of {}", piece.material))?;
             let (part, like) = &self.meshes[template];
@@ -897,6 +900,28 @@ pub fn write_index(folder: &Path, id: usize, size: usize) -> Result<(), String> 
         }
     }
     entries.insert(id as u32, size as u32);
+    let mut index = (entries.len() as u32).to_le_bytes().to_vec();
+    for (id, size) in entries {
+        index.extend_from_slice(&id.to_le_bytes());
+        index.extend_from_slice(&size.to_le_bytes());
+    }
+    std::fs::write(&index_path, index).map_err(|e| format!("{}: {e}", index_path.display()))
+}
+
+/// Takes a file out of the list `index.bin` of a folder of the SD card. The
+/// list goes when it has no file left.
+pub fn remove_index(folder: &Path, id: usize) -> Result<(), String> {
+    let index_path = folder.join("index.bin");
+    let Ok(old) = std::fs::read(&index_path) else { return Ok(()) };
+    let count = garc::u32_at(&old, 0)? as usize;
+    let mut entries: BTreeMap<u32, u32> = Default::default();
+    for i in 0..count {
+        entries.insert(garc::u32_at(&old, 4 + 8 * i)?, garc::u32_at(&old, 8 + 8 * i)?);
+    }
+    entries.remove(&(id as u32));
+    if entries.is_empty() {
+        return std::fs::remove_file(&index_path).map_err(|e| format!("{}: {e}", index_path.display()));
+    }
     let mut index = (entries.len() as u32).to_le_bytes().to_vec();
     for (id, size) in entries {
         index.extend_from_slice(&id.to_le_bytes());

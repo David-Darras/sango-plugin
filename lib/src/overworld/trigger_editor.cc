@@ -92,7 +92,7 @@ bool TriggerEditor::LoadLine(const c8* line) {
   const bool is_known =
       ((type == 'S' || type == 'T' || type == 'W') &&
        (mode == '+' || mode == '=')) ||
-      (type == 'C' && mode == '=');
+      (type == 'C' && (mode == '=' || mode == '+'));
   if (!is_known) return false;
   p += 2;
   if (!core::ParseInt(p, index)) return false;
@@ -144,8 +144,18 @@ bool TriggerEditor::LoadLine(const c8* line) {
     warp.exit_kind = static_cast<u8>(f[8]);
     warp.position_kind = 0;
   } else {
-    record->kind = kEditedCharacter;
+    record->kind = mode == '+' ? kAddedCharacter : kEditedCharacter;
     CharacterPlacement& c = record->character;
+    if (mode == '+') {
+      // A new character: the numbers that the file does not give. Its
+      // local number comes when the map loads.
+      c = CharacterPlacement{};
+      c.displayed_on_map_id = static_cast<MapId>(map);
+      c.owned_by_map_id = static_cast<MapId>(map);
+      c.map_id = static_cast<MapId>(map);
+      c.alias_id = 0xFFFF;
+      c.position.kind = PositionKind::kTileGrid;
+    }
     c.position.tile_x = static_cast<u16>(f[0]);
     c.position.tile_z = static_cast<u16>(f[1]);
     c.position.height = static_cast<f32>(f[2]);
@@ -183,6 +193,7 @@ void TriggerEditor::TakeTables() {
 }
 
 void TriggerEditor::ApplyRecords() {
+  added_character_count_ = 0;
   for (const Record& record : records_) {
     if (!record.is_used || record.map != map_) continue;
     switch (record.kind) {
@@ -207,6 +218,11 @@ void TriggerEditor::ApplyRecords() {
         break;
       case kAddedWarp:
         if (warp_count_ < kMaxWarps) warps_[warp_count_++] = record.warp;
+        break;
+      case kAddedCharacter:
+        if (added_character_count_ < kMaxCharactersPerMap) {
+          added_characters_[added_character_count_++] = record.character;
+        }
         break;
       case kEditedCharacter:
         if (events_ != nullptr && events_->characters != nullptr &&
@@ -267,6 +283,27 @@ void TriggerEditor::OnMapEventsLoaded(MapEventData* events) {
   self.map_ = static_cast<u16>(events->map_id);
   self.TakeTables();
   self.ApplyRecords();
+  // The new characters: the list of the map is copied, with them at the end.
+  // The game builds the models of the characters from this list later.
+  if (self.added_character_count_ != 0) {
+    const u32 total = events->character_count;
+    u32 room = kMaxCharactersPerMap > total ? kMaxCharactersPerMap - total : 0;
+    u32 added = self.added_character_count_ < room ? self.added_character_count_ : room;
+    u16 next_local_id = 0;
+    for (u32 i = 0; i < total; i++) {
+      self.merged_characters_[i] = events->characters[i];
+      if (events->characters[i].local_id >= next_local_id) {
+        next_local_id = events->characters[i].local_id + 1;
+      }
+    }
+    for (u32 i = 0; i < added; i++) {
+      self.merged_characters_[total + i] = self.added_characters_[i];
+      self.merged_characters_[total + i].local_id = next_local_id++;
+    }
+    events->characters = self.merged_characters_;
+    events->character_count = static_cast<u16>(total + added);
+    events->character_capacity = static_cast<u16>(total + added);
+  }
   events->signs = self.signs_;
   events->sign_count = self.sign_count_;
   events->triggers = self.triggers_;
@@ -509,6 +546,7 @@ bool TriggerEditor::Save() {
   for (u32 i = 0; i < self.character_count_; i++) {
     if (IsCharacterChanged(i)) needed++;
   }
+  needed += self.added_character_count_;
   u32 others = 0;
   for (const Record& record : self.records_) {
     if (record.is_used && record.map != self.map_) others++;
@@ -552,6 +590,14 @@ bool TriggerEditor::Save() {
     record->character = self.events_->characters[i];
   }
 
+  for (u32 i = 0; i < self.added_character_count_; i++) {
+    Record* record = self.NewRecord();
+    record->kind = kAddedCharacter;
+    record->map = self.map_;
+    record->index = static_cast<u16>(i);
+    record->character = self.added_characters_[i];
+  }
+
   self.has_baseline_ = false;
   if (GetRecordCount() == 0) {
     sys::File::Delete(kPath);
@@ -570,7 +616,9 @@ bool TriggerEditor::Save() {
     const bool is_sign =
         record.kind == kAddedSign || record.kind == kEditedSign;
     const c8 mode = (record.kind == kAddedSign || record.kind == kAddedTrigger ||
-                     record.kind == kAddedWarp) ? '+' : '=';
+                     record.kind == kAddedWarp || record.kind == kAddedCharacter)
+                        ? '+'
+                        : '=';
     if (record.kind == kAddedWarp || record.kind == kEditedWarp) {
       const WarpEvent& w = record.warp;
       length = snprintf(line, sizeof(line), "%u W%c %u %d %d %d %u %u %u %u %d %u\n",
@@ -579,11 +627,11 @@ bool TriggerEditor::Save() {
                         (unsigned)w.world.width, (unsigned)w.world.depth,
                         (unsigned)static_cast<u16>(w.map_id), (unsigned)w.exit_id,
                         (int)static_cast<u8>(w.exit_facing), (unsigned)w.exit_kind);
-    } else if (record.kind == kEditedCharacter) {
+    } else if (record.kind == kEditedCharacter || record.kind == kAddedCharacter) {
       const CharacterPlacement& c = record.character;
       length = snprintf(line, sizeof(line),
-                        "%u C= %u %u %u %d %d %u %u %u %u %u %u %u %u %d %d %d %d\n",
-                        (unsigned)record.map, (unsigned)record.index,
+                        "%u C%c %u %u %u %d %d %u %u %u %u %u %u %u %u %d %d %d %d\n",
+                        (unsigned)record.map, mode, (unsigned)record.index,
                         (unsigned)c.position.tile_x, (unsigned)c.position.tile_z,
                         (int)c.position.height, (int)static_cast<u8>(c.facing),
                         (unsigned)static_cast<u32>(c.script_id), (unsigned)c.movement_id,

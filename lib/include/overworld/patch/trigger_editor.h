@@ -141,7 +141,8 @@ private:
     kEditedTrigger,
     kAddedWarp,
     kEditedWarp,
-    kEditedCharacter
+    kEditedCharacter,
+    kAddedCharacter
   };
 
   struct Record {
@@ -184,6 +185,11 @@ private:
   WarpEvent warps_[kMaxWarps] = {};
   WarpEvent shipped_warps_[kMaxWarps] = {};
   CharacterPlacement shipped_characters_[kMaxCharactersPerMap] = {};
+  // The characters that the file adds (`C+`), and the list of the map with
+  // them: the characters of the game, then the new ones.
+  CharacterPlacement added_characters_[kMaxCharactersPerMap] = {};
+  CharacterPlacement merged_characters_[kMaxCharactersPerMap] = {};
+  u16 added_character_count_ = 0;
   // The tables of the previous map: the game still uses them when the player
   // walks to the next map without a loading screen.
   SignEvent frozen_signs_[kMaxSigns] = {};

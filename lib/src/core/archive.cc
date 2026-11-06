@@ -124,6 +124,7 @@ static constexpr u32 kOverworldToken = 0x40000000;
 static constexpr u32 kLandToken = 0xC0000000;
 static constexpr u32 kAreaToken = 0xD0000000;
 static constexpr u32 kMatrixToken = 0xE0000000;
+static constexpr u32 kZoneToken = 0x50000000;
 static constexpr u32 kItemIconToken = 0xF0000000;
 static constexpr u32 kItemDataToken = 0xB0000000;
 static constexpr u32 kTrainerModelToken = 0xA0000000;
@@ -137,6 +138,7 @@ static OverrideEntry overworld_entries[1024];
 static OverrideEntry land_entries[1024];
 static OverrideEntry area_entries[512];
 static OverrideEntry matrix_entries[512];
+static OverrideEntry zone_entries[1024];
 static OverrideEntry trainer_model_entries[256];
 static OverrideEntry trainer_sequence_entries[64];
 static OverrideEntry trainer_layout_entries[8];
@@ -164,6 +166,11 @@ static OverrideSet override_sets[] = {
      false},
     {ArchiveId::kMapMatrix, u"sdmc:/sango/matrix/index.bin",
      u"sdmc:/sango/matrix/%d.bin", kMatrixToken, true, matrix_entries, 512, 0,
+     false},
+    // The packs of the zones (the events: characters, warps, signs, triggers)
+    // that Map Studio writes.
+    {ArchiveId::kZoneData, u"sdmc:/sango/zone/index.bin",
+     u"sdmc:/sango/zone/%d.bin", kZoneToken, true, zone_entries, 1024, 0,
      false},
     // The models of the trainers of X and Y: the files after the last file of
     // the archive (see battle::TrainerModelExtension).

@@ -3,6 +3,7 @@
 mod bch;
 mod bch_edit;
 mod catalog;
+mod events;
 mod thumb;
 mod commands;
 mod data;
@@ -127,6 +128,10 @@ fn main() {
         Some("area-pictures-test") if args.len() >= 6 => commands::area_pictures_test(&args[2], number(3).unwrap_or(0), number(4).unwrap_or(0), &args[5..].to_vec()),
         Some("drop-area-test") if args.len() >= 7 => commands::drop_area_test(&args[2], &args[3], &args[4], number(5).unwrap_or(0), &args[6]),
         Some("model-strings") if args.len() >= 6 => commands::model_strings(&args[2], &args[3], &args[4], number(5).unwrap_or(0)),
+        Some("tile-twice-test") if args.len() >= 7 => commands::tile_twice_test(&args[2], &args[3], number(4).unwrap_or(0), number(5).unwrap_or(10), number(6).unwrap_or(0)),
+        Some("zone-check") if args.len() >= 4 => commands::zone_check(&args[2], block),
+        Some("events-file-test") if args.len() >= 4 => commands::events_file_test(&args[2], number(3).unwrap_or(0)),
+        Some("zone-roundtrip") if args.len() >= 3 => commands::zone_roundtrip(&args[2]),
         Some("check") if args.len() >= 5 => commands::check(&args[2], block, &args[4]),
         _ => Err(USAGE.to_string()),
     };
