@@ -46,6 +46,11 @@ pub struct Instance {
     pub yaw: f32,
     pub copy: bool,
     pub deleted: bool,
+    /// Only the parts of the object that are in these meshes (numbers of the
+    /// meshes of the original block). `None`: all the parts. A piece that has
+    /// several meshes can be cut in two instances: one for some meshes, one
+    /// for the others.
+    pub only: Option<Vec<usize>>,
 }
 
 /// What an undo brings back: the instances and the tiles.
@@ -241,7 +246,7 @@ impl Editor {
         }
 
         let instances = (0..clusters.len())
-            .map(|cluster| Instance { cluster, offset: [0.0; 3], yaw: 0.0, copy: false, deleted: false })
+            .map(|cluster| Instance { cluster, offset: [0.0; 3], yaw: 0.0, copy: false, deleted: false, only: None })
             .collect();
         let attributes = original.attributes()?;
         let native = clusters.len();
@@ -281,21 +286,53 @@ impl Editor {
         &self.original.meshes[mesh].1.material
     }
 
-    /// The horizontal centre of an object of the original block.
-    fn cluster_centre(&self, cluster: usize) -> [f32; 2] {
-        let c = &self.clusters[cluster];
-        [(c.low[0] + c.high[0]) / 2.0, (c.low[2] + c.high[2]) / 2.0]
+    /// The parts of an object that an instance moves.
+    fn active_parts<'a>(&'a self, instance: &Instance) -> Vec<&'a (usize, Vec<usize>)> {
+        self.clusters[instance.cluster]
+            .parts
+            .iter()
+            .filter(|(mesh, _)| instance.only.as_ref().map_or(true, |meshes| meshes.contains(mesh)))
+            .collect()
+    }
+
+    /// The box of an instance in the original block, before its turn and its
+    /// offset: of its parts only, when it has only some of them.
+    fn base_bounds(&self, instance: &Instance) -> ([f32; 3], [f32; 3]) {
+        let c = &self.clusters[instance.cluster];
+        if instance.only.is_none() || c.foreign.is_some() {
+            return (c.low, c.high);
+        }
+        let (mut low, mut high) = ([f32::MAX; 3], [f32::MIN; 3]);
+        for (mesh, vertices) in self.active_parts(instance) {
+            let (l, h) = bounds(&self.original.meshes[*mesh].1, vertices);
+            for a in 0..3 {
+                low[a] = low[a].min(l[a]);
+                high[a] = high[a].max(h[a]);
+            }
+        }
+        if low[0] > high[0] { (c.low, c.high) } else { (low, high) }
+    }
+
+    /// The horizontal centre of an instance in the original block.
+    fn base_centre(&self, instance: &Instance) -> [f32; 2] {
+        let (l, h) = self.base_bounds(instance);
+        [(l[0] + h[0]) / 2.0, (l[2] + h[2]) / 2.0]
     }
 
     /// The box of an instance, with its turn and its offset.
     pub fn instance_bounds(&self, instance: usize) -> ([f32; 3], [f32; 3]) {
         let i = &self.instances[instance];
-        let c = &self.clusters[i.cluster];
-        let centre = self.cluster_centre(i.cluster);
+        let (base_low, base_high) = self.base_bounds(i);
+        let centre = [(base_low[0] + base_high[0]) / 2.0, (base_low[2] + base_high[2]) / 2.0];
         let (sin, cos) = i.yaw.sin_cos();
-        let mut low = [f32::MAX, c.low[1], f32::MAX];
-        let mut high = [f32::MIN, c.high[1], f32::MIN];
-        for (x, z) in [(c.low[0], c.low[2]), (c.low[0], c.high[2]), (c.high[0], c.low[2]), (c.high[0], c.high[2])] {
+        let mut low = [f32::MAX, base_low[1], f32::MAX];
+        let mut high = [f32::MIN, base_high[1], f32::MIN];
+        for (x, z) in [
+            (base_low[0], base_low[2]),
+            (base_low[0], base_high[2]),
+            (base_high[0], base_low[2]),
+            (base_high[0], base_high[2]),
+        ] {
             let (dx, dz) = (x - centre[0], z - centre[1]);
             let (tx, tz) = (centre[0] + cos * dx - sin * dz, centre[1] + sin * dx + cos * dz);
             low[0] = low[0].min(tx);
@@ -310,6 +347,132 @@ impl Editor {
         (low, high)
     }
 
+    /// The meshes that an instance holds and the number of vertices in each.
+    pub fn instance_parts(&self, instance: usize) -> Vec<(String, usize)> {
+        let i = &self.instances[instance];
+        if let Some(object) = &self.clusters[i.cluster].foreign {
+            return object.parts.iter().map(|p| (p.material.clone(), p.vertices.len() / p.stride)).collect();
+        }
+        self.active_parts(i).into_iter().map(|(m, v)| (self.original.meshes[*m].1.material.clone(), v.len())).collect()
+    }
+
+    /// The meshes that go together: the names that are the same but for the
+    /// last word (`pokecen_out_pc_base`, `pokecen_out_pc_window`...). A name
+    /// that starts with `chip` is too common to join anything.
+    pub fn family_meshes(&self, mesh: usize) -> Vec<usize> {
+        fn key(name: &str) -> &str {
+            match name.rfind('_') {
+                Some(at) if at >= 4 && !name.starts_with("chip_") => &name[..at],
+                _ => name,
+            }
+        }
+        let wanted = key(&self.original.meshes[mesh].1.material).to_string();
+        (0..self.original.meshes.len())
+            .filter(|&m| self.selectable[m] && key(&self.original.meshes[m].1.material) == wanted)
+            .collect()
+    }
+
+    /// The box of the parts of an instance that are in some meshes, with the
+    /// offset of the instance. None when it has no such part.
+    fn box_in_meshes(&self, instance: usize, meshes: &[usize]) -> Option<([f32; 3], [f32; 3])> {
+        let i = &self.instances[instance];
+        let (mut low, mut high) = ([f32::MAX; 3], [f32::MIN; 3]);
+        for (mesh, vertices) in self.active_parts(i) {
+            if meshes.contains(mesh) {
+                let (l, h) = bounds(&self.original.meshes[*mesh].1, vertices);
+                for a in 0..3 {
+                    low[a] = low[a].min(l[a] + i.offset[a]);
+                    high[a] = high[a].max(h[a] + i.offset[a]);
+                }
+            }
+        }
+        (low[0] <= high[0]).then_some((low, high))
+    }
+
+    /// The whole building that a piece belongs to: the pieces of the same
+    /// family of meshes that touch each other, from this piece. The pieces
+    /// that also have other meshes are cut, so that only the building is
+    /// taken. Returns the instances of the building.
+    pub fn building_of(&mut self, instance: usize, mesh: usize) -> Result<Vec<usize>, String> {
+        // Two pieces of a building are one when their boxes are this close.
+        let gap: f32 = 6.0;
+        // The trees and the decorations (`chip_...`) are already whole objects.
+        if self.original.meshes[mesh].1.material.starts_with("chip_") {
+            return Ok(vec![instance]);
+        }
+        let family = self.family_meshes(mesh);
+        let candidates: Vec<(usize, ([f32; 3], [f32; 3]))> = (0..self.instances.len())
+            .filter(|&i| !self.instances[i].deleted && self.clusters[self.instances[i].cluster].foreign.is_none())
+            .filter_map(|i| self.box_in_meshes(i, &family).map(|b| (i, b)))
+            .collect();
+        if !candidates.iter().any(|(i, _)| *i == instance) {
+            return Ok(vec![instance]);
+        }
+        let touches = |a: &([f32; 3], [f32; 3]), b: &([f32; 3], [f32; 3])| {
+            a.0[0] - gap <= b.1[0] && b.0[0] - gap <= a.1[0] && a.0[2] - gap <= b.1[2] && b.0[2] - gap <= a.1[2]
+        };
+        let mut found = vec![instance];
+        let mut next = 0;
+        while next < found.len() {
+            let current = candidates.iter().find(|(i, _)| *i == found[next]).map(|(_, b)| *b);
+            next += 1;
+            let Some(current) = current else { continue };
+            for (i, b) in &candidates {
+                if !found.contains(i) && touches(&current, b) {
+                    found.push(*i);
+                }
+            }
+        }
+        self.isolate_in(Some(&found), &family)
+    }
+
+    /// Makes the instances that have vertices in some meshes hold only these
+    /// meshes: an instance that has other meshes too is cut in two, the part
+    /// in these meshes and the rest. This is how to take a building that has
+    /// its own meshes (a Pokemon Center) and nothing else. Returns the
+    /// instances that hold these meshes.
+    pub fn isolate_meshes(&mut self, meshes: &[usize]) -> Result<Vec<usize>, String> {
+        self.isolate_in(None, meshes)
+    }
+
+    /// Like `isolate_meshes`, for some instances only (or all, with `None`).
+    pub fn isolate_in(&mut self, only_these: Option<&[usize]>, meshes: &[usize]) -> Result<Vec<usize>, String> {
+        let mut found: Vec<usize> = Vec::new();
+        let mut splits: Vec<(usize, Vec<usize>, Vec<usize>)> = Vec::new();
+        for (index, instance) in self.instances.iter().enumerate() {
+            if instance.deleted || self.clusters[instance.cluster].foreign.is_some() {
+                continue;
+            }
+            if only_these.is_some_and(|list| !list.contains(&index)) {
+                continue;
+            }
+            let active: Vec<usize> = self.active_parts(instance).iter().map(|p| p.0).collect();
+            let inside: Vec<usize> = active.iter().copied().filter(|m| meshes.contains(m)).collect();
+            if inside.is_empty() {
+                continue;
+            }
+            if inside.len() == active.len() {
+                found.push(index);
+            } else {
+                splits.push((index, inside, active.iter().copied().filter(|m| !meshes.contains(m)).collect()));
+            }
+        }
+        if !splits.is_empty() {
+            let first = self.instances.len();
+            let todo = splits.clone();
+            self.change(|v| {
+                for (i, inside, rest) in &todo {
+                    v[*i].only = Some(rest.clone());
+                    let mut part = v[*i].clone();
+                    part.only = Some(inside.clone());
+                    v.push(part);
+                }
+            })?;
+            found.extend(first..first + splits.len());
+        }
+        Ok(found)
+    }
+
     /// Builds the block again from the original block and the instances.
     fn rebuild(&mut self) -> Result<(), String> {
         let mut block = self.original.clone();
@@ -318,9 +481,9 @@ impl Editor {
         let requests: Vec<CopyRequest> = copies
             .iter()
             .map(|&i| CopyRequest {
-                source: self.clusters[self.instances[i].cluster].parts.clone(),
+                source: self.active_parts(&self.instances[i]).into_iter().cloned().collect(),
                 foreign: self.clusters[self.instances[i].cluster].foreign.clone(),
-                centre: self.cluster_centre(self.instances[i].cluster),
+                centre: self.base_centre(&self.instances[i]),
                 yaw: self.instances[i].yaw,
                 delta: self.instances[i].offset,
             })
@@ -328,19 +491,18 @@ impl Editor {
         let added = if requests.is_empty() { Vec::new() } else { block.copy_groups(&requests)? };
 
         // The objects of the original block: deleted or moved in place.
-        for (index, instance) in self.instances.iter().enumerate() {
+        for instance in self.instances.iter() {
             if instance.copy {
                 continue;
             }
-            let centre = self.cluster_centre(instance.cluster);
-            for (mesh, vertices) in &self.clusters[instance.cluster].parts {
+            let centre = self.base_centre(instance);
+            for (mesh, vertices) in self.active_parts(instance) {
                 if instance.deleted {
                     block.delete_group(*mesh, vertices)?;
                 } else if instance.offset != [0.0; 3] || instance.yaw != 0.0 {
                     block.transform(*mesh, vertices, centre, instance.yaw, instance.offset)?;
                 }
             }
-            let _ = index;
         }
 
         let mut owner: Vec<Vec<Option<usize>>> = block.meshes.iter().map(|(_, m)| vec![None; m.positions.len()]).collect();
@@ -348,7 +510,7 @@ impl Editor {
             if instance.copy {
                 continue;
             }
-            for (mesh, vertices) in &self.clusters[instance.cluster].parts {
+            for (mesh, vertices) in self.active_parts(instance) {
                 for &v in vertices {
                     owner[*mesh][v] = Some(index);
                 }
@@ -488,9 +650,92 @@ impl Editor {
         self.portable_of_cluster(cluster)
     }
 
+    /// Several objects as one: the pieces that use the same mesh are joined.
+    /// The object is as it is in the original block. It cannot be found again
+    /// from a project, so its origin is not a block of the archive.
+    pub fn portable_of_many(&self, instances: &[usize]) -> Result<Portable, String> {
+        let mut joined: Option<Portable> = None;
+        for &i in instances {
+            let object = self.portable_of(i)?;
+            let Some(all) = joined.as_mut() else {
+                joined = Some(object);
+                continue;
+            };
+            for a in 0..3 {
+                all.low[a] = all.low[a].min(object.low[a]);
+                all.high[a] = all.high[a].max(object.high[a]);
+            }
+            for piece in object.parts {
+                match all.parts.iter_mut().find(|p| p.material == piece.material && p.layout == piece.layout) {
+                    Some(target) => {
+                        let first = (target.vertices.len() / target.stride) as u32;
+                        target.vertices.extend_from_slice(&piece.vertices);
+                        target.indices.extend(piece.indices.iter().map(|&i| first + i));
+                    }
+                    None => all.parts.push(piece),
+                }
+            }
+            all.origin = (NO_ORIGIN, 0);
+        }
+        joined.ok_or_else(|| "nothing is selected".to_string())
+    }
+
+    /// The instances that have vertices in a mesh of the block, as the game
+    /// reads it: all the pieces of a building that has its own meshes.
+    pub fn instances_in_mesh(&self, mesh: usize) -> Vec<usize> {
+        let Some((_, built)) = self.built.meshes.get(mesh) else { return Vec::new() };
+        let mut found: Vec<usize> = Vec::new();
+        for v in 0..built.positions.len() {
+            if let Some(i) = self.owner(mesh, v) {
+                if !self.instances[i].deleted && !found.contains(&i) {
+                    found.push(i);
+                }
+            }
+        }
+        found.sort_unstable();
+        found
+    }
+
+    /// The instances whose centre is in the box of the selection, seen from above (with a gap):
+    /// the pieces of a building that the cutting into objects left apart.
+    pub fn neighbours(&self, selection: &[usize], gap: f32) -> Vec<usize> {
+        let Some((mut low, mut high)) = selection.iter().map(|&i| self.instance_bounds(i)).reduce(|a, b| {
+            let (mut low, mut high) = a;
+            for axis in 0..3 {
+                low[axis] = low[axis].min(b.0[axis]);
+                high[axis] = high[axis].max(b.1[axis]);
+            }
+            (low, high)
+        }) else {
+            return Vec::new();
+        };
+        low[0] -= gap;
+        low[2] -= gap;
+        high[0] += gap;
+        high[2] += gap;
+        (0..self.instances.len())
+            .filter(|i| !selection.contains(i) && !self.instances[*i].deleted)
+            .filter(|&i| {
+                // The centre of the piece is in the box of the selection. A
+                // large decoration of the ground (a border of grass) has a box
+                // that touches many buildings, but its centre is elsewhere.
+                let (l, h) = self.instance_bounds(i);
+                let (cx, cz) = ((l[0] + h[0]) / 2.0, (l[2] + h[2]) / 2.0);
+                cx >= low[0] && cx <= high[0] && cz >= low[2] && cz <= high[2]
+            })
+            .collect()
+    }
+
     /// The object of an instance, as it is in the original block.
     pub fn portable_of(&self, instance: usize) -> Result<Portable, String> {
-        self.portable_of_cluster(self.instances[instance].cluster)
+        let i = &self.instances[instance];
+        if i.only.is_none() || self.clusters[i.cluster].foreign.is_some() {
+            return self.portable_of_cluster(i.cluster);
+        }
+        // A part of a piece cannot be found again from a project.
+        let parts: Vec<(usize, Vec<usize>)> = self.active_parts(i).into_iter().cloned().collect();
+        let (low, high) = self.base_bounds(i);
+        self.original.portable((NO_ORIGIN, i.cluster), &parts, low, high)
     }
 
     /// Puts an object that comes from a block in this block, as a copy at the
@@ -500,7 +745,7 @@ impl Editor {
         self.original.can_host(&object)?;
         let cluster = self.clusters.len();
         self.clusters.push(Cluster { parts: Vec::new(), low: object.low, high: object.high, foreign: Some(object) });
-        let result = self.change(|v| v.push(Instance { cluster, offset: [0.0; 3], yaw: 0.0, copy: true, deleted: false }));
+        let result = self.change(|v| v.push(Instance { cluster, offset: [0.0; 3], yaw: 0.0, copy: true, deleted: false, only: None }));
         if let Err(message) = result {
             self.clusters.pop();
             return Err(message);
@@ -532,6 +777,19 @@ impl Editor {
         for instance in &self.instances {
             let [x, y, z] = instance.offset;
             let yaw = instance.yaw;
+            if let Some(meshes) = &instance.only {
+                // A part of a piece: the meshes that it holds, as a list.
+                let list: Vec<String> = meshes.iter().map(|m| m.to_string()).collect();
+                let list = if list.is_empty() { "-".to_string() } else { list.join(",") };
+                if instance.copy {
+                    let _ = writeln!(out, "mcopy {} {list} {x} {y} {z} {} {yaw}", instance.cluster, u8::from(instance.deleted));
+                } else if instance.deleted {
+                    let _ = writeln!(out, "mdelete {} {list}", instance.cluster);
+                } else if instance.offset != [0.0; 3] || yaw != 0.0 {
+                    let _ = writeln!(out, "mmove {} {list} {x} {y} {z} {yaw}", instance.cluster);
+                }
+                continue;
+            }
             if instance.copy {
                 let _ = writeln!(out, "copy {} {x} {y} {z} {} {yaw}", instance.cluster, u8::from(instance.deleted));
             } else if instance.deleted {
@@ -556,10 +814,12 @@ impl Editor {
             return Err("this is not a project of Map Studio".into());
         }
         let mut instances: Vec<Instance> = (0..self.native)
-            .map(|cluster| Instance { cluster, offset: [0.0; 3], yaw: 0.0, copy: false, deleted: false })
+            .map(|cluster| Instance { cluster, offset: [0.0; 3], yaw: 0.0, copy: false, deleted: false, only: None })
             .collect();
         let mut tiles = self.original_tiles.clone();
         let mut imported: Vec<Cluster> = Vec::new();
+        // The parts of pieces: (kind, cluster, meshes, offset, yaw, deleted).
+        let mut masked: Vec<(String, usize, Vec<usize>, [f32; 3], f32, bool)> = Vec::new();
         let number = |word: Option<&str>| -> Result<f32, String> {
             word.and_then(|w| w.parse().ok()).ok_or_else(|| "a number is wrong in the project".to_string())
         };
@@ -607,8 +867,29 @@ impl Editor {
                     } else {
                         let deleted = number(words.next())? != 0.0;
                         let yaw = words.next().and_then(|w| w.parse().ok()).unwrap_or(0.0);
-                        instances.push(Instance { cluster, offset, yaw, copy: true, deleted });
+                        instances.push(Instance { cluster, offset, yaw, copy: true, deleted, only: None });
                     }
+                }
+                Some(kind @ ("mmove" | "mdelete" | "mcopy")) => {
+                    let cluster = number(words.next())? as usize;
+                    if cluster >= self.native + imported.len() {
+                        return Err("an object of the project does not exist".into());
+                    }
+                    let list = words.next().ok_or("a list of meshes is missing in the project")?;
+                    let meshes: Vec<usize> = if list == "-" {
+                        Vec::new()
+                    } else {
+                        list.split(',').map(|m| m.parse().map_err(|_| "a mesh is wrong in the project".to_string())).collect::<Result<_, _>>()?
+                    };
+                    let (mut offset, mut yaw, mut deleted) = ([0.0; 3], 0.0, kind == "mdelete");
+                    if kind != "mdelete" {
+                        offset = [number(words.next())?, number(words.next())?, number(words.next())?];
+                        if kind == "mcopy" {
+                            deleted = number(words.next())? != 0.0;
+                        }
+                        yaw = words.next().and_then(|w| w.parse().ok()).unwrap_or(0.0);
+                    }
+                    masked.push((kind.to_string(), cluster, meshes, offset, yaw, deleted));
                 }
                 Some("tile") => {
                     let index = number(words.next())? as usize;
@@ -617,6 +898,24 @@ impl Editor {
                 }
                 Some(_) | None => {}
             }
+        }
+        // The parts of pieces. The instance of a piece keeps the meshes that no
+        // line takes, and each line makes a new instance.
+        let mut taken: std::collections::BTreeMap<usize, Vec<usize>> = Default::default();
+        for (kind, cluster, meshes, ..) in &masked {
+            if kind != "mcopy" {
+                taken.entry(*cluster).or_default().extend(meshes);
+            }
+        }
+        for (cluster, meshes) in &taken {
+            if *cluster >= self.native {
+                return Err("a part of an object that does not come from this block".into());
+            }
+            let all: Vec<usize> = self.clusters[*cluster].parts.iter().map(|p| p.0).collect();
+            instances[*cluster].only = Some(all.into_iter().filter(|m| !meshes.contains(m)).collect());
+        }
+        for (kind, cluster, meshes, offset, yaw, deleted) in masked {
+            instances.push(Instance { cluster, offset, yaw, copy: kind == "mcopy", deleted, only: Some(meshes) });
         }
         let before = (std::mem::replace(&mut self.instances, instances), std::mem::replace(&mut self.tiles, tiles));
         let old_imported = self.clusters.split_off(self.native);

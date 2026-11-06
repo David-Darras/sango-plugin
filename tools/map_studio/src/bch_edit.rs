@@ -13,6 +13,7 @@
 //! the table of relocation.
 
 use crate::bch::register_places;
+use crate::dict;
 
 /// The kind of the entries of the table of relocation for the words of the
 /// commands: those words are in the commands, and the kinds are 0x20 and more.
@@ -30,6 +31,41 @@ const OBJECT_SIZE: usize = 0x38;
 const BLOCK_SIZE: usize = 0xd0;
 /// The alignment of the sections and of the new data.
 const ALIGNMENT: usize = 0x80;
+/// The size of what a material owns in the content: the block of the
+/// parameters (0x110 bytes), the block of the pictures (0x30 bytes) and the
+/// dictionary of the parameters of the shader. The materials of the buildings
+/// all have this size (44 words of commands).
+const MATERIAL_REGION: usize = 0x418;
+/// The size of a material in the table of the materials of the model.
+const MATERIAL_SIZE: usize = 0x2c;
+/// The number of words of the main list of commands of a material.
+const MATERIAL_COMMAND_WORDS: usize = 44;
+
+/// Everything that a material is, taken from a model file, so that another
+/// model file can get the same material. It has data of the game.
+#[derive(Clone, Debug)]
+pub struct MaterialBlob {
+    /// The name of the material, and the name that the game gives to its
+    /// parameters (the name with the name of the block).
+    pub name: String,
+    pub label: String,
+    /// Where the block of the parameters was in the file that it comes from.
+    pub params_at: usize,
+    /// The 0x2c bytes of the material in the table of the model.
+    pub header: Vec<u8>,
+    /// The words of the header that the game corrects: the kind and the place.
+    pub header_entries: Vec<(u8, usize)>,
+    /// The words of the header that name a string: the place and the text.
+    pub header_strings: Vec<(usize, String)>,
+    pub region: Vec<u8>,
+    pub region_entries: Vec<(u8, usize)>,
+    pub region_strings: Vec<(usize, String)>,
+    /// The two lists of commands, one after the other: the second list (the
+    /// longest) and the main list of 44 words.
+    pub commands: Vec<u8>,
+    /// The number of words of the second list.
+    pub second_words: usize,
+}
 
 /// The geometry of the new object.
 pub struct NewGeometry {
@@ -76,6 +112,7 @@ struct Builder {
     content_extra: Vec<u8>,
     commands_extra: Vec<u8>,
     raw_extra: Vec<u8>,
+    strings_extra: Vec<u8>,
     added: Vec<u32>,
 }
 
@@ -102,6 +139,7 @@ impl Builder {
             content_extra: Vec::new(),
             commands_extra: Vec::new(),
             raw_extra: Vec::new(),
+            strings_extra: Vec::new(),
             added: Vec::new(),
         })
     }
@@ -112,6 +150,59 @@ impl Builder {
 
     fn commands_span(&self) -> usize {
         self.raw - self.commands
+    }
+
+    fn strings_span(&self) -> usize {
+        self.commands - self.strings
+    }
+
+    /// The text at a place of the strings (a text ends with a zero byte).
+    fn text_at(&self, offset: usize) -> String {
+        let all = &self.bytes[self.strings..self.commands];
+        let tail = all.get(offset..).unwrap_or(&[]);
+        let end = tail.iter().position(|&c| c == 0).unwrap_or(tail.len());
+        String::from_utf8_lossy(&tail[..end]).into_owned()
+    }
+
+    /// The place of a text in the strings: the one that is there, or a new
+    /// one at the end.
+    fn string_offset(&mut self, text: &str) -> usize {
+        // The texts that are there start after a zero byte (or at the start).
+        let all = &self.bytes[self.strings..self.commands];
+        let mut start = 0;
+        for (at, &c) in all.iter().enumerate() {
+            if c == 0 {
+                if at > start && &all[start..at] == text.as_bytes() {
+                    return start;
+                }
+                start = at + 1;
+            }
+        }
+        // A text that was added before.
+        let mut start = 0;
+        let extra = &self.strings_extra;
+        for (at, &c) in extra.iter().enumerate() {
+            if c == 0 {
+                if at > start && &extra[start..at] == text.as_bytes() {
+                    return self.strings_span() + start;
+                }
+                start = at + 1;
+            }
+        }
+        let at = self.strings_span() + self.strings_extra.len();
+        self.strings_extra.extend_from_slice(text.as_bytes());
+        self.strings_extra.push(0);
+        at
+    }
+
+    /// The place that the next data of the content will have.
+    fn next_content(&self) -> usize {
+        align(self.content_span() + self.content_extra.len(), 16)
+    }
+
+    /// The place that the next data of the commands will have.
+    fn next_commands(&self) -> usize {
+        align(self.commands_span() + self.commands_extra.len(), 16)
     }
 
     fn raw_first(&self) -> usize {
@@ -176,6 +267,7 @@ impl Builder {
     /// Builds the new file.
     fn finish(self) -> Vec<u8> {
         let content_pad = align(self.content_extra.len(), ALIGNMENT);
+        let strings_pad = align(self.strings_extra.len(), ALIGNMENT);
         let commands_pad = align(self.commands_extra.len(), ALIGNMENT);
         let old = &self.bytes;
         let mut out = old[..self.strings].to_vec();
@@ -183,6 +275,8 @@ impl Builder {
         out.resize(self.strings + content_pad, 0);
         let strings = out.len();
         out.extend_from_slice(&old[self.strings..self.commands]);
+        out.extend_from_slice(&self.strings_extra);
+        out.resize(strings + self.strings_span() + strings_pad, 0);
         let commands = out.len();
         out.extend_from_slice(&old[self.commands..self.raw]);
         out.extend_from_slice(&self.commands_extra);
@@ -210,6 +304,9 @@ impl Builder {
         write(&mut out, 24, reloc);
         write(&mut out, 28, reloc);
         write(&mut out, 32, self.content_span() + content_pad);
+        if !self.strings_extra.is_empty() {
+            write(&mut out, 36, self.strings_span() + self.strings_extra.len());
+        }
         write(&mut out, 40, self.commands_span() + commands_pad);
         write(&mut out, 44, raw_length);
         write(&mut out, 52, reloc_length);
@@ -223,6 +320,19 @@ impl Builder {
 /// material and goes at the end of the group of the source in the table of the
 /// objects. Returns the new file and the number of the new object in the table.
 pub fn add_object(part: &[u8], source: usize, geometry: &NewGeometry) -> Result<(Vec<u8>, usize), String> {
+    add_object_with(part, source, None, geometry, None)
+}
+
+/// Like `add_object`. The new object can go in another group of drawing than
+/// the group of the object that is copied, and it can have a material that the
+/// model does not have: the model then gets it too.
+pub fn add_object_with(
+    part: &[u8],
+    source: usize,
+    group_to_use: Option<usize>,
+    geometry: &NewGeometry,
+    material: Option<&MaterialBlob>,
+) -> Result<(Vec<u8>, usize), String> {
     let mut b = Builder::new(part)?;
     let table = b.content_word(0);
     let model = b.content_word(table);
@@ -237,9 +347,12 @@ pub fn add_object(part: &[u8], source: usize, geometry: &NewGeometry) -> Result<
     // The groups of the table: the model keeps the start and the end of each.
     let bounds: Vec<usize> = (0..8).map(|k| b.content_word(model + 0x48 + 4 * k)).collect();
     let source_place = objects + OBJECT_SIZE * source;
-    let group = (0..4)
-        .find(|&g| bounds[2 * g] <= source_place && source_place < bounds[2 * g + 1])
-        .ok_or("the object is in no group")?;
+    let group = match group_to_use {
+        Some(g) if g < 4 => g,
+        _ => (0..4)
+            .find(|&g| bounds[2 * g] <= source_place && source_place < bounds[2 * g + 1])
+            .ok_or("the object is in no group")?,
+    };
     let insert_place = bounds[2 * group + 1];
     let insert_at = (insert_place - objects) / OBJECT_SIZE;
 
@@ -320,6 +433,10 @@ pub fn add_object(part: &[u8], source: usize, geometry: &NewGeometry) -> Result<
 
     // 5. The entry of the new object.
     let mut new_entry = entry.clone();
+    if let Some(blob) = material {
+        let index = add_material(&mut b, model, blob)?;
+        new_entry[0] = (entry[0] & 0xffff_0000) | index;
+    }
     new_entry[2] = new_vertex_commands;
     new_entry[4] = new_block;
     new_entry[6] = new_end_commands;
@@ -374,6 +491,185 @@ pub fn add_object(part: &[u8], source: usize, geometry: &NewGeometry) -> Result<
     Ok((b.finish(), insert_at))
 }
 
+/// The names of a dictionary (a tree of names) and the places of the names in
+/// the strings, in the order of the table: the node k + 1 is the name k.
+fn read_dictionary(b: &Builder, at: usize, count: usize) -> Vec<(String, u32)> {
+    (1..=count)
+        .map(|k| {
+            let offset = b.content_word(at + 12 * k + 8);
+            (b.text_at(offset), offset as u32)
+        })
+        .collect()
+}
+
+/// Puts the nodes of a dictionary in the content and gives their entries in
+/// the table of relocation: each name is a string. Returns the place.
+fn push_dictionary(b: &mut Builder, names: &[(String, u32)]) -> usize {
+    let texts: Vec<&[u8]> = names.iter().map(|(n, _)| n.as_bytes()).collect();
+    let offsets: Vec<u32> = names.iter().map(|(_, o)| *o).collect();
+    let nodes = dict::build(&texts, &offsets);
+    let bytes: Vec<u8> = nodes.iter().flat_map(|n| n.to_bytes()).collect();
+    let at = b.push_content(&bytes);
+    for k in 1..nodes.len() {
+        b.add_entry(STRING_KIND, at + 12 * k + 8);
+    }
+    at
+}
+
+/// Gives the model a material that it does not have: the blob comes from
+/// another model. Returns the number of the new material.
+fn add_material(b: &mut Builder, model: usize, blob: &MaterialBlob) -> Result<usize, String> {
+    let n = b.content_word(model + 0x38);
+    let old_headers = b.content_word(model + 0x34);
+    // The tables at the top of the content: the materials are the second kind,
+    // with a table of pointers to their blocks of parameters, and a dictionary.
+    let (top_pointers, top_count, top_dictionary) = (b.content_word(12), b.content_word(16), b.content_word(20));
+    if top_count != n {
+        return Err("the model has two different numbers of materials".into());
+    }
+    if blob.region.len() != MATERIAL_REGION {
+        return Err("the material has a size that the tool does not know".into());
+    }
+
+    // The block of the material in the content.
+    let region_at = b.next_content();
+    let second_at = b.next_commands();
+    let main_at = second_at + 4 * blob.second_words;
+    let mut region = blob.region.clone();
+    for &(kind, at) in &blob.region_entries {
+        let value = read(&region, at);
+        match kind {
+            0 => {
+                if value < blob.params_at || value >= blob.params_at + MATERIAL_REGION {
+                    return Err("a pointer of the material goes outside of its block".into());
+                }
+                write(&mut region, at, value - blob.params_at + region_at);
+            }
+            2 | 3 => write(&mut region, at, second_at),
+            _ => {}
+        }
+    }
+    for (at, text) in &blob.region_strings {
+        let offset = if read(&region, *at) == 0 { 0 } else { b.string_offset(text) };
+        write(&mut region, *at, offset);
+    }
+    let placed = b.push_content(&region);
+    debug_assert_eq!(placed, region_at);
+    for &(kind, at) in &blob.region_entries {
+        b.add_entry(kind, region_at + at);
+    }
+    let placed = b.push_commands(&blob.commands);
+    debug_assert_eq!(placed, second_at);
+
+    // The entry of the material in the table of the model.
+    let mut header = blob.header.clone();
+    write(&mut header, 0, region_at);
+    write(&mut header, 0x10, main_at);
+    write(&mut header, 0x18, region_at + 0x110);
+    for (at, text) in &blob.header_strings {
+        let offset = if read(&header, *at) == 0 { 0 } else { b.string_offset(text) };
+        write(&mut header, *at, offset);
+    }
+
+    // The table of the materials of the model, with the new one at the end.
+    let mut table: Vec<u8> = b.bytes[b.content + old_headers..b.content + old_headers + n * MATERIAL_SIZE].to_vec();
+    table.extend_from_slice(&header);
+    let new_headers = b.push_content(&table);
+    for (kind, place) in b.entries_in(false, old_headers, old_headers + n * MATERIAL_SIZE) {
+        b.add_entry(kind, new_headers + (place - old_headers));
+    }
+    for &(kind, at) in &blob.header_entries {
+        b.add_entry(kind, new_headers + n * MATERIAL_SIZE + at);
+    }
+
+    // The table of pointers at the top: the old blocks, then the new one.
+    let mut pointers: Vec<u32> = (0..n).map(|i| b.content_word(top_pointers + 4 * i) as u32).collect();
+    pointers.push(region_at as u32);
+    let new_pointers = b.push_content(&to_bytes(&pointers));
+    for i in 0..pointers.len() {
+        b.add_entry(0, new_pointers + 4 * i);
+    }
+
+    // The two dictionaries: the names of the parameters (at the top) and the
+    // names of the materials (in the model).
+    let label_offset = b.string_offset(&blob.label) as u32;
+    let mut labels = read_dictionary(b, top_dictionary, n);
+    labels.push((blob.label.clone(), label_offset));
+    let new_top = push_dictionary(b, &labels);
+    let local_tree = b.content_word(model + 0x3c);
+    let name_offset = b.string_offset(&blob.name) as u32;
+    let mut names = read_dictionary(b, local_tree, n);
+    names.push((blob.name.clone(), name_offset));
+    let new_local = push_dictionary(b, &names);
+
+    b.set_content_word(12, new_pointers);
+    b.set_content_word(16, n + 1);
+    b.set_content_word(20, new_top);
+    b.set_content_word(model + 0x34, new_headers);
+    b.set_content_word(model + 0x38, n + 1);
+    b.set_content_word(model + 0x3c, new_local);
+    Ok(n)
+}
+
+/// Takes a material out of a model file, to give it to another one.
+pub fn read_material(part: &[u8], index: usize) -> Result<MaterialBlob, String> {
+    let b = Builder::new(part)?;
+    let table = b.content_word(0);
+    let model = b.content_word(table);
+    let n = b.content_word(model + 0x38);
+    if index >= n {
+        return Err("no such material".into());
+    }
+    let place = b.content_word(model + 0x34) + MATERIAL_SIZE * index;
+    let header: Vec<u8> = b.bytes[b.content + place..b.content + place + MATERIAL_SIZE].to_vec();
+    if read(&header, 0x14) != MATERIAL_COMMAND_WORDS {
+        return Err("this material is not one of the buildings (it has another list of commands)".into());
+    }
+    let params = read(&header, 0);
+    if params + MATERIAL_REGION > b.content_span() {
+        return Err("the block of the material is cut".into());
+    }
+    let region: Vec<u8> = b.bytes[b.content + params..b.content + params + MATERIAL_REGION].to_vec();
+    let (second_off, second_words) = (read(&region, 0xc8), read(&region, 0xcc));
+    let main_off = read(&header, 0x10);
+    if second_off + 4 * second_words != main_off {
+        return Err("the two lists of commands of the material do not follow each other".into());
+    }
+    let end = main_off + 4 * MATERIAL_COMMAND_WORDS;
+    if b.commands + end > b.raw {
+        return Err("the commands of the material are cut".into());
+    }
+    let commands = b.bytes[b.commands + second_off..b.commands + end].to_vec();
+
+    let text_of = |word: usize| b.text_at(word);
+    let header_entries: Vec<(u8, usize)> = b
+        .entries_in(false, place, place + MATERIAL_SIZE)
+        .into_iter()
+        .map(|(k, p)| (k, p - place))
+        .collect();
+    let region_entries: Vec<(u8, usize)> = b
+        .entries_in(false, params, params + MATERIAL_REGION)
+        .into_iter()
+        .map(|(k, p)| (k, p - params))
+        .collect();
+    let strings_of = |entries: &[(u8, usize)], bytes: &[u8]| -> Vec<(usize, String)> {
+        entries.iter().filter(|(k, _)| *k == STRING_KIND).map(|(_, at)| (*at, text_of(read(bytes, *at)))).collect()
+    };
+    Ok(MaterialBlob {
+        name: text_of(read(&header, 0x28)),
+        label: text_of(read(&region, 0x108)),
+        params_at: params,
+        header_strings: strings_of(&header_entries, &header),
+        header_entries,
+        region_strings: strings_of(&region_entries, &region),
+        region_entries,
+        header,
+        region,
+        commands,
+        second_words,
+    })
+}
+
 fn to_bytes(words: &[u32]) -> Vec<u8> {
     words.iter().flat_map(|w| w.to_le_bytes()).collect()
 }
@@ -424,6 +720,42 @@ pub fn validate(part: &[u8]) -> Vec<String> {
                 "the header gives {} bytes and {} addresses for {} objects, not {} and {}",
                 read(part, 56), addresses, objects, 8 * objects, 2 * objects
             ));
+        }
+    }
+    // The materials: the table at the top of the content and the table of the
+    // model name the same blocks, and the two dictionaries are the ones that
+    // the game builds from their names.
+    {
+        let table = b.content_word(0);
+        let model = b.content_word(table);
+        let n = b.content_word(model + 0x38);
+        let (top_pointers, top_count, top_dictionary) = (b.content_word(12), b.content_word(16), b.content_word(20));
+        let headers = b.content_word(model + 0x34);
+        if top_count != n {
+            problems.push(format!("the model has {n} materials and the table at the top {top_count}"));
+        } else {
+            for i in 0..n {
+                let (top, local) = (b.content_word(top_pointers + 4 * i), b.content_word(headers + MATERIAL_SIZE * i));
+                if top != local {
+                    problems.push(format!("material {i}: the table at the top says {top:#x}, the table of the model {local:#x}"));
+                    break;
+                }
+            }
+            for (at, what) in [(top_dictionary, "top"), (b.content_word(model + 0x3c), "model")] {
+                if b.content + at + 12 * (n + 1) > b.strings {
+                    problems.push(format!("the {what} dictionary is cut"));
+                    continue;
+                }
+                let nodes: Vec<dict::Node> = (0..=n)
+                    .map(|k| dict::Node::from_bytes(&b.bytes[b.content + at + 12 * k..b.content + at + 12 * k + 12]))
+                    .collect();
+                let names = read_dictionary(&b, at, n);
+                let texts: Vec<&[u8]> = names.iter().map(|(t, _)| t.as_bytes()).collect();
+                let offsets: Vec<u32> = names.iter().map(|(_, o)| *o).collect();
+                if dict::build(&texts, &offsets) != nodes {
+                    problems.push(format!("the {what} dictionary is not the one that the game builds from its names"));
+                }
+            }
         }
     }
     // The objects must have the same flagged words.

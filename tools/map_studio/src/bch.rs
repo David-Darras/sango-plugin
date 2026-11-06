@@ -17,6 +17,10 @@ pub struct Mesh {
     pub texture: String,
     /// True for the tall grass of the encounters.
     pub encounter: bool,
+    /// The number of the material in the table of the materials of the model.
+    pub material_index: usize,
+    /// The group of drawing of the object (0 to 3) in the table of the objects.
+    pub group: usize,
     pub positions: Vec<[f32; 3]>,
     pub normals: Vec<[f32; 3]>,
     pub uvs: Vec<[f32; 2]>,
@@ -254,7 +258,15 @@ impl<'a> Bch<'a> {
             raws.push(self.read_object(object_table + 0x38 * i, &material_names, &texture_names)?);
         }
         self.read_indices(&mut raws)?;
-        Ok(raws.into_iter().map(|r| r.mesh).collect())
+        let mut meshes: Vec<Mesh> = raws.into_iter().map(|r| r.mesh).collect();
+        // The groups of drawing: the model keeps the start and the end of each.
+        let table_start = self.u32(model + 0x40)? as usize;
+        let bounds: Vec<usize> = (0..8).map(|k| self.u32(model + 0x48 + 4 * k).map(|v| v as usize)).collect::<Result<_, _>>()?;
+        for (i, mesh) in meshes.iter_mut().enumerate() {
+            let place = table_start + 0x38 * i;
+            mesh.group = (0..4).find(|&g| bounds[2 * g] <= place && place < bounds[2 * g + 1]).unwrap_or(0);
+        }
+        Ok(meshes)
     }
 
     /// The pictures of the file, decoded to RGBA. A picture with a format
@@ -342,6 +354,7 @@ impl<'a> Bch<'a> {
         let mesh = Mesh {
             material: material_names.get(material).cloned().unwrap_or_else(|| format!("material{material}")),
             texture: texture_names.get(material).cloned().unwrap_or_default(),
+            material_index: material,
             ..Default::default()
         };
         Ok(RawMesh {
@@ -485,6 +498,7 @@ impl<'a> Bch<'a> {
             let mut mesh = Mesh {
                 material: raw.mesh.material.clone(),
                 texture: raw.mesh.texture.clone(),
+                material_index: raw.mesh.material_index,
                 ..Default::default()
             };
             for v in 0..vertex_count {

@@ -16,6 +16,8 @@ use crate::editor::{Editor, Instance};
 
 /// The size of a tile of the game, in units.
 const TILE: f32 = 18.0;
+/// "Grow" adds the pieces whose box is closer than this to the selection.
+const GROW_GAP: f32 = 6.0;
 
 const SHADER: &str = r#"
 struct Uniforms { matrix: mat4x4<f32>, params: vec4<f32> };
@@ -504,6 +506,8 @@ fn clipboard_path() -> std::path::PathBuf {
 struct Hit {
     point: Vec3,
     owner: Option<usize>,
+    /// The mesh of the triangle.
+    mesh: usize,
 }
 
 struct Row {
@@ -513,6 +517,7 @@ struct Row {
 }
 
 enum Action {
+    Grow,
     CopyOut,
     Paste,
     Rotate(f32),
@@ -536,7 +541,8 @@ pub struct Viewer {
     distance: f32,
     target: Vec3,
     direct_v: bool,
-    selected: Option<usize>,
+    /// The instances that are selected.
+    selected: Vec<usize>,
     placing: bool,
     snap: bool,
     status: String,
@@ -605,7 +611,7 @@ impl Viewer {
             distance: 900.0,
             target,
             direct_v: true,
-            selected: None,
+            selected: Vec::new(),
             placing: false,
             snap: true,
             status: "Click an object to select it.".into(),
@@ -637,9 +643,9 @@ impl Viewer {
             .enumerate()
             .map(|(i, (_, mesh))| {
                 let mut indices = Vec::new();
-                if let Some(selected) = self.selected {
+                if !self.selected.is_empty() {
                     for t in mesh.indices.chunks_exact(3) {
-                        if self.editor.owner(i, t[0] as usize) == Some(selected) {
+                        if self.editor.owner(i, t[0] as usize).is_some_and(|o| self.selected.contains(&o)) {
                             indices.extend_from_slice(t);
                         }
                     }
@@ -672,7 +678,7 @@ impl Viewer {
                 let hit = ray_triangle(origin, direction, Vec3::from(*a), Vec3::from(*b), Vec3::from(*c));
                 if let Some(distance) = hit {
                     if best.as_ref().map_or(true, |(d, _)| distance < *d) {
-                        best = Some((distance, Hit { point: origin + direction * distance, owner }));
+                        best = Some((distance, Hit { point: origin + direction * distance, owner, mesh: i }));
                     }
                 }
             }
@@ -770,17 +776,40 @@ impl Viewer {
         };
     }
 
+    /// The box of the selection, seen from above, and its centre.
+    fn selection_box(&self) -> Option<([f32; 3], [f32; 3])> {
+        self.selected.iter().map(|&i| self.editor.instance_bounds(i)).reduce(|a, b| {
+            let (mut low, mut high) = a;
+            for axis in 0..3 {
+                low[axis] = low[axis].min(b.0[axis]);
+                high[axis] = high[axis].max(b.1[axis]);
+            }
+            (low, high)
+        })
+    }
+
     fn describe_selection(&self) -> String {
-        let Some(selected) = self.selected else { return "Nothing selected.".into() };
-        let instance = &self.editor.instances[selected];
-        let names = self.editor.cluster_materials(instance.cluster);
-        let (low, high) = self.editor.instance_bounds(selected);
+        let Some((low, high)) = self.selection_box() else { return "Nothing selected.".into() };
+        let mut names: Vec<String> = Vec::new();
+        for &i in &self.selected {
+            for (name, _) in self.editor.instance_parts(i) {
+                if !names.contains(&name) {
+                    names.push(name);
+                }
+            }
+        }
+        let what = if self.selected.len() == 1 {
+            if self.editor.instances[self.selected[0]].copy { "Copy".to_string() } else { "Object".to_string() }
+        } else {
+            format!("{} pieces", self.selected.len())
+        };
         format!(
-            "{}: {}\nat x {:.0} z {:.0}, height {:.0}..{:.0}",
-            if instance.copy { "Copy" } else { "Object" },
+            "{what}: {}\nat x {:.0} z {:.0}, size {:.0} x {:.0}, height {:.0}..{:.0}",
             names.join(", "),
             (low[0] + high[0]) / 2.0,
             (low[2] + high[2]) / 2.0,
+            high[0] - low[0],
+            high[2] - low[2],
             low[1],
             high[1]
         )
@@ -789,7 +818,7 @@ impl Viewer {
     /// Called when the mode of the tiles starts or stops.
     fn toggle_tiles(&mut self, frame: &eframe::Frame) {
         if self.tile_mode {
-            self.selected = None;
+            self.selected.clear();
             if self.heights.is_none() {
                 self.heights = Some(self.ground_heights());
             }
@@ -803,12 +832,12 @@ impl Viewer {
             Action::Undo => {
                 let r = self.editor.undo();
                 self.report(r, "Undone.");
-                self.selected = None;
+                self.selected.clear();
             }
             Action::Redo => {
                 let r = self.editor.redo();
                 self.report(r, "Redone.");
-                self.selected = None;
+                self.selected.clear();
             }
             Action::SaveProject => {
                 self.status = match self.editor.project_text().and_then(|text| std::fs::write(&self.project_path, text).map_err(|e| e.to_string())) {
@@ -821,7 +850,7 @@ impl Viewer {
                 let result = std::fs::read_to_string(&self.project_path)
                     .map_err(|e| format!("{}: {e}", self.project_path))
                     .and_then(|text| self.editor.load_project(&text));
-                self.selected = None;
+                self.selected.clear();
                 self.report(result, "Project loaded.");
             }
             Action::Export => {
@@ -833,31 +862,37 @@ impl Viewer {
                 return;
             }
             Action::Duplicate => {
-                let Some(selected) = self.selected else { return };
-                let source = self.editor.instances[selected].clone();
+                if self.selected.is_empty() {
+                    return;
+                }
+                let sources: Vec<Instance> = self.selected.iter().map(|&i| self.editor.instances[i].clone()).collect();
+                let first = self.editor.instances.len();
                 let result = self.editor.change(|v| {
-                    v.push(Instance {
-                        cluster: source.cluster,
-                        offset: [source.offset[0] + TILE, source.offset[1], source.offset[2]],
-                        yaw: source.yaw,
-                        copy: true,
-                        deleted: false,
-                    });
+                    for source in &sources {
+                        v.push(Instance {
+                            cluster: source.cluster,
+                            offset: [source.offset[0] + TILE, source.offset[1], source.offset[2]],
+                            yaw: source.yaw,
+                            copy: true,
+                            deleted: false,
+                            only: source.only.clone(),
+                        });
+                    }
                 });
                 if result.is_ok() {
-                    self.selected = Some(self.editor.instances.len() - 1);
+                    self.selected = (first..first + sources.len()).collect();
                 }
                 self.report(result, "Copied one tile to the side.");
             }
             Action::CopyOut => {
-                let Some(selected) = self.selected else {
+                if self.selected.is_empty() {
                     self.status = "Select an object first.".into();
                     return;
-                };
+                }
                 let path = clipboard_path();
-                self.status = match self.editor.portable_of(selected) {
+                self.status = match self.editor.portable_of_many(&self.selected) {
                     Ok(object) => match std::fs::write(&path, object.to_bytes()) {
-                        Ok(()) => format!("Object copied to the clipboard ({} meshes).", object.parts.len()),
+                        Ok(()) => format!("Copied to the clipboard ({} meshes).", object.parts.len()),
                         Err(e) => format!("Cannot write the clipboard: {e}"),
                     },
                     Err(message) => format!("Cannot copy: {message}"),
@@ -871,30 +906,61 @@ impl Viewer {
                     .and_then(|bytes| crate::edit::Portable::from_bytes(&bytes))
                     .and_then(|object| self.editor.import(object));
                 if let Ok(index) = &result {
-                    self.selected = Some(*index);
+                    self.selected = vec![*index];
                     self.placing = true;
                 }
                 self.report(result, "Pasted. Click on the ground to place it.");
             }
+            Action::Grow => {
+                let extra = self.editor.neighbours(&self.selected, GROW_GAP);
+                self.status = if extra.is_empty() {
+                    "No other piece touches the selection.".into()
+                } else {
+                    format!("{} pieces added to the selection.", extra.len())
+                };
+                self.selected.extend(extra);
+            }
             Action::Rotate(angle) => {
-                let Some(selected) = self.selected else { return };
+                let Some((low, high)) = self.selection_box() else { return };
+                let centre = [(low[0] + high[0]) / 2.0, (low[2] + high[2]) / 2.0];
+                let (sin, cos) = angle.sin_cos();
+                // The pieces turn around the centre of the selection.
+                let places: Vec<(usize, [f32; 2])> = self
+                    .selected
+                    .iter()
+                    .map(|&i| {
+                        let (l, h) = self.editor.instance_bounds(i);
+                        (i, [(l[0] + h[0]) / 2.0, (l[2] + h[2]) / 2.0])
+                    })
+                    .collect();
                 let result = self.editor.change(|v| {
-                    let turned = v[selected].yaw + angle;
-                    v[selected].yaw = (turned + std::f32::consts::PI).rem_euclid(std::f32::consts::TAU) - std::f32::consts::PI;
+                    for (i, c) in &places {
+                        let (dx, dz) = (c[0] - centre[0], c[1] - centre[1]);
+                        v[*i].offset[0] += centre[0] + cos * dx - sin * dz - c[0];
+                        v[*i].offset[2] += centre[1] + sin * dx + cos * dz - c[1];
+                        let turned = v[*i].yaw + angle;
+                        v[*i].yaw = (turned + std::f32::consts::PI).rem_euclid(std::f32::consts::TAU) - std::f32::consts::PI;
+                    }
                 });
                 self.report(result, "Turned.");
             }
             Action::Delete => {
-                let Some(selected) = self.selected else { return };
-                let result = self.editor.change(|v| v[selected].deleted = true);
-                self.selected = None;
+                let doomed = self.selected.clone();
+                let result = self.editor.change(|v| {
+                    for &i in &doomed {
+                        v[i].deleted = true;
+                    }
+                });
+                self.selected.clear();
                 self.report(result, "Deleted.");
             }
             Action::Nudge(delta) => {
-                let Some(selected) = self.selected else { return };
+                let moved = self.selected.clone();
                 let result = self.editor.change(|v| {
-                    for a in 0..3 {
-                        v[selected].offset[a] += delta[a];
+                    for &i in &moved {
+                        for a in 0..3 {
+                            v[i].offset[a] += delta[a];
+                        }
                     }
                 });
                 self.report(result, "Moved.");
@@ -903,16 +969,18 @@ impl Viewer {
         self.refresh(frame);
     }
 
-    /// Puts the selected object where the user clicked on the ground.
+    /// Puts the selection where the user clicked on the ground.
     fn place(&mut self, point: Vec3, frame: &eframe::Frame) {
-        let Some(selected) = self.selected else { return };
-        let (low, high) = self.editor.instance_bounds(selected);
+        let Some((low, high)) = self.selection_box() else { return };
         let snap = |v: f32| if self.snap { ((v - TILE / 2.0) / TILE).round() * TILE + TILE / 2.0 } else { v };
         let (x, z) = (snap(point.x), snap(point.z));
         let delta = [x - (low[0] + high[0]) / 2.0, point.y - low[1], z - (low[2] + high[2]) / 2.0];
+        let moved = self.selected.clone();
         let result = self.editor.change(|v| {
-            for a in 0..3 {
-                v[selected].offset[a] += delta[a];
+            for &i in &moved {
+                for a in 0..3 {
+                    v[i].offset[a] += delta[a];
+                }
             }
         });
         self.placing = false;
@@ -925,6 +993,7 @@ impl eframe::App for Viewer {
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
         let mut action: Option<Action> = None;
         let mut tiles_toggled = false;
+        let mut select_mesh: Option<usize> = None;
 
         if !ctx.wants_keyboard_input() {
             ctx.input(|i| {
@@ -960,18 +1029,21 @@ impl eframe::App for Viewer {
                     action = Some(Action::Nudge([0.0, -2.0, 0.0]));
                 }
             });
+            if ctx.input(|i| i.key_pressed(egui::Key::E)) && !self.selected.is_empty() {
+                action = Some(Action::Grow);
+            }
             if ctx.input(|i| i.key_pressed(egui::Key::T)) {
                 self.tile_mode = !self.tile_mode;
                 self.placing = false;
                 self.toggle_tiles(frame);
             }
-            if ctx.input(|i| i.key_pressed(egui::Key::G)) && self.selected.is_some() {
+            if ctx.input(|i| i.key_pressed(egui::Key::G)) && !self.selected.is_empty() {
                 self.placing = !self.placing;
                 self.status = if self.placing { "Click on the ground to place the object.".into() } else { "Cancelled.".into() };
             }
             if ctx.input(|i| i.key_pressed(egui::Key::Escape)) {
                 self.placing = false;
-                self.selected = None;
+                self.selected.clear();
                 self.refresh(frame);
             }
         }
@@ -988,7 +1060,7 @@ impl eframe::App for Viewer {
                 }
             });
             ui.label(self.describe_selection());
-            let has_selection = self.selected.is_some();
+            let has_selection = !self.selected.is_empty();
             ui.horizontal(|ui| {
                 if ui.add_enabled(has_selection, egui::Button::new("Copy (D)")).clicked() {
                     action = Some(Action::Duplicate);
@@ -999,6 +1071,11 @@ impl eframe::App for Viewer {
                 }
                 if ui.add_enabled(has_selection, egui::Button::new("Delete")).clicked() {
                     action = Some(Action::Delete);
+                }
+            });
+            ui.horizontal(|ui| {
+                if ui.add_enabled(has_selection, egui::Button::new("Grow the selection (E)")).clicked() {
+                    action = Some(Action::Grow);
                 }
             });
             ui.horizontal(|ui| {
@@ -1019,7 +1096,7 @@ impl eframe::App for Viewer {
                 }
             });
             ui.checkbox(&mut self.snap, "Snap to the tiles");
-            ui.label("Arrows: move one tile (Shift: 2 units). Page up/down: height. Esc: select nothing.");
+            ui.label("Ctrl+click takes the whole building (all its pieces). Shift+click adds or removes a piece. In the list of the meshes, Select takes one mesh only. E adds the pieces that touch the selection (for a house). Arrows: move one tile (Shift: 2 units). Page up/down: height. Esc: select nothing.");
             ui.separator();
             let was_tile_mode = self.tile_mode;
             ui.checkbox(&mut self.tile_mode, "Edit the tiles (T)");
@@ -1101,7 +1178,12 @@ impl eframe::App for Viewer {
                         let mark = if row.selectable { "" } else { "  (ground)" };
                         let text = format!("{}  ({}){mark}", row.name, self.editor.meshes()[i].1.indices.len() / 3);
                         let text = if row.has_picture { egui::RichText::new(text) } else { egui::RichText::new(text).weak() };
-                        ui.checkbox(&mut self.visible[i], text);
+                        ui.horizontal(|ui| {
+                            if row.selectable && ui.small_button("Select").on_hover_text("Select only this mesh: pieces that have other meshes are cut in two (Shift adds)").clicked() {
+                                select_mesh = Some(i);
+                            }
+                            ui.checkbox(&mut self.visible[i], text);
+                        });
                     }
                 });
             });
@@ -1163,6 +1245,26 @@ impl eframe::App for Viewer {
             ));
         });
 
+        if let Some(mesh) = select_mesh {
+            let pieces = match self.editor.isolate_meshes(&[mesh]) {
+                Ok(pieces) => pieces,
+                Err(message) => {
+                    self.status = format!("Cannot select: {message}");
+                    Vec::new()
+                }
+            };
+            if ctx.input(|i| i.modifiers.shift) {
+                for p in pieces {
+                    if !self.selected.contains(&p) {
+                        self.selected.push(p);
+                    }
+                }
+            } else {
+                self.selected = pieces;
+            }
+            self.status = format!("{} pieces selected from the mesh.", self.selected.len());
+            self.refresh(frame);
+        }
         if tiles_toggled {
             self.toggle_tiles(frame);
         }
@@ -1179,9 +1281,53 @@ impl eframe::App for Viewer {
                     self.place(hit.point, frame);
                 }
             } else {
+                let shift = ctx.input(|i| i.modifiers.shift);
+                let ctrl = ctx.input(|i| i.modifiers.command);
                 let hit = self.pick(origin, direction, false);
-                self.selected = hit.and_then(|h| h.owner);
-                self.status = if self.selected.is_some() { "Selected.".into() } else { "Nothing here.".into() };
+                let piece = hit.as_ref().and_then(|h| h.owner);
+                // The pieces that this click takes: the whole building with Ctrl,
+                // else the piece.
+                let taken: Vec<usize> = match (piece, &hit) {
+                    (Some(i), Some(h)) if ctrl => match self.editor.building_of(i, h.mesh) {
+                        Ok(pieces) => pieces,
+                        Err(message) => {
+                            self.status = format!("Cannot select the building: {message}");
+                            Vec::new()
+                        }
+                    },
+                    (Some(i), _) => vec![i],
+                    _ => Vec::new(),
+                };
+                if taken.is_empty() {
+                    if !shift && piece.is_none() {
+                        self.selected.clear();
+                        self.status = "Nothing here.".into();
+                    }
+                } else if shift && !ctrl {
+                    // Shift+click: add the piece, or take it out.
+                    match self.selected.iter().position(|&s| s == taken[0]) {
+                        Some(at) => {
+                            self.selected.remove(at);
+                        }
+                        None => self.selected.push(taken[0]),
+                    }
+                    self.status = format!("{} pieces selected.", self.selected.len());
+                } else if shift {
+                    // Shift+Ctrl+click: add a whole building.
+                    for p in taken {
+                        if !self.selected.contains(&p) {
+                            self.selected.push(p);
+                        }
+                    }
+                    self.status = format!("{} pieces selected.", self.selected.len());
+                } else {
+                    self.status = if ctrl {
+                        format!("The whole building: {} pieces.", taken.len())
+                    } else {
+                        "Selected. Ctrl+click takes the whole building.".into()
+                    };
+                    self.selected = taken;
+                }
                 self.refresh(frame);
             }
         }

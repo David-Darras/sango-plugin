@@ -4,6 +4,7 @@ mod bch;
 mod bch_edit;
 mod commands;
 mod data;
+mod dict;
 mod edit;
 mod editor;
 mod garc;
@@ -84,7 +85,7 @@ fn main() {
         }
         Some("editor-test") if args.len() >= 5 => commands::editor_test(&args[2], block, &args[4]),
         Some("order") if args.len() >= 6 => commands::order(&args[2], block, &args[4], number(5).unwrap_or(40)),
-        Some("objects") if args.len() >= 4 => commands::objects(&args[2], block),
+        Some("objects") if args.len() >= 4 => commands::objects(&args[2], block, args.get(4).map(String::as_str) == Some("all")),
         Some("tiles") if args.len() >= 4 => commands::tiles(&args[2], block),
         Some("find") if args.len() >= 4 => commands::find(&args[2], &args[3]),
         Some("cross-test") if args.len() >= 6 => commands::cross_test(&args[2], block, number(4).unwrap_or(0), &args[5]),
@@ -102,6 +103,11 @@ fn main() {
             let land = args.iter().position(|a| a == "--land").and_then(|i| args.get(i + 1)).map(String::as_str);
             commands::validate(&args[2], block, land)
         }
+        Some("grow-test") if args.len() >= 7 => commands::grow_test(&args[2], block, [float(4), float(5)], float(6) as usize),
+        Some("check-trees") if args.len() >= 3 => commands::check_trees(&args[2]),
+        Some("mesh-select-test") if args.len() >= 5 => commands::mesh_select_test(&args[2], block, &args[4]),
+        Some("building-test") if args.len() >= 7 => commands::building_test(&args[2], block, [float(4), float(5)], &args[6]),
+        Some("import-building-test") if args.len() >= 9 => commands::import_building_test(&args[2], block, [float(4), float(5)], &args[6], number(7).unwrap_or(0), &args[8]),
         Some("check") if args.len() >= 5 => commands::check(&args[2], block, &args[4]),
         _ => Err(USAGE.to_string()),
     };

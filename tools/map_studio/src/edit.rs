@@ -8,7 +8,7 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::path::{Path, PathBuf};
 
 use crate::bch::{Bch, Mesh};
-use crate::bch_edit::{self, NewGeometry};
+use crate::bch_edit::{self, MaterialBlob, NewGeometry};
 use crate::{garc, lz11, pack};
 
 /// The parts of a block that hold a model: the ground with its objects, and
@@ -42,6 +42,10 @@ pub struct PortablePart {
     pub vertices: Vec<u8>,
     /// Three numbers for each triangle, from the first vertex of the piece.
     pub indices: Vec<u32>,
+    /// The group of drawing of the mesh (0 to 3).
+    pub group: usize,
+    /// The material itself, so that a block that does not have it can get it.
+    pub blob: Option<MaterialBlob>,
 }
 
 /// An object taken from a block, to be put in a block. It holds data of the
@@ -55,74 +59,162 @@ pub struct Portable {
     pub parts: Vec<PortablePart>,
 }
 
-const PORTABLE_MAGIC: &[u8; 5] = b"MSOB1";
+const PORTABLE_MAGIC: &[u8; 5] = b"MSOB2";
 
 /// The block of an object that does not come from a block of the game.
 pub const NO_ORIGIN: usize = u32::MAX as usize;
 
+/// Writes numbers and texts one after the other.
+struct Writer(Vec<u8>);
+
+impl Writer {
+    fn number(&mut self, v: usize) {
+        self.0.extend_from_slice(&(v as u32).to_le_bytes());
+    }
+    fn bytes(&mut self, b: &[u8]) {
+        self.number(b.len());
+        self.0.extend_from_slice(b);
+    }
+    fn text(&mut self, t: &str) {
+        self.bytes(t.as_bytes());
+    }
+    fn entries(&mut self, list: &[(u8, usize)]) {
+        self.number(list.len());
+        for (kind, at) in list {
+            self.number(*kind as usize);
+            self.number(*at);
+        }
+    }
+    fn strings(&mut self, list: &[(usize, String)]) {
+        self.number(list.len());
+        for (at, text) in list {
+            self.number(*at);
+            self.text(text);
+        }
+    }
+}
+
+/// Reads what a `Writer` wrote.
+struct Reader<'a> {
+    data: &'a [u8],
+    at: usize,
+}
+
+impl<'a> Reader<'a> {
+    fn take(&mut self, size: usize) -> Result<&'a [u8], String> {
+        let bytes = self.data.get(self.at..self.at + size).ok_or("the object is cut")?;
+        self.at += size;
+        Ok(bytes)
+    }
+    fn number(&mut self) -> Result<usize, String> {
+        let b = self.take(4)?;
+        Ok(u32::from_le_bytes([b[0], b[1], b[2], b[3]]) as usize)
+    }
+    fn float(&mut self) -> Result<f32, String> {
+        let b = self.take(4)?;
+        Ok(f32::from_le_bytes([b[0], b[1], b[2], b[3]]))
+    }
+    fn bytes(&mut self) -> Result<Vec<u8>, String> {
+        let size = self.number()?;
+        Ok(self.take(size)?.to_vec())
+    }
+    fn text(&mut self) -> Result<String, String> {
+        Ok(String::from_utf8_lossy(&self.bytes()?).into_owned())
+    }
+    fn entries(&mut self) -> Result<Vec<(u8, usize)>, String> {
+        let count = self.number()?;
+        (0..count).map(|_| Ok((self.number()? as u8, self.number()?))).collect()
+    }
+    fn strings(&mut self) -> Result<Vec<(usize, String)>, String> {
+        let count = self.number()?;
+        (0..count).map(|_| Ok((self.number()?, self.text()?))).collect()
+    }
+}
+
 impl Portable {
     pub fn to_bytes(&self) -> Vec<u8> {
-        let mut out = PORTABLE_MAGIC.to_vec();
-        let mut number = |out: &mut Vec<u8>, v: usize| out.extend_from_slice(&(v as u32).to_le_bytes());
-        number(&mut out, self.origin.0);
-        number(&mut out, self.origin.1);
+        let mut w = Writer(PORTABLE_MAGIC.to_vec());
+        w.number(self.origin.0);
+        w.number(self.origin.1);
         for v in self.low.iter().chain(&self.high) {
-            out.extend_from_slice(&v.to_le_bytes());
+            w.0.extend_from_slice(&v.to_le_bytes());
         }
-        number(&mut out, self.parts.len());
+        w.number(self.parts.len());
         for part in &self.parts {
-            for text in [&part.material, &part.layout] {
-                number(&mut out, text.len());
-                out.extend_from_slice(text.as_bytes());
-            }
-            number(&mut out, part.stride);
-            number(&mut out, part.position_inside);
-            number(&mut out, part.normal_inside.map_or(u32::MAX as usize, |n| n));
-            number(&mut out, part.vertices.len());
-            out.extend_from_slice(&part.vertices);
-            number(&mut out, part.indices.len());
+            w.text(&part.material);
+            w.text(&part.layout);
+            w.number(part.stride);
+            w.number(part.position_inside);
+            w.number(part.normal_inside.map_or(u32::MAX as usize, |n| n));
+            w.bytes(&part.vertices);
+            w.number(part.indices.len());
             for i in &part.indices {
-                out.extend_from_slice(&i.to_le_bytes());
+                w.0.extend_from_slice(&i.to_le_bytes());
+            }
+            w.number(part.group);
+            match &part.blob {
+                None => w.number(0),
+                Some(m) => {
+                    w.number(1);
+                    w.text(&m.name);
+                    w.text(&m.label);
+                    w.number(m.params_at);
+                    w.bytes(&m.header);
+                    w.entries(&m.header_entries);
+                    w.strings(&m.header_strings);
+                    w.bytes(&m.region);
+                    w.entries(&m.region_entries);
+                    w.strings(&m.region_strings);
+                    w.bytes(&m.commands);
+                    w.number(m.second_words);
+                }
             }
         }
-        out
+        w.0
     }
 
     pub fn from_bytes(data: &[u8]) -> Result<Portable, String> {
         if data.get(..5) != Some(PORTABLE_MAGIC) {
-            return Err("this is not an object of Map Studio".into());
+            return Err("this is not an object of Map Studio (or it is from an older version: copy it again)".into());
         }
-        let mut at = 5;
-        let mut next = |size: usize| -> Result<&[u8], String> {
-            let bytes = data.get(at..at + size).ok_or("the object is cut")?;
-            at += size;
-            Ok(bytes)
-        };
-        let number = |bytes: &[u8]| u32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]) as usize;
-        let float = |bytes: &[u8]| f32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]);
-        let origin = (number(next(4)?), number(next(4)?));
+        let mut r = Reader { data, at: 5 };
+        let origin = (r.number()?, r.number()?);
         let mut low = [0.0; 3];
         let mut high = [0.0; 3];
         for v in low.iter_mut().chain(high.iter_mut()) {
-            *v = float(next(4)?);
+            *v = r.float()?;
         }
-        let count = number(next(4)?);
+        let count = r.number()?;
         let mut parts = Vec::new();
         for _ in 0..count {
-            let mut texts = Vec::new();
-            for _ in 0..2 {
-                let length = number(next(4)?);
-                texts.push(String::from_utf8_lossy(next(length)?).into_owned());
+            let material = r.text()?;
+            let layout = r.text()?;
+            let stride = r.number()?;
+            let position_inside = r.number()?;
+            let normal = r.number()?;
+            let vertices = r.bytes()?;
+            let index_count = r.number()?;
+            let mut indices = Vec::with_capacity(index_count);
+            for _ in 0..index_count {
+                indices.push(r.number()? as u32);
             }
-            let stride = number(next(4)?);
-            let position_inside = number(next(4)?);
-            let normal = number(next(4)?);
-            let size = number(next(4)?);
-            let vertices = next(size)?.to_vec();
-            let index_count = number(next(4)?);
-            let indices = next(index_count * 4)?.chunks_exact(4).map(|c| number(c) as u32).collect();
-            let layout = texts.pop().unwrap_or_default();
-            let material = texts.pop().unwrap_or_default();
+            let group = r.number()?;
+            let blob = if r.number()? == 0 {
+                None
+            } else {
+                let name = r.text()?;
+                let label = r.text()?;
+                let params_at = r.number()?;
+                let header = r.bytes()?;
+                let header_entries = r.entries()?;
+                let header_strings = r.strings()?;
+                let region = r.bytes()?;
+                let region_entries = r.entries()?;
+                let region_strings = r.strings()?;
+                let commands = r.bytes()?;
+                let second_words = r.number()?;
+                Some(MaterialBlob { name, label, params_at, header, header_entries, header_strings, region, region_entries, region_strings, commands, second_words })
+            };
             parts.push(PortablePart {
                 material,
                 layout,
@@ -131,6 +223,8 @@ impl Portable {
                 normal_inside: (normal != u32::MAX as usize).then_some(normal),
                 vertices,
                 indices,
+                group,
+                blob,
             });
         }
         Ok(Portable { origin, low, high, parts })
@@ -456,6 +550,65 @@ impl EditableBlock {
         Ok(before + inserted)
     }
 
+    /// Puts the pieces of an object that come from another block in this block
+    /// as new meshes. A piece whose mesh the block does not have gets its
+    /// material too. The pieces turn by `yaw` around the point `centre`, then
+    /// move by `delta`. Returns how many meshes were added.
+    pub fn add_foreign_meshes(&mut self, object: &Portable, centre: [f32; 2], yaw: f32, delta: [f32; 3]) -> Result<usize, String> {
+        let mut added = 0;
+        for piece in &object.parts {
+            let blob = piece.blob.as_ref().ok_or_else(|| format!("the material {} was not copied with the object", piece.material))?;
+            // A mesh of this block that is made like the piece gives the shape of the new mesh.
+            let template = self
+                .meshes
+                .iter()
+                .position(|(p, m)| *p == 1 && m.places.layout == piece.layout)
+                .ok_or_else(|| format!("this block has no mesh with the vertices of {}", piece.material))?;
+            let (part, like) = &self.meshes[template];
+            let part = *part;
+            let width = like.places.index_width;
+            let count = piece.vertices.len() / piece.stride;
+            if count > if width == 2 { 65536 } else { 256 } {
+                return Err(format!("{} has too many vertices for the indices of the mesh that serves as a model", piece.material));
+            }
+            let mut vertices = Vec::with_capacity(piece.vertices.len());
+            let (mut low, mut high) = ([f32::MAX; 3], [f32::MIN; 3]);
+            for vertex in piece.vertices.chunks_exact(piece.stride) {
+                let mut bytes = vertex.to_vec();
+                transform_vertex(&mut bytes, piece.position_inside, piece.normal_inside, centre, yaw, delta);
+                for a in 0..3 {
+                    let at = piece.position_inside + 4 * a;
+                    let v = f32::from_le_bytes([bytes[at], bytes[at + 1], bytes[at + 2], bytes[at + 3]]);
+                    low[a] = low[a].min(v);
+                    high[a] = high[a].max(v);
+                }
+                vertices.extend_from_slice(&bytes);
+            }
+            let geometry = NewGeometry {
+                vertices,
+                indices: piece.indices.clone(),
+                width,
+                centre: [(low[0] + high[0]) / 2.0, (low[1] + high[1]) / 2.0, (low[2] + high[2]) / 2.0],
+            };
+            let in_part = self.meshes[..template].iter().filter(|(p, _)| *p == part).count();
+            // A material that the block already has is not copied again.
+            let has_material = self.meshes.iter().any(|(_, m)| m.material == piece.material);
+            let (bytes, _) = bch_edit::add_object_with(
+                &self.pack[self.ranges[part].0..self.ranges[part].1],
+                in_part,
+                Some(piece.group),
+                &geometry,
+                if has_material { None } else { Some(blob) },
+            )?;
+            let mut padded = bytes;
+            padded.resize(padded.len().div_ceil(pack::ALIGNMENT) * pack::ALIGNMENT, 0);
+            let pack = pack::replace_part(&self.pack, part, &padded)?;
+            *self = Self::from_pack(self.id, self.compressed, pack)?;
+            added += 1;
+        }
+        Ok(added)
+    }
+
     /// Says whether the block can take an object from another block.
     pub fn can_host(&self, object: &Portable) -> Result<(), String> {
         for part in &object.parts {
@@ -501,6 +654,8 @@ impl EditableBlock {
                 normal_inside: mesh.normal_offsets.get(first).map(|n| n - start_of(first)),
                 vertices: bytes,
                 indices,
+                group: mesh.group,
+                blob: bch_edit::read_material(&self.pack[base..self.ranges[*part].1], mesh.material_index).ok(),
             });
         }
         Ok(Portable { origin, low, high, parts })
