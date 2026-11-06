@@ -475,8 +475,9 @@ impl Viewer {
         if self.ev.show[4] {
             if let Some(at) = self.ev.at().cloned() {
                 let doors = self.editor.doors.clone();
+                let area = events::zone_area(&self.arc_dir, at.zone).unwrap_or(0);
                 for d in doors {
-                    let Some(model) = self.models.load_door(d.kind) else { continue };
+                    let Some(model) = self.models.load_door(d.kind, area) else { continue };
                     let centre = [events::tile_to_local(d.x / events::TILE, at.column), events::tile_to_local(d.z / events::TILE, at.row)];
                     let (sin, cos) = d.turn[1].sin_cos();
                     for mesh in &model.meshes {

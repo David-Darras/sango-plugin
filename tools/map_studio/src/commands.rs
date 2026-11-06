@@ -1884,13 +1884,14 @@ pub fn neighbours_test(arc_dir: &str, block: usize) -> Result<(), String> {
 
 /// Draws the door models (build models) of some kinds in a picture.
 pub fn door_sheet(arc_dir: &str, kinds: &[u32], out: &str) -> Result<(), String> {
+    let area = 8;
     let mut bank = crate::models::ModelBank::new(arc_dir);
     const SIZE: usize = 192;
     let columns = kinds.len().min(6).max(1);
     let rows = kinds.len().div_ceil(columns);
     let mut sheet = vec![60u8; SIZE * columns * SIZE * rows * 4];
     for (k, &kind) in kinds.iter().enumerate() {
-        let Some(model) = bank.load_door(kind) else {
+        let Some(model) = bank.load_door(kind, area) else {
             println!("door kind {kind}: no model");
             continue;
         };
