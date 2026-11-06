@@ -72,6 +72,14 @@ pub struct Bch<'a> {
     pub strings_length: usize,
     pub commands: usize,
     pub raw_data: usize,
+    /// The table that says which words of the file the game corrects when it
+    /// loads the file, and how.
+    pub relocation: usize,
+    pub relocation_length: usize,
+    /// How many times the table of relocation and the shape of the triangles
+    /// did not agree on the width of the indices (for the checks of the tool).
+    pub width_conflicts: std::cell::Cell<usize>,
+    pub conflict_notes: std::cell::RefCell<Vec<String>>,
 }
 
 /// The registers of a list of commands of the graphics chip.
@@ -99,7 +107,7 @@ fn registers(words: &[u32]) -> HashMap<u16, u32> {
 
 /// The place of the value of each register in a list of commands: the index
 /// of the word. A tool needs it to change a value in the file.
-fn register_places(words: &[u32]) -> HashMap<u16, usize> {
+pub(crate) fn register_places(words: &[u32]) -> HashMap<u16, usize> {
     let mut out = HashMap::new();
     let mut i = 0;
     while i + 1 < words.len() {
@@ -148,6 +156,8 @@ struct RawMesh {
     index_count_at: usize,
     index_start_at: usize,
     vertex_start_at: usize,
+    /// The width that the table of relocation gave, when it gave one.
+    width_from_table: std::cell::Cell<Option<usize>>,
 }
 
 impl<'a> Bch<'a> {
@@ -162,6 +172,24 @@ impl<'a> Bch<'a> {
             commands: u32_at(data, 16)? as usize,
             raw_data: u32_at(data, 20)? as usize,
             strings_length: u32_at(data, 36)? as usize,
+            relocation: u32_at(data, 28)? as usize,
+            relocation_length: u32_at(data, 52)? as usize,
+            width_conflicts: std::cell::Cell::new(0),
+            conflict_notes: std::cell::RefCell::new(Vec::new()),
+        })
+    }
+
+    /// The kind of correction that the game does on a word of the commands:
+    /// 0x26 a place in the vertex data, 0x27 a list of 16 bit indices, 0x28 a
+    /// list of 8 bit indices (the numbers of the table of relocation). The
+    /// position is the offset of the word from the start of the commands.
+    /// The table counts in words of 4 bytes.
+    pub fn command_word_kind(&self, command_offset: usize) -> Option<u8> {
+        let words = self.relocation_length / 4;
+        (0..words).find_map(|i| {
+            let entry = self.u32(self.relocation + 4 * i).ok()?;
+            let kind = (entry >> 25) as u8;
+            (kind >= 0x20 && (entry & 0x01ff_ffff) as usize * 4 == command_offset).then_some(kind)
         })
     }
 
@@ -324,6 +352,7 @@ impl<'a> Bch<'a> {
             index_count_at,
             index_start_at,
             vertex_start_at,
+            width_from_table: std::cell::Cell::new(None),
         })
     }
 
@@ -415,6 +444,26 @@ impl<'a> Bch<'a> {
                 width[i] = 1;
             } else if wide < 0.7 * narrow {
                 width[i] = 2;
+            }
+        }
+        // The table of relocation says it: the word of the list of indices is
+        // marked as a list of 16 bit or of 8 bit numbers.
+        for (i, raw) in raws.iter().enumerate() {
+            let from_table = match self.command_word_kind(raw.index_start_at - self.commands) {
+                Some(0x27) => Some(2),
+                Some(0x28) => Some(1),
+                _ => None,
+            };
+            if let Some(w) = from_table {
+                raw.width_from_table.set(Some(w));
+                if w != width[i] {
+                    self.width_conflicts.set(self.width_conflicts.get() + 1);
+                    self.conflict_notes.borrow_mut().push(format!(
+                        "{} count {}: table says {} bytes, shape says {} (edge with 1 byte {:.1}, with 2 bytes {:.1})",
+                        raw.mesh.material, raw.index_count, w, width[i], self.edge_length(raw, 1), self.edge_length(raw, 2)
+                    ));
+                }
+                width[i] = w;
             }
         }
 

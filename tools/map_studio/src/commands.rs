@@ -436,6 +436,89 @@ pub fn tiles(arc_dir: &str, block: usize) -> Result<(), String> {
     Ok(())
 }
 
+/// Adds a new mesh to a block: a copy of what is near a point in the meshes
+/// that have a material, moved along x. It checks that the block can be read
+/// again, and writes it.
+pub fn add_mesh_test(
+    arc_dir: &str,
+    block: usize,
+    material: &str,
+    place: [f32; 2],
+    radius: f32,
+    dx: f32,
+    out_dir: &str,
+) -> Result<(), String> {
+    let mut edited = EditableBlock::load(arc_dir, block)?;
+    let triangles = |e: &EditableBlock| e.meshes.iter().map(|(_, m)| m.indices.len() / 3).sum::<usize>();
+    let (meshes_before, triangles_before) = (edited.meshes.len(), triangles(&edited));
+    // One new mesh for each material (a tree is in three meshes).
+    for name in material.split(',') {
+        let found = groups_near(&edited, name, place, radius);
+        let like = found.first().map(|(mesh, _)| *mesh).ok_or("nothing near this place")?;
+        let source: Vec<(usize, Vec<usize>)> = found.into_iter().filter(|(mesh, _)| *mesh == like).collect();
+        let new_mesh = edited.add_mesh_from_groups(like, &source, [dx, 0.0, 0.0])?;
+        println!("new mesh {new_mesh}: {} with {} triangles", edited.meshes[new_mesh].1.material, edited.meshes[new_mesh].1.indices.len() / 3);
+    }
+    println!(
+        "meshes {meshes_before} -> {}, triangles {triangles_before} -> {}",
+        edited.meshes.len(), triangles(&edited)
+    );
+    let path = edited.save(out_dir)?;
+    println!("written {}", path.display());
+    Ok(())
+}
+
+/// Looks for problems in the models of a block file (or of a block of the
+/// archive) with the checks of the tool.
+pub fn validate(arc_dir: &str, block: usize, land_file: Option<&str>) -> Result<(), String> {
+    let parts = match land_file {
+        Some(path) => data::read_block_from_bytes(&std::fs::read(path).map_err(|e| format!("{path}: {e}"))?)?,
+        None => data::read_block(arc_dir, block)?,
+    };
+    let mut total = 0;
+    for part in [1, 5] {
+        let Some(model) = parts.get(part).filter(|p| p.starts_with(b"BCH\0")) else { continue };
+        let problems = crate::bch_edit::validate(model);
+        println!("part {part}: {} problems", problems.len());
+        for p in problems.iter().take(8) {
+            println!("    {p}");
+        }
+        total += problems.len();
+    }
+    if total > 0 {
+        return Err(format!("{total} problems"));
+    }
+    Ok(())
+}
+
+/// Checks, on all the blocks, that the width of the indices that the table of
+/// relocation gives is the same as the one that the shape of the triangles
+/// gives. A difference means that one of the two ways is wrong.
+pub fn check_widths(arc_dir: &str) -> Result<(), String> {
+    let files = crate::garc::read(&std::path::PathBuf::from(arc_dir).join("map_land_data.garc"))?;
+    let (mut blocks, mut conflicts, mut meshes) = (0, 0, 0);
+    for (id, file) in files.iter().enumerate() {
+        let Some(raw) = file.first() else { continue };
+        let Ok(parts) = data::read_block_from_bytes(raw) else { continue };
+        for part in [1, 5] {
+            let Some(model) = parts.get(part).filter(|p| p.starts_with(b"BCH\0")) else { continue };
+            let Ok(bch) = bch::Bch::parse(model) else { continue };
+            let Ok(found) = bch.meshes() else { continue };
+            meshes += found.len();
+            if bch.width_conflicts.get() > 0 {
+                println!("block {id} part {part}: {} disagreements", bch.width_conflicts.get());
+                for note in bch.conflict_notes.borrow().iter().take(2) {
+                    println!("    {note}");
+                }
+                conflicts += bch.width_conflicts.get();
+            }
+        }
+        blocks += 1;
+    }
+    println!("{blocks} blocks, {meshes} meshes, {conflicts} disagreements");
+    Ok(())
+}
+
 /// Lists the blocks that have a mesh with this material: the name of the
 /// block (from the names in its model), the vertices and the size of a vertex.
 pub fn find(arc_dir: &str, material: &str) -> Result<(), String> {

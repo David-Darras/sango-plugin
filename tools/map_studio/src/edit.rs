@@ -8,6 +8,7 @@ use std::collections::{BTreeMap, BTreeSet, HashMap, HashSet};
 use std::path::{Path, PathBuf};
 
 use crate::bch::{Bch, Mesh};
+use crate::bch_edit::{self, NewGeometry};
 use crate::{garc, lz11, pack};
 
 /// The parts of a block that hold a model: the ground with its objects, and
@@ -381,6 +382,78 @@ impl EditableBlock {
                     format!("this block has no mesh {}", part.material)
                 }
             })
+    }
+
+    /// Adds a new mesh to the block. The new mesh is a copy of the mesh
+    /// `like` (same material, same group of drawing) that holds copies of
+    /// some vertices of meshes that are made like it, moved by `delta`.
+    /// Returns the number of the new mesh. The meshes after it have a number
+    /// that is one more.
+    pub fn add_mesh_from_groups(
+        &mut self,
+        like: usize,
+        source: &[(usize, Vec<usize>)],
+        delta: [f32; 3],
+    ) -> Result<usize, String> {
+        let (part, like_mesh) = self.meshes.get(like).ok_or("no such mesh")?;
+        let part = *part;
+        let layout = like_mesh.places.layout.clone();
+        let (stride, width) = (like_mesh.places.stride, like_mesh.places.index_width);
+        let base = self.ranges[part].0;
+
+        let mut vertices: Vec<u8> = Vec::new();
+        let mut indices: Vec<u32> = Vec::new();
+        let (mut low, mut high) = ([f32::MAX; 3], [f32::MIN; 3]);
+        for (index, group) in source {
+            let (p, mesh) = self.meshes.get(*index).ok_or("no such mesh")?;
+            if *p != part || mesh.places.layout != layout {
+                return Err(format!("the mesh {} is not made like the mesh that is copied", mesh.material));
+            }
+            let chosen: BTreeSet<usize> = group.iter().copied().collect();
+            let first_new = vertices.len() / stride;
+            let local: HashMap<usize, u32> =
+                chosen.iter().enumerate().map(|(k, &v)| (v, (first_new + k) as u32)).collect();
+            for &v in &chosen {
+                let from = mesh.places.vertices_at + v * stride;
+                let mut bytes = self.pack[base + from..base + from + stride].to_vec();
+                let inside = mesh.position_offsets[v] - from;
+                let normal = mesh.normal_offsets.get(v).map(|n| n - from);
+                transform_vertex(&mut bytes, inside, normal, [0.0, 0.0], 0.0, delta);
+                for a in 0..3 {
+                    let at = inside + 4 * a;
+                    let value = f32::from_le_bytes([bytes[at], bytes[at + 1], bytes[at + 2], bytes[at + 3]]);
+                    low[a] = low[a].min(value);
+                    high[a] = high[a].max(value);
+                }
+                vertices.extend_from_slice(&bytes);
+            }
+            for t in mesh.indices.chunks_exact(3) {
+                if t.iter().all(|&i| local.contains_key(&(i as usize))) {
+                    indices.extend(t.iter().map(|&i| local[&(i as usize)]));
+                }
+            }
+        }
+        if indices.is_empty() {
+            return Err("nothing to copy".into());
+        }
+        if vertices.len() / stride > if width == 2 { 65536 } else { 256 } {
+            return Err("too many vertices for the indices of this mesh".into());
+        }
+        let geometry = NewGeometry {
+            vertices,
+            indices,
+            width,
+            centre: [(low[0] + high[0]) / 2.0, (low[1] + high[1]) / 2.0, (low[2] + high[2]) / 2.0],
+        };
+        // The number of the mesh in the table of its part.
+        let in_part = self.meshes[..like].iter().filter(|(p, _)| *p == part).count();
+        let before = self.meshes[..like].iter().filter(|(p, _)| *p < part).count();
+        let (bytes, inserted) = bch_edit::add_object(&self.pack[self.ranges[part].0..self.ranges[part].1], in_part, &geometry)?;
+        let mut padded = bytes;
+        padded.resize(padded.len().div_ceil(pack::ALIGNMENT) * pack::ALIGNMENT, 0);
+        let pack = pack::replace_part(&self.pack, part, &padded)?;
+        *self = Self::from_pack(self.id, self.compressed, pack)?;
+        Ok(before + inserted)
     }
 
     /// Says whether the block can take an object from another block.

@@ -1,6 +1,7 @@
 //! Map Studio: an editor for the maps of Omega Ruby and Alpha Sapphire.
 
 mod bch;
+mod bch_edit;
 mod commands;
 mod data;
 mod edit;
@@ -22,6 +23,8 @@ const USAGE: &str = "usage:
   map-studio copy-near <arc dir> <block id> <materials> <x> <z> <radius> <dx> <dy> <dz> <out dir>
   map-studio delete-near <arc dir> <block id> <materials> <x> <z> <radius> <out dir>
   map-studio editor-test <arc dir> <block id> <out dir>
+  map-studio add-mesh-test <arc dir> <block id> <material> <x> <z> <radius> <dx> <out dir>
+  map-studio validate <arc dir> <block id> [--land <land file>]
   map-studio check <land file> <block id> <material>";
 
 /// Opens a block in a window.
@@ -85,6 +88,20 @@ fn main() {
         Some("tiles") if args.len() >= 4 => commands::tiles(&args[2], block),
         Some("find") if args.len() >= 4 => commands::find(&args[2], &args[3]),
         Some("cross-test") if args.len() >= 6 => commands::cross_test(&args[2], block, number(4).unwrap_or(0), &args[5]),
+        Some("check-widths") if args.len() >= 3 => commands::check_widths(&args[2]),
+        Some("add-mesh-test") if args.len() >= 10 => commands::add_mesh_test(
+            &args[2],
+            block,
+            &args[4],
+            [float(5), float(6)],
+            float(7),
+            float(8),
+            &args[9],
+        ),
+        Some("validate") if args.len() >= 4 => {
+            let land = args.iter().position(|a| a == "--land").and_then(|i| args.get(i + 1)).map(String::as_str);
+            commands::validate(&args[2], block, land)
+        }
         Some("check") if args.len() >= 5 => commands::check(&args[2], block, &args[4]),
         _ => Err(USAGE.to_string()),
     };
