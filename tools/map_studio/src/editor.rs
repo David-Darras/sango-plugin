@@ -9,7 +9,7 @@
 use std::path::Path;
 
 use crate::bch::Mesh;
-use crate::edit::{mesh_groups, Attributes, CopyRequest, EditableBlock};
+use crate::edit::{mesh_groups, Attributes, CopyRequest, EditableBlock, Portable, NO_ORIGIN};
 
 /// A mesh is a mesh of objects, and not of ground, when no group of its
 /// vertices is wider than this (in game units, seen from above).
@@ -30,6 +30,9 @@ pub struct Cluster {
     pub parts: Vec<(usize, Vec<usize>)>,
     pub low: [f32; 3],
     pub high: [f32; 3],
+    /// An object that was taken from another block (or from this one). Then
+    /// `parts` is empty.
+    pub foreign: Option<Portable>,
 }
 
 /// One object shown in the block. The first instances are the objects of the
@@ -50,6 +53,13 @@ type Snapshot = (Vec<Instance>, Vec<u32>);
 
 pub struct Editor {
     original: EditableBlock,
+    /// The folder of the archives, to read other blocks again.
+    arc_dir: String,
+    /// False when the block was a file that the tool wrote.
+    from_archive: bool,
+    /// The number of objects of the block itself. The objects that come
+    /// from another block are after them.
+    native: usize,
     pub clusters: Vec<Cluster>,
     /// True for each mesh that holds objects that the user can select.
     pub selectable: Vec<bool>,
@@ -82,11 +92,11 @@ fn bounds(mesh: &Mesh, vertices: &[usize]) -> ([f32; 3], [f32; 3]) {
 
 impl Editor {
     pub fn new(arc_dir: &str, block: usize) -> Result<Self, String> {
-        Self::from_block(EditableBlock::load(arc_dir, block)?)
+        Self::from_block(EditableBlock::load(arc_dir, block)?, arc_dir, true)
     }
 
     /// Starts from a block. The edits are measured from this block.
-    pub fn from_block(original: EditableBlock) -> Result<Self, String> {
+    pub fn from_block(original: EditableBlock, arc_dir: &str, from_archive: bool) -> Result<Self, String> {
         // Find the groups of the meshes of objects.
         struct Group {
             mesh: usize,
@@ -227,16 +237,20 @@ impl Editor {
                     }
                 }
             }
-            clusters.push(Cluster { parts, low, high });
+            clusters.push(Cluster { parts, low, high, foreign: None });
         }
 
         let instances = (0..clusters.len())
             .map(|cluster| Instance { cluster, offset: [0.0; 3], yaw: 0.0, copy: false, deleted: false })
             .collect();
         let attributes = original.attributes()?;
+        let native = clusters.len();
         let mut editor = Editor {
             built: original.clone(),
             original,
+            arc_dir: arc_dir.to_string(),
+            from_archive,
+            native,
             clusters,
             selectable,
             instances,
@@ -305,6 +319,7 @@ impl Editor {
             .iter()
             .map(|&i| CopyRequest {
                 source: self.clusters[self.instances[i].cluster].parts.clone(),
+                foreign: self.clusters[self.instances[i].cluster].foreign.clone(),
                 centre: self.cluster_centre(self.instances[i].cluster),
                 yaw: self.instances[i].yaw,
                 delta: self.instances[i].offset,
@@ -442,6 +457,57 @@ impl Editor {
         }
     }
 
+    /// The names of the meshes that an object uses.
+    pub fn cluster_materials(&self, cluster: usize) -> Vec<String> {
+        let c = &self.clusters[cluster];
+        let mut names: Vec<String> = match &c.foreign {
+            Some(object) => object.parts.iter().map(|p| p.material.clone()).collect(),
+            None => c.parts.iter().map(|(m, _)| self.original.meshes[*m].1.material.clone()).collect(),
+        };
+        names.dedup();
+        names
+    }
+
+    /// An object, with the data of its vertices, to put it in another block.
+    fn portable_of_cluster(&self, cluster: usize) -> Result<Portable, String> {
+        let c = &self.clusters[cluster];
+        if let Some(object) = &c.foreign {
+            return Ok(object.clone());
+        }
+        let block = if self.from_archive { self.original.id } else { NO_ORIGIN };
+        self.original.portable((block, cluster), &c.parts, c.low, c.high)
+    }
+
+    /// Says whether this block can take an object from a block.
+    pub fn can_import(&self, object: &Portable) -> Result<(), String> {
+        self.original.can_host(object)
+    }
+
+    /// For the checks of the tool: the object with this number.
+    pub fn portable_of_cluster_for_test(&self, cluster: usize) -> Result<Portable, String> {
+        self.portable_of_cluster(cluster)
+    }
+
+    /// The object of an instance, as it is in the original block.
+    pub fn portable_of(&self, instance: usize) -> Result<Portable, String> {
+        self.portable_of_cluster(self.instances[instance].cluster)
+    }
+
+    /// Puts an object that comes from a block in this block, as a copy at the
+    /// place where it was. Returns the number of the new instance. The block
+    /// must have the meshes that the object uses, with the same vertices.
+    pub fn import(&mut self, object: Portable) -> Result<usize, String> {
+        self.original.can_host(&object)?;
+        let cluster = self.clusters.len();
+        self.clusters.push(Cluster { parts: Vec::new(), low: object.low, high: object.high, foreign: Some(object) });
+        let result = self.change(|v| v.push(Instance { cluster, offset: [0.0; 3], yaw: 0.0, copy: true, deleted: false }));
+        if let Err(message) = result {
+            self.clusters.pop();
+            return Err(message);
+        }
+        Ok(self.instances.len() - 1)
+    }
+
     /// The number of the block.
     pub fn block_id(&self) -> usize {
         self.original.id
@@ -449,12 +515,20 @@ impl Editor {
 
     /// The edit as text: what moved, what was deleted, the copies and the
     /// tiles that changed. The file has no data of the game.
-    pub fn project_text(&self) -> String {
+    pub fn project_text(&self) -> Result<String, String> {
         use std::fmt::Write as _;
         let mut out = String::new();
         let _ = writeln!(out, "map-studio-project 1");
         let _ = writeln!(out, "block {}", self.original.id);
-        let _ = writeln!(out, "objects {}", self.clusters.len());
+        let _ = writeln!(out, "objects {}", self.native);
+        // The objects from other blocks: the project says where to find them.
+        for cluster in &self.clusters[self.native..] {
+            let Some(object) = &cluster.foreign else { continue };
+            if object.origin.0 == NO_ORIGIN {
+                return Err("an object comes from a block that was not in the archive, so the project cannot find it again".into());
+            }
+            let _ = writeln!(out, "import {} {}", object.origin.0, object.origin.1);
+        }
         for instance in &self.instances {
             let [x, y, z] = instance.offset;
             let yaw = instance.yaw;
@@ -471,7 +545,7 @@ impl Editor {
                 let _ = writeln!(out, "tile {i} {now:08x}");
             }
         }
-        out
+        Ok(out)
     }
 
     /// Takes the edit from a text that `project_text` wrote. The undo list
@@ -481,10 +555,11 @@ impl Editor {
         if lines.next() != Some("map-studio-project 1") {
             return Err("this is not a project of Map Studio".into());
         }
-        let mut instances: Vec<Instance> = (0..self.clusters.len())
+        let mut instances: Vec<Instance> = (0..self.native)
             .map(|cluster| Instance { cluster, offset: [0.0; 3], yaw: 0.0, copy: false, deleted: false })
             .collect();
         let mut tiles = self.original_tiles.clone();
+        let mut imported: Vec<Cluster> = Vec::new();
         let number = |word: Option<&str>| -> Result<f32, String> {
             word.and_then(|w| w.parse().ok()).ok_or_else(|| "a number is wrong in the project".to_string())
         };
@@ -498,16 +573,26 @@ impl Editor {
                 }
                 Some("objects") => {
                     let count = number(words.next())? as usize;
-                    if count != self.clusters.len() {
+                    if count != self.native {
                         return Err(format!(
                             "the project has {count} objects and this block has {}: the objects were cut another way",
-                            self.clusters.len()
+                            self.native
                         ));
                     }
                 }
+                Some("import") => {
+                    let (block, cluster) = (number(words.next())? as usize, number(words.next())? as usize);
+                    let source = Editor::new(&self.arc_dir, block)?;
+                    if cluster >= source.native {
+                        return Err("an object to import does not exist".into());
+                    }
+                    let object = source.portable_of_cluster(cluster)?;
+                    self.original.can_host(&object)?;
+                    imported.push(Cluster { parts: Vec::new(), low: object.low, high: object.high, foreign: Some(object) });
+                }
                 Some(kind @ ("move" | "delete" | "copy")) => {
                     let cluster = number(words.next())? as usize;
-                    if cluster >= self.clusters.len() {
+                    if cluster >= self.native + imported.len() {
                         return Err("an object of the project does not exist".into());
                     }
                     if kind == "delete" {
@@ -534,8 +619,12 @@ impl Editor {
             }
         }
         let before = (std::mem::replace(&mut self.instances, instances), std::mem::replace(&mut self.tiles, tiles));
+        let old_imported = self.clusters.split_off(self.native);
+        self.clusters.extend(imported);
         if let Err(message) = self.rebuild() {
             (self.instances, self.tiles) = before;
+            self.clusters.truncate(self.native);
+            self.clusters.extend(old_imported);
             let _ = self.rebuild();
             return Err(message);
         }

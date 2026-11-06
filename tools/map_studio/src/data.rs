@@ -133,3 +133,8 @@ pub fn attribute_values(arc_dir: &str) -> Result<Vec<(u32, usize)>, String> {
     list.sort_by_key(|(value, n)| (std::cmp::Reverse(*n), *value));
     Ok(list)
 }
+
+/// The parts of a block from the bytes of its file.
+pub fn read_block_from_bytes(raw: &[u8]) -> Result<Vec<Vec<u8>>, String> {
+    open_pack(raw)
+}

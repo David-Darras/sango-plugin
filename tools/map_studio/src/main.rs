@@ -37,7 +37,7 @@ fn view(arc_dir: &str, block: usize, area: Option<usize>, land_file: Option<&str
         scene.area, scene.textures.len(), with_picture, scene.meshes.len()
     );
     let editor = match land_file {
-        Some(path) => editor::Editor::from_block(edit::EditableBlock::from_file(std::path::Path::new(path), block)?)?,
+        Some(path) => editor::Editor::from_block(edit::EditableBlock::from_file(std::path::Path::new(path), block)?, arc_dir, false)?,
         None => editor::Editor::new(arc_dir, block)?,
     };
     viewer::run(scene.textures, editor, format!("Block {block}"), arc_dir.to_string())
@@ -83,6 +83,8 @@ fn main() {
         Some("order") if args.len() >= 6 => commands::order(&args[2], block, &args[4], number(5).unwrap_or(40)),
         Some("objects") if args.len() >= 4 => commands::objects(&args[2], block),
         Some("tiles") if args.len() >= 4 => commands::tiles(&args[2], block),
+        Some("find") if args.len() >= 4 => commands::find(&args[2], &args[3]),
+        Some("cross-test") if args.len() >= 6 => commands::cross_test(&args[2], block, number(4).unwrap_or(0), &args[5]),
         Some("check") if args.len() >= 5 => commands::check(&args[2], block, &args[4]),
         _ => Err(USAGE.to_string()),
     };

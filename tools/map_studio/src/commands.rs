@@ -227,7 +227,7 @@ pub fn copy_near(
         return Err("nothing near this place".into());
     }
     let groups = found.len();
-    let added = edited.copy_groups(&[CopyRequest { source: found, centre: [0.0, 0.0], yaw: 0.0, delta }])?;
+    let added = edited.copy_groups(&[CopyRequest { source: found, foreign: None, centre: [0.0, 0.0], yaw: 0.0, delta }])?;
     let vertices: usize = added[0].iter().map(|(_, _, count)| count).sum();
     let path = edited.save(out_dir)?;
     println!("added {vertices} vertices in {groups} groups; written {}", path.display());
@@ -334,7 +334,7 @@ pub fn editor_test(arc_dir: &str, block: usize, out_dir: &str) -> Result<(), Str
     let written = EditableBlock::from_file(&std::path::Path::new(out_dir).join("land").join(format!("{block}.bin")), block)?;
     println!("tile (20,20) in the written file: {:08x}", written.attributes()?.cells[20 * width + 20]);
     // Save the project, load it in a new session and write the block again.
-    let text = editor.project_text();
+    let text = editor.project_text()?;
     println!("project of {} lines:\n{}", text.lines().count(), text.lines().take(8).collect::<Vec<_>>().join("\n"));
     let mut fresh = Editor::new(arc_dir, block)?;
     fresh.load_project(&text)?;
@@ -433,5 +433,78 @@ pub fn tiles(arc_dir: &str, block: usize) -> Result<(), String> {
             .collect();
         println!("{line}");
     }
+    Ok(())
+}
+
+/// Lists the blocks that have a mesh with this material: the name of the
+/// block (from the names in its model), the vertices and the size of a vertex.
+pub fn find(arc_dir: &str, material: &str) -> Result<(), String> {
+    let files = crate::garc::read(&std::path::PathBuf::from(arc_dir).join("map_land_data.garc"))?;
+    for (id, file) in files.iter().enumerate() {
+        let Some(raw) = file.first() else { continue };
+        let Ok(block) = data::read_block_from_bytes(raw) else { continue };
+        let Some(model) = block.get(1).filter(|p| p.starts_with(b"BCH\0")) else { continue };
+        let Ok(bch) = bch::Bch::parse(model) else { continue };
+        let Ok(meshes) = bch.meshes() else { continue };
+        let name = bch.names().into_iter().find(|n| n.contains('@') && n.contains("world")).unwrap_or_default();
+        for mesh in meshes.iter().filter(|m| m.material == material) {
+            println!(
+                "block {id:3} {:<28} {material}: {:5} vertices, stride {}, layout {}",
+                name.rsplit('@').next().unwrap_or(""), mesh.positions.len(), mesh.places.stride, mesh.places.layout
+            );
+        }
+    }
+    Ok(())
+}
+
+/// A check of the copy of an object from one block to another, without a
+/// window: takes the biggest object of the source block (a tree), puts it in
+/// the target block, moves it, writes the block and loads the project again.
+pub fn cross_test(arc_dir: &str, source: usize, target: usize, out_dir: &str) -> Result<(), String> {
+    use crate::editor::Editor;
+    let from = Editor::new(arc_dir, source)?;
+    let mut into = Editor::new(arc_dir, target)?;
+    // The biggest object that the target block can take.
+    let mut order: Vec<usize> = (0..from.clusters.len()).collect();
+    order.sort_by_key(|&c| std::cmp::Reverse(from.clusters[c].parts.iter().map(|(_, v)| v.len()).sum::<usize>()));
+    let mut chosen = None;
+    for c in order {
+        let object = from.portable_of_cluster_for_test(c)?;
+        match into.can_import(&object) {
+            Ok(()) => {
+                chosen = Some((c, object));
+                break;
+            }
+            Err(message) => println!("object {c} cannot go in block {target}: {message}"),
+        }
+        if chosen.is_none() && c % 1000 == 999 {
+            break;
+        }
+    }
+    let (biggest, object) = chosen.ok_or("no object of the source block fits in the target block")?;
+    let bytes = object.to_bytes();
+    let object = crate::edit::Portable::from_bytes(&bytes)?;
+    println!(
+        "object {biggest} of block {source}: {} pieces, {} bytes, materials {:?}",
+        object.parts.len(), bytes.len(), object.parts.iter().map(|p| p.material.as_str()).collect::<Vec<_>>()
+    );
+    let triangles = |e: &Editor| e.meshes().iter().map(|(_, m)| m.indices.len() / 3).sum::<usize>();
+    let before = triangles(&into);
+    let index = into.import(object)?;
+    println!("pasted in block {target}: {before} -> {} triangles", triangles(&into));
+    into.change(|v| v[index].offset = [36.0, 0.0, 36.0])?;
+    into.change(|v| v[index].yaw = std::f32::consts::FRAC_PI_2)?;
+    println!("moved and turned: {} triangles", triangles(&into));
+    println!("{}", into.export(out_dir)?);
+    let text = into.project_text()?;
+    println!("project:\n{}", text.lines().filter(|l| l.starts_with("import") || l.starts_with("copy")).collect::<Vec<_>>().join("\n"));
+    let mut fresh = Editor::new(arc_dir, target)?;
+    fresh.load_project(&text)?;
+    let second = format!("{out_dir}_reloaded");
+    fresh.export(&second)?;
+    let name = format!("{target}.bin");
+    let a = std::fs::read(std::path::Path::new(out_dir).join("land").join(&name)).map_err(|e| e.to_string())?;
+    let b = std::fs::read(std::path::Path::new(&second).join("land").join(&name)).map_err(|e| e.to_string())?;
+    println!("block written after loading the project is identical: {}", a == b);
     Ok(())
 }

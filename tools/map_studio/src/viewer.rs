@@ -494,6 +494,12 @@ fn tile_style(value: u32) -> (String, [u8; 4]) {
     }
 }
 
+/// The file that holds the object that the user copied. It is outside the
+/// project, so it works from one block to another (two runs of the tool).
+fn clipboard_path() -> std::path::PathBuf {
+    std::env::temp_dir().join("map_studio_clipboard.msobj")
+}
+
 /// What a click hits.
 struct Hit {
     point: Vec3,
@@ -507,6 +513,8 @@ struct Row {
 }
 
 enum Action {
+    CopyOut,
+    Paste,
     Rotate(f32),
     SaveProject,
     LoadProject,
@@ -765,9 +773,7 @@ impl Viewer {
     fn describe_selection(&self) -> String {
         let Some(selected) = self.selected else { return "Nothing selected.".into() };
         let instance = &self.editor.instances[selected];
-        let cluster = &self.editor.clusters[instance.cluster];
-        let mut names: Vec<&str> = cluster.parts.iter().map(|(m, _)| self.editor.material(*m)).collect();
-        names.dedup();
+        let names = self.editor.cluster_materials(instance.cluster);
         let (low, high) = self.editor.instance_bounds(selected);
         format!(
             "{}: {}\nat x {:.0} z {:.0}, height {:.0}..{:.0}",
@@ -805,7 +811,7 @@ impl Viewer {
                 self.selected = None;
             }
             Action::SaveProject => {
-                self.status = match std::fs::write(&self.project_path, self.editor.project_text()) {
+                self.status = match self.editor.project_text().and_then(|text| std::fs::write(&self.project_path, text).map_err(|e| e.to_string())) {
                     Ok(()) => format!("Project saved in {}.", self.project_path),
                     Err(e) => format!("Cannot save the project: {e}"),
                 };
@@ -842,6 +848,33 @@ impl Viewer {
                     self.selected = Some(self.editor.instances.len() - 1);
                 }
                 self.report(result, "Copied one tile to the side.");
+            }
+            Action::CopyOut => {
+                let Some(selected) = self.selected else {
+                    self.status = "Select an object first.".into();
+                    return;
+                };
+                let path = clipboard_path();
+                self.status = match self.editor.portable_of(selected) {
+                    Ok(object) => match std::fs::write(&path, object.to_bytes()) {
+                        Ok(()) => format!("Object copied to the clipboard ({} meshes).", object.parts.len()),
+                        Err(e) => format!("Cannot write the clipboard: {e}"),
+                    },
+                    Err(message) => format!("Cannot copy: {message}"),
+                };
+                return;
+            }
+            Action::Paste => {
+                let path = clipboard_path();
+                let result = std::fs::read(&path)
+                    .map_err(|_| "the clipboard is empty: copy an object (Ctrl+C) in a block first".to_string())
+                    .and_then(|bytes| crate::edit::Portable::from_bytes(&bytes))
+                    .and_then(|object| self.editor.import(object));
+                if let Ok(index) = &result {
+                    self.selected = Some(*index);
+                    self.placing = true;
+                }
+                self.report(result, "Pasted. Click on the ground to place it.");
             }
             Action::Rotate(angle) => {
                 let Some(selected) = self.selected else { return };
@@ -896,7 +929,13 @@ impl eframe::App for Viewer {
         if !ctx.wants_keyboard_input() {
             ctx.input(|i| {
                 let step = if i.modifiers.shift { 2.0 } else { TILE };
-                if i.modifiers.command && i.key_pressed(egui::Key::Z) {
+                let copy_event = i.events.iter().any(|e| matches!(e, egui::Event::Copy));
+                let paste_event = i.events.iter().any(|e| matches!(e, egui::Event::Paste(_)));
+                if copy_event || (i.modifiers.command && i.key_pressed(egui::Key::C)) {
+                    action = Some(Action::CopyOut);
+                } else if paste_event || (i.modifiers.command && i.key_pressed(egui::Key::V)) {
+                    action = Some(Action::Paste);
+                } else if i.modifiers.command && i.key_pressed(egui::Key::Z) {
                     action = Some(if i.modifiers.shift { Action::Redo } else { Action::Undo });
                 } else if i.modifiers.command && i.key_pressed(egui::Key::Y) {
                     action = Some(Action::Redo);
@@ -960,6 +999,14 @@ impl eframe::App for Viewer {
                 }
                 if ui.add_enabled(has_selection, egui::Button::new("Delete")).clicked() {
                     action = Some(Action::Delete);
+                }
+            });
+            ui.horizontal(|ui| {
+                if ui.add_enabled(has_selection, egui::Button::new("Copy out (Ctrl+C)")).clicked() {
+                    action = Some(Action::CopyOut);
+                }
+                if ui.button("Paste (Ctrl+V)").clicked() {
+                    action = Some(Action::Paste);
                 }
             });
             ui.horizontal(|ui| {

@@ -49,6 +49,9 @@ pub struct Places {
     pub vertices_at: usize,
     /// 1 or 2 bytes for an index.
     pub index_width: usize,
+    /// Says how a vertex is made: two meshes can exchange vertices only when
+    /// this text is the same.
+    pub layout: String,
     /// The size of a vertex, in bytes.
     pub stride: usize,
 }
@@ -475,6 +478,12 @@ impl<'a> Bch<'a> {
                 indices_at: start,
                 vertices_at: self.raw_data + buffer_offset,
                 index_width: width[i],
+                layout: format!(
+                    "{}:{:?}:{:?}",
+                    stride,
+                    slots,
+                    slots.iter().map(|&slot| formats[slot]).collect::<Vec<_>>()
+                ),
                 stride: *stride,
             };
             raw.mesh = mesh;

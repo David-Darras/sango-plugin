@@ -27,10 +27,122 @@ pub struct EditableBlock {
     pub meshes: Vec<(usize, Mesh)>,
 }
 
-/// A copy of some vertices of a block, moved by an offset.
+/// A piece of an object, with the data of its vertices as a file stores them.
+#[derive(Clone, Debug)]
+pub struct PortablePart {
+    pub material: String,
+    /// How a vertex is made. A block can take the piece only in a mesh that
+    /// has the same material and the same layout.
+    pub layout: String,
+    pub stride: usize,
+    pub position_inside: usize,
+    pub normal_inside: Option<usize>,
+    /// The vertices, one after the other.
+    pub vertices: Vec<u8>,
+    /// Three numbers for each triangle, from the first vertex of the piece.
+    pub indices: Vec<u32>,
+}
+
+/// An object taken from a block, to be put in a block. It holds data of the
+/// game: do not share it.
+#[derive(Clone, Debug)]
+pub struct Portable {
+    /// The block and the number of the object where it was taken.
+    pub origin: (usize, usize),
+    pub low: [f32; 3],
+    pub high: [f32; 3],
+    pub parts: Vec<PortablePart>,
+}
+
+const PORTABLE_MAGIC: &[u8; 5] = b"MSOB1";
+
+/// The block of an object that does not come from a block of the game.
+pub const NO_ORIGIN: usize = u32::MAX as usize;
+
+impl Portable {
+    pub fn to_bytes(&self) -> Vec<u8> {
+        let mut out = PORTABLE_MAGIC.to_vec();
+        let mut number = |out: &mut Vec<u8>, v: usize| out.extend_from_slice(&(v as u32).to_le_bytes());
+        number(&mut out, self.origin.0);
+        number(&mut out, self.origin.1);
+        for v in self.low.iter().chain(&self.high) {
+            out.extend_from_slice(&v.to_le_bytes());
+        }
+        number(&mut out, self.parts.len());
+        for part in &self.parts {
+            for text in [&part.material, &part.layout] {
+                number(&mut out, text.len());
+                out.extend_from_slice(text.as_bytes());
+            }
+            number(&mut out, part.stride);
+            number(&mut out, part.position_inside);
+            number(&mut out, part.normal_inside.map_or(u32::MAX as usize, |n| n));
+            number(&mut out, part.vertices.len());
+            out.extend_from_slice(&part.vertices);
+            number(&mut out, part.indices.len());
+            for i in &part.indices {
+                out.extend_from_slice(&i.to_le_bytes());
+            }
+        }
+        out
+    }
+
+    pub fn from_bytes(data: &[u8]) -> Result<Portable, String> {
+        if data.get(..5) != Some(PORTABLE_MAGIC) {
+            return Err("this is not an object of Map Studio".into());
+        }
+        let mut at = 5;
+        let mut next = |size: usize| -> Result<&[u8], String> {
+            let bytes = data.get(at..at + size).ok_or("the object is cut")?;
+            at += size;
+            Ok(bytes)
+        };
+        let number = |bytes: &[u8]| u32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]) as usize;
+        let float = |bytes: &[u8]| f32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]);
+        let origin = (number(next(4)?), number(next(4)?));
+        let mut low = [0.0; 3];
+        let mut high = [0.0; 3];
+        for v in low.iter_mut().chain(high.iter_mut()) {
+            *v = float(next(4)?);
+        }
+        let count = number(next(4)?);
+        let mut parts = Vec::new();
+        for _ in 0..count {
+            let mut texts = Vec::new();
+            for _ in 0..2 {
+                let length = number(next(4)?);
+                texts.push(String::from_utf8_lossy(next(length)?).into_owned());
+            }
+            let stride = number(next(4)?);
+            let position_inside = number(next(4)?);
+            let normal = number(next(4)?);
+            let size = number(next(4)?);
+            let vertices = next(size)?.to_vec();
+            let index_count = number(next(4)?);
+            let indices = next(index_count * 4)?.chunks_exact(4).map(|c| number(c) as u32).collect();
+            let layout = texts.pop().unwrap_or_default();
+            let material = texts.pop().unwrap_or_default();
+            parts.push(PortablePart {
+                material,
+                layout,
+                stride,
+                position_inside,
+                normal_inside: (normal != u32::MAX as usize).then_some(normal),
+                vertices,
+                indices,
+            });
+        }
+        Ok(Portable { origin, low, high, parts })
+    }
+}
+
+/// A copy of some vertices, moved by an offset. The vertices are from the
+/// block itself (`source`) or from an object that was taken from a block
+/// (`foreign`).
 pub struct CopyRequest {
     /// The number of a mesh and the vertices of this mesh to copy.
     pub source: Vec<(usize, Vec<usize>)>,
+    pub foreign: Option<Portable>,
     /// The copy turns by this angle (radians) around the vertical axis that
     /// goes through this point (x and z), then moves by `delta`.
     pub centre: [f32; 2],
@@ -64,6 +176,14 @@ fn transform_vertex(bytes: &mut [u8], position: usize, normal: Option<usize>, ce
             bytes[at + 4 * axis..at + 4 * axis + 4].copy_from_slice(&value.to_le_bytes());
         }
     }
+}
+
+/// The place that a copy takes in the meshes of a block.
+enum Piece {
+    /// Vertices of the block.
+    Own(Vec<usize>),
+    /// The piece of a foreign object with this number.
+    Foreign(usize),
 }
 
 /// The vertices that a copy added to a mesh: the number of the mesh, the
@@ -248,6 +368,71 @@ impl EditableBlock {
         Ok(removed)
     }
 
+    /// The mesh of this block that can take a piece of a foreign object.
+    fn host_of(&self, part: &PortablePart) -> Result<usize, String> {
+        self.meshes
+            .iter()
+            .position(|(_, m)| m.material == part.material && m.places.layout == part.layout)
+            .ok_or_else(|| {
+                let same_material = self.meshes.iter().any(|(_, m)| m.material == part.material);
+                if same_material {
+                    format!("this block has the mesh {} but its vertices are made another way", part.material)
+                } else {
+                    format!("this block has no mesh {}", part.material)
+                }
+            })
+    }
+
+    /// Says whether the block can take an object from another block.
+    pub fn can_host(&self, object: &Portable) -> Result<(), String> {
+        for part in &object.parts {
+            self.host_of(part)?;
+        }
+        Ok(())
+    }
+
+    /// Takes an object out of the block: the data of the vertices of the
+    /// groups, to put them in a block later.
+    pub fn portable(
+        &self,
+        origin: (usize, usize),
+        groups: &[(usize, Vec<usize>)],
+        low: [f32; 3],
+        high: [f32; 3],
+    ) -> Result<Portable, String> {
+        let mut parts = Vec::new();
+        for (index, vertices) in groups {
+            let (part, mesh) = self.meshes.get(*index).ok_or("no such mesh")?;
+            let base = self.ranges[*part].0;
+            let places = &mesh.places;
+            let chosen: BTreeSet<usize> = vertices.iter().copied().collect();
+            let local: HashMap<usize, u32> = chosen.iter().enumerate().map(|(k, &v)| (v, k as u32)).collect();
+            let first = *chosen.iter().next().ok_or("an object without vertices")?;
+            let start_of = |v: usize| places.vertices_at + v * places.stride;
+            let mut bytes = Vec::with_capacity(chosen.len() * places.stride);
+            for &v in &chosen {
+                let from = base + start_of(v);
+                bytes.extend_from_slice(&self.pack[from..from + places.stride]);
+            }
+            let mut indices = Vec::new();
+            for t in mesh.indices.chunks_exact(3) {
+                if t.iter().all(|&i| local.contains_key(&(i as usize))) {
+                    indices.extend(t.iter().map(|&i| local[&(i as usize)]));
+                }
+            }
+            parts.push(PortablePart {
+                material: mesh.material.clone(),
+                layout: places.layout.clone(),
+                stride: places.stride,
+                position_inside: mesh.position_offsets[first] - start_of(first),
+                normal_inside: mesh.normal_offsets.get(first).map(|n| n - start_of(first)),
+                vertices: bytes,
+                indices,
+            });
+        }
+        Ok(Portable { origin, low, high, parts })
+    }
+
     /// Copies groups of vertices to other places.
     ///
     /// The new vertices and indices go at the end of the raw data of the
@@ -259,8 +444,8 @@ impl EditableBlock {
     ///
     /// Returns, for each request, the vertices that were added.
     pub fn copy_groups(&mut self, requests: &[CopyRequest]) -> Result<Vec<Vec<AddedVertices>>, String> {
-        // For each part and mesh: the requests that touch it.
-        type PerMesh = BTreeMap<usize, Vec<(usize, Vec<usize>)>>;
+        // For each part and mesh: the pieces that go there.
+        type PerMesh = BTreeMap<usize, Vec<(usize, Piece)>>;
         let mut by_part: BTreeMap<usize, PerMesh> = BTreeMap::new();
         for (r, request) in requests.iter().enumerate() {
             let mut merged: BTreeMap<usize, BTreeSet<usize>> = BTreeMap::new();
@@ -269,7 +454,14 @@ impl EditableBlock {
             }
             for (mesh, vertices) in merged {
                 let part = self.meshes.get(mesh).ok_or("no such mesh")?.0;
-                by_part.entry(part).or_default().entry(mesh).or_default().push((r, vertices.into_iter().collect()));
+                by_part.entry(part).or_default().entry(mesh).or_default().push((r, Piece::Own(vertices.into_iter().collect())));
+            }
+            if let Some(object) = &request.foreign {
+                for (k, piece) in object.parts.iter().enumerate() {
+                    let mesh = self.host_of(piece)?;
+                    let part = self.meshes[mesh].0;
+                    by_part.entry(part).or_default().entry(mesh).or_default().push((r, Piece::Foreign(k)));
+                }
             }
         }
         let mut added: Vec<Vec<AddedVertices>> = vec![Vec::new(); requests.len()];
@@ -284,7 +476,7 @@ impl EditableBlock {
     fn copy_in_part(
         &mut self,
         part: usize,
-        per_mesh: &BTreeMap<usize, Vec<(usize, Vec<usize>)>>,
+        per_mesh: &BTreeMap<usize, Vec<(usize, Piece)>>,
         requests: &[CopyRequest],
     ) -> Result<Vec<(usize, AddedVertices)>, String> {
         let (start, end) = self.ranges[part];
@@ -298,11 +490,19 @@ impl EditableBlock {
         let first = raw_ext - raw; // where the new data starts, from the raw data
         let mut patches: Vec<(usize, usize)> = Vec::new();
         let mut added: Vec<(usize, AddedVertices)> = Vec::new();
-        for (&mesh_index, copies) in per_mesh {
+        for (&mesh_index, pieces) in per_mesh {
             let (_, mesh) = &self.meshes[mesh_index];
             let places = &mesh.places;
             let (stride, vertex_count) = (places.stride, mesh.positions.len());
-            let total: usize = copies.iter().map(|(_, v)| v.len()).sum();
+            let total: usize = pieces
+                .iter()
+                .map(|(request, piece)| match piece {
+                    Piece::Own(v) => v.len(),
+                    Piece::Foreign(k) => {
+                        requests[*request].foreign.as_ref().map_or(0, |o| o.parts[*k].vertices.len() / o.parts[*k].stride)
+                    }
+                })
+                .sum();
             let limit = if places.index_width == 2 { 65536 } else { 256 };
             if vertex_count + total > limit {
                 return Err(format!("mesh {} would have too many vertices for its indices", mesh.material));
@@ -315,26 +515,43 @@ impl EditableBlock {
             data.extend_from_slice(&old[places.vertices_at..places.vertices_at + vertex_count * stride]);
             let mut indices: Vec<u32> = mesh.indices.clone();
             let mut next = vertex_count;
-            for (request, chosen) in copies {
+            for (request, piece) in pieces {
                 let (centre, yaw, delta) = (requests[*request].centre, requests[*request].yaw, requests[*request].delta);
-                let new_id: HashMap<usize, u32> =
-                    chosen.iter().enumerate().map(|(j, &v)| (v, (next + j) as u32)).collect();
-                for &v in chosen {
-                    let from = places.vertices_at + v * stride;
-                    let mut bytes = old[from..from + stride].to_vec();
-                    let inside = mesh.position_offsets[v] - from;
-                    let normal = mesh.normal_offsets.get(v).map(|n| n - from);
-                    transform_vertex(&mut bytes, inside, normal, centre, yaw, delta);
-                    data.extend_from_slice(&bytes);
-                }
-                // The triangles of the copy.
-                for t in mesh.indices.chunks_exact(3) {
-                    if t.iter().all(|&i| new_id.contains_key(&(i as usize))) {
-                        indices.extend(t.iter().map(|&i| new_id[&(i as usize)]));
+                match piece {
+                    Piece::Own(chosen) => {
+                        let new_id: HashMap<usize, u32> =
+                            chosen.iter().enumerate().map(|(j, &v)| (v, (next + j) as u32)).collect();
+                        for &v in chosen {
+                            let from = places.vertices_at + v * stride;
+                            let mut bytes = old[from..from + stride].to_vec();
+                            let inside = mesh.position_offsets[v] - from;
+                            let normal = mesh.normal_offsets.get(v).map(|n| n - from);
+                            transform_vertex(&mut bytes, inside, normal, centre, yaw, delta);
+                            data.extend_from_slice(&bytes);
+                        }
+                        // The triangles of the copy.
+                        for t in mesh.indices.chunks_exact(3) {
+                            if t.iter().all(|&i| new_id.contains_key(&(i as usize))) {
+                                indices.extend(t.iter().map(|&i| new_id[&(i as usize)]));
+                            }
+                        }
+                        added.push((*request, (mesh_index, next, chosen.len())));
+                        next += chosen.len();
+                    }
+                    Piece::Foreign(k) => {
+                        let object = requests[*request].foreign.as_ref().ok_or("no foreign object")?;
+                        let piece = &object.parts[*k];
+                        let count = piece.vertices.len() / piece.stride;
+                        for vertex in piece.vertices.chunks_exact(piece.stride) {
+                            let mut bytes = vertex.to_vec();
+                            transform_vertex(&mut bytes, piece.position_inside, piece.normal_inside, centre, yaw, delta);
+                            data.extend_from_slice(&bytes);
+                        }
+                        indices.extend(piece.indices.iter().map(|&i| next as u32 + i));
+                        added.push((*request, (mesh_index, next, count)));
+                        next += count;
                     }
                 }
-                added.push((*request, (mesh_index, next, chosen.len())));
-                next += chosen.len();
             }
             // The indices.
             while (first + data.len()) % 16 != 0 {
