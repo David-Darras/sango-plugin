@@ -311,6 +311,16 @@ pub fn editor_test(arc_dir: &str, block: usize, out_dir: &str) -> Result<(), Str
     println!("{}", editor.export(out_dir)?);
     let written = EditableBlock::from_file(&std::path::Path::new(out_dir).join("land").join(format!("{block}.bin")), block)?;
     println!("tile (20,20) in the written file: {:08x}", written.attributes()?.cells[20 * width + 20]);
+    // Save the project, load it in a new session and write the block again.
+    let text = editor.project_text();
+    println!("project of {} lines:\n{}", text.lines().count(), text.lines().take(8).collect::<Vec<_>>().join("\n"));
+    let mut fresh = Editor::new(arc_dir, block)?;
+    fresh.load_project(&text)?;
+    let second = format!("{out_dir}_reloaded");
+    fresh.export(&second)?;
+    let first_bytes = std::fs::read(std::path::Path::new(out_dir).join("land").join(format!("{block}.bin"))).map_err(|e| e.to_string())?;
+    let second_bytes = std::fs::read(std::path::Path::new(&second).join("land").join(format!("{block}.bin"))).map_err(|e| e.to_string())?;
+    println!("block written after loading the project is identical: {}", first_bytes == second_bytes);
     editor.undo()?;
     println!("after undo: tile (20,20) {:08x}, triangles {}", editor.tiles[20 * width + 20], triangles(&editor));
     Ok(())

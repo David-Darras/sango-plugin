@@ -507,6 +507,8 @@ struct Row {
 }
 
 enum Action {
+    SaveProject,
+    LoadProject,
     Duplicate,
     Delete,
     Undo,
@@ -532,6 +534,8 @@ pub struct Viewer {
     export_dir: String,
     matrix: Mat4,
     arc_dir: String,
+    /// The file of the project.
+    project_path: String,
     /// True while the user changes the tiles and not the objects.
     tile_mode: bool,
     /// The attribute that the brush gives to the tiles.
@@ -568,6 +572,7 @@ impl Viewer {
                 selectable: editor.selectable[i],
             })
             .collect();
+        let block_id = editor.block_id();
         let (mut low, mut high) = (Vec3::splat(f32::MAX), Vec3::splat(f32::MIN));
         for (_, mesh) in editor.meshes() {
             for p in &mesh.positions {
@@ -598,6 +603,7 @@ impl Viewer {
             export_dir: default_dir,
             matrix: Mat4::IDENTITY,
             arc_dir,
+            project_path: format!("block_{}.msproj", block_id),
             tile_mode: false,
             brush: 0x0100_0021,
             brush_size: 1,
@@ -797,6 +803,20 @@ impl Viewer {
                 self.report(r, "Redone.");
                 self.selected = None;
             }
+            Action::SaveProject => {
+                self.status = match std::fs::write(&self.project_path, self.editor.project_text()) {
+                    Ok(()) => format!("Project saved in {}.", self.project_path),
+                    Err(e) => format!("Cannot save the project: {e}"),
+                };
+                return;
+            }
+            Action::LoadProject => {
+                let result = std::fs::read_to_string(&self.project_path)
+                    .map_err(|e| format!("{}: {e}", self.project_path))
+                    .and_then(|text| self.editor.load_project(&text));
+                self.selected = None;
+                self.report(result, "Project loaded.");
+            }
             Action::Export => {
                 let result = self.editor.export(&self.export_dir.clone());
                 self.status = match result {
@@ -980,6 +1000,16 @@ impl eframe::App for Viewer {
                 }
             }
             ui.separator();
+            ui.label("File of the project:");
+            ui.text_edit_singleline(&mut self.project_path);
+            ui.horizontal(|ui| {
+                if ui.button("Save the project").clicked() {
+                    action = Some(Action::SaveProject);
+                }
+                if ui.button("Load the project").clicked() {
+                    action = Some(Action::LoadProject);
+                }
+            });
             ui.label("Folder of the SD card:");
             ui.text_edit_singleline(&mut self.export_dir);
             if ui.button("Export the block").clicked() {

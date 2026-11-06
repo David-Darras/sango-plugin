@@ -53,6 +53,8 @@ pub struct Editor {
     pub instances: Vec<Instance>,
     /// The tiles of the block (row after row), with the changes of the user.
     pub tiles: Vec<u32>,
+    /// The tiles of the original block, to save only what changed.
+    original_tiles: Vec<u32>,
     grid: (usize, usize),
     undo: Vec<Snapshot>,
     redo: Vec<Snapshot>,
@@ -235,6 +237,7 @@ impl Editor {
             clusters,
             selectable,
             instances,
+            original_tiles: attributes.cells.clone(),
             tiles: attributes.cells,
             grid: (attributes.width, attributes.height),
             undo: Vec::new(),
@@ -415,6 +418,105 @@ impl Editor {
                 self.redo.clear();
             }
         }
+    }
+
+    /// The number of the block.
+    pub fn block_id(&self) -> usize {
+        self.original.id
+    }
+
+    /// The edit as text: what moved, what was deleted, the copies and the
+    /// tiles that changed. The file has no data of the game.
+    pub fn project_text(&self) -> String {
+        use std::fmt::Write as _;
+        let mut out = String::new();
+        let _ = writeln!(out, "map-studio-project 1");
+        let _ = writeln!(out, "block {}", self.original.id);
+        let _ = writeln!(out, "objects {}", self.clusters.len());
+        for instance in &self.instances {
+            let [x, y, z] = instance.offset;
+            if instance.copy {
+                let _ = writeln!(out, "copy {} {x} {y} {z} {}", instance.cluster, u8::from(instance.deleted));
+            } else if instance.deleted {
+                let _ = writeln!(out, "delete {}", instance.cluster);
+            } else if instance.offset != [0.0; 3] {
+                let _ = writeln!(out, "move {} {x} {y} {z}", instance.cluster);
+            }
+        }
+        for (i, (now, before)) in self.tiles.iter().zip(&self.original_tiles).enumerate() {
+            if now != before {
+                let _ = writeln!(out, "tile {i} {now:08x}");
+            }
+        }
+        out
+    }
+
+    /// Takes the edit from a text that `project_text` wrote. The undo list
+    /// starts again. When the text does not fit this block, nothing changes.
+    pub fn load_project(&mut self, text: &str) -> Result<(), String> {
+        let mut lines = text.lines();
+        if lines.next() != Some("map-studio-project 1") {
+            return Err("this is not a project of Map Studio".into());
+        }
+        let mut instances: Vec<Instance> = (0..self.clusters.len())
+            .map(|cluster| Instance { cluster, offset: [0.0; 3], copy: false, deleted: false })
+            .collect();
+        let mut tiles = self.original_tiles.clone();
+        let number = |word: Option<&str>| -> Result<f32, String> {
+            word.and_then(|w| w.parse().ok()).ok_or_else(|| "a number is wrong in the project".to_string())
+        };
+        for line in lines {
+            let mut words = line.split_whitespace();
+            match words.next() {
+                Some("block") => {
+                    if number(words.next())? as usize != self.original.id {
+                        return Err("this project is for another block".into());
+                    }
+                }
+                Some("objects") => {
+                    let count = number(words.next())? as usize;
+                    if count != self.clusters.len() {
+                        return Err(format!(
+                            "the project has {count} objects and this block has {}: the objects were cut another way",
+                            self.clusters.len()
+                        ));
+                    }
+                }
+                Some(kind @ ("move" | "delete" | "copy")) => {
+                    let cluster = number(words.next())? as usize;
+                    if cluster >= self.clusters.len() {
+                        return Err("an object of the project does not exist".into());
+                    }
+                    if kind == "delete" {
+                        instances[cluster].deleted = true;
+                        continue;
+                    }
+                    let offset = [number(words.next())?, number(words.next())?, number(words.next())?];
+                    if kind == "move" {
+                        instances[cluster].offset = offset;
+                    } else {
+                        let deleted = number(words.next())? != 0.0;
+                        instances.push(Instance { cluster, offset, copy: true, deleted });
+                    }
+                }
+                Some("tile") => {
+                    let index = number(words.next())? as usize;
+                    let value = words.next().and_then(|w| u32::from_str_radix(w, 16).ok()).ok_or("a tile is wrong")?;
+                    *tiles.get_mut(index).ok_or("a tile of the project does not exist")? = value;
+                }
+                Some(_) | None => {}
+            }
+        }
+        let before = (std::mem::replace(&mut self.instances, instances), std::mem::replace(&mut self.tiles, tiles));
+        if let Err(message) = self.rebuild() {
+            (self.instances, self.tiles) = before;
+            let _ = self.rebuild();
+            return Err(message);
+        }
+        self.undo.clear();
+        self.redo.clear();
+        self.stroke = None;
+        Ok(())
     }
 
     /// Writes the block in the folder `land` of a folder of the SD card.
