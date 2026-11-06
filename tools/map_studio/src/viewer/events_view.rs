@@ -64,6 +64,11 @@ pub struct EventsState {
     pub matrix: Option<events::MatrixLayout>,
     pub original_matrix: Option<events::MatrixLayout>,
     pub cell: Option<(usize, usize)>,
+    /// For each zone that is not the one that is edited: its events as the game has
+    /// them and as the user has them now (the edited zone is in `base` and `now`).
+    pub others: Vec<Option<(ZoneEvents, ZoneEvents)>>,
+    /// For each zone: shown or not (all are shown at first).
+    pub zone_shown: Vec<bool>,
 }
 
 impl Default for EventsState {
@@ -85,6 +90,8 @@ impl Default for EventsState {
             matrix: None,
             original_matrix: None,
             cell: None,
+            others: Vec::new(),
+            zone_shown: Vec::new(),
         }
     }
 }
@@ -100,6 +107,8 @@ pub struct EventBox {
     pub colour: [u8; 4],
     /// The height of the event (from its data).
     pub height: f32,
+    /// The place of its zone in the list of the zones.
+    pub zone: usize,
 }
 
 /// A radius that takes all the blocks of the matrix.
@@ -110,7 +119,7 @@ const MAX_TRIGGERS: usize = 40;
 const MAX_WARPS: usize = 24;
 
 impl EventsState {
-    fn at(&self) -> Option<&ZoneAt> {
+    pub(super) fn at(&self) -> Option<&ZoneAt> {
         self.zones.get(self.zone)
     }
 }
@@ -134,8 +143,20 @@ impl Viewer {
                         }
                     }
                 }
-                self.ev.zones = zones;
-                self.ev.zone = best.0;
+                // All the zones that use the same matrix are in the same space.
+                let chosen = zones[best.0].clone();
+                let mut all = zones;
+                if let Ok(ids) = events::zones_of_matrix(&self.arc_dir, chosen.matrix) {
+                    for zone in ids {
+                        if !all.iter().any(|z| z.zone == zone) {
+                            all.push(ZoneAt { zone, ..chosen.clone() });
+                        }
+                    }
+                }
+                all.sort_by_key(|z| z.zone);
+                self.ev.zone_shown = vec![true; all.len()];
+                self.ev.zone = all.iter().position(|z| z.zone == chosen.zone).unwrap_or(0);
+                self.ev.zones = all;
                 self.events_load_zone();
             }
             Ok(_) => self.status = "No zone of the game uses this block: there are no events here.".into(),
@@ -143,33 +164,66 @@ impl Viewer {
         }
     }
 
-    /// Reads the events of the chosen zone, with the changes of the file.
+    /// The events of a zone as the game has them, and as the file of the tool
+    /// and the lines of map_events.txt change them.
+    fn load_events(&self, zone: usize) -> Result<(ZoneEvents, ZoneEvents), String> {
+        let base = events::read_zone_events(&self.arc_dir, zone)?;
+        // The file of the zone that the tool wrote, else the game.
+        let mut now = events::read_zone_override(&self.export_dir, zone).unwrap_or_else(|| base.clone());
+        if let Ok(text) = std::fs::read_to_string(events::file_path(&self.export_dir)) {
+            events::apply_file(zone, &mut now, &text);
+        }
+        Ok((base, now))
+    }
+
+    /// Reads the events of all the zones of the matrix (the edited one and the others).
     pub(super) fn events_load_zone(&mut self) {
         let Some(at) = self.ev.at().cloned() else { return };
-        match crate::events::read_zone_events(&self.arc_dir, at.zone) {
-            Ok(base) => {
-                // The file of the zone that the tool wrote, else the game.
-                let mut now = events::read_zone_override(&self.export_dir, at.zone).unwrap_or_else(|| base.clone());
-                if let Ok(text) = std::fs::read_to_string(events::file_path(&self.export_dir)) {
-                    events::apply_file(at.zone, &mut now, &text);
-                }
+        match self.load_events(at.zone) {
+            Ok((base, now)) => {
                 self.ev.base = base;
                 self.ev.now = now;
                 self.ev.selected = None;
                 self.ev.matrix = events::read_matrix(&self.arc_dir, &self.export_dir, at.matrix).ok();
                 self.ev.original_matrix = events::read_matrix(&self.arc_dir, "", at.matrix).ok();
                 self.ev.neigh_key = None;
-                self.status = format!(
-                    "Zone {}: {} signs, {} characters, {} warps, {} triggers.",
-                    at.zone,
-                    self.ev.now.signs.len(),
-                    self.ev.now.characters.len(),
-                    self.ev.now.warps.len(),
-                    self.ev.now.triggers.len()
-                );
+                let active = self.ev.zone;
+                let others: Vec<Option<(ZoneEvents, ZoneEvents)>> = self
+                    .ev
+                    .zones
+                    .iter()
+                    .enumerate()
+                    .map(|(i, z)| if i == active { None } else { self.load_events(z.zone).ok() })
+                    .collect();
+                let total = |e: &ZoneEvents| e.signs.len() + e.characters.len() + e.warps.len() + e.triggers.len();
+                let count: usize = total(&self.ev.now) + others.iter().flatten().map(|(_, n)| total(n)).sum::<usize>();
+                self.ev.others = others;
+                self.status = format!("{} zones of the matrix {}: {} events in all.", self.ev.zones.len(), at.matrix, count);
             }
             Err(e) => self.status = format!("Cannot read the events: {e}"),
         }
+    }
+
+    /// Edits another zone of the matrix: the changes of the zone that was
+    /// edited are kept.
+    pub(super) fn switch_zone(&mut self, zone_index: usize) {
+        let old = self.ev.zone;
+        if zone_index == old || zone_index >= self.ev.zones.len() {
+            return;
+        }
+        let Some(Some((base, now))) = self.ev.others.get_mut(zone_index).map(|o| o.take()) else {
+            self.ev.zone = old;
+            return;
+        };
+        let previous = (std::mem::replace(&mut self.ev.base, base), std::mem::replace(&mut self.ev.now, now));
+        if self.ev.others.len() <= old {
+            self.ev.others.resize(old + 1, None);
+        }
+        self.ev.others[old] = Some(previous);
+        self.ev.zone = zone_index;
+        self.ev.selected = None;
+        let name = self.ev.at().map_or(0, |z| z.zone);
+        self.status = format!("Editing the zone {} ({}).", name, zone_name(name as u16));
     }
 
     /// The height of the ground at a place, if there is ground.
@@ -177,48 +231,77 @@ impl Viewer {
         self.pick(Vec3::new(x, 4000.0, z), Vec3::NEG_Y, true).map(|h| h.point.y)
     }
 
-    /// The events as rectangles on the ground of the block.
+    /// The events of a zone (the edited zone: `now`).
+    fn zone_events(&self, zone_index: usize) -> Option<&ZoneEvents> {
+        if zone_index == self.ev.zone {
+            Some(&self.ev.now)
+        } else {
+            self.ev.others.get(zone_index).and_then(|o| o.as_ref()).map(|(_, now)| now)
+        }
+    }
+
+    /// The events of all the zones of the matrix as rectangles on the ground.
     pub(super) fn event_boxes(&self) -> Vec<EventBox> {
-        let Some(at) = self.ev.at() else { return Vec::new() };
-        let (col, row) = (at.column, at.row);
         let mut out = Vec::new();
-        let rect = |x: f32, z: f32, w: f32, d: f32| {
-            ([events::tile_to_local(x, col), events::tile_to_local(z, row)], [events::tile_to_local(x + w, col), events::tile_to_local(z + d, row)])
-        };
-        if self.ev.show[0] {
-            for (i, s) in self.ev.now.signs.iter().enumerate() {
-                let (low, high) = rect(s.x as f32, s.z as f32, s.width.max(1) as f32, s.depth.max(1) as f32);
-                out.push(EventBox { kind: Kind::Sign, index: i, low, high, label: format!("S{i} id {}", s.id), colour: Kind::Sign.colour(0), height: s.height as f32 });
+        for zi in 0..self.ev.zones.len() {
+            let (col, row) = (self.ev.zones[zi].column, self.ev.zones[zi].row);
+            if !self.ev.zone_shown.get(zi).copied().unwrap_or(true) && zi != self.ev.zone {
+                continue;
             }
-        }
-        if self.ev.show[1] {
-            for (i, t) in self.ev.now.triggers.iter().enumerate() {
-                let (low, high) = rect(t.x as f32, t.z as f32, t.width.max(1) as f32, t.depth.max(1) as f32);
-                out.push(EventBox { kind: Kind::Trigger, index: i, low, high, label: format!("T{i} id {}", t.id), colour: Kind::Trigger.colour(0), height: t.height as f32 });
+            let Some(events) = self.zone_events(zi) else { continue };
+            let active = zi == self.ev.zone;
+            // The zones that are not edited are a little more transparent, with their number.
+            let fade = |mut c: [u8; 4]| {
+                if !active {
+                    c[3] = (c[3] as f32 * 0.6) as u8;
+                }
+                c
+            };
+            let tag = |label: String| if active { label } else { format!("[{}] {label}", self.ev.zones[zi].zone) };
+            let rect = |x: f32, z: f32, w: f32, d: f32| {
+                ([events::tile_to_local(x, col), events::tile_to_local(z, row)], [events::tile_to_local(x + w, col), events::tile_to_local(z + d, row)])
+            };
+            if self.ev.show[0] {
+                for (i, s) in events.signs.iter().enumerate() {
+                    let (low, high) = rect(s.x as f32, s.z as f32, s.width.max(1) as f32, s.depth.max(1) as f32);
+                    out.push(EventBox { kind: Kind::Sign, index: i, low, high, label: tag(format!("S{i} id {}", s.id)), colour: fade(Kind::Sign.colour(0)), height: s.height as f32, zone: zi });
+                }
             }
-        }
-        if self.ev.show[2] {
-            for (i, w) in self.ev.now.warps.iter().enumerate() {
-                let (wd, dp) = (w.width.max(1) as f32, w.depth.max(1) as f32);
-                let (low, high) = rect(w.x as f32 / events::TILE - 0.5, w.z as f32 / events::TILE - 0.5, wd, dp);
-                out.push(EventBox { kind: Kind::Warp, index: i, low, high, label: format!("W{i} to {} ({})", zone_name(w.zone), w.exit), colour: Kind::Warp.colour(0), height: w.y as f32 });
+            if self.ev.show[1] {
+                for (i, t) in events.triggers.iter().enumerate() {
+                    let (low, high) = rect(t.x as f32, t.z as f32, t.width.max(1) as f32, t.depth.max(1) as f32);
+                    out.push(EventBox { kind: Kind::Trigger, index: i, low, high, label: tag(format!("T{i} id {}", t.id)), colour: fade(Kind::Trigger.colour(0)), height: t.height as f32, zone: zi });
+                }
             }
-        }
-        if self.ev.show[3] {
-            for (i, c) in self.ev.now.characters.iter().enumerate() {
-                let (low, high) = rect(c.x as f32, c.z as f32, 1.0, 1.0);
-                let label = if (3000..4000).contains(&c.script) {
-                    format!("C{i} {} (trainer {})", model_name(c.model), c.script - 3000)
-                } else {
-                    format!("C{i} {} (script {})", model_name(c.model), c.script)
-                };
-                out.push(EventBox { kind: Kind::Character, index: i, low, high, label, colour: Kind::Character.colour(c.script), height: c.height });
+            if self.ev.show[2] {
+                for (i, w) in events.warps.iter().enumerate() {
+                    let (wd, dp) = (w.width.max(1) as f32, w.depth.max(1) as f32);
+                    let (low, high) = rect(w.x as f32 / events::TILE - 0.5, w.z as f32 / events::TILE - 0.5, wd, dp);
+                    out.push(EventBox { kind: Kind::Warp, index: i, low, high, label: tag(format!("W{i} to {} ({})", zone_name(w.zone), w.exit)), colour: fade(Kind::Warp.colour(0)), height: w.y as f32, zone: zi });
+                }
+            }
+            if self.ev.show[3] {
+                for (i, c) in events.characters.iter().enumerate() {
+                    let (low, high) = rect(c.x as f32, c.z as f32, 1.0, 1.0);
+                    let label = if (3000..4000).contains(&c.script) {
+                        format!("C{i} {} (trainer {})", model_name(c.model), c.script - 3000)
+                    } else {
+                        format!("C{i} {} (script {})", model_name(c.model), c.script)
+                    };
+                    out.push(EventBox { kind: Kind::Character, index: i, low, high, label: tag(label), colour: fade(Kind::Character.colour(c.script)), height: c.height, zone: zi });
+                }
             }
         }
         if self.ev.show[4] {
-            for (i, d) in self.editor.doors.iter().enumerate() {
-                let (low, high) = rect(d.x / events::TILE - 0.5, d.z / events::TILE - 0.5, 1.0, 1.0);
-                out.push(EventBox { kind: Kind::Door, index: i, low, high, label: format!("D{i} model {}", d.kind), colour: Kind::Door.colour(0), height: d.y });
+            if let Some(at) = self.ev.at() {
+                let (col, row) = (at.column, at.row);
+                for (i, d) in self.editor.doors.iter().enumerate() {
+                    let (low, high) = (
+                        [events::tile_to_local(d.x / events::TILE - 0.5, col), events::tile_to_local(d.z / events::TILE - 0.5, row)],
+                        [events::tile_to_local(d.x / events::TILE + 0.5, col), events::tile_to_local(d.z / events::TILE + 0.5, row)],
+                    );
+                    out.push(EventBox { kind: Kind::Door, index: i, low, high, label: format!("D{i} model {}", d.kind), colour: Kind::Door.colour(0), height: d.y, zone: self.ev.zone });
+                }
             }
         }
         out
@@ -231,7 +314,7 @@ impl Viewer {
         }
         let mut out = Vec::new();
         for b in self.event_boxes() {
-            let selected = self.ev.selected == Some((b.kind, b.index));
+            let selected = self.ev.selected == Some((b.kind, b.index)) && b.zone == self.ev.zone;
             let colour = if selected { [255, 235, 40, 210] } else { b.colour };
             let centre = [(b.low[0] + b.high[0]) / 2.0, (b.low[1] + b.high[1]) / 2.0];
             let y = b.height + 1.5;
@@ -367,15 +450,64 @@ impl Viewer {
     /// The 3D models of the characters, put on their tiles and turned as the
     /// characters are. A character without a model is not drawn.
     pub(super) fn prop_meshes(&mut self) -> Vec<PropMesh> {
-        if !self.events_mode || !self.ev.show[3] {
+        if !self.events_mode || !(self.ev.show[3] || self.ev.show[4]) {
             return Vec::new();
         }
         let mut out = Vec::new();
-        let list: Vec<(usize, u16, u8)> = self.ev.now.characters.iter().enumerate().map(|(i, c)| (i, c.model, c.facing)).collect();
-        for (index, model_id, facing) in list {
+        // (the place in the block, the height, the model, the direction) of each character of all the zones
+        let mut list: Vec<([f32; 2], f32, u16, u8)> = Vec::new();
+        for zi in 0..self.ev.zones.len() {
+            if !self.ev.zone_shown.get(zi).copied().unwrap_or(true) && zi != self.ev.zone {
+                continue;
+            }
+            let (col, row) = (self.ev.zones[zi].column, self.ev.zones[zi].row);
+            if let Some(events) = self.zone_events(zi) {
+                for c in &events.characters {
+                    list.push(([events::tile_to_local(c.x as f32 + 0.5, col), events::tile_to_local(c.z as f32 + 0.5, row)], c.height, c.model, c.facing));
+                }
+            }
+        }
+        if !self.ev.show[3] {
+            list.clear();
+        }
+        // The door models of the block, drawn as the 3D models of the game.
+        let mut door_props: Vec<PropMesh> = Vec::new();
+        if self.ev.show[4] {
+            if let Some(at) = self.ev.at().cloned() {
+                let doors = self.editor.doors.clone();
+                for d in doors {
+                    let Some(model) = self.models.load_door(d.kind) else { continue };
+                    let centre = [events::tile_to_local(d.x / events::TILE, at.column), events::tile_to_local(d.z / events::TILE, at.row)];
+                    let (sin, cos) = d.turn[1].sin_cos();
+                    for mesh in &model.meshes {
+                        let vertices: Vec<Vertex> = mesh
+                            .positions
+                            .iter()
+                            .enumerate()
+                            .map(|(v, p)| {
+                                let (x, y, z) = (p[0] * d.scale[0], p[1] * d.scale[1], p[2] * d.scale[2]);
+                                Vertex {
+                                    position: [centre[0] + x * cos + z * sin, d.y + y, centre[1] - x * sin + z * cos],
+                                    uv: mesh.uvs.get(v).copied().unwrap_or([0.0, 0.0]),
+                                    colour: [255; 4],
+                                }
+                            })
+                            .collect();
+                        let count = vertices.len() as u32;
+                        door_props.push(PropMesh {
+                            key: format!("door{}:{}", d.kind, mesh.picture),
+                            vertices,
+                            indices: mesh.indices.iter().copied().filter(|&i| i < count).collect(),
+                            model: model.clone(),
+                            picture: mesh.picture.clone(),
+                        });
+                    }
+                }
+            }
+        }
+        out.extend(door_props);
+        for (centre, ground, model_id, facing) in list {
             let Some(model) = self.models.load(model_id) else { continue };
-            let Some(centre) = self.event_centre(Kind::Character, index) else { continue };
-            let ground = self.ev.now.characters.get(index).map_or(0.0, |c| c.height);
             // The model looks toward +z. The numbers are the ones of the plugin:
             // 0 up (-z), 1 down (+z), 2 left (-x), 3 right (+x), 4 up-left, 5 up-right, 6 down-left, 7 down-right.
             let pi = std::f32::consts::PI;
@@ -432,7 +564,7 @@ impl Viewer {
                 continue;
             }
             let pos = egui::pos2(rect.min.x + (nx * 0.5 + 0.5) * rect.width(), rect.min.y + (1.0 - (ny * 0.5 + 0.5)) * rect.height());
-            let selected = self.ev.selected == Some((b.kind, b.index));
+            let selected = self.ev.selected == Some((b.kind, b.index)) && b.zone == self.ev.zone;
             let colour = if selected { egui::Color32::from_rgb(255, 235, 40) } else { egui::Color32::WHITE };
             let font = egui::FontId::proportional(12.0);
             let galley = painter.layout_no_wrap(b.label.clone(), font, colour);
@@ -615,7 +747,7 @@ impl Viewer {
     /// Draws again the blocks around the block when something changed.
     pub(super) fn refresh_neighbours(&mut self, frame: &eframe::Frame) {
         let ids_key = self.ev.matrix.as_ref().map(|m| m.ids.clone()).unwrap_or_default();
-        let key = (self.events_mode, self.ev.neigh_radius, self.ev.zone, ids_key);
+        let key = (true, self.ev.neigh_radius, self.ev.zone, ids_key);
         if self.ev.neigh_key.as_ref() == Some(&key) {
             return;
         }
@@ -623,7 +755,7 @@ impl Viewer {
         let Some(state) = frame.wgpu_render_state() else { return };
         let mut shifted: Vec<(usize, Mesh)> = Vec::new();
         let mut textures: HashMap<String, Texture> = HashMap::new();
-        if self.events_mode && self.ev.neigh_radius > 0 {
+        if self.ev.neigh_radius > 0 {
             if let (Some(at), Some(matrix)) = (self.ev.at().cloned(), self.ev.matrix.clone()) {
                 let radius = self.ev.neigh_radius as usize;
                 let mut wanted: Vec<(usize, i32, i32)> = Vec::new();
@@ -643,7 +775,7 @@ impl Viewer {
                 if let Ok(blocks) = crate::data::blocks_meshes(&self.arc_dir, &ids) {
                     for (id, meshes) in blocks {
                         for &(_, dx, dz) in wanted.iter().filter(|w| w.0 == id) {
-                            for m in meshes.iter().filter(|m| !m.encounter) {
+                            for m in meshes.iter() {
                                 let mut m = m.clone();
                                 for p in m.positions.iter_mut() {
                                     p[0] += dx as f32 * 720.0;
@@ -703,18 +835,21 @@ impl Viewer {
         } else {
             // The event that the ray of the click reaches first: each event is a
             // volume above its square (as high as the pole).
-            let mut found: Option<(f32, Kind, usize)> = None;
+            let mut found: Option<(f32, Kind, usize, usize)> = None;
             for b in self.event_boxes() {
                 let (lo, hi) = (Vec3::new(b.low[0], b.height, b.low[1]), Vec3::new(b.high[0], b.height + 34.0, b.high[1]));
                 if let Some(t) = ray_box(origin, direction, lo, hi) {
-                    if found.map_or(true, |(best, _, _)| t < best) {
-                        found = Some((t, b.kind, b.index));
+                    if found.map_or(true, |(best, _, _, _)| t < best) {
+                        found = Some((t, b.kind, b.index, b.zone));
                     }
                 }
             }
-            self.ev.selected = found.map(|(_, k, i)| (k, i));
+            if let Some((_, _, _, zone)) = found {
+                self.switch_zone(zone);
+            }
+            self.ev.selected = found.map(|(_, k, i, _)| (k, i));
             self.status = match found {
-                Some((_, k, i)) => format!("Selected the {} {i}.", k.name()),
+                Some((_, k, i, zone)) => format!("Selected the {} {i} of the zone {}.", k.name(), self.ev.zones.get(zone).map_or(0, |z| z.zone)),
                 None => "No event here.".into(),
             };
         }
@@ -884,21 +1019,39 @@ impl Viewer {
         self.status = format!("The {} was taken away.", kind.name());
     }
 
-    /// Writes the pack of the zone with the new events on the SD card. The
-    /// lines of this zone leave `map_events.txt`: the pack has the changes now.
+    /// Writes the pack of each zone that changed on the SD card (a zone that
+    /// is as in the game again loses its file). The lines of these zones leave
+    /// `map_events.txt`: the packs have the changes now.
     fn events_save(&mut self) {
-        let Some(at) = self.ev.at().cloned() else { return };
-        let written = events::write_zone_override(&self.arc_dir, &self.export_dir, at.zone, &self.ev.now);
-        self.status = match written {
-            Ok(message) => {
-                let path = events::file_path(&self.export_dir);
-                if let Ok(old) = std::fs::read_to_string(&path) {
-                    let text = events::merge_file(&old, at.zone, &self.ev.now, &self.ev.now);
-                    let _ = std::fs::write(&path, text);
+        let mut done: Vec<String> = Vec::new();
+        let mut failed: Vec<String> = Vec::new();
+        let path = events::file_path(&self.export_dir);
+        for zi in 0..self.ev.zones.len() {
+            let zone = self.ev.zones[zi].zone;
+            let pair = if zi == self.ev.zone { Some((&self.ev.base, &self.ev.now)) } else { self.ev.others.get(zi).and_then(|o| o.as_ref()).map(|(b, n)| (b, n)) };
+            let Some((base, now)) = pair else { continue };
+            if now != base {
+                match events::write_zone_override(&self.arc_dir, &self.export_dir, zone, now) {
+                    Ok(_) => {
+                        if let Ok(old) = std::fs::read_to_string(&path) {
+                            let text = events::merge_file(&old, zone, now, now);
+                            let _ = std::fs::write(&path, text);
+                        }
+                        done.push(zone.to_string());
+                    }
+                    Err(e) => failed.push(format!("{zone}: {e}")),
                 }
-                format!("Zone {} written in {message}. Start the game again.", at.zone)
+            } else if events::read_zone_override(&self.export_dir, zone).is_some() {
+                let _ = events::reset_zone(&self.export_dir, zone);
+                done.push(format!("{zone} (as in the game)"));
             }
-            Err(e) => format!("Cannot write the zone: {e}"),
+        }
+        self.status = if !failed.is_empty() {
+            format!("Cannot write some zones: {}", failed.join("; "))
+        } else if done.is_empty() {
+            "Nothing changed: no zone was written.".to_string()
+        } else {
+            format!("Zones written: {}. Start the game again.", done.join(", "))
         };
     }
 
@@ -1052,6 +1205,9 @@ impl Viewer {
                         }
                     });
                     if id < 857 && (c, r) != (at.column, at.row) {
+                        if ui.button("Edit this block here").on_hover_text("Opens the block in this window (the changes of this block go in its project file)").clicked() {
+                            self.pending_block = Some(id as usize);
+                        }
                         if ui.button("Open this block in a new window").clicked() {
                             let exe = std::env::current_exe();
                             let started = exe.and_then(|e| std::process::Command::new(e).args(["view", &self.arc_dir, &id.to_string()]).spawn());
@@ -1094,7 +1250,7 @@ impl Viewer {
         ui.label("Click an event to select it. Arrows: move one tile. Page up/down: height. G: click a tile to move it there. Delete: take away the event. Esc: select nothing.");
         if self.ev.zones.len() > 1 {
             let before = self.ev.zone;
-            let text = |z: &ZoneAt| format!("{} (matrix {}, {}x{})", z.zone, z.matrix, z.width, z.height);
+            let text = |z: &ZoneAt| format!("{} [{}]", zone_name(z.zone as u16), z.zone);
             egui::ComboBox::from_label("Zone")
                 .selected_text(self.ev.at().map_or("-".to_string(), |z| text(z)))
                 .show_ui(ui, |ui| {
@@ -1103,20 +1259,45 @@ impl Viewer {
                     }
                 });
             if self.ev.zone != before {
-                self.events_load_zone();
+                let target = self.ev.zone;
+                self.ev.zone = before;
+                self.switch_zone(target);
                 changed = true;
             }
         } else if let Some(z) = self.ev.at() {
             ui.label(format!("Zone {} (matrix {}, {}x{} blocks, this block is at column {} row {}).", z.zone, z.matrix, z.width, z.height, z.column, z.row));
         }
         ui.horizontal(|ui| {
-            for (k, name) in ["Signs", "Triggers", "Warps", "Characters", "Doors"].iter().enumerate() {
+            for (k, name) in ["Signs", "Triggers", "Warps", "Characters", "Doors and props"].iter().enumerate() {
                 if ui.checkbox(&mut self.ev.show[k], *name).changed() {
                     changed = true;
                 }
             }
         });
         ui.checkbox(&mut self.ev.labels, "Names over the events");
+        egui::CollapsingHeader::new(format!("Zones shown ({})", self.ev.zone_shown.iter().filter(|s| **s).count())).default_open(false).show(ui, |ui| {
+            ui.horizontal(|ui| {
+                if ui.button("All").clicked() {
+                    self.ev.zone_shown.iter_mut().for_each(|s| *s = true);
+                    changed = true;
+                }
+                if ui.button("None").clicked() {
+                    self.ev.zone_shown.iter_mut().for_each(|s| *s = false);
+                    changed = true;
+                }
+            });
+            for i in 0..self.ev.zones.len() {
+                let zone = self.ev.zones[i].zone;
+                let mut shown = self.ev.zone_shown.get(i).copied().unwrap_or(true);
+                let text = format!("{} [{zone}]{}", zone_name(zone as u16).split(" [").next().unwrap_or(""), if i == self.ev.zone { "  (edited)" } else { "" });
+                if ui.checkbox(&mut shown, text).changed() {
+                    if let Some(s) = self.ev.zone_shown.get_mut(i) {
+                        *s = shown;
+                    }
+                    changed = true;
+                }
+            }
+        });
         ui.horizontal(|ui| {
             ui.label("Blocks drawn around:");
             let mut radius = self.ev.neigh_radius.min(ALL_BLOCKS);

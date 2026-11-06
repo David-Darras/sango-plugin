@@ -721,6 +721,12 @@ pub struct Viewer {
     /// True while the user works on the events (characters, warps...).
     events_mode: bool,
     ev: events_view::EventsState,
+    /// All the areas of the game, for the list of the areas.
+    areas: Vec<crate::events::AreaInfo>,
+    area_filter: String,
+    /// The block or the area that the user asked for: the viewer changes at the end of the frame.
+    pending_block: Option<usize>,
+    pending_area: Option<usize>,
     models: crate::models::ModelBank,
     npcs: events_view::NpcPanel,
     /// The emulator and the game that the Launch button starts.
@@ -842,6 +848,10 @@ impl Viewer {
             catalog_open: false,
             events_mode: false,
             ev: Default::default(),
+            areas: Vec::new(),
+            area_filter: String::new(),
+            pending_block: None,
+            pending_area: None,
             models: {
                 let mut bank = crate::models::ModelBank::new(&arc_for_models);
                 // The models of X and Y for ORAS are in `sango` (or in `sango_off`, when the folder is switched off).
@@ -888,6 +898,136 @@ impl Viewer {
             })
             .collect();
         self.visible = vec![true; count];
+    }
+
+    /// The name of an area in the list: its first zones.
+    fn area_label(area: &crate::events::AreaInfo) -> String {
+        let names: Vec<String> = area
+            .zones
+            .iter()
+            .filter_map(|&z| crate::names::ZONE_NAMES.get(z))
+            .filter(|n| !n.starts_with("Unknow"))
+            .take(3)
+            .map(|n| n.to_string())
+            .collect();
+        let more = if area.zones.len() > 3 { format!(" (+{})", area.zones.len() - 3) } else { String::new() };
+        if names.is_empty() { format!("Area {}", area.matrix) } else { format!("{}{more}", names.join(", ")) }
+    }
+
+    /// The list to choose the area to work on.
+    fn area_ui(&mut self, ui: &mut egui::Ui) {
+        if self.areas.is_empty() {
+            self.areas = crate::events::list_areas(&self.arc_dir).unwrap_or_default();
+        }
+        let current = self.ev.at().map(|z| z.matrix);
+        let selected = current
+            .and_then(|m| self.areas.iter().find(|a| a.matrix == m))
+            .map_or("(choose an area)".to_string(), |a| Self::area_label(a));
+        let mut pick: Option<usize> = None;
+        ui.horizontal(|ui| {
+            ui.label("Area:");
+            egui::ComboBox::from_id_salt("area_list").selected_text(selected).width(250.0).show_ui(ui, |ui| {
+                ui.add(egui::TextEdit::singleline(&mut self.area_filter).hint_text("search a zone"));
+                let words: Vec<String> = self.area_filter.to_lowercase().split_whitespace().map(String::from).collect();
+                egui::ScrollArea::vertical().max_height(360.0).show(ui, |ui| {
+                    for a in &self.areas {
+                        let label = Self::area_label(a);
+                        let all_names: String = a.zones.iter().filter_map(|&z| crate::names::ZONE_NAMES.get(z)).map(|n| n.to_lowercase()).collect::<Vec<_>>().join(" ");
+                        if !words.iter().all(|w| all_names.contains(w.as_str())) {
+                            continue;
+                        }
+                        if ui.selectable_label(Some(a.matrix) == current, format!("{label}  [{}]", a.matrix)).clicked() {
+                            pick = Some(a.matrix);
+                        }
+                    }
+                });
+            });
+        });
+        if pick.is_some() {
+            self.pending_area = pick;
+        }
+        ui.horizontal(|ui| {
+            ui.label("Blocks of the area drawn:");
+            let mut radius = self.ev.neigh_radius.min(64);
+            let format = |v: f64, _: std::ops::RangeInclusive<usize>| if v >= 64.0 { "all".to_string() } else { format!("{v}") };
+            if ui.add(egui::DragValue::new(&mut radius).range(0..=64).custom_formatter(format)).changed() {
+                self.ev.neigh_radius = radius;
+            }
+            if ui.button("All").clicked() {
+                self.ev.neigh_radius = 64;
+            }
+            if ui.button("None").clicked() {
+                self.ev.neigh_radius = 0;
+            }
+        });
+    }
+
+    /// Opens another block in this window (the changes of the block that was
+    /// open are kept in its project file).
+    fn switch_block(&mut self, block: usize, frame: &eframe::Frame) {
+        if self.editor.can_undo() {
+            if let Ok(text) = self.editor.project_text() {
+                let _ = std::fs::write(&self.project_path, text);
+            }
+        }
+        let loaded = crate::data::load_scene(&self.arc_dir, block, None).and_then(|scene| {
+            let mut editor = Editor::new(&self.arc_dir, block)?;
+            editor.set_area(scene.area);
+            Ok((scene, editor))
+        });
+        let (scene, editor) = match loaded {
+            Ok(pair) => pair,
+            Err(e) => {
+                self.status = format!("Cannot open the block {block}: {e}");
+                return;
+            }
+        };
+        self.area_pictures = scene.textures.keys().cloned().collect();
+        self.textures = scene.textures;
+        self.editor = editor;
+        self.rows.clear();
+        self.visible.clear();
+        self.selected.clear();
+        self.placing = false;
+        self.stamp = None;
+        self.tile_mode = false;
+        self.heights = None;
+        self.title = format!("Block {block}");
+        self.project_path = format!("block_{block}.msproj");
+        let keep_show = self.ev.show;
+        let keep_labels = self.ev.labels;
+        let keep_radius = self.ev.neigh_radius;
+        self.ev = Default::default();
+        self.ev.show = keep_show;
+        self.ev.labels = keep_labels;
+        self.ev.neigh_radius = keep_radius;
+        // Look at the middle of the new block.
+        let (mut low, mut high) = (Vec3::splat(f32::MAX), Vec3::splat(f32::MIN));
+        for (_, mesh) in self.editor.meshes() {
+            for p in &mesh.positions {
+                low = low.min(Vec3::from(*p));
+                high = high.max(Vec3::from(*p));
+            }
+        }
+        if low.x <= high.x {
+            self.target = (low + high) * 0.5;
+        }
+        crate::config::save(&self.arc_dir, block);
+        self.events_enter();
+        self.refresh(frame);
+        self.refresh_neighbours(frame);
+        self.status = format!("Block {block} is open.");
+    }
+
+    /// Opens an area: its first block.
+    fn switch_area(&mut self, matrix: usize, frame: &eframe::Frame) {
+        match crate::events::read_matrix(&self.arc_dir, &self.export_dir, matrix) {
+            Ok(layout) => match layout.ids.iter().find(|&&b| (b as usize) < 857) {
+                Some(&block) => self.switch_block(block as usize, frame),
+                None => self.status = "This area has no block.".into(),
+            },
+            Err(e) => self.status = format!("Cannot read the matrix: {e}"),
+        }
     }
 
     /// Sends only the squares of the events to the graphics card.
@@ -1436,6 +1576,12 @@ impl eframe::App for Viewer {
         let mut tiles_toggled = false;
         let mut select_mesh: Option<usize> = None;
 
+        if !self.ev.loaded {
+            // The zones of the block: the list of the areas shows the area that is open.
+            self.events_enter();
+            crate::config::save(&self.arc_dir, self.editor.block_id());
+            self.refresh_neighbours(frame);
+        }
         let mut events_toggled = false;
         if !ctx.wants_keyboard_input() && ctx.input(|i| i.key_pressed(egui::Key::V) && !i.modifiers.command) {
             self.events_mode = !self.events_mode;
@@ -1533,6 +1679,7 @@ impl eframe::App for Viewer {
 
         egui::SidePanel::left("panel").default_width(320.0).show(ctx, |ui| {
             ui.heading(&self.title);
+            self.area_ui(ui);
             ui.separator();
             ui.checkbox(&mut self.catalog_open, "Catalogue of objects");
             let was_events = self.events_mode;
@@ -1761,7 +1908,7 @@ impl eframe::App for Viewer {
                     direct_v: self.direct_v,
                     show_tiles: self.tile_mode,
                     show_events: self.events_mode,
-                    show_neighbours: self.events_mode && self.ev.neigh_radius > 0,
+                    show_neighbours: self.ev.neigh_radius > 0,
                 },
             ));
         });
@@ -1868,6 +2015,12 @@ impl eframe::App for Viewer {
         if let Some(action) = action {
             self.apply(action, frame);
         }
+        if let Some(block) = self.pending_block.take() {
+            self.switch_block(block, frame);
+        } else if let Some(matrix) = self.pending_area.take() {
+            self.switch_area(matrix, frame);
+        }
+        self.refresh_neighbours(frame);
     }
 }
 

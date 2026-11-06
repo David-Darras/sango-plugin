@@ -360,6 +360,26 @@ pub fn zones_of_block(arc_dir: &str, block: usize) -> Result<Vec<ZoneAt>, String
     Ok(found)
 }
 
+/// An area: the zones that share a matrix (the same map of blocks).
+#[derive(Clone, Debug)]
+pub struct AreaInfo {
+    pub matrix: usize,
+    pub zones: Vec<usize>,
+}
+
+/// All the areas of the game, by number of matrix.
+pub fn list_areas(arc_dir: &str) -> Result<Vec<AreaInfo>, String> {
+    let zones = garc::read(&PathBuf::from(arc_dir).join("zonedata_y.garc"))?;
+    let mut by_matrix: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
+    for (zone, file) in zones.iter().enumerate() {
+        let Some(raw) = file.first() else { continue };
+        let Ok(parts) = zone_parts(raw) else { continue };
+        let Some(settings) = parts.first().filter(|p| p.len() >= 6) else { continue };
+        by_matrix.entry(u16_at(settings, 4) as usize).or_default().push(zone);
+    }
+    Ok(by_matrix.into_iter().map(|(matrix, zones)| AreaInfo { matrix, zones }).collect())
+}
+
 /// The number of the area pack of a zone (its pictures and its light).
 pub fn zone_area(arc_dir: &str, zone: usize) -> Option<usize> {
     let zones = garc::read(&PathBuf::from(arc_dir).join("zonedata_y.garc")).ok()?;
@@ -424,6 +444,20 @@ pub fn reset_matrix(sd_dir: &str, matrix: usize) -> Result<(), String> {
         crate::edit::remove_index(&folder, matrix)?;
     }
     Ok(())
+}
+
+/// The zones that use a matrix.
+pub fn zones_of_matrix(arc_dir: &str, matrix: usize) -> Result<Vec<usize>, String> {
+    let zones = garc::read(&PathBuf::from(arc_dir).join("zonedata_y.garc"))?;
+    let mut found = Vec::new();
+    for (zone, file) in zones.iter().enumerate() {
+        let Some(raw) = file.first() else { continue };
+        let Ok(parts) = zone_parts(raw) else { continue };
+        if parts.first().filter(|p| p.len() >= 6).map_or(false, |p| u16_at(p, 4) as usize == matrix) {
+            found.push(zone);
+        }
+    }
+    Ok(found)
 }
 
 /// The events of a zone, as the game has them.

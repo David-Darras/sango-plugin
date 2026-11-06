@@ -35,6 +35,9 @@ pub struct ModelBank {
     /// Folders of the SD card with models that replace or add models
     /// (`<number>.bin`, the models of X and Y that the plugin gives to ORAS).
     overrides: Vec<PathBuf>,
+    /// The build models (doors...): their descriptions, models and pictures.
+    build: Option<(Vec<Vec<Vec<u8>>>, Vec<Vec<Vec<u8>>>, Vec<Vec<Vec<u8>>>)>,
+    doors: HashMap<u32, Option<Rc<LoadedModel>>>,
 }
 
 /// The models that have a flag in the high bits are the characters that the
@@ -43,7 +46,43 @@ const DRESSED_FLAG: u16 = 0x2000;
 
 impl ModelBank {
     pub fn new(arc_dir: &str) -> Self {
-        ModelBank { arc_dir: arc_dir.to_string(), files: None, params: None, cache: HashMap::new(), overrides: Vec::new() }
+        ModelBank { arc_dir: arc_dir.to_string(), files: None, params: None, cache: HashMap::new(), overrides: Vec::new(), build: None, doors: HashMap::new() }
+    }
+
+    /// The 3D model of a door of a block (a "build model"): the description says
+    /// which model and which pictures it uses. None when it cannot be read.
+    pub fn load_door(&mut self, kind: u32) -> Option<Rc<LoadedModel>> {
+        if let Some(found) = self.doors.get(&kind) {
+            return found.clone();
+        }
+        if self.build.is_none() {
+            let dir = PathBuf::from(&self.arc_dir);
+            let read = |name: &str| garc::read(&dir.join(name)).ok();
+            if let (Some(a), Some(b), Some(c)) = (read("field_bm_dat.garc"), read("field_bm_pack.garc"), read("field_bm_tex.garc")) {
+                self.build = Some((a, b, c));
+            }
+        }
+        let loaded = self.build.as_ref().and_then(|(dat, packs, tex)| {
+            let description = dat.get(kind as usize)?.first()?;
+            let description = if description.first() == Some(&0x11) { lz11::decompress(description).ok()? } else { description.clone() };
+            let pack_at = u16::from_le_bytes([*description.get(4)?, *description.get(5)?]) as usize;
+            let tex_at = u16::from_le_bytes([*description.get(6)?, *description.get(7)?]) as usize;
+            let mut model = Self::parse(packs.get(pack_at)?.first()?).ok()?;
+            // The pictures are in a file of their own: the one that has the number
+            // of the kind (the number in the description is the pack of the model).
+            let _ = tex_at;
+            if let Some(raw) = tex.get(kind as usize).and_then(|f| f.first()) {
+                let data = if raw.first() == Some(&0x11) { lz11::decompress(raw).ok()? } else { raw.clone() };
+                if let Ok(bch) = Bch::parse(&data) {
+                    for t in bch.textures().unwrap_or_default() {
+                        model.textures.insert(t.name.clone(), t);
+                    }
+                }
+            }
+            Some(Rc::new(model))
+        });
+        self.doors.insert(kind, loaded.clone());
+        loaded
     }
 
     /// Tells the folders where models of the SD card are.

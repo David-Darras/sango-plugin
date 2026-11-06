@@ -1881,3 +1881,58 @@ pub fn neighbours_test(arc_dir: &str, block: usize) -> Result<(), String> {
     println!("after reset: {}", crate::events::read_matrix(arc_dir, &sd, at.matrix)? == matrix);
     Ok(())
 }
+
+/// Draws the door models (build models) of some kinds in a picture.
+pub fn door_sheet(arc_dir: &str, kinds: &[u32], out: &str) -> Result<(), String> {
+    let mut bank = crate::models::ModelBank::new(arc_dir);
+    const SIZE: usize = 192;
+    let columns = kinds.len().min(6).max(1);
+    let rows = kinds.len().div_ceil(columns);
+    let mut sheet = vec![60u8; SIZE * columns * SIZE * rows * 4];
+    for (k, &kind) in kinds.iter().enumerate() {
+        let Some(model) = bank.load_door(kind) else {
+            println!("door kind {kind}: no model");
+            continue;
+        };
+        println!("door kind {kind}: {} meshes, {} pictures ({:?})", model.meshes.len(), model.textures.len(), model.meshes.iter().map(|m| m.picture.as_str()).collect::<Vec<_>>());
+        let parts: Vec<crate::catalog::PreviewPart> = model
+            .meshes
+            .iter()
+            .map(|m| crate::catalog::PreviewPart { picture: m.picture.clone(), positions: m.positions.iter().map(|p| [-p[0], p[1], -p[2]]).collect(), uvs: m.uvs.clone(), indices: m.indices.chunks_exact(3).flat_map(|t| [t[0], t[2], t[1]]).collect() })
+            .collect();
+        let image = crate::thumb::render(&parts, &model.textures, SIZE);
+        let (cx, cy) = (k % columns * SIZE, k / columns * SIZE);
+        for y in 0..SIZE {
+            for x in 0..SIZE {
+                let from = (y * SIZE + x) * 4;
+                if image[from + 3] == 0 { continue; }
+                let to = ((cy + y) * SIZE * columns + cx + x) * 4;
+                sheet[to..to + 4].copy_from_slice(&image[from..from + 4]);
+            }
+        }
+    }
+    write_png(out, SIZE * columns, SIZE * rows, &sheet)
+}
+
+/// Prints the pictures of the files of pictures of the build models.
+pub fn bm_pictures(arc_dir: &str, indices: &[usize]) -> Result<(), String> {
+    let tex = crate::garc::read(&std::path::PathBuf::from(arc_dir).join("field_bm_tex.garc"))?;
+    for &i in indices {
+        let raw = tex.get(i).and_then(|f| f.first()).ok_or("no such file")?;
+        let data = if raw.first() == Some(&0x11) { crate::lz11::decompress(raw)? } else { raw.clone() };
+        let b = bch::Bch::parse(&data)?;
+        println!("tex {i}: {:?}", b.textures().unwrap_or_default().iter().map(|t| t.name.clone()).collect::<Vec<_>>());
+    }
+    Ok(())
+}
+
+/// Lists the areas (the matrices) with the names of their zones.
+pub fn areas_list(arc_dir: &str) -> Result<(), String> {
+    let areas = crate::events::list_areas(arc_dir)?;
+    println!("{} areas", areas.len());
+    for a in areas.iter().take(25) {
+        let names: Vec<&str> = a.zones.iter().filter_map(|&z| crate::names::ZONE_NAMES.get(z).copied()).take(5).collect();
+        println!("  matrix {:3}: {} zones: {}", a.matrix, a.zones.len(), names.join(", "));
+    }
+    Ok(())
+}

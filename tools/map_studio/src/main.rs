@@ -8,6 +8,7 @@ mod models;
 mod names;
 mod thumb;
 mod commands;
+mod config;
 mod data;
 mod dict;
 mod edit;
@@ -59,6 +60,11 @@ fn main() {
     let float = |i: usize| args.get(i).and_then(|s| s.parse::<f32>().ok()).unwrap_or(0.0);
     let block = number(3).unwrap_or(0);
     let result = match args.get(1).map(String::as_str) {
+        // No block given: the tool opens the area that it remembers (or the first one).
+        None => config::archives(None).and_then(|arc| view(&arc, config::load().block.unwrap_or(4), None, None)),
+        Some("view") if args.len() < 4 => {
+            config::archives(args.get(2).map(String::as_str)).and_then(|arc| view(&arc, config::load().block.unwrap_or(4), None, None))
+        }
         Some("view") if args.len() >= 4 => {
             let land = args.iter().position(|a| a == "--land").and_then(|i| args.get(i + 1)).map(String::as_str);
             view(&args[2], block, number(4), land)
@@ -146,6 +152,9 @@ fn main() {
         Some("models-skin") if args.len() >= 3 => commands::models_skin(&args[2]),
         Some("xy-models-test") if args.len() >= 5 => commands::xy_models_test(&args[2], &args[3], &args[4]),
         Some("neighbours-test") if args.len() >= 4 => commands::neighbours_test(&args[2], block),
+        Some("door-sheet") if args.len() >= 5 => commands::door_sheet(&args[2], &args[4].split(',').filter_map(|n| n.parse().ok()).collect::<Vec<_>>(), &args[3]),
+        Some("bm-pictures") if args.len() >= 4 => commands::bm_pictures(&args[2], &args[3].split(',').filter_map(|n| n.parse().ok()).collect::<Vec<_>>()),
+        Some("areas-list") if args.len() >= 3 => commands::areas_list(&args[2]),
         Some("check") if args.len() >= 5 => commands::check(&args[2], block, &args[4]),
         _ => Err(USAGE.to_string()),
     };
