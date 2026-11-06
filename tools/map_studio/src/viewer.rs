@@ -93,6 +93,23 @@ struct Vertex {
 
 mod events_view;
 
+/// A mesh of the 3D model of a character, already put in its place.
+pub struct PropMesh {
+    /// What names the picture on the graphics card.
+    pub key: String,
+    pub vertices: Vec<Vertex>,
+    pub indices: Vec<u32>,
+    pub model: std::rc::Rc<crate::models::LoadedModel>,
+    pub picture: String,
+}
+
+struct GpuProp {
+    vertices: wgpu::Buffer,
+    indices: wgpu::Buffer,
+    index_count: u32,
+    key: String,
+}
+
 struct GpuMesh {
     vertices: wgpu::Buffer,
     indices: wgpu::Buffer,
@@ -123,6 +140,9 @@ struct Gpu {
     sampler: wgpu::Sampler,
     /// The squares and poles of the events: the buffer and the number of vertices.
     events: Option<(wgpu::Buffer, u32)>,
+    /// The 3D models of the characters, and their pictures (kept by name).
+    props: Vec<GpuProp>,
+    prop_pictures: HashMap<String, wgpu::BindGroup>,
 }
 
 fn buffers(device: &wgpu::Device, mesh: &Mesh) -> (wgpu::Buffer, wgpu::Buffer, u32) {
@@ -174,6 +194,55 @@ impl Gpu {
             });
             Some((buffer, vertices.len() as u32))
         };
+    }
+
+    /// Puts the models of the characters in the buffers. A picture is sent to
+    /// the graphics card once.
+    fn set_props(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, props: &[PropMesh]) {
+        let mut out = Vec::new();
+        for prop in props {
+            if prop.vertices.is_empty() || prop.indices.is_empty() {
+                continue;
+            }
+            if !self.prop_pictures.contains_key(&prop.key) {
+                let (width, height, pixels) = match prop.model.textures.get(&prop.picture) {
+                    Some(t) => (t.width as u32, t.height as u32, t.rgba.clone()),
+                    None => (1, 1, name_colour(&prop.picture).to_vec()),
+                };
+                let picture = device.create_texture_with_data(
+                    queue,
+                    &wgpu::TextureDescriptor {
+                        label: Some(&prop.key),
+                        size: wgpu::Extent3d { width, height, depth_or_array_layers: 1 },
+                        mip_level_count: 1,
+                        sample_count: 1,
+                        dimension: wgpu::TextureDimension::D2,
+                        format: wgpu::TextureFormat::Rgba8Unorm,
+                        usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+                        view_formats: &[],
+                    },
+                    wgpu::util::TextureDataOrder::LayerMajor,
+                    &pixels,
+                );
+                let view = picture.create_view(&Default::default());
+                let group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+                    label: None,
+                    layout: &self.picture_layout,
+                    entries: &[
+                        wgpu::BindGroupEntry { binding: 0, resource: wgpu::BindingResource::TextureView(&view) },
+                        wgpu::BindGroupEntry { binding: 1, resource: wgpu::BindingResource::Sampler(&self.sampler) },
+                    ],
+                });
+                self.prop_pictures.insert(prop.key.clone(), group);
+            }
+            let vertices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: None,
+                contents: bytemuck::cast_slice(&prop.vertices),
+                usage: wgpu::BufferUsages::VERTEX,
+            });
+            out.push(GpuProp { vertices, indices: index_buffer(device, &prop.indices), index_count: prop.indices.len() as u32, key: prop.key.clone() });
+        }
+        self.props = out;
     }
 
     fn set_events(&mut self, device: &wgpu::Device, vertices: &[Vertex]) {
@@ -254,6 +323,15 @@ impl egui_wgpu::CallbackTrait for SceneCallback {
             }
         }
         if self.show_events {
+            pass.set_pipeline(&gpu.pipeline);
+            pass.set_bind_group(0, &gpu.uniform_group, &[]);
+            for prop in &gpu.props {
+                let Some(picture) = gpu.prop_pictures.get(&prop.key) else { continue };
+                pass.set_bind_group(1, picture, &[]);
+                pass.set_vertex_buffer(0, prop.vertices.slice(..));
+                pass.set_index_buffer(prop.indices.slice(..), wgpu::IndexFormat::Uint32);
+                pass.draw_indexed(0..prop.index_count, 0, 0..1);
+            }
             if let Some((buffer, count)) = &gpu.events {
                 pass.set_pipeline(&gpu.tiles_pipeline);
                 pass.set_bind_group(0, &gpu.uniform_group, &[]);
@@ -450,6 +528,8 @@ fn build_gpu(state: &egui_wgpu::RenderState, meshes: &[(usize, Mesh)], textures:
         picture_layout,
         sampler,
         events: None,
+        props: Vec::new(),
+        prop_pictures: HashMap::new(),
     }
 }
 
@@ -624,6 +704,8 @@ pub struct Viewer {
     /// True while the user works on the events (characters, warps...).
     events_mode: bool,
     ev: events_view::EventsState,
+    models: crate::models::ModelBank,
+    npcs: events_view::NpcPanel,
     /// The emulator and the game that the Launch button starts.
     emulator_path: String,
     game_path: String,
@@ -631,6 +713,8 @@ pub struct Viewer {
     tile_catalog: CatalogPanel,
     /// True when the panel shows the tiles.
     tile_tab: bool,
+    /// True when the panel shows the characters (NPCs).
+    npc_tab: bool,
     /// The tile of the catalogue that a click puts on the ground.
     stamp: Option<usize>,
 }
@@ -695,6 +779,7 @@ impl Viewer {
             })
             .collect();
         let block_id = editor.block_id();
+        let arc_for_models = arc_dir.clone();
         let (mut low, mut high) = (Vec3::splat(f32::MAX), Vec3::splat(f32::MIN));
         for (_, mesh) in editor.meshes() {
             for p in &mesh.positions {
@@ -724,7 +809,7 @@ impl Viewer {
             events_follow: true,
             walls_follow: true,
             status: "Click an object to select it.".into(),
-            export_dir: default_dir,
+            export_dir: default_dir.clone(),
             matrix: Mat4::IDENTITY,
             arc_dir,
             project_path: format!("block_{}.msproj", block_id),
@@ -740,11 +825,22 @@ impl Viewer {
             catalog_open: false,
             events_mode: false,
             ev: Default::default(),
+            models: {
+                let mut bank = crate::models::ModelBank::new(&arc_for_models);
+                // The models of X and Y for ORAS are in `sango` (or in `sango_off`, when the folder is switched off).
+                bank.set_overrides(vec![
+                    std::path::PathBuf::from(&default_dir).join("overworld_model"),
+                    std::path::PathBuf::from(format!("{default_dir}_off")).join("overworld_model"),
+                ]);
+                bank
+            },
+            npcs: Default::default(),
             emulator_path: first_existing(&["C:/Program Files/Azahar/azahar.exe"]),
             game_path: first_existing(&["C:/Users/David/Desktop/ctr/cia/sango.3ds"]),
             catalog: CatalogPanel { hide_ground: true, only_fit: true, ..Default::default() },
             tile_catalog: CatalogPanel { tiles: true, only_fit: true, ..Default::default() },
             tile_tab: false,
+            npc_tab: false,
             stamp: None,
         })
     }
@@ -781,9 +877,11 @@ impl Viewer {
     fn refresh_events(&mut self, frame: &eframe::Frame) {
         let Some(state) = frame.wgpu_render_state() else { return };
         let vertices = self.event_vertices();
+        let props = self.prop_meshes();
         let mut renderer = state.renderer.write();
         let Some(gpu) = renderer.callback_resources.get_mut::<Gpu>() else { return };
         gpu.set_events(&state.device, &vertices);
+        gpu.set_props(&state.device, &state.queue, &props);
     }
 
     /// Starts or ends the mode of the events.
@@ -805,11 +903,13 @@ impl Viewer {
     fn refresh(&mut self, frame: &eframe::Frame) {
         self.sync_meshes(frame);
         let Some(state) = frame.wgpu_render_state() else { return };
+        let props = self.prop_meshes();
         let mut renderer = state.renderer.write();
         let Some(gpu) = renderer.callback_resources.get_mut::<Gpu>() else { return };
         gpu.set_geometry(&state.device, self.editor.meshes());
         gpu.set_tiles(&state.device, &self.tile_vertices());
         gpu.set_events(&state.device, &self.event_vertices());
+        gpu.set_props(&state.device, &state.queue, &props);
         let lists = self
             .editor
             .meshes()
@@ -1384,15 +1484,31 @@ impl eframe::App for Viewer {
         }
 
         let mut dropped: Option<(bool, usize)> = None;
+        let mut npc_pick: Option<u16> = None;
         if self.catalog_open {
-            let tiles = self.tile_tab;
-            self.catalog_start(tiles);
+            let tiles = self.tile_tab && !self.npc_tab;
+            if !self.npc_tab {
+                self.catalog_start(tiles);
+            }
             egui::SidePanel::right("catalog").default_width(360.0).show(ctx, |ui| {
                 ui.horizontal(|ui| {
-                    ui.selectable_value(&mut self.tile_tab, false, "Objects");
-                    ui.selectable_value(&mut self.tile_tab, true, "Ground tiles");
+                    if ui.selectable_label(!self.tile_tab && !self.npc_tab, "Objects").clicked() {
+                        self.tile_tab = false;
+                        self.npc_tab = false;
+                    }
+                    if ui.selectable_label(self.tile_tab && !self.npc_tab, "Ground tiles").clicked() {
+                        self.tile_tab = true;
+                        self.npc_tab = false;
+                    }
+                    if ui.selectable_label(self.npc_tab, "NPCs").clicked() {
+                        self.npc_tab = true;
+                    }
                 });
-                dropped = self.catalog_ui(ctx, ui, tiles).map(|i| (tiles, i));
+                if self.npc_tab {
+                    npc_pick = self.npc_ui(ctx, ui);
+                } else {
+                    dropped = self.catalog_ui(ctx, ui, tiles).map(|i| (tiles, i));
+                }
             });
         }
 
@@ -1631,6 +1747,9 @@ impl eframe::App for Viewer {
 
         if let Some((tiles, index)) = dropped {
             self.drop_entry(tiles, index, frame);
+        }
+        if let Some(model) = npc_pick {
+            self.arm_npc(model, frame);
         }
         if let Some(mesh) = select_mesh {
             let original = self.editor.original_mesh(mesh);

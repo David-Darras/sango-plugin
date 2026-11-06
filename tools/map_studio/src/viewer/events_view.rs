@@ -54,6 +54,8 @@ pub struct EventsState {
     pub moving: bool,
     pub show: [bool; 5],
     pub labels: bool,
+    /// The character of the game whose values a new character takes.
+    pub npc: Option<Character>,
 }
 
 impl Default for EventsState {
@@ -69,6 +71,7 @@ impl Default for EventsState {
             moving: false,
             show: [true; 5],
             labels: true,
+            npc: None,
         }
     }
 }
@@ -224,6 +227,169 @@ impl Viewer {
                     v(centre[0] - dx, top, centre[1] - dz),
                 );
                 out.extend_from_slice(&[p0, p1, p2, p0, p2, p3]);
+            }
+        }
+        out
+    }
+
+    /// Arms a character: the next click on a tile puts it there.
+    pub(super) fn arm_npc(&mut self, model: u16, frame: &eframe::Frame) {
+        if !self.events_mode {
+            self.events_mode = true;
+            self.events_toggled(frame);
+        }
+        self.ev.npc = self.npcs.templates.get(&model).cloned().or_else(|| {
+            let mut c = events::new_character(0, 0, 0, 0, 0.0);
+            c.model = model;
+            Some(c)
+        });
+        self.ev.put = Some(Kind::Character);
+        self.ev.moving = false;
+        self.status = format!("Character with the model {model}: click a tile to put it (Esc to stop).");
+    }
+
+    /// The list of the models of the characters, with a small picture of each.
+    pub(super) fn npc_ui(&mut self, ctx: &egui::Context, ui: &mut egui::Ui) -> Option<u16> {
+        const THUMB: usize = 96;
+        ui.heading("Characters (NPCs)");
+        if !self.npcs.ready {
+            self.npcs.ready = true;
+            self.npcs.templates = events::character_templates(&self.arc_dir).unwrap_or_default();
+            let mut ids = Vec::new();
+            for id in 0..600u16 {
+                if self.models.has(id) {
+                    ids.push(id);
+                }
+            }
+            for id in self.models.override_ids() {
+                if !ids.contains(&id) {
+                    ids.push(id);
+                }
+            }
+            ids.sort_unstable();
+            self.npcs.ids = ids;
+        }
+        ui.horizontal(|ui| {
+            ui.label("Search (model number or name):");
+            ui.text_edit_singleline(&mut self.npcs.search);
+        });
+        let words: Vec<String> = self.npcs.search.to_lowercase().split_whitespace().map(String::from).collect();
+        let shown: Vec<u16> = self
+            .npcs
+            .ids
+            .iter()
+            .copied()
+            .filter(|&id| {
+                words.iter().all(|w| {
+                    id.to_string() == *w
+                        || self.npcs.names.get(&id).map_or(false, |n| n.to_lowercase().contains(w.as_str()))
+                        || (self.npcs.names.get(&id).is_none() && w.chars().all(|c| c.is_ascii_digit()) && id.to_string().contains(w.as_str()))
+                })
+            })
+            .collect();
+        ui.label(format!("{} models. Click one, then click a tile of the map. The new character has the script 65535 until you give it one.", shown.len()));
+        let columns = ((ui.available_width() / (THUMB as f32 + 8.0)).floor() as usize).max(1);
+        let rows = shown.len().div_ceil(columns);
+        let mut clicked = None;
+        let mut made = 0;
+        egui::ScrollArea::vertical().auto_shrink([false, false]).show_rows(ui, THUMB as f32 + 8.0, rows, |ui, range| {
+            for row in range {
+                ui.horizontal(|ui| {
+                    for &id in shown.iter().skip(row * columns).take(columns) {
+                        let handle = match self.npcs.thumbs.get(&id) {
+                            Some(h) => Some(h.clone()),
+                            None if made < 4 => {
+                                made += 1;
+                                match self.models.load(id) {
+                                    Some(model) => {
+                                        let parts: Vec<crate::catalog::PreviewPart> = model
+                                            .meshes
+                                            .iter()
+                                            .map(|m| crate::catalog::PreviewPart {
+                                                picture: m.picture.clone(),
+                                                // The characters look toward +z: turn them to face the picture.
+                                                positions: m.positions.iter().map(|p| [-p[0], p[1], -p[2]]).collect(),
+                                                uvs: m.uvs.clone(),
+                                                indices: m.indices.chunks_exact(3).flat_map(|t| [t[0], t[2], t[1]]).collect(),
+                                            })
+                                            .collect();
+                                        if let Some(first) = model.meshes.first() {
+                                            let name = first.picture.split(['_', '-']).next().unwrap_or("").to_string();
+                                            self.npcs.names.insert(id, format!("{name} {id}"));
+                                        }
+                                        let pixels = crate::thumb::render(&parts, &model.textures, THUMB);
+                                        let image = egui::ColorImage::from_rgba_unmultiplied([THUMB, THUMB], &pixels);
+                                        let h = ctx.load_texture(format!("npc{id}"), image, egui::TextureOptions::LINEAR);
+                                        self.npcs.thumbs.insert(id, h.clone());
+                                        Some(h)
+                                    }
+                                    None => None,
+                                }
+                            }
+                            None => None,
+                        };
+                        let tip = self
+                            .npcs
+                            .templates
+                            .get(&id)
+                            .map_or(format!("Model {id}"), |c| format!("Model {id}\nmovement {}, interaction {}", c.movement, c.interaction));
+                        let response = match handle {
+                            Some(h) => ui.add(egui::ImageButton::new(egui::load::SizedTexture::new(h.id(), [THUMB as f32, THUMB as f32]))),
+                            None => {
+                                ctx.request_repaint();
+                                ui.add_sized([THUMB as f32, THUMB as f32], egui::Button::new(format!("{id}")))
+                            }
+                        };
+                        if response.on_hover_text(tip).clicked() {
+                            clicked = Some(id);
+                        }
+                    }
+                });
+            }
+        });
+        clicked
+    }
+
+    /// The 3D models of the characters, put on their tiles and turned as the
+    /// characters are. A character without a model is not drawn.
+    pub(super) fn prop_meshes(&mut self) -> Vec<PropMesh> {
+        if !self.events_mode || !self.ev.show[3] {
+            return Vec::new();
+        }
+        let mut out = Vec::new();
+        let list: Vec<(usize, u16, u8)> = self.ev.now.characters.iter().enumerate().map(|(i, c)| (i, c.model, c.facing)).collect();
+        for (index, model_id, facing) in list {
+            let Some(model) = self.models.load(model_id) else { continue };
+            let Some(centre) = self.event_centre(Kind::Character, index) else { continue };
+            let ground = self.ground_at(centre[0], centre[1]).unwrap_or(0.0);
+            // The model looks toward +z. Facing: 0 down (+z), 1 left (-x), 2 right (+x), 3 up (-z).
+            let yaw = match facing {
+                1 => -std::f32::consts::FRAC_PI_2,
+                2 => std::f32::consts::FRAC_PI_2,
+                3 => std::f32::consts::PI,
+                _ => 0.0,
+            };
+            let (sin, cos) = yaw.sin_cos();
+            for (m, mesh) in model.meshes.iter().enumerate() {
+                let vertices: Vec<Vertex> = mesh
+                    .positions
+                    .iter()
+                    .enumerate()
+                    .map(|(v, p)| Vertex {
+                        position: [centre[0] + p[0] * cos + p[2] * sin, ground + p[1], centre[1] - p[0] * sin + p[2] * cos],
+                        uv: mesh.uvs.get(v).copied().unwrap_or([0.0, 0.0]),
+                        colour: [255; 4],
+                    })
+                    .collect();
+                let count = vertices.len() as u32;
+                out.push(PropMesh {
+                    key: format!("{model_id}:{}", mesh.picture),
+                    vertices,
+                    indices: mesh.indices.iter().copied().filter(|&i| i < count).collect(),
+                    model: model.clone(),
+                    picture: mesh.picture.clone(),
+                });
+                let _ = m;
             }
         }
         out
@@ -523,10 +689,21 @@ impl Viewer {
                 now.warps.len() - 1
             }
             Kind::Character => {
-                let model = now.characters.first().map_or(204, |c| c.model);
                 let local = now.characters.iter().map(|c| c.local_id + 1).max().unwrap_or(0);
                 let mut c = events::new_character(zone, local, x, z, ground);
-                c.model = model;
+                match self.ev.npc.take() {
+                    Some(t) => {
+                        c.model = t.model;
+                        c.movement = t.movement;
+                        c.interaction = t.interaction;
+                        c.facing = t.facing;
+                        c.param = t.param;
+                        c.position_kind = t.position_kind;
+                        c.trigger = t.trigger;
+                        c.alias = t.alias;
+                    }
+                    None => c.model = now.characters.first().map_or(204, |c| c.model),
+                }
                 now.characters.push(c);
                 now.characters.len() - 1
             }
@@ -937,4 +1114,15 @@ fn door_fields(ui: &mut egui::Ui, d: &mut crate::edit::Door) -> bool {
     c |= number(ui, "Scale z", &mut d.scale[2]);
     ui.label("The doors are saved with the block: use Export the block.");
     c
+}
+
+/// The list of the models of the characters.
+#[derive(Default)]
+pub struct NpcPanel {
+    pub ready: bool,
+    pub ids: Vec<u16>,
+    pub templates: std::collections::BTreeMap<u16, Character>,
+    pub names: std::collections::HashMap<u16, String>,
+    pub thumbs: std::collections::HashMap<u16, egui::TextureHandle>,
+    pub search: String,
 }

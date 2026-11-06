@@ -21,6 +21,9 @@ pub struct Mesh {
     pub material_index: usize,
     /// The group of drawing of the object (0 to 3) in the table of the objects.
     pub group: usize,
+    /// The bones of the face of the mesh (a model of a character): the number
+    /// of the bone of the skeleton for each number that a vertex gives.
+    pub bones: Vec<u16>,
     pub positions: Vec<[f32; 3]>,
     pub normals: Vec<[f32; 3]>,
     pub uvs: Vec<[f32; 2]>,
@@ -218,12 +221,28 @@ impl<'a> Bch<'a> {
             .collect()
     }
 
+    fn u16(&self, at: usize) -> Result<u16, String> {
+        let b = self.data.get(at..at + 2).ok_or("the file is cut")?;
+        Ok(u16::from_le_bytes([b[0], b[1]]))
+    }
+
     fn command_words(&self, offset: usize, count: usize) -> Result<Vec<u32>, String> {
         (0..count).map(|i| self.u32(self.commands + offset + 4 * i)).collect()
     }
 
+    /// The meshes of the first model, one mesh for each face of each object
+    /// (a model of a character has several faces in an object, each with its
+    /// own bones).
+    pub fn meshes_with_faces(&self) -> Result<Vec<Mesh>, String> {
+        self.meshes_impl(true)
+    }
+
     /// The meshes of the first model.
     pub fn meshes(&self) -> Result<Vec<Mesh>, String> {
+        self.meshes_impl(false)
+    }
+
+    fn meshes_impl(&self, all_faces: bool) -> Result<Vec<Mesh>, String> {
         let table = self.content + self.u32(self.content)? as usize;
         let model = self.content + self.u32(table)? as usize;
         let material_count = self.u32(model + 0x38)? as usize;
@@ -256,7 +275,11 @@ impl<'a> Bch<'a> {
 
         let mut raws = Vec::with_capacity(object_count);
         for i in 0..object_count {
-            raws.push(self.read_object(object_table + 0x38 * i, &material_names, &texture_names)?);
+            let pos = object_table + 0x38 * i;
+            let faces = if all_faces { (self.u32(pos + 20)? as usize).clamp(1, 16) } else { 1 };
+            for face in 0..faces {
+                raws.push(self.read_object(pos, &material_names, &texture_names, face)?);
+            }
         }
         self.read_indices(&mut raws)?;
         let mut meshes: Vec<Mesh> = raws.into_iter().map(|r| r.mesh).collect();
@@ -297,11 +320,11 @@ impl<'a> Bch<'a> {
     }
 
     /// Reads the vertices of one mesh. The indices come later.
-    fn read_object(&self, pos: usize, material_names: &[String], texture_names: &[String]) -> Result<RawMesh, String> {
+    fn read_object(&self, pos: usize, material_names: &[String], texture_names: &[String], face: usize) -> Result<RawMesh, String> {
         let material = (self.u32(pos)? & 0xffff) as usize;
         let vertex_commands = self.u32(pos + 8)? as usize;
         let vertex_words = self.u32(pos + 12)? as usize;
-        let face_header = self.content + self.u32(pos + 16)? as usize;
+        let face_header = self.content + self.u32(pos + 16)? as usize + 0x34 * face;
 
         let regs = registers(&self.command_words(vertex_commands, vertex_words)?);
         let get = |r: u16| regs.get(&r).copied().ok_or(format!("register {r:#x} is missing"));
@@ -356,6 +379,7 @@ impl<'a> Bch<'a> {
             material: material_names.get(material).cloned().unwrap_or_else(|| format!("material{material}")),
             texture: texture_names.get(material).cloned().unwrap_or_default(),
             material_index: material,
+            bones: (0..20).map(|k| self.u16(face_header + 2 * k).unwrap_or(0)).collect(),
             ..Default::default()
         };
         Ok(RawMesh {
@@ -500,6 +524,7 @@ impl<'a> Bch<'a> {
                 material: raw.mesh.material.clone(),
                 texture: raw.mesh.texture.clone(),
                 material_index: raw.mesh.material_index,
+                bones: raw.mesh.bones.clone(),
                 ..Default::default()
             };
             for v in 0..vertex_count {

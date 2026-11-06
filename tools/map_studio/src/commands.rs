@@ -1637,3 +1637,215 @@ pub fn doors_test(arc_dir: &str, block: usize, x: f32, z: f32, dx: f32, out_dir:
     }
     Ok(())
 }
+
+/// Draws overworld models in a picture, as the catalogue of characters does.
+pub fn model_sheet(arc_dir: &str, ids: &[usize], out: &str) -> Result<(), String> {
+    let mut bank = crate::models::ModelBank::new(arc_dir);
+    const SIZE: usize = 192;
+    let columns = ids.len().min(6).max(1);
+    let rows = ids.len().div_ceil(columns);
+    let mut sheet = vec![60u8; SIZE * columns * SIZE * rows * 4];
+    for (k, &id) in ids.iter().enumerate() {
+        let model = bank.load(id as u16).ok_or("no such model")?;
+        // The characters look toward +z: turn them to face the camera of the picture.
+        let parts: Vec<crate::catalog::PreviewPart> = model
+            .meshes
+            .iter()
+            .map(|m| crate::catalog::PreviewPart {
+                picture: m.picture.clone(),
+                positions: m.positions.iter().map(|p| [-p[0], p[1], -p[2]]).collect(),
+                uvs: m.uvs.clone(),
+                indices: m.indices.chunks_exact(3).flat_map(|t| [t[0], t[2], t[1]]).collect(),
+            })
+            .collect();
+        let image = crate::thumb::render(&parts, &model.textures, SIZE);
+        let (cx, cy) = (k % columns * SIZE, k / columns * SIZE);
+        for y in 0..SIZE {
+            for x in 0..SIZE {
+                let from = (y * SIZE + x) * 4;
+                if image[from + 3] == 0 { continue; }
+                let to = ((cy + y) * SIZE * columns + cx + x) * 4;
+                sheet[to..to + 4].copy_from_slice(&image[from..from + 4]);
+            }
+        }
+    }
+    write_png(out, SIZE * columns, SIZE * rows, &sheet)
+}
+
+/// Prints how the meshes of an overworld model are made (the layout of the
+/// vertices) and the words of the model structure, to find the skeleton.
+pub fn model_layout(arc_dir: &str, id: usize) -> Result<(), String> {
+    let files = crate::garc::read(&std::path::PathBuf::from(arc_dir).join("movemodel.garc"))?;
+    let raw = files.get(id).and_then(|f| f.first()).ok_or("no such model")?;
+    let data = if raw.first() == Some(&0x11) { crate::lz11::decompress(raw)? } else { raw.clone() };
+    let (_, parts) = crate::pack::split(&data)?;
+    let model = parts[0];
+    let bch = bch::Bch::parse(model)?;
+    for m in bch.meshes()? {
+        println!("{}: layout {} stride {} vertices {}", m.material, m.places.layout, m.places.stride, m.positions.len());
+    }
+    let u = |o: usize| u32::from_le_bytes([model[o], model[o + 1], model[o + 2], model[o + 3]]);
+    let content = u(8) as usize;
+    let table = content + u(content) as usize;
+    let md = content + u(table) as usize;
+    println!("content {content:#x} table {table:#x} model {md:#x}");
+    for k in 0..40 {
+        print!("{:#x}:{:#x} ", k * 4, u(md + k * 4));
+        if k % 6 == 5 { println!(); }
+    }
+    println!();
+    Ok(())
+}
+
+/// Prints the first bytes of some vertices of the meshes of a model after
+/// the position, the normal and the texture coordinates (the bone data).
+pub fn model_vertices(arc_dir: &str, id: usize) -> Result<(), String> {
+    let files = crate::garc::read(&std::path::PathBuf::from(arc_dir).join("movemodel.garc"))?;
+    let raw = files.get(id).and_then(|f| f.first()).ok_or("no such model")?;
+    let data = if raw.first() == Some(&0x11) { crate::lz11::decompress(raw)? } else { raw.clone() };
+    let (_, parts) = crate::pack::split(&data)?;
+    let bch = bch::Bch::parse(parts[0])?;
+    for m in bch.meshes()? {
+        println!("{} stride {} layout {}", m.material, m.places.stride, m.places.layout);
+        for v in [0usize, 1, 2, 50, 100, m.positions.len() - 1] {
+            if v >= m.positions.len() { continue; }
+            let at = m.places.vertices_at + v * m.places.stride;
+            let b = &parts[0][at..at + m.places.stride];
+            println!("  v{v}: pos {:?} tail {}", m.positions[v], b[24..].iter().map(|x| format!("{x:02x}")).collect::<Vec<_>>().join(" "));
+        }
+    }
+    Ok(())
+}
+
+/// For every model: the lowest point of the meshes as they are, and after the
+/// skinning with the bones (by the index of the vertex).
+pub fn models_skin(arc_dir: &str) -> Result<(), String> {
+    let files = crate::garc::read(&std::path::PathBuf::from(arc_dir).join("movemodel.garc"))?;
+    let params = crate::garc::read(&std::path::PathBuf::from(arc_dir).join("objcode_param.garc"))?;
+    let mut raw_high = 0;
+    let mut shown = 0;
+    for id in 0..params.len() {
+        let rec = &params[id][0];
+        if rec.len() != 24 { continue; }
+        let at = u16::from_le_bytes([rec[20], rec[21]]) as usize;
+        let Some(raw) = files.get(at).and_then(|f| f.first()) else { continue };
+        let data = crate::lz11::decompress(raw)?;
+        let (_, parts) = crate::pack::split(&data)?;
+        let model = parts[0];
+        let b = bch::Bch::parse(model)?;
+        let worlds = crate::models::bone_worlds(model);
+        let (mut raw_min, mut skin_min, mut skin_max, mut raw_max) = (f32::MAX, f32::MAX, f32::MIN, f32::MIN);
+        for m in b.meshes()? {
+            let stride = m.places.stride;
+            for (v, p) in m.positions.iter().enumerate() {
+                raw_min = raw_min.min(p[1]);
+                raw_max = raw_max.max(p[1]);
+                let at = m.places.vertices_at + v * stride;
+                let (idx, wt) = if stride >= 40 { (&model[at + stride - 8..at + stride - 4], &model[at + stride - 4..at + stride]) } else { (&[0u8; 4][..], &[100u8, 0, 0, 0][..]) };
+                let mut out = glam::Vec3::ZERO;
+                let mut total = 0.0;
+                for k in 0..4 {
+                    let w = wt[k] as f32;
+                    if w <= 0.0 { continue; }
+                    let world = worlds.get(idx[k] as usize).copied().unwrap_or(glam::Mat4::IDENTITY);
+                    out += (world * glam::Vec4::new(p[0], p[1], p[2], 1.0)).truncate() * w;
+                    total += w;
+                }
+                if total > 0.0 { out /= total; }
+                skin_min = skin_min.min(out.y);
+                skin_max = skin_max.max(out.y);
+            }
+        }
+        if raw_min > 4.0 {
+            raw_high += 1;
+            if shown < 12 {
+                println!("model {id}: raw y {raw_min:.1}..{raw_max:.1}, skinned y {skin_min:.1}..{skin_max:.1}");
+                shown += 1;
+            }
+        }
+    }
+    println!("{raw_high} models have no point near the ground as they are");
+    Ok(())
+}
+
+/// Reads every overworld model and says how many load, and how many models the
+/// characters of the zones use that have no file.
+pub fn models_check(arc_dir: &str) -> Result<(), String> {
+    let mut bank = crate::models::ModelBank::new(arc_dir);
+    let (mut files, mut loaded, mut empty) = (0, 0, 0);
+    let start = std::time::Instant::now();
+    for id in 0..600u16 {
+        if bank.pack_of(id).is_some() {
+            files += 1;
+            match bank.load(id) {
+                Some(m) if !m.meshes.is_empty() => loaded += 1,
+                _ => empty += 1,
+            }
+        }
+    }
+    println!("{files} models have a file, {loaded} load with meshes, {empty} fail or are empty ({:.1} s)", start.elapsed().as_secs_f32());
+    let templates = crate::events::character_templates(arc_dir)?;
+    let (mut missing, mut dressed): (Vec<u16>, Vec<u16>) = (Vec::new(), Vec::new());
+    for &model in templates.keys() {
+        if model & 0x2000 != 0 {
+            dressed.push(model);
+        } else if bank.pack_of(model).is_none() {
+            missing.push(model);
+        }
+    }
+    println!("{} models are used by the characters of the zones; {} are dressed characters, {} have no file: {:?}", templates.len(), dressed.len(), missing.len(), &missing[..missing.len().min(12)]);
+    Ok(())
+}
+
+/// Reads the models of X and Y that are on the SD card and draws some.
+pub fn xy_models_test(arc_dir: &str, dir: &str, out: &str) -> Result<(), String> {
+    let mut bank = crate::models::ModelBank::new(arc_dir);
+    bank.set_overrides(vec![std::path::PathBuf::from(dir)]);
+    let ids = bank.override_ids();
+    println!("{} models on the SD card", ids.len());
+    let mut shown: Vec<usize> = Vec::new();
+    let mut bad = 0;
+    for &id in &ids {
+        match bank.load(id) {
+            Some(m) if !m.meshes.is_empty() => {
+                if shown.len() < 12 {
+                    shown.push(id as usize);
+                }
+            }
+            _ => bad += 1,
+        }
+    }
+    println!("{bad} of them do not load");
+    model_sheet_with(&mut bank, &shown, out)
+}
+
+fn model_sheet_with(bank: &mut crate::models::ModelBank, ids: &[usize], out: &str) -> Result<(), String> {
+    const SIZE: usize = 192;
+    let columns = ids.len().min(6).max(1);
+    let rows = ids.len().div_ceil(columns);
+    let mut sheet = vec![60u8; SIZE * columns * SIZE * rows * 4];
+    for (k, &id) in ids.iter().enumerate() {
+        let model = bank.load(id as u16).ok_or("no such model")?;
+        let parts: Vec<crate::catalog::PreviewPart> = model
+            .meshes
+            .iter()
+            .map(|m| crate::catalog::PreviewPart {
+                picture: m.picture.clone(),
+                positions: m.positions.iter().map(|p| [-p[0], p[1], -p[2]]).collect(),
+                uvs: m.uvs.clone(),
+                indices: m.indices.chunks_exact(3).flat_map(|t| [t[0], t[2], t[1]]).collect(),
+            })
+            .collect();
+        let image = crate::thumb::render(&parts, &model.textures, SIZE);
+        let (cx, cy) = (k % columns * SIZE, k / columns * SIZE);
+        for y in 0..SIZE {
+            for x in 0..SIZE {
+                let from = (y * SIZE + x) * 4;
+                if image[from + 3] == 0 { continue; }
+                let to = ((cy + y) * SIZE * columns + cx + x) * 4;
+                sheet[to..to + 4].copy_from_slice(&image[from..from + 4]);
+            }
+        }
+    }
+    write_png(out, SIZE * columns, SIZE * rows, &sheet)
+}

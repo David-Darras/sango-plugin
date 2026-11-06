@@ -60,7 +60,8 @@ pub fn render(parts: &[PreviewPart], textures: &HashMap<String, Texture>, size: 
             let max_x = (a[0].max(b[0]).max(c[0]).ceil().max(0.0) as usize).min(size - 1);
             let min_y = a[1].min(b[1]).min(c[1]).floor().max(0.0) as usize;
             let max_y = (a[1].max(b[1]).max(c[1]).ceil().max(0.0) as usize).min(size - 1);
-            let (uv_a, uv_b, uv_c) = (part.uvs[ia], part.uvs[ib], part.uvs[ic]);
+            let uv_of = |i: usize| part.uvs.get(i).copied().unwrap_or([0.0, 0.0]);
+            let (uv_a, uv_b, uv_c) = (uv_of(ia), uv_of(ib), uv_of(ic));
             for y in min_y..=max_y {
                 for x in min_x..=max_x {
                     let (px, py) = (x as f32 + 0.5, y as f32 + 0.5);

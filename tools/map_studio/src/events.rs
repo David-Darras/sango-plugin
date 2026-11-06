@@ -368,6 +368,30 @@ pub fn read_zone_events(arc_dir: &str, zone: usize) -> Result<ZoneEvents, String
     ZoneEvents::parse(parts.get(1).ok_or("the zone has no events")?)
 }
 
+/// For each number of model: the character of the game that uses it most
+/// often (with the same movement and the same kind of interaction). The tool
+/// gives a new character these values.
+pub fn character_templates(arc_dir: &str) -> Result<BTreeMap<u16, Character>, String> {
+    let zones = garc::read(&PathBuf::from(arc_dir).join("zonedata_y.garc"))?;
+    let mut counts: BTreeMap<(u16, u16, u16, u8), (usize, Character)> = BTreeMap::new();
+    for file in &zones {
+        let Some(raw) = file.first() else { continue };
+        let Ok(parts) = zone_parts(raw) else { continue };
+        let Some(Ok(events)) = parts.get(1).map(|p| ZoneEvents::parse(p)) else { continue };
+        for c in events.characters {
+            let key = (c.model, c.movement, c.interaction, c.facing);
+            counts.entry(key).and_modify(|e| e.0 += 1).or_insert((1, c));
+        }
+    }
+    let mut best: BTreeMap<u16, (usize, Character)> = BTreeMap::new();
+    for ((model, ..), (n, c)) in counts {
+        if best.get(&model).map_or(true, |(m, _)| n > *m) {
+            best.insert(model, (n, c));
+        }
+    }
+    Ok(best.into_iter().map(|(m, (_, c))| (m, c)).collect())
+}
+
 /// Reads the events from the file of a zone that the tool wrote on the SD
 /// card, if there is one.
 pub fn read_zone_override(sd_dir: &str, zone: usize) -> Option<ZoneEvents> {
