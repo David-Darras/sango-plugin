@@ -21,8 +21,34 @@ pub struct Mesh {
     pub normals: Vec<[f32; 3]>,
     pub uvs: Vec<[f32; 2]>,
     pub colors: Vec<[u8; 4]>,
+    /// Where the three numbers of each position are in the file, so that
+    /// a tool can change them in place.
+    pub position_offsets: Vec<usize>,
+    /// Where the lists of the mesh are in the file. A tool changes them to
+    /// remove or add triangles.
+    pub places: Places,
     /// Three indices for each triangle.
     pub indices: Vec<u32>,
+}
+
+/// Where the data of a mesh is in the file (offsets from the start of the
+/// file).
+#[derive(Default, Clone, Debug)]
+pub struct Places {
+    /// The word that gives the number of indices.
+    pub index_count_at: usize,
+    /// The word that gives where the list of indices is (from the raw data).
+    pub index_start_at: usize,
+    /// The word that gives where the vertices are (from the raw data).
+    pub vertex_start_at: usize,
+    /// The start of the list of indices.
+    pub indices_at: usize,
+    /// The start of the vertices.
+    pub vertices_at: usize,
+    /// 1 or 2 bytes for an index.
+    pub index_width: usize,
+    /// The size of a vertex, in bytes.
+    pub stride: usize,
 }
 
 /// A picture, with the first row at the top.
@@ -66,6 +92,29 @@ fn registers(words: &[u32]) -> HashMap<u16, u32> {
     out
 }
 
+/// The place of the value of each register in a list of commands: the index
+/// of the word. A tool needs it to change a value in the file.
+fn register_places(words: &[u32]) -> HashMap<u16, usize> {
+    let mut out = HashMap::new();
+    let mut i = 0;
+    while i + 1 < words.len() {
+        let header = words[i + 1];
+        let reg = (header & 0xffff) as u16;
+        let extra = ((header >> 20) & 0x7ff) as usize;
+        let consecutive = header >> 31 != 0;
+        if i + 2 + extra > words.len() {
+            break;
+        }
+        out.insert(reg, i);
+        for k in 0..extra {
+            let target = if consecutive { reg + 1 + k as u16 } else { reg };
+            out.insert(target, i + 2 + k);
+        }
+        i += 2 + extra + (extra & 1);
+    }
+    out
+}
+
 /// What an attribute of a vertex means. The file does not say it, so the
 /// kind comes from the format.
 #[derive(Clone, Copy, PartialEq, Debug)]
@@ -91,6 +140,9 @@ struct RawMesh {
     layout: Layout,
     index_offset: usize,
     index_count: usize,
+    index_count_at: usize,
+    index_start_at: usize,
+    vertex_start_at: usize,
 }
 
 impl<'a> Bch<'a> {
@@ -239,7 +291,16 @@ impl<'a> Bch<'a> {
         // The commands of the face give the indices.
         let face_commands = self.u32(face_header + 0x2c)? as usize;
         let face_words = self.u32(face_header + 0x30)? as usize;
-        let face_regs = registers(&self.command_words(face_commands, face_words)?);
+        let face_list = self.command_words(face_commands, face_words)?;
+        let face_places = register_places(&face_list);
+        let vertex_places = register_places(&self.command_words(vertex_commands, vertex_words)?);
+        let word_at = |base: usize, places: &HashMap<u16, usize>, reg: u16| {
+            places.get(&reg).map(|w| self.commands + base + 4 * w).ok_or(format!("register {reg:#x} is missing"))
+        };
+        let index_count_at = word_at(face_commands, &face_places, 0x228)?;
+        let index_start_at = word_at(face_commands, &face_places, 0x227)?;
+        let vertex_start_at = word_at(vertex_commands, &vertex_places, 0x203)?;
+        let face_regs = registers(&face_list);
         let index_offset = (face_regs.get(&0x227).copied().ok_or("no index register")? & 0x7fff_ffff) as usize;
         let index_count = face_regs.get(&0x228).copied().ok_or("no index count")? as usize;
 
@@ -250,7 +311,64 @@ impl<'a> Bch<'a> {
             texture: texture_names.get(material).cloned().unwrap_or_default(),
             ..Default::default()
         };
-        Ok(RawMesh { mesh, layout: Layout { stride, buffer_offset, slots, formats, kinds }, index_offset, index_count })
+        Ok(RawMesh {
+            mesh,
+            layout: Layout { stride, buffer_offset, slots, formats, kinds },
+            index_offset,
+            index_count,
+            index_count_at,
+            index_start_at,
+            vertex_start_at,
+        })
+    }
+
+    /// The mean length of the edges of the first triangles of a mesh, when
+    /// its indices have this width (1 or 2 bytes). A very large value means
+    /// that the width is wrong.
+    fn edge_length(&self, raw: &RawMesh, width: usize) -> f32 {
+        let layout = &raw.layout;
+        let mut inside = 0;
+        for (n, &slot) in layout.slots.iter().enumerate() {
+            if layout.kinds[n] == Field::Position {
+                break;
+            }
+            let format = layout.formats[slot];
+            let size = match format & 3 {
+                3 => 4,
+                2 => 2,
+                _ => 1,
+            };
+            inside += size * ((format >> 2) as usize + 1);
+        }
+        let start = self.raw_data + raw.index_offset;
+        let index = |k: usize| -> Option<usize> {
+            if width == 2 {
+                let b = self.data.get(start + 2 * k..start + 2 * k + 2)?;
+                Some(u16::from_le_bytes([b[0], b[1]]) as usize)
+            } else {
+                self.data.get(start + k).map(|&b| b as usize)
+            }
+        };
+        let position = |v: usize| -> Option<[f32; 3]> {
+            let at = self.raw_data + layout.buffer_offset + v * layout.stride + inside;
+            let b = self.data.get(at..at + 12)?;
+            let f = |o: usize| f32::from_le_bytes([b[o], b[o + 1], b[o + 2], b[o + 3]]);
+            Some([f(0), f(4), f(8)])
+        };
+        let distance = |a: [f32; 3], b: [f32; 3]| ((a[0] - b[0]).powi(2) + (a[1] - b[1]).powi(2) + (a[2] - b[2]).powi(2)).sqrt();
+        let mut total = 0.0f32;
+        let mut edges = 0;
+        for t in 0..(raw.index_count / 3).min(200) {
+            let corners: Option<Vec<[f32; 3]>> = (0..3).map(|c| index(3 * t + c).and_then(position)).collect();
+            let Some(p) = corners else { return f32::MAX };
+            total += distance(p[0], p[1]) + distance(p[1], p[2]) + distance(p[2], p[0]);
+            edges += 3;
+        }
+        if edges == 0 {
+            return 0.0;
+        }
+        let mean = total / edges as f32;
+        if mean.is_finite() { mean } else { f32::MAX }
     }
 
     /// Reads the indices and then the vertices of all the meshes.
@@ -283,6 +401,18 @@ impl<'a> Bch<'a> {
             }
         }
 
+        // The geometry tells better than the distance between the lists: with
+        // the right width the triangles are small. A file that a tool wrote
+        // can have its lists in any order.
+        for (i, raw) in raws.iter().enumerate() {
+            let (narrow, wide) = (self.edge_length(raw, 1), self.edge_length(raw, 2));
+            if narrow < 0.7 * wide {
+                width[i] = 1;
+            } else if wide < 0.7 * narrow {
+                width[i] = 2;
+            }
+        }
+
         for (i, raw) in raws.iter_mut().enumerate() {
             let Layout { stride, buffer_offset, slots, formats, kinds } = &raw.layout;
             let start = self.raw_data + raw.index_offset;
@@ -308,6 +438,7 @@ impl<'a> Bch<'a> {
                 for (n, &slot) in slots.iter().enumerate() {
                     let f = formats[slot];
                     let (ty, count) = (f & 3, ((f >> 2) + 1) as usize);
+                    let attribute_at = at;
                     let mut values = [0f32; 4];
                     for c in 0..count {
                         let (value, size) = match ty {
@@ -320,7 +451,10 @@ impl<'a> Bch<'a> {
                         at += size;
                     }
                     match kinds[n] {
-                        Field::Position => mesh.positions.push([values[0], values[1], values[2]]),
+                        Field::Position => {
+                            mesh.positions.push([values[0], values[1], values[2]]);
+                            mesh.position_offsets.push(attribute_at);
+                        }
                         Field::Normal => mesh.normals.push([values[0], values[1], values[2]]),
                         Field::Uv => mesh.uvs.push([values[0], values[1]]),
                         Field::Color => mesh.colors.push([values[0] as u8, values[1] as u8, values[2] as u8, values[3] as u8]),
@@ -329,6 +463,15 @@ impl<'a> Bch<'a> {
                 }
             }
             mesh.indices = indices;
+            mesh.places = Places {
+                index_count_at: raw.index_count_at,
+                index_start_at: raw.index_start_at,
+                vertex_start_at: raw.vertex_start_at,
+                indices_at: start,
+                vertices_at: self.raw_data + buffer_offset,
+                index_width: width[i],
+                stride: *stride,
+            };
             raw.mesh = mesh;
         }
         Ok(())

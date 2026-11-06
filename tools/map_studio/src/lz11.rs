@@ -1,5 +1,7 @@
 //! The LZ11 compression of the 3DS.
 
+use std::collections::HashMap;
+
 /// Decompresses data that starts with the byte 0x11.
 pub fn decompress(data: &[u8]) -> Result<Vec<u8>, String> {
     if data.len() < 4 || data[0] != 0x11 {
@@ -54,6 +56,85 @@ pub fn decompress(data: &[u8]) -> Result<Vec<u8>, String> {
                 out.push(value);
             }
         }
+    }
+    Ok(out)
+}
+
+/// Compresses data with LZ11. The game keeps a buffer with the size of the
+/// compressed file, so the result must not be bigger than needed.
+pub fn compress(data: &[u8]) -> Result<Vec<u8>, String> {
+    const CHAIN: usize = 4096;
+    if data.len() >= 1 << 24 {
+        return Err("the data is too large".into());
+    }
+    let size = data.len();
+    let mut out = vec![0x11, size as u8, (size >> 8) as u8, (size >> 16) as u8];
+    let mut table: HashMap<[u8; 3], Vec<usize>> = HashMap::new();
+    let mut position = 0;
+    while position < size {
+        let mut flags = 0u8;
+        let mut block: Vec<u8> = Vec::new();
+        for bit in 0..8 {
+            if position >= size {
+                break;
+            }
+            let (mut best_length, mut best_distance) = (0usize, 0usize);
+            if position + 3 <= size {
+                let key = [data[position], data[position + 1], data[position + 2]];
+                if let Some(candidates) = table.get(&key) {
+                    let limit = (size - position).min(0x10110);
+                    for &candidate in candidates.iter().rev().take(CHAIN) {
+                        let distance = position - candidate;
+                        if distance > 4096 {
+                            break;
+                        }
+                        let mut length = 3;
+                        while length < limit && data[candidate + length] == data[position + length] {
+                            length += 1;
+                        }
+                        if length > best_length {
+                            best_length = length;
+                            best_distance = distance;
+                            if length == limit {
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            let advance;
+            if best_length >= 3 {
+                flags |= 0x80 >> bit;
+                let d = best_distance - 1;
+                if best_length <= 16 {
+                    block.push((((best_length - 1) << 4) | (d >> 8)) as u8);
+                    block.push((d & 255) as u8);
+                } else if best_length <= 0x110 {
+                    let n = best_length - 0x11;
+                    block.push((n >> 4) as u8);
+                    block.push((((n & 15) << 4) | (d >> 8)) as u8);
+                    block.push((d & 255) as u8);
+                } else {
+                    let n = best_length - 0x111;
+                    block.push((0x10 | (n >> 12)) as u8);
+                    block.push(((n >> 4) & 255) as u8);
+                    block.push((((n & 15) << 4) | (d >> 8)) as u8);
+                    block.push((d & 255) as u8);
+                }
+                advance = best_length;
+            } else {
+                block.push(data[position]);
+                advance = 1;
+            }
+            for k in position..position + advance {
+                if k + 3 <= size {
+                    table.entry([data[k], data[k + 1], data[k + 2]]).or_default().push(k);
+                }
+            }
+            position += advance;
+        }
+        out.push(flags);
+        out.extend_from_slice(&block);
     }
     Ok(out)
 }
