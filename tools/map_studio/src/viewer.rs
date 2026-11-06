@@ -57,6 +57,30 @@ fn fs(in: Out) -> @location(0) vec4<f32> {
 }
 "#;
 
+/// The shader of the coloured squares that show the tiles.
+const TILES_SHADER: &str = r#"
+struct Uniforms { matrix: mat4x4<f32>, params: vec4<f32> };
+@group(0) @binding(0) var<uniform> u: Uniforms;
+
+struct Out {
+    @builtin(position) position: vec4<f32>,
+    @location(0) colour: vec4<f32>,
+};
+
+@vertex
+fn vs(@location(0) position: vec3<f32>, @location(1) uv: vec2<f32>, @location(2) colour: vec4<f32>) -> Out {
+    var out: Out;
+    out.position = u.matrix * vec4<f32>(position, 1.0);
+    out.colour = colour + vec4<f32>(uv.x * 0.0, 0.0, 0.0, 0.0);
+    return out;
+}
+
+@fragment
+fn fs(in: Out) -> @location(0) vec4<f32> {
+    return in.colour;
+}
+"#;
+
 #[repr(C)]
 #[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
 struct Vertex {
@@ -88,6 +112,9 @@ struct Gpu {
     highlight_group: wgpu::BindGroup,
     meshes: Vec<GpuMesh>,
     highlight: Vec<Highlight>,
+    tiles_pipeline: wgpu::RenderPipeline,
+    /// The squares of the tiles: the buffer and the number of vertices.
+    tiles: Option<(wgpu::Buffer, u32)>,
 }
 
 fn buffers(device: &wgpu::Device, mesh: &Mesh) -> (wgpu::Buffer, wgpu::Buffer, u32) {
@@ -128,6 +155,19 @@ impl Gpu {
         }
     }
 
+    fn set_tiles(&mut self, device: &wgpu::Device, vertices: &[Vertex]) {
+        self.tiles = if vertices.is_empty() {
+            None
+        } else {
+            let buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("tiles"),
+                contents: bytemuck::cast_slice(vertices),
+                usage: wgpu::BufferUsages::VERTEX,
+            });
+            Some((buffer, vertices.len() as u32))
+        };
+    }
+
     fn set_highlight(&mut self, device: &wgpu::Device, lists: Vec<(usize, Vec<u32>)>) {
         self.highlight = lists
             .into_iter()
@@ -141,6 +181,7 @@ struct SceneCallback {
     matrix: Mat4,
     visible: Vec<bool>,
     direct_v: bool,
+    show_tiles: bool,
 }
 
 impl egui_wgpu::CallbackTrait for SceneCallback {
@@ -181,6 +222,14 @@ impl egui_wgpu::CallbackTrait for SceneCallback {
             pass.set_vertex_buffer(0, mesh.vertices.slice(..));
             pass.set_index_buffer(mesh.indices.slice(..), wgpu::IndexFormat::Uint32);
             pass.draw_indexed(0..mesh.index_count, 0, 0..1);
+        }
+        if self.show_tiles {
+            if let Some((buffer, count)) = &gpu.tiles {
+                pass.set_pipeline(&gpu.tiles_pipeline);
+                pass.set_bind_group(0, &gpu.uniform_group, &[]);
+                pass.set_vertex_buffer(0, buffer.slice(..));
+                pass.draw(0..*count, 0..1);
+            }
         }
         if gpu.highlight.is_empty() {
             return;
@@ -288,6 +337,50 @@ fn build_gpu(state: &egui_wgpu::RenderState, meshes: &[(usize, Mesh)], textures:
     let pipeline = make_pipeline(wgpu::CompareFunction::Less);
     // The selected object is drawn again on the same triangles.
     let overlay = make_pipeline(wgpu::CompareFunction::LessEqual);
+    let tiles_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+        label: Some("map studio tiles"),
+        source: wgpu::ShaderSource::Wgsl(TILES_SHADER.into()),
+    });
+    let tiles_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+        label: None,
+        bind_group_layouts: &[&uniform_layout],
+        push_constant_ranges: &[],
+    });
+    let tiles_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+        label: Some("map studio tiles"),
+        layout: Some(&tiles_layout),
+        vertex: wgpu::VertexState {
+            module: &tiles_module,
+            entry_point: "vs",
+            compilation_options: Default::default(),
+            buffers: &[wgpu::VertexBufferLayout {
+                array_stride: std::mem::size_of::<Vertex>() as u64,
+                step_mode: wgpu::VertexStepMode::Vertex,
+                attributes: &attributes,
+            }],
+        },
+        fragment: Some(wgpu::FragmentState {
+            module: &tiles_module,
+            entry_point: "fs",
+            compilation_options: Default::default(),
+            targets: &[Some(wgpu::ColorTargetState {
+                format: state.target_format,
+                blend: Some(wgpu::BlendState::ALPHA_BLENDING),
+                write_mask: wgpu::ColorWrites::ALL,
+            })],
+        }),
+        primitive: wgpu::PrimitiveState::default(),
+        depth_stencil: Some(wgpu::DepthStencilState {
+            format: wgpu::TextureFormat::Depth32Float,
+            depth_write_enabled: false,
+            depth_compare: wgpu::CompareFunction::LessEqual,
+            stencil: Default::default(),
+            bias: Default::default(),
+        }),
+        multisample: wgpu::MultisampleState::default(),
+        multiview: None,
+        cache: None,
+    });
     let make_uniform = || {
         let buffer = device.create_buffer(&wgpu::BufferDescriptor {
             label: Some("matrix"),
@@ -354,6 +447,8 @@ fn build_gpu(state: &egui_wgpu::RenderState, meshes: &[(usize, Mesh)], textures:
         highlight_group,
         meshes: gpu_meshes,
         highlight: Vec::new(),
+        tiles_pipeline,
+        tiles: None,
     }
 }
 
@@ -379,6 +474,24 @@ fn ray_triangle(origin: Vec3, direction: Vec3, a: Vec3, b: Vec3, c: Vec3) -> Opt
     }
     let t = e2.dot(q) * inv;
     (t > 0.0).then_some(t)
+}
+
+/// The size of a tile, and the number of tiles of a side of a block.
+const BLOCK_HALF: f32 = 360.0;
+/// How high the squares of the tiles float above the ground.
+const TILE_LIFT: f32 = 0.8;
+
+/// The name and the colour of a tile, from its attribute. The number of the
+/// ground is in the high byte. The numbers come from the game: wall 1, plain
+/// 0, tall grass 31 to 37, water 148 to 151.
+fn tile_style(value: u32) -> (String, [u8; 4]) {
+    match value >> 24 {
+        0 => ("plain".into(), [255, 255, 255, 14]),
+        1 => ("wall".into(), [235, 50, 50, 120]),
+        31..=37 => ("tall grass".into(), [50, 205, 70, 120]),
+        148..=151 => ("water".into(), [50, 120, 245, 130]),
+        id => (format!("ground {id}"), [205, 80, 225, 120]),
+    }
 }
 
 /// What a click hits.
@@ -418,6 +531,20 @@ pub struct Viewer {
     status: String,
     export_dir: String,
     matrix: Mat4,
+    arc_dir: String,
+    /// True while the user changes the tiles and not the objects.
+    tile_mode: bool,
+    /// The attribute that the brush gives to the tiles.
+    brush: u32,
+    brush_size: usize,
+    /// True: a click takes the attribute of a tile and does not paint.
+    pipette: bool,
+    /// True while the button of the brush is down.
+    stroking: bool,
+    /// The height of the ground at each corner of the tiles.
+    heights: Option<Vec<f32>>,
+    /// The attributes of all the blocks, with how many tiles have each.
+    palette: Vec<(u32, usize)>,
 }
 
 impl Viewer {
@@ -426,6 +553,7 @@ impl Viewer {
         textures: HashMap<String, Texture>,
         editor: Editor,
         title: String,
+        arc_dir: String,
     ) -> Result<Self, String> {
         let state = cc.wgpu_render_state.as_ref().ok_or("the graphics card is not available")?;
         let gpu = build_gpu(state, editor.meshes(), &textures);
@@ -469,6 +597,14 @@ impl Viewer {
             status: "Click an object to select it.".into(),
             export_dir: default_dir,
             matrix: Mat4::IDENTITY,
+            arc_dir,
+            tile_mode: false,
+            brush: 0x0100_0021,
+            brush_size: 1,
+            pipette: false,
+            stroking: false,
+            heights: None,
+            palette: Vec::new(),
         })
     }
 
@@ -478,6 +614,7 @@ impl Viewer {
         let mut renderer = state.renderer.write();
         let Some(gpu) = renderer.callback_resources.get_mut::<Gpu>() else { return };
         gpu.set_geometry(&state.device, self.editor.meshes());
+        gpu.set_tiles(&state.device, &self.tile_vertices());
         let lists = self
             .editor
             .meshes()
@@ -502,14 +639,15 @@ impl Viewer {
     /// ignored.
     fn pick(&self, origin: Vec3, direction: Vec3, ground: bool) -> Option<Hit> {
         let mut best: Option<(f32, Hit)> = None;
-        for (i, (_, mesh)) in self.editor.meshes().iter().enumerate() {
+        for (i, (part, mesh)) in self.editor.meshes().iter().enumerate() {
             if !self.visible[i] {
                 continue;
             }
+            let part = *part;
             for t in mesh.indices.chunks_exact(3) {
                 let owner = self.editor.owner(i, t[0] as usize);
-                if ground && owner.is_some() {
-                    continue;
+                if ground && (owner.is_some() || self.editor.selectable[i] || part != 1) {
+                    break;
                 }
                 let (Some(a), Some(b), Some(c)) =
                     (mesh.positions.get(t[0] as usize), mesh.positions.get(t[1] as usize), mesh.positions.get(t[2] as usize))
@@ -525,6 +663,79 @@ impl Viewer {
             }
         }
         best.map(|(_, hit)| hit)
+    }
+
+    /// The height of the ground at the corners of the tiles: a ray goes down
+    /// on each corner.
+    fn ground_heights(&self) -> Vec<f32> {
+        let (width, height) = self.editor.grid();
+        let side = BLOCK_HALF * 2.0 / width as f32;
+        let mut heights = vec![0.0; (width + 1) * (height + 1)];
+        for j in 0..=height {
+            for i in 0..=width {
+                let origin = Vec3::new(-BLOCK_HALF + side * i as f32, 1000.0, -BLOCK_HALF + side * j as f32);
+                if let Some(hit) = self.pick(origin, Vec3::NEG_Y, true) {
+                    heights[j * (width + 1) + i] = hit.point.y;
+                }
+            }
+        }
+        heights
+    }
+
+    /// The coloured squares that show the tiles on the ground.
+    fn tile_vertices(&self) -> Vec<Vertex> {
+        let Some(heights) = &self.heights else { return Vec::new() };
+        if !self.tile_mode {
+            return Vec::new();
+        }
+        let (width, height) = self.editor.grid();
+        let side = BLOCK_HALF * 2.0 / width as f32;
+        let mut out = Vec::new();
+        for row in 0..height {
+            for column in 0..width {
+                let (_, colour) = tile_style(self.editor.tiles[row * width + column]);
+                if colour[3] == 0 {
+                    continue;
+                }
+                let corner = |i: usize, j: usize| Vertex {
+                    position: [
+                        -BLOCK_HALF + side * i as f32,
+                        heights[j * (width + 1) + i] + TILE_LIFT,
+                        -BLOCK_HALF + side * j as f32,
+                    ],
+                    uv: [0.0, 0.0],
+                    colour,
+                };
+                let (a, b, c, d) = (corner(column, row), corner(column + 1, row), corner(column + 1, row + 1), corner(column, row + 1));
+                out.extend_from_slice(&[a, b, c, a, c, d]);
+            }
+        }
+        out
+    }
+
+    /// Paints the tile under a ray, or takes its attribute with the pipette.
+    fn paint_tile(&mut self, origin: Vec3, direction: Vec3, frame: &eframe::Frame) {
+        let Some(hit) = self.pick(origin, direction, true) else { return };
+        let (width, height) = self.editor.grid();
+        let side = BLOCK_HALF * 2.0 / width as f32;
+        let (column, row) = (((hit.point.x + BLOCK_HALF) / side).floor(), ((hit.point.z + BLOCK_HALF) / side).floor());
+        if column < 0.0 || row < 0.0 || column >= width as f32 || row >= height as f32 {
+            return;
+        }
+        let (column, row) = (column as usize, row as usize);
+        if self.pipette {
+            self.brush = self.editor.tiles[row * width + column];
+            self.pipette = false;
+            self.status = format!("Brush: {}.", tile_style(self.brush).0);
+            return;
+        }
+        if !self.stroking {
+            self.editor.begin_stroke();
+            self.stroking = true;
+        }
+        if self.editor.paint(column, row, self.brush_size, self.brush) {
+            self.refresh(frame);
+        }
     }
 
     fn ray(&self, rect: egui::Rect, pos: egui::Pos2) -> (Vec3, Vec3) {
@@ -560,6 +771,18 @@ impl Viewer {
             low[1],
             high[1]
         )
+    }
+
+    /// Called when the mode of the tiles starts or stops.
+    fn toggle_tiles(&mut self, frame: &eframe::Frame) {
+        if self.tile_mode {
+            self.selected = None;
+            if self.heights.is_none() {
+                self.heights = Some(self.ground_heights());
+            }
+            self.status = "Tiles: paint with the left button, turn with the right button.".into();
+        }
+        self.refresh(frame);
     }
 
     fn apply(&mut self, action: Action, frame: &eframe::Frame) {
@@ -638,6 +861,7 @@ impl Viewer {
 impl eframe::App for Viewer {
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
         let mut action: Option<Action> = None;
+        let mut tiles_toggled = false;
 
         if !ctx.wants_keyboard_input() {
             ctx.input(|i| {
@@ -664,6 +888,11 @@ impl eframe::App for Viewer {
                     action = Some(Action::Nudge([0.0, -2.0, 0.0]));
                 }
             });
+            if ctx.input(|i| i.key_pressed(egui::Key::T)) {
+                self.tile_mode = !self.tile_mode;
+                self.placing = false;
+                self.toggle_tiles(frame);
+            }
             if ctx.input(|i| i.key_pressed(egui::Key::G)) && self.selected.is_some() {
                 self.placing = !self.placing;
                 self.status = if self.placing { "Click on the ground to place the object.".into() } else { "Cancelled.".into() };
@@ -703,6 +932,54 @@ impl eframe::App for Viewer {
             ui.checkbox(&mut self.snap, "Snap to the tiles");
             ui.label("Arrows: move one tile (Shift: 2 units). Page up/down: height. Esc: select nothing.");
             ui.separator();
+            let was_tile_mode = self.tile_mode;
+            ui.checkbox(&mut self.tile_mode, "Edit the tiles (T)");
+            if self.tile_mode != was_tile_mode {
+                self.placing = false;
+                tiles_toggled = true;
+            }
+            if self.tile_mode {
+                ui.horizontal(|ui| {
+                    ui.label("Brush:");
+                    ui.add(egui::DragValue::new(&mut self.brush_size).range(1..=6).suffix(" tiles"));
+                    if ui.selectable_label(self.pipette, "Pipette").clicked() {
+                        self.pipette = !self.pipette;
+                    }
+                });
+                ui.label(format!("Giving: {} ({:08x})", tile_style(self.brush).0, self.brush));
+                ui.label("Values in this block (click to take):");
+                let mut counts: std::collections::BTreeMap<u32, usize> = Default::default();
+                for &value in &self.editor.tiles {
+                    *counts.entry(value).or_default() += 1;
+                }
+                let mut list: Vec<(u32, usize)> = counts.into_iter().collect();
+                for &(value, count) in &self.palette {
+                    if !list.iter().any(|(v, _)| *v == value) {
+                        list.push((value, count));
+                    }
+                }
+                list.sort_by_key(|(_, n)| std::cmp::Reverse(*n));
+                egui::ScrollArea::vertical().max_height(180.0).id_salt("tile_values").show(ui, |ui| {
+                    for (value, count) in list {
+                        let (name, colour) = tile_style(value);
+                        let swatch = egui::Color32::from_rgb(colour[0], colour[1], colour[2]);
+                        let text = egui::RichText::new(format!("{value:08x}  {name}  ({count})")).color(swatch);
+                        if ui.selectable_label(self.brush == value, text).clicked() {
+                            self.brush = value;
+                        }
+                    }
+                });
+                if ui.button("Add the values of all the blocks").clicked() {
+                    match crate::data::attribute_values(&self.arc_dir) {
+                        Ok(values) => {
+                            self.palette = values.into_iter().take(60).collect();
+                            self.status = format!("{} values from all the blocks.", self.palette.len());
+                        }
+                        Err(message) => self.status = format!("Cannot read the blocks: {message}"),
+                    }
+                }
+            }
+            ui.separator();
             ui.label("Folder of the SD card:");
             ui.text_edit_singleline(&mut self.export_dir);
             if ui.button("Export the block").clicked() {
@@ -732,6 +1009,7 @@ impl eframe::App for Viewer {
         });
 
         let mut click: Option<(Vec3, Vec3)> = None;
+        let mut paint: Option<(Vec3, Vec3)> = None;
         egui::CentralPanel::default().frame(egui::Frame::none()).show(ctx, |ui| {
             let (rect, response) = ui.allocate_exact_size(ui.available_size(), egui::Sense::click_and_drag());
             let up = Vec3::Y;
@@ -740,12 +1018,15 @@ impl eframe::App for Viewer {
                 self.pitch.sin(),
                 self.pitch.cos() * self.yaw.sin(),
             );
-            if response.dragged_by(egui::PointerButton::Primary) {
+            let orbit_button = if self.tile_mode { egui::PointerButton::Secondary } else { egui::PointerButton::Primary };
+            if response.dragged_by(orbit_button) {
                 let d = response.drag_delta();
                 self.yaw -= d.x * 0.005;
                 self.pitch = (self.pitch + d.y * 0.005).clamp(-1.5, 1.5);
             }
-            if response.dragged_by(egui::PointerButton::Secondary) || response.dragged_by(egui::PointerButton::Middle) {
+            if response.dragged_by(egui::PointerButton::Middle)
+                || (!self.tile_mode && response.dragged_by(egui::PointerButton::Secondary))
+            {
                 let d = response.drag_delta();
                 let right = up.cross(eye_offset).normalize_or_zero();
                 let screen_up = eye_offset.cross(right).normalize_or_zero();
@@ -760,17 +1041,39 @@ impl eframe::App for Viewer {
             let aspect = (rect.width() / rect.height().max(1.0)).max(0.01);
             self.matrix = Mat4::perspective_rh(45f32.to_radians(), aspect, 1.0, 20000.0)
                 * Mat4::look_at_rh(eye, self.target, up);
-            if response.clicked_by(egui::PointerButton::Primary) {
+            let primary_down = ctx.input(|i| i.pointer.primary_down());
+            if self.tile_mode {
+                if primary_down && response.hovered() {
+                    if let Some(pos) = response.hover_pos() {
+                        paint = Some(self.ray(rect, pos));
+                    }
+                }
+            } else if response.clicked_by(egui::PointerButton::Primary) {
                 if let Some(pos) = response.interact_pointer_pos() {
                     click = Some(self.ray(rect, pos));
                 }
             }
             ui.painter().add(egui_wgpu::Callback::new_paint_callback(
                 rect,
-                SceneCallback { matrix: self.matrix, visible: self.visible.clone(), direct_v: self.direct_v },
+                SceneCallback {
+                    matrix: self.matrix,
+                    visible: self.visible.clone(),
+                    direct_v: self.direct_v,
+                    show_tiles: self.tile_mode,
+                },
             ));
         });
 
+        if tiles_toggled {
+            self.toggle_tiles(frame);
+        }
+        if let Some((origin, direction)) = paint {
+            self.paint_tile(origin, direction, frame);
+        }
+        if self.stroking && !ctx.input(|i| i.pointer.primary_down()) {
+            self.editor.end_stroke();
+            self.stroking = false;
+        }
         if let Some((origin, direction)) = click {
             if self.placing {
                 if let Some(hit) = self.pick(origin, direction, true) {
@@ -790,7 +1093,7 @@ impl eframe::App for Viewer {
 }
 
 /// Opens the window.
-pub fn run(textures: HashMap<String, Texture>, editor: Editor, title: String) -> Result<(), String> {
+pub fn run(textures: HashMap<String, Texture>, editor: Editor, title: String, arc_dir: String) -> Result<(), String> {
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default().with_inner_size([1280.0, 800.0]).with_title("Map Studio"),
         renderer: eframe::Renderer::Wgpu,
@@ -801,7 +1104,9 @@ pub fn run(textures: HashMap<String, Texture>, editor: Editor, title: String) ->
         "Map Studio",
         options,
         Box::new(move |cc| {
-            Viewer::new(cc, textures, editor, title).map(|v| Box::new(v) as Box<dyn eframe::App>).map_err(Into::into)
+            Viewer::new(cc, textures, editor, title, arc_dir)
+                .map(|v| Box::new(v) as Box<dyn eframe::App>)
+                .map_err(Into::into)
         }),
     )
     .map_err(|e| e.to_string())

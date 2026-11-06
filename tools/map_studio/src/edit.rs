@@ -38,6 +38,16 @@ pub struct CopyRequest {
 /// number of the first new vertex and how many there are.
 pub type AddedVertices = (usize, usize, usize);
 
+/// The tiles of a block: a grid of attributes. An attribute has the number of
+/// the ground in its high byte, and flags in the other bytes.
+#[derive(Clone, PartialEq, Debug)]
+pub struct Attributes {
+    pub width: usize,
+    pub height: usize,
+    /// Row after row.
+    pub cells: Vec<u32>,
+}
+
 /// The groups of vertices that touch each other (a tree, a bush, a house).
 pub fn mesh_groups(mesh: &Mesh) -> Vec<Vec<usize>> {
     let n = mesh.positions.len();
@@ -107,6 +117,32 @@ impl EditableBlock {
             }
         }
         Ok(EditableBlock { id, compressed, pack, ranges, meshes })
+    }
+
+    /// The grid of tiles of the block (the part 0 of the pack).
+    pub fn attributes(&self) -> Result<Attributes, String> {
+        let &(start, end) = self.ranges.first().ok_or("the block has no part")?;
+        let bytes = &self.pack[start..end];
+        let width = u16::from_le_bytes([bytes[0], bytes[1]]) as usize;
+        let height = u16::from_le_bytes([bytes[2], bytes[3]]) as usize;
+        if 4 + 4 * width * height > bytes.len() {
+            return Err("the grid of tiles is cut".into());
+        }
+        let cells = (0..width * height).map(|i| get(bytes, 4 + 4 * i) as u32).collect();
+        Ok(Attributes { width, height, cells })
+    }
+
+    /// Writes the grid of tiles in place. The size of the file does not change.
+    pub fn set_attributes(&mut self, attributes: &Attributes) -> Result<(), String> {
+        let current = self.attributes()?;
+        if current.width != attributes.width || current.height != attributes.height {
+            return Err("the grid has another size".into());
+        }
+        let start = self.ranges[0].0;
+        for (i, &value) in attributes.cells.iter().enumerate() {
+            put(&mut self.pack, start + 4 + 4 * i, value as usize);
+        }
+        Ok(())
     }
 
     /// Moves a group of vertices of a mesh.

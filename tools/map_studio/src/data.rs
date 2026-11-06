@@ -110,3 +110,26 @@ pub fn load_scene_from(
     }
     Ok(Scene { meshes, textures, area })
 }
+
+/// The attributes of the tiles of all the blocks, with how many tiles have
+/// each, from the most common. The tool offers them to the brush.
+pub fn attribute_values(arc_dir: &str) -> Result<Vec<(u32, usize)>, String> {
+    let files = garc::read(&PathBuf::from(arc_dir).join("map_land_data.garc"))?;
+    let mut counts: HashMap<u32, usize> = HashMap::new();
+    for file in &files {
+        let Some(raw) = file.first() else { continue };
+        let Ok(parts) = open_pack(raw) else { continue };
+        let Some(grid) = parts.first() else { continue };
+        if grid.len() < 4 {
+            continue;
+        }
+        let cells = u16::from_le_bytes([grid[0], grid[1]]) as usize * u16::from_le_bytes([grid[2], grid[3]]) as usize;
+        for i in 0..cells.min((grid.len() - 4) / 4) {
+            let value = u32::from_le_bytes([grid[4 + 4 * i], grid[5 + 4 * i], grid[6 + 4 * i], grid[7 + 4 * i]]);
+            *counts.entry(value).or_default() += 1;
+        }
+    }
+    let mut list: Vec<(u32, usize)> = counts.into_iter().collect();
+    list.sort_by_key(|(value, n)| (std::cmp::Reverse(*n), *value));
+    Ok(list)
+}

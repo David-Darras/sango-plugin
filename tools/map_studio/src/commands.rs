@@ -301,7 +301,18 @@ pub fn editor_test(arc_dir: &str, block: usize, out_dir: &str) -> Result<(), Str
     println!("after undo: {} triangles", triangles(&editor));
     editor.redo()?;
     println!("after redo: {} triangles", triangles(&editor));
+    // Paint a square of 2 x 2 tiles with the value of a wall.
+    let (width, _) = editor.grid();
+    let before = editor.tiles[20 * width + 20];
+    editor.begin_stroke();
+    editor.paint(20, 20, 2, 0x0100_0021);
+    editor.end_stroke();
+    println!("tile (20,20): {before:08x} -> {:08x}", editor.tiles[20 * width + 20]);
     println!("{}", editor.export(out_dir)?);
+    let written = EditableBlock::from_file(&std::path::Path::new(out_dir).join("land").join(format!("{block}.bin")), block)?;
+    println!("tile (20,20) in the written file: {:08x}", written.attributes()?.cells[20 * width + 20]);
+    editor.undo()?;
+    println!("after undo: tile (20,20) {:08x}, triangles {}", editor.tiles[20 * width + 20], triangles(&editor));
     Ok(())
 }
 
@@ -352,6 +363,43 @@ pub fn objects(arc_dir: &str, block: usize) -> Result<(), String> {
     list.sort_by_key(|(_, (count, _))| std::cmp::Reverse(*count));
     for (composition, (count, width)) in list.iter().take(25) {
         println!("{count:4} x (widest {width:3.0}) {composition}");
+    }
+    Ok(())
+}
+
+/// Prints the grid of tiles of a block. The letters stand for the number of
+/// the ground, and `*` marks the centre of each object of the block.
+pub fn tiles(arc_dir: &str, block: usize) -> Result<(), String> {
+    let editor = crate::editor::Editor::new(arc_dir, block)?;
+    let attributes = EditableBlock::load(arc_dir, block)?.attributes()?;
+    println!("grid {} x {}", attributes.width, attributes.height);
+    let mut counts: std::collections::BTreeMap<u32, usize> = Default::default();
+    for &c in &attributes.cells {
+        *counts.entry(c).or_default() += 1;
+    }
+    println!("{} different values", counts.len());
+    let mut by_count: Vec<_> = counts.iter().collect();
+    by_count.sort_by_key(|(_, n)| std::cmp::Reverse(**n));
+    for (value, n) in by_count.iter().take(12) {
+        println!("  {value:08x}  ground {:3}  low {:06x}  x{n}", **value >> 24, **value & 0xffffff);
+    }
+    let symbol = |value: u32| match value >> 24 {
+        0 => '.',
+        1 => '#',
+        31..=37 => ',',
+        148..=151 => '~',
+        _ => '?',
+    };
+    let mut marks = std::collections::HashSet::new();
+    for c in &editor.clusters {
+        let (x, z) = ((c.low[0] + c.high[0]) / 2.0, (c.low[2] + c.high[2]) / 2.0);
+        marks.insert((((x + 360.0) / 18.0) as usize, ((z + 360.0) / 18.0) as usize));
+    }
+    for row in 0..attributes.height {
+        let line: String = (0..attributes.width)
+            .map(|col| if marks.contains(&(col, row)) { '*' } else { symbol(attributes.cells[row * attributes.width + col]) })
+            .collect();
+        println!("{line}");
     }
     Ok(())
 }

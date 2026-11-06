@@ -9,7 +9,7 @@
 use std::path::Path;
 
 use crate::bch::Mesh;
-use crate::edit::{mesh_groups, CopyRequest, EditableBlock};
+use crate::edit::{mesh_groups, Attributes, CopyRequest, EditableBlock};
 
 /// A mesh is a mesh of objects, and not of ground, when no group of its
 /// vertices is wider than this (in game units, seen from above).
@@ -42,14 +42,22 @@ pub struct Instance {
     pub deleted: bool,
 }
 
+/// What an undo brings back: the instances and the tiles.
+type Snapshot = (Vec<Instance>, Vec<u32>);
+
 pub struct Editor {
     original: EditableBlock,
     pub clusters: Vec<Cluster>,
     /// True for each mesh that holds objects that the user can select.
     pub selectable: Vec<bool>,
     pub instances: Vec<Instance>,
-    undo: Vec<Vec<Instance>>,
-    redo: Vec<Vec<Instance>>,
+    /// The tiles of the block (row after row), with the changes of the user.
+    pub tiles: Vec<u32>,
+    grid: (usize, usize),
+    undo: Vec<Snapshot>,
+    redo: Vec<Snapshot>,
+    /// The state before a stroke of the brush that is not finished.
+    stroke: Option<Snapshot>,
     built: EditableBlock,
     /// For each vertex of each mesh of the built block: the instance that
     /// owns it, if any.
@@ -220,14 +228,18 @@ impl Editor {
         let instances = (0..clusters.len())
             .map(|cluster| Instance { cluster, offset: [0.0; 3], copy: false, deleted: false })
             .collect();
+        let attributes = original.attributes()?;
         let mut editor = Editor {
             built: original.clone(),
             original,
             clusters,
             selectable,
             instances,
+            tiles: attributes.cells,
+            grid: (attributes.width, attributes.height),
             undo: Vec::new(),
             redo: Vec::new(),
+            stroke: None,
             owner: Vec::new(),
         };
         editor.rebuild()?;
@@ -309,6 +321,7 @@ impl Editor {
                 }
             }
         }
+        block.set_attributes(&Attributes { width: self.grid.0, height: self.grid.1, cells: self.tiles.clone() })?;
         self.built = block;
         self.owner = owner;
         Ok(())
@@ -317,9 +330,9 @@ impl Editor {
     /// Changes the instances and builds the block again. When the block
     /// cannot be built, the change is cancelled.
     pub fn change(&mut self, change: impl FnOnce(&mut Vec<Instance>)) -> Result<(), String> {
-        let before = self.instances.clone();
+        let before: Snapshot = (self.instances.clone(), self.tiles.clone());
         change(&mut self.instances);
-        if self.instances == before {
+        if self.instances == before.0 {
             return Ok(());
         }
         match self.rebuild() {
@@ -329,7 +342,7 @@ impl Editor {
                 Ok(())
             }
             Err(message) => {
-                self.instances = before;
+                (self.instances, self.tiles) = before;
                 let _ = self.rebuild();
                 Err(message)
             }
@@ -346,7 +359,8 @@ impl Editor {
 
     pub fn undo(&mut self) -> Result<(), String> {
         if let Some(before) = self.undo.pop() {
-            self.redo.push(std::mem::replace(&mut self.instances, before));
+            let now = (std::mem::replace(&mut self.instances, before.0), std::mem::replace(&mut self.tiles, before.1));
+            self.redo.push(now);
             self.rebuild()?;
         }
         Ok(())
@@ -354,10 +368,53 @@ impl Editor {
 
     pub fn redo(&mut self) -> Result<(), String> {
         if let Some(after) = self.redo.pop() {
-            self.undo.push(std::mem::replace(&mut self.instances, after));
+            let now = (std::mem::replace(&mut self.instances, after.0), std::mem::replace(&mut self.tiles, after.1));
+            self.undo.push(now);
             self.rebuild()?;
         }
         Ok(())
+    }
+
+    /// The size of the grid of tiles: columns and rows.
+    pub fn grid(&self) -> (usize, usize) {
+        self.grid
+    }
+
+    /// Starts a stroke of the brush. All the tiles that the brush changes
+    /// until `end_stroke` make one step for the undo.
+    pub fn begin_stroke(&mut self) {
+        if self.stroke.is_none() {
+            self.stroke = Some((self.instances.clone(), self.tiles.clone()));
+        }
+    }
+
+    /// Gives a value to the tiles of a square. Returns true when a tile
+    /// changed. The size is the side of the square, in tiles.
+    pub fn paint(&mut self, column: usize, row: usize, size: usize, value: u32) -> bool {
+        let (width, height) = self.grid;
+        let mut changed = false;
+        let first = size.saturating_sub(1) / 2;
+        for r in row.saturating_sub(first)..(row + size - first).min(height) {
+            for c in column.saturating_sub(first)..(column + size - first).min(width) {
+                if self.tiles[r * width + c] != value {
+                    self.tiles[r * width + c] = value;
+                    changed = true;
+                }
+            }
+        }
+        if changed {
+            let _ = self.built.set_attributes(&Attributes { width, height, cells: self.tiles.clone() });
+        }
+        changed
+    }
+
+    pub fn end_stroke(&mut self) {
+        if let Some(before) = self.stroke.take() {
+            if before.1 != self.tiles {
+                self.undo.push(before);
+                self.redo.clear();
+            }
+        }
     }
 
     /// Writes the block in the folder `land` of a folder of the SD card.
