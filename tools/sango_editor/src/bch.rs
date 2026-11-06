@@ -445,7 +445,7 @@ impl<'a> Bch<'a> {
 
     /// Reads the indices and then the vertices of all the meshes.
     ///
-    /// The index lists are in one area for 16 bit numbers and in one area for
+    /// The index lists are in one tileset for 16 bit numbers and in one tileset for
     /// 8 bit numbers. The file does not tell which one a list uses, so the
     /// width comes from the distance to the next list.
     fn read_indices(&self, raws: &mut [RawMesh]) -> Result<(), String> {

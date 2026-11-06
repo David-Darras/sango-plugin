@@ -11,15 +11,15 @@ const BLOCK_MODEL_PART: usize = 1;
 /// The part of a block that holds the model of the tall grass of the
 /// encounters. Many blocks have no such model.
 const BLOCK_GRASS_PART: usize = 5;
-/// The part of an area pack that holds the pictures.
-const AREA_TEXTURE_PART: usize = 11;
+/// The part of an tileset pack that holds the pictures.
+const TILESET_TEXTURE_PART: usize = 11;
 
 /// A block with the pictures that its meshes need.
 pub struct Scene {
     pub meshes: Vec<Mesh>,
     /// The pictures by name.
     pub textures: HashMap<String, Texture>,
-    pub area: Option<usize>,
+    pub tileset: Option<usize>,
 }
 
 fn open_pack(raw: &[u8]) -> Result<Vec<Vec<u8>>, String> {
@@ -30,7 +30,7 @@ fn open_pack(raw: &[u8]) -> Result<Vec<Vec<u8>>, String> {
 
 /// Reads the parts of one block of the land archive.
 pub fn read_block(arc_dir: &str, block: usize) -> Result<Vec<Vec<u8>>, String> {
-    let files = garc::read(&PathBuf::from(arc_dir).join("map_land_data.garc"))?;
+    let files = garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::Blocks))?;
     let raw = files.get(block).and_then(|f| f.first()).ok_or("no such block")?;
     open_pack(raw)
 }
@@ -58,13 +58,13 @@ pub fn picture_of(mesh: &Mesh) -> &str {
     }
 }
 
-/// Finds the area pack that has most of the pictures that the meshes need.
-fn find_area(files: &[Vec<Vec<u8>>], wanted: &HashSet<&str>) -> Option<usize> {
+/// Finds the tileset pack that has most of the pictures that the meshes need.
+fn find_tileset(files: &[Vec<Vec<u8>>], wanted: &HashSet<&str>) -> Option<usize> {
     let mut best: Option<(usize, usize)> = None;
     for (index, file) in files.iter().enumerate() {
         let Some(raw) = file.first() else { continue };
         let Ok(parts) = open_pack(raw) else { continue };
-        let Some(part) = parts.get(AREA_TEXTURE_PART) else { continue };
+        let Some(part) = parts.get(TILESET_TEXTURE_PART) else { continue };
         let Ok(model) = Bch::parse(part) else { continue };
         let names = model.names();
         let hits = names.iter().filter(|n| wanted.contains(n.as_str())).count();
@@ -77,7 +77,7 @@ fn find_area(files: &[Vec<Vec<u8>>], wanted: &HashSet<&str>) -> Option<usize> {
 
 /// The meshes of the model of several blocks (the archive is read once).
 pub fn blocks_meshes(arc_dir: &str, ids: &[usize]) -> Result<Vec<(usize, Vec<Mesh>)>, String> {
-    let files = garc::read(&PathBuf::from(arc_dir).join("map_land_data.garc"))?;
+    let files = garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::Blocks))?;
     let mut out = Vec::new();
     for &id in ids {
         let Some(raw) = files.get(id).and_then(|f| f.first()) else { continue };
@@ -89,55 +89,55 @@ pub fn blocks_meshes(arc_dir: &str, ids: &[usize]) -> Result<Vec<(usize, Vec<Mes
     Ok(out)
 }
 
-/// The names of the pictures of every area pack, in the order of the archive.
-pub fn area_pictures(arc_dir: &str) -> Result<Vec<HashSet<String>>, String> {
-    let files = garc::read(&PathBuf::from(arc_dir).join("field_area_bin.garc"))?;
+/// The names of the pictures of every tileset pack, in the order of the archive.
+pub fn tileset_pictures(arc_dir: &str) -> Result<Vec<HashSet<String>>, String> {
+    let files = garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::Tilesets))?;
     Ok(files
         .iter()
         .map(|file| {
             let names = file
                 .first()
                 .and_then(|raw| open_pack(raw).ok())
-                .and_then(|parts| parts.get(AREA_TEXTURE_PART).and_then(|p| Bch::parse(p).ok().map(|m| m.names())));
+                .and_then(|parts| parts.get(TILESET_TEXTURE_PART).and_then(|p| Bch::parse(p).ok().map(|m| m.names())));
             names.unwrap_or_default().into_iter().collect()
         })
         .collect())
 }
 
-/// The pictures of an area as the tool can copy them (see `bch_edit`), for the
+/// The pictures of a tileset as the tool can copy them (see `bch_edit`), for the
 /// names that are asked.
-pub fn area_texture_blobs(arc_dir: &str, area: usize, names: &[String]) -> Result<Vec<crate::bch_edit::TextureBlob>, String> {
-    let areas = garc::read(&PathBuf::from(arc_dir).join("field_area_bin.garc"))?;
-    let raw = areas.get(area).and_then(|f| f.first()).ok_or("no such area")?;
+pub fn tileset_texture_blobs(arc_dir: &str, tileset: usize, names: &[String]) -> Result<Vec<crate::bch_edit::TextureBlob>, String> {
+    let tilesets = garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::Tilesets))?;
+    let raw = tilesets.get(tileset).and_then(|f| f.first()).ok_or("no such tileset")?;
     let parts = open_pack(raw)?;
-    let part = parts.get(AREA_TEXTURE_PART).ok_or("the area has no pictures")?;
+    let part = parts.get(TILESET_TEXTURE_PART).ok_or("the tileset has no pictures")?;
     crate::bch_edit::read_textures(part, names)
 }
 
-/// The area pack as the archive has it: the data (not compressed) and whether
+/// The tileset pack as the archive has it: the data (not compressed) and whether
 /// the archive compresses it.
-pub fn area_pack(arc_dir: &str, area: usize) -> Result<(Vec<u8>, bool), String> {
-    let areas = garc::read(&PathBuf::from(arc_dir).join("field_area_bin.garc"))?;
-    let raw = areas.get(area).and_then(|f| f.first()).ok_or("no such area")?;
+pub fn tileset_pack(arc_dir: &str, tileset: usize) -> Result<(Vec<u8>, bool), String> {
+    let tilesets = garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::Tilesets))?;
+    let raw = tilesets.get(tileset).and_then(|f| f.first()).ok_or("no such tileset")?;
     if raw.first() == Some(&0x11) { Ok((lz11::decompress(raw)?, true)) } else { Ok((raw.clone(), false)) }
 }
 
-/// The part of an area pack that holds the pictures.
-pub const AREA_PICTURES: usize = AREA_TEXTURE_PART;
+/// The part of an tileset pack that holds the pictures.
+pub const TILESET_PICTURES: usize = TILESET_TEXTURE_PART;
 
-/// The pictures of one area pack, by name.
-pub fn area_textures(arc_dir: &str, area: usize) -> Result<HashMap<String, Texture>, String> {
-    let areas = garc::read(&PathBuf::from(arc_dir).join("field_area_bin.garc"))?;
-    let raw = areas.get(area).and_then(|f| f.first()).ok_or("no such area")?;
+/// The pictures of one tileset pack, by name.
+pub fn tileset_textures(arc_dir: &str, tileset: usize) -> Result<HashMap<String, Texture>, String> {
+    let tilesets = garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::Tilesets))?;
+    let raw = tilesets.get(tileset).and_then(|f| f.first()).ok_or("no such tileset")?;
     let parts = open_pack(raw)?;
-    let part = parts.get(AREA_TEXTURE_PART).ok_or("the area has no pictures")?;
+    let part = parts.get(TILESET_TEXTURE_PART).ok_or("the tileset has no pictures")?;
     Ok(Bch::parse(part)?.textures()?.into_iter().map(|t| (t.name.clone(), t)).collect())
 }
 
-/// Loads a block with its pictures. Without an area number, the tool looks
-/// for the area pack that fits.
-pub fn load_scene(arc_dir: &str, block: usize, area: Option<usize>) -> Result<Scene, String> {
-    load_scene_from(arc_dir, block, area, None)
+/// Loads a block with its pictures. Without an tileset number, the tool looks
+/// for the tileset pack that fits.
+pub fn load_scene(arc_dir: &str, block: usize, tileset: Option<usize>) -> Result<Scene, String> {
+    load_scene_from(arc_dir, block, tileset, None)
 }
 
 /// Like `load_scene`. With a file, the block comes from this file (a block
@@ -145,7 +145,7 @@ pub fn load_scene(arc_dir: &str, block: usize, area: Option<usize>) -> Result<Sc
 pub fn load_scene_from(
     arc_dir: &str,
     block: usize,
-    area: Option<usize>,
+    tileset: Option<usize>,
     land_file: Option<&str>,
 ) -> Result<Scene, String> {
     let parts = match land_file {
@@ -153,27 +153,27 @@ pub fn load_scene_from(
         None => read_block(arc_dir, block)?,
     };
     let meshes = block_meshes(&parts)?;
-    let areas = garc::read(&PathBuf::from(arc_dir).join("field_area_bin.garc"))?;
-    let area = area.or_else(|| {
+    let tilesets = garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::Tilesets))?;
+    let tileset = tileset.or_else(|| {
         let wanted: HashSet<&str> = meshes.iter().map(|m| picture_of(m)).collect();
-        find_area(&areas, &wanted)
+        find_tileset(&tilesets, &wanted)
     });
     let mut textures = HashMap::new();
-    if let Some(index) = area {
-        let raw = areas.get(index).and_then(|f| f.first()).ok_or("no such area")?;
-        let area_parts = open_pack(raw)?;
-        let part = area_parts.get(AREA_TEXTURE_PART).ok_or("the area has no pictures")?;
+    if let Some(index) = tileset {
+        let raw = tilesets.get(index).and_then(|f| f.first()).ok_or("no such tileset")?;
+        let tileset_parts = open_pack(raw)?;
+        let part = tileset_parts.get(TILESET_TEXTURE_PART).ok_or("the tileset has no pictures")?;
         for texture in Bch::parse(part)?.textures()? {
             textures.insert(texture.name.clone(), texture);
         }
     }
-    Ok(Scene { meshes, textures, area })
+    Ok(Scene { meshes, textures, tileset })
 }
 
 /// The attributes of the tiles of all the blocks, with how many tiles have
 /// each, from the most common. The tool offers them to the brush.
 pub fn attribute_values(arc_dir: &str) -> Result<Vec<(u32, usize)>, String> {
-    let files = garc::read(&PathBuf::from(arc_dir).join("map_land_data.garc"))?;
+    let files = garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::Blocks))?;
     let mut counts: HashMap<u32, usize> = HashMap::new();
     for file in &files {
         let Some(raw) = file.first() else { continue };

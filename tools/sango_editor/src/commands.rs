@@ -66,8 +66,8 @@ fn write_png(path: &str, width: usize, height: usize, rgba: &[u8]) -> Result<(),
 
 /// Writes the pictures that the meshes of a block use in one PNG file, to
 /// check the decoding.
-pub fn sheet(arc_dir: &str, block: usize, area: Option<usize>, path: &str) -> Result<(), String> {
-    let scene = data::load_scene(arc_dir, block, area)?;
+pub fn sheet(arc_dir: &str, block: usize, tileset: Option<usize>, path: &str) -> Result<(), String> {
+    let scene = data::load_scene(arc_dir, block, tileset)?;
     let cell = 128usize;
     let mut used: Vec<&bch::Texture> = Vec::new();
     for mesh in &scene.meshes {
@@ -495,7 +495,7 @@ pub fn validate(arc_dir: &str, block: usize, land_file: Option<&str>) -> Result<
 /// relocation gives is the same as the one that the shape of the triangles
 /// gives. A difference means that one of the two ways is wrong.
 pub fn check_widths(arc_dir: &str) -> Result<(), String> {
-    let files = crate::garc::read(&std::path::PathBuf::from(arc_dir).join("map_land_data.garc"))?;
+    let files = crate::garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::Blocks))?;
     let (mut blocks, mut conflicts, mut meshes) = (0, 0, 0);
     for (id, file) in files.iter().enumerate() {
         let Some(raw) = file.first() else { continue };
@@ -522,7 +522,7 @@ pub fn check_widths(arc_dir: &str) -> Result<(), String> {
 /// Lists the blocks that have a mesh with this material: the name of the
 /// block (from the names in its model), the vertices and the size of a vertex.
 pub fn find(arc_dir: &str, material: &str) -> Result<(), String> {
-    let files = crate::garc::read(&std::path::PathBuf::from(arc_dir).join("map_land_data.garc"))?;
+    let files = crate::garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::Blocks))?;
     for (id, file) in files.iter().enumerate() {
         let Some(raw) = file.first() else { continue };
         let Ok(block) = data::read_block_from_bytes(raw) else { continue };
@@ -602,11 +602,11 @@ pub fn grow_test(arc_dir: &str, block: usize, point: [f32; 2], rounds: usize) ->
             point[0] >= l[0] && point[0] <= h[0] && point[1] >= l[2] && point[1] <= h[2]
         })
         .min_by(|&a, &b| {
-            let area = |i: usize| {
+            let tileset = |i: usize| {
                 let (l, h) = editor.instance_bounds(i);
                 (h[0] - l[0]) * (h[2] - l[2])
             };
-            area(a).total_cmp(&area(b))
+            tileset(a).total_cmp(&tileset(b))
         })
         .ok_or("no object holds this point")?;
     let mut selection = vec![start];
@@ -646,7 +646,7 @@ pub fn grow_test(arc_dir: &str, block: usize, point: [f32; 2], rounds: usize) ->
 /// builds the same tree from the names.
 pub fn check_trees(arc_dir: &str) -> Result<(), String> {
     use crate::dict::{build, lookup, Node};
-    let files = crate::garc::read(&std::path::PathBuf::from(arc_dir).join("map_land_data.garc"))?;
+    let files = crate::garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::Blocks))?;
     let (mut trees, mut lookups_ok, mut lookups, mut same, mut shown) = (0, 0, 0, 0, 0);
     for (id, file) in files.iter().enumerate() {
         let Some(raw) = file.first() else { continue };
@@ -739,10 +739,10 @@ pub fn mesh_select_test(arc_dir: &str, block: usize, names: &str) -> Result<(), 
     );
     println!(
         "the block written after loading the project is the same: {}",
-        fresh.export(&format!("{}_a", std::env::temp_dir().join("map_studio_cut").display())).is_ok()
-            && editor.export(&format!("{}_b", std::env::temp_dir().join("map_studio_cut").display())).is_ok()
-            && std::fs::read(std::env::temp_dir().join("map_studio_cut_a").join("land").join(format!("{block}.bin"))).ok()
-                == std::fs::read(std::env::temp_dir().join("map_studio_cut_b").join("land").join(format!("{block}.bin"))).ok()
+        fresh.export(&format!("{}_a", std::env::temp_dir().join("sango_editor_cut").display())).is_ok()
+            && editor.export(&format!("{}_b", std::env::temp_dir().join("sango_editor_cut").display())).is_ok()
+            && std::fs::read(std::env::temp_dir().join("sango_editor_cut_a").join("land").join(format!("{block}.bin"))).ok()
+                == std::fs::read(std::env::temp_dir().join("sango_editor_cut_b").join("land").join(format!("{block}.bin"))).ok()
     );
     Ok(())
 }
@@ -875,13 +875,13 @@ pub fn import_building_test(
         target_centre[0], target_centre[1]
     );
 
-    // The textures that the materials need must be in the area of the target block.
+    // The textures that the materials need must be in the tileset of the target block.
     let scene = data::load_scene(arc_dir, target, None)?;
     for part in &object.parts {
         if let Some(blob) = &part.blob {
             let wanted: Vec<&String> = blob.header_strings.iter().map(|(_, t)| t).filter(|t| *t != &blob.name).collect();
             let known = wanted.iter().filter(|t| scene.textures.contains_key(t.as_str())).count();
-            println!("  {}: pictures {:?}, {} of {} in the area {:?} of the target", part.material, wanted, known, wanted.len(), scene.area);
+            println!("  {}: pictures {:?}, {} of {} in the tileset {:?} of the target", part.material, wanted, known, wanted.len(), scene.tileset);
         }
     }
 
@@ -928,8 +928,8 @@ pub fn catalog_sheet(arc_dir: &str, catalog: &str, out: &str, first: usize) -> R
     let mut sheet = vec![40u8; SIZE * COLUMNS * SIZE * ROWS * 4];
     let mut cache: std::collections::HashMap<usize, std::collections::HashMap<String, crate::bch::Texture>> = Default::default();
     for (k, entry) in entries.iter().skip(first).take(COLUMNS * ROWS).enumerate() {
-        let textures = match entry.area {
-            Some(area) => cache.entry(area).or_insert_with(|| crate::data::area_textures(arc_dir, area).unwrap_or_default()),
+        let textures = match entry.tileset {
+            Some(tileset) => cache.entry(tileset).or_insert_with(|| crate::data::tileset_textures(arc_dir, tileset).unwrap_or_default()),
             None => &mut Default::default(),
         };
         let image = crate::thumb::render(&entry.preview, textures, SIZE);
@@ -944,7 +944,7 @@ pub fn catalog_sheet(arc_dir: &str, catalog: &str, out: &str, first: usize) -> R
                 sheet[to..to + 4].copy_from_slice(&image[from..from + 4]);
             }
         }
-        println!("{:3} {} (area {:?}, {} blocks)", first + k, entry.name, entry.area, entry.blocks.len());
+        println!("{:3} {} (tileset {:?}, {} blocks)", first + k, entry.name, entry.tileset, entry.blocks.len());
     }
     write_png(out, SIZE * COLUMNS, SIZE * ROWS, &sheet)
 }
@@ -1166,7 +1166,7 @@ pub fn tile_holes_test(arc_dir: &str, tiles: &str, first: usize, count: usize, b
 }
 
 /// Draws the tiles around (22, 29) of a block after some catalogue tiles were
-/// put there, in a picture, with the pictures of the area of the block.
+/// put there, in a picture, with the pictures of the tileset of the block.
 pub fn tile_picture_test(arc_dir: &str, tiles: &str, numbers: &[usize], block: usize, out: &str) -> Result<(), String> {
     let entries = crate::catalog::load(std::path::Path::new(tiles))?;
     let mut editor = crate::editor::Editor::new(arc_dir, block)?;
@@ -1196,7 +1196,7 @@ pub fn tile_picture_test(arc_dir: &str, tiles: &str, numbers: &[usize], block: u
 /// that the block can be built, written and read again without problems.
 pub fn drop_all_test(arc_dir: &str, catalog: &str, first: usize, count: usize, block: usize) -> Result<(), String> {
     let entries = crate::catalog::load(std::path::Path::new(catalog))?;
-    let dir = std::env::temp_dir().join("map_studio_drop_all");
+    let dir = std::env::temp_dir().join("sango_editor_drop_all");
     let mut bad = 0;
     for (k, entry) in entries.iter().enumerate().skip(first).take(count) {
         let mut editor = crate::editor::Editor::new(arc_dir, block)?;
@@ -1247,20 +1247,20 @@ pub fn layout_stats(arc_dir: &str, catalog: &str, block: usize) -> Result<(), St
     Ok(())
 }
 
-/// Copies pictures from the pack of an area to the pack of another area, reads
+/// Copies pictures from the pack of an tileset to the pack of another tileset, reads
 /// the result again, and checks that the pictures are the same.
-pub fn area_pictures_test(arc_dir: &str, donor: usize, target: usize, names: &[String]) -> Result<(), String> {
-    let blobs = data::area_texture_blobs(arc_dir, donor, names)?;
-    println!("{} pictures read from area {donor}: {}", blobs.len(), blobs.iter().map(|b| format!("{} ({} bytes)", b.name, b.raw.len())).collect::<Vec<_>>().join(", "));
-    let (pack, _) = data::area_pack(arc_dir, target)?;
+pub fn tileset_pictures_test(arc_dir: &str, donor: usize, target: usize, names: &[String]) -> Result<(), String> {
+    let blobs = data::tileset_texture_blobs(arc_dir, donor, names)?;
+    println!("{} pictures read from tileset {donor}: {}", blobs.len(), blobs.iter().map(|b| format!("{} ({} bytes)", b.name, b.raw.len())).collect::<Vec<_>>().join(", "));
+    let (pack, _) = data::tileset_pack(arc_dir, target)?;
     let (_, parts) = crate::pack::split(&pack)?;
-    let part = parts.get(data::AREA_PICTURES).ok_or("no pictures")?;
+    let part = parts.get(data::TILESET_PICTURES).ok_or("no pictures")?;
     let before = bch::Bch::parse(part)?.textures()?.len();
     let bigger = crate::bch_edit::add_textures(part, &blobs)?;
     let parsed = bch::Bch::parse(&bigger)?;
     let after = parsed.textures()?;
-    println!("area {target}: {before} pictures, then {} ({} -> {} bytes)", after.len(), part.len(), bigger.len());
-    let donor_pictures: std::collections::HashMap<String, bch::Texture> = data::area_textures(arc_dir, donor)?;
+    println!("tileset {target}: {before} pictures, then {} ({} -> {} bytes)", after.len(), part.len(), bigger.len());
+    let donor_pictures: std::collections::HashMap<String, bch::Texture> = data::tileset_textures(arc_dir, donor)?;
     for blob in &blobs {
         let got = after.iter().find(|t| t.name == blob.name);
         let want = donor_pictures.get(&blob.name);
@@ -1277,51 +1277,51 @@ pub fn area_pictures_test(arc_dir: &str, donor: usize, target: usize, names: &[S
     Ok(())
 }
 
-/// Drops a model that comes from another area, exports the block and checks
-/// that the area file that comes out has the pictures of the model.
-pub fn drop_area_test(arc_dir: &str, catalog: &str, name: &str, block: usize, out_dir: &str) -> Result<(), String> {
+/// Drops a model that comes from another tileset, exports the block and checks
+/// that the tileset file that comes out has the pictures of the model.
+pub fn drop_tileset_test(arc_dir: &str, catalog: &str, name: &str, block: usize, out_dir: &str) -> Result<(), String> {
     use crate::editor::Editor;
     let entries = crate::catalog::load(std::path::Path::new(catalog))?;
     let entry = entries.iter().find(|e| e.name == name).ok_or("no model has this name")?;
     let scene = data::load_scene(arc_dir, block, None)?;
     let mut editor = Editor::new(arc_dir, block)?;
-    editor.set_area(scene.area);
+    editor.set_tileset(scene.tileset);
     let missing: Vec<String> = entry.preview.iter().map(|p| p.picture.clone()).filter(|p| !scene.textures.contains_key(p)).collect();
-    println!("target area {:?}, donor area {:?}, pictures missing in the target: {missing:?}", scene.area, entry.area);
-    if let Some(a) = entry.area {
-        editor.provide_pictures(data::area_texture_blobs(arc_dir, a, &missing)?);
+    println!("target tileset {:?}, donor tileset {:?}, pictures missing in the target: {missing:?}", scene.tileset, entry.tileset);
+    if let Some(a) = entry.tileset {
+        editor.provide_pictures(data::tileset_texture_blobs(arc_dir, a, &missing)?);
     }
     editor.import(entry.portable.clone())?;
     println!("{}", editor.export(out_dir)?);
-    if let Some(area) = scene.area {
-        let path = std::path::Path::new(out_dir).join("area").join(format!("{area}.bin"));
+    if let Some(tileset) = scene.tileset {
+        let path = std::path::Path::new(out_dir).join("area").join(format!("{tileset}.bin"));
         if let Ok(bytes) = std::fs::read(&path) {
             let (parts, _) = (data::read_block_from_bytes(&bytes)?, ());
-            let names = crate::bch_edit::texture_names(&parts[data::AREA_PICTURES])?;
+            let names = crate::bch_edit::texture_names(&parts[data::TILESET_PICTURES])?;
             for m in &missing {
-                println!("  picture {m} in the new area file: {}", names.contains(m));
+                println!("  picture {m} in the new tileset file: {}", names.contains(m));
             }
             // The decompressed data must be a good pack with the same number of parts.
-            println!("  parts in the new area pack: {}", parts.len());
+            println!("  parts in the new tileset pack: {}", parts.len());
         } else {
-            println!("no area file was written");
+            println!("no tileset file was written");
         }
     }
     Ok(())
 }
 
 /// Prints the texts that the materials of a catalogue model hold, and whether
-/// each is a picture of the area of a block.
+/// each is a picture of the tileset of a block.
 pub fn model_strings(arc_dir: &str, catalog: &str, name: &str, block: usize) -> Result<(), String> {
     let entries = crate::catalog::load(std::path::Path::new(catalog))?;
     let entry = entries.iter().find(|e| e.name == name).ok_or("no model has this name")?;
     let scene = data::load_scene(arc_dir, block, None)?;
-    let donor = entry.area.map(|a| data::area_textures(arc_dir, a)).transpose()?.unwrap_or_default();
+    let donor = entry.tileset.map(|a| data::tileset_textures(arc_dir, a)).transpose()?.unwrap_or_default();
     for part in &entry.portable.parts {
         let Some(blob) = &part.blob else { continue };
         println!("material {} (label {})", blob.name, blob.label);
         for (at, text) in blob.header_strings.iter().chain(&blob.region_strings) {
-            println!("  string at {at:#x}: {text:?}  in target area: {}  in donor area: {}", scene.textures.contains_key(text), donor.contains_key(text));
+            println!("  string at {at:#x}: {text:?}  in target tileset: {}  in donor tileset: {}", scene.textures.contains_key(text), donor.contains_key(text));
         }
     }
     Ok(())
@@ -1373,12 +1373,12 @@ pub fn tile_twice_test(arc_dir: &str, tiles: &str, first: usize, count: usize, b
     Ok(())
 }
 
-/// Lists the zones that have a block, and checks that the events of the zone
+/// Lists the maps that have a block, and checks that the events of the map
 /// fall on the ground of the block: for each character, the height of the
 /// record and the height of the ground under it.
-pub fn zone_check(arc_dir: &str, block: usize) -> Result<(), String> {
-    let zones = crate::events::zones_of_block(arc_dir, block)?;
-    println!("block {block} is in {} zones", zones.len());
+pub fn map_check(arc_dir: &str, block: usize) -> Result<(), String> {
+    let maps = crate::events::maps_of_block(arc_dir, block)?;
+    println!("block {block} is in {} maps", maps.len());
     let editor = crate::editor::Editor::new(arc_dir, block)?;
     let ground = |x: f32, z: f32| -> Option<f32> {
         let mut best: Option<f32> = None;
@@ -1401,35 +1401,35 @@ pub fn zone_check(arc_dir: &str, block: usize) -> Result<(), String> {
         }
         best
     };
-    for zone in &zones {
-        let events = crate::events::read_zone_events(arc_dir, zone.zone)?;
+    for map in &maps {
+        let events = crate::events::read_map_events(arc_dir, map.map)?;
         println!(
-            "zone {} matrix {} ({}x{}), block at column {} row {}: {} signs, {} characters, {} warps, {} triggers",
-            zone.zone, zone.matrix, zone.width, zone.height, zone.column, zone.row,
+            "map {} matrix {} ({}x{}), block at column {} row {}: {} signs, {} characters, {} warps, {} triggers",
+            map.map, map.matrix, map.width, map.height, map.column, map.row,
             events.signs.len(), events.characters.len(), events.warps.len(), events.triggers.len()
         );
         for (i, c) in events.characters.iter().enumerate().take(12) {
-            let (x, z) = (crate::events::tile_to_local(c.x as f32 + 0.5, zone.column), crate::events::tile_to_local(c.z as f32 + 0.5, zone.row));
+            let (x, z) = (crate::events::tile_to_local(c.x as f32 + 0.5, map.column), crate::events::tile_to_local(c.z as f32 + 0.5, map.row));
             println!("  character {i}: tile ({}, {}) model {} script {} height {} -> local ({x:.0}, {z:.0}), ground {:?}", c.x, c.z, c.model, c.script, c.height, ground(x, z));
         }
         for (i, w) in events.warps.iter().enumerate().take(6) {
-            let (x, z) = (crate::events::tile_to_local(w.x as f32 / 18.0, zone.column), crate::events::tile_to_local(w.z as f32 / 18.0, zone.row));
-            println!("  warp {i}: to zone {} exit {} at ({}, {}, {}) size {}x{} -> local ({x:.0}, {z:.0}), ground {:?}", w.zone, w.exit, w.x, w.y, w.z, w.width, w.depth, ground(x, z));
+            let (x, z) = (crate::events::tile_to_local(w.x as f32 / 18.0, map.column), crate::events::tile_to_local(w.z as f32 / 18.0, map.row));
+            println!("  warp {i}: to map {} exit {} at ({}, {}, {}) size {}x{} -> local ({x:.0}, {z:.0}), ground {:?}", w.map, w.exit, w.x, w.y, w.z, w.width, w.depth, ground(x, z));
         }
         for (i, s) in events.signs.iter().enumerate().take(6) {
-            let (x, z) = (crate::events::tile_to_local(s.x as f32 + 0.5, zone.column), crate::events::tile_to_local(s.z as f32 + 0.5, zone.row));
+            let (x, z) = (crate::events::tile_to_local(s.x as f32 + 0.5, map.column), crate::events::tile_to_local(s.z as f32 + 0.5, map.row));
             println!("  sign {i}: tile ({}, {}) size {}x{} id {} height {} -> local ({x:.0}, {z:.0}), ground {:?}", s.x, s.z, s.width, s.depth, s.id, s.height, ground(x, z));
         }
     }
     Ok(())
 }
 
-/// Changes some events of a zone, writes them as lines of the file, reads the
+/// Changes some events of a map, writes them as lines of the file, reads the
 /// lines again and checks that the events are the same.
-pub fn events_file_test(arc_dir: &str, zone: usize) -> Result<(), String> {
-    use crate::events::{self, ZoneEvents};
-    let base = events::read_zone_events(arc_dir, zone)?;
-    let mut now: ZoneEvents = base.clone();
+pub fn events_file_test(arc_dir: &str, map: usize) -> Result<(), String> {
+    use crate::events::{self, MapEvents};
+    let base = events::read_map_events(arc_dir, map)?;
+    let mut now: MapEvents = base.clone();
     if let Some(c) = now.characters.first_mut() {
         c.script = 777;
         c.x += 1;
@@ -1439,34 +1439,29 @@ pub fn events_file_test(arc_dir: &str, zone: usize) -> Result<(), String> {
     }
     now.signs.push(events::Sign { raw: Vec::new(), id: 65535, kind: 1, facing: 4, x: 5, z: 6, width: 1, depth: 2, height: -72 });
     now.triggers.push(events::Trigger { raw: Vec::new(), id: 65535, param: 1, work_id: 2, check_kind: 0, x: 7, z: 8, width: 1, depth: 1, height: -72 });
-    now.warps.push(events::Warp { raw: Vec::new(), zone: zone as u16, exit: 0, facing: 2, kind: 1, x: 99, y: -72, z: 117, width: 1, depth: 1 });
-    now.characters.push(events::new_character(zone as u16, 50, 4, 5, -72.0));
-    // A line of another zone must stay.
+    now.warps.push(events::Warp { raw: Vec::new(), map: map as u16, exit: 0, facing: 2, kind: 1, x: 99, y: -72, z: 117, width: 1, depth: 1 });
+    now.characters.push(events::new_character(map as u16, base.characters.len() as u16, 4, 5, -72.0));
+    // A line of another map must stay.
     let old = "# comment\n12 S+ 0 1 2 1 1 0 65535 4 0\n";
-    let text = events::merge_file(old, zone, &base, &now);
+    let text = events::merge_file(old, map, &base, &now);
     println!("{text}");
     let mut back = base.clone();
-    events::apply_file(zone, &mut back, &text);
-    println!("same events after reading the file again: {}", back == now || {
-        // The tail and the head are not in the file; the lists must be the same.
-        back.signs == now.signs && back.triggers == now.triggers && back.warps == now.warps
-            && back.characters.iter().zip(&now.characters).all(|(a, b)| a.script == b.script && a.x == b.x && a.z == b.z && a.model == b.model && a.height == b.height)
-            && back.characters.len() == now.characters.len()
-    });
-    println!("line of the other zone kept: {}", text.contains("12 S+ 0"));
+    events::apply_file(map, &mut back, &text);
+    println!("same events after reading the file again: {}", back.to_bytes() == now.to_bytes());
+    println!("line of the other map kept: {}", text.contains("12 S+ 0"));
     // Writing again must give the same text.
-    let again = events::merge_file(&text, zone, &base, &now);
+    let again = events::merge_file(&text, map, &base, &now);
     println!("writing twice gives the same file: {}", again == text);
     Ok(())
 }
 
-/// Writes every zone again from its events and checks that the data is the
+/// Writes every map again from its events and checks that the data is the
 /// same as the data of the game; then adds and takes away events and checks
 /// that the pack can be read again.
-pub fn zone_roundtrip(arc_dir: &str) -> Result<(), String> {
-    let zones = crate::garc::read(&std::path::PathBuf::from(arc_dir).join("zonedata_y.garc"))?;
+pub fn map_roundtrip(arc_dir: &str) -> Result<(), String> {
+    let maps = crate::garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::Maps))?;
     let (mut same, mut different, mut unreadable) = (0, 0, 0);
-    for (zone, file) in zones.iter().enumerate() {
+    for (map, file) in maps.iter().enumerate() {
         let Some(raw) = file.first() else { continue };
         let data = if raw.first() == Some(&0x11) { crate::lz11::decompress(raw)? } else { raw.clone() };
         let Ok((_, parts)) = crate::pack::split(&data) else {
@@ -1474,7 +1469,7 @@ pub fn zone_roundtrip(arc_dir: &str) -> Result<(), String> {
             continue;
         };
         let Some(part) = parts.get(1) else { continue };
-        let Ok(events) = crate::events::ZoneEvents::parse(part) else {
+        let Ok(events) = crate::events::MapEvents::parse(part) else {
             unreadable += 1;
             continue;
         };
@@ -1484,22 +1479,22 @@ pub fn zone_roundtrip(arc_dir: &str) -> Result<(), String> {
         } else {
             different += 1;
             if different <= 3 {
-                println!("zone {zone}: {} bytes before, {} after", part.len(), rebuilt.len());
+                println!("map {map}: {} bytes before, {} after", part.len(), rebuilt.len());
             }
         }
     }
-    println!("{same} zones identical, {different} different, {unreadable} unreadable");
+    println!("{same} maps identical, {different} different, {unreadable} unreadable");
 
     // A change: add a character, take away a warp; write the pack, read it again.
-    let sd = std::env::temp_dir().join("map_studio_zone_test");
+    let sd = std::env::temp_dir().join("sango_editor_zone_test");
     let sd = sd.to_str().unwrap_or(".").to_string();
-    let zone = 100;
-    let mut events = crate::events::read_zone_events(arc_dir, zone)?;
+    let map = 100;
+    let mut events = crate::events::read_map_events(arc_dir, map)?;
     let (chars, warps) = (events.characters.len(), events.warps.len());
-    events.characters.push(crate::events::new_character(zone as u16, 77, 3, 4, -72.0));
+    events.characters.push(crate::events::new_character(map as u16, 77, 3, 4, -72.0));
     events.warps.remove(0);
-    println!("{}", crate::events::write_zone_override(arc_dir, &sd, zone, &events)?);
-    let back = crate::events::read_zone_override(&sd, zone).ok_or("cannot read the pack again")?;
+    println!("{}", crate::events::write_map_override(arc_dir, &sd, map, &events)?);
+    let back = crate::events::read_map_override(&sd, map).ok_or("cannot read the pack again")?;
     println!(
         "characters {chars} -> {}, warps {warps} -> {}; same lists after reading: {}; size field {} for {} bytes of records",
         back.characters.len(), back.warps.len(), back.characters.len() == chars + 1 && back.warps.len() == warps - 1,
@@ -1507,10 +1502,10 @@ pub fn zone_roundtrip(arc_dir: &str) -> Result<(), String> {
         20 * back.signs.len() + 48 * back.characters.len() + 24 * back.warps.len() + 24 * back.triggers.len()
     );
     // The parts after the events must be the same as in the game.
-    let raw = std::fs::read(std::path::Path::new(&sd).join("zone").join(format!("{zone}.bin"))).map_err(|e| e.to_string())?;
+    let raw = std::fs::read(std::path::Path::new(&sd).join("zone").join(format!("{map}.bin"))).map_err(|e| e.to_string())?;
     let data = crate::lz11::decompress(&raw)?;
     let (_, now_parts) = crate::pack::split(&data)?;
-    let game = crate::lz11::decompress(zones[zone].first().ok_or("no zone")?)?;
+    let game = crate::lz11::decompress(maps[map].first().ok_or("no map")?)?;
     let (_, game_parts) = crate::pack::split(&game)?;
     for i in 0..game_parts.len() {
         if i != 1 {
@@ -1518,12 +1513,12 @@ pub fn zone_roundtrip(arc_dir: &str) -> Result<(), String> {
         }
     }
     // The reset takes the file and the index away.
-    println!("{}", crate::events::reset_zone(&sd, zone)?);
+    println!("{}", crate::events::reset_map(&sd, map)?);
     println!(
         "file gone: {}, index gone: {}, reading gives the game again: {}",
         !std::path::Path::new(&sd).join("zone").join("100.bin").exists(),
         !std::path::Path::new(&sd).join("zone").join("index.bin").exists(),
-        crate::events::read_zone_override(&sd, zone).is_none()
+        crate::events::read_map_override(&sd, map).is_none()
     );
     Ok(())
 }
@@ -1552,20 +1547,20 @@ pub fn tiles_around(arc_dir: &str, block: usize, land_file: &str, column: usize,
     Ok(())
 }
 
-/// For the warps of the zones of a block: the kind of exit and the attribute
+/// For the warps of the maps of a block: the kind of exit and the attribute
 /// of the tile under the warp, to see which tiles a door warp uses.
 pub fn warp_tiles(arc_dir: &str, block: usize) -> Result<(), String> {
     let tiles = EditableBlock::load(arc_dir, block)?.attributes()?;
-    for zone in crate::events::zones_of_block(arc_dir, block)? {
-        let events = crate::events::read_zone_events(arc_dir, zone.zone)?;
+    for map in crate::events::maps_of_block(arc_dir, block)? {
+        let events = crate::events::read_map_events(arc_dir, map.map)?;
         for (i, w) in events.warps.iter().enumerate() {
-            let (tx, tz) = ((w.x as i32).div_euclid(18) - (zone.column * 40) as i32, (w.z as i32).div_euclid(18) - (zone.row * 40) as i32);
+            let (tx, tz) = ((w.x as i32).div_euclid(18) - (map.column * 40) as i32, (w.z as i32).div_euclid(18) - (map.row * 40) as i32);
             let attr = if tx >= 0 && tz >= 0 && (tx as usize) < tiles.width && (tz as usize) < tiles.height {
                 format!("{:08x}", tiles.cells[tz as usize * tiles.width + tx as usize])
             } else {
                 "outside".into()
             };
-            println!("zone {} warp {i}: kind {} facing {} size {}x{} -> block tile ({tx}, {tz}) attribute {attr}", zone.zone, w.kind, w.facing, w.width, w.depth);
+            println!("map {} warp {i}: kind {} facing {} size {}x{} -> block tile ({tx}, {tz}) attribute {attr}", map.map, w.kind, w.facing, w.width, w.depth);
         }
     }
     Ok(())
@@ -1613,26 +1608,26 @@ pub fn building_near(arc_dir: &str, block: usize, click: [f32; 2], mesh_name: &s
     Ok(())
 }
 
-/// Prints the doors of a block, moves the door that is at a place, writes the
-/// block and reads the doors again.
-pub fn doors_test(arc_dir: &str, block: usize, x: f32, z: f32, dx: f32, out_dir: &str) -> Result<(), String> {
+/// Prints the props of a block, moves the door that is at a place, writes the
+/// block and reads the props again.
+pub fn props_test(arc_dir: &str, block: usize, x: f32, z: f32, dx: f32, out_dir: &str) -> Result<(), String> {
     let mut editor = crate::editor::Editor::new(arc_dir, block)?;
-    for (i, d) in editor.doors.iter().enumerate() {
+    for (i, d) in editor.props.iter().enumerate() {
         println!("door {i}: model {} at ({}, {}, {}) scale {:?} turn {:?} tail {}", d.kind, d.x, d.y, d.z, d.scale, d.turn, d.tail);
     }
-    let mut doors = editor.doors.clone();
+    let mut props = editor.props.clone();
     let mut moved = 0;
-    for d in doors.iter_mut() {
+    for d in props.iter_mut() {
         if (d.x - x).abs() <= 9.5 && (d.z - z).abs() <= 9.5 {
             d.x += dx;
             moved += 1;
         }
     }
     println!("{moved} door moved");
-    editor.set_doors(doors)?;
+    editor.set_props(props)?;
     println!("{}", editor.export(out_dir)?);
     let back = EditableBlock::from_file(&std::path::Path::new(out_dir).join("land").join(format!("{block}.bin")), block)?;
-    for (i, d) in back.doors().iter().enumerate() {
+    for (i, d) in back.props().iter().enumerate() {
         println!("after: door {i} at ({}, {}, {})", d.x, d.y, d.z);
     }
     Ok(())
@@ -1675,7 +1670,7 @@ pub fn model_sheet(arc_dir: &str, ids: &[usize], out: &str) -> Result<(), String
 /// Prints how the meshes of an overworld model are made (the layout of the
 /// vertices) and the words of the model structure, to find the skeleton.
 pub fn model_layout(arc_dir: &str, id: usize) -> Result<(), String> {
-    let files = crate::garc::read(&std::path::PathBuf::from(arc_dir).join("movemodel.garc"))?;
+    let files = crate::garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::CharacterModels))?;
     let raw = files.get(id).and_then(|f| f.first()).ok_or("no such model")?;
     let data = if raw.first() == Some(&0x11) { crate::lz11::decompress(raw)? } else { raw.clone() };
     let (_, parts) = crate::pack::split(&data)?;
@@ -1700,7 +1695,7 @@ pub fn model_layout(arc_dir: &str, id: usize) -> Result<(), String> {
 /// Prints the first bytes of some vertices of the meshes of a model after
 /// the position, the normal and the texture coordinates (the bone data).
 pub fn model_vertices(arc_dir: &str, id: usize) -> Result<(), String> {
-    let files = crate::garc::read(&std::path::PathBuf::from(arc_dir).join("movemodel.garc"))?;
+    let files = crate::garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::CharacterModels))?;
     let raw = files.get(id).and_then(|f| f.first()).ok_or("no such model")?;
     let data = if raw.first() == Some(&0x11) { crate::lz11::decompress(raw)? } else { raw.clone() };
     let (_, parts) = crate::pack::split(&data)?;
@@ -1720,8 +1715,8 @@ pub fn model_vertices(arc_dir: &str, id: usize) -> Result<(), String> {
 /// For every model: the lowest point of the meshes as they are, and after the
 /// skinning with the bones (by the index of the vertex).
 pub fn models_skin(arc_dir: &str) -> Result<(), String> {
-    let files = crate::garc::read(&std::path::PathBuf::from(arc_dir).join("movemodel.garc"))?;
-    let params = crate::garc::read(&std::path::PathBuf::from(arc_dir).join("objcode_param.garc"))?;
+    let files = crate::garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::CharacterModels))?;
+    let params = crate::garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::CharacterModelParams))?;
     let mut raw_high = 0;
     let mut shown = 0;
     for id in 0..params.len() {
@@ -1769,7 +1764,7 @@ pub fn models_skin(arc_dir: &str) -> Result<(), String> {
 }
 
 /// Reads every overworld model and says how many load, and how many models the
-/// characters of the zones use that have no file.
+/// characters of the maps use that have no file.
 pub fn models_check(arc_dir: &str) -> Result<(), String> {
     let mut bank = crate::models::ModelBank::new(arc_dir);
     let (mut files, mut loaded, mut empty) = (0, 0, 0);
@@ -1793,7 +1788,7 @@ pub fn models_check(arc_dir: &str) -> Result<(), String> {
             missing.push(model);
         }
     }
-    println!("{} models are used by the characters of the zones; {} are dressed characters, {} have no file: {:?}", templates.len(), dressed.len(), missing.len(), &missing[..missing.len().min(12)]);
+    println!("{} models are used by the characters of the maps; {} are dressed characters, {} have no file: {:?}", templates.len(), dressed.len(), missing.len(), &missing[..missing.len().min(12)]);
     Ok(())
 }
 
@@ -1850,14 +1845,14 @@ fn model_sheet_with(bank: &mut crate::models::ModelBank, ids: &[usize], out: &st
     write_png(out, SIZE * columns, SIZE * rows, &sheet)
 }
 
-/// Reads the matrix of the zones of a block, loads the blocks around and says
+/// Reads the matrix of the maps of a block, loads the blocks around and says
 /// how long it takes, then writes the matrix with a change and reads it again.
 pub fn neighbours_test(arc_dir: &str, block: usize) -> Result<(), String> {
-    let zones = crate::events::zones_of_block(arc_dir, block)?;
-    let at = zones.first().ok_or("no zone")?;
+    let maps = crate::events::maps_of_block(arc_dir, block)?;
+    let at = maps.first().ok_or("no map")?;
     let matrix = crate::events::read_matrix(arc_dir, "", at.matrix)?;
-    println!("zone {} matrix {} {}x{}, block at ({}, {}); ids {:?}", at.zone, at.matrix, matrix.width, matrix.height, at.column, at.row, &matrix.ids[..matrix.ids.len().min(16)]);
-    println!("area of the zone: {:?}", crate::events::zone_area(arc_dir, at.zone));
+    println!("map {} matrix {} {}x{}, block at ({}, {}); ids {:?}", at.map, at.matrix, matrix.width, matrix.height, at.column, at.row, &matrix.ids[..matrix.ids.len().min(16)]);
+    println!("tileset of the map: {:?}", crate::events::map_tileset(arc_dir, at.map));
     let start = std::time::Instant::now();
     let mut ids = Vec::new();
     for r in at.row.saturating_sub(1)..=(at.row + 1).min(matrix.height - 1) {
@@ -1870,7 +1865,7 @@ pub fn neighbours_test(arc_dir: &str, block: usize) -> Result<(), String> {
     }
     let blocks = data::blocks_meshes(arc_dir, &ids)?;
     println!("{} neighbours loaded in {:.2} s ({} meshes)", blocks.len(), start.elapsed().as_secs_f32(), blocks.iter().map(|b| b.1.len()).sum::<usize>());
-    let sd = std::env::temp_dir().join("map_studio_matrix_test");
+    let sd = std::env::temp_dir().join("sango_editor_matrix_test");
     let sd = sd.to_str().unwrap_or(".").to_string();
     let mut changed = matrix.clone();
     changed.ids[0] = 5;
@@ -1883,15 +1878,15 @@ pub fn neighbours_test(arc_dir: &str, block: usize) -> Result<(), String> {
 }
 
 /// Draws the door models (build models) of some kinds in a picture.
-pub fn door_sheet(arc_dir: &str, kinds: &[u32], out: &str) -> Result<(), String> {
-    let area = 8;
+pub fn prop_sheet(arc_dir: &str, kinds: &[u32], out: &str) -> Result<(), String> {
+    let tileset = 8;
     let mut bank = crate::models::ModelBank::new(arc_dir);
     const SIZE: usize = 192;
     let columns = kinds.len().min(6).max(1);
     let rows = kinds.len().div_ceil(columns);
     let mut sheet = vec![60u8; SIZE * columns * SIZE * rows * 4];
     for (k, &kind) in kinds.iter().enumerate() {
-        let Some(model) = bank.load_door(kind, area) else {
+        let Some(model) = bank.load_prop(kind, tileset) else {
             println!("door kind {kind}: no model");
             continue;
         };
@@ -1915,25 +1910,14 @@ pub fn door_sheet(arc_dir: &str, kinds: &[u32], out: &str) -> Result<(), String>
     write_png(out, SIZE * columns, SIZE * rows, &sheet)
 }
 
-/// Prints the pictures of the files of pictures of the build models.
-pub fn bm_pictures(arc_dir: &str, indices: &[usize]) -> Result<(), String> {
-    let tex = crate::garc::read(&std::path::PathBuf::from(arc_dir).join("field_bm_tex.garc"))?;
-    for &i in indices {
-        let raw = tex.get(i).and_then(|f| f.first()).ok_or("no such file")?;
-        let data = if raw.first() == Some(&0x11) { crate::lz11::decompress(raw)? } else { raw.clone() };
-        let b = bch::Bch::parse(&data)?;
-        println!("tex {i}: {:?}", b.textures().unwrap_or_default().iter().map(|t| t.name.clone()).collect::<Vec<_>>());
-    }
-    Ok(())
-}
 
-/// Lists the areas (the matrices) with the names of their zones.
-pub fn areas_list(arc_dir: &str) -> Result<(), String> {
-    let areas = crate::events::list_areas(arc_dir)?;
-    println!("{} areas", areas.len());
-    for a in areas.iter().take(25) {
-        let names: Vec<&str> = a.zones.iter().filter_map(|&z| crate::names::ZONE_NAMES.get(z).copied()).take(5).collect();
-        println!("  matrix {:3}: {} zones: {}", a.matrix, a.zones.len(), names.join(", "));
+/// Lists the worlds (the matrices) with the names of their maps.
+pub fn worlds_list(arc_dir: &str) -> Result<(), String> {
+    let worlds = crate::events::list_worlds(arc_dir)?;
+    println!("{} worlds", worlds.len());
+    for a in worlds.iter().take(25) {
+        let names: Vec<&str> = a.maps.iter().filter_map(|&z| crate::names::MAP_NAMES.get(z).copied()).take(5).collect();
+        println!("  matrix {:3}: {} maps: {}", a.matrix, a.maps.len(), names.join(", "));
     }
     Ok(())
 }

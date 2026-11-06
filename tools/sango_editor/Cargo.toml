@@ -1,8 +1,8 @@
 [package]
-name = "map-studio"
+name = "sango-editor"
 version = "0.1.0"
 edition = "2021"
-description = "Editor for the maps of Pokemon Omega Ruby and Alpha Sapphire."
+description = "Editor for the data of Pokemon Omega Ruby and Alpha Sapphire: maps, events, models."
 
 [dependencies]
 eframe = { version = "0.29", default-features = false, features = ["wgpu", "default_fonts", "wayland", "x11"] }

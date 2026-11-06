@@ -1,4 +1,4 @@
-//! The names of the models of the characters and of the zones.
+//! The names of the models of the characters and of the maps.
 //!
 //! Written by `gen_names.py` from the plugin: do not change it by hand.
 
@@ -359,7 +359,7 @@ pub const MODEL_NAMES: [&str; 354] = [
     "Lanette",
 ];
 
-pub const ZONE_NAMES: [&str; 536] = [
+pub const MAP_NAMES: [&str; 536] = [
     "Unknow 0",
     "Unknow 1",
     "Unknow 2",

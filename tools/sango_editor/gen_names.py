@@ -1,12 +1,12 @@
 """Writes src/names.rs: the names of the models of the characters and of the
-maps (zones) of Alpha Sapphire and Omega Ruby.
+maps of Alpha Sapphire and Omega Ruby.
 
 The names come from the plugin: lib/src/ui/page/enum_names.cc has the arrays
 kModelNames and kMapNames. The tool takes the version of the arrays that the
 game ORAS uses (the part inside `#ifndef GAME_XY`, not the part inside
 `#ifdef GAME_XY`).
 
-  python tools/map_studio/gen_names.py
+  python tools/sango_editor/gen_names.py
 """
 
 import os
@@ -63,15 +63,15 @@ def rust_array(name, values):
 
 def main():
     arrays = read_arrays(SOURCE)
-    out = ["//! The names of the models of the characters and of the zones.", "//!",
+    out = ["//! The names of the models of the characters and of the maps.", "//!",
            "//! Written by `gen_names.py` from the plugin: do not change it by hand.", ""]
     out.append(rust_array("MODEL_NAMES", arrays["kModelNames"]))
     out.append("")
-    out.append(rust_array("ZONE_NAMES", arrays["kMapNames"]))
+    out.append(rust_array("MAP_NAMES", arrays["kMapNames"]))
     out.append("")
     with open(OUT, "w", encoding="utf-8", newline="\n") as f:
         f.write("\n".join(out))
-    print("models: %d, zones: %d" % (len(arrays["kModelNames"]), len(arrays["kMapNames"])))
+    print("models: %d, maps: %d" % (len(arrays["kModelNames"]), len(arrays["kMapNames"])))
 
 
 if __name__ == "__main__":

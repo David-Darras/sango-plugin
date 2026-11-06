@@ -52,8 +52,8 @@ pub fn render(parts: &[PreviewPart], textures: &HashMap<String, Texture>, size: 
             let (ia, ib, ic) = (t[0] as usize, t[1] as usize, t[2] as usize);
             let (Some(&a), Some(&b), Some(&c)) = (list.get(ia), list.get(ib), list.get(ic)) else { continue };
             let (a, b, c) = (screen(a), screen(b), screen(c));
-            let area = (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
-            if area.abs() < 1e-6 {
+            let tileset = (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
+            if tileset.abs() < 1e-6 {
                 continue;
             }
             let min_x = a[0].min(b[0]).min(c[0]).floor().max(0.0) as usize;
@@ -65,8 +65,8 @@ pub fn render(parts: &[PreviewPart], textures: &HashMap<String, Texture>, size: 
             for y in min_y..=max_y {
                 for x in min_x..=max_x {
                     let (px, py) = (x as f32 + 0.5, y as f32 + 0.5);
-                    let w0 = ((b[0] - px) * (c[1] - py) - (b[1] - py) * (c[0] - px)) / area;
-                    let w1 = ((c[0] - px) * (a[1] - py) - (c[1] - py) * (a[0] - px)) / area;
+                    let w0 = ((b[0] - px) * (c[1] - py) - (b[1] - py) * (c[0] - px)) / tileset;
+                    let w1 = ((c[0] - px) * (a[1] - py) - (c[1] - py) * (a[0] - px)) / tileset;
                     let w2 = 1.0 - w0 - w1;
                     if w0 < 0.0 || w1 < 0.0 || w2 < 0.0 {
                         continue;

@@ -611,7 +611,7 @@ fn add_material(b: &mut Builder, model: usize, blob: &MaterialBlob) -> Result<us
     Ok(n)
 }
 
-/// A picture of a file of pictures (the part 11 of an area pack), with what
+/// A picture of a file of pictures (the part 11 of an tileset pack), with what
 /// another file needs to get the same picture. It has data of the game.
 #[derive(Clone, Debug)]
 pub struct TextureBlob {

@@ -175,7 +175,7 @@ impl Portable {
 
     pub fn from_bytes(data: &[u8]) -> Result<Portable, String> {
         if data.get(..5) != Some(PORTABLE_MAGIC) {
-            return Err("this is not an object of Map Studio (or it is from an older version: copy it again)".into());
+            return Err("this is not an object of Sango Editor (or it is from an older version: copy it again)".into());
         }
         let mut r = Reader { data, at: 5 };
         let origin = (r.number()?, r.number()?);
@@ -285,13 +285,13 @@ enum Piece {
 /// number of the first new vertex and how many there are.
 pub type AddedVertices = (usize, usize, usize);
 
-/// The size of a door model in the list of the doors, in bytes.
-const DOOR_SIZE: usize = 0x2c;
+/// The size of a door model in the list of the props, in bytes.
+const PROP_SIZE: usize = 0x2c;
 
 /// A door model that the game puts at a door. The place is in units of the
-/// zone (the matrix), not of the block.
+/// map (the matrix), not of the block.
 #[derive(Clone, Debug, PartialEq)]
-pub struct Door {
+pub struct Prop {
     pub kind: u32,
     pub scale: [f32; 3],
     pub turn: [f32; 3],
@@ -354,7 +354,7 @@ fn align(v: usize, a: usize) -> usize {
 
 impl EditableBlock {
     pub fn load(arc_dir: &str, block: usize) -> Result<Self, String> {
-        let files = garc::read(&PathBuf::from(arc_dir).join("map_land_data.garc"))?;
+        let files = garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::Blocks))?;
         let raw = files.get(block).and_then(|f| f.first()).ok_or("no such block")?;
         let compressed = raw.first() == Some(&0x11);
         let pack = if compressed { lz11::decompress(raw)? } else { raw.clone() };
@@ -399,22 +399,22 @@ impl EditableBlock {
     }
 
     /// The door models of the block (the part 3 of the pack): the game puts
-    /// them at the doors of the buildings, at the places in this list.
-    pub fn doors(&self) -> Vec<Door> {
+    /// them at the props of the buildings, at the places in this list.
+    pub fn props(&self) -> Vec<Prop> {
         let Some(&(start, end)) = self.ranges.get(3) else { return Vec::new() };
         let bytes = &self.pack[start..end];
         if bytes.len() < 4 {
             return Vec::new();
         }
         let count = get(bytes, 0);
-        if count > 64 || 4 + count * DOOR_SIZE > bytes.len() {
+        if count > 64 || 4 + count * PROP_SIZE > bytes.len() {
             return Vec::new();
         }
         let float = |at: usize| f32::from_bits(get(bytes, at) as u32);
         (0..count)
             .map(|i| {
-                let b = 4 + i * DOOR_SIZE;
-                Door {
+                let b = 4 + i * PROP_SIZE;
+                Prop {
                     kind: get(bytes, b) as u32,
                     scale: [float(b + 4), float(b + 8), float(b + 12)],
                     turn: [float(b + 16), float(b + 20), float(b + 24)],
@@ -427,15 +427,15 @@ impl EditableBlock {
             .collect()
     }
 
-    /// Writes the doors in place (as many as the block has).
-    pub fn set_doors(&mut self, doors: &[Door]) -> Result<(), String> {
+    /// Writes the props in place (as many as the block has).
+    pub fn set_props(&mut self, props: &[Prop]) -> Result<(), String> {
         let Some(&(start, end)) = self.ranges.get(3) else { return Ok(()) };
         let count = get(&self.pack[start..end], 0);
-        if count != doors.len() || 4 + count * DOOR_SIZE > end - start {
-            return Err("the block has another number of doors".into());
+        if count != props.len() || 4 + count * PROP_SIZE > end - start {
+            return Err("the block has another number of props".into());
         }
-        for (i, d) in doors.iter().enumerate() {
-            let b = start + 4 + i * DOOR_SIZE;
+        for (i, d) in props.iter().enumerate() {
+            let b = start + 4 + i * PROP_SIZE;
             put(&mut self.pack, b, d.kind as usize);
             for (k, v) in d.scale.iter().chain(&d.turn).chain(&[d.x, d.y, d.z]).enumerate() {
                 put(&mut self.pack, b + 4 + 4 * k, v.to_bits() as usize);

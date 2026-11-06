@@ -33,7 +33,7 @@ pub fn replace_part(pack: &[u8], index: usize, new_part: &[u8]) -> Result<Vec<u8
 }
 
 /// Like `replace_part`, for a pack whose parts have another alignment (the
-/// packs of the zones: 4 bytes).
+/// packs of the maps: 4 bytes).
 pub fn replace_part_with(pack: &[u8], index: usize, new_part: &[u8], alignment: usize) -> Result<Vec<u8>, String> {
     let ranges = ranges(pack)?;
     if index >= ranges.len() || new_part.len() % alignment != 0 {

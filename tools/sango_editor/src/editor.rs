@@ -87,8 +87,8 @@ pub struct Editor {
     /// The tiles of the original block, to save only what changed.
     original_tiles: Vec<u32>,
     /// The door models of the block, as they are in the game and as the user changed them.
-    original_doors: Vec<crate::edit::Door>,
-    pub doors: Vec<crate::edit::Door>,
+    original_props: Vec<crate::edit::Prop>,
+    pub props: Vec<crate::edit::Prop>,
     grid: (usize, usize),
     undo: Vec<Snapshot>,
     redo: Vec<Snapshot>,
@@ -101,9 +101,9 @@ pub struct Editor {
     /// For each mesh of the built block: the mesh of the original block that
     /// it comes from. A mesh that an import added has none.
     built_origin: Vec<Option<usize>>,
-    /// The area pack of the block, and the pictures that imported objects
-    /// bring (the area gets those that it does not have, when the block is exported).
-    area: Option<usize>,
+    /// The tileset pack of the block, and the pictures that imported objects
+    /// bring (the tileset gets those that it does not have, when the block is exported).
+    tileset: Option<usize>,
     pictures: Vec<crate::bch_edit::TextureBlob>,
 }
 
@@ -313,7 +313,7 @@ impl Editor {
             .map(|cluster| Instance { cluster, offset: [0.0; 3], yaw: 0.0, copy: false, deleted: false, only: None, replaces: None })
             .collect();
         let attributes = original.attributes()?;
-        let original_doors = original.doors();
+        let original_props = original.props();
         let native = clusters.len();
         let mut editor = Editor {
             built: original.clone(),
@@ -325,8 +325,8 @@ impl Editor {
             selectable,
             instances,
             original_tiles: attributes.cells.clone(),
-            original_doors: original_doors.clone(),
-            doors: original_doors,
+            original_props: original_props.clone(),
+            props: original_props,
             tiles: attributes.cells,
             grid: (attributes.width, attributes.height),
             undo: Vec::new(),
@@ -334,7 +334,7 @@ impl Editor {
             stroke: None,
             owner: Vec::new(),
             built_origin: Vec::new(),
-            area: None,
+            tileset: None,
             pictures: Vec::new(),
         };
         editor.rebuild()?;
@@ -685,8 +685,8 @@ impl Editor {
             }
         }
         block.set_attributes(&Attributes { width: self.grid.0, height: self.grid.1, cells: self.tiles.clone() })?;
-        if self.doors != self.original_doors {
-            block.set_doors(&self.doors)?;
+        if self.props != self.original_props {
+            block.set_props(&self.props)?;
         }
         self.built = block;
         self.owner = owner;
@@ -716,14 +716,14 @@ impl Editor {
         }
     }
 
-    /// Changes the doors and builds the block again. The change is cancelled
-    /// when the block cannot be built. (Undo does not bring the doors back.)
-    pub fn set_doors(&mut self, doors: Vec<crate::edit::Door>) -> Result<(), String> {
-        let before = std::mem::replace(&mut self.doors, doors);
+    /// Changes the props and builds the block again. The change is cancelled
+    /// when the block cannot be built. (Undo does not bring the props back.)
+    pub fn set_props(&mut self, props: Vec<crate::edit::Prop>) -> Result<(), String> {
+        let before = std::mem::replace(&mut self.props, props);
         match self.rebuild() {
             Ok(()) => Ok(()),
             Err(message) => {
-                self.doors = before;
+                self.props = before;
                 let _ = self.rebuild();
                 Err(message)
             }
@@ -731,11 +731,11 @@ impl Editor {
     }
 
     /// Gives a door its place in the game again.
-    pub fn restore_door(&mut self, index: usize) -> Result<(), String> {
-        let original = self.original_doors.get(index).cloned().ok_or("no such door")?;
-        let mut doors = self.doors.clone();
-        *doors.get_mut(index).ok_or("no such door")? = original;
-        self.set_doors(doors)
+    pub fn restore_prop(&mut self, index: usize) -> Result<(), String> {
+        let original = self.original_props.get(index).cloned().ok_or("no such door")?;
+        let mut props = self.props.clone();
+        *props.get_mut(index).ok_or("no such door")? = original;
+        self.set_props(props)
     }
 
     pub fn can_undo(&self) -> bool {
@@ -1146,7 +1146,7 @@ impl Editor {
     pub fn project_text(&self) -> Result<String, String> {
         use std::fmt::Write as _;
         let mut out = String::new();
-        let _ = writeln!(out, "map-studio-project 1");
+        let _ = writeln!(out, "sango-editor-project 1");
         let _ = writeln!(out, "block {}", self.original.id);
         let _ = writeln!(out, "objects {}", self.native);
         // The objects from other blocks: the project says where to find them.
@@ -1181,7 +1181,7 @@ impl Editor {
                 let _ = writeln!(out, "move {} {x} {y} {z} {yaw}", instance.cluster);
             }
         }
-        for (i, (now, before)) in self.doors.iter().zip(&self.original_doors).enumerate() {
+        for (i, (now, before)) in self.props.iter().zip(&self.original_props).enumerate() {
             if now != before {
                 let _ = writeln!(out, "door {i} {} {} {} {}", now.x, now.y, now.z, now.kind);
             }
@@ -1198,14 +1198,14 @@ impl Editor {
     /// starts again. When the text does not fit this block, nothing changes.
     pub fn load_project(&mut self, text: &str) -> Result<(), String> {
         let mut lines = text.lines();
-        if lines.next() != Some("map-studio-project 1") {
-            return Err("this is not a project of Map Studio".into());
+        if !matches!(lines.next(), Some("sango-editor-project 1") | Some("map-studio-project 1")) {
+            return Err("this is not a project of Sango Editor".into());
         }
         let mut instances: Vec<Instance> = (0..self.native)
             .map(|cluster| Instance { cluster, offset: [0.0; 3], yaw: 0.0, copy: false, deleted: false, only: None, replaces: None })
             .collect();
         let mut tiles = self.original_tiles.clone();
-        let mut doors = self.original_doors.clone();
+        let mut props = self.original_props.clone();
         let mut imported: Vec<Cluster> = Vec::new();
         // The parts of pieces: (kind, cluster, meshes, offset, yaw, deleted).
         let mut masked: Vec<(String, usize, Vec<usize>, [f32; 3], f32, bool)> = Vec::new();
@@ -1282,7 +1282,7 @@ impl Editor {
                 }
                 Some("door") => {
                     let index = number(words.next())? as usize;
-                    let door = doors.get_mut(index).ok_or("a door of the project does not exist")?;
+                    let door = props.get_mut(index).ok_or("a door of the project does not exist")?;
                     door.x = number(words.next())?;
                     door.y = number(words.next())?;
                     door.z = number(words.next())?;
@@ -1317,12 +1317,12 @@ impl Editor {
             instances.push(Instance { cluster, offset, yaw, copy: kind == "mcopy", deleted, only: Some(meshes), replaces: None });
         }
         let before = (std::mem::replace(&mut self.instances, instances), std::mem::replace(&mut self.tiles, tiles));
-        let old_doors = std::mem::replace(&mut self.doors, doors);
+        let old_doors = std::mem::replace(&mut self.props, props);
         let old_imported = self.clusters.split_off(self.native);
         self.clusters.extend(imported);
         if let Err(message) = self.rebuild() {
             (self.instances, self.tiles) = before;
-            self.doors = old_doors;
+            self.props = old_doors;
             self.clusters.truncate(self.native);
             self.clusters.extend(old_imported);
             let _ = self.rebuild();
@@ -1334,9 +1334,9 @@ impl Editor {
         Ok(())
     }
 
-    /// Tells the editor which area pack the block uses.
-    pub fn set_area(&mut self, area: Option<usize>) {
-        self.area = area;
+    /// Tells the editor which tileset pack the block uses.
+    pub fn set_tileset(&mut self, tileset: Option<usize>) {
+        self.tileset = tileset;
     }
 
     /// Keeps pictures that an imported object needs.
@@ -1349,28 +1349,28 @@ impl Editor {
     }
 
     /// Writes the block in the folder `land` of a folder of the SD card. When
-    /// imported objects need pictures that the area of the block does not
-    /// have, the area is written too, in the folder `area`.
+    /// imported objects need pictures that the tileset of the block does not
+    /// have, the tileset is written too, in the folder `area`.
     pub fn export(&self, out_dir: &str) -> Result<String, String> {
         let path = self.built.save(Path::new(out_dir).to_str().unwrap_or(out_dir))?;
         let size = std::fs::metadata(&path).map(|m| m.len()).unwrap_or(0);
         let mut message = format!("written {} ({} bytes)", path.display(), size);
-        if let (Some(area), false) = (self.area, self.pictures.is_empty()) {
-            let (pack, compressed) = crate::data::area_pack(&self.arc_dir, area)?;
+        if let (Some(tileset), false) = (self.tileset, self.pictures.is_empty()) {
+            let (pack, compressed) = crate::data::tileset_pack(&self.arc_dir, tileset)?;
             let (_, parts) = crate::pack::split(&pack)?;
-            let part = parts.get(crate::data::AREA_PICTURES).ok_or("the area has no pictures")?;
+            let part = parts.get(crate::data::TILESET_PICTURES).ok_or("the tileset has no pictures")?;
             let wanted: Vec<crate::bch_edit::TextureBlob> = self.pictures.clone();
             let bigger = crate::bch_edit::add_textures(part, &wanted)?;
             if bigger.len() != part.len() {
                 let mut padded = bigger;
                 padded.resize(padded.len().div_ceil(crate::pack::ALIGNMENT) * crate::pack::ALIGNMENT, 0);
-                let made = crate::pack::replace_part(&pack, crate::data::AREA_PICTURES, &padded)?;
+                let made = crate::pack::replace_part(&pack, crate::data::TILESET_PICTURES, &padded)?;
                 let bytes = if compressed { crate::lz11::compress(&made)? } else { made };
                 let folder = Path::new(out_dir).join("area");
                 std::fs::create_dir_all(&folder).map_err(|e| format!("{}: {e}", folder.display()))?;
-                std::fs::write(folder.join(format!("{area}.bin")), &bytes).map_err(|e| e.to_string())?;
-                crate::edit::write_index(&folder, area, bytes.len())?;
-                message += &format!("; area {area} written with the new pictures ({} bytes{})", bytes.len(), if bytes.len() > 860_000 { ", maybe too big for the game" } else { "" });
+                std::fs::write(folder.join(format!("{tileset}.bin")), &bytes).map_err(|e| e.to_string())?;
+                crate::edit::write_index(&folder, tileset, bytes.len())?;
+                message += &format!("; tileset {tileset} written with the new pictures ({} bytes{})", bytes.len(), if bytes.len() > 860_000 { ", maybe too big for the game" } else { "" });
             }
         }
         Ok(message)

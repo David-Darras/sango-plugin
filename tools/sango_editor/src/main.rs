@@ -1,4 +1,4 @@
-//! Map Studio: an editor for the maps of Omega Ruby and Alpha Sapphire.
+//! Sango Editor: an editor for the maps of Omega Ruby and Alpha Sapphire.
 
 mod bch;
 mod bch_edit;
@@ -20,47 +20,48 @@ mod tex;
 mod viewer;
 
 const USAGE: &str = "usage:
-  map-studio view <arc dir> <block id> [area id] [--land <land file>]
-  map-studio meshes <arc dir> <block id> [out.obj]
-  map-studio sheet <arc dir> <block id> <out.png> [area id]
-  map-studio picture <arc dir> <block id> <name> <out.png>
-  map-studio groups <arc dir> <block id> <material>
-  map-studio roundtrip <arc dir> <block id> <out dir>
-  map-studio move-near <arc dir> <block id> <materials> <x> <z> <radius> <dx> <dy> <dz> <out dir>
-  map-studio copy-near <arc dir> <block id> <materials> <x> <z> <radius> <dx> <dy> <dz> <out dir>
-  map-studio delete-near <arc dir> <block id> <materials> <x> <z> <radius> <out dir>
-  map-studio editor-test <arc dir> <block id> <out dir>
-  map-studio add-mesh-test <arc dir> <block id> <material> <x> <z> <radius> <dx> <out dir>
-  map-studio validate <arc dir> <block id> [--land <land file>]
-  map-studio check <land file> <block id> <material>";
+  sango-editor view <arc dir> <block id> [tileset id] [--land <land file>]
+  sango-editor meshes <arc dir> <block id> [out.obj]
+  sango-editor sheet <arc dir> <block id> <out.png> [tileset id]
+  sango-editor picture <arc dir> <block id> <name> <out.png>
+  sango-editor groups <arc dir> <block id> <material>
+  sango-editor roundtrip <arc dir> <block id> <out dir>
+  sango-editor move-near <arc dir> <block id> <materials> <x> <z> <radius> <dx> <dy> <dz> <out dir>
+  sango-editor copy-near <arc dir> <block id> <materials> <x> <z> <radius> <dx> <dy> <dz> <out dir>
+  sango-editor delete-near <arc dir> <block id> <materials> <x> <z> <radius> <out dir>
+  sango-editor editor-test <arc dir> <block id> <out dir>
+  sango-editor add-mesh-test <arc dir> <block id> <material> <x> <z> <radius> <dx> <out dir>
+  sango-editor validate <arc dir> <block id> [--land <land file>]
+  sango-editor check <land file> <block id> <material>";
 
 /// Opens a block in a window.
-fn view(arc_dir: &str, block: usize, area: Option<usize>, land_file: Option<&str>) -> Result<(), String> {
-    let scene = data::load_scene_from(arc_dir, block, area, land_file)?;
+fn view(arc_dir: &str, block: usize, tileset: Option<usize>, land_file: Option<&str>) -> Result<(), String> {
+    let scene = data::load_scene_from(arc_dir, block, tileset, land_file)?;
     let with_picture = scene
         .meshes
         .iter()
         .filter(|m| scene.textures.contains_key(data::picture_of(m)))
         .count();
     println!(
-        "area {:?}: {} pictures, {} of {} meshes have a picture",
-        scene.area, scene.textures.len(), with_picture, scene.meshes.len()
+        "tileset {:?}: {} pictures, {} of {} meshes have a picture",
+        scene.tileset, scene.textures.len(), with_picture, scene.meshes.len()
     );
     let mut editor = match land_file {
         Some(path) => editor::Editor::from_block(edit::EditableBlock::from_file(std::path::Path::new(path), block)?, arc_dir, false)?,
         None => editor::Editor::new(arc_dir, block)?,
     };
-    editor.set_area(scene.area);
+    editor.set_tileset(scene.tileset);
     viewer::run(scene.textures, editor, format!("Block {block}"), arc_dir.to_string())
 }
 
 fn main() {
+    config::migrate_old_files();
     let args: Vec<String> = std::env::args().collect();
     let number = |i: usize| args.get(i).and_then(|s| s.parse::<usize>().ok());
     let float = |i: usize| args.get(i).and_then(|s| s.parse::<f32>().ok()).unwrap_or(0.0);
     let block = number(3).unwrap_or(0);
     let result = match args.get(1).map(String::as_str) {
-        // No block given: the tool opens the area that it remembers (or the first one).
+        // No block given: the tool opens the world that it remembers (or the first one).
         None => config::archives(None).and_then(|arc| view(&arc, config::load().block.unwrap_or(4), None, None)),
         Some("view") if args.len() < 4 => {
             config::archives(args.get(2).map(String::as_str)).and_then(|arc| view(&arc, config::load().block.unwrap_or(4), None, None))
@@ -133,18 +134,18 @@ fn main() {
         Some("tile-picture-test") if args.len() >= 7 => commands::tile_picture_test(&args[2], &args[3], &args[4].split(',').filter_map(|n| n.parse().ok()).collect::<Vec<_>>(), number(5).unwrap_or(0), &args[6]),
         Some("drop-all-test") if args.len() >= 7 => commands::drop_all_test(&args[2], &args[3], number(4).unwrap_or(0), number(5).unwrap_or(50), number(6).unwrap_or(0)),
         Some("layout-stats") if args.len() >= 5 => commands::layout_stats(&args[2], &args[3], number(4).unwrap_or(0)),
-        Some("area-pictures-test") if args.len() >= 6 => commands::area_pictures_test(&args[2], number(3).unwrap_or(0), number(4).unwrap_or(0), &args[5..].to_vec()),
-        Some("drop-area-test") if args.len() >= 7 => commands::drop_area_test(&args[2], &args[3], &args[4], number(5).unwrap_or(0), &args[6]),
+        Some("tileset-pictures-test") if args.len() >= 6 => commands::tileset_pictures_test(&args[2], number(3).unwrap_or(0), number(4).unwrap_or(0), &args[5..].to_vec()),
+        Some("drop-tileset-test") if args.len() >= 7 => commands::drop_tileset_test(&args[2], &args[3], &args[4], number(5).unwrap_or(0), &args[6]),
         Some("model-strings") if args.len() >= 6 => commands::model_strings(&args[2], &args[3], &args[4], number(5).unwrap_or(0)),
         Some("tile-twice-test") if args.len() >= 7 => commands::tile_twice_test(&args[2], &args[3], number(4).unwrap_or(0), number(5).unwrap_or(10), number(6).unwrap_or(0)),
-        Some("zone-check") if args.len() >= 4 => commands::zone_check(&args[2], block),
+        Some("map-check") if args.len() >= 4 => commands::map_check(&args[2], block),
         Some("events-file-test") if args.len() >= 4 => commands::events_file_test(&args[2], number(3).unwrap_or(0)),
-        Some("zone-roundtrip") if args.len() >= 3 => commands::zone_roundtrip(&args[2]),
+        Some("map-roundtrip") if args.len() >= 3 => commands::map_roundtrip(&args[2]),
         Some("tiles-around") if args.len() >= 7 => commands::tiles_around(&args[2], block, &args[4], number(5).unwrap_or(0), number(6).unwrap_or(0)),
         Some("warp-tiles") if args.len() >= 4 => commands::warp_tiles(&args[2], block),
         Some("objects-near") if args.len() >= 7 => commands::objects_near(&args[2], block, float(4), float(5), float(6)),
         Some("building-near") if args.len() >= 10 => commands::building_near(&args[2], block, [float(4), float(5)], &args[6], float(7), float(8), float(9)),
-        Some("doors-test") if args.len() >= 8 => commands::doors_test(&args[2], block, float(4), float(5), float(6), &args[7]),
+        Some("props-test") if args.len() >= 8 => commands::props_test(&args[2], block, float(4), float(5), float(6), &args[7]),
         Some("model-sheet") if args.len() >= 5 => commands::model_sheet(&args[2], &args[4].split(',').filter_map(|n| n.parse().ok()).collect::<Vec<_>>(), &args[3]),
         Some("models-check") if args.len() >= 3 => commands::models_check(&args[2]),
         Some("model-layout") if args.len() >= 4 => commands::model_layout(&args[2], number(3).unwrap_or(0)),
@@ -152,9 +153,8 @@ fn main() {
         Some("models-skin") if args.len() >= 3 => commands::models_skin(&args[2]),
         Some("xy-models-test") if args.len() >= 5 => commands::xy_models_test(&args[2], &args[3], &args[4]),
         Some("neighbours-test") if args.len() >= 4 => commands::neighbours_test(&args[2], block),
-        Some("door-sheet") if args.len() >= 5 => commands::door_sheet(&args[2], &args[4].split(',').filter_map(|n| n.parse().ok()).collect::<Vec<_>>(), &args[3]),
-        Some("bm-pictures") if args.len() >= 4 => commands::bm_pictures(&args[2], &args[3].split(',').filter_map(|n| n.parse().ok()).collect::<Vec<_>>()),
-        Some("areas-list") if args.len() >= 3 => commands::areas_list(&args[2]),
+        Some("door-sheet") if args.len() >= 5 => commands::prop_sheet(&args[2], &args[4].split(',').filter_map(|n| n.parse().ok()).collect::<Vec<_>>(), &args[3]),
+        Some("worlds-list") if args.len() >= 3 => commands::worlds_list(&args[2]),
         Some("check") if args.len() >= 5 => commands::check(&args[2], block, &args[4]),
         _ => Err(USAGE.to_string()),
     };

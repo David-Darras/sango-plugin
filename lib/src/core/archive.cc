@@ -168,7 +168,7 @@ static OverrideSet override_sets[] = {
      u"sdmc:/sango/matrix/%d.bin", kMatrixToken, true, matrix_entries, 512, 0,
      false},
     // The packs of the zones (the events: characters, warps, signs, triggers)
-    // that Map Studio writes.
+    // that Sango Editor writes.
     {ArchiveId::kZoneData, u"sdmc:/sango/zone/index.bin",
      u"sdmc:/sango/zone/%d.bin", kZoneToken, true, zone_entries, 1024, 0,
      false},

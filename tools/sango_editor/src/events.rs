@@ -1,13 +1,13 @@
-//! The events of a zone: signs, characters, warps and triggers.
+//! The events of a map: signs, characters, warps and triggers.
 //!
-//! The game keeps the events of a zone in the part 1 of the zone pack. The
+//! The game keeps the events of a map in the part 1 of the map pack. The
 //! part starts with 12 bytes (the size, the number of signs, characters, warps
 //! and triggers, and 4 bytes that are not used). The records follow in this
 //! order, and each kind has its own size. A tile is 18 units wide, and the
-//! tiles are counted from the corner of the zone.
+//! tiles are counted from the corner of the map.
 //!
 //! The plugin reads the file `map_events.txt` of the SD card. A line starts
-//! with the number of the zone. `S=`, `T=`, `W=` and `C=` change a record of the
+//! with the number of the map. `S=`, `T=`, `W=` and `C=` change a record of the
 //! game, `S+`, `T+`, `W+` and `C+` add one.
 
 use std::collections::BTreeMap;
@@ -52,13 +52,13 @@ pub struct Trigger {
     pub height: i16,
 }
 
-/// A warp: a place that takes the player to another zone.
+/// A warp: a place that takes the player to another map.
 #[derive(Clone, Debug, PartialEq)]
 pub struct Warp {
     /// The bytes of the record in the game (the bytes that the tool does not
     /// know stay the same when the record is written again).
     pub raw: Vec<u8>,
-    pub zone: u16,
+    pub map: u16,
     pub exit: u16,
     pub facing: u8,
     pub kind: u8,
@@ -96,7 +96,7 @@ pub struct Character {
 }
 
 #[derive(Clone, Debug, Default, PartialEq)]
-pub struct ZoneEvents {
+pub struct MapEvents {
     pub signs: Vec<Sign>,
     pub characters: Vec<Character>,
     pub warps: Vec<Warp>,
@@ -131,8 +131,8 @@ fn u32_at(b: &[u8], at: usize) -> u32 {
     u32::from_le_bytes([b[at], b[at + 1], b[at + 2], b[at + 3]])
 }
 
-impl ZoneEvents {
-    /// The part 1 of a zone pack: the head with the new numbers, the records,
+impl MapEvents {
+    /// The part 1 of a map pack: the head with the new numbers, the records,
     /// and what follows them in the game (the interrupts and the scripts).
     pub fn to_bytes(&self) -> Vec<u8> {
         let old_records = 20 * self.head[4] as usize + 48 * self.head[5] as usize + 24 * self.head[6] as usize + 24 * self.head[7] as usize;
@@ -184,7 +184,7 @@ impl ZoneEvents {
         }
         for w in &self.warps {
             let mut b = record_bytes(&w.raw, 24);
-            put16(&mut b, 0, w.zone);
+            put16(&mut b, 0, w.map);
             put16(&mut b, 2, w.exit);
             b[4] = w.facing;
             b[5] = w.kind;
@@ -215,18 +215,18 @@ impl ZoneEvents {
         out
     }
 
-    /// Reads the part 1 of a zone pack.
-    pub fn parse(part: &[u8]) -> Result<ZoneEvents, String> {
+    /// Reads the part 1 of a map pack.
+    pub fn parse(part: &[u8]) -> Result<MapEvents, String> {
         if part.len() < 12 {
-            return Err("the events of the zone are too short".into());
+            return Err("the events of the map are too short".into());
         }
         let (signs, characters, warps, triggers) = (part[4] as usize, part[5] as usize, part[6] as usize, part[7] as usize);
         let needed = 12 + 20 * signs + 48 * characters + 24 * warps + 24 * triggers;
         if part.len() < needed {
-            return Err("the events of the zone are cut".into());
+            return Err("the events of the map are cut".into());
         }
         let mut at = 12;
-        let mut out = ZoneEvents::default();
+        let mut out = MapEvents::default();
         out.head.copy_from_slice(&part[..12]);
         for _ in 0..signs {
             out.signs.push(Sign {
@@ -266,7 +266,7 @@ impl ZoneEvents {
         for _ in 0..warps {
             out.warps.push(Warp {
                 raw: part[at..at + 24].to_vec(),
-                zone: u16_at(part, at),
+                map: u16_at(part, at),
                 exit: u16_at(part, at + 2),
                 facing: part[at + 4],
                 kind: part[at + 5],
@@ -298,10 +298,10 @@ impl ZoneEvents {
     }
 }
 
-/// A zone that has the block, and where.
+/// A map that has the block, and where.
 #[derive(Clone, Debug)]
-pub struct ZoneAt {
-    pub zone: usize,
+pub struct MapAt {
+    pub map: usize,
     pub matrix: usize,
     pub column: usize,
     pub row: usize,
@@ -309,8 +309,8 @@ pub struct ZoneAt {
     pub height: usize,
 }
 
-impl ZoneAt {
-    /// The tile of the zone that is the first tile of the block.
+impl MapAt {
+    /// The tile of the map that is the first tile of the block.
     pub fn first_tile(&self) -> (i32, i32) {
         ((self.column * BLOCK_TILES) as i32, (self.row * BLOCK_TILES) as i32)
     }
@@ -333,57 +333,57 @@ fn matrix_blocks(raw: &[u8]) -> Result<(usize, usize, Vec<u16>), String> {
     Ok((width, height, (0..width * height).map(|i| u16_at(&data, 24 + 2 * i)).collect()))
 }
 
-/// The parts of the pack of a zone.
-fn zone_parts(raw: &[u8]) -> Result<Vec<Vec<u8>>, String> {
+/// The parts of the pack of a map.
+fn map_parts(raw: &[u8]) -> Result<Vec<Vec<u8>>, String> {
     let data = unpack(raw)?;
     let (_, parts) = pack::split(&data)?;
     Ok(parts.into_iter().map(|p| p.to_vec()).collect())
 }
 
-/// The zones that have a block in their matrix.
-pub fn zones_of_block(arc_dir: &str, block: usize) -> Result<Vec<ZoneAt>, String> {
-    let zones = garc::read(&PathBuf::from(arc_dir).join("zonedata_y.garc"))?;
-    let matrices = garc::read(&PathBuf::from(arc_dir).join("map_matrix.garc"))?;
+/// The maps that have a block in their matrix.
+pub fn maps_of_block(arc_dir: &str, block: usize) -> Result<Vec<MapAt>, String> {
+    let maps = garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::Maps))?;
+    let matrices = garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::Matrices))?;
     let mut cache: BTreeMap<usize, Option<(usize, usize, Vec<u16>)>> = BTreeMap::new();
     let mut found = Vec::new();
-    for (zone, file) in zones.iter().enumerate() {
+    for (map, file) in maps.iter().enumerate() {
         let Some(raw) = file.first() else { continue };
-        let Ok(parts) = zone_parts(raw) else { continue };
+        let Ok(parts) = map_parts(raw) else { continue };
         let Some(settings) = parts.first().filter(|p| p.len() >= 6) else { continue };
         let matrix = u16_at(settings, 4) as usize;
         let entry = cache.entry(matrix).or_insert_with(|| matrices.get(matrix).and_then(|f| f.first()).and_then(|r| matrix_blocks(r).ok()));
         let Some((width, height, ids)) = entry else { continue };
         if let Some(at) = ids.iter().position(|&b| b as usize == block) {
-            found.push(ZoneAt { zone, matrix, column: at % *width, row: at / *width, width: *width, height: *height });
+            found.push(MapAt { map, matrix, column: at % *width, row: at / *width, width: *width, height: *height });
         }
     }
     Ok(found)
 }
 
-/// An area: the zones that share a matrix (the same map of blocks).
+/// A world: the maps that share a matrix (the same grid of blocks).
 #[derive(Clone, Debug)]
-pub struct AreaInfo {
+pub struct WorldInfo {
     pub matrix: usize,
-    pub zones: Vec<usize>,
+    pub maps: Vec<usize>,
 }
 
-/// All the areas of the game, by number of matrix.
-pub fn list_areas(arc_dir: &str) -> Result<Vec<AreaInfo>, String> {
-    let zones = garc::read(&PathBuf::from(arc_dir).join("zonedata_y.garc"))?;
+/// All the worlds of the game, by number of matrix.
+pub fn list_worlds(arc_dir: &str) -> Result<Vec<WorldInfo>, String> {
+    let maps = garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::Maps))?;
     let mut by_matrix: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
-    for (zone, file) in zones.iter().enumerate() {
+    for (map, file) in maps.iter().enumerate() {
         let Some(raw) = file.first() else { continue };
-        let Ok(parts) = zone_parts(raw) else { continue };
+        let Ok(parts) = map_parts(raw) else { continue };
         let Some(settings) = parts.first().filter(|p| p.len() >= 6) else { continue };
-        by_matrix.entry(u16_at(settings, 4) as usize).or_default().push(zone);
+        by_matrix.entry(u16_at(settings, 4) as usize).or_default().push(map);
     }
-    Ok(by_matrix.into_iter().map(|(matrix, zones)| AreaInfo { matrix, zones }).collect())
+    Ok(by_matrix.into_iter().map(|(matrix, maps)| WorldInfo { matrix, maps }).collect())
 }
 
-/// The number of the area pack of a zone (its pictures and its light).
-pub fn zone_area(arc_dir: &str, zone: usize) -> Option<usize> {
-    let zones = garc::read(&PathBuf::from(arc_dir).join("zonedata_y.garc")).ok()?;
-    let parts = zone_parts(zones.get(zone)?.first()?).ok()?;
+/// The number of the tileset pack of a map (its pictures and its light).
+pub fn map_tileset(arc_dir: &str, map: usize) -> Option<usize> {
+    let maps = garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::Maps)).ok()?;
+    let parts = map_parts(maps.get(map)?.first()?).ok()?;
     let settings = parts.first().filter(|p| p.len() >= 4)?;
     Some(u16_at(settings, 2) as usize)
 }
@@ -406,7 +406,7 @@ pub fn read_matrix(arc_dir: &str, sd_dir: &str, matrix: usize) -> Result<MatrixL
     let raw = match found {
         Some(bytes) => bytes,
         None => {
-            let files = garc::read(&PathBuf::from(arc_dir).join("map_matrix.garc"))?;
+            let files = garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::Matrices))?;
             files.get(matrix).and_then(|f| f.first()).ok_or("no such matrix")?.clone()
         }
     };
@@ -416,7 +416,7 @@ pub fn read_matrix(arc_dir: &str, sd_dir: &str, matrix: usize) -> Result<MatrixL
 
 /// Writes a matrix with other blocks in the folder `matrix` of the SD card.
 pub fn write_matrix_override(arc_dir: &str, sd_dir: &str, matrix: usize, layout: &MatrixLayout) -> Result<String, String> {
-    let files = garc::read(&PathBuf::from(arc_dir).join("map_matrix.garc"))?;
+    let files = garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::Matrices))?;
     let raw = files.get(matrix).and_then(|f| f.first()).ok_or("no such matrix")?;
     let compressed = raw.first() == Some(&0x11);
     let mut data = unpack(raw)?;
@@ -446,38 +446,38 @@ pub fn reset_matrix(sd_dir: &str, matrix: usize) -> Result<(), String> {
     Ok(())
 }
 
-/// The zones that use a matrix.
-pub fn zones_of_matrix(arc_dir: &str, matrix: usize) -> Result<Vec<usize>, String> {
-    let zones = garc::read(&PathBuf::from(arc_dir).join("zonedata_y.garc"))?;
+/// The maps that use a matrix.
+pub fn maps_of_matrix(arc_dir: &str, matrix: usize) -> Result<Vec<usize>, String> {
+    let maps = garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::Maps))?;
     let mut found = Vec::new();
-    for (zone, file) in zones.iter().enumerate() {
+    for (map, file) in maps.iter().enumerate() {
         let Some(raw) = file.first() else { continue };
-        let Ok(parts) = zone_parts(raw) else { continue };
+        let Ok(parts) = map_parts(raw) else { continue };
         if parts.first().filter(|p| p.len() >= 6).map_or(false, |p| u16_at(p, 4) as usize == matrix) {
-            found.push(zone);
+            found.push(map);
         }
     }
     Ok(found)
 }
 
-/// The events of a zone, as the game has them.
-pub fn read_zone_events(arc_dir: &str, zone: usize) -> Result<ZoneEvents, String> {
-    let zones = garc::read(&PathBuf::from(arc_dir).join("zonedata_y.garc"))?;
-    let raw = zones.get(zone).and_then(|f| f.first()).ok_or("no such zone")?;
-    let parts = zone_parts(raw)?;
-    ZoneEvents::parse(parts.get(1).ok_or("the zone has no events")?)
+/// The events of a map, as the game has them.
+pub fn read_map_events(arc_dir: &str, map: usize) -> Result<MapEvents, String> {
+    let maps = garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::Maps))?;
+    let raw = maps.get(map).and_then(|f| f.first()).ok_or("no such map")?;
+    let parts = map_parts(raw)?;
+    MapEvents::parse(parts.get(1).ok_or("the map has no events")?)
 }
 
 /// For each number of model: the character of the game that uses it most
 /// often (with the same movement and the same kind of interaction). The tool
 /// gives a new character these values.
 pub fn character_templates(arc_dir: &str) -> Result<BTreeMap<u16, Character>, String> {
-    let zones = garc::read(&PathBuf::from(arc_dir).join("zonedata_y.garc"))?;
+    let maps = garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::Maps))?;
     let mut counts: BTreeMap<(u16, u16, u16, u8), (usize, Character)> = BTreeMap::new();
-    for file in &zones {
+    for file in &maps {
         let Some(raw) = file.first() else { continue };
-        let Ok(parts) = zone_parts(raw) else { continue };
-        let Some(Ok(events)) = parts.get(1).map(|p| ZoneEvents::parse(p)) else { continue };
+        let Ok(parts) = map_parts(raw) else { continue };
+        let Some(Ok(events)) = parts.get(1).map(|p| MapEvents::parse(p)) else { continue };
         for c in events.characters {
             let key = (c.model, c.movement, c.interaction, c.facing);
             counts.entry(key).and_modify(|e| e.0 += 1).or_insert((1, c));
@@ -492,61 +492,61 @@ pub fn character_templates(arc_dir: &str) -> Result<BTreeMap<u16, Character>, St
     Ok(best.into_iter().map(|(m, (_, c))| (m, c)).collect())
 }
 
-/// Reads the events from the file of a zone that the tool wrote on the SD
+/// Reads the events from the file of a map that the tool wrote on the SD
 /// card, if there is one.
-pub fn read_zone_override(sd_dir: &str, zone: usize) -> Option<ZoneEvents> {
-    let raw = std::fs::read(PathBuf::from(sd_dir).join("zone").join(format!("{zone}.bin"))).ok()?;
-    let parts = zone_parts(&raw).ok()?;
-    ZoneEvents::parse(parts.get(1)?).ok()
+pub fn read_map_override(sd_dir: &str, map: usize) -> Option<MapEvents> {
+    let raw = std::fs::read(PathBuf::from(sd_dir).join("zone").join(format!("{map}.bin"))).ok()?;
+    let parts = map_parts(&raw).ok()?;
+    MapEvents::parse(parts.get(1)?).ok()
 }
 
-/// Writes the pack of a zone with new events in the folder `zone` of the SD
+/// Writes the pack of a map with new events in the folder `map` of the SD
 /// card (the plugin gives it to the game in place of the pack of the archive).
-pub fn write_zone_override(arc_dir: &str, sd_dir: &str, zone: usize, events: &ZoneEvents) -> Result<String, String> {
-    let zones = garc::read(&PathBuf::from(arc_dir).join("zonedata_y.garc"))?;
-    let raw = zones.get(zone).and_then(|f| f.first()).ok_or("no such zone")?;
+pub fn write_map_override(arc_dir: &str, sd_dir: &str, map: usize, events: &MapEvents) -> Result<String, String> {
+    let maps = garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::Maps))?;
+    let raw = maps.get(map).and_then(|f| f.first()).ok_or("no such map")?;
     let compressed = raw.first() == Some(&0x11);
     let pack_bytes = unpack(raw)?;
     let pack_new = pack::replace_part_with(&pack_bytes, 1, &events.to_bytes(), 4)?;
     let bytes = if compressed { lz11::compress(&pack_new)? } else { pack_new };
     let folder = PathBuf::from(sd_dir).join("zone");
     std::fs::create_dir_all(&folder).map_err(|e| format!("{}: {e}", folder.display()))?;
-    let path = folder.join(format!("{zone}.bin"));
+    let path = folder.join(format!("{map}.bin"));
     std::fs::write(&path, &bytes).map_err(|e| format!("{}: {e}", path.display()))?;
-    crate::edit::write_index(&folder, zone, bytes.len())?;
+    crate::edit::write_index(&folder, map, bytes.len())?;
     Ok(format!("{} ({} bytes)", path.display(), bytes.len()))
 }
 
-/// Gives the zone its events of the game again: the file of the zone leaves the
-/// SD card, and the lines of the zone leave `map_events.txt`.
-pub fn reset_zone(sd_dir: &str, zone: usize) -> Result<String, String> {
+/// Gives the map its events of the game again: the file of the map leaves the
+/// SD card, and the lines of the map leave `map_events.txt`.
+pub fn reset_map(sd_dir: &str, map: usize) -> Result<String, String> {
     let folder = PathBuf::from(sd_dir).join("zone");
-    let file = folder.join(format!("{zone}.bin"));
+    let file = folder.join(format!("{map}.bin"));
     let mut done = Vec::new();
     if file.exists() {
         std::fs::remove_file(&file).map_err(|e| format!("{}: {e}", file.display()))?;
-        crate::edit::remove_index(&folder, zone)?;
-        done.push("the file of the zone");
+        crate::edit::remove_index(&folder, map)?;
+        done.push("the file of the map");
     }
     let path = file_path(sd_dir);
     if let Ok(old) = std::fs::read_to_string(&path) {
-        let empty = ZoneEvents::default();
-        let text = merge_file(&old, zone, &empty, &empty);
+        let empty = MapEvents::default();
+        let text = merge_file(&old, map, &empty, &empty);
         if text.lines().any(|l| !l.starts_with('#')) {
             std::fs::write(&path, text).map_err(|e| format!("{}: {e}", path.display()))?;
         } else {
             let _ = std::fs::remove_file(&path);
         }
-        if old.lines().filter_map(parse_line).any(|l| l.zone == zone) {
+        if old.lines().filter_map(parse_line).any(|l| l.map == map) {
             done.push("the lines of map_events.txt");
         }
     }
     Ok(if done.is_empty() { "there was nothing to remove".to_string() } else { format!("removed {}", done.join(" and ")) })
 }
 
-/// The words of a line of the file, from its number of zone.
+/// The words of a line of the file, from its number of map.
 struct Line {
-    zone: usize,
+    map: usize,
     kind: char,
     add: bool,
     index: usize,
@@ -555,7 +555,7 @@ struct Line {
 
 fn parse_line(line: &str) -> Option<Line> {
     let mut words = line.split_whitespace();
-    let zone = words.next()?.parse().ok()?;
+    let map = words.next()?.parse().ok()?;
     let tag = words.next()?;
     let mut chars = tag.chars();
     let (kind, mode) = (chars.next()?, chars.next()?);
@@ -564,7 +564,7 @@ fn parse_line(line: &str) -> Option<Line> {
     }
     let index = words.next()?.parse().ok()?;
     let fields: Vec<i64> = words.filter_map(|w| w.parse().ok()).collect();
-    Some(Line { zone, kind, add: mode == '+', index, fields })
+    Some(Line { map, kind, add: mode == '+', index, fields })
 }
 
 fn sign_from(f: &[i64]) -> Option<Sign> {
@@ -604,7 +604,7 @@ fn warp_from(f: &[i64]) -> Option<Warp> {
         z: f[2] as i16,
         width: f[3] as u16,
         depth: f[4] as u16,
-        zone: f[5] as u16,
+        map: f[5] as u16,
         exit: f[6] as u16,
         facing: f[7] as u8,
         kind: f[8] as u8,
@@ -631,7 +631,7 @@ fn apply_character(c: &mut Character, f: &[i64]) -> bool {
 
 /// A character that does not come from the game: the same fields as a record
 /// of the game, with the usual values.
-pub fn new_character(zone: u16, local_id: u16, x: u16, z: u16, height: f32) -> Character {
+pub fn new_character(map: u16, local_id: u16, x: u16, z: u16, height: f32) -> Character {
     Character {
         raw: Vec::new(),
         local_id,
@@ -643,7 +643,7 @@ pub fn new_character(zone: u16, local_id: u16, x: u16, z: u16, height: f32) -> C
         facing: 0,
         param: [0; 3],
         trigger: [0; 4],
-        maps: [zone; 3],
+        maps: [map; 3],
         alias: 65535,
         position_kind: 0,
         x,
@@ -652,13 +652,15 @@ pub fn new_character(zone: u16, local_id: u16, x: u16, z: u16, height: f32) -> C
     }
 }
 
-/// Applies the lines of the file that are for a zone to its events.
-pub fn apply_file(zone: usize, events: &mut ZoneEvents, text: &str) {
+/// Applies the lines of the file that are for a map to its events.
+pub fn apply_file(map: usize, events: &mut MapEvents, text: &str) {
     let shipped = (events.signs.len(), events.triggers.len(), events.warps.len(), events.characters.len());
-    for line in text.lines().filter_map(parse_line).filter(|l| l.zone == zone) {
+    for line in text.lines().filter_map(parse_line).filter(|l| l.map == map) {
         match (line.kind, line.add) {
             ('S', false) if line.index < shipped.0 => {
-                if let Some(s) = sign_from(&line.fields) {
+                if let Some(mut s) = sign_from(&line.fields) {
+                    // The bytes of the record that the file does not give stay.
+                    s.raw = events.signs[line.index].raw.clone();
                     events.signs[line.index] = s;
                 }
             }
@@ -668,7 +670,8 @@ pub fn apply_file(zone: usize, events: &mut ZoneEvents, text: &str) {
                 }
             }
             ('T', false) if line.index < shipped.1 => {
-                if let Some(t) = trigger_from(&line.fields) {
+                if let Some(mut t) = trigger_from(&line.fields) {
+                    t.raw = events.triggers[line.index].raw.clone();
                     events.triggers[line.index] = t;
                 }
             }
@@ -678,7 +681,8 @@ pub fn apply_file(zone: usize, events: &mut ZoneEvents, text: &str) {
                 }
             }
             ('W', false) if line.index < shipped.2 => {
-                if let Some(w) = warp_from(&line.fields) {
+                if let Some(mut w) = warp_from(&line.fields) {
+                    w.raw = events.warps[line.index].raw.clone();
                     events.warps[line.index] = w;
                 }
             }
@@ -691,7 +695,7 @@ pub fn apply_file(zone: usize, events: &mut ZoneEvents, text: &str) {
                 apply_character(&mut events.characters[line.index], &line.fields);
             }
             ('C', true) => {
-                let mut c = new_character(zone as u16, events.characters.len() as u16, 0, 0, 0.0);
+                let mut c = new_character(map as u16, events.characters.len() as u16, 0, 0, 0.0);
                 if apply_character(&mut c, &line.fields) {
                     events.characters.push(c);
                 }
@@ -701,44 +705,44 @@ pub fn apply_file(zone: usize, events: &mut ZoneEvents, text: &str) {
     }
 }
 
-fn sign_line(zone: usize, add: bool, index: usize, s: &Sign) -> String {
-    format!("{zone} S{} {index} {} {} {} {} {} {} {} {}", if add { '+' } else { '=' }, s.x, s.z, s.width, s.depth, s.height, s.id, s.facing, s.kind)
+fn sign_line(map: usize, add: bool, index: usize, s: &Sign) -> String {
+    format!("{map} S{} {index} {} {} {} {} {} {} {} {}", if add { '+' } else { '=' }, s.x, s.z, s.width, s.depth, s.height, s.id, s.facing, s.kind)
 }
 
-fn trigger_line(zone: usize, add: bool, index: usize, t: &Trigger) -> String {
+fn trigger_line(map: usize, add: bool, index: usize, t: &Trigger) -> String {
     format!(
-        "{zone} T{} {index} {} {} {} {} {} {} {} {} {}",
+        "{map} T{} {index} {} {} {} {} {} {} {} {} {}",
         if add { '+' } else { '=' }, t.x, t.z, t.width, t.depth, t.height, t.id, t.work_id, t.param, t.check_kind
     )
 }
 
-fn warp_line(zone: usize, add: bool, index: usize, w: &Warp) -> String {
+fn warp_line(map: usize, add: bool, index: usize, w: &Warp) -> String {
     format!(
-        "{zone} W{} {index} {} {} {} {} {} {} {} {} {}",
-        if add { '+' } else { '=' }, w.x, w.y, w.z, w.width, w.depth, w.zone, w.exit, w.facing, w.kind
+        "{map} W{} {index} {} {} {} {} {} {} {} {} {}",
+        if add { '+' } else { '=' }, w.x, w.y, w.z, w.width, w.depth, w.map, w.exit, w.facing, w.kind
     )
 }
 
-fn character_line(zone: usize, add: bool, index: usize, c: &Character) -> String {
+fn character_line(map: usize, add: bool, index: usize, c: &Character) -> String {
     format!(
-        "{zone} C{} {index} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}",
+        "{map} C{} {index} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}",
         if add { '+' } else { '=' },
         c.x, c.z, c.height as i32, c.facing, c.script, c.movement, c.interaction, c.param[0], c.param[1], c.param[2],
         c.hide_flag, c.model, c.trigger[0], c.trigger[1], c.trigger[2], c.trigger[3]
     )
 }
 
-/// The text of the file with the changes of a zone: the lines of the other
-/// zones stay, and the lines of this zone are written again from the
+/// The text of the file with the changes of a map: the lines of the other
+/// maps stay, and the lines of this map are written again from the
 /// difference between the events of the game (`base`) and the events now.
-pub fn merge_file(old: &str, zone: usize, base: &ZoneEvents, now: &ZoneEvents) -> String {
+pub fn merge_file(old: &str, map: usize, base: &MapEvents, now: &MapEvents) -> String {
     let mut out = String::from("# Sango map events. map S+|S=|T+|T=|W+|W=|C= index fields. See the docs.\n");
     for line in old.lines() {
         if line.trim().is_empty() || line.starts_with('#') {
             continue;
         }
-        // The lines of this zone are written again below; the other lines stay.
-        if parse_line(line).map_or(true, |l| l.zone != zone) {
+        // The lines of this map are written again below; the other lines stay.
+        if parse_line(line).map_or(true, |l| l.map != map) {
             out.push_str(line);
             out.push('\n');
         }
@@ -746,30 +750,30 @@ pub fn merge_file(old: &str, zone: usize, base: &ZoneEvents, now: &ZoneEvents) -
     let mut lines: Vec<String> = Vec::new();
     for (i, s) in now.signs.iter().enumerate() {
         if i >= base.signs.len() {
-            lines.push(sign_line(zone, true, i - base.signs.len(), s));
+            lines.push(sign_line(map, true, i - base.signs.len(), s));
         } else if *s != base.signs[i] {
-            lines.push(sign_line(zone, false, i, s));
+            lines.push(sign_line(map, false, i, s));
         }
     }
     for (i, t) in now.triggers.iter().enumerate() {
         if i >= base.triggers.len() {
-            lines.push(trigger_line(zone, true, i - base.triggers.len(), t));
+            lines.push(trigger_line(map, true, i - base.triggers.len(), t));
         } else if *t != base.triggers[i] {
-            lines.push(trigger_line(zone, false, i, t));
+            lines.push(trigger_line(map, false, i, t));
         }
     }
     for (i, w) in now.warps.iter().enumerate() {
         if i >= base.warps.len() {
-            lines.push(warp_line(zone, true, i - base.warps.len(), w));
+            lines.push(warp_line(map, true, i - base.warps.len(), w));
         } else if *w != base.warps[i] {
-            lines.push(warp_line(zone, false, i, w));
+            lines.push(warp_line(map, false, i, w));
         }
     }
     for (i, c) in now.characters.iter().enumerate() {
         if i >= base.characters.len() {
-            lines.push(character_line(zone, true, i - base.characters.len(), c));
+            lines.push(character_line(map, true, i - base.characters.len(), c));
         } else if *c != base.characters[i] {
-            lines.push(character_line(zone, false, i, c));
+            lines.push(character_line(map, false, i, c));
         }
     }
     for l in lines {
@@ -785,12 +789,12 @@ pub fn file_path(sd_dir: &str) -> PathBuf {
 }
 
 /// The place in a block (units, from the middle of the block) of a tile of the
-/// zone, for the block that is at (`column`, `row`) of the matrix.
+/// map, for the block that is at (`column`, `row`) of the matrix.
 pub fn tile_to_local(tile: f32, block_index: usize) -> f32 {
     (tile - (block_index * BLOCK_TILES) as f32) * TILE - 360.0
 }
 
-/// The tile of the zone that is at a place of the block.
+/// The tile of the map that is at a place of the block.
 pub fn local_to_tile(local: f32, block_index: usize) -> f32 {
     (local + 360.0) / TILE + (block_index * BLOCK_TILES) as f32
 }

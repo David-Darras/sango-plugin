@@ -91,10 +91,13 @@ struct Vertex {
     colour: [u8; 4],
 }
 
+mod chrome;
 mod events_view;
 
+use chrome::{CamGoal, Commands, Confirm, Tool};
+
 /// A mesh of the 3D model of a character, already put in its place.
-pub struct PropMesh {
+pub struct PlacedMesh {
     /// What names the picture on the graphics card.
     pub key: String,
     pub vertices: Vec<Vertex>,
@@ -103,7 +106,7 @@ pub struct PropMesh {
     pub picture: String,
 }
 
-struct GpuProp {
+struct GpuPlaced {
     vertices: wgpu::Buffer,
     indices: wgpu::Buffer,
     index_count: u32,
@@ -141,8 +144,8 @@ struct Gpu {
     /// The squares and poles of the events: the buffer and the number of vertices.
     events: Option<(wgpu::Buffer, u32)>,
     /// The 3D models of the characters, and their pictures (kept by name).
-    props: Vec<GpuProp>,
-    prop_pictures: HashMap<String, wgpu::BindGroup>,
+    placed: Vec<GpuPlaced>,
+    placed_pictures: HashMap<String, wgpu::BindGroup>,
     /// The blocks around the block (read only), already put in their place.
     neighbours: Vec<GpuMesh>,
 }
@@ -200,21 +203,21 @@ impl Gpu {
 
     /// Puts the models of the characters in the buffers. A picture is sent to
     /// the graphics card once.
-    fn set_props(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, props: &[PropMesh]) {
+    fn set_placed_models(&mut self, device: &wgpu::Device, queue: &wgpu::Queue, placed: &[PlacedMesh]) {
         let mut out = Vec::new();
-        for prop in props {
-            if prop.vertices.is_empty() || prop.indices.is_empty() {
+        for item in placed {
+            if item.vertices.is_empty() || item.indices.is_empty() {
                 continue;
             }
-            if !self.prop_pictures.contains_key(&prop.key) {
-                let (width, height, pixels) = match prop.model.textures.get(&prop.picture) {
+            if !self.placed_pictures.contains_key(&item.key) {
+                let (width, height, pixels) = match item.model.textures.get(&item.picture) {
                     Some(t) => (t.width as u32, t.height as u32, t.rgba.clone()),
-                    None => (1, 1, name_colour(&prop.picture).to_vec()),
+                    None => (1, 1, name_colour(&item.picture).to_vec()),
                 };
                 let picture = device.create_texture_with_data(
                     queue,
                     &wgpu::TextureDescriptor {
-                        label: Some(&prop.key),
+                        label: Some(&item.key),
                         size: wgpu::Extent3d { width, height, depth_or_array_layers: 1 },
                         mip_level_count: 1,
                         sample_count: 1,
@@ -235,16 +238,16 @@ impl Gpu {
                         wgpu::BindGroupEntry { binding: 1, resource: wgpu::BindingResource::Sampler(&self.sampler) },
                     ],
                 });
-                self.prop_pictures.insert(prop.key.clone(), group);
+                self.placed_pictures.insert(item.key.clone(), group);
             }
             let vertices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
                 label: None,
-                contents: bytemuck::cast_slice(&prop.vertices),
+                contents: bytemuck::cast_slice(&item.vertices),
                 usage: wgpu::BufferUsages::VERTEX,
             });
-            out.push(GpuProp { vertices, indices: index_buffer(device, &prop.indices), index_count: prop.indices.len() as u32, key: prop.key.clone() });
+            out.push(GpuPlaced { vertices, indices: index_buffer(device, &item.indices), index_count: item.indices.len() as u32, key: item.key.clone() });
         }
-        self.props = out;
+        self.placed = out;
     }
 
     fn set_events(&mut self, device: &wgpu::Device, vertices: &[Vertex]) {
@@ -341,12 +344,12 @@ impl egui_wgpu::CallbackTrait for SceneCallback {
         if self.show_events {
             pass.set_pipeline(&gpu.pipeline);
             pass.set_bind_group(0, &gpu.uniform_group, &[]);
-            for prop in &gpu.props {
-                let Some(picture) = gpu.prop_pictures.get(&prop.key) else { continue };
+            for item in &gpu.placed {
+                let Some(picture) = gpu.placed_pictures.get(&item.key) else { continue };
                 pass.set_bind_group(1, picture, &[]);
-                pass.set_vertex_buffer(0, prop.vertices.slice(..));
-                pass.set_index_buffer(prop.indices.slice(..), wgpu::IndexFormat::Uint32);
-                pass.draw_indexed(0..prop.index_count, 0, 0..1);
+                pass.set_vertex_buffer(0, item.vertices.slice(..));
+                pass.set_index_buffer(item.indices.slice(..), wgpu::IndexFormat::Uint32);
+                pass.draw_indexed(0..item.index_count, 0, 0..1);
             }
             if let Some((buffer, count)) = &gpu.events {
                 pass.set_pipeline(&gpu.tiles_pipeline);
@@ -386,7 +389,7 @@ fn build_gpu(state: &egui_wgpu::RenderState, meshes: &[(usize, Mesh)], textures:
     let device = &state.device;
     let queue = &state.queue;
     let module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-        label: Some("map studio"),
+        label: Some("sango editor"),
         source: wgpu::ShaderSource::Wgsl(SHADER.into()),
     });
     let uniform_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -427,7 +430,7 @@ fn build_gpu(state: &egui_wgpu::RenderState, meshes: &[(usize, Mesh)], textures:
     let attributes = wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x2, 2 => Unorm8x4];
     let make_pipeline = |compare: wgpu::CompareFunction| {
         device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: Some("map studio"),
+            label: Some("sango editor"),
             layout: Some(&layout),
             vertex: wgpu::VertexState {
                 module: &module,
@@ -462,7 +465,7 @@ fn build_gpu(state: &egui_wgpu::RenderState, meshes: &[(usize, Mesh)], textures:
     // The selected object is drawn again on the same triangles.
     let overlay = make_pipeline(wgpu::CompareFunction::LessEqual);
     let tiles_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-        label: Some("map studio tiles"),
+        label: Some("sango editor tiles"),
         source: wgpu::ShaderSource::Wgsl(TILES_SHADER.into()),
     });
     let tiles_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
@@ -471,7 +474,7 @@ fn build_gpu(state: &egui_wgpu::RenderState, meshes: &[(usize, Mesh)], textures:
         push_constant_ranges: &[],
     });
     let tiles_pipeline = device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-        label: Some("map studio tiles"),
+        label: Some("sango editor tiles"),
         layout: Some(&tiles_layout),
         vertex: wgpu::VertexState {
             module: &tiles_module,
@@ -544,8 +547,8 @@ fn build_gpu(state: &egui_wgpu::RenderState, meshes: &[(usize, Mesh)], textures:
         picture_layout,
         sampler,
         events: None,
-        props: Vec::new(),
-        prop_pictures: HashMap::new(),
+        placed: Vec::new(),
+        placed_pictures: HashMap::new(),
         neighbours: Vec::new(),
     }
 }
@@ -640,7 +643,7 @@ fn tile_style(value: u32) -> (String, [u8; 4]) {
 /// The file that holds the object that the user copied. It is outside the
 /// project, so it works from one block to another (two runs of the tool).
 fn clipboard_path() -> std::path::PathBuf {
-    std::env::temp_dir().join("map_studio_clipboard.msobj")
+    std::env::temp_dir().join("sango_editor_clipboard.msobj")
 }
 
 /// What a click hits.
@@ -711,22 +714,29 @@ pub struct Viewer {
     heights: Option<Vec<f32>>,
     /// The attributes of all the blocks, with how many tiles have each.
     palette: Vec<(u32, usize)>,
-    /// The pictures that the viewer can show (those of the area of the block,
+    /// The pictures that the viewer can show (those of the tileset of the block,
     /// and those that dropped objects bring).
     textures: HashMap<String, Texture>,
-    /// The names of the pictures that the area of the block has.
-    area_pictures: std::collections::HashSet<String>,
+    /// The names of the pictures that the tileset of the block has.
+    tileset_pictures: std::collections::HashSet<String>,
     catalog_open: bool,
     catalog: CatalogPanel,
     /// True while the user works on the events (characters, warps...).
     events_mode: bool,
     ev: events_view::EventsState,
-    /// All the areas of the game, for the list of the areas.
-    areas: Vec<crate::events::AreaInfo>,
-    area_filter: String,
-    /// The block or the area that the user asked for: the viewer changes at the end of the frame.
+    /// All the worlds of the game, for the list of the tilesets.
+    worlds: Vec<crate::events::WorldInfo>,
+    world_filter: String,
+    /// The block or the world that the user asked for: the viewer changes at the end of the frame.
     pending_block: Option<usize>,
-    pending_area: Option<usize>,
+    pending_world: Option<usize>,
+    /// The point of the map under the pointer.
+    hover: Option<Vec3>,
+    /// Where the camera goes (it moves over a few frames).
+    cam_goal: Option<CamGoal>,
+    help_open: bool,
+    confirm: Option<Confirm>,
+    show_inspector: bool,
     models: crate::models::ModelBank,
     npcs: events_view::NpcPanel,
     /// The emulator and the game that the Launch button starts.
@@ -752,7 +762,7 @@ struct CatalogPanel {
     search: String,
     hide_ground: bool,
     thumbs: HashMap<usize, egui::TextureHandle>,
-    areas: HashMap<usize, HashMap<String, Texture>>,
+    tilesets: HashMap<usize, HashMap<String, Texture>>,
     message: String,
     /// True for the catalogue of tiles.
     tiles: bool,
@@ -771,7 +781,7 @@ fn first_existing(paths: &[&str]) -> String {
 /// of the game.
 fn catalog_path(tiles: bool) -> std::path::PathBuf {
     let base = std::env::var("LOCALAPPDATA").map(std::path::PathBuf::from).unwrap_or_else(|_| std::env::temp_dir());
-    base.join("map_studio").join(if tiles { "tiles.bin" } else { "catalog.bin" })
+    base.join("sango_editor").join(if tiles { "tiles.bin" } else { "catalog.bin" })
 }
 
 /// Says whether a model is a piece of the ground (a border, a shadow, a cliff)
@@ -788,6 +798,7 @@ impl Viewer {
         title: String,
         arc_dir: String,
     ) -> Result<Self, String> {
+        chrome::apply_theme(&cc.egui_ctx);
         let state = cc.wgpu_render_state.as_ref().ok_or("the graphics card is not available")?;
         let gpu = build_gpu(state, editor.meshes(), &textures);
         state.renderer.write().callback_resources.insert(gpu);
@@ -843,15 +854,20 @@ impl Viewer {
             stroking: false,
             heights: None,
             palette: Vec::new(),
-            area_pictures: textures.keys().cloned().collect(),
+            tileset_pictures: textures.keys().cloned().collect(),
             textures,
             catalog_open: false,
             events_mode: false,
             ev: Default::default(),
-            areas: Vec::new(),
-            area_filter: String::new(),
+            worlds: Vec::new(),
+            world_filter: String::new(),
             pending_block: None,
-            pending_area: None,
+            pending_world: None,
+            hover: None,
+            cam_goal: None,
+            help_open: false,
+            confirm: None,
+            show_inspector: true,
             models: {
                 let mut bank = crate::models::ModelBank::new(&arc_for_models);
                 // The models of X and Y for ORAS are in `sango` (or in `sango_off`, when the folder is switched off).
@@ -900,39 +916,39 @@ impl Viewer {
         self.visible = vec![true; count];
     }
 
-    /// The name of an area in the list: its first zones.
-    fn area_label(area: &crate::events::AreaInfo) -> String {
-        let names: Vec<String> = area
-            .zones
+    /// The name of a world in the list: its first maps.
+    fn world_label(world: &crate::events::WorldInfo) -> String {
+        let names: Vec<String> = world
+            .maps
             .iter()
-            .filter_map(|&z| crate::names::ZONE_NAMES.get(z))
+            .filter_map(|&z| crate::names::MAP_NAMES.get(z))
             .filter(|n| !n.starts_with("Unknow"))
             .take(3)
             .map(|n| n.to_string())
             .collect();
-        let more = if area.zones.len() > 3 { format!(" (+{})", area.zones.len() - 3) } else { String::new() };
-        if names.is_empty() { format!("Area {}", area.matrix) } else { format!("{}{more}", names.join(", ")) }
+        let more = if world.maps.len() > 3 { format!(" (+{})", world.maps.len() - 3) } else { String::new() };
+        if names.is_empty() { format!("World {}", world.matrix) } else { format!("{}{more}", names.join(", ")) }
     }
 
-    /// The list to choose the area to work on.
-    fn area_ui(&mut self, ui: &mut egui::Ui) {
-        if self.areas.is_empty() {
-            self.areas = crate::events::list_areas(&self.arc_dir).unwrap_or_default();
+    /// The list to choose the world to work on.
+    fn world_ui(&mut self, ui: &mut egui::Ui) {
+        if self.worlds.is_empty() {
+            self.worlds = crate::events::list_worlds(&self.arc_dir).unwrap_or_default();
         }
         let current = self.ev.at().map(|z| z.matrix);
         let selected = current
-            .and_then(|m| self.areas.iter().find(|a| a.matrix == m))
-            .map_or("(choose an area)".to_string(), |a| Self::area_label(a));
+            .and_then(|m| self.worlds.iter().find(|a| a.matrix == m))
+            .map_or("(choose a world)".to_string(), |a| Self::world_label(a));
         let mut pick: Option<usize> = None;
         ui.horizontal(|ui| {
-            ui.label("Area:");
-            egui::ComboBox::from_id_salt("area_list").selected_text(selected).width(250.0).show_ui(ui, |ui| {
-                ui.add(egui::TextEdit::singleline(&mut self.area_filter).hint_text("search a zone"));
-                let words: Vec<String> = self.area_filter.to_lowercase().split_whitespace().map(String::from).collect();
+            ui.label("World:");
+            egui::ComboBox::from_id_salt("world_list").selected_text(selected).width(250.0).show_ui(ui, |ui| {
+                ui.add(egui::TextEdit::singleline(&mut self.world_filter).hint_text("search a map"));
+                let words: Vec<String> = self.world_filter.to_lowercase().split_whitespace().map(String::from).collect();
                 egui::ScrollArea::vertical().max_height(360.0).show(ui, |ui| {
-                    for a in &self.areas {
-                        let label = Self::area_label(a);
-                        let all_names: String = a.zones.iter().filter_map(|&z| crate::names::ZONE_NAMES.get(z)).map(|n| n.to_lowercase()).collect::<Vec<_>>().join(" ");
+                    for a in &self.worlds {
+                        let label = Self::world_label(a);
+                        let all_names: String = a.maps.iter().filter_map(|&z| crate::names::MAP_NAMES.get(z)).map(|n| n.to_lowercase()).collect::<Vec<_>>().join(" ");
                         if !words.iter().all(|w| all_names.contains(w.as_str())) {
                             continue;
                         }
@@ -944,10 +960,14 @@ impl Viewer {
             });
         });
         if pick.is_some() {
-            self.pending_area = pick;
+            self.pending_world = pick;
         }
+    }
+
+    /// The row that says how many blocks of the world are drawn.
+    fn world_blocks_ui(&mut self, ui: &mut egui::Ui) {
         ui.horizontal(|ui| {
-            ui.label("Blocks of the area drawn:");
+            ui.label("Blocks of the world drawn:");
             let mut radius = self.ev.neigh_radius.min(64);
             let format = |v: f64, _: std::ops::RangeInclusive<usize>| if v >= 64.0 { "all".to_string() } else { format!("{v}") };
             if ui.add(egui::DragValue::new(&mut radius).range(0..=64).custom_formatter(format)).changed() {
@@ -962,6 +982,36 @@ impl Viewer {
         });
     }
 
+    /// Does what the user confirmed.
+    fn do_confirm(&mut self, what: Confirm, frame: &eframe::Frame) {
+        match what {
+            Confirm::ResetMap => {
+                if let Some(at) = self.ev.at().cloned() {
+                    let result = crate::events::reset_map(&self.export_dir, at.map);
+                    self.events_load_map();
+                    self.status = match result {
+                        Ok(message) => format!("Map {}: {message}. Start the game again.", at.map),
+                        Err(e) => format!("Cannot reset the map: {e}"),
+                    };
+                    self.refresh_events(frame);
+                }
+            }
+            Confirm::ResetMatrix => {
+                if let Some(at) = self.ev.at().cloned() {
+                    self.status = match crate::events::reset_matrix(&self.export_dir, at.matrix) {
+                        Ok(()) => {
+                            self.ev.matrix = self.ev.original_matrix.clone();
+                            self.ev.neigh_key = None;
+                            format!("Matrix {} has the blocks of the game again.", at.matrix)
+                        }
+                        Err(e) => format!("Cannot reset the matrix: {e}"),
+                    };
+                    self.refresh_neighbours(frame);
+                }
+            }
+        }
+    }
+
     /// Opens another block in this window (the changes of the block that was
     /// open are kept in its project file).
     fn switch_block(&mut self, block: usize, frame: &eframe::Frame) {
@@ -972,7 +1022,7 @@ impl Viewer {
         }
         let loaded = crate::data::load_scene(&self.arc_dir, block, None).and_then(|scene| {
             let mut editor = Editor::new(&self.arc_dir, block)?;
-            editor.set_area(scene.area);
+            editor.set_tileset(scene.tileset);
             Ok((scene, editor))
         });
         let (scene, editor) = match loaded {
@@ -982,7 +1032,7 @@ impl Viewer {
                 return;
             }
         };
-        self.area_pictures = scene.textures.keys().cloned().collect();
+        self.tileset_pictures = scene.textures.keys().cloned().collect();
         self.textures = scene.textures;
         self.editor = editor;
         self.rows.clear();
@@ -1019,12 +1069,12 @@ impl Viewer {
         self.status = format!("Block {block} is open.");
     }
 
-    /// Opens an area: its first block.
-    fn switch_area(&mut self, matrix: usize, frame: &eframe::Frame) {
+    /// Opens a world: its first block.
+    fn switch_world(&mut self, matrix: usize, frame: &eframe::Frame) {
         match crate::events::read_matrix(&self.arc_dir, &self.export_dir, matrix) {
             Ok(layout) => match layout.ids.iter().find(|&&b| (b as usize) < 857) {
                 Some(&block) => self.switch_block(block as usize, frame),
-                None => self.status = "This area has no block.".into(),
+                None => self.status = "This world has no block.".into(),
             },
             Err(e) => self.status = format!("Cannot read the matrix: {e}"),
         }
@@ -1034,11 +1084,11 @@ impl Viewer {
     fn refresh_events(&mut self, frame: &eframe::Frame) {
         let Some(state) = frame.wgpu_render_state() else { return };
         let vertices = self.event_vertices();
-        let props = self.prop_meshes();
+        let placed = self.placed_meshes();
         let mut renderer = state.renderer.write();
         let Some(gpu) = renderer.callback_resources.get_mut::<Gpu>() else { return };
         gpu.set_events(&state.device, &vertices);
-        gpu.set_props(&state.device, &state.queue, &props);
+        gpu.set_placed_models(&state.device, &state.queue, &placed);
     }
 
     /// Starts or ends the mode of the events.
@@ -1062,13 +1112,13 @@ impl Viewer {
     fn refresh(&mut self, frame: &eframe::Frame) {
         self.sync_meshes(frame);
         let Some(state) = frame.wgpu_render_state() else { return };
-        let props = self.prop_meshes();
+        let placed = self.placed_meshes();
         let mut renderer = state.renderer.write();
         let Some(gpu) = renderer.callback_resources.get_mut::<Gpu>() else { return };
         gpu.set_geometry(&state.device, self.editor.meshes());
         gpu.set_tiles(&state.device, &self.tile_vertices());
         gpu.set_events(&state.device, &self.event_vertices());
-        gpu.set_props(&state.device, &state.queue, &props);
+        gpu.set_placed_models(&state.device, &state.queue, &placed);
         let lists = self
             .editor
             .meshes()
@@ -1431,29 +1481,29 @@ impl Viewer {
         let object = entry.portable.clone();
         let name = entry.name.clone();
         let pictures: Vec<String> = entry.preview.iter().map(|p| p.picture.clone()).collect();
-        let area = entry.area;
-        // The viewer can show the pictures that this area does not have.
-        if let Some(a) = area {
+        let tileset = entry.tileset;
+        // The viewer can show the pictures that this tileset does not have.
+        if let Some(a) = tileset {
             let arc_dir = self.arc_dir.clone();
-            let loaded = panel.areas.entry(a).or_insert_with(|| crate::data::area_textures(&arc_dir, a).unwrap_or_default());
+            let loaded = panel.tilesets.entry(a).or_insert_with(|| crate::data::tileset_textures(&arc_dir, a).unwrap_or_default());
             for picture in &pictures {
                 if let Some(t) = loaded.get(picture) {
                     self.textures.entry(picture.clone()).or_insert_with(|| t.clone());
                 }
             }
         }
-        // The pictures that the area of the block does not have go in a new
-        // area file when the block is exported.
-        let missing: Vec<String> = pictures.iter().filter(|p| !self.area_pictures.contains(*p)).cloned().collect();
+        // The pictures that the tileset of the block does not have go in a new
+        // tileset file when the block is exported.
+        let missing: Vec<String> = pictures.iter().filter(|p| !self.tileset_pictures.contains(*p)).cloned().collect();
         let mut warning = String::new();
         if !missing.is_empty() {
-            let blobs = area.map(|a| crate::data::area_texture_blobs(&self.arc_dir, a, &missing)).unwrap_or(Ok(Vec::new()));
+            let blobs = tileset.map(|a| crate::data::tileset_texture_blobs(&self.arc_dir, a, &missing)).unwrap_or(Ok(Vec::new()));
             match blobs {
                 Ok(blobs) if blobs.len() == missing.len() => {
                     self.editor.provide_pictures(blobs);
-                    warning = format!(" The area gets the pictures {} when you export.", missing.join(", "));
+                    warning = format!(" The tileset gets the pictures {} when you export.", missing.join(", "));
                 }
-                Ok(_) => warning = format!(" Warning: pictures of {} were not found in the donor area: the game may show a black screen.", missing.join(", ")),
+                Ok(_) => warning = format!(" Warning: pictures of {} were not found in the donor tileset: the game may show a black screen.", missing.join(", ")),
                 Err(e) => warning = format!(" Warning: cannot read the pictures ({e}): the game may show a black screen."),
             }
         }
@@ -1577,22 +1627,20 @@ impl eframe::App for Viewer {
         let mut select_mesh: Option<usize> = None;
 
         if !self.ev.loaded {
-            // The zones of the block: the list of the areas shows the area that is open.
+            // The maps of the block: the list of the worlds shows the world that is open.
             self.events_enter();
             crate::config::save(&self.arc_dir, self.editor.block_id());
             self.refresh_neighbours(frame);
         }
-        let mut events_toggled = false;
-        if !ctx.wants_keyboard_input() && ctx.input(|i| i.key_pressed(egui::Key::V) && !i.modifiers.command) {
-            self.events_mode = !self.events_mode;
-            events_toggled = true;
-        }
-        if !ctx.wants_keyboard_input() && self.events_mode {
+        let mut cmd = Commands::default();
+        self.global_keys(ctx, &mut cmd);
+        let alt = ctx.input(|i| i.modifiers.alt);
+        if !ctx.wants_keyboard_input() && !alt && self.events_mode {
             self.events_keys(ctx, frame);
             if ctx.input(|i| i.key_pressed(egui::Key::F5)) {
                 action = Some(Action::Launch);
             }
-        } else if !ctx.wants_keyboard_input() {
+        } else if !ctx.wants_keyboard_input() && !alt {
             ctx.input(|i| {
                 let step = if i.modifiers.shift { 2.0 } else { TILE };
                 let copy_event = i.events.iter().any(|e| matches!(e, egui::Event::Copy));
@@ -1631,10 +1679,8 @@ impl eframe::App for Viewer {
             if ctx.input(|i| i.key_pressed(egui::Key::E)) && !self.selected.is_empty() {
                 action = Some(Action::Grow);
             }
-            if ctx.input(|i| i.key_pressed(egui::Key::T)) {
-                self.tile_mode = !self.tile_mode;
-                self.placing = false;
-                self.toggle_tiles(frame);
+            if ctx.input(|i| i.key_pressed(egui::Key::E)) && !self.selected.is_empty() {
+                action = Some(Action::Grow);
             }
             if ctx.input(|i| i.key_pressed(egui::Key::G)) && !self.selected.is_empty() {
                 self.placing = !self.placing;
@@ -1648,6 +1694,10 @@ impl eframe::App for Viewer {
             }
         }
 
+        self.menu_bar(ctx, &mut cmd);
+        self.toolbar(ctx, &mut cmd);
+        self.status_bar(ctx);
+
         let mut dropped: Option<(bool, usize)> = None;
         let mut npc_pick: Option<u16> = None;
         if self.catalog_open {
@@ -1655,7 +1705,15 @@ impl eframe::App for Viewer {
             if !self.npc_tab {
                 self.catalog_start(tiles);
             }
-            egui::SidePanel::right("catalog").default_width(360.0).show(ctx, |ui| {
+            egui::SidePanel::right("catalog").resizable(true).default_width(380.0).width_range(280.0..=640.0).show(ctx, |ui| {
+                ui.horizontal(|ui| {
+                    ui.label(chrome::section_title("Catalogue"));
+                    ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                        if ui.small_button("Close").on_hover_text("Close the catalogue (C)").clicked() {
+                            self.catalog_open = false;
+                        }
+                    });
+                });
                 ui.horizontal(|ui| {
                     if ui.selectable_label(!self.tile_tab && !self.npc_tab, "Objects").clicked() {
                         self.tile_tab = false;
@@ -1665,10 +1723,11 @@ impl eframe::App for Viewer {
                         self.tile_tab = true;
                         self.npc_tab = false;
                     }
-                    if ui.selectable_label(self.npc_tab, "NPCs").clicked() {
+                    if ui.selectable_label(self.npc_tab, "Characters").clicked() {
                         self.npc_tab = true;
                     }
                 });
+                ui.separator();
                 if self.npc_tab {
                     npc_pick = self.npc_ui(ctx, ui);
                 } else {
@@ -1677,174 +1736,11 @@ impl eframe::App for Viewer {
             });
         }
 
-        egui::SidePanel::left("panel").default_width(320.0).show(ctx, |ui| {
-            ui.heading(&self.title);
-            self.area_ui(ui);
-            ui.separator();
-            ui.checkbox(&mut self.catalog_open, "Catalogue of objects");
-            let was_events = self.events_mode;
-            ui.checkbox(&mut self.events_mode, "Events: characters, warps, signs, triggers (V)");
-            if self.events_mode != was_events {
-                events_toggled = true;
-            }
-            ui.horizontal(|ui| {
-                if ui.add_enabled(self.editor.can_undo(), egui::Button::new("Undo")).clicked() {
-                    action = Some(Action::Undo);
-                }
-                if ui.add_enabled(self.editor.can_redo(), egui::Button::new("Redo")).clicked() {
-                    action = Some(Action::Redo);
-                }
-            });
-            ui.label(self.describe_selection());
-            let has_selection = !self.selected.is_empty();
-            ui.horizontal(|ui| {
-                if ui.add_enabled(has_selection, egui::Button::new("Copy (D)")).clicked() {
-                    action = Some(Action::Duplicate);
-                }
-                if ui.add_enabled(has_selection, egui::Button::new("Place (G)")).clicked() {
-                    self.placing = true;
-                    self.status = "Click on the ground to place the object.".into();
-                }
-                if ui.add_enabled(has_selection, egui::Button::new("Delete (Del, X)")).clicked() {
-                    action = Some(Action::Delete);
-                }
-            });
-            ui.horizontal(|ui| {
-                if ui.add_enabled(has_selection, egui::Button::new("Grow the selection (E)")).clicked() {
-                    action = Some(Action::Grow);
-                }
-            });
-            ui.horizontal(|ui| {
-                if ui.add_enabled(has_selection, egui::Button::new("Copy out (Ctrl+C)")).clicked() {
-                    action = Some(Action::CopyOut);
-                }
-                if ui.button("Paste (Ctrl+V)").clicked() {
-                    action = Some(Action::Paste);
-                }
-            });
-            ui.horizontal(|ui| {
-                let quarter = std::f32::consts::FRAC_PI_2;
-                if ui.add_enabled(has_selection, egui::Button::new("Turn left (Shift+R)")).clicked() {
-                    action = Some(Action::Rotate(-quarter));
-                }
-                if ui.add_enabled(has_selection, egui::Button::new("Turn right (R)")).clicked() {
-                    action = Some(Action::Rotate(quarter));
-                }
-            });
-            ui.checkbox(&mut self.snap, "Snap to the tiles");
-            ui.checkbox(&mut self.walls_follow, "The walls (collision) under the objects move with them");
-            ui.checkbox(&mut self.events_follow, "The events under the objects move with them (warps, signs, characters)");
-            ui.label("Ctrl+click takes the whole building (all its pieces). Shift+click adds or removes a piece. In the list of the meshes, Select takes one mesh only. E adds the pieces that touch the selection (for a house). Arrows: move one tile (Shift: 2 units). Page up/down: height. Esc: select nothing.");
-            ui.separator();
-            let was_tile_mode = self.tile_mode;
-            ui.checkbox(&mut self.tile_mode, "Edit the tiles (T)");
-            if self.tile_mode != was_tile_mode {
-                self.placing = false;
-                tiles_toggled = true;
-            }
-            if self.tile_mode {
-                ui.horizontal(|ui| {
-                    ui.label("Brush:");
-                    ui.add(egui::DragValue::new(&mut self.brush_size).range(1..=6).suffix(" tiles"));
-                    if ui.selectable_label(self.pipette, "Pipette").clicked() {
-                        self.pipette = !self.pipette;
-                    }
-                });
-                ui.label(format!("Giving: {} ({:08x})", tile_style(self.brush).0, self.brush));
-                ui.label("Values in this block (click to take):");
-                let mut counts: std::collections::BTreeMap<u32, usize> = Default::default();
-                for &value in &self.editor.tiles {
-                    *counts.entry(value).or_default() += 1;
-                }
-                let mut list: Vec<(u32, usize)> = counts.into_iter().collect();
-                for &(value, count) in &self.palette {
-                    if !list.iter().any(|(v, _)| *v == value) {
-                        list.push((value, count));
-                    }
-                }
-                list.sort_by_key(|(_, n)| std::cmp::Reverse(*n));
-                egui::ScrollArea::vertical().max_height(180.0).id_salt("tile_values").show(ui, |ui| {
-                    for (value, count) in list {
-                        let (name, colour) = tile_style(value);
-                        let swatch = egui::Color32::from_rgb(colour[0], colour[1], colour[2]);
-                        let text = egui::RichText::new(format!("{value:08x}  {name}  ({count})")).color(swatch);
-                        if ui.selectable_label(self.brush == value, text).clicked() {
-                            self.brush = value;
-                        }
-                    }
-                });
-                if ui.button("Add the values of all the blocks").clicked() {
-                    match crate::data::attribute_values(&self.arc_dir) {
-                        Ok(values) => {
-                            self.palette = values.into_iter().take(60).collect();
-                            self.status = format!("{} values from all the blocks.", self.palette.len());
-                        }
-                        Err(message) => self.status = format!("Cannot read the blocks: {message}"),
-                    }
-                }
-            }
-            ui.separator();
-            ui.label("File of the project:");
-            ui.text_edit_singleline(&mut self.project_path);
-            ui.horizontal(|ui| {
-                if ui.button("Save the project").clicked() {
-                    action = Some(Action::SaveProject);
-                }
-                if ui.button("Load the project").clicked() {
-                    action = Some(Action::LoadProject);
-                }
-            });
-            ui.label("Folder of the SD card:");
-            ui.text_edit_singleline(&mut self.export_dir);
-            ui.horizontal(|ui| {
-                if ui.button("Export the block").clicked() {
-                    action = Some(Action::Export);
-                }
-                if ui.button("Export and play (F5)").on_hover_text("Writes the block on the SD card, then starts the game in the emulator").clicked() {
-                    action = Some(Action::Launch);
-                }
-            });
-            ui.collapsing("Emulator", |ui| {
-                ui.label("Program of the emulator:");
-                ui.text_edit_singleline(&mut self.emulator_path);
-                ui.label("Game file:");
-                ui.text_edit_singleline(&mut self.game_path);
-            });
-            ui.add(egui::Label::new(egui::RichText::new(&self.status).weak()).wrap());
-            ui.separator();
-            ui.checkbox(&mut self.direct_v, "Direct V (untick to invert)");
-            ui.collapsing("Meshes", |ui| {
-                ui.horizontal(|ui| {
-                    if ui.button("All").clicked() {
-                        self.visible.iter_mut().for_each(|v| *v = true);
-                    }
-                    if ui.button("None").clicked() {
-                        self.visible.iter_mut().for_each(|v| *v = false);
-                    }
-                });
-                egui::ScrollArea::vertical().show(ui, |ui| {
-                    for (i, row) in self.rows.iter().enumerate() {
-                        let mark = if row.selectable { "" } else { "  (ground)" };
-                        let text = format!("{}  ({}){mark}", row.name, self.editor.meshes()[i].1.indices.len() / 3);
-                        let text = if row.has_picture { egui::RichText::new(text) } else { egui::RichText::new(text).weak() };
-                        ui.horizontal(|ui| {
-                            if row.selectable && ui.small_button("Select").on_hover_text("Select only this mesh: pieces that have other meshes are cut in two (Shift adds)").clicked() {
-                                select_mesh = Some(i);
-                            }
-                            ui.checkbox(&mut self.visible[i], text);
-                        });
-                    }
-                });
-            });
-        });
-
-        if events_toggled {
-            self.events_toggled(frame);
-        }
         if self.events_mode {
             let mut changed = false;
-            egui::Window::new("Events").default_pos([420.0, 60.0]).default_width(340.0).show(ctx, |ui| {
-                egui::ScrollArea::vertical().max_height(620.0).show(ui, |ui| {
+            egui::SidePanel::right("events_panel").resizable(true).default_width(350.0).width_range(280.0..=600.0).show(ctx, |ui| {
+                ui.label(chrome::section_title("Events"));
+                egui::ScrollArea::vertical().auto_shrink([false, false]).show(ui, |ui| {
                     changed = self.events_ui(ui);
                 });
             });
@@ -1854,39 +1750,176 @@ impl eframe::App for Viewer {
             self.refresh_neighbours(frame);
         }
 
+        if self.show_inspector {
+            egui::SidePanel::left("inspector").resizable(true).default_width(310.0).width_range(250.0..=520.0).show(ctx, |ui| {
+                egui::ScrollArea::vertical().auto_shrink([false, false]).show(ui, |ui| {
+                    ui.label(egui::RichText::new(&self.title).heading());
+                    ui.add_space(2.0);
+                    let tool = self.tool();
+                    egui::CollapsingHeader::new(chrome::section_title("World")).default_open(true).show(ui, |ui| {
+                        self.world_blocks_ui(ui);
+                    });
+                    match tool {
+                        Tool::Select => {
+                            egui::CollapsingHeader::new(chrome::section_title("Selection")).default_open(true).show(ui, |ui| {
+                                let has_selection = !self.selected.is_empty();
+                                ui.group(|ui| {
+                                    ui.set_width(ui.available_width());
+                                    ui.label(self.describe_selection());
+                                });
+                                ui.horizontal_wrapped(|ui| {
+                                    if ui.add_enabled(has_selection, egui::Button::new("Copy")).on_hover_text("Copy the selection next to it (D)").clicked() {
+                                        action = Some(Action::Duplicate);
+                                    }
+                                    if ui.add_enabled(has_selection, egui::Button::new("Place")).on_hover_text("Click the ground to put the selection there (G)").clicked() {
+                                        self.placing = true;
+                                        self.status = "Click on the ground to place the object.".into();
+                                    }
+                                    if ui.add_enabled(has_selection, egui::Button::new("Delete")).on_hover_text("Delete the selection (Del or X)").clicked() {
+                                        action = Some(Action::Delete);
+                                    }
+                                });
+                                ui.horizontal_wrapped(|ui| {
+                                    let quarter = std::f32::consts::FRAC_PI_2;
+                                    if ui.add_enabled(has_selection, egui::Button::new("Turn left")).on_hover_text("Turn a quarter to the left (Shift+R)").clicked() {
+                                        action = Some(Action::Rotate(-quarter));
+                                    }
+                                    if ui.add_enabled(has_selection, egui::Button::new("Turn right")).on_hover_text("Turn a quarter to the right (R)").clicked() {
+                                        action = Some(Action::Rotate(quarter));
+                                    }
+                                    if ui.add_enabled(has_selection, egui::Button::new("Grow")).on_hover_text("Add the pieces that touch the selection: for a house (E)").clicked() {
+                                        action = Some(Action::Grow);
+                                    }
+                                });
+                                ui.horizontal_wrapped(|ui| {
+                                    if ui.add_enabled(has_selection, egui::Button::new("Copy out")).on_hover_text("Keep the selection to paste it in another block (Ctrl+C)").clicked() {
+                                        action = Some(Action::CopyOut);
+                                    }
+                                    if ui.button("Paste").on_hover_text("Put the copied object in this block (Ctrl+V)").clicked() {
+                                        action = Some(Action::Paste);
+                                    }
+                                });
+                            });
+                            egui::CollapsingHeader::new(chrome::section_title("Options")).default_open(true).show(ui, |ui| {
+                                ui.checkbox(&mut self.snap, "Snap to the tiles").on_hover_text("An object that you place goes to the middle of a tile");
+                                ui.checkbox(&mut self.walls_follow, "Walls follow the objects").on_hover_text("The collision (the wall tiles) under an object moves with it");
+                                ui.checkbox(&mut self.events_follow, "Events follow the objects").on_hover_text("The warps, signs, props and characters under an object move with it");
+                            });
+                        }
+                        Tool::Tiles => {
+                            egui::CollapsingHeader::new(chrome::section_title("Tiles")).default_open(true).show(ui, |ui| {
+                                ui.horizontal(|ui| {
+                                    ui.label("Brush");
+                                    ui.add(egui::DragValue::new(&mut self.brush_size).range(1..=6).suffix(" tiles"));
+                                    if ui.selectable_label(self.pipette, "Pipette").on_hover_text("Click a tile to take its value").clicked() {
+                                        self.pipette = !self.pipette;
+                                    }
+                                });
+                                ui.label(format!("Giving: {} ({:08x})", tile_style(self.brush).0, self.brush));
+                                ui.label(egui::RichText::new("Values in this block (click to take):").weak());
+                                let mut counts: std::collections::BTreeMap<u32, usize> = Default::default();
+                                for &value in &self.editor.tiles {
+                                    *counts.entry(value).or_default() += 1;
+                                }
+                                let mut list: Vec<(u32, usize)> = counts.into_iter().collect();
+                                for &(value, count) in &self.palette {
+                                    if !list.iter().any(|(v, _)| *v == value) {
+                                        list.push((value, count));
+                                    }
+                                }
+                                list.sort_by_key(|(_, n)| std::cmp::Reverse(*n));
+                                egui::ScrollArea::vertical().max_height(220.0).id_salt("tile_values").show(ui, |ui| {
+                                    for (value, count) in list {
+                                        let (name, colour) = tile_style(value);
+                                        let swatch = egui::Color32::from_rgb(colour[0], colour[1], colour[2]);
+                                        let text = egui::RichText::new(format!("{value:08x}  {name}  ({count})")).color(swatch);
+                                        if ui.selectable_label(self.brush == value, text).clicked() {
+                                            self.brush = value;
+                                        }
+                                    }
+                                });
+                                if ui.button("Add the values of all the blocks").clicked() {
+                                    match crate::data::attribute_values(&self.arc_dir) {
+                                        Ok(values) => {
+                                            self.palette = values.into_iter().take(60).collect();
+                                            self.status = format!("{} values from all the blocks.", self.palette.len());
+                                        }
+                                        Err(message) => self.status = format!("Cannot read the blocks: {message}"),
+                                    }
+                                }
+                            });
+                        }
+                        Tool::Events => {
+                            ui.label(egui::RichText::new("The events panel is on the right. Click an event on the map to edit it.").weak());
+                        }
+                    }
+                    egui::CollapsingHeader::new(chrome::section_title("Project and SD card")).default_open(false).show(ui, |ui| {
+                        ui.label("Project file");
+                        ui.text_edit_singleline(&mut self.project_path);
+                        ui.horizontal(|ui| {
+                            if ui.button("Save").on_hover_text("Save the project (Ctrl+S)").clicked() {
+                                action = Some(Action::SaveProject);
+                            }
+                            if ui.button("Load").on_hover_text("Load the project (Ctrl+O)").clicked() {
+                                action = Some(Action::LoadProject);
+                            }
+                        });
+                        ui.add_space(4.0);
+                        ui.label("Folder of the SD card");
+                        ui.text_edit_singleline(&mut self.export_dir);
+                        ui.label("Emulator program");
+                        ui.text_edit_singleline(&mut self.emulator_path);
+                        ui.label("Game file");
+                        ui.text_edit_singleline(&mut self.game_path);
+                    });
+                    egui::CollapsingHeader::new(chrome::section_title("Meshes")).default_open(false).show(ui, |ui| {
+                        ui.horizontal(|ui| {
+                            if ui.button("All").clicked() {
+                                self.visible.iter_mut().for_each(|v| *v = true);
+                            }
+                            if ui.button("None").clicked() {
+                                self.visible.iter_mut().for_each(|v| *v = false);
+                            }
+                        });
+                        egui::ScrollArea::vertical().max_height(320.0).id_salt("meshes").show(ui, |ui| {
+                            for (i, row) in self.rows.iter().enumerate() {
+                                let mark = if row.selectable { "" } else { "  (ground)" };
+                                let text = format!("{}  ({}){mark}", row.name, self.editor.meshes()[i].1.indices.len() / 3);
+                                let text = if row.has_picture { egui::RichText::new(text) } else { egui::RichText::new(text).weak() };
+                                ui.horizontal(|ui| {
+                                    if row.selectable && ui.small_button("Select").on_hover_text("Select only this mesh: pieces that have other meshes are cut in two (Shift adds)").clicked() {
+                                        select_mesh = Some(i);
+                                    }
+                                    if let Some(v) = self.visible.get_mut(i) {
+                                        ui.checkbox(v, text);
+                                    }
+                                });
+                            }
+                        });
+                    });
+                });
+            });
+        }
+
+        // What the menu, the tool bar and the keys asked for.
+        if let Some(tool) = cmd.tool.take() {
+            self.set_tool(tool, frame);
+        }
+        if action.is_none() {
+            action = cmd.action.take();
+        }
+        self.help_window(ctx);
+        if let Some(what) = self.confirm_dialog(ctx) {
+            self.do_confirm(what, frame);
+        }
+
         let mut click: Option<(Vec3, Vec3)> = None;
         let mut paint: Option<(Vec3, Vec3)> = None;
         egui::CentralPanel::default().frame(egui::Frame::none()).show(ctx, |ui| {
             let (rect, response) = ui.allocate_exact_size(ui.available_size(), egui::Sense::click_and_drag());
-            let up = Vec3::Y;
-            let eye_offset = Vec3::new(
-                self.pitch.cos() * self.yaw.cos(),
-                self.pitch.sin(),
-                self.pitch.cos() * self.yaw.sin(),
-            );
-            let orbit_button = if self.tile_mode { egui::PointerButton::Secondary } else { egui::PointerButton::Primary };
-            if response.dragged_by(orbit_button) {
-                let d = response.drag_delta();
-                self.yaw -= d.x * 0.005;
-                self.pitch = (self.pitch + d.y * 0.005).clamp(-1.5, 1.5);
-            }
-            if response.dragged_by(egui::PointerButton::Middle)
-                || (!self.tile_mode && response.dragged_by(egui::PointerButton::Secondary))
-            {
-                let d = response.drag_delta();
-                let right = up.cross(eye_offset).normalize_or_zero();
-                let screen_up = eye_offset.cross(right).normalize_or_zero();
-                let scale = self.distance * 0.0016;
-                self.target += (right * d.x + screen_up * d.y) * scale;
-            }
-            if response.hovered() {
-                let scroll = ctx.input(|i| i.smooth_scroll_delta.y);
-                self.distance = (self.distance * (-scroll * 0.002).exp()).clamp(5.0, 8000.0);
-            }
-            let eye = self.target + eye_offset * self.distance;
-            let aspect = (rect.width() / rect.height().max(1.0)).max(0.01);
-            self.matrix = Mat4::perspective_rh(45f32.to_radians(), aspect, 1.0, 20000.0)
-                * Mat4::look_at_rh(eye, self.target, up);
+            self.camera_input(ctx, rect, &response);
+            self.matrix = self.view_matrix(rect);
+            self.update_hover(rect, &response);
             let primary_down = ctx.input(|i| i.pointer.primary_down());
             if self.tile_mode {
                 if primary_down && response.hovered() {
@@ -1900,6 +1933,7 @@ impl eframe::App for Viewer {
                 }
             }
             self.events_labels(&ui.painter_at(rect), rect);
+            self.camera_overlay(ctx, rect);
             ui.painter().add(egui_wgpu::Callback::new_paint_callback(
                 rect,
                 SceneCallback {
@@ -2017,8 +2051,8 @@ impl eframe::App for Viewer {
         }
         if let Some(block) = self.pending_block.take() {
             self.switch_block(block, frame);
-        } else if let Some(matrix) = self.pending_area.take() {
-            self.switch_area(matrix, frame);
+        } else if let Some(matrix) = self.pending_world.take() {
+            self.switch_world(matrix, frame);
         }
         self.refresh_neighbours(frame);
     }
@@ -2082,7 +2116,7 @@ impl Viewer {
         const THUMB: usize = 96;
         // The tiles that this block can take: its ground meshes have their picture.
         // A model is safe when this block has the shape of its vertices and
-        // the area of the block has its pictures: else the game shows a black
+        // the tileset of the block has its pictures: else the game shows a black
         // screen or stops.
         let wanted = if tiles { &self.tile_catalog } else { &self.catalog };
         let need = wanted.only_fit && wanted.fits.as_ref().map_or(true, |f| f.len() != wanted.entries.len());
@@ -2142,11 +2176,11 @@ impl Viewer {
                             None if made < 6 => {
                                 made += 1;
                                 let entry = &panel.entries[index];
-                                let textures = match entry.area {
+                                let textures = match entry.tileset {
                                     Some(a) => panel
-                                        .areas
+                                        .tilesets
                                         .entry(a)
-                                        .or_insert_with(|| crate::data::area_textures(&arc_dir, a).unwrap_or_default()),
+                                        .or_insert_with(|| crate::data::tileset_textures(&arc_dir, a).unwrap_or_default()),
                                     None => &mut HashMap::new(),
                                 };
                                 let pixels = crate::thumb::render(&entry.preview, textures, THUMB);
@@ -2187,13 +2221,13 @@ impl Viewer {
 /// Opens the window.
 pub fn run(textures: HashMap<String, Texture>, editor: Editor, title: String, arc_dir: String) -> Result<(), String> {
     let options = eframe::NativeOptions {
-        viewport: egui::ViewportBuilder::default().with_inner_size([1280.0, 800.0]).with_title("Map Studio"),
+        viewport: egui::ViewportBuilder::default().with_inner_size([1280.0, 800.0]).with_title("Sango Editor"),
         renderer: eframe::Renderer::Wgpu,
         depth_buffer: 32,
         ..Default::default()
     };
     eframe::run_native(
-        "Map Studio",
+        "Sango Editor",
         options,
         Box::new(move |cc| {
             Viewer::new(cc, textures, editor, title, arc_dir)

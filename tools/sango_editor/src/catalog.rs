@@ -24,8 +24,8 @@ pub struct Entry {
     pub name: String,
     pub portable: Portable,
     pub preview: Vec<PreviewPart>,
-    /// The area pack that has the pictures of the model, if one was found.
-    pub area: Option<usize>,
+    /// The tileset pack that has the pictures of the model, if one was found.
+    pub tileset: Option<usize>,
     /// The block where the model was taken, and how many times the models of
     /// all the blocks look like it.
     pub donor: usize,
@@ -59,7 +59,7 @@ fn signature(object: &Portable) -> String {
 /// the shape that is the most common. `progress` is called with the number of
 /// the block that is being read.
 pub fn build(arc_dir: &str, blocks: Option<&[usize]>, mut progress: impl FnMut(usize)) -> Result<Vec<Entry>, String> {
-    let count = garc::read(&std::path::PathBuf::from(arc_dir).join("map_land_data.garc"))?.len();
+    let count = garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::Blocks))?.len();
     let wanted: Vec<usize> = match blocks {
         Some(list) => list.to_vec(),
         None => (0..count).collect(),
@@ -101,14 +101,14 @@ pub fn build(arc_dir: &str, blocks: Option<&[usize]>, mut progress: impl FnMut(u
             }
         }
     }
-    let areas = crate::data::area_pictures(arc_dir)?;
+    let tilesets = crate::data::tileset_pictures(arc_dir)?;
     let mut entries = Vec::new();
     for (name, group) in groups {
         let occurrences = group.shapes.values().map(|s| s.seen).sum();
         let variants = group.shapes.len();
         let Some(best) = group.shapes.into_values().max_by_key(|s| s.seen) else { continue };
-        let area = best_area(&areas, &best.preview);
-        entries.push(Entry { name, portable: best.portable, preview: best.preview, area, donor: best.donor, occurrences, variants, blocks: group.blocks });
+        let tileset = best_tileset(&tilesets, &best.preview);
+        entries.push(Entry { name, portable: best.portable, preview: best.preview, tileset, donor: best.donor, occurrences, variants, blocks: group.blocks });
     }
     Ok(entries)
 }
@@ -117,7 +117,7 @@ pub fn build(arc_dir: &str, blocks: Option<&[usize]>, mut progress: impl FnMut(u
 /// piece (same picture, same shape, same texture coordinates) once, the most
 /// common first.
 pub fn build_tiles(arc_dir: &str, blocks: Option<&[usize]>, mut progress: impl FnMut(usize)) -> Result<Vec<Entry>, String> {
-    let count = garc::read(&std::path::PathBuf::from(arc_dir).join("map_land_data.garc"))?.len();
+    let count = garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::Blocks))?.len();
     let wanted: Vec<usize> = match blocks {
         Some(list) => list.to_vec(),
         None => (0..count).collect(),
@@ -176,23 +176,23 @@ pub fn build_tiles(arc_dir: &str, blocks: Option<&[usize]>, mut progress: impl F
             }
         }
     }
-    let areas = crate::data::area_pictures(arc_dir)?;
+    let tilesets = crate::data::tileset_pictures(arc_dir)?;
     let mut entries: Vec<Entry> = shapes
         .into_values()
         .map(|s| {
-            let area = best_area(&areas, &s.preview);
+            let tileset = best_tileset(&tilesets, &s.preview);
             let name = s.portable.parts.iter().map(|p| p.material.as_str()).collect::<Vec<_>>().join(" + ");
-            Entry { name, portable: s.portable, preview: s.preview, area, donor: s.donor, occurrences: s.seen, variants: 1, blocks: s.blocks }
+            Entry { name, portable: s.portable, preview: s.preview, tileset, donor: s.donor, occurrences: s.seen, variants: 1, blocks: s.blocks }
         })
         .collect();
     entries.sort_by_key(|e| std::cmp::Reverse(e.occurrences));
     Ok(entries)
 }
 
-/// The area pack that has most of the pictures that a model needs.
-fn best_area(areas: &[std::collections::HashSet<String>], preview: &[PreviewPart]) -> Option<usize> {
+/// The tileset pack that has most of the pictures that a model needs.
+fn best_tileset(tilesets: &[std::collections::HashSet<String>], preview: &[PreviewPart]) -> Option<usize> {
     let mut best: Option<(usize, usize)> = None;
-    for (index, names) in areas.iter().enumerate() {
+    for (index, names) in tilesets.iter().enumerate() {
         let hits = preview.iter().filter(|p| names.contains(&p.picture)).count();
         if hits > 0 && best.map_or(true, |(h, _)| hits > h) {
             best = Some((hits, index));
@@ -216,7 +216,7 @@ pub fn save(entries: &[Entry], path: &std::path::Path) -> Result<(), String> {
         for b in &e.blocks {
             number(&mut out, *b);
         }
-        number(&mut out, e.area.map_or(u32::MAX as usize, |a| a));
+        number(&mut out, e.tileset.map_or(u32::MAX as usize, |a| a));
         number(&mut out, e.preview.len());
         for part in &e.preview {
             number(&mut out, part.picture.len());
@@ -270,7 +270,7 @@ pub fn load(path: &std::path::Path) -> Result<Vec<Entry>, String> {
         for _ in 0..block_count {
             blocks.push(number()?);
         }
-        let area = number()?;
+        let tileset = number()?;
         let part_count = number()?;
         let mut preview = Vec::new();
         for _ in 0..part_count {
@@ -300,7 +300,7 @@ pub fn load(path: &std::path::Path) -> Result<Vec<Entry>, String> {
         let at = position.get();
         let portable = Portable::from_bytes(data.get(at..at + size).ok_or("the catalogue is cut")?)?;
         position.set(at + size);
-        entries.push(Entry { name, portable, preview, area: (area != u32::MAX as usize).then_some(area), donor, occurrences, variants, blocks });
+        entries.push(Entry { name, portable, preview, tileset: (tileset != u32::MAX as usize).then_some(tileset), donor, occurrences, variants, blocks });
     }
     Ok(entries)
 }
