@@ -1570,3 +1570,70 @@ pub fn warp_tiles(arc_dir: &str, block: usize) -> Result<(), String> {
     }
     Ok(())
 }
+
+/// Lists the objects whose box is near a place, with their meshes.
+pub fn objects_near(arc_dir: &str, block: usize, x: f32, z: f32, radius: f32) -> Result<(), String> {
+    let editor = crate::editor::Editor::new(arc_dir, block)?;
+    for i in 0..editor.instances.len() {
+        let (l, h) = editor.instance_bounds(i);
+        if l[0] - radius <= x && x <= h[0] + radius && l[2] - radius <= z && z <= h[2] + radius {
+            println!(
+                "instance {i}: x {:.0}..{:.0} y {:.0}..{:.0} z {:.0}..{:.0} parts {:?}",
+                l[0], h[0], l[1], h[1], l[2], h[2], editor.instance_parts(i)
+            );
+        }
+    }
+    Ok(())
+}
+
+/// Selects a building as Ctrl+click does and says which pieces near a place
+/// are in it and which are not.
+pub fn building_near(arc_dir: &str, block: usize, click: [f32; 2], mesh_name: &str, x: f32, z: f32, radius: f32) -> Result<(), String> {
+    let mut editor = crate::editor::Editor::new(arc_dir, block)?;
+    let mesh = (0..editor.meshes().len()).find(|&m| editor.meshes()[m].1.material == mesh_name).ok_or("no such mesh")?;
+    let piece = (0..editor.instances.len())
+        .find(|&i| {
+            editor.instance_parts(i).iter().any(|(n, _)| n == mesh_name) && {
+                let (l, h) = editor.instance_bounds(i);
+                click[0] >= l[0] && click[0] <= h[0] && click[1] >= l[2] && click[1] <= h[2]
+            }
+        })
+        .ok_or("no piece here")?;
+    let taken = editor.building_of(piece, mesh)?;
+    println!("{} pieces in the building", taken.len());
+    for i in 0..editor.instances.len() {
+        let (l, h) = editor.instance_bounds(i);
+        if l[0] - radius <= x && x <= h[0] + radius && l[2] - radius <= z && z <= h[2] + radius && !editor.instances[i].deleted {
+            println!(
+                "{} instance {i}: x {:.0}..{:.0} y {:.0}..{:.0} z {:.0}..{:.0} {:?}",
+                if taken.contains(&i) { "IN " } else { "OUT" }, l[0], h[0], l[1], h[1], l[2], h[2], editor.instance_parts(i)
+            );
+        }
+    }
+    Ok(())
+}
+
+/// Prints the doors of a block, moves the door that is at a place, writes the
+/// block and reads the doors again.
+pub fn doors_test(arc_dir: &str, block: usize, x: f32, z: f32, dx: f32, out_dir: &str) -> Result<(), String> {
+    let mut editor = crate::editor::Editor::new(arc_dir, block)?;
+    for (i, d) in editor.doors.iter().enumerate() {
+        println!("door {i}: model {} at ({}, {}, {}) scale {:?} turn {:?} tail {}", d.kind, d.x, d.y, d.z, d.scale, d.turn, d.tail);
+    }
+    let mut doors = editor.doors.clone();
+    let mut moved = 0;
+    for d in doors.iter_mut() {
+        if (d.x - x).abs() <= 9.5 && (d.z - z).abs() <= 9.5 {
+            d.x += dx;
+            moved += 1;
+        }
+    }
+    println!("{moved} door moved");
+    editor.set_doors(doors)?;
+    println!("{}", editor.export(out_dir)?);
+    let back = EditableBlock::from_file(&std::path::Path::new(out_dir).join("land").join(format!("{block}.bin")), block)?;
+    for (i, d) in back.doors().iter().enumerate() {
+        println!("after: door {i} at ({}, {}, {})", d.x, d.y, d.z);
+    }
+    Ok(())
+}

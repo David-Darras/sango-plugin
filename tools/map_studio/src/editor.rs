@@ -86,6 +86,9 @@ pub struct Editor {
     pub tiles: Vec<u32>,
     /// The tiles of the original block, to save only what changed.
     original_tiles: Vec<u32>,
+    /// The door models of the block, as they are in the game and as the user changed them.
+    original_doors: Vec<crate::edit::Door>,
+    pub doors: Vec<crate::edit::Door>,
     grid: (usize, usize),
     undo: Vec<Snapshot>,
     redo: Vec<Snapshot>,
@@ -310,6 +313,7 @@ impl Editor {
             .map(|cluster| Instance { cluster, offset: [0.0; 3], yaw: 0.0, copy: false, deleted: false, only: None, replaces: None })
             .collect();
         let attributes = original.attributes()?;
+        let original_doors = original.doors();
         let native = clusters.len();
         let mut editor = Editor {
             built: original.clone(),
@@ -321,6 +325,8 @@ impl Editor {
             selectable,
             instances,
             original_tiles: attributes.cells.clone(),
+            original_doors: original_doors.clone(),
+            doors: original_doors,
             tiles: attributes.cells,
             grid: (attributes.width, attributes.height),
             undo: Vec::new(),
@@ -679,6 +685,9 @@ impl Editor {
             }
         }
         block.set_attributes(&Attributes { width: self.grid.0, height: self.grid.1, cells: self.tiles.clone() })?;
+        if self.doors != self.original_doors {
+            block.set_doors(&self.doors)?;
+        }
         self.built = block;
         self.owner = owner;
         self.built_origin = built_origin;
@@ -705,6 +714,28 @@ impl Editor {
                 Err(message)
             }
         }
+    }
+
+    /// Changes the doors and builds the block again. The change is cancelled
+    /// when the block cannot be built. (Undo does not bring the doors back.)
+    pub fn set_doors(&mut self, doors: Vec<crate::edit::Door>) -> Result<(), String> {
+        let before = std::mem::replace(&mut self.doors, doors);
+        match self.rebuild() {
+            Ok(()) => Ok(()),
+            Err(message) => {
+                self.doors = before;
+                let _ = self.rebuild();
+                Err(message)
+            }
+        }
+    }
+
+    /// Gives a door its place in the game again.
+    pub fn restore_door(&mut self, index: usize) -> Result<(), String> {
+        let original = self.original_doors.get(index).cloned().ok_or("no such door")?;
+        let mut doors = self.doors.clone();
+        *doors.get_mut(index).ok_or("no such door")? = original;
+        self.set_doors(doors)
     }
 
     pub fn can_undo(&self) -> bool {
@@ -1150,6 +1181,11 @@ impl Editor {
                 let _ = writeln!(out, "move {} {x} {y} {z} {yaw}", instance.cluster);
             }
         }
+        for (i, (now, before)) in self.doors.iter().zip(&self.original_doors).enumerate() {
+            if now != before {
+                let _ = writeln!(out, "door {i} {} {} {} {}", now.x, now.y, now.z, now.kind);
+            }
+        }
         for (i, (now, before)) in self.tiles.iter().zip(&self.original_tiles).enumerate() {
             if now != before {
                 let _ = writeln!(out, "tile {i} {now:08x}");
@@ -1169,6 +1205,7 @@ impl Editor {
             .map(|cluster| Instance { cluster, offset: [0.0; 3], yaw: 0.0, copy: false, deleted: false, only: None, replaces: None })
             .collect();
         let mut tiles = self.original_tiles.clone();
+        let mut doors = self.original_doors.clone();
         let mut imported: Vec<Cluster> = Vec::new();
         // The parts of pieces: (kind, cluster, meshes, offset, yaw, deleted).
         let mut masked: Vec<(String, usize, Vec<usize>, [f32; 3], f32, bool)> = Vec::new();
@@ -1243,6 +1280,16 @@ impl Editor {
                     }
                     masked.push((kind.to_string(), cluster, meshes, offset, yaw, deleted));
                 }
+                Some("door") => {
+                    let index = number(words.next())? as usize;
+                    let door = doors.get_mut(index).ok_or("a door of the project does not exist")?;
+                    door.x = number(words.next())?;
+                    door.y = number(words.next())?;
+                    door.z = number(words.next())?;
+                    if let Some(kind) = words.next().and_then(|w| w.parse().ok()) {
+                        door.kind = kind;
+                    }
+                }
                 Some("tile") => {
                     let index = number(words.next())? as usize;
                     let value = words.next().and_then(|w| u32::from_str_radix(w, 16).ok()).ok_or("a tile is wrong")?;
@@ -1270,10 +1317,12 @@ impl Editor {
             instances.push(Instance { cluster, offset, yaw, copy: kind == "mcopy", deleted, only: Some(meshes), replaces: None });
         }
         let before = (std::mem::replace(&mut self.instances, instances), std::mem::replace(&mut self.tiles, tiles));
+        let old_doors = std::mem::replace(&mut self.doors, doors);
         let old_imported = self.clusters.split_off(self.native);
         self.clusters.extend(imported);
         if let Err(message) = self.rebuild() {
             (self.instances, self.tiles) = before;
+            self.doors = old_doors;
             self.clusters.truncate(self.native);
             self.clusters.extend(old_imported);
             let _ = self.rebuild();

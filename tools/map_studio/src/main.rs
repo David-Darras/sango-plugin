@@ -134,6 +134,9 @@ fn main() {
         Some("zone-roundtrip") if args.len() >= 3 => commands::zone_roundtrip(&args[2]),
         Some("tiles-around") if args.len() >= 7 => commands::tiles_around(&args[2], block, &args[4], number(5).unwrap_or(0), number(6).unwrap_or(0)),
         Some("warp-tiles") if args.len() >= 4 => commands::warp_tiles(&args[2], block),
+        Some("objects-near") if args.len() >= 7 => commands::objects_near(&args[2], block, float(4), float(5), float(6)),
+        Some("building-near") if args.len() >= 10 => commands::building_near(&args[2], block, [float(4), float(5)], &args[6], float(7), float(8), float(9)),
+        Some("doors-test") if args.len() >= 8 => commands::doors_test(&args[2], block, float(4), float(5), float(6), &args[7]),
         Some("check") if args.len() >= 5 => commands::check(&args[2], block, &args[4]),
         _ => Err(USAGE.to_string()),
     };

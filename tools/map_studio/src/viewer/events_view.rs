@@ -11,6 +11,8 @@ pub enum Kind {
     Trigger,
     Warp,
     Character,
+    /// A door model of the block (it is not an event of the zone).
+    Door,
 }
 
 impl Kind {
@@ -20,6 +22,7 @@ impl Kind {
             Kind::Trigger => "trigger",
             Kind::Warp => "warp",
             Kind::Character => "character",
+            Kind::Door => "door",
         }
     }
     fn colour(self, script: u16) -> [u8; 4] {
@@ -30,6 +33,7 @@ impl Kind {
             // The scripts 3000 and more (up to 3999) are the trainers.
             Kind::Character if (3000..4000).contains(&script) => [255, 150, 30, 150],
             Kind::Character => [60, 120, 255, 150],
+            Kind::Door => [255, 255, 255, 150],
         }
     }
 }
@@ -48,7 +52,7 @@ pub struct EventsState {
     pub put: Option<Kind>,
     /// The next click moves the selected event.
     pub moving: bool,
-    pub show: [bool; 4],
+    pub show: [bool; 5],
     pub labels: bool,
 }
 
@@ -63,7 +67,7 @@ impl Default for EventsState {
             selected: None,
             put: None,
             moving: false,
-            show: [true; 4],
+            show: [true; 5],
             labels: true,
         }
     }
@@ -187,6 +191,12 @@ impl Viewer {
                 out.push(EventBox { kind: Kind::Character, index: i, low, high, label, colour: Kind::Character.colour(c.script) });
             }
         }
+        if self.ev.show[4] {
+            for (i, d) in self.editor.doors.iter().enumerate() {
+                let (low, high) = rect(d.x / events::TILE - 0.5, d.z / events::TILE - 0.5, 1.0, 1.0);
+                out.push(EventBox { kind: Kind::Door, index: i, low, high, label: format!("D{i} model {}", d.kind), colour: Kind::Door.colour(0) });
+            }
+        }
         out
     }
 
@@ -267,8 +277,33 @@ impl Viewer {
                 let c = now.characters.get(index)?;
                 (c.x as f32 + 0.5, c.z as f32 + 0.5)
             }
+            Kind::Door => {
+                let d = self.editor.doors.get(index)?;
+                (d.x / events::TILE, d.z / events::TILE)
+            }
         };
         Some([events::tile_to_local(x, at.column), events::tile_to_local(z, at.row)])
+    }
+
+    /// The door model that stands at the place of a warp moves with the warp.
+    fn move_door_model(&mut self, old: Option<(i16, i16)>, new: Option<(i16, i16)>) {
+        let (Some(old), Some(new)) = (old, new) else { return };
+        if old == new {
+            return;
+        }
+        let (ox, oz) = (old.0 as f32, old.1 as f32);
+        let mut doors = self.editor.doors.clone();
+        let mut moved = 0;
+        for d in doors.iter_mut() {
+            if (d.x - ox).abs() <= 9.5 && (d.z - oz).abs() <= 9.5 {
+                d.x += (new.0 - old.0) as f32;
+                d.z += (new.1 - old.1) as f32;
+                moved += 1;
+            }
+        }
+        if moved > 0 && self.editor.set_doors(doors).is_ok() {
+            self.status = format!("{} The door model of the warp moved with it (export the block to keep it).", self.status);
+        }
     }
 
     /// The tile of the block under a warp.
@@ -314,6 +349,13 @@ impl Viewer {
             Kind::Trigger => now.triggers[index].height = g as i16,
             Kind::Warp => now.warps[index].y = g as i16,
             Kind::Character => now.characters[index].height = g,
+            Kind::Door => {
+                let mut doors = self.editor.doors.clone();
+                if let Some(d) = doors.get_mut(index) {
+                    d.y = g;
+                }
+                let _ = self.editor.set_doors(doors);
+            }
         }
     }
 
@@ -358,6 +400,20 @@ impl Viewer {
                 moved += 1;
             }
         }
+        let mut doors = self.editor.doors.clone();
+        let mut door_moved = false;
+        for i in 0..doors.len() {
+            if self.event_centre(Kind::Door, i).is_some_and(inside) {
+                doors[i].x += events::TILE * dx as f32;
+                doors[i].z += events::TILE * dz as f32;
+                doors[i].y += dy;
+                door_moved = true;
+                moved += 1;
+            }
+        }
+        if door_moved {
+            let _ = self.editor.set_doors(doors);
+        }
         for i in 0..self.ev.now.characters.len() {
             if self.event_centre(Kind::Character, i).is_some_and(inside) {
                 let c = &mut self.ev.now.characters[i];
@@ -390,11 +446,14 @@ impl Viewer {
             self.ev.moving = false;
             if let Some((kind, index)) = self.ev.selected {
                 let old = if kind == Kind::Warp { self.warp_block_tile(index) } else { None };
+                let old_pos = if kind == Kind::Warp { self.ev.now.warps.get(index).map(|w| (w.x, w.z)) } else { None };
                 self.events_set_tile(kind, index, tx, tz, Some(hit.point.y));
                 self.status = format!("The {} is in tile ({tx}, {tz}).", kind.name());
                 if kind == Kind::Warp {
                     let new = self.warp_block_tile(index);
                     self.move_door_wall(old, new);
+                    let new_pos = self.ev.now.warps.get(index).map(|w| (w.x, w.z));
+                    self.move_door_model(old_pos, new_pos);
                 }
             }
         } else {
@@ -424,6 +483,10 @@ impl Viewer {
         let now = &mut self.ev.now;
         let (x, z) = (tx as u16, tz as u16);
         let index = match kind {
+            Kind::Door => {
+                self.status = "A door model cannot be added: the block has its own list of doors.".into();
+                return;
+            }
             Kind::Sign => {
                 if now.signs.len() >= MAX_SIGNS {
                     self.status = "A zone has at most 40 signs.".into();
@@ -473,8 +536,21 @@ impl Viewer {
     }
 
     fn events_set_tile(&mut self, kind: Kind, index: usize, tx: i32, tz: i32, ground: Option<f32>) {
+        if kind == Kind::Door {
+            let mut doors = self.editor.doors.clone();
+            if let Some(d) = doors.get_mut(index) {
+                d.x = (tx * 18 + 9) as f32;
+                d.z = (tz * 18 + 9) as f32;
+                if let Some(g) = ground {
+                    d.y = g;
+                }
+            }
+            let _ = self.editor.set_doors(doors);
+            return;
+        }
         let now = &mut self.ev.now;
         match kind {
+            Kind::Door => {}
             Kind::Sign => {
                 if let Some(s) = now.signs.get_mut(index) {
                     s.x = tx as i16;
@@ -517,9 +593,14 @@ impl Viewer {
     /// Takes the selected event away.
     fn events_delete(&mut self) {
         let Some((kind, index)) = self.ev.selected else { return };
+        if kind == Kind::Door {
+            self.status = "A door model cannot be taken away (the block has its own list of doors). Move it instead.".into();
+            return;
+        }
         let base = &self.ev.base;
         let now = &mut self.ev.now;
         let (shipped, len) = match kind {
+            Kind::Door => (0, 0),
             Kind::Sign => (base.signs.len(), now.signs.len()),
             Kind::Trigger => (base.triggers.len(), now.triggers.len()),
             Kind::Warp => (base.warps.len(), now.warps.len()),
@@ -530,6 +611,7 @@ impl Viewer {
             return;
         }
         match kind {
+            Kind::Door => {}
             Kind::Sign => {
                 now.signs.remove(index);
             }
@@ -598,10 +680,23 @@ impl Viewer {
             Some((Kind::Warp, index)) if dx != 0 || dz != 0 => self.warp_block_tile(index),
             _ => None,
         };
+        let old_warp_pos = match self.ev.selected {
+            Some((Kind::Warp, index)) if dx != 0 || dz != 0 => self.ev.now.warps.get(index).map(|w| (w.x, w.z)),
+            _ => None,
+        };
         if let Some((kind, index)) = self.ev.selected {
-            if dx != 0 || dz != 0 || dy != 0 {
+            if kind == Kind::Door && (dx != 0 || dz != 0 || dy != 0) {
+                let mut doors = self.editor.doors.clone();
+                if let Some(d) = doors.get_mut(index) {
+                    d.x += 18.0 * dx as f32;
+                    d.z += 18.0 * dz as f32;
+                    d.y += 2.0 * dy as f32;
+                }
+                let _ = self.editor.set_doors(doors);
+            } else if dx != 0 || dz != 0 || dy != 0 {
                 let now = &mut self.ev.now;
                 match kind {
+                    Kind::Door => {}
                     Kind::Sign => {
                         if let Some(s) = now.signs.get_mut(index) {
                             s.x += dx as i16;
@@ -639,6 +734,8 @@ impl Viewer {
                 if kind == Kind::Warp {
                     let new = self.warp_block_tile(index);
                     self.move_door_wall(old_warp_tile, new);
+                    let new_pos = self.ev.now.warps.get(index).map(|w| (w.x, w.z));
+                    self.move_door_model(old_warp_pos, new_pos);
                 }
             }
         }
@@ -670,7 +767,7 @@ impl Viewer {
             ui.label(format!("Zone {} (matrix {}, {}x{} blocks, this block is at column {} row {}).", z.zone, z.matrix, z.width, z.height, z.column, z.row));
         }
         ui.horizontal(|ui| {
-            for (k, name) in ["Signs", "Triggers", "Warps", "Characters"].iter().enumerate() {
+            for (k, name) in ["Signs", "Triggers", "Warps", "Characters", "Doors"].iter().enumerate() {
                 if ui.checkbox(&mut self.ev.show[k], *name).changed() {
                     changed = true;
                 }
@@ -688,9 +785,21 @@ impl Viewer {
                 }
             }
         });
-        if let Some((kind, index)) = self.ev.selected {
+        if let Some((Kind::Door, index)) = self.ev.selected {
+            ui.separator();
+            ui.label(format!("door model {index} (a model that the game puts at a door)"));
+            if let Some(mut d) = self.editor.doors.get(index).cloned() {
+                if door_fields(ui, &mut d) {
+                    let mut doors = self.editor.doors.clone();
+                    doors[index] = d;
+                    let _ = self.editor.set_doors(doors);
+                    changed = true;
+                }
+            }
+        } else if let Some((kind, index)) = self.ev.selected {
             ui.separator();
             let shipped = match kind {
+                Kind::Door => 0,
                 Kind::Sign => self.ev.base.signs.len(),
                 Kind::Trigger => self.ev.base.triggers.len(),
                 Kind::Warp => self.ev.base.warps.len(),
@@ -699,6 +808,7 @@ impl Viewer {
             ui.label(format!("{} {index} ({})", kind.name(), if index < shipped { "from the game" } else { "added by you" }));
             let now = &mut self.ev.now;
             changed |= match kind {
+                Kind::Door => false,
                 Kind::Sign => now.signs.get_mut(index).map_or(false, |s| sign_fields(ui, s)),
                 Kind::Trigger => now.triggers.get_mut(index).map_or(false, |t| trigger_fields(ui, t)),
                 Kind::Warp => now.warps.get_mut(index).map_or(false, |w| warp_fields(ui, w)),
@@ -730,6 +840,7 @@ impl Viewer {
                 if ui.button("Restore this event").on_hover_text("Gives this event the values of the game (only an event of the game)").clicked() {
                     let (base, now) = (&self.ev.base, &mut self.ev.now);
                     let ok = match kind {
+                        Kind::Door => self.editor.restore_door(index).is_ok(),
                         Kind::Sign => base.signs.get(index).map(|b| now.signs[index] = b.clone()).is_some(),
                         Kind::Trigger => base.triggers.get(index).map(|b| now.triggers[index] = b.clone()).is_some(),
                         Kind::Warp => base.warps.get(index).map(|b| now.warps[index] = b.clone()).is_some(),
@@ -812,5 +923,18 @@ fn character_fields(ui: &mut egui::Ui, ch: &mut Character) -> bool {
     c |= number(ui, "Area z", &mut ch.trigger[1]);
     c |= number(ui, "Area width", &mut ch.trigger[2]);
     c |= number(ui, "Area depth", &mut ch.trigger[3]);
+    c
+}
+
+fn door_fields(ui: &mut egui::Ui, d: &mut crate::edit::Door) -> bool {
+    let mut c = false;
+    c |= number(ui, "Model of the door", &mut d.kind);
+    c |= number(ui, "x (units, tile x 18 + 9)", &mut d.x);
+    c |= number(ui, "y (height)", &mut d.y);
+    c |= number(ui, "z (units, tile x 18 + 9)", &mut d.z);
+    c |= number(ui, "Scale x", &mut d.scale[0]);
+    c |= number(ui, "Scale y", &mut d.scale[1]);
+    c |= number(ui, "Scale z", &mut d.scale[2]);
+    ui.label("The doors are saved with the block: use Export the block.");
     c
 }
