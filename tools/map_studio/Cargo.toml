@@ -1,0 +1,14 @@
+[package]
+name = "map-studio"
+version = "0.1.0"
+edition = "2021"
+description = "Editor for the maps of Pokemon Omega Ruby and Alpha Sapphire."
+
+[dependencies]
+eframe = { version = "0.29", default-features = false, features = ["wgpu", "default_fonts", "wayland", "x11"] }
+bytemuck = { version = "1", features = ["derive"] }
+glam = "0.29"
+png = "0.17"
+
+[profile.dev]
+opt-level = 2
