@@ -360,9 +360,9 @@ pub fn add_object_with(
     let mut starts: Vec<usize> = (0..count).map(|i| old_entry(&b, i)[4]).collect();
     starts.sort_unstable();
     let block_size = starts.iter().find(|&&s| s > entry[4]).map_or(BLOCK_SIZE, |&next| next - entry[4]);
-    if block_size > 4 * BLOCK_SIZE {
-        return Err(format!("the object has a structure of {block_size:#x} bytes, which is more than the tool expects"));
-    }
+    // The last object of the original model is followed by other data before the objects that
+    // were added: that gap is not its structure, which has the usual size.
+    let block_size = if block_size > 4 * BLOCK_SIZE { BLOCK_SIZE } else { block_size };
 
     // 1. The data of the geometry, in the raw data.
     let vertices_at = b.push_raw(&geometry.vertices);

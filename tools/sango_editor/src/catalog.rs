@@ -19,6 +19,7 @@ pub struct PreviewPart {
 }
 
 /// One model of the catalogue.
+#[derive(Clone)]
 pub struct Entry {
     /// A name for the list: the meshes that it is made of.
     pub name: String,

@@ -782,6 +782,24 @@ pub struct Viewer {
     last_focus: bool,
     /// The name of the event under the pointer (shown in the status bar, not in the 3D view).
     hover_event: Option<String>,
+    /// The object that is being placed comes from outside (a paste, the catalogue, another block):
+    /// the events and the blocked tiles at the place where it was taken are not its own.
+    placing_imported: bool,
+    /// The events changed since they were written: they are written when the mouse is up.
+    events_dirty: bool,
+    /// Fill: only the tiles that are free to walk.
+    fill_free_only: bool,
+    /// The event that was copied (Ctrl+C with an event selected).
+    event_clip: Option<events_view::EventClip>,
+    /// What goes with the object that was copied out (its door...), and with the one that is being placed.
+    clipboard_extra: Option<events_view::Furniture>,
+    pending_extra: Option<events_view::Furniture>,
+    /// The tiles and the objects that the user starred: the keys of the entries.
+    favorites: std::collections::HashSet<String>,
+    /// True while the tool of the ground tiles works.
+    ground_mode: bool,
+    /// The next click on the map copies the ground tile under it into the catalogue.
+    take_tile: bool,
     /// In the question before clearing a block: free the blocked tiles too.
     clear_blocked: bool,
     /// The tileset to use for the next block that opens (the one of the world).
@@ -856,6 +874,47 @@ struct CatalogPanel {
     only_fit: bool,
     /// For each entry: can this block take it? (None until computed.)
     fits: Option<Vec<bool>>,
+    /// Tiles: show only those that can fill the whole block.
+    fill_only: bool,
+    fill_fits: Option<Vec<bool>>,
+    /// Show only the starred entries.
+    fav_only: bool,
+    /// The entries that the user made (from the map): their places in `entries`.
+    mine: Vec<usize>,
+    mine_loaded: bool,
+}
+
+/// The folder where the tool keeps its files.
+fn config_dir() -> std::path::PathBuf {
+    let base = std::env::var("LOCALAPPDATA").map(std::path::PathBuf::from).unwrap_or_else(|_| std::env::temp_dir());
+    base.join("sango_editor")
+}
+
+/// The key of an entry of the catalogue in the list of the stars.
+fn fav_key(tiles: bool, entry: &crate::catalog::Entry) -> String {
+    format!("{}|{}|{}|{}", if tiles { 't' } else { 'o' }, entry.name, entry.donor, entry.occurrences)
+}
+
+fn load_favorites() -> std::collections::HashSet<String> {
+    std::fs::read_to_string(config_dir().join("favorites.txt")).map(|text| text.lines().map(String::from).collect()).unwrap_or_default()
+}
+
+fn save_favorites(set: &std::collections::HashSet<String>) {
+    let mut lines: Vec<&String> = set.iter().collect();
+    lines.sort();
+    let _ = std::fs::create_dir_all(config_dir());
+    let _ = std::fs::write(config_dir().join("favorites.txt"), lines.iter().map(|l| l.as_str()).collect::<Vec<_>>().join("\n"));
+}
+
+/// The file of the entries that the user made.
+fn mine_path(tiles: bool) -> std::path::PathBuf {
+    config_dir().join(if tiles { "mine_tiles.bin" } else { "mine_objects.bin" })
+}
+
+fn save_mine(tiles: bool, panel: &CatalogPanel) {
+    let list: Vec<crate::catalog::Entry> = panel.mine.iter().filter_map(|&i| panel.entries.get(i).cloned()).collect();
+    let _ = std::fs::create_dir_all(config_dir());
+    let _ = crate::catalog::save(&list, &mine_path(tiles));
 }
 
 /// The first of the files that exists (an empty text when none does).
@@ -948,6 +1007,15 @@ impl Viewer {
             last_focus: false,
             tileset_hint: None,
             clear_blocked: true,
+            favorites: load_favorites(),
+            clipboard_extra: None,
+            event_clip: None,
+            events_dirty: false,
+            fill_free_only: true,
+            placing_imported: false,
+            pending_extra: None,
+            ground_mode: false,
+            take_tile: false,
             hover_event: None,
             history: Vec::new(),
             future: Vec::new(),
@@ -1042,7 +1110,15 @@ impl Viewer {
         let mut pick: Option<usize> = None;
         ui.horizontal(|ui| {
             ui.label("World:");
-            egui::ComboBox::from_id_salt("world_list").selected_text(selected).width(250.0).show_ui(ui, |ui| {
+            // A list that opens under a button. A click in the search field must not close it:
+            // only a click outside, or a choice, does.
+            let button = ui.add(egui::Button::new(format!("{selected}   \u{25be}")).min_size(egui::vec2(250.0, 0.0)));
+            let popup_id = ui.make_persistent_id("world_popup");
+            if button.clicked() {
+                ui.memory_mut(|m| m.toggle_popup(popup_id));
+            }
+            egui::popup_below_widget(ui, popup_id, &button, egui::PopupCloseBehavior::CloseOnClickOutside, |ui| {
+                ui.set_min_width(250.0);
                 ui.add(egui::TextEdit::singleline(&mut self.world_filter).hint_text("search a map"));
                 let words: Vec<String> = self.world_filter.to_lowercase().split_whitespace().map(String::from).collect();
                 egui::ScrollArea::vertical().max_height(360.0).show(ui, |ui| {
@@ -1054,6 +1130,7 @@ impl Viewer {
                         }
                         if ui.selectable_label(Some(a.matrix) == current, format!("{label}  [{}]", a.matrix)).clicked() {
                             pick = Some(a.matrix);
+                            ui.memory_mut(|m| m.close_popup());
                         }
                     }
                 });
@@ -1138,6 +1215,35 @@ impl Viewer {
                 }
             }
             Confirm::ClearBlock => self.clear_block(frame),
+            Confirm::ResetEvents => {
+                let maps: Vec<usize> = self.ev.maps.iter().map(|m| m.map).collect();
+                let mut failed = None;
+                for &map in &maps {
+                    if let Err(e) = crate::events::reset_map(&self.export_dir, map) {
+                        failed = Some(format!("map {map}: {e}"));
+                    }
+                }
+                self.history.clear();
+                self.future.clear();
+                self.reset_events_state();
+                self.finish_reset(frame);
+                self.status = match failed {
+                    None => format!("The events of {} maps are the ones of the game again. Start the game again.", maps.len()),
+                    Some(e) => format!("Cannot restore the events: {e}"),
+                };
+            }
+            Confirm::FlattenBlock => {
+                self.status = match self.editor.flatten_ground() {
+                    Ok(()) => "The terrain is flat. (Undo with Ctrl+Z.) Export to write the block.".into(),
+                    Err(message) => format!("Cannot flatten the terrain: {message}"),
+                };
+                self.heights = None;
+                self.refresh(frame);
+                if self.tile_mode {
+                    self.heights = Some(self.ground_heights());
+                    self.refresh(frame);
+                }
+            }
             Confirm::ResetBlock => {
                 let id = self.editor.block_id();
                 match self.restore_block(id) {
@@ -1202,6 +1308,10 @@ impl Viewer {
         };
         self.tileset_pictures = scene.textures.keys().cloned().collect();
         self.textures = scene.textures;
+        // What the catalogues computed for the block that was open is not true for this one.
+        self.catalog.fits = None;
+        self.tile_catalog.fits = None;
+        self.tile_catalog.fill_fits = None;
         // The block that was open waits with its changes.
         let left = std::mem::replace(&mut self.editor, editor);
         self.neigh_heights.remove(&left.block_id());
@@ -1258,6 +1368,9 @@ impl Viewer {
             Some((k, events, props)) if k == key && self.ev.loaded => {
                 let steps = depth.saturating_sub(self.history_depth);
                 let events_changed = events != current.0 || props != current.1;
+                if events_changed {
+                    self.events_dirty = true;
+                }
                 if steps > 0 || events_changed {
                     self.history.push(HistoryEntry {
                         editor_steps: steps,
@@ -1281,6 +1394,144 @@ impl Viewer {
         self.history_depth = depth;
     }
 
+    /// Adds the entries that the user made (kept in a file) to the catalogue, once.
+    fn ensure_mine(&mut self, tiles: bool) {
+        let panel = if tiles { &mut self.tile_catalog } else { &mut self.catalog };
+        if panel.mine_loaded || panel.entries.is_empty() || panel.building.is_some() {
+            return;
+        }
+        panel.mine_loaded = true;
+        if let Ok(list) = crate::catalog::load(&mine_path(tiles)) {
+            for entry in list {
+                self.favorites.insert(fav_key(tiles, &entry));
+                panel.mine.push(panel.entries.len());
+                panel.entries.push(entry);
+            }
+            panel.fits = None;
+        }
+    }
+
+    /// Puts an entry in the catalogue with a star, and keeps it for the next runs.
+    fn add_mine(&mut self, tiles: bool, entry: crate::catalog::Entry) -> Result<usize, String> {
+        let panel = if tiles { &mut self.tile_catalog } else { &mut self.catalog };
+        if panel.entries.is_empty() || panel.building.is_some() {
+            return Err("the catalogue is not ready: open it (C) and wait for it to load".into());
+        }
+        let key = fav_key(tiles, &entry);
+        if let Some(index) = panel.entries.iter().position(|e| fav_key(tiles, e) == key) {
+            self.favorites.insert(key);
+            save_favorites(&self.favorites);
+            return Ok(index);
+        }
+        let index = panel.entries.len();
+        panel.entries.push(entry);
+        panel.mine.push(index);
+        panel.fits = None;
+        self.favorites.insert(key);
+        save_favorites(&self.favorites);
+        save_mine(tiles, panel);
+        Ok(index)
+    }
+
+    /// Puts the armed tile of the catalogue on the tiles of the block.
+    fn fill_block(&mut self, frame: &eframe::Frame) {
+        let Some(entry) = self.stamp.and_then(|i| self.tile_catalog.entries.get(i)) else {
+            self.status = "Choose a tile in the catalogue first.".into();
+            return;
+        };
+        let object = entry.portable.clone();
+        let name = entry.name.clone();
+        let (width, height) = self.editor.grid();
+        let corners = self.heights.clone().unwrap_or_else(|| self.ground_heights());
+        let mut cells: Vec<(usize, usize, f32)> = Vec::new();
+        for row in 0..height {
+            for column in 0..width {
+                if self.fill_free_only && self.editor.tiles[row * width + column] >> 24 != 0 {
+                    continue;
+                }
+                let at = |i: usize, j: usize| corners[j * (width + 1) + i];
+                let ground = (at(column, row) + at(column + 1, row) + at(column, row + 1) + at(column + 1, row + 1)) / 4.0;
+                cells.push((column, row, ground));
+            }
+        }
+        self.status = match self.editor.stamp_tiles(object, &cells) {
+            Ok(n) => format!("{n} tiles of the block are now {name}."),
+            Err(message) => format!("Cannot fill: {message}"),
+        };
+        self.selected.clear();
+        self.refresh(frame);
+    }
+
+    /// Keeps the selected objects in the catalogue, with a star.
+    fn favorite_selection(&mut self) {
+        let Some((low, high)) = self.selection_box() else {
+            self.status = "Select an object first.".into();
+            return;
+        };
+        let portable = match self.editor.portable_of_many(&self.selected) {
+            Ok(portable) => portable,
+            Err(message) => {
+                self.status = format!("Cannot keep it: {message}");
+                return;
+            }
+        };
+        let Some(preview) = self.editor.preview_of_instances(&self.selected, low, high) else {
+            self.status = "Cannot keep an object that comes from another block: keep the original.".into();
+            return;
+        };
+        let mut names: Vec<String> = Vec::new();
+        for &i in &self.selected {
+            for (name, _) in self.editor.instance_parts(i) {
+                if !names.contains(&name) {
+                    names.push(name);
+                }
+            }
+        }
+        let block = self.editor.block_id();
+        let tileset = self.ev.at().and_then(|at| crate::events::map_tileset(&self.arc_dir, at.map));
+        let entry = crate::catalog::Entry { name: names.join(" + "), portable, preview, tileset, donor: block, occurrences: 1, variants: 1, blocks: vec![block] };
+        self.status = match self.add_mine(false, entry) {
+            Ok(_) => "The object is in the catalogue with a star (Catalogue > Objects, \u{2605} only).".into(),
+            Err(message) => format!("Cannot keep it: {message}"),
+        };
+    }
+
+    /// Copies the ground tile under a point into the catalogue (with a star) and arms it.
+    fn take_tile_at(&mut self, point: Vec3) {
+        let (column, row) = (((point.x + BLOCK_HALF) / TILE).floor() as i32, ((point.z + BLOCK_HALF) / TILE).floor() as i32);
+        let objects = self.editor.tile_objects(false);
+        let cell = |v: f32| ((v + BLOCK_HALF) / TILE).floor() as i32;
+        let found = objects.iter().enumerate().find(|(_, o)| (cell((o.low[0] + o.high[0]) / 2.0), cell((o.low[2] + o.high[2]) / 2.0)) == (column, row));
+        let Some((index, object)) = found else {
+            self.status = "There is no ground tile here to copy.".into();
+            return;
+        };
+        let preview = self.editor.preview_of(object);
+        let portable = match self.editor.portable_of_catalog(object, index) {
+            Ok(portable) if portable.parts.iter().all(|p| p.blob.is_some()) => portable,
+            Ok(_) => {
+                self.status = "Cannot copy this tile: its material is not known.".into();
+                return;
+            }
+            Err(message) => {
+                self.status = format!("Cannot copy this tile: {message}");
+                return;
+            }
+        };
+        let name = portable.parts.iter().map(|p| p.material.as_str()).collect::<Vec<_>>().join(" + ");
+        let block = self.editor.block_id();
+        let tileset = self.ev.at().and_then(|at| crate::events::map_tileset(&self.arc_dir, at.map));
+        let entry = crate::catalog::Entry { name: name.clone(), portable, preview, tileset, donor: block, occurrences: 1, variants: 1, blocks: vec![block] };
+        match self.add_mine(true, entry) {
+            Ok(slot) => {
+                self.stamp = Some(slot);
+                self.take_tile = false;
+                self.status = format!("Tile {name} copied (with a star in the catalogue). Click the ground to put it.");
+            }
+            Err(message) => self.status = format!("Cannot copy this tile: {message}"),
+        }
+    }
+
     /// Empties the open block: the objects, the tall grass and the events of
     /// the maps that are in it.
     fn clear_block(&mut self, frame: &eframe::Frame) {
@@ -1295,6 +1546,13 @@ impl Viewer {
             }
         });
         let grass = objects.and_then(|_| self.editor.clear_grass()).and_then(|_| self.editor.clear_ledges());
+        // The door models of the block go too.
+        let doors = self.editor.props.len();
+        if doors > 0 {
+            if let Err(message) = self.editor.set_props(Vec::new()) {
+                self.status = format!("Cannot take the door models away: {message}");
+            }
+        }
         if let Err(message) = grass {
             self.status = format!("Cannot clear the block: {message}");
             self.refresh(frame);
@@ -1336,7 +1594,7 @@ impl Viewer {
             self.events_save();
         }
         self.refresh(frame);
-        self.status = format!("Block {} is clear: no object, no grass, no ledge, {removed} events taken away. Export to write the block.", self.editor.block_id());
+        self.status = format!("Block {} is clear: no object, no grass, no ledge, {doors} door models, {removed} events taken away. Export to write the block.", self.editor.block_id());
     }
 
     /// Gives a block back to the game: its file is taken off the SD card and
@@ -1387,7 +1645,8 @@ impl Viewer {
     }
 
     /// Writes the open block and the other blocks that have changes.
-    fn export_all(&self) -> Result<String, String> {
+    fn export_all(&mut self) -> Result<String, String> {
+        self.events_save_with(false);
         let dir = &self.export_dir;
         let mut message = self.editor.export(dir)?;
         let mut others = 0;
@@ -1527,7 +1786,8 @@ impl Viewer {
             }
             let part = *part;
             for t in mesh.indices.chunks_exact(3) {
-                let owner = self.editor.owner(i, t[0] as usize);
+                // (A tile of ground or a piece of grass that was put on a tile is ground, not an object.)
+                let owner = self.editor.owner(i, t[0] as usize).filter(|&o| self.editor.instances.get(o).is_some_and(|inst| inst.replaces.is_none()));
                 if ground && (owner.is_some() || self.editor.is_selectable(i) || part != 1) {
                     break;
                 }
@@ -1722,7 +1982,7 @@ impl Viewer {
             if self.heights.is_none() {
                 self.heights = Some(self.ground_heights());
             }
-            self.status = "Tiles: paint with the left button, turn with the right button.".into();
+            self.status = "Ground properties: paint with the left button, turn with the right button.".into();
         }
         self.refresh(frame);
     }
@@ -1739,6 +1999,7 @@ impl Viewer {
                         self.ev.now = events.clone();
                         result = result.and(self.editor.set_props(props.clone()));
                     }
+                    self.events_dirty |= entry.before.is_some();
                     self.future.push(entry);
                     self.history_base = None;
                     self.report(result, "Undone.");
@@ -1758,6 +2019,7 @@ impl Viewer {
                         self.ev.now = events.clone();
                         result = result.and(self.editor.set_props(props.clone()));
                     }
+                    self.events_dirty |= entry.after.is_some();
                     self.history.push(entry);
                     self.history_base = None;
                     self.report(result, "Redone.");
@@ -1843,9 +2105,14 @@ impl Viewer {
                     return;
                 }
                 let path = clipboard_path();
+                let extra = self.selection_box().and_then(|(low, high)| self.capture_furniture(low, high));
+                let with = extra.as_ref().map(|f| f.signs.len() + f.triggers.len() + f.warps.len() + f.props.len()).unwrap_or(0);
                 self.status = match self.editor.portable_of_many(&self.selected) {
                     Ok(object) => match std::fs::write(&path, object.to_bytes()) {
-                        Ok(()) => format!("Copied to the clipboard ({} meshes).", object.parts.len()),
+                        Ok(()) => {
+                            self.clipboard_extra = extra;
+                            format!("Copied to the clipboard ({} meshes, with {with} events and door models).", object.parts.len())
+                        }
                         Err(e) => format!("Cannot write the clipboard: {e}"),
                     },
                     Err(message) => format!("Cannot copy: {message}"),
@@ -1861,6 +2128,8 @@ impl Viewer {
                 if let Ok(index) = &result {
                     self.selected = vec![*index];
                     self.placing = true;
+                    self.placing_imported = true;
+                    self.pending_extra = self.clipboard_extra.clone();
                 }
                 self.report(result, "Pasted. Click on the ground to place it.");
             }
@@ -1977,6 +2246,8 @@ impl Viewer {
         if let Ok(i) = &result {
             self.selected = vec![*i];
             self.placing = true;
+            self.placing_imported = true;
+            self.pending_extra = None;
         }
         self.report(result, &format!("{name}: click on the ground to put it down.{warning}"));
         self.refresh(frame);
@@ -2191,7 +2462,17 @@ impl Viewer {
         self.placing = false;
         let ok = result.is_ok();
         self.report(result, "Placed.");
-        if ok {
+        if ok && self.placing_imported {
+            // An object that comes from outside: its door and its blocked tiles come with it, if it had some.
+            // (What is at the place where it was taken is not its own: it stays.)
+            self.placing_imported = false;
+            if let (Some(furniture), Some((new_low, new_high))) = (self.pending_extra.take(), self.selection_box()) {
+                let (n, w) = self.paste_furniture(&furniture, new_low, new_high);
+                if n > 0 || w > 0 {
+                    self.status = format!("Placed with {n} events and door models and {w} blocked tiles (save the events to keep them).");
+                }
+            }
+        } else if ok {
             let n = self.events_follow_objects(low, high, delta);
             let w = self.move_walls(low, high, delta);
             if n > 0 || w > 0 {
@@ -2270,9 +2551,19 @@ impl eframe::App for Viewer {
                 self.placing = !self.placing;
                 self.status = if self.placing { "Click on the ground to place the object.".into() } else { "Cancelled.".into() };
             }
+            // Enter: the object stays where it is (it is already there: the arrows move it at once).
+            if ctx.input(|i| i.key_pressed(egui::Key::Enter)) && self.placing {
+                self.placing = false;
+                self.placing_imported = false;
+                self.pending_extra = None;
+                self.status = "Placed here.".into();
+            }
             if ctx.input(|i| i.key_pressed(egui::Key::Escape)) {
                 self.placing = false;
+                self.placing_imported = false;
                 self.stamp = None;
+                self.pending_extra = None;
+                self.take_tile = false;
                 self.selected.clear();
                 self.refresh(frame);
             }
@@ -2288,6 +2579,7 @@ impl eframe::App for Viewer {
             let tiles = self.tile_tab && !self.npc_tab;
             if !self.npc_tab {
                 self.catalog_start(tiles);
+                self.ensure_mine(tiles);
             }
             egui::SidePanel::right("catalog").resizable(true).default_width(380.0).width_range(280.0..=640.0).show(ctx, |ui| {
                 ui.horizontal(|ui| {
@@ -2322,6 +2614,7 @@ impl eframe::App for Viewer {
 
         // (The events are edited in the panel of the properties, in the place of the selection.)
         let mut events_changed = false;
+        let mut fill_now = false;
 
         if self.show_inspector {
             egui::SidePanel::left("inspector").resizable(true).default_width(350.0).width_range(250.0..=600.0).show(ctx, |ui| {
@@ -2380,6 +2673,9 @@ impl eframe::App for Viewer {
                                         action = Some(Action::Paste);
                                     }
                                 });
+                                if ui.add_enabled(has_selection, egui::Button::new("\u{2605} Add to the favorites")).on_hover_text("Keep the selection in the catalogue (Objects), with a star, to put it again anywhere").clicked() {
+                                    self.favorite_selection();
+                                }
                             });
                             egui::CollapsingHeader::new(chrome::section_title("Options")).default_open(true).show(ui, |ui| {
                                 ui.checkbox(&mut self.snap, "Snap to the tiles").on_hover_text("An object that you place goes to the middle of a tile");
@@ -2390,8 +2686,36 @@ impl eframe::App for Viewer {
                                 events_changed = self.events_ui(ui);
                             });
                         }
-                        Tool::Tiles => {
-                            egui::CollapsingHeader::new(chrome::section_title("Tiles")).default_open(true).show(ui, |ui| {
+                        Tool::Ground => {
+                            egui::CollapsingHeader::new(chrome::section_title("Ground tiles")).default_open(true).show(ui, |ui| {
+                                ui.label(egui::RichText::new("Choose a tile in the catalogue (right), then click the ground: the tile replaces the one that is there.").weak());
+                                ui.horizontal(|ui| {
+                                    if ui.selectable_label(self.take_tile, "Take a tile from the map").on_hover_text("Click a ground tile of the map: it goes in the catalogue with a star and is ready to be put somewhere else").clicked() {
+                                        self.take_tile = !self.take_tile;
+                                        if self.take_tile {
+                                            self.stamp = None;
+                                            self.status = "Click the ground tile to copy.".into();
+                                        }
+                                    }
+                                    if ui.add_enabled(self.stamp.is_some(), egui::Button::new("Stop")).on_hover_text("Stop putting the armed tile (Esc)").clicked() {
+                                        self.stamp = None;
+                                    }
+                                });
+                                let armed = self.stamp.and_then(|i| self.tile_catalog.entries.get(i)).map(|e| e.name.clone());
+                                ui.label(match armed {
+                                    Some(name) => format!("Armed: {name}"),
+                                    None => "No tile armed.".to_string(),
+                                });
+                                ui.checkbox(&mut self.catalog_open, "Catalogue of the tiles (C)");
+                                ui.separator();
+                                ui.checkbox(&mut self.fill_free_only, "Fill only the tiles that are free to walk").on_hover_text("The blocked tiles, the water and the ledges keep their ground");
+                                if ui.add_enabled(self.stamp.is_some(), egui::Button::new("Fill the block with the armed tile")).on_hover_text("Puts the armed tile on all the tiles of this block (one step for Ctrl+Z)").clicked() {
+                                    fill_now = true;
+                                }
+                            });
+                        }
+                        Tool::Properties => {
+                            egui::CollapsingHeader::new(chrome::section_title("Ground properties")).default_open(true).show(ui, |ui| {
                                 ui.horizontal(|ui| {
                                     ui.label("Brush");
                                     chrome::spin_with(ui, &mut self.brush_size, 1.0, 6.0, |d| d.suffix(" tiles"));
@@ -2501,6 +2825,9 @@ impl eframe::App for Viewer {
         if events_changed {
             self.refresh_events(frame);
         }
+        if fill_now {
+            self.fill_block(frame);
+        }
         if self.events_mode {
             self.refresh_neighbours(frame);
         }
@@ -2596,6 +2923,10 @@ impl eframe::App for Viewer {
         if let Some((origin, direction)) = click {
             if self.ev.put.is_some() || self.ev.moving {
                 self.events_click(origin, direction, frame);
+            } else if self.take_tile {
+                if let Some(hit) = self.ground_hit(origin, direction) {
+                    self.take_tile_at(hit.point);
+                }
             } else if self.stamp.is_some() {
                 let mut origin = origin;
                 let mut hit = self.ground_hit(origin, direction);
@@ -2614,6 +2945,7 @@ impl eframe::App for Viewer {
                 if hit.is_none() && !self.selected.is_empty() {
                     // The object goes to another block of the world: it leaves this block and enters that one.
                     if let Some((block, _)) = self.block_under_ray(origin, direction).filter(|(b, _)| *b != self.editor.block_id()) {
+                        let extra = self.selection_box().and_then(|(low, high)| self.capture_furniture(low, high));
                         match self.editor.portable_of_many(&self.selected) {
                             Ok(object) => {
                                 let doomed = self.selected.clone();
@@ -2627,6 +2959,8 @@ impl eframe::App for Viewer {
                                     match self.editor.import(object) {
                                         Ok(i) => {
                                             self.selected = vec![i];
+                                            self.placing_imported = true;
+                                            self.pending_extra = extra;
                                             self.refresh(frame);
                                             hit = self.ground_hit(origin, direction);
                                         }
@@ -2641,6 +2975,8 @@ impl eframe::App for Viewer {
                 if let Some(hit) = hit {
                     self.place(hit.point, frame);
                 }
+            } else if self.ground_mode {
+                // (In the tool of the ground tiles a click does not select an object.)
             } else if self
                 .event_hit(origin, direction)
                 .is_some_and(|t| self.pick(origin, direction, false).and_then(|h| h.owner.map(|_| (h.point - origin).length())).map_or(true, |object| t < object))
@@ -2721,6 +3057,11 @@ impl eframe::App for Viewer {
         }
         self.refresh_neighbours(frame);
         self.track_history();
+        // The events are written as soon as the mouse is up: no button to press.
+        if self.events_dirty && !ctx.input(|i| i.pointer.any_down()) {
+            self.events_dirty = false;
+            self.events_save_with(false);
+        }
         if self.ev.neigh_key.is_none() && self.ev.neigh_radius > 0 {
             // The blocks around are still being opened.
             ctx.request_repaint();
@@ -2799,7 +3140,14 @@ impl Viewer {
                 })
                 .collect()
         });
+        let need_fill = tiles && wanted.fill_only && wanted.fill_fits.as_ref().map_or(true, |f| f.len() != wanted.entries.len());
+        let (width, height) = self.editor.grid();
+        let fill_computed: Option<Vec<bool>> = need_fill.then(|| wanted.entries.iter().map(|e| self.editor.fill_check(&e.portable, width * height).is_ok()).collect());
+        let favorites = self.favorites.clone();
         let panel = if tiles { &mut self.tile_catalog } else { &mut self.catalog };
+        if fill_computed.is_some() {
+            panel.fill_fits = fill_computed;
+        }
         if let Some(building) = &panel.building {
             let block = building.0.load(std::sync::atomic::Ordering::Relaxed);
             ui.label(format!("Building the catalogue from all the blocks (one time only): block {block} of 857..."));
@@ -2814,19 +3162,28 @@ impl Viewer {
         if !tiles {
             ui.checkbox(&mut panel.hide_ground, "Hide pieces of ground (borders, shadows, cliffs, paths)");
         }
+        ui.checkbox(&mut panel.fav_only, "\u{2605} Favorites only");
+        if tiles {
+            ui.checkbox(&mut panel.fill_only, "Only the tiles that can fill this block").on_hover_text("The tiles that the button \"Fill the block\" can put (the block has their mesh)");
+        }
         ui.checkbox(&mut panel.only_fit, "Only the models that this block can take (same shape of vertices)");
         if computed.is_some() {
             panel.fits = computed;
         }
         let words: Vec<String> = panel.search.to_lowercase().split_whitespace().map(String::from).collect();
-        let shown: Vec<usize> = (0..panel.entries.len())
+        let is_starred = |entry: &crate::catalog::Entry| favorites.contains(&fav_key(tiles, entry));
+        let mut shown: Vec<usize> = (0..panel.entries.len())
             .filter(|&i| {
                 let name = panel.entries[i].name.to_lowercase();
                 words.iter().all(|w| name.contains(w))
                     && !(panel.hide_ground && !tiles && is_ground_piece(&name))
                     && !(panel.only_fit && !panel.fits.as_ref().is_some_and(|f| f[i]))
+                    && !(panel.fav_only && !is_starred(&panel.entries[i]))
+                    && !(tiles && panel.fill_only && !panel.fill_fits.as_ref().is_some_and(|f| f.get(i).copied().unwrap_or(false)))
             })
             .collect();
+        // The starred ones come first.
+        shown.sort_by_key(|&i| !is_starred(&panel.entries[i]));
         ui.label(format!("{} of {} models. Click one to put it in the map.", shown.len(), panel.entries.len()));
         if !panel.message.is_empty() {
             ui.label(egui::RichText::new(&panel.message).weak());
@@ -2835,6 +3192,7 @@ impl Viewer {
         let rows = shown.len().div_ceil(columns);
         let row_height = THUMB as f32 + 8.0;
         let mut clicked = None;
+        let mut toggled: Option<usize> = None;
         let mut made = 0;
         let arc_dir = self.arc_dir.clone();
         egui::ScrollArea::vertical().auto_shrink([false, false]).show_rows(ui, row_height, rows, |ui, range| {
@@ -2877,13 +3235,57 @@ impl Viewer {
                                 ui.add_sized([THUMB as f32, THUMB as f32], egui::Button::new("..."))
                             }
                         };
+                        let card = response.rect;
                         if response.on_hover_text(tip).clicked() {
                             clicked = Some(index);
+                        }
+                        // The star: it keeps the entry as a favorite.
+                        let starred = is_starred(&panel.entries[index]);
+                        let star_area = egui::Rect::from_min_size(card.right_top() + egui::vec2(-24.0, 2.0), egui::vec2(22.0, 22.0));
+                        let star = ui.interact(star_area, ui.id().with(("star", tiles, index)), egui::Sense::click());
+                        let backdrop = if star.hovered() { egui::Color32::from_black_alpha(190) } else { egui::Color32::from_black_alpha(110) };
+                        ui.painter().rect_filled(star_area, 4.0, backdrop);
+                        ui.painter().text(
+                            star_area.center(),
+                            egui::Align2::CENTER_CENTER,
+                            if starred { "\u{2605}" } else { "\u{2606}" },
+                            egui::FontId::proportional(16.0),
+                            if starred { egui::Color32::from_rgb(255, 205, 60) } else { egui::Color32::WHITE },
+                        );
+                        if star.on_hover_text(if starred { "Take the star away" } else { "Keep as a favorite" }).clicked() {
+                            toggled = Some(index);
                         }
                     }
                 });
             }
         });
+        if let Some(index) = toggled {
+            let key = fav_key(tiles, &panel.entries[index]);
+            let starred = if self.favorites.remove(&key) {
+                false
+            } else {
+                self.favorites.insert(key);
+                true
+            };
+            save_favorites(&self.favorites);
+            // An entry that the user made and does not want any more goes away.
+            if !starred {
+                if let Some(at) = panel.mine.iter().position(|&m| m == index) {
+                    panel.entries.remove(index);
+                    panel.mine.remove(at);
+                    for m in panel.mine.iter_mut() {
+                        if *m > index {
+                            *m -= 1;
+                        }
+                    }
+                    panel.thumbs.clear();
+                    panel.fits = None;
+                    save_mine(tiles, panel);
+                    self.stamp = None;
+                    clicked = None;
+                }
+            }
+        }
         clicked
     }
 }
@@ -2891,7 +3293,7 @@ impl Viewer {
 /// Opens the window.
 pub fn run(textures: HashMap<String, Texture>, editor: Editor, title: String, arc_dir: String) -> Result<(), String> {
     let options = eframe::NativeOptions {
-        viewport: egui::ViewportBuilder::default().with_inner_size([1280.0, 800.0]).with_title("Sango Editor"),
+        viewport: egui::ViewportBuilder::default().with_inner_size([1280.0, 800.0]).with_title("Sango Editor").with_icon(std::sync::Arc::new(egui::IconData { rgba: crate::icon::render(128), width: 128, height: 128 })),
         renderer: eframe::Renderer::Wgpu,
         depth_buffer: 32,
         ..Default::default()

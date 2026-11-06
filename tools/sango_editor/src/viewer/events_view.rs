@@ -737,13 +737,197 @@ impl Viewer {
     /// The events whose middle is under objects that moved move with them,
     /// by whole tiles. `low` and `high` are the box of the objects before the
     /// move, `delta` the move in units. Returns how many events moved.
+    /// Keeps the selected event, to put a copy of it later.
+    pub(super) fn event_copy(&mut self) {
+        let Some((kind, index)) = self.ev.selected else {
+            self.status = "Select an event first.".into();
+            return;
+        };
+        let now = &self.ev.now;
+        let clip = match kind {
+            Kind::Sign => now.signs.get(index).cloned().map(EventClip::Sign),
+            Kind::Trigger => now.triggers.get(index).cloned().map(EventClip::Trigger),
+            Kind::Warp => now.warps.get(index).cloned().map(EventClip::Warp),
+            Kind::Character => now.characters.get(index).cloned().map(EventClip::Character),
+            Kind::Prop => self.editor.props.get(index).cloned().map(EventClip::Prop),
+        };
+        match clip {
+            Some(clip) => {
+                self.event_clip = Some(clip);
+                self.status = format!("The {} is copied. Ctrl+V puts a copy.", kind.name());
+            }
+            None => self.status = "Nothing to copy.".into(),
+        }
+    }
+
+    /// Puts a copy of the event that was copied, one tile to the side, selected and ready to be moved.
+    pub(super) fn event_paste(&mut self) {
+        let Some(clip) = self.event_clip.clone() else {
+            self.status = "Nothing copied: select an event and press Ctrl+C first.".into();
+            return;
+        };
+        let now = &mut self.ev.now;
+        let selected = match clip {
+            EventClip::Sign(mut s) => {
+                if now.signs.len() >= MAX_SIGNS {
+                    self.status = "A map has at most 40 signs.".into();
+                    return;
+                }
+                s.x += 1;
+                now.signs.push(s);
+                (Kind::Sign, now.signs.len() - 1)
+            }
+            EventClip::Trigger(mut t) => {
+                if now.triggers.len() >= MAX_TRIGGERS {
+                    self.status = "A map has at most 40 triggers.".into();
+                    return;
+                }
+                t.x += 1;
+                now.triggers.push(t);
+                (Kind::Trigger, now.triggers.len() - 1)
+            }
+            EventClip::Warp(mut w) => {
+                if now.warps.len() >= MAX_WARPS {
+                    self.status = "A map has at most 24 warps.".into();
+                    return;
+                }
+                w.x += events::TILE as i16;
+                now.warps.push(w);
+                (Kind::Warp, now.warps.len() - 1)
+            }
+            EventClip::Character(mut c) => {
+                c.local_id = now.characters.iter().map(|c| c.local_id + 1).max().unwrap_or(0);
+                c.x += 1;
+                now.characters.push(c);
+                (Kind::Character, now.characters.len() - 1)
+            }
+            EventClip::Prop(mut p) => {
+                p.x += events::TILE;
+                let mut props = self.editor.props.clone();
+                props.push(p);
+                if let Err(message) = self.editor.set_props(props) {
+                    self.status = format!("Cannot add a door model: {message}");
+                    return;
+                }
+                (Kind::Prop, self.editor.props.len() - 1)
+            }
+        };
+        self.ev.selected = Some(selected);
+        self.ev.moving = true;
+        self.status = format!("A copy of the {} is made. Click a tile to put it there (Esc keeps it here).", selected.0.name());
+    }
+
+    /// What goes with a building when it is copied to another block: its warps (the
+    /// doors), signs, triggers, door models, and its blocked tiles.
+    pub(super) fn capture_furniture(&self, low: [f32; 3], high: [f32; 3]) -> Option<Furniture> {
+        let at = self.ev.at()?;
+        // (A door can be a little outside of the box of the building: in front of it.)
+        let margin = events::TILE * 0.75;
+        let inside = |c: [f32; 2]| c[0] >= low[0] - margin && c[0] <= high[0] + margin && c[1] >= low[2] - margin && c[1] <= high[2] + margin;
+        let centre = [(low[0] + high[0]) / 2.0, (low[2] + high[2]) / 2.0];
+        let mut f = Furniture {
+            anchor_world: [events::local_to_tile(centre[0], at.column), events::local_to_tile(centre[1], at.row)],
+            anchor_local: centre,
+            low_y: low[1],
+            ..Default::default()
+        };
+        f.signs = (0..self.ev.now.signs.len()).filter(|&i| self.event_centre(Kind::Sign, i).is_some_and(inside)).map(|i| self.ev.now.signs[i].clone()).collect();
+        f.triggers = (0..self.ev.now.triggers.len()).filter(|&i| self.event_centre(Kind::Trigger, i).is_some_and(inside)).map(|i| self.ev.now.triggers[i].clone()).collect();
+        f.warps = (0..self.ev.now.warps.len()).filter(|&i| self.event_centre(Kind::Warp, i).is_some_and(inside)).map(|i| self.ev.now.warps[i].clone()).collect();
+        f.props = (0..self.editor.props.len()).filter(|&i| self.event_centre(Kind::Prop, i).is_some_and(inside)).map(|i| self.editor.props[i].clone()).collect();
+        let (width, height) = self.editor.grid();
+        let tile = |v: f32| ((v + 360.0) / events::TILE).floor() as i32;
+        for r in tile(low[2] + 0.5).max(0)..=tile(high[2] - 0.5).min(height as i32 - 1) {
+            for c in tile(low[0] + 0.5).max(0)..=tile(high[0] - 0.5).min(width as i32 - 1) {
+                let value = self.editor.tiles[r as usize * width + c as usize];
+                if value >> 24 == 1 {
+                    f.walls.push((c, r, value));
+                }
+            }
+        }
+        let empty = f.signs.is_empty() && f.triggers.is_empty() && f.warps.is_empty() && f.props.is_empty() && f.walls.is_empty();
+        (!empty).then_some(f)
+    }
+
+    /// Puts what `capture_furniture` took around a building that now stands at the box (low, high)
+    /// of this block. Returns how many events and how many blocked tiles were put.
+    pub(super) fn paste_furniture(&mut self, f: &Furniture, low: [f32; 3], high: [f32; 3]) -> (usize, usize) {
+        let Some(at) = self.ev.at().cloned() else { return (0, 0) };
+        let centre = [(low[0] + high[0]) / 2.0, (low[2] + high[2]) / 2.0];
+        let dest = [events::local_to_tile(centre[0], at.column), events::local_to_tile(centre[1], at.row)];
+        // Whole tiles, in the places of the map and in the places of the block.
+        let (sx, sz) = ((dest[0] - f.anchor_world[0]).round() as i32, (dest[1] - f.anchor_world[1]).round() as i32);
+        let (lx, lz) = (((centre[0] - f.anchor_local[0]) / events::TILE).round() as i32, ((centre[1] - f.anchor_local[1]) / events::TILE).round() as i32);
+        let dy = low[1] - f.low_y;
+        let mut events_put = 0;
+        if self.events_follow {
+            for s in &f.signs {
+                let mut s = s.clone();
+                s.x += sx as i16;
+                s.z += sz as i16;
+                s.height += dy as i32;
+                self.ev.now.signs.push(s);
+                let last = self.ev.now.signs.len() - 1;
+                self.event_to_ground(Kind::Sign, last);
+                events_put += 1;
+            }
+            for t in &f.triggers {
+                let mut t = t.clone();
+                t.x = (t.x as i32 + sx).max(0) as u16;
+                t.z = (t.z as i32 + sz).max(0) as u16;
+                t.height += dy as i16;
+                self.ev.now.triggers.push(t);
+                let last = self.ev.now.triggers.len() - 1;
+                self.event_to_ground(Kind::Trigger, last);
+                events_put += 1;
+            }
+            for w in &f.warps {
+                let mut w = w.clone();
+                w.x += (events::TILE as i32 * sx) as i16;
+                w.z += (events::TILE as i32 * sz) as i16;
+                w.y += dy as i16;
+                self.ev.now.warps.push(w);
+                let last = self.ev.now.warps.len() - 1;
+                self.event_to_ground(Kind::Warp, last);
+                events_put += 1;
+            }
+            if !f.props.is_empty() {
+                let mut props = self.editor.props.clone();
+                for p in &f.props {
+                    let mut p = p.clone();
+                    p.x += events::TILE * sx as f32;
+                    p.z += events::TILE * sz as f32;
+                    p.y += dy;
+                    props.push(p);
+                    events_put += 1;
+                }
+                let _ = self.editor.set_props(props);
+            }
+        }
+        let mut walls_put = 0;
+        if self.walls_follow && !f.walls.is_empty() {
+            let (width, height) = self.editor.grid();
+            self.editor.begin_stroke();
+            for &(c, r, value) in &f.walls {
+                let (nc, nr) = (c + lx, r + lz);
+                if nc >= 0 && nr >= 0 && (nc as usize) < width && (nr as usize) < height {
+                    self.editor.paint(nc as usize, nr as usize, 1, value);
+                    walls_put += 1;
+                }
+            }
+            self.editor.end_stroke();
+        }
+        (events_put, walls_put)
+    }
+
     pub(super) fn events_copy_with_objects(&mut self, low: [f32; 3], high: [f32; 3], delta: [f32; 3]) -> usize {
         if !self.events_follow || !self.ev.loaded {
             return 0;
         }
         let (dx, dz) = ((delta[0] / events::TILE).round() as i32, (delta[2] / events::TILE).round() as i32);
         let dy = delta[1];
-        let inside = |c: [f32; 2]| c[0] >= low[0] && c[0] <= high[0] && c[1] >= low[2] && c[1] <= high[2];
+        let margin = events::TILE * 0.75;
+        let inside = |c: [f32; 2]| c[0] >= low[0] - margin && c[0] <= high[0] + margin && c[1] >= low[2] - margin && c[1] <= high[2] + margin;
         let mut copied = 0;
         // (The characters stay where they are: a copy of a house does not copy the people.)
         let signs: Vec<Sign> = (0..self.ev.now.signs.len()).filter(|&i| self.event_centre(Kind::Sign, i).is_some_and(inside)).map(|i| self.ev.now.signs[i].clone()).collect();
@@ -1004,7 +1188,7 @@ impl Viewer {
         let (x, z) = (tx as u16, tz as u16);
         let index = match kind {
             Kind::Prop => {
-                self.status = "A door model cannot be added: the block has its own list of props.".into();
+                self.status = "To add a door model, select one and press Ctrl+C then Ctrl+V (or D).".into();
                 return;
             }
             Kind::Sign => {
@@ -1050,20 +1234,29 @@ impl Viewer {
                         c.model = t.model;
                         c.movement = t.movement;
                         c.interaction = t.interaction;
-                        c.facing = t.facing;
                         c.param = t.param;
                         c.position_kind = t.position_kind;
                         c.trigger = t.trigger;
                         c.alias = t.alias;
+                        c.maps = t.maps;
+                        // The script of the character that gave its values: a script that the game knows.
+                        c.script = t.script;
+                        c.hide_flag = 0;
                     }
                     None => c.model = now.characters.first().map_or(204, |c| c.model),
                 }
+                // A new character looks down (toward the player), whatever the character that gave its values.
+                c.facing = 1;
                 now.characters.push(c);
                 now.characters.len() - 1
             }
         };
         self.ev.selected = Some((kind, index));
-        self.status = format!("New {} in tile ({tx}, {tz}). Its script is 65535: the game ignores it until you give it one.", kind.name());
+        self.status = if kind == Kind::Character {
+            format!("New character in tile ({tx}, {tz}), with the script of the character that gave its values. Save the events, then start the game again.")
+        } else {
+            format!("New {} in tile ({tx}, {tz}). Its script is 65535: the game ignores it until you give it one.", kind.name())
+        };
     }
 
     fn events_set_tile(&mut self, kind: Kind, index: usize, tx: i32, tz: i32, ground: Option<f32>) {
@@ -1125,7 +1318,15 @@ impl Viewer {
     fn events_delete(&mut self) {
         let Some((kind, index)) = self.ev.selected else { return };
         if kind == Kind::Prop {
-            self.status = "A door model cannot be taken away (the block has its own list of props). Move it instead.".into();
+            let mut props = self.editor.props.clone();
+            if index < props.len() {
+                props.remove(index);
+                self.status = match self.editor.set_props(props) {
+                    Ok(()) => "The door model is taken away.".into(),
+                    Err(message) => format!("Cannot take the door model away: {message}"),
+                };
+            }
+            self.ev.selected = None;
             return;
         }
         let base = &self.ev.base;
@@ -1164,6 +1365,11 @@ impl Viewer {
     /// is as in the game again loses its file). The lines of these maps leave
     /// `map_events.txt`: the packs have the changes now.
     pub(super) fn events_save(&mut self) {
+        self.events_save_with(true);
+    }
+
+    /// Writes the maps that changed. `announce`: say it in the status bar.
+    pub(super) fn events_save_with(&mut self, announce: bool) {
         let mut done: Vec<String> = Vec::new();
         let mut failed: Vec<String> = Vec::new();
         let path = events::file_path(&self.export_dir);
@@ -1187,6 +1393,9 @@ impl Viewer {
                 done.push(format!("{map} (as in the game)"));
             }
         }
+        if !announce && failed.is_empty() {
+            return;
+        }
         self.status = if !failed.is_empty() {
             format!("Cannot write some maps: {}", failed.join("; "))
         } else if done.is_empty() {
@@ -1198,6 +1407,20 @@ impl Viewer {
 
     /// The keys of the mode of the events.
     pub(super) fn events_keys(&mut self, ctx: &egui::Context, frame: &eframe::Frame) {
+        // Copy and paste of an event (Ctrl+C, Ctrl+V), and D to copy and paste at once.
+        let (copy, paste, duplicate) = ctx.input(|i| {
+            (
+                i.events.iter().any(|e| matches!(e, egui::Event::Copy)) || (i.modifiers.command && i.key_pressed(egui::Key::C)),
+                i.events.iter().any(|e| matches!(e, egui::Event::Paste(_))) || (i.modifiers.command && i.key_pressed(egui::Key::V)),
+                i.key_pressed(egui::Key::D) && !i.modifiers.command,
+            )
+        });
+        if copy || duplicate {
+            self.event_copy();
+        }
+        if paste || duplicate {
+            self.event_paste();
+        }
         let (left, right, up, down, page_up, page_down, delete, escape, grab) = ctx.input(|i| {
             (
                 i.key_pressed(egui::Key::ArrowLeft),
@@ -1215,6 +1438,11 @@ impl Viewer {
             self.ev.put = None;
             self.ev.moving = false;
             self.ev.selected = None;
+        }
+        // Enter: the event stays where it is (the arrows move it at once).
+        if ctx.input(|i| i.key_pressed(egui::Key::Enter)) && self.ev.moving {
+            self.ev.moving = false;
+            self.status = "Placed here.".into();
         }
         if grab && self.ev.selected.is_some() {
             self.ev.moving = !self.ev.moving;
@@ -1500,10 +1728,18 @@ impl Viewer {
             if ui.button("Reset the map to the game").on_hover_text("The map chosen above: its events and the blocks where it has events go back to the game").clicked() {
                 self.confirm = Some(super::chrome::Confirm::ResetMap);
             }
+            if ui.button("Restore the events of the world").on_hover_text("All the events of all the maps of this world go back to the game; the blocks are not touched").clicked() {
+                self.confirm = Some(super::chrome::Confirm::ResetEvents);
+            }
             if ui.button("Reset the whole world").on_hover_text("All the maps, all the blocks and the grid of this world go back to the game").clicked() {
                 self.confirm = Some(super::chrome::Confirm::ResetWorld);
             }
             if let Some((kind, index)) = self.ev.selected {
+                if ui.button("Duplicate").on_hover_text("Put a copy of this event one tile to the side, ready to be moved (D, or Ctrl+C then Ctrl+V)").clicked() {
+                    self.event_copy();
+                    self.event_paste();
+                    changed = true;
+                }
                 if ui.button("Restore this event").on_hover_text("Gives this event the values of the game (only an event of the game)").clicked() {
                     let (base, now) = (&self.ev.base, &mut self.ev.now);
                     let ok = match kind {
@@ -1728,6 +1964,31 @@ fn ray_box(origin: Vec3, direction: Vec3, low: Vec3, high: Vec3) -> Option<f32> 
         far = far.min(t1.max(t2));
     }
     (near <= far && far > 0.0).then_some(near.max(0.0))
+}
+
+/// An event that was copied (Ctrl+C), to put a copy of it (Ctrl+V).
+#[derive(Clone)]
+pub enum EventClip {
+    Sign(Sign),
+    Trigger(Trigger),
+    Warp(Warp),
+    Character(Character),
+    Prop(crate::edit::Prop),
+}
+
+/// What goes with a building when it is copied to another block (see `capture_furniture`).
+#[derive(Clone, Default)]
+pub struct Furniture {
+    pub signs: Vec<Sign>,
+    pub triggers: Vec<Trigger>,
+    pub warps: Vec<Warp>,
+    pub props: Vec<crate::edit::Prop>,
+    /// The blocked tiles: the cell in the block and the attribute.
+    pub walls: Vec<(i32, i32, u32)>,
+    /// The middle of the building, in tiles of the map (the world) and in units of its block.
+    pub anchor_world: [f32; 2],
+    pub anchor_local: [f32; 2],
+    pub low_y: f32,
 }
 
 /// A mark on the ground under each object of a block that can be moved: a

@@ -21,7 +21,7 @@ pub struct Scene {
     pub tileset: Option<usize>,
 }
 
-fn open_pack(raw: &[u8]) -> Result<Vec<Vec<u8>>, String> {
+pub(crate) fn open_pack(raw: &[u8]) -> Result<Vec<Vec<u8>>, String> {
     let data = if raw.first() == Some(&0x11) { lz11::decompress(raw)? } else { raw.to_vec() };
     let (_, parts) = pack::split(&data)?;
     Ok(parts.into_iter().map(|p| p.to_vec()).collect())

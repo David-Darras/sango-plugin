@@ -1995,3 +1995,168 @@ pub fn clear_test(arc_dir: &str, block: usize, out_dir: &str) -> Result<(), Stri
     println!("{}", editor.export(out_dir)?);
     Ok(())
 }
+
+/// Puts many different tiles of a catalogue in a block, one after the other, and writes the block.
+pub fn tile_many_test(arc_dir: &str, tiles: &str, block: usize, count: usize, out_dir: &str) -> Result<(), String> {
+    let entries = crate::catalog::load(std::path::Path::new(tiles))?;
+    let mut editor = crate::editor::Editor::new(arc_dir, block)?;
+    let mut done = 0;
+    for (k, entry) in entries.iter().take(count).enumerate() {
+        match editor.stamp_tile(entry.portable.clone(), 5 + k, 20, Some(0.0)) {
+            Ok(_) => done += 1,
+            Err(message) => println!("tile {k} ({}): {message}", entry.name),
+        }
+    }
+    println!("{done} of {count} tiles put; {} meshes", editor.meshes().len());
+    println!("{}", editor.export(out_dir)?);
+    Ok(())
+}
+
+/// Copies the first object that has a mesh with a word in its material many times (each copy a bit
+/// further, and turned), then writes the block.
+pub fn dup_test(arc_dir: &str, block: usize, word: &str, count: usize, out_dir: &str) -> Result<(), String> {
+    use crate::editor::{Editor, Instance};
+    let mut editor = Editor::new(arc_dir, block)?;
+    let wanted = (0..editor.instances.len()).find(|&i| editor.instance_parts(i).iter().any(|(name, _)| name.contains(word))).ok_or("no such object")?;
+    println!("object {wanted}: {:?}", editor.instance_parts(wanted));
+    for k in 0..count {
+        let source = editor.instances[wanted].clone();
+        let result = editor.change(|v| v.push(Instance { cluster: source.cluster, offset: [source.offset[0] + 30.0 * (k + 1) as f32, source.offset[1], source.offset[2]], yaw: 0.4 * k as f32, copy: true, deleted: false, only: source.only.clone(), replaces: None }));
+        println!("copy {k}: {}", match result { Ok(()) => "ok".to_string(), Err(m) => m });
+    }
+    println!("{} meshes", editor.meshes().len());
+    println!("{}", editor.export(out_dir)?);
+    Ok(())
+}
+
+/// Adds a door model to a block (the list of props gets longer), then removes one, and writes the block.
+pub fn prop_add_test(arc_dir: &str, block: usize, out_dir: &str) -> Result<(), String> {
+    let mut editor = crate::editor::Editor::new(arc_dir, block)?;
+    println!("props at the start: {}", editor.props.len());
+    let first = editor.props.first().cloned().ok_or("this block has no prop to copy")?;
+    for k in 0..3 {
+        let mut props = editor.props.clone();
+        let mut copy = first.clone();
+        copy.x += 18.0 * (k + 1) as f32;
+        props.push(copy);
+        editor.set_props(props)?;
+        println!("after adding {}: {}", k + 1, editor.props.len());
+    }
+    let mut props = editor.props.clone();
+    props.pop();
+    editor.set_props(props)?;
+    println!("after removing one: {}", editor.props.len());
+    editor.set_props(Vec::new())?;
+    println!("after removing all: {}", editor.props.len());
+    println!("{}", editor.export(out_dir)?);
+    Ok(())
+}
+
+/// Prints the characters of a map as the game has them.
+pub fn characters(arc_dir: &str, map: usize) -> Result<(), String> {
+    let events = crate::events::read_map_events(arc_dir, map)?;
+    // What the SD card has for this map, if the tool wrote something.
+    if let Ok(appdata) = std::env::var("APPDATA") {
+        let sd = format!("{appdata}/Azahar/sdmc/sango");
+        match crate::events::read_map_override(&sd, map) {
+            Some(own) => println!("the SD card has this map: {} characters, {} warps, {} signs, {} triggers (the game has {} characters)", own.characters.len(), own.warps.len(), own.signs.len(), own.triggers.len(), events.characters.len()),
+            None => println!("the SD card has no file for this map"),
+        }
+    }
+    for c in &events.characters {
+        println!(
+            "id {:3} model {:4} move {:3} interact {:3} hide {:5} script {:5} facing {} param {:?} trigger {:?} maps {:?} alias {:5} kind {} at ({}, {}) h {:.0}",
+            c.local_id, c.model, c.movement, c.interaction, c.hide_flag, c.script, c.facing, c.param, c.trigger, c.maps, c.alias, c.position_kind, c.x, c.z, c.height
+        );
+    }
+    Ok(())
+}
+
+/// Puts one tile of a catalogue on every tile of a block, undoes, does again, and writes the block.
+pub fn fill_test(arc_dir: &str, tiles: &str, number: usize, block: usize, out_dir: &str) -> Result<(), String> {
+    let entries = crate::catalog::load(std::path::Path::new(tiles))?;
+    let entry = entries.get(number).ok_or("no such tile")?;
+    let mut editor = crate::editor::Editor::new(arc_dir, block)?;
+    let (width, height) = editor.grid();
+    let cells: Vec<(usize, usize, f32)> = (0..height).flat_map(|r| (0..width).map(move |c| (c, r, 0.0))).collect();
+    let start = std::time::Instant::now();
+    let count = |e: &crate::editor::Editor| e.meshes().iter().map(|(_, m)| m.indices.len() / 3).sum::<usize>();
+    println!("tile {number}: {}; the block has {} triangles", entry.name, count(&editor));
+    match editor.stamp_tiles(entry.portable.clone(), &cells) {
+        Ok(n) => println!("{n} tiles put in {:.1} s: {} triangles, {} meshes", start.elapsed().as_secs_f32(), count(&editor), editor.meshes().len()),
+        Err(m) => println!("cannot fill: {m}"),
+    }
+    editor.undo().ok();
+    println!("after undo: {} triangles", count(&editor));
+    editor.redo().ok();
+    println!("{}", editor.export(out_dir)?);
+    Ok(())
+}
+
+/// Prints the tileset that each map of a world uses, and the one that the tool guesses for a block.
+pub fn map_tilesets(arc_dir: &str, matrix: usize) -> Result<(), String> {
+    for map in crate::events::maps_of_matrix(arc_dir, matrix)? {
+        println!("map {map}: tileset {:?}", crate::events::map_tileset(arc_dir, map));
+    }
+    Ok(())
+}
+
+/// Looks at the blocks written on the SD card: which pictures do their meshes need, and does the
+/// tileset that is on the SD card (or else the one of the game) have them?
+pub fn sd_pictures_check(arc_dir: &str, sd_dir: &str, tileset: usize) -> Result<(), String> {
+    let override_path = std::path::Path::new(sd_dir).join("area").join(format!("{tileset}.bin"));
+    let mut have: std::collections::HashSet<String> = Default::default();
+    if let Ok(bytes) = std::fs::read(&override_path) {
+        let parts = data::open_pack(&bytes)?;
+        let part = parts.get(data::TILESET_PICTURES).ok_or("the tileset on the SD card has no pictures")?;
+        for t in crate::bch::Bch::parse(part)?.textures()? {
+            have.insert(t.name);
+        }
+        println!("tileset {tileset} on the SD card: {} pictures", have.len());
+        let game_now: std::collections::HashSet<String> = data::tileset_textures(arc_dir, tileset)?.into_keys().collect();
+        let mut added: Vec<&String> = have.iter().filter(|n| !game_now.contains(*n)).collect();
+        added.sort();
+        println!("pictures added to the tileset: {added:?}");
+    } else {
+        println!("no tileset {tileset} on the SD card");
+    }
+    let game: std::collections::HashSet<String> = data::tileset_textures(arc_dir, tileset)?.into_keys().collect();
+    println!("tileset {tileset} of the game: {} pictures; the SD card one lacks {:?}", game.len(), game.iter().filter(|n| !have.contains(*n)).take(5).collect::<Vec<_>>());
+    let folder = std::path::Path::new(sd_dir).join("land");
+    for entry in std::fs::read_dir(&folder).map_err(|e| e.to_string())?.flatten() {
+        let name = entry.file_name().to_string_lossy().to_string();
+        let Some(block) = name.strip_suffix(".bin").and_then(|n| n.parse::<usize>().ok()) else { continue };
+        let scene = data::load_scene_from(arc_dir, block, Some(tileset), Some(&entry.path().to_string_lossy()))?;
+        let mut missing: Vec<String> = scene.meshes.iter().map(|m| data::picture_of(m).to_string()).filter(|p| !have.contains(p) && !game.contains(p)).collect();
+        missing.sort();
+        missing.dedup();
+        println!("block {block}: {} meshes, pictures that nobody has: {:?}", scene.meshes.len(), missing);
+    }
+    Ok(())
+}
+
+/// Makes the ground of a block flat, undoes, does again, and writes the block.
+pub fn flatten_test(arc_dir: &str, block: usize, out_dir: &str) -> Result<(), String> {
+    let mut editor = crate::editor::Editor::new(arc_dir, block)?;
+    let range = |e: &crate::editor::Editor| {
+        let (mut low, mut high) = (f32::MAX, f32::MIN);
+        for (i, (part, mesh)) in e.meshes().iter().enumerate() {
+            if *part != 1 || e.is_selectable(i) {
+                continue;
+            }
+            for p in &mesh.positions {
+                low = low.min(p[1]);
+                high = high.max(p[1]);
+            }
+        }
+        (low, high)
+    };
+    println!("ground heights before: {:?}", range(&editor));
+    editor.flatten_ground()?;
+    println!("after: {:?}", range(&editor));
+    editor.undo()?;
+    println!("after undo: {:?}", range(&editor));
+    editor.redo()?;
+    println!("{}", editor.export(out_dir)?);
+    Ok(())
+}

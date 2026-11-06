@@ -431,9 +431,23 @@ impl EditableBlock {
     pub fn set_props(&mut self, props: &[Prop]) -> Result<(), String> {
         let Some(&(start, end)) = self.ranges.get(3) else { return Ok(()) };
         let count = get(&self.pack[start..end], 0);
-        if count != props.len() || 4 + count * PROP_SIZE > end - start {
-            return Err("the block has another number of props".into());
+        if 4 + count * PROP_SIZE > end - start {
+            return Err("the list of props of the block is cut".into());
         }
+        if count != props.len() {
+            // The list gets longer or shorter: the part is made again, with the same data after the list.
+            let old = &self.pack[start..end];
+            let mut part = (props.len() as u32).to_le_bytes().to_vec();
+            part.resize(4 + props.len() * PROP_SIZE, 0);
+            part.extend_from_slice(&old[4 + count * PROP_SIZE..]);
+            part.resize(part.len().div_ceil(pack::ALIGNMENT) * pack::ALIGNMENT, 0);
+            let made = pack::replace_part(&self.pack, 3, &part)?;
+            *self = Self::from_pack(self.id, self.compressed, made)?;
+            if self.ranges.get(3).map_or(true, |&(s, e)| get(&self.pack[s..e], 0) != props.len()) {
+                return Err("the list of props could not change its length".into());
+            }
+        }
+        let Some(&(start, _)) = self.ranges.get(3) else { return Ok(()) };
         for (i, d) in props.iter().enumerate() {
             let b = start + 4 + i * PROP_SIZE;
             put(&mut self.pack, b, d.kind as usize);
@@ -454,6 +468,18 @@ impl EditableBlock {
         let start = self.ranges[0].0;
         for (i, &value) in attributes.cells.iter().enumerate() {
             put(&mut self.pack, start + 4 + 4 * i, value as usize);
+        }
+        Ok(())
+    }
+
+    /// Gives the same height to vertices of a mesh (the ground is made flat).
+    pub fn set_height(&mut self, mesh: usize, vertices: &[usize], height: f32) -> Result<(), String> {
+        let (part, mesh) = self.meshes.get_mut(mesh).ok_or("no such mesh")?;
+        let base = self.ranges[*part].0;
+        for &v in vertices {
+            let at = base + *mesh.position_offsets.get(v).ok_or("no such vertex")? + 4;
+            self.pack[at..at + 4].copy_from_slice(&height.to_le_bytes());
+            mesh.positions[v][1] = height;
         }
         Ok(())
     }
@@ -568,7 +594,7 @@ impl EditableBlock {
     }
 
     /// The mesh of this block that can take a piece of a foreign object.
-    fn host_of(&self, part: &PortablePart) -> Result<usize, String> {
+    pub(crate) fn host_of(&self, part: &PortablePart) -> Result<usize, String> {
         self.meshes
             .iter()
             .position(|(_, m)| m.material == part.material && m.places.layout == part.layout)
@@ -591,6 +617,18 @@ impl EditableBlock {
         &mut self,
         like: usize,
         source: &[(usize, Vec<usize>)],
+        delta: [f32; 3],
+    ) -> Result<usize, String> {
+        self.add_mesh_from_groups_turned(like, source, [0.0, 0.0], 0.0, delta)
+    }
+
+    /// Like `add_mesh_from_groups`, and the vertices turn by `yaw` around the point `centre` first.
+    pub fn add_mesh_from_groups_turned(
+        &mut self,
+        like: usize,
+        source: &[(usize, Vec<usize>)],
+        centre: [f32; 2],
+        yaw: f32,
         delta: [f32; 3],
     ) -> Result<usize, String> {
         let (part, like_mesh) = self.meshes.get(like).ok_or("no such mesh")?;
@@ -616,7 +654,7 @@ impl EditableBlock {
                 let mut bytes = self.pack[base + from..base + from + stride].to_vec();
                 let inside = mesh.position_offsets[v] - from;
                 let normal = mesh.normal_offsets.get(v).map(|n| n - from);
-                transform_vertex(&mut bytes, inside, normal, [0.0, 0.0], 0.0, delta);
+                transform_vertex(&mut bytes, inside, normal, centre, yaw, delta);
                 for a in 0..3 {
                     let at = inside + 4 * a;
                     let value = f32::from_le_bytes([bytes[at], bytes[at + 1], bytes[at + 2], bytes[at + 3]]);
@@ -659,61 +697,80 @@ impl EditableBlock {
     /// material too. The pieces turn by `yaw` around the point `centre`, then
     /// move by `delta`. Returns how many meshes were added.
     pub fn add_foreign_meshes(&mut self, object: &Portable, centre: [f32; 2], yaw: f32, delta: [f32; 3]) -> Result<usize, String> {
+        self.add_foreign_meshes_many(object, &[(centre, yaw, delta)])
+    }
+
+    /// Like `add_foreign_meshes`, for many copies of the same object: all the copies go in the
+    /// same new mesh (or in as few new meshes as the indices allow). Returns how many meshes were added.
+    pub fn add_foreign_meshes_many(&mut self, object: &Portable, places: &[([f32; 2], f32, [f32; 3])]) -> Result<usize, String> {
         let mut added = 0;
         for piece in &object.parts {
             let blob = piece.blob.as_ref().ok_or_else(|| format!("the material {} was not copied with the object", piece.material))?;
-            // A mesh of this block that is made like the piece gives the shape of the new mesh.
-            let needed = piece.vertices.len() / piece.stride.max(1);
-            // The mesh that has the same material (an earlier import, or the
-            // block itself) is the model, so that the new mesh shows the same picture.
-            let template = self
-                .meshes
-                .iter()
-                .position(|(p, m)| *p == 1 && m.material == piece.material && m.places.layout == piece.layout && (m.places.index_width == 2 || needed <= 256))
-                .or_else(|| self.meshes.iter().position(|(p, m)| *p == 1 && m.places.layout == piece.layout && (m.places.index_width == 2 || needed <= 256)))
-                .or_else(|| self.meshes.iter().position(|(p, m)| *p == 1 && m.places.layout == piece.layout))
+            let count = piece.vertices.len() / piece.stride.max(1);
+            // A mesh of this block that is made like the piece gives the shape of the new mesh. A mesh with
+            // big indices (two bytes) is better: it holds many copies. The mesh that has the same material
+            // is the model when there are only a few copies.
+            let big = |m: &Mesh| m.places.index_width == 2;
+            let same_layout = |m: &Mesh| m.places.layout == piece.layout;
+            let template = (if places.len() > 1 { self.meshes.iter().position(|(p, m)| *p == 1 && same_layout(m) && big(m) && m.material == piece.material) } else { None })
+                .or_else(|| if places.len() > 1 { self.meshes.iter().position(|(p, m)| *p == 1 && same_layout(m) && big(m)) } else { None })
+                .or_else(|| self.meshes.iter().position(|(p, m)| *p == 1 && m.material == piece.material && same_layout(m) && (big(m) || count <= 256)))
+                .or_else(|| self.meshes.iter().position(|(p, m)| *p == 1 && same_layout(m) && (big(m) || count <= 256)))
+                .or_else(|| self.meshes.iter().position(|(p, m)| *p == 1 && same_layout(m)))
                 .ok_or_else(|| format!("this block has no mesh with the vertices of {}", piece.material))?;
             let (part, like) = &self.meshes[template];
             let part = *part;
             let width = like.places.index_width;
-            let count = piece.vertices.len() / piece.stride;
-            if count > if width == 2 { 65536 } else { 256 } {
+            let limit = if width == 2 { 65536 } else { 256 };
+            if count > limit {
                 return Err(format!("{} has too many vertices for the indices of the mesh that serves as a model", piece.material));
             }
-            let mut vertices = Vec::with_capacity(piece.vertices.len());
-            let (mut low, mut high) = ([f32::MAX; 3], [f32::MIN; 3]);
-            for vertex in piece.vertices.chunks_exact(piece.stride) {
-                let mut bytes = vertex.to_vec();
-                transform_vertex(&mut bytes, piece.position_inside, piece.normal_inside, centre, yaw, delta);
-                for a in 0..3 {
-                    let at = piece.position_inside + 4 * a;
-                    let v = f32::from_le_bytes([bytes[at], bytes[at + 1], bytes[at + 2], bytes[at + 3]]);
-                    low[a] = low[a].min(v);
-                    high[a] = high[a].max(v);
+            let per_mesh = (limit / count.max(1)).max(1);
+            for chunk in places.chunks(per_mesh) {
+                let mut vertices = Vec::with_capacity(piece.vertices.len() * chunk.len());
+                let mut indices: Vec<u32> = Vec::with_capacity(piece.indices.len() * chunk.len());
+                let (mut low, mut high) = ([f32::MAX; 3], [f32::MIN; 3]);
+                for (copy, &(centre, yaw, delta)) in chunk.iter().enumerate() {
+                    for vertex in piece.vertices.chunks_exact(piece.stride) {
+                        let mut bytes = vertex.to_vec();
+                        transform_vertex(&mut bytes, piece.position_inside, piece.normal_inside, centre, yaw, delta);
+                        for a in 0..3 {
+                            let at = piece.position_inside + 4 * a;
+                            let v = f32::from_le_bytes([bytes[at], bytes[at + 1], bytes[at + 2], bytes[at + 3]]);
+                            low[a] = low[a].min(v);
+                            high[a] = high[a].max(v);
+                        }
+                        vertices.extend_from_slice(&bytes);
+                    }
+                    indices.extend(piece.indices.iter().map(|&i| i + (copy * count) as u32));
                 }
-                vertices.extend_from_slice(&bytes);
+                let geometry = NewGeometry {
+                    vertices,
+                    indices,
+                    width,
+                    centre: [(low[0] + high[0]) / 2.0, (low[1] + high[1]) / 2.0, (low[2] + high[2]) / 2.0],
+                };
+                let template_now = self
+                    .meshes
+                    .iter()
+                    .position(|(p, m)| *p == part && m.material == self.meshes[template].1.material && m.places.layout == piece.layout && m.places.index_width == width)
+                    .unwrap_or(template);
+                let in_part = self.meshes[..template_now].iter().filter(|(p, _)| *p == part).count();
+                // A material that the block already has is not copied again.
+                let has_material = self.meshes.iter().any(|(_, m)| m.material == piece.material);
+                let (bytes, _) = bch_edit::add_object_with(
+                    &self.pack[self.ranges[part].0..self.ranges[part].1],
+                    in_part,
+                    Some(piece.group),
+                    &geometry,
+                    if has_material { None } else { Some(blob) },
+                )?;
+                let mut padded = bytes;
+                padded.resize(padded.len().div_ceil(pack::ALIGNMENT) * pack::ALIGNMENT, 0);
+                let pack = pack::replace_part(&self.pack, part, &padded)?;
+                *self = Self::from_pack(self.id, self.compressed, pack)?;
+                added += 1;
             }
-            let geometry = NewGeometry {
-                vertices,
-                indices: piece.indices.clone(),
-                width,
-                centre: [(low[0] + high[0]) / 2.0, (low[1] + high[1]) / 2.0, (low[2] + high[2]) / 2.0],
-            };
-            let in_part = self.meshes[..template].iter().filter(|(p, _)| *p == part).count();
-            // A material that the block already has is not copied again.
-            let has_material = self.meshes.iter().any(|(_, m)| m.material == piece.material);
-            let (bytes, _) = bch_edit::add_object_with(
-                &self.pack[self.ranges[part].0..self.ranges[part].1],
-                in_part,
-                Some(piece.group),
-                &geometry,
-                if has_material { None } else { Some(blob) },
-            )?;
-            let mut padded = bytes;
-            padded.resize(padded.len().div_ceil(pack::ALIGNMENT) * pack::ALIGNMENT, 0);
-            let pack = pack::replace_part(&self.pack, part, &padded)?;
-            *self = Self::from_pack(self.id, self.compressed, pack)?;
-            added += 1;
         }
         Ok(added)
     }

@@ -72,6 +72,9 @@ type Snapshot = (Vec<Instance>, Vec<u32>);
 /// The part of a block that holds the model of the tall grass.
 pub const GRASS_PART: usize = 5;
 
+/// The mark of a cluster that makes the ground flat (it holds nothing).
+const FLATTEN_MARK: (usize, usize) = (crate::edit::NO_ORIGIN, 2);
+
 /// The mark of a cluster that takes ledge models away (it holds nothing).
 const LEDGE_ERASER: (usize, usize) = (crate::edit::NO_ORIGIN, 1);
 
@@ -603,9 +606,12 @@ impl Editor {
         let mut ground_cells: std::collections::BTreeSet<(usize, usize)> = Default::default();
         let mut grass_cells: std::collections::BTreeSet<(usize, usize)> = Default::default();
         let mut ledge_cells: std::collections::BTreeSet<(usize, usize)> = Default::default();
+        let mut flatten = false;
         for i in self.instances.iter().filter(|i| i.copy && !i.deleted) {
             if let Some(cell) = i.replaces {
-                if self.cluster_is_ledge_eraser(i.cluster) {
+                if self.cluster_is_flatten(i.cluster) {
+                    flatten = true;
+                } else if self.cluster_is_ledge_eraser(i.cluster) {
                     ledge_cells.insert(cell);
                 } else if self.cluster_is_grass(i.cluster) {
                     grass_cells.insert(cell);
@@ -638,9 +644,53 @@ impl Editor {
             .collect();
         // An object from another block goes in the meshes of this block when it
         // can. Else it gets new meshes, and its materials, after the other changes.
-        let (copies, fresh): (Vec<usize>, Vec<usize>) = all_copies.into_iter().partition(|&i| {
-            self.clusters[self.instances[i].cluster].foreign.as_ref().map_or(true, |o| self.original.can_host(o).is_ok())
-        });
+        // A mesh that has small indices (one byte) holds 256 vertices at most: a copy that would not
+        // fit goes in new meshes.
+        let (mut copies, mut fresh): (Vec<usize>, Vec<usize>) = (Vec::new(), Vec::new());
+        let mut used: std::collections::HashMap<usize, usize> = Default::default();
+        let limit = |mesh: usize| if block.meshes[mesh].1.places.index_width == 2 { 65536 } else { 256 };
+        for i in all_copies {
+            let instance = &self.instances[i];
+            let foreign = self.clusters[instance.cluster].foreign.as_ref();
+            if foreign.is_some_and(|o| self.original.can_host(o).is_err()) {
+                fresh.push(i);
+                continue;
+            }
+            // What this copy adds to each mesh.
+            let mut adds: Vec<(usize, usize)> = Vec::new();
+            match foreign {
+                None => {
+                    for (mesh, vertices) in self.active_parts(instance) {
+                        adds.push((*mesh, vertices.len()));
+                    }
+                }
+                Some(object) => {
+                    for part in &object.parts {
+                        if let Ok(mesh) = self.original.host_of(part) {
+                            adds.push((mesh, part.vertices.len() / part.stride.max(1)));
+                        }
+                    }
+                }
+            }
+            let mut fits = true;
+            let mut total: std::collections::HashMap<usize, usize> = Default::default();
+            for &(mesh, n) in &adds {
+                *total.entry(mesh).or_default() += n;
+            }
+            for (&mesh, &n) in &total {
+                if block.meshes[mesh].1.positions.len() + used.get(&mesh).copied().unwrap_or(0) + n > limit(mesh) {
+                    fits = false;
+                }
+            }
+            if fits {
+                for (mesh, n) in total {
+                    *used.entry(mesh).or_default() += n;
+                }
+                copies.push(i);
+            } else {
+                fresh.push(i);
+            }
+        }
         let requests: Vec<CopyRequest> = copies
             .iter()
             .map(|&i| CopyRequest {
@@ -671,9 +721,69 @@ impl Editor {
         // New meshes for the objects that the block cannot take as they are.
         let mut map: Vec<usize> = (0..block.meshes.len()).collect();
         let mut fresh_meshes: Vec<(usize, Vec<usize>)> = Vec::new();
+        // The copies of the same object from another block go in the same new meshes.
+        let mut grouped: Vec<(usize, Vec<usize>)> = Vec::new();
+        let mut singles: Vec<usize> = Vec::new();
         for &index in &fresh {
+            let cluster = self.instances[index].cluster;
+            if self.clusters[cluster].foreign.is_none() {
+                singles.push(index);
+            } else if let Some(group) = grouped.iter_mut().find(|(c, _)| *c == cluster) {
+                group.1.push(index);
+            } else {
+                grouped.push((cluster, vec![index]));
+            }
+        }
+        for (cluster, members) in &grouped {
+            if members.len() < 2 {
+                singles.push(members[0]);
+                continue;
+            }
+            let Some(object) = self.clusters[*cluster].foreign.clone() else { continue };
+            let places: Vec<([f32; 2], f32, [f32; 3])> = members
+                .iter()
+                .map(|&i| (self.base_centre(&self.instances[i]), self.instances[i].yaw, self.instances[i].offset))
+                .collect();
+            let before = mesh_keys(&block.meshes);
+            block.add_foreign_meshes_many(&object, &places)?;
+            let (moved, new) = match_meshes(&before, &mesh_keys(&block.meshes))?;
+            for m in map.iter_mut() {
+                *m = moved[*m];
+            }
+            for (_, list) in fresh_meshes.iter_mut() {
+                for m in list.iter_mut() {
+                    *m = moved[*m];
+                }
+            }
+            fresh_meshes.push((members[0], new));
+        }
+        for &index in &singles {
             let instance = &self.instances[index];
-            let Some(object) = self.clusters[instance.cluster].foreign.clone() else { continue };
+            let Some(object) = self.clusters[instance.cluster].foreign.clone() else {
+                // A copy of an object of this block that does not fit in the meshes that it uses: new meshes.
+                let mut made: Vec<usize> = Vec::new();
+                let (centre, yaw, delta) = (self.base_centre(instance), instance.yaw, instance.offset);
+                for (mesh, vertices) in self.active_parts(instance) {
+                    let like = map[*mesh];
+                    let before = mesh_keys(&block.meshes);
+                    block.add_mesh_from_groups_turned(like, &[(like, vertices.clone())], centre, yaw, delta)?;
+                    let (moved, new) = match_meshes(&before, &mesh_keys(&block.meshes))?;
+                    for m in map.iter_mut() {
+                        *m = moved[*m];
+                    }
+                    for (_, list) in fresh_meshes.iter_mut() {
+                        for m in list.iter_mut() {
+                            *m = moved[*m];
+                        }
+                    }
+                    for m in made.iter_mut() {
+                        *m = moved[*m];
+                    }
+                    made.extend(new);
+                }
+                fresh_meshes.push((index, made));
+                continue;
+            };
             let before = mesh_keys(&block.meshes);
             block.add_foreign_meshes(&object, self.base_centre(instance), instance.yaw, instance.offset)?;
             let (moved, new) = match_meshes(&before, &mesh_keys(&block.meshes))?;
@@ -719,6 +829,32 @@ impl Editor {
                 for slot in owner[mesh].iter_mut() {
                     *slot = Some(*index);
                 }
+            }
+        }
+        if flatten {
+            // The ground: the meshes of the ground of the block, and the tiles that were put on it.
+            let is_ground = |mesh: usize, vertex: usize| {
+                let tile = owner[mesh].get(vertex).copied().flatten().is_some_and(|i| self.instances[i].replaces.is_some());
+                tile || built_origin[mesh].is_some_and(|o| !self.selectable[o])
+            };
+            let mut heights: std::collections::HashMap<i32, usize> = Default::default();
+            let mut ground: Vec<(usize, Vec<usize>)> = Vec::new();
+            for (mesh, (part, m)) in block.meshes.iter().enumerate() {
+                if *part != 1 {
+                    continue;
+                }
+                let vertices: Vec<usize> = (0..m.positions.len()).filter(|&v| is_ground(mesh, v)).collect();
+                for &v in &vertices {
+                    *heights.entry((m.positions[v][1] * 2.0).round() as i32).or_default() += 1;
+                }
+                if !vertices.is_empty() {
+                    ground.push((mesh, vertices));
+                }
+            }
+            // The height that most of the ground has.
+            let level = heights.into_iter().max_by_key(|&(h, n)| (n, -h.abs())).map_or(0.0, |(h, _)| h as f32 / 2.0);
+            for (mesh, vertices) in ground {
+                block.set_height(mesh, &vertices, level)?;
             }
         }
         block.set_attributes(&Attributes { width: self.grid.0, height: self.grid.1, cells: self.tiles.clone() })?;
@@ -994,8 +1130,12 @@ impl Editor {
                 part.material = name.clone();
             }
         }
-        self.original.can_host(&object)?;
         let new_grass = grass_only(&object);
+        // The grass has to go in a mesh of grass that the block has. A tile of ground that the
+        // block cannot host gets its own meshes (as an object from another block does).
+        if new_grass && !object.parts.is_empty() {
+            self.original.can_host(&object)?;
+        }
         let cluster = self.clusters.len();
         let (low, high) = (object.low, object.high);
         self.clusters.push(Cluster { parts: Vec::new(), low, high, foreign: Some(object) });
@@ -1048,7 +1188,27 @@ impl Editor {
 
     /// True when the cluster is made of tall grass only (or of nothing).
     fn cluster_is_grass(&self, cluster: usize) -> bool {
-        self.clusters[cluster].foreign.as_ref().map_or(false, |o| grass_only(o) && o.origin != LEDGE_ERASER)
+        self.clusters[cluster].foreign.as_ref().map_or(false, |o| grass_only(o) && o.origin != LEDGE_ERASER && o.origin != FLATTEN_MARK)
+    }
+
+    fn cluster_is_flatten(&self, cluster: usize) -> bool {
+        self.clusters[cluster].foreign.as_ref().map_or(false, |o| o.parts.is_empty() && o.origin == FLATTEN_MARK)
+    }
+
+    /// Makes all the ground of the block flat (one step for the undo): the borders between the
+    /// tiles that one can walk on and the others, and the slopes, go away. The objects stay where they are.
+    pub fn flatten_ground(&mut self) -> Result<(), String> {
+        if self.instances.iter().any(|i| i.copy && !i.deleted && self.cluster_is_flatten(i.cluster)) {
+            return Ok(());
+        }
+        let cluster = self.clusters.len();
+        let nothing = Portable { origin: FLATTEN_MARK, low: [0.0; 3], high: [0.0; 3], parts: Vec::new() };
+        self.clusters.push(Cluster { parts: Vec::new(), low: [0.0; 3], high: [0.0; 3], foreign: Some(nothing) });
+        let result = self.change(|v| v.push(Instance { cluster, offset: [0.0; 3], yaw: 0.0, copy: true, deleted: false, only: None, replaces: Some((usize::MAX, 0)) }));
+        if result.is_err() {
+            self.clusters.pop();
+        }
+        result
     }
 
     /// True when the cluster only takes the ledge models away from the tile.
@@ -1104,6 +1264,52 @@ impl Editor {
         let best = counts.into_iter().max_by_key(|&(n, times)| (times, n))?.0;
         let index = found.iter().position(|(n, _)| *n == best)?;
         self.portable_of_catalog(&found[index].1, index).ok()
+    }
+
+    /// Says whether this block can take `count` copies of a tile: the tiles must go in meshes
+    /// that the block has, and that can hold all of them (else each tile would need its own mesh).
+    pub fn fill_check(&self, object: &Portable, count: usize) -> Result<(), String> {
+        let _ = count;
+        if !self.has_layouts(object) {
+            return Err("this block has no mesh with the vertices of this tile: choose a tile that the catalogue shows with \"Only the models that this block can take\"".into());
+        }
+        Ok(())
+    }
+
+    /// Puts the same tile of ground on many tiles at once (one step for the undo).
+    /// `cells` are the tiles (column, row) with the height of the ground in each.
+    pub fn stamp_tiles(&mut self, object: Portable, cells: &[(usize, usize, f32)]) -> Result<usize, String> {
+        if cells.is_empty() {
+            return Err("no tile to fill".into());
+        }
+        if grass_only(&object) {
+            return Err("the grass is put with the grass tool".into());
+        }
+        self.fill_check(&object, cells.len())?;
+        let cluster = self.clusters.len();
+        let (low, high) = (object.low, object.high);
+        self.clusters.push(Cluster { parts: Vec::new(), low, high, foreign: Some(object) });
+        let source = (((low[0] + high[0]) / 2.0 + 360.0).div_euclid(18.0), ((low[2] + high[2]) / 2.0 + 360.0).div_euclid(18.0));
+        let middle = (low[1] + high[1]) / 2.0;
+        let wanted: std::collections::HashSet<(usize, usize)> = cells.iter().map(|&(c, r, _)| (c, r)).collect();
+        let result = self.change(|v| {
+            for i in v.iter_mut() {
+                if i.copy && i.replaces.is_some_and(|cell| wanted.contains(&cell)) {
+                    i.deleted = true;
+                }
+            }
+            for &(column, row, ground) in cells {
+                let offset = [18.0 * (column as f32 - source.0), ground - middle, 18.0 * (row as f32 - source.1)];
+                v.push(Instance { cluster, offset, yaw: 0.0, copy: true, deleted: false, only: None, replaces: Some((column, row)) });
+            }
+        });
+        match result {
+            Ok(()) => Ok(cells.len()),
+            Err(message) => {
+                self.clusters.pop();
+                Err(message)
+            }
+        }
     }
 
     /// Puts tall grass on the tile (column, row), or takes the grass of the
@@ -1269,6 +1475,20 @@ impl Editor {
             });
         }
         parts
+    }
+
+    /// The picture of some objects of the block (None when one of them was
+    /// imported from another block: it has no model in this block to draw).
+    pub fn preview_of_instances(&self, instances: &[usize], low: [f32; 3], high: [f32; 3]) -> Option<Vec<PreviewPart>> {
+        let mut parts: Vec<(usize, Vec<usize>)> = Vec::new();
+        for &i in instances {
+            let instance = self.instances.get(i)?;
+            if self.clusters[instance.cluster].foreign.is_some() {
+                return None;
+            }
+            parts.extend(self.active_parts(instance).into_iter().cloned());
+        }
+        Some(self.preview_of(&CatalogObject { parts, low, high }))
     }
 
     /// The data of a catalogue object, to put it in another block.

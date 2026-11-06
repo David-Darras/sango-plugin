@@ -660,6 +660,7 @@ fn apply_character(c: &mut Character, f: &[i64]) -> bool {
 
 /// A character that does not come from the game: the same fields as a record
 /// of the game, with the usual values.
+#[allow(unused_variables)]
 pub fn new_character(map: u16, local_id: u16, x: u16, z: u16, height: f32) -> Character {
     Character {
         raw: Vec::new(),
@@ -671,9 +672,10 @@ pub fn new_character(map: u16, local_id: u16, x: u16, z: u16, height: f32) -> Ch
         script: 65535,
         facing: 0,
         param: [0; 3],
-        trigger: [0; 4],
-        maps: [map; 3],
-        alias: 65535,
+        // As the characters of the game have them: a box of one tile, no map in the three numbers of map, alias 0.
+        trigger: [0, 0, 1, 1],
+        maps: [65535; 3],
+        alias: 0,
         position_kind: 0,
         x,
         z,

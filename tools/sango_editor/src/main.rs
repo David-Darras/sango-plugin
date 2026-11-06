@@ -1,5 +1,6 @@
 //! Sango Editor: an editor for the maps of Omega Ruby and Alpha Sapphire.
 
+mod icon;
 mod bch;
 mod bch_edit;
 mod catalog;
@@ -132,6 +133,15 @@ fn main() {
         Some("attribute-values") if args.len() >= 3 => commands::attribute_values(&args[2]),
         Some("tiles-under") if args.len() >= 5 => commands::tiles_under(&args[2], block, &args[4]),
         Some("clear-test") if args.len() >= 5 => commands::clear_test(&args[2], block, &args[4]),
+        Some("tile-many-test") if args.len() >= 7 => commands::tile_many_test(&args[2], &args[3], number(4).unwrap_or(0), number(5).unwrap_or(8), &args[6]),
+        Some("dup-test") if args.len() >= 7 => commands::dup_test(&args[2], block, &args[4], number(5).unwrap_or(3), &args[6]),
+        Some("icon") if args.len() >= 3 => icon::write_png(&args[2], 256),
+        Some("prop-add-test") if args.len() >= 5 => commands::prop_add_test(&args[2], block, &args[4]),
+        Some("characters") if args.len() >= 4 => commands::characters(&args[2], number(3).unwrap_or(0)),
+        Some("fill-test") if args.len() >= 7 => commands::fill_test(&args[2], &args[3], number(4).unwrap_or(0), number(5).unwrap_or(0), &args[6]),
+        Some("map-tilesets") if args.len() >= 4 => commands::map_tilesets(&args[2], number(3).unwrap_or(0)),
+        Some("sd-pictures-check") if args.len() >= 5 => commands::sd_pictures_check(&args[2], &args[3], number(4).unwrap_or(0)),
+        Some("flatten-test") if args.len() >= 5 => commands::flatten_test(&args[2], block, &args[4]),
         Some("grass-test") if args.len() >= 5 => commands::grass_test(&args[2], block, &args[4]),
         Some("tile-drop-test") if args.len() >= 7 => commands::tile_drop_test(&args[2], &args[3], number(4).unwrap_or(0), number(5).unwrap_or(0), &args[6]),
         Some("tile-holes-test") if args.len() >= 7 => commands::tile_holes_test(&args[2], &args[3], number(4).unwrap_or(0), number(5).unwrap_or(10), number(6).unwrap_or(0)),

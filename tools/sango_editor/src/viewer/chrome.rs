@@ -8,8 +8,10 @@ use super::*;
 pub enum Tool {
     /// Select, move, copy and delete the objects.
     Select,
-    /// Paint the tiles (the blocked zones, the grass, the ledges, the water).
-    Tiles,
+    /// Paint the properties of the ground (free, blocked, tall grass, ledge, water).
+    Properties,
+    /// Put the pieces of ground (the pictures of the tiles) from the catalogue, or copy one from the map.
+    Ground,
 }
 
 /// A number that can be typed, dragged, or changed with two small arrows (up
@@ -72,6 +74,8 @@ pub enum Confirm {
     ResetBlock,
     ResetWorld,
     ClearBlock,
+    FlattenBlock,
+    ResetEvents,
 }
 
 /// A move of the camera that runs over a few frames.
@@ -166,7 +170,9 @@ fn menu_item(ui: &mut egui::Ui, text: &str, shortcut: &str, enabled: bool) -> bo
 impl Viewer {
     pub(super) fn tool(&self) -> Tool {
         if self.tile_mode {
-            Tool::Tiles
+            Tool::Properties
+        } else if self.ground_mode {
+            Tool::Ground
         } else {
             Tool::Select
         }
@@ -193,26 +199,42 @@ impl Viewer {
         if self.tool() == tool {
             return;
         }
-        if self.tile_mode && tool != Tool::Tiles {
+        if self.tile_mode && tool != Tool::Properties {
             self.tile_mode = false;
             self.toggle_tiles(frame);
         }
-        if self.events_mode && tool == Tool::Tiles {
+        if self.ground_mode && tool != Tool::Ground {
+            self.ground_mode = false;
+            self.take_tile = false;
+            self.stamp = None;
+            self.refresh(frame);
+        }
+        if self.events_mode && tool != Tool::Select {
             self.events_mode = false;
             self.events_toggled(frame);
         }
         match tool {
             Tool::Select => {}
-            Tool::Tiles => {
+            Tool::Properties => {
                 self.tile_mode = true;
                 self.placing = false;
                 self.stamp = None;
                 self.toggle_tiles(frame);
             }
+            Tool::Ground => {
+                self.ground_mode = true;
+                self.placing = false;
+                self.selected.clear();
+                self.catalog_open = true;
+                self.tile_tab = true;
+                self.npc_tab = false;
+                self.refresh(frame);
+            }
         }
         self.status = match tool {
-            Tool::Select => "Select tool: click an object or an event. Ctrl+click takes a whole building.".into(),
-            Tool::Tiles => "Tiles tool: paint with the left button, turn the view with the right button.".into(),
+            Tool::Select => "Objects: click an object or an event. Ctrl+click takes a whole building.".into(),
+            Tool::Properties => "Ground properties: paint with the left button, turn the view with the right button.".into(),
+            Tool::Ground => "Ground tiles: choose a tile in the catalogue, then click the ground. Or take a tile from the map.".into(),
         };
     }
 
@@ -284,7 +306,10 @@ impl Viewer {
             cmd.tool = Some(Tool::Select);
         }
         if pressed(egui::Key::T) {
-            cmd.tool = Some(if self.tool() == Tool::Tiles { Tool::Select } else { Tool::Tiles });
+            cmd.tool = Some(if self.tool() == Tool::Ground { Tool::Select } else { Tool::Ground });
+        }
+        if pressed(egui::Key::P) {
+            cmd.tool = Some(if self.tool() == Tool::Properties { Tool::Select } else { Tool::Properties });
         }
     }
 
@@ -334,6 +359,9 @@ impl Viewer {
                         cmd.action = Some(Action::Delete);
                     }
                     ui.separator();
+                    if menu_item(ui, "Flatten the terrain...", "", true) {
+                        self.confirm = Some(Confirm::FlattenBlock);
+                    }
                     if menu_item(ui, "Clear the whole block...", "", true) {
                         self.confirm = Some(Confirm::ClearBlock);
                     }
@@ -383,11 +411,14 @@ impl Viewer {
                     });
                 });
                 ui.menu_button("Tools", |ui| {
-                    if menu_item(ui, "Select", "S", true) {
+                    if menu_item(ui, "Objects and events", "S", true) {
                         cmd.tool = Some(Tool::Select);
                     }
-                    if menu_item(ui, "Tiles", "T", true) {
-                        cmd.tool = Some(Tool::Tiles);
+                    if menu_item(ui, "Ground tiles", "T", true) {
+                        cmd.tool = Some(Tool::Ground);
+                    }
+                    if menu_item(ui, "Ground properties", "P", true) {
+                        cmd.tool = Some(Tool::Properties);
                     }
                 });
                 ui.menu_button("Help", |ui| {
@@ -406,11 +437,14 @@ impl Viewer {
             ui.add_space(2.0);
             ui.horizontal(|ui| {
                 let current = self.tool();
-                if tool_button(ui, current, Tool::Select, "Select", "Select, move, copy and delete the objects and the events (S)") {
+                if tool_button(ui, current, Tool::Select, "Objects", "The 3D objects and the events: select, move, copy and delete them (S)") {
                     cmd.tool = Some(Tool::Select);
                 }
-                if tool_button(ui, current, Tool::Tiles, "Tiles", "Paint the tiles: blocked zones, tall grass, ledges, water (T)") {
-                    cmd.tool = Some(Tool::Tiles);
+                if tool_button(ui, current, Tool::Ground, "Ground tiles", "The pieces of ground: put a tile of the catalogue, or copy one from the map (T)") {
+                    cmd.tool = Some(Tool::Ground);
+                }
+                if tool_button(ui, current, Tool::Properties, "Ground properties", "What the ground allows: free to walk, blocked, tall grass, ledge, water (P)") {
+                    cmd.tool = Some(Tool::Properties);
                 }
                 ui.separator();
                 let catalog = egui::Button::new(egui::RichText::new("Catalogue").strong()).selected(self.catalog_open).min_size(egui::vec2(88.0, 28.0));
@@ -445,7 +479,7 @@ impl Viewer {
         egui::TopBottomPanel::bottom("status_bar").show(ctx, |ui| {
             ui.horizontal(|ui| {
                 let bad = ["Cannot", "Export failed", "failed", "Warning"].iter().any(|w| self.status.contains(w));
-                let colour = if bad { egui::Color32::from_rgb(255, 150, 120) } else { ui.visuals().text_color() };
+                let colour = if bad { egui::Color32::from_rgb(220, 30, 30) } else { ui.visuals().text_color() };
                 ui.add(egui::Label::new(egui::RichText::new(&self.status).color(colour)).truncate());
                 ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
                     ui.label(egui::RichText::new(format!("zoom {:.0}   view {:.0}\u{b0}/{:.0}\u{b0}", self.distance, self.yaw.to_degrees().rem_euclid(360.0), self.pitch.to_degrees())).weak());
@@ -462,7 +496,8 @@ impl Viewer {
     fn tool_hint(&self) -> &'static str {
         match self.tool() {
             Tool::Select => "click: select an object or an event  \u{b7}  Ctrl+click: building  \u{b7}  Shift+click: add  \u{b7}  G: place",
-            Tool::Tiles => "left button: paint  \u{b7}  right button: turn the view",
+            Tool::Properties => "left button: paint  \u{b7}  right button: turn the view",
+            Tool::Ground => "click: put the armed tile  \u{b7}  Esc: stop  \u{b7}  right button: slide the view",
         }
     }
 
@@ -495,7 +530,7 @@ impl Viewer {
                 (
                     "Camera",
                     &[
-                        ("Left button drag", "turn around the map (in the Tiles tool: right button)"),
+                        ("Left button drag", "turn around the map (in the Ground properties tool: right button)"),
                         ("Right or middle button drag, Shift + left drag", "slide the view over the ground"),
                         ("Mouse wheel", "zoom toward the pointer"),
                         ("Double click", "go to the place that you click"),
@@ -507,7 +542,7 @@ impl Viewer {
                 ),
                 (
                     "Tools and panels",
-                    &[("S / T", "Select / Tiles"), ("C", "catalogue"), ("F1", "this help"), ("Esc", "stop what is armed and select nothing")],
+                    &[("S / T / P", "Objects / Ground tiles / Ground properties"), ("C", "catalogue"), ("F1", "this help"), ("Esc", "stop what is armed and select nothing")],
                 ),
                 (
                     "Select tool",
@@ -547,9 +582,19 @@ impl Viewer {
                 "The events of this map (file and lines of map_events.txt) go back to the game, and so do the blocks where the map has events: the objects that you moved or added there are lost.",
                 "Reset the map",
             ),
+            Confirm::ResetEvents => (
+                "Give the events of the world back to the game?",
+                "All the events (characters, warps, signs, triggers) of all the maps of this world go back to the ones of the game. The blocks (objects, tiles, grass) are not touched.",
+                "Restore the events",
+            ),
+            Confirm::FlattenBlock => (
+                "Flatten the terrain of the block?",
+                "All the ground of the block gets the same height: the borders between the tiles that one can walk on and the others, and the slopes, go away. The objects, the characters and the warps keep their heights. You can undo it.",
+                "Flatten the terrain",
+            ),
             Confirm::ClearBlock => (
                 "Clear the whole block?",
-                "Every object (trees, buildings...), all the tall grass, all the ledges (the bumps of earth) and all the events (characters, signs, warps, triggers) of the maps in this block are taken away, and the events are written on the SD card. You can undo the objects and the grass, not the events.",
+                "Every object (trees, buildings...), all the tall grass, all the ledges (the bumps of earth), all the door models and all the events (characters, signs, warps, triggers) of the maps in this block are taken away, and the events are written on the SD card. You can undo the objects and the grass, not the events.",
                 "Clear the block",
             ),
             Confirm::ResetWorld => (
