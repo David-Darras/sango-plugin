@@ -117,6 +117,8 @@ struct Gpu {
     tiles_pipeline: wgpu::RenderPipeline,
     /// The squares of the tiles: the buffer and the number of vertices.
     tiles: Option<(wgpu::Buffer, u32)>,
+    picture_layout: wgpu::BindGroupLayout,
+    sampler: wgpu::Sampler,
 }
 
 fn buffers(device: &wgpu::Device, mesh: &Mesh) -> (wgpu::Buffer, wgpu::Buffer, u32) {
@@ -407,6 +409,32 @@ fn build_gpu(state: &egui_wgpu::RenderState, meshes: &[(usize, Mesh)], textures:
         ..Default::default()
     });
 
+    let gpu_meshes = make_gpu_meshes(device, queue, &picture_layout, &sampler, meshes, textures);
+    Gpu {
+        pipeline,
+        overlay,
+        uniform,
+        uniform_group,
+        highlight_uniform,
+        highlight_group,
+        meshes: gpu_meshes,
+        highlight: Vec::new(),
+        tiles_pipeline,
+        tiles: None,
+        picture_layout,
+        sampler,
+    }
+}
+
+/// The buffers and the picture of each mesh.
+fn make_gpu_meshes(
+    device: &wgpu::Device,
+    queue: &wgpu::Queue,
+    picture_layout: &wgpu::BindGroupLayout,
+    sampler: &wgpu::Sampler,
+    meshes: &[(usize, Mesh)],
+    textures: &HashMap<String, Texture>,
+) -> Vec<GpuMesh> {
     let mut gpu_meshes = Vec::new();
     for (_, mesh) in meshes {
         let (vertices, indices, index_count) = buffers(device, mesh);
@@ -432,26 +460,15 @@ fn build_gpu(state: &egui_wgpu::RenderState, meshes: &[(usize, Mesh)], textures:
         let view = picture.create_view(&Default::default());
         let group = device.create_bind_group(&wgpu::BindGroupDescriptor {
             label: None,
-            layout: &picture_layout,
+            layout: picture_layout,
             entries: &[
                 wgpu::BindGroupEntry { binding: 0, resource: wgpu::BindingResource::TextureView(&view) },
-                wgpu::BindGroupEntry { binding: 1, resource: wgpu::BindingResource::Sampler(&sampler) },
+                wgpu::BindGroupEntry { binding: 1, resource: wgpu::BindingResource::Sampler(sampler) },
             ],
         });
         gpu_meshes.push(GpuMesh { vertices, indices, index_count, picture: group });
     }
-    Gpu {
-        pipeline,
-        overlay,
-        uniform,
-        uniform_group,
-        highlight_uniform,
-        highlight_group,
-        meshes: gpu_meshes,
-        highlight: Vec::new(),
-        tiles_pipeline,
-        tiles: None,
-    }
+    gpu_meshes
 }
 
 /// The distance along a ray to a triangle, if the ray hits it.
@@ -529,6 +546,8 @@ enum Action {
     Redo,
     Nudge([f32; 3]),
     Export,
+    /// Export the block, then start the game in the emulator.
+    Launch,
 }
 
 pub struct Viewer {
@@ -564,6 +583,60 @@ pub struct Viewer {
     heights: Option<Vec<f32>>,
     /// The attributes of all the blocks, with how many tiles have each.
     palette: Vec<(u32, usize)>,
+    /// The pictures that the viewer can show (those of the area of the block,
+    /// and those that dropped objects bring).
+    textures: HashMap<String, Texture>,
+    /// The names of the pictures that the area of the block has.
+    area_pictures: std::collections::HashSet<String>,
+    catalog_open: bool,
+    catalog: CatalogPanel,
+    /// The emulator and the game that the Launch button starts.
+    emulator_path: String,
+    game_path: String,
+    /// The catalogue of the ground tiles.
+    tile_catalog: CatalogPanel,
+    /// True when the panel shows the tiles.
+    tile_tab: bool,
+    /// The tile of the catalogue that a click puts on the ground.
+    stamp: Option<usize>,
+}
+
+/// The state of the panel of the catalogue.
+#[derive(Default)]
+struct CatalogPanel {
+    entries: Vec<crate::catalog::Entry>,
+    /// The thread that builds the catalogue: the number of the block that it
+    /// reads, and the result when it ends.
+    building: Option<std::sync::Arc<(std::sync::atomic::AtomicUsize, std::sync::Mutex<Option<Result<Vec<crate::catalog::Entry>, String>>>)>>,
+    search: String,
+    hide_ground: bool,
+    thumbs: HashMap<usize, egui::TextureHandle>,
+    areas: HashMap<usize, HashMap<String, Texture>>,
+    message: String,
+    /// True for the catalogue of tiles.
+    tiles: bool,
+    /// Tiles: show only those that this block can take.
+    only_fit: bool,
+    /// For each entry: can this block take it? (None until computed.)
+    fits: Option<Vec<bool>>,
+}
+
+/// The first of the files that exists (an empty text when none does).
+fn first_existing(paths: &[&str]) -> String {
+    paths.iter().find(|p| std::path::Path::new(p).is_file()).map(|p| p.to_string()).unwrap_or_default()
+}
+
+/// The file where the catalogue is kept, outside the project: it holds data
+/// of the game.
+fn catalog_path(tiles: bool) -> std::path::PathBuf {
+    let base = std::env::var("LOCALAPPDATA").map(std::path::PathBuf::from).unwrap_or_else(|_| std::env::temp_dir());
+    base.join("map_studio").join(if tiles { "tiles.bin" } else { "catalog.bin" })
+}
+
+/// Says whether a model is a piece of the ground (a border, a shadow, a cliff)
+/// and not an object that one puts in a map.
+fn is_ground_piece(name: &str) -> bool {
+    ["edge", "shadow", "gake", "wave", "kanazumi", "grass_decolate"].iter().any(|word| name.contains(word))
 }
 
 impl Viewer {
@@ -584,7 +657,7 @@ impl Viewer {
             .map(|(i, (_, m))| Row {
                 name: m.material.clone(),
                 has_picture: textures.contains_key(picture_of(m)),
-                selectable: editor.selectable[i],
+                selectable: editor.is_selectable(i),
             })
             .collect();
         let block_id = editor.block_id();
@@ -626,11 +699,49 @@ impl Viewer {
             stroking: false,
             heights: None,
             palette: Vec::new(),
+            area_pictures: textures.keys().cloned().collect(),
+            textures,
+            catalog_open: false,
+            emulator_path: first_existing(&["C:/Program Files/Azahar/azahar.exe"]),
+            game_path: first_existing(&["C:/Users/David/Desktop/ctr/cia/sango.3ds"]),
+            catalog: CatalogPanel { hide_ground: true, only_fit: true, ..Default::default() },
+            tile_catalog: CatalogPanel { tiles: true, only_fit: true, ..Default::default() },
+            tile_tab: false,
+            stamp: None,
         })
     }
 
+    /// When an import added meshes (or an undo took them away), the list of
+    /// the meshes and their buffers are made again.
+    fn sync_meshes(&mut self, frame: &eframe::Frame) {
+        let count = self.editor.meshes().len();
+        if count == self.rows.len() {
+            return;
+        }
+        let Some(state) = frame.wgpu_render_state() else { return };
+        {
+            let mut renderer = state.renderer.write();
+            let Some(gpu) = renderer.callback_resources.get_mut::<Gpu>() else { return };
+            let made = make_gpu_meshes(&state.device, &state.queue, &gpu.picture_layout, &gpu.sampler, self.editor.meshes(), &self.textures);
+            gpu.meshes = made;
+        }
+        self.rows = self
+            .editor
+            .meshes()
+            .iter()
+            .enumerate()
+            .map(|(i, (_, m))| Row {
+                name: m.material.clone(),
+                has_picture: self.textures.contains_key(picture_of(m)),
+                selectable: self.editor.is_selectable(i),
+            })
+            .collect();
+        self.visible = vec![true; count];
+    }
+
     /// Sends the geometry and the selection to the graphics card.
-    fn refresh(&self, frame: &eframe::Frame) {
+    fn refresh(&mut self, frame: &eframe::Frame) {
+        self.sync_meshes(frame);
         let Some(state) = frame.wgpu_render_state() else { return };
         let mut renderer = state.renderer.write();
         let Some(gpu) = renderer.callback_resources.get_mut::<Gpu>() else { return };
@@ -667,7 +778,7 @@ impl Viewer {
             let part = *part;
             for t in mesh.indices.chunks_exact(3) {
                 let owner = self.editor.owner(i, t[0] as usize);
-                if ground && (owner.is_some() || self.editor.selectable[i] || part != 1) {
+                if ground && (owner.is_some() || self.editor.is_selectable(i) || part != 1) {
                     break;
                 }
                 let (Some(a), Some(b), Some(c)) =
@@ -853,6 +964,17 @@ impl Viewer {
                 self.selected.clear();
                 self.report(result, "Project loaded.");
             }
+            Action::Launch => {
+                let exported = self.editor.export(&self.export_dir.clone());
+                self.status = match exported {
+                    Err(message) => format!("Export failed, the game is not started: {message}"),
+                    Ok(message) => match std::process::Command::new(&self.emulator_path).arg(&self.game_path).spawn() {
+                        Ok(_) => format!("{message}. The game is starting in the emulator."),
+                        Err(e) => format!("{message}. Cannot start {}: {e}", self.emulator_path),
+                    },
+                };
+                return;
+            }
             Action::Export => {
                 let result = self.editor.export(&self.export_dir.clone());
                 self.status = match result {
@@ -876,6 +998,7 @@ impl Viewer {
                             copy: true,
                             deleted: false,
                             only: source.only.clone(),
+                            replaces: None,
                         });
                     }
                 });
@@ -969,6 +1092,72 @@ impl Viewer {
         self.refresh(frame);
     }
 
+    /// Takes an object of the catalogue into the block. The user then clicks
+    /// on the ground to put it down.
+    fn drop_entry(&mut self, tiles: bool, index: usize, frame: &eframe::Frame) {
+        let panel = if tiles { &mut self.tile_catalog } else { &mut self.catalog };
+        let Some(entry) = panel.entries.get(index) else { return };
+        let object = entry.portable.clone();
+        let name = entry.name.clone();
+        let pictures: Vec<String> = entry.preview.iter().map(|p| p.picture.clone()).collect();
+        let area = entry.area;
+        // The viewer can show the pictures that this area does not have.
+        if let Some(a) = area {
+            let arc_dir = self.arc_dir.clone();
+            let loaded = panel.areas.entry(a).or_insert_with(|| crate::data::area_textures(&arc_dir, a).unwrap_or_default());
+            for picture in &pictures {
+                if let Some(t) = loaded.get(picture) {
+                    self.textures.entry(picture.clone()).or_insert_with(|| t.clone());
+                }
+            }
+        }
+        // The pictures that the area of the block does not have go in a new
+        // area file when the block is exported.
+        let missing: Vec<String> = pictures.iter().filter(|p| !self.area_pictures.contains(*p)).cloned().collect();
+        let mut warning = String::new();
+        if !missing.is_empty() {
+            let blobs = area.map(|a| crate::data::area_texture_blobs(&self.arc_dir, a, &missing)).unwrap_or(Ok(Vec::new()));
+            match blobs {
+                Ok(blobs) if blobs.len() == missing.len() => {
+                    self.editor.provide_pictures(blobs);
+                    warning = format!(" The area gets the pictures {} when you export.", missing.join(", "));
+                }
+                Ok(_) => warning = format!(" Warning: pictures of {} were not found in the donor area: the game may show a black screen.", missing.join(", ")),
+                Err(e) => warning = format!(" Warning: cannot read the pictures ({e}): the game may show a black screen."),
+            }
+        }
+        if tiles {
+            self.stamp = Some(index);
+            self.placing = false;
+            self.selected.clear();
+            self.status = format!("Tile {name}: click a tile of the ground to replace it (Esc to stop).{warning}");
+            self.refresh(frame);
+            return;
+        }
+        let result = self.editor.import(object);
+        if let Ok(i) = &result {
+            self.selected = vec![*i];
+            self.placing = true;
+        }
+        self.report(result, &format!("{name}: click on the ground to put it down.{warning}"));
+        self.refresh(frame);
+    }
+
+    /// Puts the tile of the catalogue that is armed on the tile under the click.
+    fn stamp_at(&mut self, point: Vec3, frame: &eframe::Frame) {
+        let Some(entry) = self.stamp.and_then(|i| self.tile_catalog.entries.get(i)) else { return };
+        let object = entry.portable.clone();
+        let (column, row) = ((point.x + BLOCK_HALF).div_euclid(TILE), (point.z + BLOCK_HALF).div_euclid(TILE));
+        let (width, height) = self.editor.grid();
+        if column < 0.0 || row < 0.0 || column as usize >= width || row as usize >= height {
+            self.status = "This is outside the block.".into();
+            return;
+        }
+        let result = self.editor.stamp_tile(object, column as usize, row as usize, Some(point.y));
+        self.report(result, &format!("Tile put in ({}, {}).", column as usize, row as usize));
+        self.refresh(frame);
+    }
+
     /// Puts the selection where the user clicked on the ground.
     fn place(&mut self, point: Vec3, frame: &eframe::Frame) {
         let Some((low, high)) = self.selection_box() else { return };
@@ -1008,7 +1197,9 @@ impl eframe::App for Viewer {
                     action = Some(if i.modifiers.shift { Action::Redo } else { Action::Undo });
                 } else if i.modifiers.command && i.key_pressed(egui::Key::Y) {
                     action = Some(Action::Redo);
-                } else if i.key_pressed(egui::Key::Delete) {
+                } else if i.key_pressed(egui::Key::F5) {
+                    action = Some(Action::Launch);
+                } else if i.key_pressed(egui::Key::Delete) || i.key_pressed(egui::Key::Backspace) || i.key_pressed(egui::Key::X) {
                     action = Some(Action::Delete);
                 } else if i.key_pressed(egui::Key::D) {
                     action = Some(Action::Duplicate);
@@ -1043,14 +1234,29 @@ impl eframe::App for Viewer {
             }
             if ctx.input(|i| i.key_pressed(egui::Key::Escape)) {
                 self.placing = false;
+                self.stamp = None;
                 self.selected.clear();
                 self.refresh(frame);
             }
         }
 
+        let mut dropped: Option<(bool, usize)> = None;
+        if self.catalog_open {
+            let tiles = self.tile_tab;
+            self.catalog_start(tiles);
+            egui::SidePanel::right("catalog").default_width(360.0).show(ctx, |ui| {
+                ui.horizontal(|ui| {
+                    ui.selectable_value(&mut self.tile_tab, false, "Objects");
+                    ui.selectable_value(&mut self.tile_tab, true, "Ground tiles");
+                });
+                dropped = self.catalog_ui(ctx, ui, tiles).map(|i| (tiles, i));
+            });
+        }
+
         egui::SidePanel::left("panel").default_width(320.0).show(ctx, |ui| {
             ui.heading(&self.title);
             ui.separator();
+            ui.checkbox(&mut self.catalog_open, "Catalogue of objects");
             ui.horizontal(|ui| {
                 if ui.add_enabled(self.editor.can_undo(), egui::Button::new("Undo")).clicked() {
                     action = Some(Action::Undo);
@@ -1069,7 +1275,7 @@ impl eframe::App for Viewer {
                     self.placing = true;
                     self.status = "Click on the ground to place the object.".into();
                 }
-                if ui.add_enabled(has_selection, egui::Button::new("Delete")).clicked() {
+                if ui.add_enabled(has_selection, egui::Button::new("Delete (Del, X)")).clicked() {
                     action = Some(Action::Delete);
                 }
             });
@@ -1158,9 +1364,20 @@ impl eframe::App for Viewer {
             });
             ui.label("Folder of the SD card:");
             ui.text_edit_singleline(&mut self.export_dir);
-            if ui.button("Export the block").clicked() {
-                action = Some(Action::Export);
-            }
+            ui.horizontal(|ui| {
+                if ui.button("Export the block").clicked() {
+                    action = Some(Action::Export);
+                }
+                if ui.button("Export and play (F5)").on_hover_text("Writes the block on the SD card, then starts the game in the emulator").clicked() {
+                    action = Some(Action::Launch);
+                }
+            });
+            ui.collapsing("Emulator", |ui| {
+                ui.label("Program of the emulator:");
+                ui.text_edit_singleline(&mut self.emulator_path);
+                ui.label("Game file:");
+                ui.text_edit_singleline(&mut self.game_path);
+            });
             ui.add(egui::Label::new(egui::RichText::new(&self.status).weak()).wrap());
             ui.separator();
             ui.checkbox(&mut self.direct_v, "Direct V (untick to invert)");
@@ -1245,8 +1462,12 @@ impl eframe::App for Viewer {
             ));
         });
 
+        if let Some((tiles, index)) = dropped {
+            self.drop_entry(tiles, index, frame);
+        }
         if let Some(mesh) = select_mesh {
-            let pieces = match self.editor.isolate_meshes(&[mesh]) {
+            let original = self.editor.original_mesh(mesh);
+            let pieces = match original.ok_or_else(|| "this mesh was added by an import: click the object instead".to_string()).and_then(|m| self.editor.isolate_meshes(&[m])) {
                 Ok(pieces) => pieces,
                 Err(message) => {
                     self.status = format!("Cannot select: {message}");
@@ -1276,7 +1497,11 @@ impl eframe::App for Viewer {
             self.stroking = false;
         }
         if let Some((origin, direction)) = click {
-            if self.placing {
+            if self.stamp.is_some() {
+                if let Some(hit) = self.pick(origin, direction, true) {
+                    self.stamp_at(hit.point, frame);
+                }
+            } else if self.placing {
                 if let Some(hit) = self.pick(origin, direction, true) {
                     self.place(hit.point, frame);
                 }
@@ -1288,7 +1513,7 @@ impl eframe::App for Viewer {
                 // The pieces that this click takes: the whole building with Ctrl,
                 // else the piece.
                 let taken: Vec<usize> = match (piece, &hit) {
-                    (Some(i), Some(h)) if ctrl => match self.editor.building_of(i, h.mesh) {
+                    (Some(i), Some(h)) if ctrl && self.editor.original_mesh(h.mesh).is_some() => match self.editor.building_of(i, self.editor.original_mesh(h.mesh).unwrap_or(0)) {
                         Ok(pieces) => pieces,
                         Err(message) => {
                             self.status = format!("Cannot select the building: {message}");
@@ -1334,6 +1559,166 @@ impl eframe::App for Viewer {
         if let Some(action) = action {
             self.apply(action, frame);
         }
+    }
+}
+
+impl Viewer {
+    /// Reads the catalogue from its file, or starts to build it.
+    fn catalog_start(&mut self, tiles: bool) {
+        let panel = if tiles { &mut self.tile_catalog } else { &mut self.catalog };
+        if let Some(building) = &panel.building {
+            let finished = building.1.lock().ok().and_then(|mut slot| slot.take());
+            match finished {
+                Some(Ok(entries)) => {
+                    let path = catalog_path(tiles);
+                    panel.message = match crate::catalog::save(&entries, &path) {
+                        Ok(()) => format!("{} models, kept in {}", entries.len(), path.display()),
+                        Err(e) => format!("{} models (cannot keep them: {e})", entries.len()),
+                    };
+                    panel.entries = entries;
+                    panel.building = None;
+                }
+                Some(Err(message)) => {
+                    panel.message = format!("Cannot build the catalogue: {message}");
+                    panel.building = None;
+                    self.catalog_open = false;
+                }
+                None => {}
+            }
+            return;
+        }
+        if !panel.entries.is_empty() || !panel.message.is_empty() {
+            return;
+        }
+        match crate::catalog::load(&catalog_path(tiles)) {
+            Ok(entries) => {
+                panel.message = format!("{} models.", entries.len());
+                panel.entries = entries;
+            }
+            Err(_) => {
+                let shared = std::sync::Arc::new((std::sync::atomic::AtomicUsize::new(0), std::sync::Mutex::new(None)));
+                let work = shared.clone();
+                let arc_dir = self.arc_dir.clone();
+                std::thread::spawn(move || {
+                    let progress = |block: usize| work.0.store(block, std::sync::atomic::Ordering::Relaxed);
+                    let result = if tiles {
+                        crate::catalog::build_tiles(&arc_dir, None, progress)
+                    } else {
+                        crate::catalog::build(&arc_dir, None, progress)
+                    };
+                    if let Ok(mut slot) = work.1.lock() {
+                        *slot = Some(result);
+                    }
+                });
+                panel.building = Some(shared);
+            }
+        }
+    }
+
+    /// The panel of the catalogue. Returns the model that the user clicked.
+    fn catalog_ui(&mut self, ctx: &egui::Context, ui: &mut egui::Ui, tiles: bool) -> Option<usize> {
+        const THUMB: usize = 96;
+        // The tiles that this block can take: its ground meshes have their picture.
+        // A model is safe when this block has the shape of its vertices and
+        // the area of the block has its pictures: else the game shows a black
+        // screen or stops.
+        let wanted = if tiles { &self.tile_catalog } else { &self.catalog };
+        let need = wanted.only_fit && wanted.fits.as_ref().map_or(true, |f| f.len() != wanted.entries.len());
+        let computed: Option<Vec<bool>> = need.then(|| {
+            wanted
+                .entries
+                .iter()
+                .map(|e| {
+                    self.editor.has_layouts(&e.portable)
+                })
+                .collect()
+        });
+        let panel = if tiles { &mut self.tile_catalog } else { &mut self.catalog };
+        if let Some(building) = &panel.building {
+            let block = building.0.load(std::sync::atomic::Ordering::Relaxed);
+            ui.label(format!("Building the catalogue from all the blocks (one time only): block {block} of 857..."));
+            ui.add(egui::ProgressBar::new(block as f32 / 857.0));
+            ctx.request_repaint_after(std::time::Duration::from_millis(300));
+            return None;
+        }
+        ui.horizontal(|ui| {
+            ui.label("Search:");
+            ui.text_edit_singleline(&mut panel.search);
+        });
+        if !tiles {
+            ui.checkbox(&mut panel.hide_ground, "Hide pieces of ground (borders, shadows, cliffs, paths)");
+        }
+        ui.checkbox(&mut panel.only_fit, "Only the models that this block can take (same shape of vertices)");
+        if computed.is_some() {
+            panel.fits = computed;
+        }
+        let words: Vec<String> = panel.search.to_lowercase().split_whitespace().map(String::from).collect();
+        let shown: Vec<usize> = (0..panel.entries.len())
+            .filter(|&i| {
+                let name = panel.entries[i].name.to_lowercase();
+                words.iter().all(|w| name.contains(w))
+                    && !(panel.hide_ground && !tiles && is_ground_piece(&name))
+                    && !(panel.only_fit && !panel.fits.as_ref().is_some_and(|f| f[i]))
+            })
+            .collect();
+        ui.label(format!("{} of {} models. Click one to put it in the map.", shown.len(), panel.entries.len()));
+        if !panel.message.is_empty() {
+            ui.label(egui::RichText::new(&panel.message).weak());
+        }
+        let columns = ((ui.available_width() / (THUMB as f32 + 8.0)).floor() as usize).max(1);
+        let rows = shown.len().div_ceil(columns);
+        let row_height = THUMB as f32 + 8.0;
+        let mut clicked = None;
+        let mut made = 0;
+        let arc_dir = self.arc_dir.clone();
+        egui::ScrollArea::vertical().auto_shrink([false, false]).show_rows(ui, row_height, rows, |ui, range| {
+            for row in range {
+                ui.horizontal(|ui| {
+                    for &index in shown.iter().skip(row * columns).take(columns) {
+                        let handle = match panel.thumbs.get(&index) {
+                            Some(handle) => Some(handle.clone()),
+                            None if made < 6 => {
+                                made += 1;
+                                let entry = &panel.entries[index];
+                                let textures = match entry.area {
+                                    Some(a) => panel
+                                        .areas
+                                        .entry(a)
+                                        .or_insert_with(|| crate::data::area_textures(&arc_dir, a).unwrap_or_default()),
+                                    None => &mut HashMap::new(),
+                                };
+                                let pixels = crate::thumb::render(&entry.preview, textures, THUMB);
+                                let image = egui::ColorImage::from_rgba_unmultiplied([THUMB, THUMB], &pixels);
+                                let handle = ctx.load_texture(format!("thumb{index}"), image, egui::TextureOptions::LINEAR);
+                                panel.thumbs.insert(index, handle.clone());
+                                Some(handle)
+                            }
+                            None => None,
+                        };
+                        let entry = &panel.entries[index];
+                        let tip = format!(
+                            "{}\n{} seen in {} blocks, {} shapes\nTaken from block {}",
+                            entry.name,
+                            entry.occurrences,
+                            entry.blocks.len(),
+                            entry.variants,
+                            entry.donor
+                        );
+                        let response = match handle {
+                            Some(h) => ui.add(egui::ImageButton::new(egui::load::SizedTexture::new(h.id(), [THUMB as f32, THUMB as f32]))),
+                            None => {
+                                ctx.request_repaint();
+                                ui.add_sized([THUMB as f32, THUMB as f32], egui::Button::new("..."))
+                            }
+                        };
+                        if response.on_hover_text(tip).clicked() {
+                            clicked = Some(index);
+                        }
+                    }
+                });
+            }
+        });
+        clicked
     }
 }
 

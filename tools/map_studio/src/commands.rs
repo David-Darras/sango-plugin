@@ -290,7 +290,7 @@ pub fn editor_test(arc_dir: &str, block: usize, out_dir: &str) -> Result<(), Str
     println!("pine object {wanted}: {} parts, box x {:.0}..{:.0} z {:.0}..{:.0}", c.parts.len(), c.low[0], c.high[0], c.low[2], c.high[2]);
     let triangles = |e: &Editor| e.meshes().iter().map(|(_, m)| m.indices.len() / 3).sum::<usize>();
     let before = triangles(&editor);
-    editor.change(|v| v.push(Instance { cluster: wanted, offset: [54.0, 0.0, 0.0], yaw: 0.0, copy: true, deleted: false, only: None }))?;
+    editor.change(|v| v.push(Instance { cluster: wanted, offset: [54.0, 0.0, 0.0], yaw: 0.0, copy: true, deleted: false, only: None, replaces: None }))?;
     println!("after a copy: {} -> {} triangles", before, triangles(&editor));
     let copy = editor.instances.len() - 1;
     editor.change(|v| v[copy].offset[0] += 18.0)?;
@@ -890,5 +890,439 @@ pub fn import_building_test(
     println!("added {added} meshes: {meshes_before} -> {}", into.meshes.len());
     let path = into.save(out_dir)?;
     println!("written {}", path.display());
+    Ok(())
+}
+
+/// Builds the catalogue of the blocks from `first` to `last` (all by default),
+/// says how many entries it has and how long it took, and saves it in `out`.
+pub fn catalog_stats(arc_dir: &str, first: Option<usize>, last: Option<usize>, out: Option<&str>) -> Result<(), String> {
+    let blocks: Option<Vec<usize>> = match (first, last) {
+        (Some(a), Some(b)) => Some((a..=b).collect()),
+        _ => None,
+    };
+    let start = std::time::Instant::now();
+    let entries = crate::catalog::build(arc_dir, blocks.as_deref(), |_| {})?;
+    println!("{} entries, in {:.1} s", entries.len(), start.elapsed().as_secs_f32());
+    let total: usize = entries.iter().map(|e| e.occurrences).sum();
+    let bytes: usize = entries.iter().map(|e| e.portable.to_bytes().len()).sum();
+    println!("{total} objects in all, {} MB of data for the entries", bytes / 1_000_000);
+    let mut sorted: Vec<_> = entries.iter().collect();
+    sorted.sort_by_key(|e| std::cmp::Reverse(e.occurrences));
+    for e in sorted.iter().take(10) {
+        println!("  {:5} x {}  ({} shapes, {} blocks)", e.occurrences, e.name, e.variants, e.blocks.len());
+    }
+    if let Some(path) = out {
+        crate::catalog::save(&entries, std::path::Path::new(path))?;
+        let back = crate::catalog::load(std::path::Path::new(path))?;
+        println!("saved in {path}, read again: {} entries", back.len());
+    }
+    Ok(())
+}
+
+/// Draws 48 entries of a saved catalogue (from `first`) in a contact sheet.
+pub fn catalog_sheet(arc_dir: &str, catalog: &str, out: &str, first: usize) -> Result<(), String> {
+    let entries = crate::catalog::load(std::path::Path::new(catalog))?;
+    const SIZE: usize = 128;
+    const COLUMNS: usize = 8;
+    const ROWS: usize = 6;
+    let mut sheet = vec![40u8; SIZE * COLUMNS * SIZE * ROWS * 4];
+    let mut cache: std::collections::HashMap<usize, std::collections::HashMap<String, crate::bch::Texture>> = Default::default();
+    for (k, entry) in entries.iter().skip(first).take(COLUMNS * ROWS).enumerate() {
+        let textures = match entry.area {
+            Some(area) => cache.entry(area).or_insert_with(|| crate::data::area_textures(arc_dir, area).unwrap_or_default()),
+            None => &mut Default::default(),
+        };
+        let image = crate::thumb::render(&entry.preview, textures, SIZE);
+        let (cx, cy) = (k % COLUMNS * SIZE, k / COLUMNS * SIZE);
+        for y in 0..SIZE {
+            for x in 0..SIZE {
+                let from = (y * SIZE + x) * 4;
+                if image[from + 3] == 0 {
+                    continue;
+                }
+                let to = ((cy + y) * SIZE * COLUMNS + cx + x) * 4;
+                sheet[to..to + 4].copy_from_slice(&image[from..from + 4]);
+            }
+        }
+        println!("{:3} {} (area {:?}, {} blocks)", first + k, entry.name, entry.area, entry.blocks.len());
+    }
+    write_png(out, SIZE * COLUMNS, SIZE * ROWS, &sheet)
+}
+
+/// Drops a model of a saved catalogue in a block through the editor, as the
+/// catalogue panel does, undoes and redoes it, and writes the block.
+pub fn catalog_drop_test(arc_dir: &str, catalog: &str, name: &str, target: usize, out_dir: &str) -> Result<(), String> {
+    use crate::editor::Editor;
+    let entries = crate::catalog::load(std::path::Path::new(catalog))?;
+    let entry = entries.iter().find(|e| e.name == name).ok_or("no model has this name")?;
+    let object = entry.portable.clone();
+    println!("model {} (block {}), {} meshes", entry.name, entry.donor, object.parts.len());
+    let mut editor = Editor::new(arc_dir, target)?;
+    let before = editor.meshes().len();
+    let index = editor.import(object.clone())?;
+    println!("meshes: {before} -> {}", editor.meshes().len());
+    // Open ground: the tile nearest to the middle that is not a wall or water.
+    let (width, height) = editor.grid();
+    let mut best: Option<(f32, usize, usize)> = None;
+    for row in 0..height {
+        for column in 0..width {
+            if !matches!(editor.tiles[row * width + column] >> 24, 1 | 148..=151) {
+                let (dx, dz) = (column as f32 - width as f32 / 2.0, row as f32 - height as f32 / 2.0);
+                if best.map_or(true, |(d, _, _)| dx * dx + dz * dz < d) {
+                    best = Some((dx * dx + dz * dz, column, row));
+                }
+            }
+        }
+    }
+    let (_, column, row) = best.ok_or("no open tile")?;
+    let (x, z) = (-360.0 + 18.0 * (column as f32 + 0.5), -360.0 + 18.0 * (row as f32 + 0.5));
+    let (low, high) = editor.instance_bounds(index);
+    let delta = [x - (low[0] + high[0]) / 2.0, 0.0, z - (low[2] + high[2]) / 2.0];
+    editor.change(|v| {
+        for a in 0..3 {
+            v[index].offset[a] += delta[a];
+        }
+    })?;
+    let owned: usize = (0..editor.meshes().len()).map(|m| (0..editor.meshes()[m].1.positions.len()).filter(|&v| editor.owner(m, v) == Some(index)).count()).sum();
+    println!("vertices that belong to the dropped object: {owned}");
+    editor.undo()?;
+    editor.undo()?;
+    println!("after two undo: {} meshes", editor.meshes().len());
+    editor.redo()?;
+    editor.redo()?;
+    println!("after two redo: {} meshes", editor.meshes().len());
+    println!("{}", editor.export(out_dir)?);
+    Ok(())
+}
+
+/// Deletes the objects of a block one after the other (one more each time)
+/// and says which delete fails.
+pub fn delete_many_test(arc_dir: &str, block: usize, count: usize) -> Result<(), String> {
+    let mut editor = crate::editor::Editor::new(arc_dir, block)?;
+    let total = editor.instances.len().min(count);
+    let mut failed = 0;
+    for i in 0..total {
+        if let Err(message) = editor.change(|v| v[i].deleted = true) {
+            failed += 1;
+            println!("delete {i} fails: {message}");
+        }
+    }
+    println!("{failed} failures out of {total}");
+    Ok(())
+}
+
+/// Takes each mesh as the "Select" button does, then deletes the pieces.
+pub fn delete_meshes_test(arc_dir: &str, block: usize) -> Result<(), String> {
+    let mut editor = crate::editor::Editor::new(arc_dir, block)?;
+    let mut failed = 0;
+    for m in 0..editor.meshes().len() {
+        if !editor.selectable[m] {
+            continue;
+        }
+        let pieces = match editor.isolate_meshes(&[m]) {
+            Ok(p) => p,
+            Err(e) => {
+                println!("select mesh {m} fails: {e}");
+                failed += 1;
+                continue;
+            }
+        };
+        if let Err(e) = editor.change(|v| pieces.iter().for_each(|&i| v[i].deleted = true)) {
+            println!("delete of mesh {m} ({}) fails: {e}", editor.material(m));
+            failed += 1;
+        }
+    }
+    println!("{failed} failures");
+    Ok(())
+}
+
+/// Drops a catalogue model, then deletes the first objects one by one.
+pub fn drop_then_delete_test(arc_dir: &str, catalog: &str, name: &str, block: usize) -> Result<(), String> {
+    let entries = crate::catalog::load(std::path::Path::new(catalog))?;
+    let entry = entries.iter().find(|e| e.name == name).ok_or("no model has this name")?;
+    let mut editor = crate::editor::Editor::new(arc_dir, block)?;
+    editor.import(entry.portable.clone())?;
+    let mut failed = 0;
+    for i in 0..editor.instances.len().min(40) {
+        if let Err(message) = editor.change(|v| v[i].deleted = true) {
+            failed += 1;
+            println!("delete {i} fails: {message}");
+        }
+    }
+    println!("{failed} failures");
+    Ok(())
+}
+
+/// Looks at how the ground meshes of a block fit the tiles of 18 units.
+pub fn ground_tiles(arc_dir: &str, block: usize) -> Result<(), String> {
+    let editor = crate::editor::Editor::new(arc_dir, block)?;
+    for (i, (part, mesh)) in editor.meshes().iter().enumerate() {
+        if *part != 1 || editor.selectable[i] {
+            continue;
+        }
+        let (mut inside, mut crossing) = (0, 0);
+        let mut per_tile: std::collections::BTreeMap<(i32, i32), usize> = Default::default();
+        for t in mesh.indices.chunks_exact(3) {
+            let p: Vec<[f32; 3]> = t.iter().map(|&k| mesh.positions[k as usize]).collect();
+            let cell = |v: f32| ((v + 360.0) / 18.0).floor() as i32;
+            let cells: std::collections::BTreeSet<(i32, i32)> = p.iter().map(|q| (cell(q[0]), cell(q[2]))).collect();
+            // A vertex exactly on a border belongs to two tiles: count a triangle as inside when its centre cell holds all its vertices within a small margin.
+            let c = [(p[0][0] + p[1][0] + p[2][0]) / 3.0, (p[0][2] + p[1][2] + p[2][2]) / 3.0];
+            let home = (cell(c[0]), cell(c[1]));
+            let fits = p.iter().all(|q| {
+                let (x0, z0) = (-360.0 + 18.0 * home.0 as f32, -360.0 + 18.0 * home.1 as f32);
+                q[0] >= x0 - 0.05 && q[0] <= x0 + 18.05 && q[2] >= z0 - 0.05 && q[2] <= z0 + 18.05
+            });
+            if fits { inside += 1 } else { crossing += 1 }
+            *per_tile.entry(home).or_default() += 1;
+            let _ = cells;
+        }
+        let avg = if per_tile.is_empty() { 0.0 } else { mesh.indices.len() as f32 / 3.0 / per_tile.len() as f32 };
+        println!("mesh {i} {}: {} triangles, {inside} inside one tile, {crossing} cross tiles, {} tiles touched, {avg:.1} triangles per tile", mesh.material, mesh.indices.len() / 3, per_tile.len());
+    }
+    Ok(())
+}
+
+/// Builds the catalogue of tiles of some blocks and says how many pieces it has.
+pub fn tile_stats(arc_dir: &str, first: usize, last: usize, out: Option<&str>) -> Result<(), String> {
+    let blocks: Vec<usize> = (first..=last).collect();
+    let start = std::time::Instant::now();
+    let entries = crate::catalog::build_tiles(arc_dir, Some(&blocks), |_| {})?;
+    println!("{} different tiles in {:.1} s", entries.len(), start.elapsed().as_secs_f32());
+    for e in entries.iter().take(8) {
+        println!("  {:5} x {} ({} blocks)", e.occurrences, e.name, e.blocks.len());
+    }
+    let singles = entries.iter().filter(|e| e.occurrences == 1).count();
+    println!("{singles} seen only once");
+    if let Some(path) = out {
+        crate::catalog::save(&entries, std::path::Path::new(path))?;
+    }
+    Ok(())
+}
+
+/// Puts tiles of a saved catalogue of tiles in a block (the same tile twice,
+/// to check that the second one replaces the first), and writes the block.
+pub fn tile_drop_test(arc_dir: &str, tiles: &str, number: usize, block: usize, out_dir: &str) -> Result<(), String> {
+    let entries = crate::catalog::load(std::path::Path::new(tiles))?;
+    let entry = entries.get(number).ok_or("no such tile")?;
+    let mut editor = crate::editor::Editor::new(arc_dir, block)?;
+    let count = |e: &crate::editor::Editor| e.meshes().iter().map(|(_, m)| m.indices.len() / 3).sum::<usize>();
+    println!("tile {number}: {} ({} triangles in it); block has {} triangles", entry.name, entry.preview[0].indices.len() / 3, count(&editor));
+    for (column, row) in [(20, 20), (20, 20), (21, 20)] {
+        editor.stamp_tile(entry.portable.clone(), column, row, Some(0.0))?;
+        println!("after a tile in ({column}, {row}): {} triangles", count(&editor));
+    }
+    editor.undo()?;
+    println!("after undo: {} triangles", count(&editor));
+    editor.redo()?;
+    println!("{}", editor.export(out_dir)?);
+    Ok(())
+}
+
+/// Puts each of the first tiles of a catalogue in a tile of a block, one at a
+/// time, and says which ones leave the tile empty.
+pub fn tile_holes_test(arc_dir: &str, tiles: &str, first: usize, count: usize, block: usize) -> Result<(), String> {
+    let entries = crate::catalog::load(std::path::Path::new(tiles))?;
+    let (column, row) = (22usize, 29usize);
+    let (x0, z0) = (-360.0 + 18.0 * column as f32, -360.0 + 18.0 * row as f32);
+    let in_cell = |e: &crate::editor::Editor| -> usize {
+        let mut n = 0;
+        for (part, m) in e.meshes() {
+            if *part != 1 { continue; }
+            for t in m.indices.chunks_exact(3) {
+                let (mut x, mut z) = (0.0, 0.0);
+                for &i in t {
+                    let p = m.positions.get(i as usize).copied().unwrap_or([0.0; 3]);
+                    x += p[0] / 3.0;
+                    z += p[2] / 3.0;
+                }
+                if x >= x0 && x < x0 + 18.0 && z >= z0 && z < z0 + 18.0 { n += 1; }
+            }
+        }
+        n
+    };
+    for (k, entry) in entries.iter().enumerate().skip(first).take(count) {
+        let mut editor = crate::editor::Editor::new(arc_dir, block)?;
+        let before = in_cell(&editor);
+        match editor.stamp_tile(entry.portable.clone(), column, row, Some(0.0)) {
+            Ok(_) => {
+                let after = in_cell(&editor);
+                let own: usize = (0..editor.meshes().len()).map(|m| (0..editor.meshes()[m].1.positions.len()).filter(|&v| editor.owner(m, v).is_some_and(|o| editor.instances[o].replaces.is_some())).count()).sum();
+                let (mut lo, mut hi) = ([f32::MAX; 3], [f32::MIN; 3]);
+                for m in 0..editor.meshes().len() {
+                    for v in 0..editor.meshes()[m].1.positions.len() {
+                        if editor.owner(m, v).is_some_and(|o| editor.instances[o].replaces.is_some()) {
+                            let p = editor.meshes()[m].1.positions[v];
+                            for a in 0..3 { lo[a] = lo[a].min(p[a]); hi[a] = hi[a].max(p[a]); }
+                        }
+                    }
+                }
+                println!("{k:4} {:30} triangles in the tile {before} -> {after}, tile vertices {own}, tri in entry {}, box x {:.0}..{:.0} y {:.0}..{:.0} z {:.0}..{:.0} (cell x {x0}..{} z {z0}..{})", entry.name, entry.preview[0].indices.len() / 3, lo[0], hi[0], lo[1], hi[1], lo[2], hi[2], x0 + 18.0, z0 + 18.0);
+            }
+            Err(e) => println!("{k:4} {} fails: {e}", entry.name),
+        }
+    }
+    Ok(())
+}
+
+/// Draws the tiles around (22, 29) of a block after some catalogue tiles were
+/// put there, in a picture, with the pictures of the area of the block.
+pub fn tile_picture_test(arc_dir: &str, tiles: &str, numbers: &[usize], block: usize, out: &str) -> Result<(), String> {
+    let entries = crate::catalog::load(std::path::Path::new(tiles))?;
+    let mut editor = crate::editor::Editor::new(arc_dir, block)?;
+    for (k, &n) in numbers.iter().enumerate() {
+        let entry = entries.get(n).ok_or("no such tile")?;
+        editor.stamp_tile(entry.portable.clone(), 20 + k, 29, Some(0.0))?;
+    }
+    let scene = data::load_scene(arc_dir, block, None)?;
+    let (x0, z0, x1, z1) = (-360.0 + 18.0 * 18.0, -360.0 + 18.0 * 27.0, -360.0 + 18.0 * (22.0 + numbers.len() as f32), -360.0 + 18.0 * 32.0);
+    let mut parts = Vec::new();
+    for (_, m) in editor.meshes().iter().filter(|(p, _)| *p == 1) {
+        let mut indices = Vec::new();
+        for t in m.indices.chunks_exact(3) {
+            let c: f32 = t.iter().map(|&i| m.positions.get(i as usize).map_or(0.0, |p| p[0])).sum::<f32>() / 3.0;
+            let d: f32 = t.iter().map(|&i| m.positions.get(i as usize).map_or(0.0, |p| p[2])).sum::<f32>() / 3.0;
+            if c >= x0 && c <= x1 && d >= z0 && d <= z1 {
+                indices.extend_from_slice(t);
+            }
+        }
+        parts.push(crate::catalog::PreviewPart { picture: data::picture_of(m).to_string(), positions: m.positions.clone(), uvs: m.uvs.clone(), indices });
+    }
+    let image = crate::thumb::render(&parts, &scene.textures, 512);
+    write_png(out, 512, 512, &image)
+}
+
+/// Drops each of some catalogue models in a block, one at a time, and checks
+/// that the block can be built, written and read again without problems.
+pub fn drop_all_test(arc_dir: &str, catalog: &str, first: usize, count: usize, block: usize) -> Result<(), String> {
+    let entries = crate::catalog::load(std::path::Path::new(catalog))?;
+    let dir = std::env::temp_dir().join("map_studio_drop_all");
+    let mut bad = 0;
+    for (k, entry) in entries.iter().enumerate().skip(first).take(count) {
+        let mut editor = crate::editor::Editor::new(arc_dir, block)?;
+        let outcome = editor.import(entry.portable.clone()).and_then(|_| editor.export(dir.to_str().unwrap_or("."))).and_then(|_| {
+            let bytes = std::fs::read(dir.join("land").join(format!("{block}.bin"))).map_err(|e| e.to_string())?;
+            let parts = data::read_block_from_bytes(&bytes)?;
+            let mut problems = Vec::new();
+            for part in [1, 5] {
+                if let Some(model) = parts.get(part).filter(|p| p.starts_with(b"BCH\0")) {
+                    problems.extend(crate::bch_edit::validate(model));
+                    let meshes = bch::Bch::parse(model)?.meshes()?;
+                    let _ = meshes;
+                }
+            }
+            if problems.is_empty() { Ok(()) } else { Err(format!("{} problems, first: {}", problems.len(), problems[0])) }
+        });
+        if let Err(message) = outcome {
+            bad += 1;
+            println!("{k:5} {} (block {}): {message}", entry.name, entry.donor);
+        }
+    }
+    println!("{bad} bad out of {count}");
+    Ok(())
+}
+
+/// Counts the layouts of vertices of the models of a catalogue, and of the
+/// meshes of a block.
+pub fn layout_stats(arc_dir: &str, catalog: &str, block: usize) -> Result<(), String> {
+    let entries = crate::catalog::load(std::path::Path::new(catalog))?;
+    let mut counts: std::collections::BTreeMap<String, usize> = Default::default();
+    for e in &entries {
+        for p in &e.portable.parts {
+            *counts.entry(p.layout.clone()).or_default() += 1;
+        }
+    }
+    println!("layouts in the catalogue:");
+    for (l, n) in &counts {
+        println!("  {n:5}  {l}");
+    }
+    let editor = crate::editor::Editor::new(arc_dir, block)?;
+    let mut own: std::collections::BTreeSet<String> = Default::default();
+    for (part, m) in editor.meshes() {
+        if *part == 1 {
+            own.insert(m.places.layout.clone());
+        }
+    }
+    println!("layouts of block {block}: {own:?}");
+    Ok(())
+}
+
+/// Copies pictures from the pack of an area to the pack of another area, reads
+/// the result again, and checks that the pictures are the same.
+pub fn area_pictures_test(arc_dir: &str, donor: usize, target: usize, names: &[String]) -> Result<(), String> {
+    let blobs = data::area_texture_blobs(arc_dir, donor, names)?;
+    println!("{} pictures read from area {donor}: {}", blobs.len(), blobs.iter().map(|b| format!("{} ({} bytes)", b.name, b.raw.len())).collect::<Vec<_>>().join(", "));
+    let (pack, _) = data::area_pack(arc_dir, target)?;
+    let (_, parts) = crate::pack::split(&pack)?;
+    let part = parts.get(data::AREA_PICTURES).ok_or("no pictures")?;
+    let before = bch::Bch::parse(part)?.textures()?.len();
+    let bigger = crate::bch_edit::add_textures(part, &blobs)?;
+    let parsed = bch::Bch::parse(&bigger)?;
+    let after = parsed.textures()?;
+    println!("area {target}: {before} pictures, then {} ({} -> {} bytes)", after.len(), part.len(), bigger.len());
+    let donor_pictures: std::collections::HashMap<String, bch::Texture> = data::area_textures(arc_dir, donor)?;
+    for blob in &blobs {
+        let got = after.iter().find(|t| t.name == blob.name);
+        let want = donor_pictures.get(&blob.name);
+        match (got, want) {
+            (Some(g), Some(w)) => println!("  {}: {}x{} same pixels: {}", blob.name, g.width, g.height, g.rgba == w.rgba),
+            _ => println!("  {}: missing after the copy", blob.name),
+        }
+    }
+    // The names must all still be found in the tree.
+    let names_after = crate::bch_edit::texture_names(&bigger)?;
+    println!("names in the dictionary: {}", names_after.len());
+    let again = crate::bch_edit::add_textures(&bigger, &blobs)?;
+    println!("a second copy changes nothing: {}", again == bigger);
+    Ok(())
+}
+
+/// Drops a model that comes from another area, exports the block and checks
+/// that the area file that comes out has the pictures of the model.
+pub fn drop_area_test(arc_dir: &str, catalog: &str, name: &str, block: usize, out_dir: &str) -> Result<(), String> {
+    use crate::editor::Editor;
+    let entries = crate::catalog::load(std::path::Path::new(catalog))?;
+    let entry = entries.iter().find(|e| e.name == name).ok_or("no model has this name")?;
+    let scene = data::load_scene(arc_dir, block, None)?;
+    let mut editor = Editor::new(arc_dir, block)?;
+    editor.set_area(scene.area);
+    let missing: Vec<String> = entry.preview.iter().map(|p| p.picture.clone()).filter(|p| !scene.textures.contains_key(p)).collect();
+    println!("target area {:?}, donor area {:?}, pictures missing in the target: {missing:?}", scene.area, entry.area);
+    if let Some(a) = entry.area {
+        editor.provide_pictures(data::area_texture_blobs(arc_dir, a, &missing)?);
+    }
+    editor.import(entry.portable.clone())?;
+    println!("{}", editor.export(out_dir)?);
+    if let Some(area) = scene.area {
+        let path = std::path::Path::new(out_dir).join("area").join(format!("{area}.bin"));
+        if let Ok(bytes) = std::fs::read(&path) {
+            let (parts, _) = (data::read_block_from_bytes(&bytes)?, ());
+            let names = crate::bch_edit::texture_names(&parts[data::AREA_PICTURES])?;
+            for m in &missing {
+                println!("  picture {m} in the new area file: {}", names.contains(m));
+            }
+            // The decompressed data must be a good pack with the same number of parts.
+            println!("  parts in the new area pack: {}", parts.len());
+        } else {
+            println!("no area file was written");
+        }
+    }
+    Ok(())
+}
+
+/// Prints the texts that the materials of a catalogue model hold, and whether
+/// each is a picture of the area of a block.
+pub fn model_strings(arc_dir: &str, catalog: &str, name: &str, block: usize) -> Result<(), String> {
+    let entries = crate::catalog::load(std::path::Path::new(catalog))?;
+    let entry = entries.iter().find(|e| e.name == name).ok_or("no model has this name")?;
+    let scene = data::load_scene(arc_dir, block, None)?;
+    let donor = entry.area.map(|a| data::area_textures(arc_dir, a)).transpose()?.unwrap_or_default();
+    for part in &entry.portable.parts {
+        let Some(blob) = &part.blob else { continue };
+        println!("material {} (label {})", blob.name, blob.label);
+        for (at, text) in blob.header_strings.iter().chain(&blob.region_strings) {
+            println!("  string at {at:#x}: {text:?}  in target area: {}  in donor area: {}", scene.textures.contains_key(text), donor.contains_key(text));
+        }
+    }
     Ok(())
 }

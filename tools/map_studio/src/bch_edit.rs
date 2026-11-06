@@ -611,6 +611,138 @@ fn add_material(b: &mut Builder, model: usize, blob: &MaterialBlob) -> Result<us
     Ok(n)
 }
 
+/// A picture of a file of pictures (the part 11 of an area pack), with what
+/// another file needs to get the same picture. It has data of the game.
+#[derive(Clone, Debug)]
+pub struct TextureBlob {
+    pub name: String,
+    /// The word of the structure of the picture that tells its kind.
+    pub kind_word: u32,
+    /// The three lists of commands of the picture (0x30 bytes each).
+    pub commands: Vec<u8>,
+    /// The data of the picture (and of its smaller copies, when it has some).
+    pub raw: Vec<u8>,
+}
+
+/// The size of a list of commands of a picture, in bytes and in words.
+const TEXTURE_LIST: usize = 0x30;
+const TEXTURE_LIST_WORDS: usize = 12;
+/// The word of a list that holds the place of the data, counted from the
+/// start of the list, in bytes.
+const TEXTURE_ADDRESS_AT: usize = 16;
+
+/// Takes the pictures with these names out of a file of pictures.
+pub fn read_textures(part: &[u8], wanted: &[String]) -> Result<Vec<TextureBlob>, String> {
+    let b = Builder::new(part)?;
+    let table = b.content_word(0x24);
+    let count = b.content_word(0x28);
+    let raw_length = b.raw_ext - b.raw;
+    // The place of the data of each picture, to know how long each one is.
+    let mut places = Vec::new();
+    for i in 0..count {
+        let desc = b.content_word(table + 4 * i);
+        let list = b.commands + b.content_word(desc);
+        places.push(read(&b.bytes, list + TEXTURE_ADDRESS_AT));
+    }
+    let mut found = Vec::new();
+    for i in 0..count {
+        let desc = b.content_word(table + 4 * i);
+        let name = b.text_at(b.content_word(desc + 28));
+        if !wanted.contains(&name) || found.iter().any(|t: &TextureBlob| t.name == name) {
+            continue;
+        }
+        let mut commands = Vec::new();
+        for k in 0..3 {
+            if b.content_word(desc + 8 * k + 4) != TEXTURE_LIST_WORDS {
+                return Err(format!("the picture {name} has a list of commands of another size"));
+            }
+            let at = b.commands + b.content_word(desc + 8 * k);
+            commands.extend_from_slice(b.bytes.get(at..at + TEXTURE_LIST).ok_or("a list of commands is cut")?);
+        }
+        let start = places[i];
+        let end = places.iter().copied().filter(|&p| p > start).min().unwrap_or(raw_length);
+        let raw = b.bytes.get(b.raw + start..b.raw + end).ok_or("the data of a picture is cut")?.to_vec();
+        found.push(TextureBlob { name, kind_word: b.content_word(desc + 24) as u32, commands, raw });
+    }
+    Ok(found)
+}
+
+/// The names of the pictures of a file of pictures.
+pub fn texture_names(part: &[u8]) -> Result<Vec<String>, String> {
+    let b = Builder::new(part)?;
+    let count = b.content_word(0x28);
+    Ok(read_dictionary(&b, b.content_word(0x2c), count).into_iter().map(|(n, _)| n).collect())
+}
+
+/// Gives a file of pictures the pictures that it does not have.
+pub fn add_textures(part: &[u8], blobs: &[TextureBlob]) -> Result<Vec<u8>, String> {
+    let mut b = Builder::new(part)?;
+    let count = b.content_word(0x28);
+    let old_table = b.content_word(0x24);
+    let mut names = read_dictionary(&b, b.content_word(0x2c), count);
+    let mut table: Vec<u32> = (0..count).map(|i| b.content_word(old_table + 4 * i) as u32).collect();
+    let mut added = 0;
+    for blob in blobs {
+        if names.iter().any(|(n, _)| *n == blob.name) {
+            continue;
+        }
+        if blob.commands.len() != 3 * TEXTURE_LIST {
+            return Err(format!("the picture {} has no lists of commands", blob.name));
+        }
+        // The data of the picture, with the alignment that the graphics chip likes.
+        while (b.raw_first() + b.raw_extra.len()) % 0x80 != 0 {
+            b.raw_extra.push(0);
+        }
+        let raw_at = b.push_raw(&blob.raw);
+        let mut commands = blob.commands.clone();
+        for k in 0..3 {
+            write(&mut commands, TEXTURE_LIST * k + TEXTURE_ADDRESS_AT, raw_at);
+        }
+        let commands_at = b.push_commands(&commands);
+        for k in 0..3 {
+            b.add_entry(0x25, commands_at + TEXTURE_LIST * k + TEXTURE_ADDRESS_AT);
+        }
+        let name_at = b.string_offset(&blob.name);
+        let words = [
+            commands_at as u32,
+            TEXTURE_LIST_WORDS as u32,
+            (commands_at + TEXTURE_LIST) as u32,
+            TEXTURE_LIST_WORDS as u32,
+            (commands_at + 2 * TEXTURE_LIST) as u32,
+            TEXTURE_LIST_WORDS as u32,
+            blob.kind_word,
+            name_at as u32,
+        ];
+        let desc_at = b.push_content(&to_bytes(&words));
+        for k in 0..3 {
+            b.add_entry(2, desc_at + 8 * k);
+        }
+        b.add_entry(STRING_KIND, desc_at + 28);
+        table.push(desc_at as u32);
+        names.push((blob.name.clone(), name_at as u32));
+        added += 1;
+    }
+    if added == 0 {
+        return Ok(part.to_vec());
+    }
+    let new_table = b.push_content(&to_bytes(&table));
+    for i in 0..table.len() {
+        b.add_entry(0, new_table + 4 * i);
+    }
+    let new_dictionary = push_dictionary(&mut b, &names);
+    b.set_content_word(0x24, new_table);
+    b.set_content_word(0x28, table.len());
+    b.set_content_word(0x2c, new_dictionary);
+    let mut out = b.finish();
+    // Two numbers of the header grow with the pictures: 12 for each (word 56)
+    // and 3 for each (half word 66). The game reads them when it loads the file.
+    let words = read(&out, 56) + 12 * added;
+    write(&mut out, 56, words);
+    let halves = u16::from_le_bytes([out[66], out[67]]) as usize + 3 * added;
+    out[66..68].copy_from_slice(&(halves as u16).to_le_bytes());
+    Ok(out)
+}
+
 /// Takes a material out of a model file, to give it to another one.
 pub fn read_material(part: &[u8], index: usize) -> Result<MaterialBlob, String> {
     let b = Builder::new(part)?;

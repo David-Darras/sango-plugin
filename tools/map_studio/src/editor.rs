@@ -24,6 +24,16 @@ const SAME_PLACE: f32 = 14.0;
 /// The widest object that the tool builds from groups, seen from above.
 const OBJECT_MAX_SIZE: f32 = 100.0;
 
+use crate::catalog::PreviewPart;
+
+/// An object that a catalogue shows (see `Editor::catalog_objects`).
+pub struct CatalogObject {
+    /// The number of a mesh and the vertices of the object in this mesh.
+    pub parts: Vec<(usize, Vec<usize>)>,
+    pub low: [f32; 3],
+    pub high: [f32; 3],
+}
+
 /// An object of the original block.
 pub struct Cluster {
     /// The number of a mesh and the vertices of the object in this mesh.
@@ -51,6 +61,9 @@ pub struct Instance {
     /// several meshes can be cut in two instances: one for some meshes, one
     /// for the others.
     pub only: Option<Vec<usize>>,
+    /// A ground tile that was put in place of the tile (column, row): the
+    /// triangles of the ground that were there are removed.
+    pub replaces: Option<(usize, usize)>,
 }
 
 /// What an undo brings back: the instances and the tiles.
@@ -82,6 +95,54 @@ pub struct Editor {
     /// For each vertex of each mesh of the built block: the instance that
     /// owns it, if any.
     owner: Vec<Vec<Option<usize>>>,
+    /// For each mesh of the built block: the mesh of the original block that
+    /// it comes from. A mesh that an import added has none.
+    built_origin: Vec<Option<usize>>,
+    /// The area pack of the block, and the pictures that imported objects
+    /// bring (the area gets those that it does not have, when the block is exported).
+    area: Option<usize>,
+    pictures: Vec<crate::bch_edit::TextureBlob>,
+}
+
+/// What tells a mesh from the others when the meshes change places.
+type MeshKey = (usize, String, usize, usize, [u32; 3]);
+
+fn mesh_keys(meshes: &[(usize, Mesh)]) -> Vec<MeshKey> {
+    meshes
+        .iter()
+        .map(|(part, m)| {
+            (*part, m.material.clone(), m.positions.len(), 0, [0; 3])
+        })
+        .collect()
+}
+
+/// Finds the old meshes in the new list. Returns the new place of each old
+/// mesh, and the new meshes that have no old one.
+fn match_meshes(before: &[MeshKey], after: &[MeshKey]) -> Result<(Vec<usize>, Vec<usize>), String> {
+    let mut used = vec![false; after.len()];
+    let mut moved: Vec<Option<usize>> = vec![None; before.len()];
+    // First the meshes that are the same. Then the meshes that lost all their
+    // triangles: the file counts their vertices another way.
+    for pass in 0..2 {
+        for (i, key) in before.iter().enumerate() {
+            if moved[i].is_some() {
+                continue;
+            }
+            let found = (0..after.len()).find(|&k| {
+                !used[k] && after[k].0 == key.0 && after[k].1 == key.1 && (pass == 1 || after[k].2 == key.2)
+            });
+            if let Some(k) = found {
+                used[k] = true;
+                moved[i] = Some(k);
+            }
+        }
+    }
+    let lost: Vec<String> = before.iter().zip(&moved).filter(|(_, m)| m.is_none()).map(|(k, _)| format!("{k:?}")).collect();
+    let moved: Option<Vec<usize>> = moved.into_iter().collect();
+    let moved = moved.ok_or_else(|| {
+        format!("a mesh was lost when meshes were added (before {} after {}, lost {lost:?})", before.len(), after.len())
+    })?;
+    Ok((moved, (0..after.len()).filter(|&k| !used[k]).collect()))
 }
 
 fn bounds(mesh: &Mesh, vertices: &[usize]) -> ([f32; 3], [f32; 3]) {
@@ -246,7 +307,7 @@ impl Editor {
         }
 
         let instances = (0..clusters.len())
-            .map(|cluster| Instance { cluster, offset: [0.0; 3], yaw: 0.0, copy: false, deleted: false, only: None })
+            .map(|cluster| Instance { cluster, offset: [0.0; 3], yaw: 0.0, copy: false, deleted: false, only: None, replaces: None })
             .collect();
         let attributes = original.attributes()?;
         let native = clusters.len();
@@ -266,6 +327,9 @@ impl Editor {
             redo: Vec::new(),
             stroke: None,
             owner: Vec::new(),
+            built_origin: Vec::new(),
+            area: None,
+            pictures: Vec::new(),
         };
         editor.rebuild()?;
         Ok(editor)
@@ -274,6 +338,17 @@ impl Editor {
     /// The meshes of the block as the game will read them.
     pub fn meshes(&self) -> &[(usize, Mesh)] {
         &self.built.meshes
+    }
+
+    /// The mesh of the original block that a mesh of the built block comes
+    /// from. None for a mesh that an import added.
+    pub fn original_mesh(&self, built: usize) -> Option<usize> {
+        self.built_origin.get(built).copied().flatten()
+    }
+
+    /// Says whether the objects of a mesh of the built block can be selected.
+    pub fn is_selectable(&self, built: usize) -> bool {
+        self.original_mesh(built).map_or(true, |m| self.selectable[m])
     }
 
     /// The instance that owns a vertex.
@@ -476,8 +551,27 @@ impl Editor {
     /// Builds the block again from the original block and the instances.
     fn rebuild(&mut self) -> Result<(), String> {
         let mut block = self.original.clone();
-        let copies: Vec<usize> =
+        // The tiles that were replaced lose their ground.
+        let cells: std::collections::BTreeSet<(usize, usize)> = self
+            .instances
+            .iter()
+            .filter(|i| i.copy && !i.deleted)
+            .filter_map(|i| i.replaces)
+            .collect();
+        for (column, row) in cells {
+            for mesh in 0..block.meshes.len() {
+                if block.meshes[mesh].0 == 1 && !self.selectable[mesh] {
+                    block.delete_triangles_in_tile(mesh, column, row)?;
+                }
+            }
+        }
+        let all_copies: Vec<usize> =
             (0..self.instances.len()).filter(|&i| self.instances[i].copy && !self.instances[i].deleted).collect();
+        // An object from another block goes in the meshes of this block when it
+        // can. Else it gets new meshes, and its materials, after the other changes.
+        let (copies, fresh): (Vec<usize>, Vec<usize>) = all_copies.into_iter().partition(|&i| {
+            self.clusters[self.instances[i].cluster].foreign.as_ref().map_or(true, |o| self.original.can_host(o).is_ok())
+        });
         let requests: Vec<CopyRequest> = copies
             .iter()
             .map(|&i| CopyRequest {
@@ -505,6 +599,30 @@ impl Editor {
             }
         }
 
+        // New meshes for the objects that the block cannot take as they are.
+        let mut map: Vec<usize> = (0..block.meshes.len()).collect();
+        let mut fresh_meshes: Vec<(usize, Vec<usize>)> = Vec::new();
+        for &index in &fresh {
+            let instance = &self.instances[index];
+            let Some(object) = self.clusters[instance.cluster].foreign.clone() else { continue };
+            let before = mesh_keys(&block.meshes);
+            block.add_foreign_meshes(&object, self.base_centre(instance), instance.yaw, instance.offset)?;
+            let (moved, new) = match_meshes(&before, &mesh_keys(&block.meshes))?;
+            for m in map.iter_mut() {
+                *m = moved[*m];
+            }
+            for (_, list) in fresh_meshes.iter_mut() {
+                for m in list.iter_mut() {
+                    *m = moved[*m];
+                }
+            }
+            fresh_meshes.push((index, new));
+        }
+        let mut built_origin: Vec<Option<usize>> = vec![None; block.meshes.len()];
+        for (original, &now) in map.iter().enumerate() {
+            built_origin[now] = Some(original);
+        }
+
         let mut owner: Vec<Vec<Option<usize>>> = block.meshes.iter().map(|(_, m)| vec![None; m.positions.len()]).collect();
         for (index, instance) in self.instances.iter().enumerate() {
             if instance.copy {
@@ -512,20 +630,32 @@ impl Editor {
             }
             for (mesh, vertices) in self.active_parts(instance) {
                 for &v in vertices {
-                    owner[*mesh][v] = Some(index);
+                    if let Some(slot) = owner[map[*mesh]].get_mut(v) {
+                        *slot = Some(index);
+                    }
                 }
             }
         }
         for (k, &index) in copies.iter().enumerate() {
             for &(mesh, first, count) in &added[k] {
                 for v in first..first + count {
-                    owner[mesh][v] = Some(index);
+                    if let Some(slot) = owner[map[mesh]].get_mut(v) {
+                    *slot = Some(index);
+                }
+                }
+            }
+        }
+        for (index, list) in &fresh_meshes {
+            for &mesh in list {
+                for slot in owner[mesh].iter_mut() {
+                    *slot = Some(*index);
                 }
             }
         }
         block.set_attributes(&Attributes { width: self.grid.0, height: self.grid.1, cells: self.tiles.clone() })?;
         self.built = block;
         self.owner = owner;
+        self.built_origin = built_origin;
         Ok(())
     }
 
@@ -640,6 +770,12 @@ impl Editor {
         self.original.portable((block, cluster), &c.parts, c.low, c.high)
     }
 
+    /// Says whether the block has, for each piece of an object, a mesh with
+    /// the same shape of vertices (needed to add the piece).
+    pub fn has_layouts(&self, object: &Portable) -> bool {
+        object.parts.iter().all(|p| self.original.meshes.iter().any(|(part, m)| *part == 1 && m.places.layout == p.layout))
+    }
+
     /// Says whether this block can take an object from a block.
     pub fn can_import(&self, object: &Portable) -> Result<(), String> {
         self.original.can_host(object)
@@ -742,15 +878,205 @@ impl Editor {
     /// place where it was. Returns the number of the new instance. The block
     /// must have the meshes that the object uses, with the same vertices.
     pub fn import(&mut self, object: Portable) -> Result<usize, String> {
-        self.original.can_host(&object)?;
         let cluster = self.clusters.len();
         self.clusters.push(Cluster { parts: Vec::new(), low: object.low, high: object.high, foreign: Some(object) });
-        let result = self.change(|v| v.push(Instance { cluster, offset: [0.0; 3], yaw: 0.0, copy: true, deleted: false, only: None }));
+        let result = self.change(|v| v.push(Instance { cluster, offset: [0.0; 3], yaw: 0.0, copy: true, deleted: false, only: None, replaces: None }));
         if let Err(message) = result {
             self.clusters.pop();
             return Err(message);
         }
         Ok(self.instances.len() - 1)
+    }
+
+    /// Puts a ground tile in the tile (column, row): the ground that was
+    /// there is removed and the new piece takes its place. A tile that was
+    /// put there before is taken away. `ground` is the height to give to the
+    /// middle of the piece (None: the height it had).
+    pub fn stamp_tile(&mut self, object: Portable, column: usize, row: usize, ground: Option<f32>) -> Result<usize, String> {
+        let cluster = self.clusters.len();
+        let (low, high) = (object.low, object.high);
+        self.clusters.push(Cluster { parts: Vec::new(), low, high, foreign: Some(object) });
+        let source = (
+            ((low[0] + high[0]) / 2.0 + 360.0).div_euclid(18.0),
+            ((low[2] + high[2]) / 2.0 + 360.0).div_euclid(18.0),
+        );
+        let delta = [
+            18.0 * (column as f32 - source.0),
+            ground.map_or(0.0, |g| g - (low[1] + high[1]) / 2.0),
+            18.0 * (row as f32 - source.1),
+        ];
+        let result = self.change(|v| {
+            for i in v.iter_mut() {
+                if i.copy && i.replaces == Some((column, row)) {
+                    i.deleted = true;
+                }
+            }
+            v.push(Instance { cluster, offset: delta, yaw: 0.0, copy: true, deleted: false, only: None, replaces: Some((column, row)) });
+        });
+        match result {
+            Ok(()) => Ok(self.instances.len() - 1),
+            Err(message) => {
+                self.clusters.pop();
+                Err(message)
+            }
+        }
+    }
+
+    /// The ground of each tile: the triangles that are inside the tile, in
+    /// all the meshes of the ground. A tile with pieces in several meshes
+    /// (the grass and a path over it) is one object.
+    pub fn tile_objects(&self) -> Vec<CatalogObject> {
+        type Cell = (i32, i32);
+        let mut per_tile: std::collections::BTreeMap<Cell, Vec<(usize, std::collections::BTreeSet<usize>)>> = Default::default();
+        for (index, (part, mesh)) in self.original.meshes.iter().enumerate() {
+            if *part != 1 || self.selectable[index] {
+                continue;
+            }
+            let mut cells: std::collections::BTreeMap<Cell, std::collections::BTreeSet<usize>> = Default::default();
+            for t in mesh.indices.chunks_exact(3) {
+                let Some(p) = t.iter().map(|&k| mesh.positions.get(k as usize).copied()).collect::<Option<Vec<_>>>() else { continue };
+                let cell = |v: f32| ((v + 360.0) / 18.0).floor() as i32;
+                let home = (cell((p[0][0] + p[1][0] + p[2][0]) / 3.0), cell((p[0][2] + p[1][2] + p[2][2]) / 3.0));
+                let (x0, z0) = (-360.0 + 18.0 * home.0 as f32, -360.0 + 18.0 * home.1 as f32);
+                let fits = p.iter().all(|q| q[0] >= x0 - 0.05 && q[0] <= x0 + 18.05 && q[2] >= z0 - 0.05 && q[2] <= z0 + 18.05);
+                if fits {
+                    cells.entry(home).or_default().extend(t.iter().map(|&k| k as usize));
+                }
+            }
+            for (cell, vertices) in cells {
+                per_tile.entry(cell).or_default().push((index, vertices));
+            }
+        }
+        let mut found = Vec::new();
+        for (_, pieces) in per_tile {
+            let (mut low, mut high) = ([f32::MAX; 3], [f32::MIN; 3]);
+            let mut parts = Vec::new();
+            for (index, vertices) in pieces {
+                let vertices: Vec<usize> = vertices.into_iter().collect();
+                let (l, h) = bounds(&self.original.meshes[index].1, &vertices);
+                for a in 0..3 {
+                    low[a] = low[a].min(l[a]);
+                    high[a] = high[a].max(h[a]);
+                }
+                parts.push((index, vertices));
+            }
+            found.push(CatalogObject { parts, low, high });
+        }
+        found
+    }
+
+    /// The objects that a catalogue can show: the whole objects that are made of
+    /// decoration meshes (trees, bushes: `chip_...`), and the buildings, that
+    /// is the pieces of a family of meshes that touch each other. Each object
+    /// is a list of meshes with the vertices of each, and a box.
+    pub fn catalog_objects(&self) -> Vec<CatalogObject> {
+        const GAP: f32 = 6.0;
+        let mut found: Vec<CatalogObject> = Vec::new();
+        let is_chip = |mesh: usize| self.original.meshes[mesh].1.material.starts_with("chip_");
+
+        // The trees, the bushes: the objects of the first cutting.
+        for (index, instance) in self.instances.iter().enumerate().take(self.native) {
+            let parts = self.active_parts(instance);
+            if parts.is_empty() || !parts.iter().all(|(m, _)| is_chip(*m)) {
+                continue;
+            }
+            let _ = index;
+            let (low, high) = self.base_bounds(instance);
+            found.push(CatalogObject { parts: parts.into_iter().cloned().collect(), low, high });
+        }
+
+        // The buildings: for each family of meshes, the pieces that touch each other.
+        let mut families: Vec<Vec<usize>> = Vec::new();
+        for mesh in 0..self.original.meshes.len() {
+            if !self.selectable[mesh] || is_chip(mesh) {
+                continue;
+            }
+            if !families.iter().any(|f| f.contains(&mesh)) {
+                families.push(self.family_meshes(mesh));
+            }
+        }
+        for family in families {
+            let candidates: Vec<(usize, ([f32; 3], [f32; 3]))> = (0..self.native)
+                .filter_map(|i| self.box_in_meshes(i, &family).map(|b| (i, b)))
+                .collect();
+            let mut used = vec![false; candidates.len()];
+            for start in 0..candidates.len() {
+                if used[start] {
+                    continue;
+                }
+                used[start] = true;
+                let mut component = vec![start];
+                let mut next = 0;
+                while next < component.len() {
+                    let current = candidates[component[next]].1;
+                    next += 1;
+                    for (k, (_, b)) in candidates.iter().enumerate() {
+                        let touches = current.0[0] - GAP <= b.1[0]
+                            && b.0[0] - GAP <= current.1[0]
+                            && current.0[2] - GAP <= b.1[2]
+                            && b.0[2] - GAP <= current.1[2];
+                        if !used[k] && touches {
+                            used[k] = true;
+                            component.push(k);
+                        }
+                    }
+                }
+                // The vertices of the pieces, in the meshes of the family only.
+                let mut parts: Vec<(usize, Vec<usize>)> = Vec::new();
+                let (mut low, mut high) = ([f32::MAX; 3], [f32::MIN; 3]);
+                for &k in &component {
+                    let instance = &self.instances[candidates[k].0];
+                    for (mesh, vertices) in self.active_parts(instance) {
+                        if !family.contains(mesh) {
+                            continue;
+                        }
+                        let (l, h) = bounds(&self.original.meshes[*mesh].1, vertices);
+                        for a in 0..3 {
+                            low[a] = low[a].min(l[a]);
+                            high[a] = high[a].max(h[a]);
+                        }
+                        match parts.iter_mut().find(|(m, _)| m == mesh) {
+                            Some((_, existing)) => existing.extend(vertices),
+                            None => parts.push((*mesh, vertices.clone())),
+                        }
+                    }
+                }
+                found.push(CatalogObject { parts, low, high });
+            }
+        }
+        found
+    }
+
+    /// The shape of a catalogue object, to draw it in a list. The vertices of
+    /// each part are in the same order as in `portable_of_catalog`.
+    pub fn preview_of(&self, object: &CatalogObject) -> Vec<PreviewPart> {
+        let mut parts = Vec::new();
+        for (index, vertices) in &object.parts {
+            let mesh = &self.original.meshes[*index].1;
+            let chosen: std::collections::BTreeSet<usize> = vertices.iter().copied().collect();
+            let local: std::collections::HashMap<usize, u32> =
+                chosen.iter().enumerate().map(|(k, &v)| (v, k as u32)).collect();
+            let mut indices = Vec::new();
+            for t in mesh.indices.chunks_exact(3) {
+                if t.iter().all(|&i| local.contains_key(&(i as usize))) {
+                    indices.extend(t.iter().map(|&i| local[&(i as usize)]));
+                }
+            }
+            parts.push(PreviewPart {
+                picture: crate::data::picture_of(mesh).to_string(),
+                positions: chosen.iter().map(|&v| mesh.positions.get(v).copied().unwrap_or([0.0; 3])).collect(),
+                uvs: chosen.iter().map(|&v| mesh.uvs.get(v).copied().unwrap_or([0.0; 2])).collect(),
+                indices,
+            });
+        }
+        parts
+    }
+
+    /// The data of a catalogue object, to put it in another block.
+    pub fn portable_of_catalog(&self, object: &CatalogObject, index: usize) -> Result<Portable, String> {
+        // A catalogue object is not an object of the block, so a project cannot find it again.
+        let _ = index;
+        self.original.portable((NO_ORIGIN, 0), &object.parts, object.low, object.high)
     }
 
     /// The number of the block.
@@ -814,7 +1140,7 @@ impl Editor {
             return Err("this is not a project of Map Studio".into());
         }
         let mut instances: Vec<Instance> = (0..self.native)
-            .map(|cluster| Instance { cluster, offset: [0.0; 3], yaw: 0.0, copy: false, deleted: false, only: None })
+            .map(|cluster| Instance { cluster, offset: [0.0; 3], yaw: 0.0, copy: false, deleted: false, only: None, replaces: None })
             .collect();
         let mut tiles = self.original_tiles.clone();
         let mut imported: Vec<Cluster> = Vec::new();
@@ -867,7 +1193,7 @@ impl Editor {
                     } else {
                         let deleted = number(words.next())? != 0.0;
                         let yaw = words.next().and_then(|w| w.parse().ok()).unwrap_or(0.0);
-                        instances.push(Instance { cluster, offset, yaw, copy: true, deleted, only: None });
+                        instances.push(Instance { cluster, offset, yaw, copy: true, deleted, only: None, replaces: None });
                     }
                 }
                 Some(kind @ ("mmove" | "mdelete" | "mcopy")) => {
@@ -915,7 +1241,7 @@ impl Editor {
             instances[*cluster].only = Some(all.into_iter().filter(|m| !meshes.contains(m)).collect());
         }
         for (kind, cluster, meshes, offset, yaw, deleted) in masked {
-            instances.push(Instance { cluster, offset, yaw, copy: kind == "mcopy", deleted, only: Some(meshes) });
+            instances.push(Instance { cluster, offset, yaw, copy: kind == "mcopy", deleted, only: Some(meshes), replaces: None });
         }
         let before = (std::mem::replace(&mut self.instances, instances), std::mem::replace(&mut self.tiles, tiles));
         let old_imported = self.clusters.split_off(self.native);
@@ -933,10 +1259,45 @@ impl Editor {
         Ok(())
     }
 
-    /// Writes the block in the folder `land` of a folder of the SD card.
+    /// Tells the editor which area pack the block uses.
+    pub fn set_area(&mut self, area: Option<usize>) {
+        self.area = area;
+    }
+
+    /// Keeps pictures that an imported object needs.
+    pub fn provide_pictures(&mut self, pictures: Vec<crate::bch_edit::TextureBlob>) {
+        for p in pictures {
+            if !self.pictures.iter().any(|q| q.name == p.name) {
+                self.pictures.push(p);
+            }
+        }
+    }
+
+    /// Writes the block in the folder `land` of a folder of the SD card. When
+    /// imported objects need pictures that the area of the block does not
+    /// have, the area is written too, in the folder `area`.
     pub fn export(&self, out_dir: &str) -> Result<String, String> {
         let path = self.built.save(Path::new(out_dir).to_str().unwrap_or(out_dir))?;
         let size = std::fs::metadata(&path).map(|m| m.len()).unwrap_or(0);
-        Ok(format!("written {} ({} bytes)", path.display(), size))
+        let mut message = format!("written {} ({} bytes)", path.display(), size);
+        if let (Some(area), false) = (self.area, self.pictures.is_empty()) {
+            let (pack, compressed) = crate::data::area_pack(&self.arc_dir, area)?;
+            let (_, parts) = crate::pack::split(&pack)?;
+            let part = parts.get(crate::data::AREA_PICTURES).ok_or("the area has no pictures")?;
+            let wanted: Vec<crate::bch_edit::TextureBlob> = self.pictures.clone();
+            let bigger = crate::bch_edit::add_textures(part, &wanted)?;
+            if bigger.len() != part.len() {
+                let mut padded = bigger;
+                padded.resize(padded.len().div_ceil(crate::pack::ALIGNMENT) * crate::pack::ALIGNMENT, 0);
+                let made = crate::pack::replace_part(&pack, crate::data::AREA_PICTURES, &padded)?;
+                let bytes = if compressed { crate::lz11::compress(&made)? } else { made };
+                let folder = Path::new(out_dir).join("area");
+                std::fs::create_dir_all(&folder).map_err(|e| format!("{}: {e}", folder.display()))?;
+                std::fs::write(folder.join(format!("{area}.bin")), &bytes).map_err(|e| e.to_string())?;
+                crate::edit::write_index(&folder, area, bytes.len())?;
+                message += &format!("; area {area} written with the new pictures ({} bytes{})", bytes.len(), if bytes.len() > 860_000 { ", maybe too big for the game" } else { "" });
+            }
+        }
+        Ok(message)
     }
 }

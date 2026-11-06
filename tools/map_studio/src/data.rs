@@ -75,6 +75,51 @@ fn find_area(files: &[Vec<Vec<u8>>], wanted: &HashSet<&str>) -> Option<usize> {
     best.filter(|(hits, _)| *hits > 0).map(|(_, i)| i)
 }
 
+/// The names of the pictures of every area pack, in the order of the archive.
+pub fn area_pictures(arc_dir: &str) -> Result<Vec<HashSet<String>>, String> {
+    let files = garc::read(&PathBuf::from(arc_dir).join("field_area_bin.garc"))?;
+    Ok(files
+        .iter()
+        .map(|file| {
+            let names = file
+                .first()
+                .and_then(|raw| open_pack(raw).ok())
+                .and_then(|parts| parts.get(AREA_TEXTURE_PART).and_then(|p| Bch::parse(p).ok().map(|m| m.names())));
+            names.unwrap_or_default().into_iter().collect()
+        })
+        .collect())
+}
+
+/// The pictures of an area as the tool can copy them (see `bch_edit`), for the
+/// names that are asked.
+pub fn area_texture_blobs(arc_dir: &str, area: usize, names: &[String]) -> Result<Vec<crate::bch_edit::TextureBlob>, String> {
+    let areas = garc::read(&PathBuf::from(arc_dir).join("field_area_bin.garc"))?;
+    let raw = areas.get(area).and_then(|f| f.first()).ok_or("no such area")?;
+    let parts = open_pack(raw)?;
+    let part = parts.get(AREA_TEXTURE_PART).ok_or("the area has no pictures")?;
+    crate::bch_edit::read_textures(part, names)
+}
+
+/// The area pack as the archive has it: the data (not compressed) and whether
+/// the archive compresses it.
+pub fn area_pack(arc_dir: &str, area: usize) -> Result<(Vec<u8>, bool), String> {
+    let areas = garc::read(&PathBuf::from(arc_dir).join("field_area_bin.garc"))?;
+    let raw = areas.get(area).and_then(|f| f.first()).ok_or("no such area")?;
+    if raw.first() == Some(&0x11) { Ok((lz11::decompress(raw)?, true)) } else { Ok((raw.clone(), false)) }
+}
+
+/// The part of an area pack that holds the pictures.
+pub const AREA_PICTURES: usize = AREA_TEXTURE_PART;
+
+/// The pictures of one area pack, by name.
+pub fn area_textures(arc_dir: &str, area: usize) -> Result<HashMap<String, Texture>, String> {
+    let areas = garc::read(&PathBuf::from(arc_dir).join("field_area_bin.garc"))?;
+    let raw = areas.get(area).and_then(|f| f.first()).ok_or("no such area")?;
+    let parts = open_pack(raw)?;
+    let part = parts.get(AREA_TEXTURE_PART).ok_or("the area has no pictures")?;
+    Ok(Bch::parse(part)?.textures()?.into_iter().map(|t| (t.name.clone(), t)).collect())
+}
+
 /// Loads a block with its pictures. Without an area number, the tool looks
 /// for the area pack that fits.
 pub fn load_scene(arc_dir: &str, block: usize, area: Option<usize>) -> Result<Scene, String> {

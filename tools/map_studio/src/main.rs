@@ -2,6 +2,8 @@
 
 mod bch;
 mod bch_edit;
+mod catalog;
+mod thumb;
 mod commands;
 mod data;
 mod dict;
@@ -40,10 +42,11 @@ fn view(arc_dir: &str, block: usize, area: Option<usize>, land_file: Option<&str
         "area {:?}: {} pictures, {} of {} meshes have a picture",
         scene.area, scene.textures.len(), with_picture, scene.meshes.len()
     );
-    let editor = match land_file {
+    let mut editor = match land_file {
         Some(path) => editor::Editor::from_block(edit::EditableBlock::from_file(std::path::Path::new(path), block)?, arc_dir, false)?,
         None => editor::Editor::new(arc_dir, block)?,
     };
+    editor.set_area(scene.area);
     viewer::run(scene.textures, editor, format!("Block {block}"), arc_dir.to_string())
 }
 
@@ -108,6 +111,22 @@ fn main() {
         Some("mesh-select-test") if args.len() >= 5 => commands::mesh_select_test(&args[2], block, &args[4]),
         Some("building-test") if args.len() >= 7 => commands::building_test(&args[2], block, [float(4), float(5)], &args[6]),
         Some("import-building-test") if args.len() >= 9 => commands::import_building_test(&args[2], block, [float(4), float(5)], &args[6], number(7).unwrap_or(0), &args[8]),
+        Some("catalog-stats") if args.len() >= 3 => commands::catalog_stats(&args[2], number(3), number(4), args.get(5).map(|s| s.as_str())),
+        Some("catalog-sheet") if args.len() >= 5 => commands::catalog_sheet(&args[2], &args[3], &args[4], number(5).unwrap_or(0)),
+        Some("catalog-drop-test") if args.len() >= 7 => commands::catalog_drop_test(&args[2], &args[3], &args[4], number(5).unwrap_or(0), &args[6]),
+        Some("delete-many-test") if args.len() >= 5 => commands::delete_many_test(&args[2], block, number(4).unwrap_or(10)),
+        Some("delete-meshes-test") if args.len() >= 4 => commands::delete_meshes_test(&args[2], block),
+        Some("drop-then-delete-test") if args.len() >= 6 => commands::drop_then_delete_test(&args[2], &args[3], &args[4], number(5).unwrap_or(0)),
+        Some("ground-tiles") if args.len() >= 4 => commands::ground_tiles(&args[2], block),
+        Some("tile-stats") if args.len() >= 5 => commands::tile_stats(&args[2], number(3).unwrap_or(0), number(4).unwrap_or(0), args.get(5).map(|s| s.as_str())),
+        Some("tile-drop-test") if args.len() >= 7 => commands::tile_drop_test(&args[2], &args[3], number(4).unwrap_or(0), number(5).unwrap_or(0), &args[6]),
+        Some("tile-holes-test") if args.len() >= 7 => commands::tile_holes_test(&args[2], &args[3], number(4).unwrap_or(0), number(5).unwrap_or(10), number(6).unwrap_or(0)),
+        Some("tile-picture-test") if args.len() >= 7 => commands::tile_picture_test(&args[2], &args[3], &args[4].split(',').filter_map(|n| n.parse().ok()).collect::<Vec<_>>(), number(5).unwrap_or(0), &args[6]),
+        Some("drop-all-test") if args.len() >= 7 => commands::drop_all_test(&args[2], &args[3], number(4).unwrap_or(0), number(5).unwrap_or(50), number(6).unwrap_or(0)),
+        Some("layout-stats") if args.len() >= 5 => commands::layout_stats(&args[2], &args[3], number(4).unwrap_or(0)),
+        Some("area-pictures-test") if args.len() >= 6 => commands::area_pictures_test(&args[2], number(3).unwrap_or(0), number(4).unwrap_or(0), &args[5..].to_vec()),
+        Some("drop-area-test") if args.len() >= 7 => commands::drop_area_test(&args[2], &args[3], &args[4], number(5).unwrap_or(0), &args[6]),
+        Some("model-strings") if args.len() >= 6 => commands::model_strings(&args[2], &args[3], &args[4], number(5).unwrap_or(0)),
         Some("check") if args.len() >= 5 => commands::check(&args[2], block, &args[4]),
         _ => Err(USAGE.to_string()),
     };

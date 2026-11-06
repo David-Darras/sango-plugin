@@ -308,6 +308,9 @@ pub fn mesh_groups(mesh: &Mesh) -> Vec<Vec<usize>> {
     }
     for t in mesh.indices.chunks_exact(3) {
         let (a, b, c) = (t[0] as usize, t[1] as usize, t[2] as usize);
+        if a >= n || b >= n || c >= n {
+            continue;
+        }
         let (ra, rb) = (find(&mut parent, a), find(&mut parent, b));
         parent[ra] = rb;
         let (rb, rc) = (find(&mut parent, b), find(&mut parent, c));
@@ -463,6 +466,44 @@ impl EditableBlock {
         Ok(removed)
     }
 
+    /// Removes the triangles of a mesh whose centre is in the tile (column,
+    /// row), seen from above. The vertices stay. Returns how many triangles
+    /// were removed.
+    pub fn delete_triangles_in_tile(&mut self, mesh: usize, column: usize, row: usize) -> Result<usize, String> {
+        let (part, mesh) = self.meshes.get_mut(mesh).ok_or("no such mesh")?;
+        let base = self.ranges[*part].0;
+        let (x0, z0) = (-360.0 + 18.0 * column as f32, -360.0 + 18.0 * row as f32);
+        let in_tile = |t: &[u32]| {
+            let (mut x, mut z) = (0.0, 0.0);
+            for &i in t {
+                let p = mesh.positions.get(i as usize).copied().unwrap_or([0.0; 3]);
+                x += p[0] / 3.0;
+                z += p[2] / 3.0;
+            }
+            x >= x0 && x < x0 + 18.0 && z >= z0 && z < z0 + 18.0
+        };
+        let kept: Vec<u32> = mesh.indices.chunks_exact(3).filter(|t| !in_tile(t)).flatten().copied().collect();
+        let removed = (mesh.indices.len() - kept.len()) / 3;
+        if removed == 0 {
+            return Ok(0);
+        }
+        let width = mesh.places.index_width;
+        let start = base + mesh.places.indices_at;
+        for k in 0..mesh.indices.len() {
+            let value = kept.get(k).copied().unwrap_or(0);
+            let at = start + k * width;
+            if width == 2 {
+                self.pack[at..at + 2].copy_from_slice(&(value as u16).to_le_bytes());
+            } else {
+                self.pack[at] = value as u8;
+            }
+        }
+        let count_at = base + mesh.places.index_count_at;
+        self.pack[count_at..count_at + 4].copy_from_slice(&(kept.len() as u32).to_le_bytes());
+        mesh.indices = kept;
+        Ok(removed)
+    }
+
     /// The mesh of this block that can take a piece of a foreign object.
     fn host_of(&self, part: &PortablePart) -> Result<usize, String> {
         self.meshes
@@ -559,10 +600,12 @@ impl EditableBlock {
         for piece in &object.parts {
             let blob = piece.blob.as_ref().ok_or_else(|| format!("the material {} was not copied with the object", piece.material))?;
             // A mesh of this block that is made like the piece gives the shape of the new mesh.
+            let needed = piece.vertices.len() / piece.stride.max(1);
             let template = self
                 .meshes
                 .iter()
-                .position(|(p, m)| *p == 1 && m.places.layout == piece.layout)
+                .position(|(p, m)| *p == 1 && m.places.layout == piece.layout && (m.places.index_width == 2 || needed <= 256))
+                .or_else(|| self.meshes.iter().position(|(p, m)| *p == 1 && m.places.layout == piece.layout))
                 .ok_or_else(|| format!("this block has no mesh with the vertices of {}", piece.material))?;
             let (part, like) = &self.meshes[template];
             let part = *part;
@@ -837,21 +880,27 @@ impl EditableBlock {
         let bytes = self.to_bytes()?;
         std::fs::write(&path, &bytes).map_err(|e| format!("{}: {e}", path.display()))?;
 
-        let index_path = folder.join("index.bin");
-        let mut entries: BTreeMap<u32, u32> = Default::default();
-        if let Ok(old) = std::fs::read(&index_path) {
-            let count = garc::u32_at(&old, 0)? as usize;
-            for i in 0..count {
-                entries.insert(garc::u32_at(&old, 4 + 8 * i)?, garc::u32_at(&old, 8 + 8 * i)?);
-            }
-        }
-        entries.insert(self.id as u32, bytes.len() as u32);
-        let mut index = (entries.len() as u32).to_le_bytes().to_vec();
-        for (id, size) in entries {
-            index.extend_from_slice(&id.to_le_bytes());
-            index.extend_from_slice(&size.to_le_bytes());
-        }
-        std::fs::write(&index_path, index).map_err(|e| format!("{}: {e}", index_path.display()))?;
+        write_index(&folder, self.id, bytes.len())?;
         Ok(path)
     }
+}
+
+/// Adds a file to the list `index.bin` of a folder of the SD card (the number
+/// of files, then the number and the size of each file, sorted by number).
+pub fn write_index(folder: &Path, id: usize, size: usize) -> Result<(), String> {
+    let index_path = folder.join("index.bin");
+    let mut entries: BTreeMap<u32, u32> = Default::default();
+    if let Ok(old) = std::fs::read(&index_path) {
+        let count = garc::u32_at(&old, 0)? as usize;
+        for i in 0..count {
+            entries.insert(garc::u32_at(&old, 4 + 8 * i)?, garc::u32_at(&old, 8 + 8 * i)?);
+        }
+    }
+    entries.insert(id as u32, size as u32);
+    let mut index = (entries.len() as u32).to_le_bytes().to_vec();
+    for (id, size) in entries {
+        index.extend_from_slice(&id.to_le_bytes());
+        index.extend_from_slice(&size.to_le_bytes());
+    }
+    std::fs::write(&index_path, index).map_err(|e| format!("{}: {e}", index_path.display()))
 }

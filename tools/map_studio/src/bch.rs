@@ -61,6 +61,7 @@ pub struct Places {
 }
 
 /// A picture, with the first row at the top.
+#[derive(Clone)]
 pub struct Texture {
     pub name: String,
     pub width: usize,
