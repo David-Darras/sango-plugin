@@ -72,6 +72,9 @@ type Snapshot = (Vec<Instance>, Vec<u32>);
 /// The part of a block that holds the model of the tall grass.
 pub const GRASS_PART: usize = 5;
 
+/// The mark of a cluster that lifts one corner of the tiles of the ground (it holds nothing).
+const RAISE_MARK: (usize, usize) = (crate::edit::NO_ORIGIN, 3);
+
 /// The mark of a cluster that makes the ground flat (it holds nothing).
 const FLATTEN_MARK: (usize, usize) = (crate::edit::NO_ORIGIN, 2);
 
@@ -607,10 +610,13 @@ impl Editor {
         let mut grass_cells: std::collections::BTreeSet<(usize, usize)> = Default::default();
         let mut ledge_cells: std::collections::BTreeSet<(usize, usize)> = Default::default();
         let mut flatten = false;
+        let mut lifts: Vec<((usize, usize), f32)> = Vec::new();
         for i in self.instances.iter().filter(|i| i.copy && !i.deleted) {
             if let Some(cell) = i.replaces {
                 if self.cluster_is_flatten(i.cluster) {
                     flatten = true;
+                } else if self.cluster_is_raise(i.cluster) {
+                    lifts.push((cell, i.offset[1]));
                 } else if self.cluster_is_ledge_eraser(i.cluster) {
                     ledge_cells.insert(cell);
                 } else if self.cluster_is_grass(i.cluster) {
@@ -856,6 +862,67 @@ impl Editor {
             for (mesh, vertices) in ground {
                 block.set_height(mesh, &vertices, level)?;
             }
+        }
+        let lifts: Vec<((usize, usize), f32)> = lifts.into_iter().filter(|(_, d)| *d != 0.0).collect();
+        if !lifts.is_empty() {
+            let (width, height) = self.grid;
+            let mut corners = vec![0.0f32; (width + 1) * (height + 1)];
+            for &((c, r), d) in &lifts {
+                if c <= width && r <= height {
+                    corners[r * (width + 1) + c] += d;
+                }
+            }
+            let side = 18.0;
+            let offset_at = |x: f32, z: f32| {
+                let (fx, fz) = (((x + 360.0) / side).clamp(0.0, width as f32), ((z + 360.0) / side).clamp(0.0, height as f32));
+                let (i0, j0) = ((fx.floor() as usize).min(width - 1), (fz.floor() as usize).min(height - 1));
+                let (tx, tz) = (fx - i0 as f32, fz - j0 as f32);
+                let at = |i: usize, j: usize| corners[j * (width + 1) + i];
+                at(i0, j0) * (1.0 - tx) * (1.0 - tz) + at(i0 + 1, j0) * tx * (1.0 - tz) + at(i0, j0 + 1) * (1.0 - tx) * tz + at(i0 + 1, j0 + 1) * tx * tz
+            };
+            for mesh in 0..block.meshes.len() {
+                let part = block.meshes[mesh].0;
+                let vertices: Vec<usize> = (0..block.meshes[mesh].1.positions.len())
+                    .filter(|&v| {
+                        part == GRASS_PART
+                            || (part == 1
+                                && (owner[mesh].get(v).copied().flatten().is_some_and(|i| self.instances[i].replaces.is_some())
+                                    || built_origin[mesh].is_some_and(|o| !self.selectable[o])))
+                    })
+                    .collect();
+                for v in vertices {
+                    let p = block.meshes[mesh].1.positions[v];
+                    let lifted = p[1] + offset_at(p[0], p[2]);
+                    block.set_height(mesh, &[v], lifted)?;
+                }
+            }
+        }
+        if flatten || !lifts.is_empty() {
+            // The game walks on the collision model: it follows the ground that was changed.
+            let mut triangles: Vec<[[f32; 3]; 3]> = Vec::new();
+            for (mesh, (part, m)) in block.meshes.iter().enumerate() {
+                if *part != 1 {
+                    continue;
+                }
+                let is_ground = |v: usize| {
+                    owner[mesh].get(v).copied().flatten().is_some_and(|i| self.instances[i].replaces.is_some())
+                        || built_origin[mesh].is_some_and(|o| !self.selectable[o])
+                };
+                for t in m.indices.chunks_exact(3) {
+                    let (Some(a), Some(b), Some(c)) = (m.positions.get(t[0] as usize), m.positions.get(t[1] as usize), m.positions.get(t[2] as usize)) else { continue };
+                    if !(is_ground(t[0] as usize) && is_ground(t[1] as usize) && is_ground(t[2] as usize)) {
+                        continue;
+                    }
+                    // Only the faces that one can walk on (not the walls of the cliffs).
+                    let (u, w) = ([b[0] - a[0], b[1] - a[1], b[2] - a[2]], [c[0] - a[0], c[1] - a[1], c[2] - a[2]]);
+                    let normal = [u[1] * w[2] - u[2] * w[1], u[2] * w[0] - u[0] * w[2], u[0] * w[1] - u[1] * w[0]];
+                    let length = (normal[0] * normal[0] + normal[1] * normal[1] + normal[2] * normal[2]).sqrt();
+                    if length > 1.0e-6 && normal[1].abs() / length > 0.35 {
+                        triangles.push([*a, *b, *c]);
+                    }
+                }
+            }
+            block.set_collision(&triangles)?;
         }
         block.set_attributes(&Attributes { width: self.grid.0, height: self.grid.1, cells: self.tiles.clone() })?;
         if self.props != self.original_props {
@@ -1188,7 +1255,38 @@ impl Editor {
 
     /// True when the cluster is made of tall grass only (or of nothing).
     fn cluster_is_grass(&self, cluster: usize) -> bool {
-        self.clusters[cluster].foreign.as_ref().map_or(false, |o| grass_only(o) && o.origin != LEDGE_ERASER && o.origin != FLATTEN_MARK)
+        self.clusters[cluster].foreign.as_ref().map_or(false, |o| grass_only(o) && o.origin != LEDGE_ERASER && o.origin != FLATTEN_MARK && o.origin != RAISE_MARK)
+    }
+
+    fn cluster_is_raise(&self, cluster: usize) -> bool {
+        self.clusters[cluster].foreign.as_ref().map_or(false, |o| o.parts.is_empty() && o.origin == RAISE_MARK)
+    }
+
+    /// Lifts (or lowers, with a negative `delta`) corners (column, row) of the tiles of the
+    /// ground, 0 to 40 on each side. The ground around follows (the tiles slope). The change adds
+    /// up with the earlier ones.
+    pub fn raise_corners(&mut self, corners: &[(usize, usize)], delta: f32) -> Result<(), String> {
+        let corners: Vec<(usize, usize)> = corners.iter().copied().filter(|&(c, r)| c <= self.grid.0 && r <= self.grid.1).collect();
+        if corners.is_empty() {
+            return Err("these corners are outside of the block".into());
+        }
+        let cluster = match (0..self.clusters.len()).find(|&c| self.cluster_is_raise(c)) {
+            Some(c) => c,
+            None => {
+                let nothing = Portable { origin: RAISE_MARK, low: [0.0; 3], high: [0.0; 3], parts: Vec::new() };
+                self.clusters.push(Cluster { parts: Vec::new(), low: [0.0; 3], high: [0.0; 3], foreign: Some(nothing) });
+                self.clusters.len() - 1
+            }
+        };
+        self.change(|v| {
+            for &(column, row) in &corners {
+                if let Some(i) = v.iter_mut().find(|i| i.cluster == cluster && i.copy && !i.deleted && i.replaces == Some((column, row))) {
+                    i.offset[1] += delta;
+                } else {
+                    v.push(Instance { cluster, offset: [0.0, delta, 0.0], yaw: 0.0, copy: true, deleted: false, only: None, replaces: Some((column, row)) });
+                }
+            }
+        })
     }
 
     fn cluster_is_flatten(&self, cluster: usize) -> bool {

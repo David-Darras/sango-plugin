@@ -533,7 +533,6 @@ impl Viewer {
                         ("Left button drag", "turn around the map (in the Ground properties tool: right button)"),
                         ("Right or middle button drag, Shift + left drag", "slide the view over the ground"),
                         ("Mouse wheel", "zoom toward the pointer"),
-                        ("Double click", "go to the place that you click"),
                         ("Home / Shift+Home", "fit the block / fit the whole world"),
                         ("F", "go to the selection"),
                         ("1 / 2", "view from above / isometric view"),
@@ -797,13 +796,6 @@ impl Viewer {
             if scroll.abs() > 0.01 {
                 let anchor = response.hover_pos().and_then(|p| self.point_under(rect, p));
                 self.zoom_by((-scroll * 0.0018).exp(), anchor);
-            }
-        }
-        // Go to a place.
-        if response.double_clicked() {
-            if let Some(p) = response.interact_pointer_pos().and_then(|pos| self.point_under(rect, pos)) {
-                let distance = (self.distance * 0.55).clamp(60.0, MAX_DISTANCE).min(self.distance);
-                self.go_to_view(Some((p, distance)), None, None);
             }
         }
         self.step_goal(ctx);

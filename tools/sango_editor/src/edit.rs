@@ -472,6 +472,128 @@ impl EditableBlock {
         Ok(())
     }
 
+    /// Makes the collision of the block again from triangles (in units of the block): the
+    /// game walks on this model, not on the pictures. The triangles are put in a grid of boxes
+    /// (three levels, five by five boxes) so that the game finds them fast.
+    pub fn set_collision(&mut self, triangles: &[[[f32; 3]; 3]]) -> Result<(), String> {
+        const DIV: usize = 5;
+        const LEVELS: usize = 3;
+        const MARGIN: f32 = 0.5;
+        let part = 2;
+        let Some(&(start, end)) = self.ranges.get(part) else { return Ok(()) };
+        let old = self.pack[start..end].to_vec();
+        if old.len() < 16 || &old[0..4] != b"coll" {
+            return Err("the block has no collision model to change".into());
+        }
+        let old_size = u32::from_le_bytes([old[4], old[5], old[6], old[7]]) as usize;
+        let tail = old.get(16 + old_size..).unwrap_or(&[]).to_vec();
+        // The block is cut in 16 x 16 cells; the triangles go in every cell that they touch.
+        let (low_edge, cell) = (-364.0f32, 728.0f32 / (DIV * DIV) as f32);
+        let side = DIV * DIV;
+        let mut leaves: Vec<Vec<usize>> = vec![Vec::new(); side * side];
+        for (k, t) in triangles.iter().enumerate() {
+            let (mut lo, mut hi) = ([f32::MAX; 3], [f32::MIN; 3]);
+            for p in t {
+                for a in 0..3 {
+                    lo[a] = lo[a].min(p[a]);
+                    hi[a] = hi[a].max(p[a]);
+                }
+            }
+            let index = |v: f32| (((v - low_edge) / cell).floor().max(0.0) as usize).min(side - 1);
+            for cx in index(lo[0] - MARGIN)..=index(hi[0] + MARGIN) {
+                for cz in index(lo[2] - MARGIN)..=index(hi[2] + MARGIN) {
+                    leaves[cx * side + cz].push(k);
+                }
+            }
+        }
+        // The number of a leaf in the arrays: the number of its box of the first level, then its place in it.
+        let leaf_number = |cx: usize, cz: usize| {
+            let (px, pz, lx, lz) = (cx / DIV, cz / DIV, cx % DIV, cz % DIV);
+            (px * DIV + pz) * (DIV * DIV) + (lx * DIV + lz)
+        };
+        let leaf_count = side * side;
+        let boxes_first = DIV * DIV;
+        let empty = ([1.0e30f32; 3], [-1.0e30f32; 3]);
+        let mut leaf_boxes = vec![empty; leaf_count];
+        let mut spans: Vec<(i32, i32)> = vec![(0, 0); leaf_count];
+        let mut positions: Vec<[f32; 3]> = Vec::new();
+        // The leaves in the order of their numbers.
+        let mut by_number: Vec<(usize, usize, usize)> = Vec::new();
+        for cx in 0..side {
+            for cz in 0..side {
+                by_number.push((leaf_number(cx, cz), cx, cz));
+            }
+        }
+        by_number.sort_unstable();
+        for &(number, cx, cz) in &by_number {
+            let list = &leaves[cx * side + cz];
+            let first = positions.len();
+            let (mut lo, mut hi) = empty;
+            for &k in list {
+                for p in &triangles[k] {
+                    positions.push(*p);
+                    for a in 0..3 {
+                        lo[a] = lo[a].min(p[a] - MARGIN);
+                        hi[a] = hi[a].max(p[a] + MARGIN);
+                    }
+                }
+            }
+            spans[number] = (first as i32, (positions.len() - first) as i32);
+            leaf_boxes[number] = (lo, hi);
+        }
+        let mut first_boxes = vec![empty; boxes_first];
+        for number in 0..leaf_count {
+            let parent = number / (DIV * DIV);
+            let (lo, hi) = leaf_boxes[number];
+            if lo[0] > hi[0] {
+                continue;
+            }
+            for a in 0..3 {
+                first_boxes[parent].0[a] = first_boxes[parent].0[a].min(lo[a]);
+                first_boxes[parent].1[a] = first_boxes[parent].1[a].max(hi[a]);
+            }
+        }
+        let mut payload: Vec<u8> = Vec::new();
+        for v in [LEVELS as u32, DIV as u32, 1, DIV as u32] {
+            payload.extend_from_slice(&v.to_le_bytes());
+        }
+        let put_box = |payload: &mut Vec<u8>, b: &([f32; 3], [f32; 3])| {
+            for a in 0..3 {
+                payload.extend_from_slice(&b.0[a].to_le_bytes());
+            }
+            payload.extend_from_slice(&0f32.to_le_bytes());
+            for a in 0..3 {
+                payload.extend_from_slice(&b.1[a].to_le_bytes());
+            }
+            payload.extend_from_slice(&0f32.to_le_bytes());
+        };
+        for b in &first_boxes {
+            put_box(&mut payload, b);
+        }
+        for b in &leaf_boxes {
+            put_box(&mut payload, b);
+        }
+        for &(first, count) in &spans {
+            payload.extend_from_slice(&first.to_le_bytes());
+            payload.extend_from_slice(&count.to_le_bytes());
+        }
+        for p in &positions {
+            for a in 0..3 {
+                payload.extend_from_slice(&p[a].to_le_bytes());
+            }
+            payload.extend_from_slice(&0f32.to_le_bytes());
+        }
+        let mut part_bytes = b"coll".to_vec();
+        part_bytes.extend_from_slice(&(payload.len() as u32).to_le_bytes());
+        part_bytes.extend_from_slice(&old[8..16]);
+        part_bytes.extend_from_slice(&payload);
+        part_bytes.extend_from_slice(&tail);
+        part_bytes.resize(part_bytes.len().div_ceil(pack::ALIGNMENT) * pack::ALIGNMENT, 0);
+        let made = pack::replace_part(&self.pack, part, &part_bytes)?;
+        *self = Self::from_pack(self.id, self.compressed, made)?;
+        Ok(())
+    }
+
     /// Gives the same height to vertices of a mesh (the ground is made flat).
     pub fn set_height(&mut self, mesh: usize, vertices: &[usize], height: f32) -> Result<(), String> {
         let (part, mesh) = self.meshes.get_mut(mesh).ok_or("no such mesh")?;

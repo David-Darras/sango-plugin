@@ -842,6 +842,12 @@ pub struct Viewer {
     world: HashMap<usize, Editor>,
     /// The height of the ground at the corners of the tiles of the blocks around.
     neigh_heights: HashMap<usize, Vec<f32>>,
+    /// The height tool: Some(+1) lifts the ground, Some(-1) lowers it.
+    height_tool: Option<f32>,
+    /// How much a stroke lifts or lowers the ground.
+    height_step: f32,
+    /// The ground changed in this stroke: the heights are measured again when the button is up.
+    height_dirty: bool,
     /// The tall grass tool: Some(true) puts grass, Some(false) takes it away.
     grass_tool: Option<bool>,
     /// The piece of tall grass that the tool puts on one tile.
@@ -1051,6 +1057,9 @@ impl Viewer {
             world: HashMap::new(),
             neigh_heights: HashMap::new(),
             grass_tool: None,
+            height_tool: None,
+            height_step: 2.0,
+            height_dirty: false,
             grass: None,
             grass_done: Default::default(),
         })
@@ -1906,6 +1915,10 @@ impl Viewer {
             self.status = format!("Brush: {}.", tile_style(self.brush).0);
             return;
         }
+        if let Some(sign) = self.height_tool {
+            self.paint_height(column, row, sign, frame);
+            return;
+        }
         if !self.stroking {
             self.editor.begin_stroke();
             self.stroking = true;
@@ -2299,6 +2312,28 @@ impl Viewer {
             });
         }
         self.grass.clone()
+    }
+
+    /// Lifts or lowers the corners of the tiles under the brush, once for each corner in a stroke.
+    fn paint_height(&mut self, column: usize, row: usize, sign: f32, frame: &eframe::Frame) {
+        let first = self.brush_size.saturating_sub(1) / 2;
+        let mut corners: Vec<(usize, usize)> = Vec::new();
+        for r in row.saturating_sub(first)..=(row + self.brush_size - first) {
+            for c in column.saturating_sub(first)..=(column + self.brush_size - first) {
+                if self.grass_done.insert((c, r)) {
+                    corners.push((c, r));
+                }
+            }
+        }
+        if corners.is_empty() {
+            return;
+        }
+        self.status = match self.editor.raise_corners(&corners, sign * self.height_step) {
+            Ok(()) => format!("The ground is {} by {:.0} on {} corners.", if sign > 0.0 { "lifted" } else { "lowered" }, self.height_step, corners.len()),
+            Err(message) => format!("Cannot change the height: {message}"),
+        };
+        self.height_dirty = true;
+        self.refresh(frame);
     }
 
     /// Puts tall grass on the tiles under the brush, or takes it away. The
@@ -2722,22 +2757,40 @@ impl eframe::App for Viewer {
                                     if ui.selectable_label(self.pipette, "Pipette").on_hover_text("Click a tile to take its value").clicked() {
                                         self.pipette = !self.pipette;
                                         self.grass_tool = None;
+                                        self.height_tool = None;
                                     }
                                 });
                                 ui.horizontal(|ui| {
                                     if ui.selectable_label(self.grass_tool == Some(true), "Tall grass").on_hover_text("Paint tall grass: the picture and the encounters (only in the bands of grass that the block has)").clicked() {
                                         self.grass_tool = if self.grass_tool == Some(true) { None } else { Some(true) };
+                                        self.height_tool = None;
                                         self.pipette = false;
                                     }
                                     if ui.selectable_label(self.grass_tool == Some(false), "Remove grass").on_hover_text("Take the tall grass away: the picture and the encounters").clicked() {
                                         self.grass_tool = if self.grass_tool == Some(false) { None } else { Some(false) };
+                                        self.height_tool = None;
                                         self.pipette = false;
                                     }
                                 });
-                                ui.label(match self.grass_tool {
-                                    Some(true) => "Giving: tall grass".to_string(),
-                                    Some(false) => "Giving: no grass".to_string(),
-                                    None => format!("Giving: {} ({:08x})", tile_style(self.brush).0, self.brush),
+                                ui.horizontal(|ui| {
+                                    if ui.selectable_label(self.height_tool == Some(1.0), "Raise the ground").on_hover_text("Click or drag: the corners of the tiles go up (the walking height too)").clicked() {
+                                        self.height_tool = if self.height_tool == Some(1.0) { None } else { Some(1.0) };
+                                        self.grass_tool = None;
+                                        self.pipette = false;
+                                    }
+                                    if ui.selectable_label(self.height_tool == Some(-1.0), "Lower the ground").on_hover_text("Click or drag: the corners of the tiles go down (the walking height too)").clicked() {
+                                        self.height_tool = if self.height_tool == Some(-1.0) { None } else { Some(-1.0) };
+                                        self.grass_tool = None;
+                                        self.pipette = false;
+                                    }
+                                    ui.label("by");
+                                    chrome::spin_with(ui, &mut self.height_step, 1.0, 20.0, |d| d);
+                                });
+                                ui.label(match (self.height_tool, self.grass_tool) {
+                                    (Some(sign), _) => format!("Giving: ground {} by {:.0}", if sign > 0.0 { "up" } else { "down" }, self.height_step),
+                                    (None, Some(true)) => "Giving: tall grass".to_string(),
+                                    (None, Some(false)) => "Giving: no grass".to_string(),
+                                    (None, None) => format!("Giving: {} ({:08x})", tile_style(self.brush).0, self.brush),
                                 });
                                 ui.label(egui::RichText::new("Values in this block (click to take):").weak());
                                 let mut counts: std::collections::BTreeMap<u32, usize> = Default::default();
@@ -2759,6 +2812,7 @@ impl eframe::App for Viewer {
                                         if ui.selectable_label(self.brush == value && self.grass_tool.is_none(), text).clicked() {
                                             self.brush = value;
                                             self.grass_tool = None;
+                                            self.height_tool = None;
                                         }
                                     }
                                 });
@@ -2915,6 +2969,11 @@ impl eframe::App for Viewer {
         }
         if !ctx.input(|i| i.pointer.primary_down()) {
             self.grass_done.clear();
+            if self.height_dirty {
+                self.height_dirty = false;
+                self.heights = Some(self.ground_heights());
+                self.refresh(frame);
+            }
         }
         if self.stroking && !ctx.input(|i| i.pointer.primary_down()) {
             self.editor.end_stroke();

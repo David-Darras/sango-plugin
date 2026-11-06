@@ -2160,3 +2160,66 @@ pub fn flatten_test(arc_dir: &str, block: usize, out_dir: &str) -> Result<(), St
     println!("{}", editor.export(out_dir)?);
     Ok(())
 }
+
+/// Lists the parts of a block: the size and the first bytes of each.
+pub fn parts(arc_dir: &str, block: usize) -> Result<(), String> {
+    let parts = data::read_block(arc_dir, block)?;
+    for (i, part) in parts.iter().enumerate() {
+        let head: Vec<String> = part.iter().take(24).map(|b| format!("{b:02x}")).collect();
+        println!("part {i}: {} bytes  {}", part.len(), head.join(" "));
+        if i == 2 {
+            // The words of the collision part, as numbers and as floats.
+            for (k, w) in part.chunks_exact(4).take(48).enumerate() {
+                let u = u32::from_le_bytes([w[0], w[1], w[2], w[3]]);
+                println!("  [{k:2}] {u:10} {:#010x} {:12.3}", u, f32::from_bits(u));
+            }
+        }
+    }
+    Ok(())
+}
+
+/// What the collision part of a block holds: the levels, the divisions, the triangles and their heights.
+fn collision_summary(part: &[u8]) -> String {
+    let word = |at: usize| u32::from_le_bytes([part[at], part[at + 1], part[at + 2], part[at + 3]]);
+    let float = |at: usize| f32::from_bits(word(at));
+    let (levels, dx, dy, dz) = (word(16) as usize, word(20) as usize, word(24) as usize, word(28) as usize);
+    let boxes = dx * dy * dz;
+    let all: usize = (1..levels).map(|i| boxes.pow(i as u32)).sum();
+    let leaves = boxes.pow(levels as u32 - 1);
+    let offsets_at = 32 + 32 * all;
+    let positions_at = offsets_at + 8 * leaves;
+    let size = word(4) as usize;
+    let count = (16 + size - positions_at) / 16;
+    let (mut low, mut high) = (f32::MAX, f32::MIN);
+    for k in 0..count {
+        let y = float(positions_at + 16 * k + 4);
+        low = low.min(y);
+        high = high.max(y);
+    }
+    let mut referenced = 0;
+    for k in 0..leaves {
+        referenced += word(offsets_at + 8 * k + 4) as usize;
+    }
+    format!("levels {levels}, divisions {dx}x{dy}x{dz}, {count} vertices ({} triangles), {referenced} referenced, heights {low:.1} to {high:.1}", count / 3)
+}
+
+/// Lifts a square of corners of the ground, writes the block, and says what the collision holds.
+pub fn height_test(arc_dir: &str, block: usize, out_dir: &str) -> Result<(), String> {
+    let mut editor = crate::editor::Editor::new(arc_dir, block)?;
+    let original = data::read_block(arc_dir, block)?;
+    println!("collision of the game: {}", collision_summary(&original[2]));
+    let corners: Vec<(usize, usize)> = (10..=14).flat_map(|r| (10..=14).map(move |c| (c, r))).collect();
+    editor.raise_corners(&corners, 8.0)?;
+    editor.raise_corners(&corners[..5], 4.0)?;
+    println!("lifted 25 corners by 8 (and 5 of them by 4 more)");
+    let path = editor.export(out_dir)?;
+    println!("{path}");
+    let file = out_dir.to_string() + "/land/" + &block.to_string() + ".bin";
+    let bytes = std::fs::read(&file).map_err(|e| format!("{file}: {e}"))?;
+    let parts = data::open_pack(&bytes)?;
+    println!("collision written: {}", collision_summary(&parts[2]));
+    editor.undo()?;
+    editor.undo()?;
+    println!("after undo: ground {}", editor.meshes().iter().filter(|(p, _)| *p == 1).flat_map(|(_, m)| m.positions.iter().map(|p| p[1])).fold(f32::MIN, f32::max));
+    Ok(())
+}
