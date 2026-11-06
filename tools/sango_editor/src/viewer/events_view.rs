@@ -737,6 +737,76 @@ impl Viewer {
     /// The events whose middle is under objects that moved move with them,
     /// by whole tiles. `low` and `high` are the box of the objects before the
     /// move, `delta` the move in units. Returns how many events moved.
+    /// The panel of the scripts of Sango: twelve scripts of eight steps each. Returns true when
+    /// something changed.
+    pub(super) fn scripts_ui(&mut self, ui: &mut egui::Ui) -> bool {
+        use crate::scripts::{ACTIONS, COUNT, FIRST, STEPS, TEXT_LENGTH};
+        let mut changed = false;
+        ui.label(egui::RichText::new("The plugin runs these scripts from a text file. Give a sign, a trigger or a character the number 32000 to 32011 as its script.").weak());
+        let labels = self.scripts.labels();
+        let selected = self.script_sel.min(COUNT - 1);
+        egui::ComboBox::from_id_salt("data_script").selected_text({
+            let text = format!("{}: {}", FIRST as usize + selected, labels[selected].1);
+            if text.chars().count() > 38 { format!("{}...", text.chars().take(36).collect::<String>()) } else { text }
+        }).width(300.0).show_ui(ui, |ui| {
+            for (i, (id, label)) in labels.iter().enumerate() {
+                if ui.selectable_label(i == selected, format!("{id}: {label}")).clicked() {
+                    self.script_sel = i;
+                }
+            }
+        });
+        let selected = self.script_sel.min(COUNT - 1);
+        for i in 0..STEPS {
+            let step = &mut self.scripts.scripts[selected][i];
+            ui.group(|ui| {
+                ui.set_width(ui.available_width());
+                ui.horizontal(|ui| {
+                    ui.label(format!("Step {}", i + 1));
+                    egui::ComboBox::from_id_salt(("script_action", i)).selected_text(ACTIONS[step.action as usize]).width(230.0).show_ui(ui, |ui| {
+                        for (k, name) in ACTIONS.iter().enumerate() {
+                            if ui.selectable_label(step.action as usize == k, *name).clicked() && step.action as usize != k {
+                                step.action = k as u8;
+                                changed = true;
+                            }
+                        }
+                    });
+                });
+                match step.action {
+                    1 => {
+                        let mut talk = step.parameter_1 != 0;
+                        if ui.checkbox(&mut talk, "In the window of a person (else the window of a sign)").changed() {
+                            step.parameter_1 = talk as u16;
+                            changed = true;
+                        }
+                        changed |= ui.add(egui::TextEdit::singleline(&mut step.text).char_limit(TEXT_LENGTH).desired_width(f32::INFINITY).hint_text("The text (62 characters at most)")).changed();
+                    }
+                    3 => {
+                        // (The list of the names starts at the item number 1.)
+                        let mut options: Vec<(u16, String)> = vec![(0, "(no item)".to_string())];
+                        options.extend(crate::names::ITEM_NAMES.iter().enumerate().map(|(i, n)| (i as u16 + 1, n.to_string())));
+                        changed |= choice(ui, "Item", &mut step.parameter_1, &options);
+                        changed |= number(ui, "How many (0 is one)", &mut step.parameter_2);
+                    }
+                    4 => {
+                        changed |= number(ui, "Money", &mut step.parameter_1);
+                        let mut take = step.parameter_2 != 0;
+                        if ui.checkbox(&mut take, "Take the money (else give it)").changed() {
+                            step.parameter_2 = take as u16;
+                            changed = true;
+                        }
+                    }
+                    5 | 6 | 7 => changed |= number(ui, "Flag", &mut step.parameter_1),
+                    8 => changed |= number(ui, "Sound", &mut step.parameter_1),
+                    9 => changed |= number(ui, "Frames", &mut step.parameter_1),
+                    10 => changed |= choice(ui, "Script", &mut step.parameter_1, &crate::scripts::choices()),
+                    11 => changed |= number(ui, "Gift (number in the table)", &mut step.parameter_1),
+                    _ => {}
+                }
+            });
+        }
+        changed
+    }
+
     /// Keeps the selected event, to put a copy of it later.
     pub(super) fn event_copy(&mut self) {
         let Some((kind, index)) = self.ev.selected else {
@@ -1182,7 +1252,37 @@ impl Viewer {
     }
 
     /// Puts a new event in a tile.
+    /// The map of the world that a tile belongs to: the one whose events are the nearest. A new event
+    /// must be in the map where the player is when he stands there, else the game does not load it.
+    fn map_for_tile(&self, tx: i32, tz: i32) -> usize {
+        let (x, z) = (tx as f32 + 0.5, tz as f32 + 0.5);
+        let mut best = (self.ev.map, f32::MAX);
+        for zi in 0..self.ev.maps.len() {
+            let Some(events) = self.map_events(zi) else { continue };
+            let mut points: Vec<(f32, f32)> = Vec::new();
+            points.extend(events.characters.iter().map(|c| (c.x as f32 + 0.5, c.z as f32 + 0.5)));
+            points.extend(events.signs.iter().map(|s| (s.x as f32, s.z as f32)));
+            points.extend(events.triggers.iter().map(|t| (t.x as f32, t.z as f32)));
+            points.extend(events.warps.iter().map(|w| (w.x as f32 / events::TILE, w.z as f32 / events::TILE)));
+            for (px, pz) in points {
+                let distance = (px - x).powi(2) + (pz - z).powi(2);
+                // (The map that is open wins a tie.)
+                if distance < best.1 - 0.001 {
+                    best = (zi, distance);
+                }
+            }
+        }
+        best.0
+    }
+
     fn events_add(&mut self, kind: Kind, tx: i32, tz: i32, ground: f32) {
+        // The new event belongs to the map of the place where it is put.
+        if kind != Kind::Prop {
+            let target = self.map_for_tile(tx, tz);
+            if target != self.ev.map {
+                self.switch_map(target);
+            }
+        }
         let map = self.ev.at().map_or(0, |z| z.map) as u16;
         let now = &mut self.ev.now;
         let (x, z) = (tx as u16, tz as u16);
@@ -1253,7 +1353,7 @@ impl Viewer {
         };
         self.ev.selected = Some((kind, index));
         self.status = if kind == Kind::Character {
-            format!("New character in tile ({tx}, {tz}), with the script of the character that gave its values. Save the events, then start the game again.")
+            format!("New character in tile ({tx}, {tz}) of the map {}, with the script of the character that gave its values. Start the game again.", self.ev.at().map_or("?".to_string(), |z| format!("{} [{}]", map_name(z.map as u16), z.map)))
         } else {
             format!("New {} in tile ({tx}, {tz}). Its script is 65535: the game ignores it until you give it one.", kind.name())
         };
@@ -1372,25 +1472,33 @@ impl Viewer {
     pub(super) fn events_save_with(&mut self, announce: bool) {
         let mut done: Vec<String> = Vec::new();
         let mut failed: Vec<String> = Vec::new();
-        let path = events::file_path(&self.export_dir);
         for zi in 0..self.ev.maps.len() {
             let map = self.ev.maps[zi].map;
             let pair = if zi == self.ev.map { Some((&self.ev.base, &self.ev.now)) } else { self.ev.others.get(zi).and_then(|o| o.as_ref()).map(|(b, n)| (b, n)) };
             let Some((base, now)) = pair else { continue };
-            if now != base {
-                match events::write_map_override(&self.arc_dir, &self.export_dir, map, now) {
-                    Ok(_) => {
-                        if let Ok(old) = std::fs::read_to_string(&path) {
-                            let text = events::merge_file(&old, map, now, now);
-                            let _ = std::fs::write(&path, text);
-                        }
-                        done.push(map.to_string());
-                    }
-                    Err(e) => failed.push(format!("{map}: {e}")),
-                }
-            } else if events::read_map_override(&self.export_dir, map).is_some() {
-                let _ = events::reset_map(&self.export_dir, map);
-                done.push(format!("{map} (as in the game)"));
+            // The signs, the triggers and the warps are in the file of the map (zone/<map>.bin). The
+            // characters go through the file of the plugin (map_events.txt): the plugin puts them on
+            // the map with their models, which the file of the map alone does not do.
+            let mut for_file = now.clone();
+            for_file.characters = base.characters.clone();
+            let file_changed = for_file != *base;
+            let characters_changed = now.characters != base.characters;
+            let had_file = events::read_map_override(&self.export_dir, map).is_some();
+            if !file_changed && !characters_changed && !had_file && !events::map_has_lines(&self.export_dir, map) {
+                continue;
+            }
+            let mut result: Result<(), String> = Ok(());
+            if file_changed {
+                result = events::write_map_override(&self.arc_dir, &self.export_dir, map, &for_file).map(|_| ());
+            } else if had_file {
+                result = events::remove_map_file(&self.export_dir, map);
+            }
+            if result.is_ok() {
+                result = events::write_character_lines(&self.export_dir, map, base, now);
+            }
+            match result {
+                Ok(()) => done.push(map.to_string()),
+                Err(e) => failed.push(format!("{map}: {e}")),
             }
         }
         if !announce && failed.is_empty() {
@@ -1785,6 +1893,8 @@ pub fn map_name(map: u16) -> String {
 /// A list of choices for a number: the name of each choice, with its number.
 fn choice(ui: &mut egui::Ui, label: &str, value: &mut u16, options: &[(u16, String)]) -> bool {
     let current = options.iter().find(|(v, _)| v == value).map_or(format!("{value}"), |(v, n)| format!("{v}: {n}"));
+    // A long text would make the row wider than the panel (and push the 3D view to the right).
+    let current = if current.chars().count() > 26 { format!("{}...", current.chars().take(24).collect::<String>()) } else { current };
     let mut changed = false;
     ui.horizontal(|ui| {
         ui.label(label);
@@ -1860,7 +1970,7 @@ fn map_options() -> Vec<(u16, String)> {
 
 fn sign_fields(ui: &mut egui::Ui, s: &mut Sign) -> bool {
     let mut c = false;
-    c |= number(ui, "Script (id)", &mut s.id);
+    c |= choice(ui, "Script", &mut s.id, &crate::scripts::choices());
     c |= number(ui, "Kind (0..10)", &mut s.kind);
     c |= choice_u8(ui, "Talk from", &mut s.facing, &talk_options());
     c |= number(ui, "Tile x", &mut s.x);
@@ -1873,7 +1983,7 @@ fn sign_fields(ui: &mut egui::Ui, s: &mut Sign) -> bool {
 
 fn trigger_fields(ui: &mut egui::Ui, t: &mut Trigger) -> bool {
     let mut c = false;
-    c |= number(ui, "Script (id)", &mut t.id);
+    c |= choice(ui, "Script", &mut t.id, &crate::scripts::choices());
     c |= number(ui, "Work (0 = always)", &mut t.work_id);
     c |= number(ui, "Value of the work", &mut t.param);
     c |= choice(ui, "Starts when", &mut t.check_kind, &check_options());
@@ -1906,7 +2016,7 @@ fn warp_fields(ui: &mut egui::Ui, w: &mut Warp) -> bool {
 
 fn character_fields(ui: &mut egui::Ui, ch: &mut Character) -> bool {
     let mut c = false;
-    c |= number(ui, "Script (3000 + trainer)", &mut ch.script);
+    c |= choice(ui, "Script", &mut ch.script, &crate::scripts::choices());
     c |= choice(ui, "Model", &mut ch.model, &model_options());
     c |= choice_u8(ui, "Facing", &mut ch.facing, &facing_options());
     c |= number(ui, "Movement", &mut ch.movement);

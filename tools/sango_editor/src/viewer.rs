@@ -14,6 +14,7 @@ use crate::bch::{Mesh, Texture};
 use crate::data::picture_of;
 use crate::editor::{Editor, Instance};
 use crate::events::MapEvents;
+use crate::plugin_dir;
 
 /// The size of a tile of the game, in units.
 const TILE: f32 = 18.0;
@@ -785,6 +786,12 @@ pub struct Viewer {
     /// The object that is being placed comes from outside (a paste, the catalogue, another block):
     /// the events and the blocked tiles at the place where it was taken are not its own.
     placing_imported: bool,
+    /// The folder where the plugin reads its text files, as a text for the panel.
+    plugin_folder_text: String,
+    /// The scripts of Sango (the file scripts.txt), the one that is shown, and whether they were changed.
+    scripts: crate::scripts::DataScripts,
+    script_sel: usize,
+    scripts_dirty: bool,
     /// The events changed since they were written: they are written when the mouse is up.
     events_dirty: bool,
     /// Fill: only the tiles that are free to walk.
@@ -965,6 +972,9 @@ impl Viewer {
             .collect();
         let block_id = editor.block_id();
         let arc_for_models = arc_dir.clone();
+        // The scripts that the game uses, for the lists (found in the background).
+        let arc_for_scripts = arc_dir.clone();
+        std::thread::spawn(move || crate::scripts::find_game_scripts(&arc_for_scripts));
         let (mut low, mut high) = (Vec3::splat(f32::MAX), Vec3::splat(f32::MIN));
         for (_, mesh) in editor.meshes() {
             for p in &mesh.positions {
@@ -973,6 +983,10 @@ impl Viewer {
             }
         }
         let target = if low.x <= high.x { (low + high) * 0.5 } else { Vec3::ZERO };
+        let early_dir = std::env::var("APPDATA").map(|a| format!("{a}/Azahar/sdmc/sango")).ok().filter(|d| std::path::Path::new(d).is_dir()).unwrap_or_else(|| "out".to_string());
+        let plugin_folder = plugin_dir::detect(&early_dir);
+        plugin_dir::migrate(std::path::Path::new(&early_dir), &plugin_folder);
+        plugin_dir::set(&plugin_folder);
         let default_dir = std::env::var("APPDATA")
             .map(|a| format!("{a}\\Azahar\\sdmc\\sango"))
             .ok()
@@ -1017,6 +1031,10 @@ impl Viewer {
             clipboard_extra: None,
             event_clip: None,
             events_dirty: false,
+            plugin_folder_text: plugin_folder.to_string_lossy().to_string(),
+            scripts: Default::default(),
+            script_sel: 0,
+            scripts_dirty: false,
             fill_free_only: true,
             placing_imported: false,
             pending_extra: None,
@@ -2527,6 +2545,8 @@ impl eframe::App for Viewer {
         if !self.ev.loaded {
             // The maps of the block: the list of the worlds shows the world that is open.
             self.events_enter();
+            self.scripts = crate::scripts::read(&self.export_dir);
+            crate::scripts::set_data_labels(&self.scripts);
             crate::config::save(&self.arc_dir, self.editor.block_id());
             // The marks of the events and of the objects, and the models of the characters.
             self.refresh(frame);
@@ -2653,7 +2673,8 @@ impl eframe::App for Viewer {
 
         if self.show_inspector {
             egui::SidePanel::left("inspector").resizable(true).default_width(350.0).width_range(250.0..=600.0).show(ctx, |ui| {
-                egui::ScrollArea::vertical().auto_shrink([false, false]).show(ui, |ui| {
+                // (A row that is too wide scrolls: it must not make the panel wider than its frame.)
+                egui::ScrollArea::both().auto_shrink([false, false]).show(ui, |ui| {
                     ui.label(egui::RichText::new(&self.title).heading());
                     ui.add_space(2.0);
                     let tool = self.tool();
@@ -2719,6 +2740,12 @@ impl eframe::App for Viewer {
                             });
                             egui::CollapsingHeader::new(chrome::section_title("Events")).default_open(true).open(force_events).show(ui, |ui| {
                                 events_changed = self.events_ui(ui);
+                            });
+                            egui::CollapsingHeader::new(chrome::section_title("Scripts of Sango")).default_open(false).show(ui, |ui| {
+                                if self.scripts_ui(ui) {
+                                    self.scripts_dirty = true;
+                                    crate::scripts::set_data_labels(&self.scripts);
+                                }
                             });
                         }
                         Tool::Ground => {
@@ -2842,6 +2869,10 @@ impl eframe::App for Viewer {
                         ui.add_space(4.0);
                         ui.label("Folder of the SD card");
                         ui.text_edit_singleline(&mut self.export_dir);
+                        ui.label("Folder where the plugin reads its text files (events, scripts)");
+                        if ui.text_edit_singleline(&mut self.plugin_folder_text).on_hover_text("sango for the full plugin, sango/maker for Sango Maker: found from the plugin that is installed").changed() {
+                            plugin_dir::set(std::path::Path::new(&self.plugin_folder_text));
+                        }
                         ui.label("Emulator program");
                         ui.text_edit_singleline(&mut self.emulator_path);
                         ui.label("Game file");
@@ -3117,6 +3148,12 @@ impl eframe::App for Viewer {
         self.refresh_neighbours(frame);
         self.track_history();
         // The events are written as soon as the mouse is up: no button to press.
+        if self.scripts_dirty && !ctx.input(|i| i.pointer.any_down()) {
+            self.scripts_dirty = false;
+            if let Err(message) = crate::scripts::write(&self.export_dir, &self.scripts) {
+                self.status = format!("Cannot write the scripts: {message}");
+            }
+        }
         if self.events_dirty && !ctx.input(|i| i.pointer.any_down()) {
             self.events_dirty = false;
             self.events_save_with(false);

@@ -573,6 +573,47 @@ pub fn reset_map(sd_dir: &str, map: usize) -> Result<String, String> {
     Ok(if done.is_empty() { "there was nothing to remove".to_string() } else { format!("removed {}", done.join(" and ")) })
 }
 
+/// True when the file of the plugin (`map_events.txt`) has a line for the map.
+pub fn map_has_lines(sd_dir: &str, map: usize) -> bool {
+    std::fs::read_to_string(file_path(sd_dir)).map(|text| text.lines().filter_map(parse_line).any(|l| l.map == map)).unwrap_or(false)
+}
+
+/// Takes the file of a map away from the SD card (the signs, the triggers and the warps of the game come back).
+pub fn remove_map_file(sd_dir: &str, map: usize) -> Result<(), String> {
+    let folder = PathBuf::from(sd_dir).join("zone");
+    let file = folder.join(format!("{map}.bin"));
+    if file.exists() {
+        std::fs::remove_file(&file).map_err(|e| format!("{}: {e}", file.display()))?;
+        crate::edit::remove_index(&folder, map)?;
+    }
+    Ok(())
+}
+
+/// Writes the lines of the characters of a map in the file of the plugin: `C=` for a character of
+/// the game that changed, `C+` for a new one. The plugin puts them on the map when it loads it, with
+/// their models. The lines of the other maps stay; the file goes away when it has no line left.
+pub fn write_character_lines(sd_dir: &str, map: usize, base: &MapEvents, now: &MapEvents) -> Result<(), String> {
+    let path = file_path(sd_dir);
+    let old = std::fs::read_to_string(&path).unwrap_or_default();
+    // Only the characters make lines (the file of the map has the rest).
+    let mut same_but_characters = base.clone();
+    same_but_characters.signs = now.signs.clone();
+    same_but_characters.triggers = now.triggers.clone();
+    same_but_characters.warps = now.warps.clone();
+    let text = merge_file(&old, map, &same_but_characters, now);
+    let has_lines = text.lines().any(|l| !l.trim().is_empty() && !l.starts_with('#'));
+    if has_lines {
+        if let Some(folder) = path.parent() {
+            std::fs::create_dir_all(folder).map_err(|e| format!("{}: {e}", folder.display()))?;
+        }
+        std::fs::write(&path, text).map_err(|e| format!("{}: {e}", path.display()))
+    } else if path.exists() {
+        std::fs::remove_file(&path).map_err(|e| format!("{}: {e}", path.display()))
+    } else {
+        Ok(())
+    }
+}
+
 /// The words of a line of the file, from its number of map.
 struct Line {
     map: usize,
@@ -816,7 +857,8 @@ pub fn merge_file(old: &str, map: usize, base: &MapEvents, now: &MapEvents) -> S
 
 /// The place of the file in the folder of the SD card.
 pub fn file_path(sd_dir: &str) -> PathBuf {
-    PathBuf::from(sd_dir).join("map_events.txt")
+    // The folder of the plugin (sango or sango/maker), else the folder that was given.
+    crate::plugin_dir::get(&PathBuf::from(sd_dir)).join("map_events.txt")
 }
 
 /// The place in a block (units, from the middle of the block) of a tile of the

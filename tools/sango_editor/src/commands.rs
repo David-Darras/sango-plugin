@@ -2223,3 +2223,79 @@ pub fn height_test(arc_dir: &str, block: usize, out_dir: &str) -> Result<(), Str
     println!("after undo: ground {}", editor.meshes().iter().filter(|(p, _)| *p == 1).flat_map(|(_, m)| m.positions.iter().map(|p| p[1])).fold(f32::MIN, f32::max));
     Ok(())
 }
+
+/// Checks the file of the scripts of Sango (written and read again) and the list of the scripts of the game.
+pub fn scripts_test(arc_dir: &str, out_dir: &str) -> Result<(), String> {
+    use crate::scripts::{self, DataScripts, Step};
+    let mut data = DataScripts::default();
+    data.scripts[0][0] = Step { action: 1, parameter_1: 1, parameter_2: 0, text: "Hello, trainer! Come back soon.".into() };
+    data.scripts[0][1] = Step { action: 3, parameter_1: 17, parameter_2: 3, text: String::new() };
+    data.scripts[0][2] = Step { action: 5, parameter_1: 2000, parameter_2: 0, text: String::new() };
+    data.scripts[5][0] = Step { action: 2, parameter_1: 0, parameter_2: 0, text: String::new() };
+    std::fs::create_dir_all(out_dir).map_err(|e| e.to_string())?;
+    scripts::write(out_dir, &data)?;
+    let again = scripts::read(out_dir);
+    println!("the file is read again the same: {}", again == data);
+    print!("{}", data.to_text());
+    scripts::write(out_dir, &DataScripts::default())?;
+    println!("the file is taken away when the scripts are empty: {}", !std::path::Path::new(out_dir).join("scripts.txt").exists());
+    let start = std::time::Instant::now();
+    scripts::find_game_scripts(arc_dir);
+    let list = scripts::choices();
+    println!("{} choices for a script after {:.1} s; examples:", list.len(), start.elapsed().as_secs_f32());
+    for (id, label) in list.iter().skip(1 + 12).take(5) {
+        println!("  {id}: {label}");
+    }
+    println!("{} items named; the item 17 is {}", crate::names::ITEM_NAMES.len(), crate::names::ITEM_NAMES[16]);
+    Ok(())
+}
+
+/// Changes a character of a map and adds one, writes them as the tool does (the file of the map for
+/// the rest, the file of the plugin for the characters), reads them again, and checks the result.
+pub fn characters_file_test(arc_dir: &str, map: usize, sd_dir: &str) -> Result<(), String> {
+    use crate::events;
+    let base = events::read_map_events(arc_dir, map)?;
+    let mut now = base.clone();
+    now.characters[0].model = 218;
+    now.characters[0].facing = 2;
+    let mut new = events::new_character(map as u16, 40, 100, 60, 0.0);
+    new.model = 246;
+    new.script = 3011;
+    now.characters.push(new);
+    now.warps[0].width = 3;
+    let mut for_file = now.clone();
+    for_file.characters = base.characters.clone();
+    events::write_map_override(arc_dir, sd_dir, map, &for_file)?;
+    events::write_character_lines(sd_dir, map, &base, &now)?;
+    let mut again = events::read_map_override(sd_dir, map).ok_or("the file of the map is not read")?;
+    println!("the file of the map has the characters of the game: {}", again.characters == base.characters);
+    let text = std::fs::read_to_string(events::file_path(sd_dir)).map_err(|e| e.to_string())?;
+    print!("{text}");
+    events::apply_file(map, &mut again, &text);
+    println!("read again, same as what was written: {}", again == now);
+    println!("  signs {} triggers {} warps {} characters {}", again.signs == now.signs, again.triggers == now.triggers, again.warps == now.warps, again.characters == now.characters);
+    for (i, (x, y)) in again.characters.iter().zip(&now.characters).enumerate() {
+        if x != y {
+            println!("  character {i} differs:
+    read  {x:?}
+    wrote {y:?}");
+        }
+    }
+    // Back to the game: nothing is left.
+    events::reset_map(sd_dir, map)?;
+    println!("after the reset: file of the map {}, lines {}", events::read_map_override(sd_dir, map).is_some(), events::map_has_lines(sd_dir, map));
+    Ok(())
+}
+
+/// Prints the first part of the file of a map (its settings), as numbers of two bytes.
+pub fn map_settings(arc_dir: &str, map: usize) -> Result<(), String> {
+    let maps = crate::garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::Maps))?;
+    let raw = maps.get(map).and_then(|f| f.first()).ok_or("no such map")?;
+    let data = if raw.first() == Some(&0x11) { crate::lz11::decompress(raw)? } else { raw.clone() };
+    let (_, parts) = crate::pack::split(&data)?;
+    for (i, part) in parts.iter().enumerate().take(3) {
+        let words: Vec<String> = part.chunks_exact(2).take(40).map(|w| u16::from_le_bytes([w[0], w[1]]).to_string()).collect();
+        println!("part {i} ({} bytes): {}", part.len(), words.join(" "));
+    }
+    Ok(())
+}

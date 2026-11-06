@@ -28,6 +28,7 @@
 #include "core/heap_buffer.h"
 #include "core/line_reader.h"
 
+#include <cstdarg>
 #include <cstdio>
 #include <cstring>
 
@@ -35,11 +36,41 @@
 #include "overworld/native/model_manager.h"
 #include "overworld/native/world_layout.h"
 #include "system/native/file.h"
+#include "ui/log.h"
 
 namespace overworld {
 
 namespace {
 const c16 kPath[] = SANGO_DATA_PATH(u"map_events.txt");
+// A small text file that says what the editor did on the last maps: the
+// file is rewritten at each line, so that it can be read on a PC.
+const c16 kLogPath[] = SANGO_DATA_PATH(u"events_log.txt");
+constexpr u32 kLogLines = 12;
+constexpr u32 kLogLineSize = 112;
+c8 g_log_lines[kLogLines][kLogLineSize];
+u32 g_log_count = 0;
+
+void LogLine(const c8* format, ...) {
+  c8 text[kLogLineSize];
+  va_list args;
+  va_start(args, format);
+  vsnprintf(text, sizeof(text), format, args);
+  va_end(args);
+  if (g_log_count == kLogLines) {
+    for (u32 i = 0; i + 1 < kLogLines; i++) {
+      memcpy(g_log_lines[i], g_log_lines[i + 1], kLogLineSize);
+    }
+    g_log_count--;
+  }
+  memcpy(g_log_lines[g_log_count++], text, kLogLineSize);
+  core::MakeDataFolder();
+  sys::File file(kLogPath, true);
+  if (!file.IsOpen()) return;
+  for (u32 i = 0; i < g_log_count; i++) {
+    file.Write(g_log_lines[i], static_cast<u32>(strlen(g_log_lines[i])));
+    file.Write("\n", 1);
+  }
+}
 
 // The talk direction "all sides" of a sign.
 constexpr u8 kTalkAllSides = 4;
@@ -181,6 +212,12 @@ void TriggerEditor::Initialize() {
   if (!reader.Open(kPath)) return;
   c8 line[kLineSize];
   while (reader.Next(line, sizeof(line))) LoadLine(line);
+  u32 used = 0;
+  for (const Record& record : GetInstance().records_) {
+    if (record.is_used) used++;
+  }
+  ui::Log::Print(u"events file: %u lines", used);
+  LogLine("events file: %u lines", used);
 }
 
 void TriggerEditor::TakeTables() {
@@ -251,6 +288,9 @@ void TriggerEditor::OnMapEventsLoaded(MapEventData* events) {
     previous->triggers = self.frozen_triggers_;
     previous->warps = self.frozen_warps_;
   }
+  LogLine("map %u loaded: %u signs %u triggers %u warps %u characters", static_cast<u32>(events->map_id),
+          static_cast<u32>(events->sign_count), static_cast<u32>(events->trigger_count),
+          static_cast<u32>(events->warp_count), static_cast<u32>(events->character_count));
   // A map with more events than the tables: the editor leaves it alone.
   if (events->sign_count > kMaxSigns || events->trigger_count > kMaxTriggers ||
       events->warp_count > kMaxWarps ||
@@ -283,6 +323,16 @@ void TriggerEditor::OnMapEventsLoaded(MapEventData* events) {
   self.map_ = static_cast<u16>(events->map_id);
   self.TakeTables();
   self.ApplyRecords();
+  {
+    u32 lines = 0;
+    for (const Record& record : self.records_) {
+      if (record.is_used && record.map == self.map_) lines++;
+    }
+    if (lines != 0) {
+      ui::Log::Print(u"events map %u: %u lines, %u new", static_cast<u32>(self.map_),
+                     lines, static_cast<u32>(self.added_character_count_));
+    }
+  }
   // The new characters: the list of the map is copied, with them at the end.
   // The game builds the models of the characters from this list later.
   if (self.added_character_count_ != 0) {
@@ -310,6 +360,10 @@ void TriggerEditor::OnMapEventsLoaded(MapEventData* events) {
   events->trigger_count = self.trigger_count_;
   events->warps = self.warps_;
   events->warp_count = self.warp_count_;
+  LogLine("  editor: %u new characters, %u characters now, %u signs %u triggers %u warps",
+          static_cast<u32>(self.added_character_count_), static_cast<u32>(events->character_count),
+          static_cast<u32>(events->sign_count), static_cast<u32>(events->trigger_count),
+          static_cast<u32>(events->warp_count));
 }
 
 bool TriggerEditor::IsActive() {
