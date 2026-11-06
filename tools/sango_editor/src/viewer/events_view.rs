@@ -307,12 +307,36 @@ impl Viewer {
         out
     }
 
+    /// True when the events are drawn on the map: in every tool but the one of the tiles.
+    pub(super) fn overlay_on(&self) -> bool {
+        !self.tile_mode
+    }
+
+    /// The distance to the nearest event that a ray goes through.
+    pub(super) fn event_hit(&self, origin: Vec3, direction: Vec3) -> Option<f32> {
+        self.event_boxes()
+            .iter()
+            .filter_map(|b| ray_box(origin, direction, Vec3::new(b.low[0], b.height, b.low[1]), Vec3::new(b.high[0], b.height + 34.0, b.high[1])))
+            .fold(None, |best: Option<f32>, t| Some(best.map_or(t, |x| x.min(t))))
+    }
+
     /// The coloured squares and poles that show the events.
     pub(super) fn event_vertices(&self) -> Vec<Vertex> {
-        if !self.events_mode {
+        if !self.overlay_on() {
             return Vec::new();
         }
         let mut out = Vec::new();
+        // The objects that can be moved: a mark on the ground under each, in the open block and in the blocks around.
+        if self.show_objects {
+            object_marks(&self.editor, [0.0, 0.0], &self.selected, &mut out);
+            let current = self.editor.block_id();
+            for (id, dx, dz) in self.world_cells() {
+                let editor = if id == current { Some(&self.editor) } else { self.world.get(&id) };
+                if let Some(editor) = editor {
+                    object_marks(editor, [dx as f32 * 720.0, dz as f32 * 720.0], &[], &mut out);
+                }
+            }
+        }
         for b in self.event_boxes() {
             let selected = self.ev.selected == Some((b.kind, b.index)) && b.map == self.ev.map;
             let colour = if selected { [255, 235, 40, 210] } else { b.colour };
@@ -450,7 +474,7 @@ impl Viewer {
     /// The 3D models of the characters, put on their tiles and turned as the
     /// characters are. A character without a model is not drawn.
     pub(super) fn placed_meshes(&mut self) -> Vec<PlacedMesh> {
-        if !self.events_mode || !(self.ev.show[3] || self.ev.show[4]) {
+        if !self.overlay_on() || !(self.ev.show[3] || self.ev.show[4]) {
             return Vec::new();
         }
         let mut out = Vec::new();
@@ -550,11 +574,17 @@ impl Viewer {
 
     /// Writes the names of the events over the scene.
     pub(super) fn events_labels(&self, painter: &egui::Painter, rect: egui::Rect) {
-        if !self.events_mode || !self.ev.labels {
+        if !self.overlay_on() || !self.ev.labels {
             return;
         }
         for b in self.event_boxes() {
             let centre = [(b.low[0] + b.high[0]) / 2.0, (b.low[1] + b.high[1]) / 2.0];
+            // The names are for a close view: from far they would cover the map. (The selected event keeps its name.)
+            let selected_box = self.ev.selected == Some((b.kind, b.index)) && b.map == self.ev.map;
+            let near = self.distance < 450.0 && (centre[0] - self.target.x).hypot(centre[1] - self.target.z) < 260.0;
+            if !near && !selected_box {
+                continue;
+            }
             let y = b.height + 34.0;
             let clip = self.matrix * Vec4::new(centre[0], y, centre[1], 1.0);
             if clip.w <= 0.0 {
@@ -745,6 +775,26 @@ impl Viewer {
         moved
     }
 
+    /// The blocks of the world that are drawn around the open block: the
+    /// number of the block and how many blocks away it is on each side.
+    pub(super) fn world_cells(&self) -> Vec<(usize, i32, i32)> {
+        let mut out = Vec::new();
+        if self.ev.neigh_radius == 0 {
+            return out;
+        }
+        let (Some(at), Some(matrix)) = (self.ev.at(), self.ev.matrix.as_ref()) else { return out };
+        let radius = self.ev.neigh_radius as usize;
+        for r in at.row.saturating_sub(radius)..=(at.row + radius).min(matrix.height.saturating_sub(1)) {
+            for c in at.column.saturating_sub(radius)..=(at.column + radius).min(matrix.width.saturating_sub(1)) {
+                let id = matrix.ids.get(r * matrix.width + c).copied().unwrap_or(0xFFFF) as usize;
+                if (c, r) != (at.column, at.row) && id < 857 {
+                    out.push((id, c as i32 - at.column as i32, r as i32 - at.row as i32));
+                }
+            }
+        }
+        out
+    }
+
     /// Draws again the blocks around the block when something changed.
     pub(super) fn refresh_neighbours(&mut self, frame: &eframe::Frame) {
         let ids_key = self.ev.matrix.as_ref().map(|m| m.ids.clone()).unwrap_or_default();
@@ -757,41 +807,55 @@ impl Viewer {
         let mut shifted: Vec<(usize, Mesh)> = Vec::new();
         let mut textures: HashMap<String, Texture> = HashMap::new();
         if self.ev.neigh_radius > 0 {
-            if let (Some(at), Some(matrix)) = (self.ev.at().cloned(), self.ev.matrix.clone()) {
-                let radius = self.ev.neigh_radius as usize;
-                let mut wanted: Vec<(usize, i32, i32)> = Vec::new();
-                for r in at.row.saturating_sub(radius)..=(at.row + radius).min(matrix.height.saturating_sub(1)) {
-                    for c in at.column.saturating_sub(radius)..=(at.column + radius).min(matrix.width.saturating_sub(1)) {
-                        let id = matrix.ids.get(r * matrix.width + c).copied().unwrap_or(0xFFFF) as usize;
-                        if (c, r) != (at.column, at.row) && id < 857 {
-                            wanted.push((id, c as i32 - at.column as i32, r as i32 - at.row as i32));
+            if let Some(at) = self.ev.at().cloned() {
+                let wanted = self.world_cells();
+                let current = self.editor.block_id();
+                // The blocks around are opened as editors: they keep their changes, and they can be edited.
+                // (A few blocks for each frame, so that the window does not freeze.)
+                let mut opened = 0;
+                let mut missing = 0;
+                for &(id, _, _) in &wanted {
+                    if id != current && !self.world.contains_key(&id) {
+                        if opened < 4 {
+                            opened += 1;
+                            if let Ok(editor) = crate::editor::Editor::new(&self.arc_dir, id) {
+                                self.world.insert(id, editor);
+                            }
+                        } else {
+                            missing += 1;
                         }
                     }
                 }
-                let ids: Vec<usize> = wanted.iter().map(|w| w.0).collect();
+                if missing > 0 {
+                    // Come back at the next frame for the other blocks.
+                    self.ev.neigh_key = None;
+                    self.status = format!("Opening the blocks of the world ({missing} to go)...");
+                }
                 // The pictures are the ones of the tileset of the map.
                 if let Some(tileset) = events::map_tileset(&self.arc_dir, at.map) {
                     textures = crate::data::tileset_textures(&self.arc_dir, tileset).unwrap_or_default();
                 }
-                if let Ok(blocks) = crate::data::blocks_meshes(&self.arc_dir, &ids) {
-                    for (id, meshes) in blocks {
-                        for &(_, dx, dz) in wanted.iter().filter(|w| w.0 == id) {
-                            for m in meshes.iter() {
-                                let mut m = m.clone();
-                                for p in m.positions.iter_mut() {
-                                    p[0] += dx as f32 * 720.0;
-                                    p[2] += dz as f32 * 720.0;
-                                }
-                                shifted.push((1, m));
-                            }
+                for &(id, dx, dz) in &wanted {
+                    let editor = if id == current { Some(&self.editor) } else { self.world.get(&id) };
+                    let Some(editor) = editor else { continue };
+                    for (_, mesh) in editor.meshes() {
+                        let mut m = mesh.clone();
+                        for p in m.positions.iter_mut() {
+                            p[0] += dx as f32 * 720.0;
+                            p[2] += dz as f32 * 720.0;
                         }
+                        shifted.push((1, m));
                     }
                 }
             }
         }
-        let mut renderer = state.renderer.write();
-        let Some(gpu) = renderer.callback_resources.get_mut::<Gpu>() else { return };
-        gpu.neighbours = make_gpu_meshes(&state.device, &state.queue, &gpu.picture_layout, &gpu.sampler, &shifted, &textures);
+        {
+            let mut renderer = state.renderer.write();
+            let Some(gpu) = renderer.callback_resources.get_mut::<Gpu>() else { return };
+            gpu.neighbours = make_gpu_meshes(&state.device, &state.queue, &gpu.picture_layout, &gpu.sampler, &shifted, &textures);
+        }
+        // The marks of the objects of the blocks around come with the blocks.
+        self.refresh_events(frame);
     }
 
     /// The tile of the map under a point of the block.
@@ -1358,8 +1422,11 @@ impl Viewer {
             }
         });
         ui.horizontal(|ui| {
-            if ui.button("Reset the map to the game").on_hover_text("Takes away the file of the map and its lines of map_events.txt: the game has its own events again").clicked() {
+            if ui.button("Reset the map to the game").on_hover_text("The map chosen above: its events and the blocks where it has events go back to the game").clicked() {
                 self.confirm = Some(super::chrome::Confirm::ResetMap);
+            }
+            if ui.button("Reset the whole world").on_hover_text("All the maps, all the blocks and the grid of this world go back to the game").clicked() {
+                self.confirm = Some(super::chrome::Confirm::ResetWorld);
             }
             if let Some((kind, index)) = self.ev.selected {
                 if ui.button("Restore this event").on_hover_text("Gives this event the values of the game (only an event of the game)").clicked() {
@@ -1566,7 +1633,6 @@ pub struct NpcPanel {
     pub ready: bool,
     pub ids: Vec<u16>,
     pub templates: std::collections::BTreeMap<u16, Character>,
-    pub names: std::collections::HashMap<u16, String>,
     pub thumbs: std::collections::HashMap<u16, egui::TextureHandle>,
     pub search: String,
 }
@@ -1587,4 +1653,26 @@ fn ray_box(origin: Vec3, direction: Vec3, low: Vec3, high: Vec3) -> Option<f32> 
         far = far.min(t1.max(t2));
     }
     (near <= far && far > 0.0).then_some(near.max(0.0))
+}
+
+/// A mark on the ground under each object of a block that can be moved: a
+/// square and a pole. `offset` is the place of the block in the world.
+fn object_marks(editor: &crate::editor::Editor, offset: [f32; 2], selected: &[usize], out: &mut Vec<Vertex>) {
+    for (i, instance) in editor.instances.iter().enumerate() {
+        if instance.deleted {
+            continue;
+        }
+        let (low, high) = editor.instance_bounds(i);
+        let colour = if selected.contains(&i) { [255, 235, 40, 150] } else { [70, 150, 255, 110] };
+        let y = low[1] + 1.5;
+        let v = |x: f32, y: f32, z: f32| Vertex { position: [x + offset[0], y, z + offset[1]], uv: [0.0, 0.0], colour };
+        let (a, b, c, d) = (v(low[0], y, low[2]), v(high[0], y, low[2]), v(high[0], y, high[2]), v(low[0], y, high[2]));
+        out.extend_from_slice(&[a, b, c, a, c, d]);
+        let (mx, mz) = ((low[0] + high[0]) / 2.0, (low[2] + high[2]) / 2.0);
+        for (dx, dz) in [(1.4, 0.0), (0.0, 1.4)] {
+            let top = y + 22.0;
+            let (p0, p1, p2, p3) = (v(mx - dx, y, mz - dz), v(mx + dx, y, mz + dz), v(mx + dx, top, mz + dz), v(mx - dx, top, mz - dz));
+            out.extend_from_slice(&[p0, p1, p2, p0, p2, p3]);
+        }
+    }
 }

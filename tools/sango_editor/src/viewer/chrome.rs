@@ -10,8 +10,6 @@ pub enum Tool {
     Select,
     /// Paint the tiles (the walls, the grass, the water).
     Tiles,
-    /// Work on the characters, the warps, the signs and the triggers.
-    Events,
 }
 
 /// What the menu, the tool bar and the keys ask for in a frame.
@@ -19,6 +17,8 @@ pub enum Tool {
 pub struct Commands {
     pub action: Option<Action>,
     pub tool: Option<Tool>,
+    /// The scene must be sent again to the graphics card.
+    pub refresh: bool,
 }
 
 /// A question to answer before something that cannot be undone.
@@ -26,6 +26,8 @@ pub struct Commands {
 pub enum Confirm {
     ResetMap,
     ResetMatrix,
+    ResetBlock,
+    ResetWorld,
 }
 
 /// A move of the camera that runs over a few frames.
@@ -61,7 +63,7 @@ pub fn apply_theme(ctx: &egui::Context) {
     v.menu_rounding = egui::Rounding::same(6.0);
     v.window_shadow = egui::epaint::Shadow { offset: egui::vec2(0.0, 6.0), blur: 18.0, spread: 0.0, color: egui::Color32::from_black_alpha(110) };
     v.selection.bg_fill = ACCENT.linear_multiply(0.45);
-    v.selection.stroke = egui::Stroke::new(1.0, ACCENT);
+    v.selection.stroke = egui::Stroke::new(1.0_f32, ACCENT);
     v.hyperlink_color = ACCENT;
     let rounding = egui::Rounding::same(5.0);
     for w in [&mut v.widgets.noninteractive, &mut v.widgets.inactive, &mut v.widgets.hovered, &mut v.widgets.active, &mut v.widgets.open] {
@@ -71,7 +73,7 @@ pub fn apply_theme(ctx: &egui::Context) {
     v.widgets.inactive.bg_fill = egui::Color32::from_rgb(52, 57, 66);
     v.widgets.hovered.weak_bg_fill = egui::Color32::from_rgb(68, 76, 90);
     v.widgets.hovered.bg_fill = egui::Color32::from_rgb(68, 76, 90);
-    v.widgets.hovered.bg_stroke = egui::Stroke::new(1.0, ACCENT.linear_multiply(0.8));
+    v.widgets.hovered.bg_stroke = egui::Stroke::new(1.0_f32, ACCENT.linear_multiply(0.8));
     v.widgets.active.weak_bg_fill = ACCENT.linear_multiply(0.55);
     v.widgets.active.bg_fill = ACCENT.linear_multiply(0.55);
     ctx.set_visuals(v);
@@ -121,10 +123,24 @@ impl Viewer {
     pub(super) fn tool(&self) -> Tool {
         if self.tile_mode {
             Tool::Tiles
-        } else if self.events_mode {
-            Tool::Events
         } else {
             Tool::Select
+        }
+    }
+
+    /// The panel follows what is selected: an event (true) or an object (false).
+    pub(super) fn set_events_focus(&mut self, on: bool, frame: &eframe::Frame) {
+        if self.events_mode == on {
+            return;
+        }
+        self.events_mode = on;
+        if on {
+            self.events_toggled(frame);
+        } else {
+            self.ev.selected = None;
+            self.ev.put = None;
+            self.ev.moving = false;
+            self.refresh(frame);
         }
     }
 
@@ -137,7 +153,7 @@ impl Viewer {
             self.tile_mode = false;
             self.toggle_tiles(frame);
         }
-        if self.events_mode && tool != Tool::Events {
+        if self.events_mode && tool == Tool::Tiles {
             self.events_mode = false;
             self.events_toggled(frame);
         }
@@ -149,15 +165,10 @@ impl Viewer {
                 self.stamp = None;
                 self.toggle_tiles(frame);
             }
-            Tool::Events => {
-                self.events_mode = true;
-                self.events_toggled(frame);
-            }
         }
         self.status = match tool {
-            Tool::Select => "Select tool: click an object. Ctrl+click takes a whole building.".into(),
+            Tool::Select => "Select tool: click an object or an event. Ctrl+click takes a whole building.".into(),
             Tool::Tiles => "Tiles tool: paint with the left button, turn the view with the right button.".into(),
-            Tool::Events => "Events tool: click a character, a warp, a sign or a trigger.".into(),
         };
     }
 
@@ -224,9 +235,6 @@ impl Viewer {
         if pressed(egui::Key::T) {
             cmd.tool = Some(if self.tool() == Tool::Tiles { Tool::Select } else { Tool::Tiles });
         }
-        if pressed(egui::Key::V) {
-            cmd.tool = Some(if self.tool() == Tool::Events { Tool::Select } else { Tool::Events });
-        }
     }
 
     // ------------------------------------------------------------ the menu
@@ -275,6 +283,10 @@ impl Viewer {
                         cmd.action = Some(Action::Delete);
                     }
                     ui.separator();
+                    if menu_item(ui, "Restore the original block...", "", true) {
+                        self.confirm = Some(Confirm::ResetBlock);
+                    }
+                    ui.separator();
                     if menu_item(ui, "Grow the selection", "E", selected) {
                         cmd.action = Some(Action::Grow);
                     }
@@ -301,6 +313,9 @@ impl Viewer {
                     ui.separator();
                     ui.checkbox(&mut self.show_inspector, "Panel of the properties");
                     ui.checkbox(&mut self.catalog_open, "Catalogue (C)");
+                    if ui.checkbox(&mut self.show_objects, "Movable objects (marks)").changed() {
+                        cmd.refresh = true;
+                    }
                     ui.checkbox(&mut self.ev.labels, "Names over the events");
                     ui.checkbox(&mut self.direct_v, "Pictures: direct V");
                     ui.separator();
@@ -321,9 +336,6 @@ impl Viewer {
                     if menu_item(ui, "Tiles", "T", true) {
                         cmd.tool = Some(Tool::Tiles);
                     }
-                    if menu_item(ui, "Events", "V", true) {
-                        cmd.tool = Some(Tool::Events);
-                    }
                 });
                 ui.menu_button("Help", |ui| {
                     if menu_item(ui, "Keyboard and mouse", "F1", true) {
@@ -341,14 +353,11 @@ impl Viewer {
             ui.add_space(2.0);
             ui.horizontal(|ui| {
                 let current = self.tool();
-                if tool_button(ui, current, Tool::Select, "Select", "Select, move, copy and delete the objects (S)") {
+                if tool_button(ui, current, Tool::Select, "Select", "Select, move, copy and delete the objects and the events (S)") {
                     cmd.tool = Some(Tool::Select);
                 }
                 if tool_button(ui, current, Tool::Tiles, "Tiles", "Paint the tiles: walls, tall grass, water (T)") {
                     cmd.tool = Some(Tool::Tiles);
-                }
-                if tool_button(ui, current, Tool::Events, "Events", "Characters, warps, signs, triggers and props (V)") {
-                    cmd.tool = Some(Tool::Events);
                 }
                 ui.separator();
                 let catalog = egui::Button::new(egui::RichText::new("Catalogue").strong()).selected(self.catalog_open).min_size(egui::vec2(88.0, 28.0));
@@ -399,9 +408,8 @@ impl Viewer {
     /// What the tool does with the mouse.
     fn tool_hint(&self) -> &'static str {
         match self.tool() {
-            Tool::Select => "click: select  \u{b7}  Ctrl+click: building  \u{b7}  Shift+click: add  \u{b7}  G: place",
+            Tool::Select => "click: select an object or an event  \u{b7}  Ctrl+click: building  \u{b7}  Shift+click: add  \u{b7}  G: place",
             Tool::Tiles => "left button: paint  \u{b7}  right button: turn the view",
-            Tool::Events => "click: select  \u{b7}  G: move  \u{b7}  Del: remove",
         }
     }
 
@@ -443,7 +451,7 @@ impl Viewer {
                 ),
                 (
                     "Tools and panels",
-                    &[("S / T / V", "Select / Tiles / Events"), ("C", "catalogue"), ("F1", "this help"), ("Esc", "stop what is armed and select nothing")],
+                    &[("S / T", "Select / Tiles"), ("C", "catalogue"), ("F1", "this help"), ("Esc", "stop what is armed and select nothing")],
                 ),
                 (
                     "Select tool",
@@ -456,7 +464,7 @@ impl Viewer {
                         ("Ctrl+C, Ctrl+V", "copy to another block, paste"),
                     ],
                 ),
-                ("Events tool", &[("Click", "select an event"), ("G then click", "move it to a tile"), ("Arrows", "move one tile"), ("Delete", "remove it")]),
+                ("When an event is selected", &[("Click", "select an event (a character, a warp, a sign...)"), ("G then click", "move it to a tile"), ("Arrows", "move one tile"), ("Delete", "remove it")]),
                 ("Project", &[("Ctrl+S / Ctrl+O", "save / load the project of the block"), ("Ctrl+E / F5", "export / export and play"), ("Ctrl+Z / Ctrl+Y", "undo / redo")]),
             ];
             for (title, list) in rows {
@@ -480,8 +488,18 @@ impl Viewer {
         let (title, text, yes) = match question {
             Confirm::ResetMap => (
                 "Reset the map to the game?",
-                "The file of the map and its lines of map_events.txt are removed. The changes of this map are lost.",
+                "The events of this map (file and lines of map_events.txt) go back to the game, and so do the blocks where the map has events: the objects that you moved or added there are lost.",
                 "Reset the map",
+            ),
+            Confirm::ResetWorld => (
+                "Reset the whole world to the game?",
+                "Every map of this world, every block of this world and the grid of the blocks go back to the game. All your changes in this world are lost, in the window too.",
+                "Reset the world",
+            ),
+            Confirm::ResetBlock => (
+                "Restore the original block?",
+                "The file of this block is removed from the SD card and the block is read again from the game. All its changes (objects, tiles, grass) are lost, in the window too.",
+                "Restore the block",
             ),
             Confirm::ResetMatrix => (
                 "Reset the world blocks?",

@@ -1,7 +1,6 @@
 //! Loads the data of the game that the tool shows.
 
 use std::collections::{HashMap, HashSet};
-use std::path::PathBuf;
 
 use crate::bch::{Bch, Mesh, Texture};
 use crate::{garc, lz11, pack};

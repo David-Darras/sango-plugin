@@ -129,6 +129,7 @@ fn main() {
         Some("drop-then-delete-test") if args.len() >= 6 => commands::drop_then_delete_test(&args[2], &args[3], &args[4], number(5).unwrap_or(0)),
         Some("ground-tiles") if args.len() >= 4 => commands::ground_tiles(&args[2], block),
         Some("tile-stats") if args.len() >= 5 => commands::tile_stats(&args[2], number(3).unwrap_or(0), number(4).unwrap_or(0), args.get(5).map(|s| s.as_str())),
+        Some("grass-test") if args.len() >= 5 => commands::grass_test(&args[2], block, &args[4]),
         Some("tile-drop-test") if args.len() >= 7 => commands::tile_drop_test(&args[2], &args[3], number(4).unwrap_or(0), number(5).unwrap_or(0), &args[6]),
         Some("tile-holes-test") if args.len() >= 7 => commands::tile_holes_test(&args[2], &args[3], number(4).unwrap_or(0), number(5).unwrap_or(10), number(6).unwrap_or(0)),
         Some("tile-picture-test") if args.len() >= 7 => commands::tile_picture_test(&args[2], &args[3], &args[4].split(',').filter_map(|n| n.parse().ok()).collect::<Vec<_>>(), number(5).unwrap_or(0), &args[6]),

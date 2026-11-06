@@ -22,8 +22,8 @@ pub fn meshes(arc_dir: &str, block: usize, obj_path: Option<&str>) -> Result<(),
             }
         }
         println!(
-            "  {i:2} {:<22} tex {:<22} {:5} vertices {:5} triangles  x {:.0}..{:.0}  y {:.0}..{:.0}  z {:.0}..{:.0}",
-            mesh.material, data::picture_of(mesh), mesh.positions.len(), mesh.indices.len() / 3,
+            "  {i:2}{} {:<22} tex {:<22} {:5} vertices {:5} triangles  x {:.0}..{:.0}  y {:.0}..{:.0}  z {:.0}..{:.0}",
+            if mesh.encounter { "*" } else { " " }, mesh.material, data::picture_of(mesh), mesh.positions.len(), mesh.indices.len() / 3,
             low[0], high[0], low[1], high[1], low[2], high[2]
         );
         if mesh.positions.is_empty() {
@@ -1094,6 +1094,9 @@ pub fn tile_stats(arc_dir: &str, first: usize, last: usize, out: Option<&str>) -
     }
     let singles = entries.iter().filter(|e| e.occurrences == 1).count();
     println!("{singles} seen only once");
+    for (k, e) in entries.iter().enumerate().filter(|(_, e)| e.portable.parts.iter().any(|p| crate::editor::is_grass_material(&p.material))).take(6) {
+        println!("  tile {k} has tall grass: {} ({} times)", e.name, e.occurrences);
+    }
     if let Some(path) = out {
         crate::catalog::save(&entries, std::path::Path::new(path))?;
     }
@@ -1919,5 +1922,28 @@ pub fn worlds_list(arc_dir: &str) -> Result<(), String> {
         let names: Vec<&str> = a.maps.iter().filter_map(|&z| crate::names::MAP_NAMES.get(z).copied()).take(5).collect();
         println!("  matrix {:3}: {} maps: {}", a.matrix, a.maps.len(), names.join(", "));
     }
+    Ok(())
+}
+
+/// Puts tall grass on some tiles of a block, takes it away from others,
+/// undoes and does again, then writes the block.
+pub fn grass_test(arc_dir: &str, block: usize, out_dir: &str) -> Result<(), String> {
+    let mut editor = crate::editor::Editor::new(arc_dir, block)?;
+    let sample = editor.grass_sample().ok_or("this block has no tall grass to copy")?;
+    println!("sample: {} parts, {} bytes of vertices", sample.parts.len(), sample.parts.iter().map(|p| p.vertices.len()).sum::<usize>());
+    let count = |e: &crate::editor::Editor| e.meshes().iter().filter(|(p, _)| *p == 5).map(|(_, m)| m.indices.len() / 3).sum::<usize>();
+    println!("grass triangles at the start: {}", count(&editor));
+    for (column, row) in [(20, 20), (20, 20), (21, 20)] {
+        editor.stamp_grass(Some(&sample), column, row, 0.0)?;
+        println!("after grass in ({column}, {row}): {}", count(&editor));
+    }
+    editor.stamp_grass(None, 21, 20, 0.0)?;
+    println!("after erasing (21, 20): {}", count(&editor));
+    editor.stamp_grass(None, 5, 5, 0.0)?;
+    println!("after erasing (5, 5): {}", count(&editor));
+    editor.undo()?;
+    println!("after undo: {}", count(&editor));
+    editor.redo()?;
+    println!("{}", editor.export(out_dir)?);
     Ok(())
 }

@@ -309,13 +309,6 @@ pub struct MapAt {
     pub height: usize,
 }
 
-impl MapAt {
-    /// The tile of the map that is the first tile of the block.
-    pub fn first_tile(&self) -> (i32, i32) {
-        ((self.column * BLOCK_TILES) as i32, (self.row * BLOCK_TILES) as i32)
-    }
-}
-
 fn unpack(raw: &[u8]) -> Result<Vec<u8>, String> {
     if raw.first() == Some(&0x11) { lz11::decompress(raw) } else { Ok(raw.to_vec()) }
 }
@@ -444,6 +437,42 @@ pub fn reset_matrix(sd_dir: &str, matrix: usize) -> Result<(), String> {
         crate::edit::remove_index(&folder, matrix)?;
     }
     Ok(())
+}
+
+/// The blocks of a world where a map has events, as the game has them. A map
+/// has no block of its own: this is the part of the world that it lives in.
+pub fn blocks_of_map(arc_dir: &str, matrix: usize, map: usize) -> Vec<usize> {
+    // (A folder that does not exist: the matrix of the game, not the one of the user.)
+    let nowhere = std::env::temp_dir().join("sango_editor_no_such_folder");
+    let (Ok(layout), Ok(events)) = (read_matrix(arc_dir, &nowhere.to_string_lossy(), matrix), read_map_events(arc_dir, map)) else { return Vec::new() };
+    let mut cells: std::collections::BTreeSet<(usize, usize)> = Default::default();
+    let mut add = |tx: f32, tz: f32| {
+        if tx >= 0.0 && tz >= 0.0 {
+            cells.insert((tx as usize / BLOCK_TILES, tz as usize / BLOCK_TILES));
+        }
+    };
+    for s in &events.signs {
+        add(s.x as f32, s.z as f32);
+    }
+    for t in &events.triggers {
+        add(t.x as f32, t.z as f32);
+    }
+    for w in &events.warps {
+        add(w.x as f32 / TILE, w.z as f32 / TILE);
+    }
+    for c in &events.characters {
+        add(c.x as f32, c.z as f32);
+    }
+    let mut blocks: Vec<usize> = Vec::new();
+    for (column, row) in cells {
+        if column < layout.width && row < layout.height {
+            let id = layout.ids[row * layout.width + column] as usize;
+            if id < 857 && !blocks.contains(&id) {
+                blocks.push(id);
+            }
+        }
+    }
+    blocks
 }
 
 /// The maps that use a matrix.

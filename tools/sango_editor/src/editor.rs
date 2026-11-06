@@ -69,6 +69,19 @@ pub struct Instance {
 /// What an undo brings back: the instances and the tiles.
 type Snapshot = (Vec<Instance>, Vec<u32>);
 
+/// The part of a block that holds the model of the tall grass.
+pub const GRASS_PART: usize = 5;
+
+/// True when an object is made of tall grass only (or of nothing).
+fn grass_only(object: &Portable) -> bool {
+    object.parts.iter().all(|p| is_grass_material(&p.material))
+}
+
+/// True for the name of a mesh of the tall grass (`blc` and two digits).
+pub fn is_grass_material(name: &str) -> bool {
+    name.len() == 5 && name.starts_with("blc") && name[3..].chars().all(|c| c.is_ascii_digit())
+}
+
 pub struct Editor {
     original: EditableBlock,
     /// The folder of the archives, to read other blocks again.
@@ -584,21 +597,31 @@ impl Editor {
     fn rebuild(&mut self) -> Result<(), String> {
         let mut block = self.original.clone();
         // The tiles that were replaced lose their ground.
-        let cells: std::collections::BTreeSet<(usize, usize)> = self
-            .instances
-            .iter()
-            .filter(|i| i.copy && !i.deleted)
-            .filter_map(|i| i.replaces)
-            .collect();
-        for (column, row) in cells {
+        let mut ground_cells: std::collections::BTreeSet<(usize, usize)> = Default::default();
+        let mut grass_cells: std::collections::BTreeSet<(usize, usize)> = Default::default();
+        for i in self.instances.iter().filter(|i| i.copy && !i.deleted) {
+            if let Some(cell) = i.replaces {
+                if self.cluster_is_grass(i.cluster) {
+                    grass_cells.insert(cell);
+                } else {
+                    ground_cells.insert(cell);
+                }
+            }
+        }
+        for &(column, row) in ground_cells.union(&grass_cells) {
             for mesh in 0..block.meshes.len() {
-                if block.meshes[mesh].0 == 1 && !self.selectable[mesh] {
+                let part = block.meshes[mesh].0;
+                let ground = part == 1 && !self.selectable[mesh] && ground_cells.contains(&(column, row));
+                if ground || part == GRASS_PART {
                     block.delete_triangles_in_tile(mesh, column, row)?;
                 }
             }
         }
-        let all_copies: Vec<usize> =
-            (0..self.instances.len()).filter(|&i| self.instances[i].copy && !self.instances[i].deleted).collect();
+        // (A copy without any piece only takes the tile that it replaces: the eraser of the grass.)
+        let all_copies: Vec<usize> = (0..self.instances.len())
+            .filter(|&i| self.instances[i].copy && !self.instances[i].deleted)
+            .filter(|&i| self.clusters[self.instances[i].cluster].foreign.as_ref().map_or(true, |o| !o.parts.is_empty()))
+            .collect();
         // An object from another block goes in the meshes of this block when it
         // can. Else it gets new meshes, and its materials, after the other changes.
         let (copies, fresh): (Vec<usize>, Vec<usize>) = all_copies.into_iter().partition(|&i| {
@@ -873,22 +896,6 @@ impl Editor {
         joined.ok_or_else(|| "nothing is selected".to_string())
     }
 
-    /// The instances that have vertices in a mesh of the block, as the game
-    /// reads it: all the pieces of a building that has its own meshes.
-    pub fn instances_in_mesh(&self, mesh: usize) -> Vec<usize> {
-        let Some((_, built)) = self.built.meshes.get(mesh) else { return Vec::new() };
-        let mut found: Vec<usize> = Vec::new();
-        for v in 0..built.positions.len() {
-            if let Some(i) = self.owner(mesh, v) {
-                if !self.instances[i].deleted && !found.contains(&i) {
-                    found.push(i);
-                }
-            }
-        }
-        found.sort_unstable();
-        found
-    }
-
     /// The instances whose centre is in the box of the selection, seen from above (with a gap):
     /// the pieces of a building that the cutting into objects left apart.
     pub fn neighbours(&self, selection: &[usize], gap: f32) -> Vec<usize> {
@@ -949,7 +956,13 @@ impl Editor {
     /// there is removed and the new piece takes its place. A tile that was
     /// put there before is taken away. `ground` is the height to give to the
     /// middle of the piece (None: the height it had).
-    pub fn stamp_tile(&mut self, object: Portable, column: usize, row: usize, ground: Option<f32>) -> Result<usize, String> {
+    pub fn stamp_tile(&mut self, mut object: Portable, column: usize, row: usize, ground: Option<f32>) -> Result<usize, String> {
+        // The tall grass is cut in bands of five tiles, one mesh for each band.
+        for part in object.parts.iter_mut().filter(|p| is_grass_material(&p.material)) {
+            part.material = format!("blc{}0", row / 5);
+        }
+        self.original.can_host(&object)?;
+        let new_grass = grass_only(&object);
         let cluster = self.clusters.len();
         let (low, high) = (object.low, object.high);
         self.clusters.push(Cluster { parts: Vec::new(), low, high, foreign: Some(object) });
@@ -959,12 +972,14 @@ impl Editor {
         );
         let delta = [
             18.0 * (column as f32 - source.0),
-            ground.map_or(0.0, |g| g - (low[1] + high[1]) / 2.0),
+            ground.map_or(0.0, |g| g - if new_grass { low[1] } else { (low[1] + high[1]) / 2.0 }),
             18.0 * (row as f32 - source.1),
         ];
+        // A tile of ground takes away what was put on the tile; the grass takes away only the grass.
+        let grassy: Vec<bool> = (0..self.clusters.len()).map(|c| self.cluster_is_grass(c)).collect();
         let result = self.change(|v| {
             for i in v.iter_mut() {
-                if i.copy && i.replaces == Some((column, row)) {
+                if i.copy && i.replaces == Some((column, row)) && (!new_grass || grassy[i.cluster]) {
                     i.deleted = true;
                 }
             }
@@ -979,14 +994,64 @@ impl Editor {
         }
     }
 
+    /// True when the cluster is made of tall grass only (or of nothing).
+    fn cluster_is_grass(&self, cluster: usize) -> bool {
+        self.clusters[cluster].foreign.as_ref().map_or(false, grass_only)
+    }
+
+    /// The tall grass of one tile, taken from this block: the piece that the
+    /// grass tool puts on the ground. None when the block has no tall grass.
+    pub fn grass_sample(&self) -> Option<Portable> {
+        let mut found: Vec<(usize, CatalogObject)> = Vec::new();
+        for object in self.tile_objects(true) {
+            let parts: Vec<(usize, Vec<usize>)> =
+                object.parts.iter().filter(|(m, _)| self.original.meshes[*m].0 == GRASS_PART).cloned().collect();
+            if parts.is_empty() {
+                continue;
+            }
+            let (mut low, mut high) = ([f32::MAX; 3], [f32::MIN; 3]);
+            for (m, vertices) in &parts {
+                let (l, h) = bounds(&self.original.meshes[*m].1, vertices);
+                for a in 0..3 {
+                    low[a] = low[a].min(l[a]);
+                    high[a] = high[a].max(h[a]);
+                }
+            }
+            let count = parts.iter().map(|(_, v)| v.len()).sum();
+            found.push((count, CatalogObject { parts, low, high }));
+        }
+        // The tile that most tiles look like (the ones at the edge have less).
+        let mut counts: std::collections::HashMap<usize, usize> = Default::default();
+        for (n, _) in &found {
+            *counts.entry(*n).or_default() += 1;
+        }
+        let best = counts.into_iter().max_by_key(|&(n, times)| (times, n))?.0;
+        let index = found.iter().position(|(n, _)| *n == best)?;
+        self.portable_of_catalog(&found[index].1, index).ok()
+    }
+
+    /// Puts tall grass on the tile (column, row), or takes the grass of the
+    /// tile away (`sample` None). `ground` is the height of the ground.
+    pub fn stamp_grass(&mut self, sample: Option<&Portable>, column: usize, row: usize, ground: f32) -> Result<usize, String> {
+        let object = match sample {
+            Some(sample) => sample.clone(),
+            None => {
+                let (x, z) = (-360.0 + 18.0 * column as f32 + 9.0, -360.0 + 18.0 * row as f32 + 9.0);
+                Portable { origin: (crate::edit::NO_ORIGIN, 0), low: [x - 9.0, ground, z - 9.0], high: [x + 9.0, ground, z + 9.0], parts: Vec::new() }
+            }
+        };
+        self.stamp_tile(object, column, row, Some(ground))
+    }
+
     /// The ground of each tile: the triangles that are inside the tile, in
     /// all the meshes of the ground. A tile with pieces in several meshes
     /// (the grass and a path over it) is one object.
-    pub fn tile_objects(&self) -> Vec<CatalogObject> {
+    pub fn tile_objects(&self, with_grass: bool) -> Vec<CatalogObject> {
         type Cell = (i32, i32);
         let mut per_tile: std::collections::BTreeMap<Cell, Vec<(usize, std::collections::BTreeSet<usize>)>> = Default::default();
         for (index, (part, mesh)) in self.original.meshes.iter().enumerate() {
-            if *part != 1 || self.selectable[index] {
+            let grass = *part == GRASS_PART;
+            if (*part != 1 && !(grass && with_grass)) || self.selectable[index] {
                 continue;
             }
             let mut cells: std::collections::BTreeMap<Cell, std::collections::BTreeSet<usize>> = Default::default();
@@ -996,7 +1061,8 @@ impl Editor {
                 let home = (cell((p[0][0] + p[1][0] + p[2][0]) / 3.0), cell((p[0][2] + p[1][2] + p[2][2]) / 3.0));
                 let (x0, z0) = (-360.0 + 18.0 * home.0 as f32, -360.0 + 18.0 * home.1 as f32);
                 let fits = p.iter().all(|q| q[0] >= x0 - 0.05 && q[0] <= x0 + 18.05 && q[2] >= z0 - 0.05 && q[2] <= z0 + 18.05);
-                if fits {
+                // The tufts of the grass can go over the edge of their tile.
+                if fits || grass {
                     cells.entry(home).or_default().extend(t.iter().map(|&k| k as usize));
                 }
             }

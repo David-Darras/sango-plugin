@@ -133,7 +133,7 @@ pub fn build_tiles(arc_dir: &str, blocks: Option<&[usize]>, mut progress: impl F
     for block in wanted {
         progress(block);
         let Ok(editor) = Editor::new(arc_dir, block) else { continue };
-        for (index, object) in editor.tile_objects().iter().enumerate() {
+        for (index, object) in editor.tile_objects(false).iter().enumerate() {
             let preview = editor.preview_of(object);
             if preview.is_empty() {
                 continue;
@@ -171,6 +171,10 @@ pub fn build_tiles(arc_dir: &str, blocks: Option<&[usize]>, mut progress: impl F
                     if portable.parts.iter().any(|p| p.blob.is_none()) {
                         continue;
                     }
+                    // Grass alone would leave a hole in the ground that it replaces.
+                    if portable.parts.iter().all(|p| crate::editor::is_grass_material(&p.material)) {
+                        continue;
+                    }
                     shapes.insert(key, Seen { seen: 1, donor: block, portable, preview, blocks: vec![block] });
                 }
             }
@@ -203,8 +207,8 @@ fn best_tileset(tilesets: &[std::collections::HashSet<String>], preview: &[Previ
 
 /// Saves a catalogue in a file, to not build it again.
 pub fn save(entries: &[Entry], path: &std::path::Path) -> Result<(), String> {
-    let mut out = b"MSCAT2".to_vec();
-    let mut number = |out: &mut Vec<u8>, v: usize| out.extend_from_slice(&(v as u32).to_le_bytes());
+    let mut out = b"MSCAT3".to_vec();
+    let number = |out: &mut Vec<u8>, v: usize| out.extend_from_slice(&(v as u32).to_le_bytes());
     number(&mut out, entries.len());
     for e in entries {
         number(&mut out, e.name.len());
@@ -245,7 +249,7 @@ pub fn save(entries: &[Entry], path: &std::path::Path) -> Result<(), String> {
 /// Reads a catalogue that `save` wrote.
 pub fn load(path: &std::path::Path) -> Result<Vec<Entry>, String> {
     let data = std::fs::read(path).map_err(|e| e.to_string())?;
-    if data.get(..6) != Some(b"MSCAT2") {
+    if data.get(..6) != Some(b"MSCAT3") {
         return Err("this is not a catalogue (or it is from an older version)".into());
     }
     let position = std::cell::Cell::new(6usize);

@@ -137,14 +137,6 @@ impl ModelBank {
         ids
     }
 
-    /// The number of models that have a record.
-    pub fn count(&mut self) -> usize {
-        if !self.read() {
-            return 0;
-        }
-        self.params.as_ref().map_or(0, |p| p.iter().filter(|f| f.first().map_or(false, |r| r.len() == 24)).count().max(0))
-    }
-
     /// Reads a model (once). None when the model has no file or cannot be read.
     pub fn load(&mut self, model: u16) -> Option<Rc<LoadedModel>> {
         if let Some(found) = self.cache.get(&model) {
