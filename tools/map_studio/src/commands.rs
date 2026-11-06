@@ -1527,3 +1527,46 @@ pub fn zone_roundtrip(arc_dir: &str) -> Result<(), String> {
     );
     Ok(())
 }
+
+/// Prints the attributes of the tiles around a tile, for the block of the
+/// archive and for a file that the tool wrote (# wall, . plain, other letters).
+pub fn tiles_around(arc_dir: &str, block: usize, land_file: &str, column: usize, row: usize) -> Result<(), String> {
+    let show = |label: &str, tiles: &crate::edit::Attributes| {
+        println!("{label}:");
+        for r in row.saturating_sub(5)..(row + 6).min(tiles.height) {
+            let mut line = String::new();
+            for c in column.saturating_sub(8)..(column + 9).min(tiles.width) {
+                let v = tiles.cells[r * tiles.width + c];
+                let ch = match v >> 24 { 0 => '.', 1 => '#', 31..=37 => '*', 148..=151 => '~', _ => '?' };
+                line.push(if r == row && c == column { '@' } else { ch });
+            }
+            println!("  {r:3} {line}");
+        }
+    };
+    let original = EditableBlock::load(arc_dir, block)?.attributes()?;
+    show("game", &original);
+    let edited = EditableBlock::from_file(std::path::Path::new(land_file), block)?.attributes()?;
+    show("file", &edited);
+    let flags = |a: &crate::edit::Attributes| format!("{:08x}", a.cells[row * a.width + column]);
+    println!("tile ({column}, {row}): game {} file {}", flags(&original), flags(&edited));
+    Ok(())
+}
+
+/// For the warps of the zones of a block: the kind of exit and the attribute
+/// of the tile under the warp, to see which tiles a door warp uses.
+pub fn warp_tiles(arc_dir: &str, block: usize) -> Result<(), String> {
+    let tiles = EditableBlock::load(arc_dir, block)?.attributes()?;
+    for zone in crate::events::zones_of_block(arc_dir, block)? {
+        let events = crate::events::read_zone_events(arc_dir, zone.zone)?;
+        for (i, w) in events.warps.iter().enumerate() {
+            let (tx, tz) = ((w.x as i32).div_euclid(18) - (zone.column * 40) as i32, (w.z as i32).div_euclid(18) - (zone.row * 40) as i32);
+            let attr = if tx >= 0 && tz >= 0 && (tx as usize) < tiles.width && (tz as usize) < tiles.height {
+                format!("{:08x}", tiles.cells[tz as usize * tiles.width + tx as usize])
+            } else {
+                "outside".into()
+            };
+            println!("zone {} warp {i}: kind {} facing {} size {}x{} -> block tile ({tx}, {tz}) attribute {attr}", zone.zone, w.kind, w.facing, w.width, w.depth);
+        }
+    }
+    Ok(())
+}

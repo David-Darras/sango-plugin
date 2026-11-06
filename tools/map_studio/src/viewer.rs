@@ -591,6 +591,10 @@ pub struct Viewer {
     selected: Vec<usize>,
     placing: bool,
     snap: bool,
+    /// The events under objects move with the objects.
+    events_follow: bool,
+    /// The walls (the collision) under the objects move with them.
+    walls_follow: bool,
     status: String,
     export_dir: String,
     matrix: Mat4,
@@ -717,6 +721,8 @@ impl Viewer {
             selected: Vec::new(),
             placing: false,
             snap: true,
+            events_follow: true,
+            walls_follow: true,
             status: "Click an object to select it.".into(),
             export_dir: default_dir,
             matrix: Mat4::IDENTITY,
@@ -1136,6 +1142,7 @@ impl Viewer {
             }
             Action::Nudge(delta) => {
                 let moved = self.selected.clone();
+                let before = self.selection_box();
                 let result = self.editor.change(|v| {
                     for &i in &moved {
                         for a in 0..3 {
@@ -1143,7 +1150,15 @@ impl Viewer {
                         }
                     }
                 });
+                let ok = result.is_ok();
                 self.report(result, "Moved.");
+                if let (true, Some((low, high))) = (ok, before) {
+                    let n = self.events_follow_objects(low, high, delta);
+                    let w = self.move_walls(low, high, delta);
+                    if n > 0 || w > 0 {
+                        self.status = format!("Moved. {n} events and {w} wall tiles moved with the objects (save the events to keep them).");
+                    }
+                }
             }
         }
         self.refresh(frame);
@@ -1215,6 +1230,59 @@ impl Viewer {
         self.refresh(frame);
     }
 
+    /// The value of a free tile (the most common one among the tiles that are
+    /// not a wall, an encounter or water).
+    fn plain_value(&self) -> u32 {
+        let mut counts: std::collections::HashMap<u32, usize> = Default::default();
+        for &v in &self.editor.tiles {
+            if v >> 24 == 0 {
+                *counts.entry(v).or_default() += 1;
+            }
+        }
+        counts.into_iter().max_by_key(|(_, n)| *n).map_or(0x20, |(v, _)| v)
+    }
+
+    /// Moves the wall tiles (a building, its door) that are under a box by
+    /// whole tiles: the tiles that they leave become free. Returns how many
+    /// tiles moved.
+    fn move_walls(&mut self, low: [f32; 3], high: [f32; 3], delta: [f32; 3]) -> usize {
+        if !self.walls_follow {
+            return 0;
+        }
+        let (width, height) = self.editor.grid();
+        let (dx, dz) = ((delta[0] / TILE).round() as i32, (delta[2] / TILE).round() as i32);
+        if dx == 0 && dz == 0 {
+            return 0;
+        }
+        let tile = |v: f32| ((v + BLOCK_HALF) / TILE).floor() as i32;
+        let (c0, c1, r0, r1) = (tile(low[0] + 0.5), tile(high[0] - 0.5), tile(low[2] + 0.5), tile(high[2] - 0.5));
+        let mut walls: Vec<(i32, i32, u32)> = Vec::new();
+        for r in r0.max(0)..=r1.min(height as i32 - 1) {
+            for c in c0.max(0)..=c1.min(width as i32 - 1) {
+                let v = self.editor.tiles[r as usize * width + c as usize];
+                if v >> 24 == 1 {
+                    walls.push((c, r, v));
+                }
+            }
+        }
+        if walls.is_empty() {
+            return 0;
+        }
+        let plain = self.plain_value();
+        self.editor.begin_stroke();
+        for &(c, r, _) in &walls {
+            self.editor.paint(c as usize, r as usize, 1, plain);
+        }
+        for &(c, r, v) in &walls {
+            let (nc, nr) = (c + dx, r + dz);
+            if nc >= 0 && nr >= 0 && (nc as usize) < width && (nr as usize) < height {
+                self.editor.paint(nc as usize, nr as usize, 1, v);
+            }
+        }
+        self.editor.end_stroke();
+        walls.len()
+    }
+
     /// Puts the selection where the user clicked on the ground.
     fn place(&mut self, point: Vec3, frame: &eframe::Frame) {
         let Some((low, high)) = self.selection_box() else { return };
@@ -1230,7 +1298,15 @@ impl Viewer {
             }
         });
         self.placing = false;
+        let ok = result.is_ok();
         self.report(result, "Placed.");
+        if ok {
+            let n = self.events_follow_objects(low, high, delta);
+            let w = self.move_walls(low, high, delta);
+            if n > 0 || w > 0 {
+                self.status = format!("Placed. {n} events and {w} wall tiles moved with the objects (save the events to keep them).");
+            }
+        }
         self.refresh(frame);
     }
 }
@@ -1374,6 +1450,8 @@ impl eframe::App for Viewer {
                 }
             });
             ui.checkbox(&mut self.snap, "Snap to the tiles");
+            ui.checkbox(&mut self.walls_follow, "The walls (collision) under the objects move with them");
+            ui.checkbox(&mut self.events_follow, "The events under the objects move with them (warps, signs, characters)");
             ui.label("Ctrl+click takes the whole building (all its pieces). Shift+click adds or removes a piece. In the list of the meshes, Select takes one mesh only. E adds the pieces that touch the selection (for a house). Arrows: move one tile (Shift: 2 units). Page up/down: height. Esc: select nothing.");
             ui.separator();
             let was_tile_mode = self.tile_mode;

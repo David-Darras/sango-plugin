@@ -172,7 +172,7 @@ impl Viewer {
         if self.ev.show[2] {
             for (i, w) in self.ev.now.warps.iter().enumerate() {
                 let (wd, dp) = (w.width.max(1) as f32, w.depth.max(1) as f32);
-                let (low, high) = rect(w.x as f32 / events::TILE - wd / 2.0, w.z as f32 / events::TILE - dp / 2.0, wd, dp);
+                let (low, high) = rect(w.x as f32 / events::TILE - 0.5, w.z as f32 / events::TILE - 0.5, wd, dp);
                 out.push(EventBox { kind: Kind::Warp, index: i, low, high, label: format!("W{i} to {}.{}", w.zone, w.exit), colour: Kind::Warp.colour(0) });
             }
         }
@@ -246,6 +246,130 @@ impl Viewer {
         }
     }
 
+    /// The middle of an event on the ground of the block (units).
+    fn event_centre(&self, kind: Kind, index: usize) -> Option<[f32; 2]> {
+        let at = self.ev.at()?;
+        let now = &self.ev.now;
+        let (x, z) = match kind {
+            Kind::Sign => {
+                let s = now.signs.get(index)?;
+                (s.x as f32 + s.width.max(1) as f32 / 2.0, s.z as f32 + s.depth.max(1) as f32 / 2.0)
+            }
+            Kind::Trigger => {
+                let t = now.triggers.get(index)?;
+                (t.x as f32 + t.width.max(1) as f32 / 2.0, t.z as f32 + t.depth.max(1) as f32 / 2.0)
+            }
+            Kind::Warp => {
+                let w = now.warps.get(index)?;
+                (w.x as f32 / events::TILE + w.width.max(1) as f32 / 2.0 - 0.5, w.z as f32 / events::TILE + w.depth.max(1) as f32 / 2.0 - 0.5)
+            }
+            Kind::Character => {
+                let c = now.characters.get(index)?;
+                (c.x as f32 + 0.5, c.z as f32 + 0.5)
+            }
+        };
+        Some([events::tile_to_local(x, at.column), events::tile_to_local(z, at.row)])
+    }
+
+    /// The tile of the block under a warp.
+    fn warp_block_tile(&self, index: usize) -> Option<(i32, i32)> {
+        let at = self.ev.at()?;
+        let w = self.ev.now.warps.get(index)?;
+        Some(((w.x as i32).div_euclid(18) - (at.column * 40) as i32, (w.z as i32).div_euclid(18) - (at.row * 40) as i32))
+    }
+
+    /// A door is a wall tile that has a warp: when the warp moves, the wall
+    /// moves with it, and the old tile is free. Does nothing when the old tile
+    /// is not a wall.
+    fn move_door_wall(&mut self, old: Option<(i32, i32)>, new: Option<(i32, i32)>) {
+        let (Some(old), Some(new)) = (old, new) else { return };
+        if old == new || !self.walls_follow {
+            return;
+        }
+        let (width, height) = self.editor.grid();
+        let inside = |t: (i32, i32)| t.0 >= 0 && t.1 >= 0 && (t.0 as usize) < width && (t.1 as usize) < height;
+        if !inside(old) || !inside(new) {
+            return;
+        }
+        let value = self.editor.tiles[old.1 as usize * width + old.0 as usize];
+        if value >> 24 != 1 {
+            return;
+        }
+        let plain = self.plain_value();
+        self.editor.begin_stroke();
+        self.editor.paint(old.0 as usize, old.1 as usize, 1, plain);
+        self.editor.paint(new.0 as usize, new.1 as usize, 1, value);
+        self.editor.end_stroke();
+        self.status = "The door warp took its wall tile with it.".into();
+    }
+
+    /// Gives an event the height of the ground where it is: the game looks for
+    /// a warp only a little above and under its height.
+    fn event_to_ground(&mut self, kind: Kind, index: usize) {
+        let Some(c) = self.event_centre(kind, index) else { return };
+        let Some(g) = self.ground_at(c[0], c[1]) else { return };
+        let now = &mut self.ev.now;
+        match kind {
+            Kind::Sign => now.signs[index].height = g as i32,
+            Kind::Trigger => now.triggers[index].height = g as i16,
+            Kind::Warp => now.warps[index].y = g as i16,
+            Kind::Character => now.characters[index].height = g,
+        }
+    }
+
+    /// The events whose middle is under objects that moved move with them,
+    /// by whole tiles. `low` and `high` are the box of the objects before the
+    /// move, `delta` the move in units. Returns how many events moved.
+    pub(super) fn events_follow_objects(&mut self, low: [f32; 3], high: [f32; 3], delta: [f32; 3]) -> usize {
+        if !self.events_follow || !self.ev.loaded {
+            return 0;
+        }
+        let (dx, dz) = ((delta[0] / events::TILE).round() as i32, (delta[2] / events::TILE).round() as i32);
+        let dy = delta[1];
+        if dx == 0 && dz == 0 && dy.abs() < 1.0 {
+            return 0;
+        }
+        let inside = |c: [f32; 2]| c[0] >= low[0] && c[0] <= high[0] && c[1] >= low[2] && c[1] <= high[2];
+        let mut moved = 0;
+        for i in 0..self.ev.now.signs.len() {
+            if self.event_centre(Kind::Sign, i).is_some_and(inside) {
+                let s = &mut self.ev.now.signs[i];
+                s.x += dx as i16;
+                s.z += dz as i16;
+                s.height += dy as i32;
+                moved += 1;
+            }
+        }
+        for i in 0..self.ev.now.triggers.len() {
+            if self.event_centre(Kind::Trigger, i).is_some_and(inside) {
+                let t = &mut self.ev.now.triggers[i];
+                t.x = (t.x as i32 + dx).max(0) as u16;
+                t.z = (t.z as i32 + dz).max(0) as u16;
+                t.height += dy as i16;
+                moved += 1;
+            }
+        }
+        for i in 0..self.ev.now.warps.len() {
+            if self.event_centre(Kind::Warp, i).is_some_and(inside) {
+                let w = &mut self.ev.now.warps[i];
+                w.x += (events::TILE as i32 * dx) as i16;
+                w.z += (events::TILE as i32 * dz) as i16;
+                w.y += dy as i16;
+                moved += 1;
+            }
+        }
+        for i in 0..self.ev.now.characters.len() {
+            if self.event_centre(Kind::Character, i).is_some_and(inside) {
+                let c = &mut self.ev.now.characters[i];
+                c.x = (c.x as i32 + dx).max(0) as u16;
+                c.z = (c.z as i32 + dz).max(0) as u16;
+                c.height += dy;
+                moved += 1;
+            }
+        }
+        moved
+    }
+
     /// The tile of the zone under a point of the block.
     fn tile_under(&self, point: Vec3) -> Option<(i32, i32)> {
         let at = self.ev.at()?;
@@ -265,8 +389,13 @@ impl Viewer {
         } else if self.ev.moving {
             self.ev.moving = false;
             if let Some((kind, index)) = self.ev.selected {
+                let old = if kind == Kind::Warp { self.warp_block_tile(index) } else { None };
                 self.events_set_tile(kind, index, tx, tz, Some(hit.point.y));
                 self.status = format!("The {} is in tile ({tx}, {tz}).", kind.name());
+                if kind == Kind::Warp {
+                    let new = self.warp_block_tile(index);
+                    self.move_door_wall(old, new);
+                }
             }
         } else {
             // The smallest event under the click; a character before the others.
@@ -465,6 +594,10 @@ impl Viewer {
         }
         let (dx, dz) = (right as i32 - left as i32, down as i32 - up as i32);
         let dy = page_up as i32 - page_down as i32;
+        let old_warp_tile = match self.ev.selected {
+            Some((Kind::Warp, index)) if dx != 0 || dz != 0 => self.warp_block_tile(index),
+            _ => None,
+        };
         if let Some((kind, index)) = self.ev.selected {
             if dx != 0 || dz != 0 || dy != 0 {
                 let now = &mut self.ev.now;
@@ -497,6 +630,15 @@ impl Viewer {
                             c.height += 2.0 * dy as f32;
                         }
                     }
+                }
+            }
+        }
+        if let Some((kind, index)) = self.ev.selected {
+            if dx != 0 || dz != 0 {
+                self.event_to_ground(kind, index);
+                if kind == Kind::Warp {
+                    let new = self.warp_block_tile(index);
+                    self.move_door_wall(old_warp_tile, new);
                 }
             }
         }

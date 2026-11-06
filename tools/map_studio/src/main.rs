@@ -132,6 +132,8 @@ fn main() {
         Some("zone-check") if args.len() >= 4 => commands::zone_check(&args[2], block),
         Some("events-file-test") if args.len() >= 4 => commands::events_file_test(&args[2], number(3).unwrap_or(0)),
         Some("zone-roundtrip") if args.len() >= 3 => commands::zone_roundtrip(&args[2]),
+        Some("tiles-around") if args.len() >= 7 => commands::tiles_around(&args[2], block, &args[4], number(5).unwrap_or(0), number(6).unwrap_or(0)),
+        Some("warp-tiles") if args.len() >= 4 => commands::warp_tiles(&args[2], block),
         Some("check") if args.len() >= 5 => commands::check(&args[2], block, &args[4]),
         _ => Err(USAGE.to_string()),
     };

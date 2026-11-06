@@ -498,6 +498,32 @@ impl Editor {
                 }
             }
         }
+        // The pieces that stand near the building without touching it (a door
+        // in front of the entrance) are part of it when they are of the same
+        // family and the box of the building, made a little larger, holds them.
+        let near: f32 = 24.0;
+        for _ in 0..4 {
+            let boxes: Vec<([f32; 3], [f32; 3])> =
+                found.iter().filter_map(|f| candidates.iter().find(|(i, _)| i == f).map(|(_, b)| *b)).collect();
+            let (mut low, mut high) = ([f32::MAX; 3], [f32::MIN; 3]);
+            for b in &boxes {
+                for a in 0..3 {
+                    low[a] = low[a].min(b.0[a]);
+                    high[a] = high[a].max(b.1[a]);
+                }
+            }
+            let mut grew = false;
+            for (i, b) in &candidates {
+                let overlaps = low[0] - near <= b.1[0] && b.0[0] - near <= high[0] && low[2] - near <= b.1[2] && b.0[2] - near <= high[2];
+                if !found.contains(i) && overlaps {
+                    found.push(*i);
+                    grew = true;
+                }
+            }
+            if !grew {
+                break;
+            }
+        }
         self.isolate_in(Some(&found), &family)
     }
 
