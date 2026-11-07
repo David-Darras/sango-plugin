@@ -153,6 +153,13 @@ fn main() {
             println!("{}", plugin_dir::detect(&args[2]).display());
             Ok(())
         }
+        Some("matrix-raw") if args.len() >= 4 => commands::matrix_raw(&args[2], number(3).unwrap_or(0)),
+        Some("zones-unused") if args.len() >= 3 => commands::zones_unused(&args[2]),
+        Some("zone-rewrite") if args.len() >= 6 => commands::zone_rewrite(&args[2], &args[3], number(4).unwrap_or(0), number(5).unwrap_or(0)),
+        Some("garc-entries") if args.len() >= 4 => commands::garc_entries(&args[2], &args[3..].iter().filter_map(|n| n.parse().ok()).collect::<Vec<_>>()),
+        Some("newmap-test") if args.len() >= 5 => commands::newmap_test(&args[2], block, &args[4]),
+        Some("matrix-sd") if args.len() >= 5 => commands::matrix_sd(&args[2], &args[3], number(4).unwrap_or(1)),
+        Some("zone-compare") if args.len() >= 5 => commands::zone_compare(&args[2], &args[3], number(4).unwrap_or(1)),
         Some("grass-test") if args.len() >= 5 => commands::grass_test(&args[2], block, &args[4]),
         Some("tile-drop-test") if args.len() >= 7 => commands::tile_drop_test(&args[2], &args[3], number(4).unwrap_or(0), number(5).unwrap_or(0), &args[6]),
         Some("tile-holes-test") if args.len() >= 7 => commands::tile_holes_test(&args[2], &args[3], number(4).unwrap_or(0), number(5).unwrap_or(10), number(6).unwrap_or(0)),

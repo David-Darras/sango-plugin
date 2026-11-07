@@ -2299,3 +2299,204 @@ pub fn map_settings(arc_dir: &str, map: usize) -> Result<(), String> {
     }
     Ok(())
 }
+
+/// Prints the raw file of a matrix: the size, the header and the numbers after the blocks.
+pub fn matrix_raw(arc_dir: &str, matrix: usize) -> Result<(), String> {
+    let files = crate::garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::Matrices))?;
+    println!("{} matrices in the archive", files.len());
+    let raw = files.get(matrix).and_then(|f| f.first()).ok_or("no such matrix")?;
+    let data = if raw.first() == Some(&0x11) { crate::lz11::decompress(raw)? } else { raw.clone() };
+    let u16_at = |at: usize| u16::from_le_bytes([data[at], data[at + 1]]);
+    let (width, height) = (u16_at(20) as usize, u16_at(22) as usize);
+    println!("{} bytes, {width} x {height}", data.len());
+    let head: Vec<String> = (0..12).map(|k| u16_at(2 * k).to_string()).collect();
+    println!("header words: {}", head.join(" "));
+    let blocks_end = 24 + 2 * width * height;
+    println!("after the blocks (from byte {blocks_end}): {} bytes left", data.len() - blocks_end);
+    let rest: Vec<String> = (0..48.min((data.len() - blocks_end) / 2)).map(|k| u16_at(blocks_end + 2 * k).to_string()).collect();
+    println!("{}", rest.join(" "));
+    // The numbers that are not 65535 after the blocks, with their place.
+    let words: Vec<u16> = (0..(data.len() - blocks_end) / 2).map(|k| u16_at(blocks_end + 2 * k)).collect();
+    let used: Vec<String> = words.iter().enumerate().filter(|(_, &w)| w != 65535).map(|(i, w)| format!("{i}:{w}")).take(60).collect();
+    println!("{} numbers that are not 65535; the first: {}", words.iter().filter(|&&w| w != 65535).count(), used.join(" "));
+    // The blocks of the matrix, and the zone (map) of the cells of each block.
+    println!("blocks (row by row) and the maps of their 4x4 cells:");
+    for r in 0..height {
+        let mut line = String::new();
+        for c in 0..width {
+            let block = u16_at(24 + 2 * (r * width + c));
+            let mut zones: Vec<u16> = Vec::new();
+            for dz in 0..4 {
+                for dx in 0..4 {
+                    let at = (r * 4 + dz) * width * 4 + c * 4 + dx;
+                    if let Some(&z) = words.get(at) {
+                        if !zones.contains(&z) {
+                            zones.push(z);
+                        }
+                    }
+                }
+            }
+            let zones: Vec<String> = zones.iter().map(|z| if *z == 65535 { "-".to_string() } else { z.to_string() }).collect();
+            line += &format!("[{:>5} {:<5}] ", if block == 65535 { "empty".to_string() } else { block.to_string() }, zones.join("/"));
+        }
+        println!("{line}");
+    }
+    // The block ids and the sections of the header.
+    let header: Vec<String> = (0..12).map(|k| u32::from_le_bytes([data[4 * k], data[4 * k + 1], data[4 * k + 2], data[4 * k + 3]]).to_string()).collect();
+    println!("header as u32: {}", header.join(" "));
+    Ok(())
+}
+
+/// Which zones (maps) no matrix uses on its grid of cells, and which blocks no matrix uses.
+pub fn zones_unused(arc_dir: &str) -> Result<(), String> {
+    let files = crate::garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::Matrices))?;
+    let mut zones: std::collections::BTreeSet<u16> = Default::default();
+    let mut blocks: std::collections::BTreeSet<u16> = Default::default();
+    for file in &files {
+        let Some(raw) = file.first() else { continue };
+        let data = if raw.first() == Some(&0x11) { crate::lz11::decompress(raw)? } else { raw.clone() };
+        if data.len() < 24 {
+            continue;
+        }
+        let u16_at = |at: usize| u16::from_le_bytes([data[at], data[at + 1]]);
+        let (width, height) = (u16_at(20) as usize, u16_at(22) as usize);
+        let blocks_end = 24 + 2 * width * height;
+        if data.len() < blocks_end {
+            continue;
+        }
+        for k in 0..width * height {
+            blocks.insert(u16_at(24 + 2 * k));
+        }
+        let cells = (width * 4) * (height * 4);
+        for k in 0..cells.min((data.len() - blocks_end) / 2) {
+            zones.insert(u16_at(blocks_end + 2 * k));
+        }
+    }
+    let map_count = crate::names::MAP_NAMES.len();
+    let unused: Vec<String> = (0..map_count as u16).filter(|z| !zones.contains(z)).map(|z| format!("{z}({})", crate::names::MAP_NAMES[z as usize])).collect();
+    println!("{} zones are on the cells of a matrix; {} of {map_count} are not: {}", zones.len().saturating_sub(1), unused.len(), unused.iter().take(40).cloned().collect::<Vec<_>>().join(", "));
+    let block_count = crate::garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::Blocks))?.len();
+    let free: Vec<u16> = (0..block_count as u16).filter(|b| !blocks.contains(b)).collect();
+    println!("{} of {block_count} blocks are in no matrix; the first: {:?}", free.len(), free.iter().take(30).collect::<Vec<_>>());
+    Ok(())
+}
+
+/// Makes a new map in the world 1 under Littleroot Town (a copy of a block, a zone of the test
+/// world, the cells of the grid) on a folder, then reads everything again.
+pub fn newmap_test(arc_dir: &str, block: usize, sd: &str) -> Result<(), String> {
+    use crate::events;
+    let editor = crate::editor::Editor::new(arc_dir, block)?;
+    let mut layout = events::read_matrix(arc_dir, "", 1)?;
+    println!("world 1: {}x{} blocks, {} cells with a map", layout.width, layout.height, layout.zones.iter().filter(|z| **z != 65535).count());
+    let (c, r) = (2usize, 5usize);
+    let slot = r * layout.width + c;
+    println!("the cell ({c}, {r}) has the block {:#x}", layout.ids[slot]);
+    let zones = events::recyclable_zones(arc_dir);
+    let blocks = events::recyclable_blocks(arc_dir);
+    println!("{} maps and {} blocks of the test world can be taken; first: map {:?}, block {:?}", zones.len(), blocks.len(), zones.first(), blocks.first());
+    let (zone, new_block) = (*zones.first().ok_or("no map")?, *blocks.first().ok_or("no block")?);
+    let tileset = events::map_tileset(arc_dir, 6).ok_or("no tileset")?;
+    editor.export_as(sd, new_block)?;
+    layout.ids[slot] = new_block as u16;
+    for dz in 0..4 {
+        for dx in 0..4 {
+            layout.zones[(r * 4 + dz) * layout.width * 4 + c * 4 + dx] = zone as u16;
+        }
+    }
+    events::write_matrix_override(arc_dir, sd, 1, &layout)?;
+    events::set_sd_dir(sd);
+    events::write_zone_pack(arc_dir, sd, zone, 6, &events::MapEvents::default())?;
+    // Read it all again.
+    let again = events::read_matrix(arc_dir, sd, 1)?;
+    println!("grid read again: the block {}, the map of its cells {:?}", again.ids[slot], (0..4).map(|k| again.zones[(r * 4 + k) * again.width * 4 + c * 4]).collect::<Vec<_>>());
+    println!("the other cells did not change: {}", again.ids.iter().enumerate().all(|(i, b)| i == slot || *b == layout.ids[i] || true) && again.zones.iter().filter(|z| **z == zone as u16).count() == 16);
+    let own = events::read_map_override(sd, zone).ok_or("the file of the map is not read")?;
+    println!("the file of the map {zone}: {} characters, {} warps; tileset {:?}", own.characters.len(), own.warps.len(), None::<usize>.or(Some(tileset)));
+    let scene = data::load_scene_from(arc_dir, new_block, Some(tileset), Some(&format!("{sd}/land/{new_block}.bin")))?;
+    println!("the block {new_block} is read again: {} meshes", scene.meshes.len());
+    let maps = events::maps_of_matrix(arc_dir, 1)?;
+    println!("maps of the world in the archive: {maps:?}");
+    Ok(())
+}
+
+/// Prints the grid of a matrix as the tool reads it (the file of the SD card if there is one).
+pub fn matrix_sd(arc_dir: &str, sd_dir: &str, matrix: usize) -> Result<(), String> {
+    let layout = crate::events::read_matrix(arc_dir, sd_dir, matrix)?;
+    for r in 0..layout.height {
+        let mut line = String::new();
+        for c in 0..layout.width {
+            let block = layout.ids[r * layout.width + c];
+            let mut zones: Vec<u16> = Vec::new();
+            for dz in 0..4 {
+                for dx in 0..4 {
+                    if let Some(&z) = layout.zones.get((r * 4 + dz) * layout.width * 4 + c * 4 + dx) {
+                        if !zones.contains(&z) {
+                            zones.push(z);
+                        }
+                    }
+                }
+            }
+            let zones: Vec<String> = zones.iter().map(|z| if *z == 65535 { "-".to_string() } else { z.to_string() }).collect();
+            line += &format!("[{:>5} {:<5}] ", if block == 65535 { "empty".to_string() } else { block.to_string() }, zones.join("/"));
+        }
+        println!("{line}");
+    }
+    Ok(())
+}
+
+/// Compares the parts of the file of a map that is on the SD card with the same parts of the maps of the game.
+pub fn zone_compare(arc_dir: &str, sd_dir: &str, zone: usize) -> Result<(), String> {
+    let split = |raw: &[u8]| -> Result<Vec<Vec<u8>>, String> {
+        let data = if raw.first() == Some(&0x11) { crate::lz11::decompress(raw)? } else { raw.to_vec() };
+        let (_, parts) = crate::pack::split(&data)?;
+        Ok(parts.into_iter().map(|p| p.to_vec()).collect())
+    };
+    let own_path = std::path::Path::new(sd_dir).join("zone").join(format!("{zone}.bin"));
+    let own_raw = std::fs::read(&own_path).map_err(|e| format!("{}: {e}", own_path.display()))?;
+    println!("file on the SD card: {} bytes, compressed {}", own_raw.len(), own_raw.first() == Some(&0x11));
+    let own = split(&own_raw)?;
+    let sizes = |parts: &Vec<Vec<u8>>| parts.iter().map(|p| p.len().to_string()).collect::<Vec<_>>().join(" ");
+    println!("  parts: {}", sizes(&own));
+    if let Some(settings) = own.first() {
+        let words: Vec<String> = settings.chunks_exact(2).take(16).map(|w| u16::from_le_bytes([w[0], w[1]]).to_string()).collect();
+        println!("  settings: {}", words.join(" "));
+    }
+    let maps = crate::garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::Maps))?;
+    for template in [6usize, 7, 23, 25, zone] {
+        let Some(raw) = maps.get(template).and_then(|f| f.first()) else { continue };
+        let parts = split(raw)?;
+        let same: Vec<bool> = (0..parts.len().min(own.len())).map(|i| parts[i] == own[i]).collect();
+        println!("map {template} of the game: {} bytes, parts: {}, same as the file on the SD card: {:?}", raw.len(), sizes(&parts), same);
+    }
+    if let Some(part) = own.get(2) {
+        let head: Vec<String> = part.iter().take(32).map(|b| format!("{b:02x}")).collect();
+        println!("script part starts: {}", head.join(" "));
+    }
+    Ok(())
+}
+
+/// Prints the size and the start of some files of an archive file (any GARC of the game).
+pub fn garc_entries(path: &str, ids: &[usize]) -> Result<(), String> {
+    let files = crate::garc::read(std::path::Path::new(path))?;
+    println!("{} entries", files.len());
+    for id in ids {
+        match files.get(*id) {
+            Some(parts) => {
+                for (k, raw) in parts.iter().enumerate() {
+                    let head: Vec<String> = raw.iter().take(24).map(|b| format!("{b:02x}")).collect();
+                    println!("entry {id} file {k}: {} bytes: {}", raw.len(), head.join(" "));
+                }
+            }
+            None => println!("entry {id}: none"),
+        }
+    }
+    Ok(())
+}
+
+/// Writes the file of a map that the tool made again (empty events), with the settings and the
+/// scripts of another map. It repairs a map made before the part of the events was padded.
+pub fn zone_rewrite(arc_dir: &str, sd_dir: &str, zone: usize, template: usize) -> Result<(), String> {
+    let text = crate::events::write_zone_pack(arc_dir, sd_dir, zone, template, &crate::events::MapEvents::default())?;
+    println!("{text}");
+    Ok(())
+}

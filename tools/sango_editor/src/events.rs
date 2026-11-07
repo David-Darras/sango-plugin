@@ -313,6 +313,64 @@ fn unpack(raw: &[u8]) -> Result<Vec<u8>, String> {
     if raw.first() == Some(&0x11) { lz11::decompress(raw) } else { Ok(raw.to_vec()) }
 }
 
+/// The folder of the SD card where the tool writes: the maps and the matrices that it wrote there
+/// are read instead of the ones of the game.
+static SD_FOLDER: std::sync::Mutex<Option<String>> = std::sync::Mutex::new(None);
+
+pub fn set_sd_dir(folder: &str) {
+    if let Ok(mut slot) = SD_FOLDER.lock() {
+        *slot = Some(folder.to_string());
+    }
+}
+
+fn sd_dir() -> Option<String> {
+    SD_FOLDER.lock().ok().and_then(|slot| slot.clone())
+}
+
+/// The file of a map: the one that the tool wrote on the SD card, else the one of the game.
+fn zone_bytes(maps: &[Vec<Vec<u8>>], map: usize) -> Option<Vec<u8>> {
+    if let Some(sd) = sd_dir() {
+        if let Ok(bytes) = std::fs::read(PathBuf::from(sd).join("zone").join(format!("{map}.bin"))) {
+            return Some(bytes);
+        }
+    }
+    maps.get(map).and_then(|f| f.first()).cloned()
+}
+
+/// The file of a matrix: the one that the tool wrote, else the one of the game.
+fn matrix_bytes(matrices: &[Vec<Vec<u8>>], matrix: usize) -> Option<Vec<u8>> {
+    if let Some(sd) = sd_dir() {
+        if let Ok(bytes) = std::fs::read(PathBuf::from(sd).join("matrix").join(format!("{matrix}.bin"))) {
+            return Some(bytes);
+        }
+    }
+    matrices.get(matrix).and_then(|f| f.first()).cloned()
+}
+
+/// True when the tool made the map: its file on the SD card is the whole map, not a change of the game.
+pub fn is_made(map: usize) -> bool {
+    made_maps().contains(&map)
+}
+
+/// The maps that the tool made (a list in the folder `zone`): the game has no events for them.
+fn made_maps() -> Vec<usize> {
+    let Some(sd) = sd_dir() else { return Vec::new() };
+    std::fs::read_to_string(PathBuf::from(sd).join("zone").join("made.txt"))
+        .map(|text| text.lines().filter_map(|l| l.trim().parse().ok()).collect())
+        .unwrap_or_default()
+}
+
+fn set_made_maps(sd_dir: &str, list: &[usize]) {
+    let folder = PathBuf::from(sd_dir).join("zone");
+    let file = folder.join("made.txt");
+    if list.is_empty() {
+        let _ = std::fs::remove_file(&file);
+    } else {
+        let _ = std::fs::create_dir_all(&folder);
+        let _ = std::fs::write(&file, list.iter().map(|m| m.to_string()).collect::<Vec<_>>().join("\n"));
+    }
+}
+
 /// The blocks of a matrix, row after row.
 fn matrix_blocks(raw: &[u8]) -> Result<(usize, usize, Vec<u16>), String> {
     let data = unpack(raw)?;
@@ -339,12 +397,12 @@ pub fn maps_of_block(arc_dir: &str, block: usize) -> Result<Vec<MapAt>, String> 
     let matrices = garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::Matrices))?;
     let mut cache: BTreeMap<usize, Option<(usize, usize, Vec<u16>)>> = BTreeMap::new();
     let mut found = Vec::new();
-    for (map, file) in maps.iter().enumerate() {
-        let Some(raw) = file.first() else { continue };
-        let Ok(parts) = map_parts(raw) else { continue };
+    for map in 0..maps.len() {
+        let Some(raw) = zone_bytes(&maps, map) else { continue };
+        let Ok(parts) = map_parts(&raw) else { continue };
         let Some(settings) = parts.first().filter(|p| p.len() >= 6) else { continue };
         let matrix = u16_at(settings, 4) as usize;
-        let entry = cache.entry(matrix).or_insert_with(|| matrices.get(matrix).and_then(|f| f.first()).and_then(|r| matrix_blocks(r).ok()));
+        let entry = cache.entry(matrix).or_insert_with(|| matrix_bytes(&matrices, matrix).and_then(|r| matrix_blocks(&r).ok()));
         let Some((width, height, ids)) = entry else { continue };
         if let Some(at) = ids.iter().position(|&b| b as usize == block) {
             found.push(MapAt { map, matrix, column: at % *width, row: at / *width, width: *width, height: *height });
@@ -364,9 +422,9 @@ pub struct WorldInfo {
 pub fn list_worlds(arc_dir: &str) -> Result<Vec<WorldInfo>, String> {
     let maps = garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::Maps))?;
     let mut by_matrix: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
-    for (map, file) in maps.iter().enumerate() {
-        let Some(raw) = file.first() else { continue };
-        let Ok(parts) = map_parts(raw) else { continue };
+    for map in 0..maps.len() {
+        let Some(raw) = zone_bytes(&maps, map) else { continue };
+        let Ok(parts) = map_parts(&raw) else { continue };
         let Some(settings) = parts.first().filter(|p| p.len() >= 6) else { continue };
         by_matrix.entry(u16_at(settings, 4) as usize).or_default().push(map);
     }
@@ -376,7 +434,7 @@ pub fn list_worlds(arc_dir: &str) -> Result<Vec<WorldInfo>, String> {
 /// The number of the tileset pack of a map (its pictures and its light).
 pub fn map_tileset(arc_dir: &str, map: usize) -> Option<usize> {
     let maps = garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::Maps)).ok()?;
-    let parts = map_parts(maps.get(map)?.first()?).ok()?;
+    let parts = map_parts(&zone_bytes(&maps, map)?).ok()?;
     let settings = parts.first().filter(|p| p.len() >= 4)?;
     Some(u16_at(settings, 2) as usize)
 }
@@ -388,6 +446,9 @@ pub struct MatrixLayout {
     pub width: usize,
     pub height: usize,
     pub ids: Vec<u16>,
+    /// The map (zone) of each cell of 4 x 4 for each block: `width * 4` columns, `height * 4` rows
+    /// (empty when the file has no such grid). 65535 is no map.
+    pub zones: Vec<u16>,
 }
 
 /// Reads a matrix, from the file that the tool wrote on the SD card if there
@@ -404,7 +465,12 @@ pub fn read_matrix(arc_dir: &str, sd_dir: &str, matrix: usize) -> Result<MatrixL
         }
     };
     let (width, height, ids) = matrix_blocks(&raw)?;
-    Ok(MatrixLayout { width, height, ids })
+    // After the blocks: the map of each cell (4 x 4 for each block).
+    let data = unpack(&raw)?;
+    let cells = width * 4 * height * 4;
+    let from = 24 + 2 * width * height;
+    let zones = if data.len() >= from + 2 * cells { (0..cells).map(|i| u16_at(&data, from + 2 * i)).collect() } else { Vec::new() };
+    Ok(MatrixLayout { width, height, ids, zones })
 }
 
 /// Writes a matrix with other blocks in the folder `matrix` of the SD card.
@@ -419,12 +485,100 @@ pub fn write_matrix_override(arc_dir: &str, sd_dir: &str, matrix: usize, layout:
     for (i, id) in layout.ids.iter().enumerate() {
         put16(&mut data, 24 + 2 * i, *id);
     }
+    // The maps of the cells go after the blocks.
+    let from = 24 + 2 * layout.width * layout.height;
+    if !layout.zones.is_empty() && data.len() >= from + 2 * layout.zones.len() {
+        for (i, zone) in layout.zones.iter().enumerate() {
+            put16(&mut data, from + 2 * i, *zone);
+        }
+    }
     let bytes = if compressed { lz11::compress(&data)? } else { data };
     let folder = PathBuf::from(sd_dir).join("matrix");
     std::fs::create_dir_all(&folder).map_err(|e| format!("{}: {e}", folder.display()))?;
     let path = folder.join(format!("{matrix}.bin"));
     std::fs::write(&path, &bytes).map_err(|e| format!("{}: {e}", path.display()))?;
     crate::edit::write_index(&folder, matrix, bytes.len())?;
+    Ok(format!("{} ({} bytes)", path.display(), bytes.len()))
+}
+
+/// The maps (zones) that no real world uses: the ones of the test world (matrix 0), which a new
+/// map can take. Those that the tool already took are left out by the caller.
+pub fn recyclable_zones(arc_dir: &str) -> Vec<usize> {
+    maps_of_matrix(arc_dir, 0).unwrap_or_default()
+}
+
+/// The blocks that only the test world (matrix 0) uses: a new map can take their numbers.
+pub fn recyclable_blocks(arc_dir: &str) -> Vec<usize> {
+    let Ok(files) = garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::Matrices)) else { return Vec::new() };
+    let mut test_world: std::collections::BTreeSet<u16> = Default::default();
+    let mut real_worlds: std::collections::BTreeSet<u16> = Default::default();
+    for (matrix, file) in files.iter().enumerate() {
+        let Some(raw) = file.first() else { continue };
+        let Ok((_, _, ids)) = matrix_blocks(raw) else { continue };
+        for id in ids {
+            if matrix == 0 {
+                test_world.insert(id);
+            } else {
+                real_worlds.insert(id);
+            }
+        }
+    }
+    test_world.into_iter().filter(|b| *b < 857 && !real_worlds.contains(b)).map(|b| b as usize).collect()
+}
+
+/// Writes the file of a map (a zone) on the SD card for a map that the tool makes. It is a copy of the
+/// file of a real map (`template`): its settings, its scripts, its encounters... A zone of the test
+/// world cannot be used as it is: it has no scripts, and the game stops when the player comes in.
+/// The events are the ones that are given.
+pub fn write_zone_pack(arc_dir: &str, sd_dir: &str, map: usize, template: usize, events: &MapEvents) -> Result<String, String> {
+    let maps = garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::Maps))?;
+    let raw = zone_bytes(&maps, template).ok_or("no such map to copy")?;
+    let compressed = raw.first() == Some(&0x11);
+    let pack_bytes = unpack(&raw)?;
+    // The part of the events ends with a small script (the interrupts of the map): the game loads it
+    // for every map and stops when it is missing. A map without script takes the one of the map that
+    // it copies, with the head that goes with it.
+    let mut events = events.clone();
+    if events.tail.is_empty() {
+        let template_part = pack::split(&pack_bytes).ok().and_then(|(_, p)| p.get(1).map(|x| x.to_vec()));
+        if let Some(base) = template_part.and_then(|part| MapEvents::parse(&part).ok()) {
+            events.tail = base.tail;
+            events.head = base.head;
+        }
+    }
+    let with_events = pack::replace_part_with(&pack_bytes, 1, &events.to_bytes(), 4)?;
+    // The settings of the copy: the group of the map is the map itself, as for every map of the game
+    // (the group is the first map of the group: a map with the group of another map, which has a
+    // bigger number, makes a negative size in the game, and the game stops); the number of the
+    // event data is the one that the map had.
+    let (_, parts) = pack::split(&with_events)?;
+    let mut settings = parts.first().ok_or("the map has no settings")?.to_vec();
+    if settings.len() < 28 {
+        return Err("the settings of the map are too short".into());
+    }
+    let own_event_data = maps
+        .get(map)
+        .and_then(|f| f.first())
+        .and_then(|r| unpack(r).ok())
+        .and_then(|data| pack::split(&data).ok().and_then(|(_, p)| p.first().map(|s| s.to_vec())))
+        .filter(|s| s.len() >= 28)
+        .map(|s| u16_at(&s, 24));
+    if let Some(id) = own_event_data {
+        put16(&mut settings, 24, id);
+    }
+    put16(&mut settings, 26, map as u16);
+    let pack_new = pack::replace_part_with(&with_events, 0, &settings, 4)?;
+    let bytes = if compressed { lz11::compress(&pack_new)? } else { pack_new };
+    let folder = PathBuf::from(sd_dir).join("zone");
+    std::fs::create_dir_all(&folder).map_err(|e| format!("{}: {e}", folder.display()))?;
+    let path = folder.join(format!("{map}.bin"));
+    std::fs::write(&path, &bytes).map_err(|e| format!("{}: {e}", path.display()))?;
+    crate::edit::write_index(&folder, map, bytes.len())?;
+    let mut made = made_maps();
+    if !made.contains(&map) {
+        made.push(map);
+        set_made_maps(sd_dir, &made);
+    }
     Ok(format!("{} ({} bytes)", path.display(), bytes.len()))
 }
 
@@ -479,9 +633,9 @@ pub fn blocks_of_map(arc_dir: &str, matrix: usize, map: usize) -> Vec<usize> {
 pub fn maps_of_matrix(arc_dir: &str, matrix: usize) -> Result<Vec<usize>, String> {
     let maps = garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::Maps))?;
     let mut found = Vec::new();
-    for (map, file) in maps.iter().enumerate() {
-        let Some(raw) = file.first() else { continue };
-        let Ok(parts) = map_parts(raw) else { continue };
+    for map in 0..maps.len() {
+        let Some(raw) = zone_bytes(&maps, map) else { continue };
+        let Ok(parts) = map_parts(&raw) else { continue };
         if parts.first().filter(|p| p.len() >= 6).map_or(false, |p| u16_at(p, 4) as usize == matrix) {
             found.push(map);
         }
@@ -491,6 +645,10 @@ pub fn maps_of_matrix(arc_dir: &str, matrix: usize) -> Result<Vec<usize>, String
 
 /// The events of a map, as the game has them.
 pub fn read_map_events(arc_dir: &str, map: usize) -> Result<MapEvents, String> {
+    // A map that the tool made has no event of the game.
+    if made_maps().contains(&map) {
+        return Ok(MapEvents::default());
+    }
     let maps = garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::Maps))?;
     let raw = maps.get(map).and_then(|f| f.first()).ok_or("no such map")?;
     let parts = map_parts(raw)?;
@@ -533,9 +691,9 @@ pub fn read_map_override(sd_dir: &str, map: usize) -> Option<MapEvents> {
 /// card (the plugin gives it to the game in place of the pack of the archive).
 pub fn write_map_override(arc_dir: &str, sd_dir: &str, map: usize, events: &MapEvents) -> Result<String, String> {
     let maps = garc::read(&crate::garc::locate(arc_dir, crate::garc::Archive::Maps))?;
-    let raw = maps.get(map).and_then(|f| f.first()).ok_or("no such map")?;
+    let raw = zone_bytes(&maps, map).ok_or("no such map")?;
     let compressed = raw.first() == Some(&0x11);
-    let pack_bytes = unpack(raw)?;
+    let pack_bytes = unpack(&raw)?;
     let pack_new = pack::replace_part_with(&pack_bytes, 1, &events.to_bytes(), 4)?;
     let bytes = if compressed { lz11::compress(&pack_new)? } else { pack_new };
     let folder = PathBuf::from(sd_dir).join("zone");
@@ -549,6 +707,11 @@ pub fn write_map_override(arc_dir: &str, sd_dir: &str, map: usize, events: &MapE
 /// Gives the map its events of the game again: the file of the map leaves the
 /// SD card, and the lines of the map leave `map_events.txt`.
 pub fn reset_map(sd_dir: &str, map: usize) -> Result<String, String> {
+    let mut made = made_maps();
+    if made.contains(&map) {
+        made.retain(|m| *m != map);
+        set_made_maps(sd_dir, &made);
+    }
     let folder = PathBuf::from(sd_dir).join("zone");
     let file = folder.join(format!("{map}.bin"));
     let mut done = Vec::new();
@@ -580,6 +743,11 @@ pub fn map_has_lines(sd_dir: &str, map: usize) -> bool {
 
 /// Takes the file of a map away from the SD card (the signs, the triggers and the warps of the game come back).
 pub fn remove_map_file(sd_dir: &str, map: usize) -> Result<(), String> {
+    let mut made = made_maps();
+    if made.contains(&map) {
+        made.retain(|m| *m != map);
+        set_made_maps(sd_dir, &made);
+    }
     let folder = PathBuf::from(sd_dir).join("zone");
     let file = folder.join(format!("{map}.bin"));
     if file.exists() {

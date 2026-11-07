@@ -1490,7 +1490,8 @@ impl Viewer {
             let mut result: Result<(), String> = Ok(());
             if file_changed {
                 result = events::write_map_override(&self.arc_dir, &self.export_dir, map, &for_file).map(|_| ());
-            } else if had_file {
+            } else if had_file && !events::is_made(map) {
+                // (The file of a map that the tool made is the whole map: it stays.)
                 result = events::remove_map_file(&self.export_dir, map);
             }
             if result.is_ok() {

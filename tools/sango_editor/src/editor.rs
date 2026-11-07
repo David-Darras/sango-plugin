@@ -1808,6 +1808,14 @@ impl Editor {
         }
     }
 
+    /// Writes the block, as it is now, as another block (a copy with its own number). Returns the
+    /// path of the file.
+    pub fn export_as(&self, out_dir: &str, new_id: usize) -> Result<std::path::PathBuf, String> {
+        let mut copy = self.built.clone();
+        copy.id = new_id;
+        copy.save(Path::new(out_dir).to_str().unwrap_or(out_dir))
+    }
+
     /// Writes the block in the folder `land` of a folder of the SD card. When
     /// imported objects need pictures that the tileset of the block does not
     /// have, the tileset is written too, in the folder `area`.

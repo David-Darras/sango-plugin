@@ -13,7 +13,7 @@ use wgpu::util::DeviceExt;
 use crate::bch::{Mesh, Texture};
 use crate::data::picture_of;
 use crate::editor::{Editor, Instance};
-use crate::events::MapEvents;
+use crate::events::{self, MapEvents};
 use crate::plugin_dir;
 
 /// The size of a tile of the game, in units.
@@ -678,6 +678,24 @@ fn corner_heights(editor: &Editor) -> Vec<f32> {
     out
 }
 
+/// A colour for a map on the grid of the world (the same map has always the same colour).
+fn zone_colour(zone: u16) -> egui::Color32 {
+    let hue = ((zone as u32 * 47) % 360) as f32 / 360.0;
+    let (s, v) = (0.50f32, 0.58f32);
+    let h6 = hue * 6.0;
+    let (i, f) = (h6.floor() as i32 % 6, h6 - h6.floor());
+    let (p, q, t) = (v * (1.0 - s), v * (1.0 - s * f), v * (1.0 - s * (1.0 - f)));
+    let (r, g, b) = match i {
+        0 => (v, t, p),
+        1 => (q, v, p),
+        2 => (p, v, t),
+        3 => (p, q, v),
+        4 => (t, p, v),
+        _ => (v, p, q),
+    };
+    egui::Color32::from_rgb((r * 255.0) as u8, (g * 255.0) as u8, (b * 255.0) as u8)
+}
+
 /// The name and the colour of a tile, from its attribute. The kind of the
 /// tile is in the high byte: 0 free to walk, 1 blocked (a zone where one
 /// cannot walk, it is not always a wall), 31 to 37 tall grass, 104 to 127 a
@@ -788,6 +806,16 @@ pub struct Viewer {
     placing_imported: bool,
     /// The folder where the plugin reads its text files, as a text for the panel.
     plugin_folder_text: String,
+    /// The place (column, row) of the new map in the grid of the world.
+    newmap_cell: (usize, usize),
+    /// The new map uses the block that is open (the same ground, shared), not its own copy.
+    newmap_share: bool,
+    /// The map whose settings and scripts the new map copies (a place in the list of the maps of the open block).
+    newmap_template: usize,
+    /// The block that gives the ground of the new map (None: the block that is open).
+    newmap_block: Option<usize>,
+    /// The cell of the grid that opens at the end of the frame (after its block).
+    pending_cell: Option<(usize, usize)>,
     /// The scripts of Sango (the file scripts.txt), the one that is shown, and whether they were changed.
     scripts: crate::scripts::DataScripts,
     script_sel: usize,
@@ -987,6 +1015,7 @@ impl Viewer {
         let plugin_folder = plugin_dir::detect(&early_dir);
         plugin_dir::migrate(std::path::Path::new(&early_dir), &plugin_folder);
         plugin_dir::set(&plugin_folder);
+        events::set_sd_dir(&early_dir);
         let default_dir = std::env::var("APPDATA")
             .map(|a| format!("{a}\\Azahar\\sdmc\\sango"))
             .ok()
@@ -1032,6 +1061,11 @@ impl Viewer {
             event_clip: None,
             events_dirty: false,
             plugin_folder_text: plugin_folder.to_string_lossy().to_string(),
+            newmap_cell: (0, 0),
+            newmap_share: false,
+            newmap_template: 0,
+            newmap_block: None,
+            pending_cell: None,
             scripts: Default::default(),
             script_sel: 0,
             scripts_dirty: false,
@@ -1460,6 +1494,206 @@ impl Viewer {
         Ok(index)
     }
 
+    /// The grid of the world: click a cell, then put a map in it, open its block or empty it.
+    /// Returns true when the button "Make the map here" was pressed.
+    fn new_map_ui(&mut self, ui: &mut egui::Ui) -> bool {
+        let Some(matrix) = self.ev.matrix.clone() else {
+            ui.label("The grid of the world is not read.");
+            return false;
+        };
+        self.newmap_cell.0 = self.newmap_cell.0.min(matrix.width.saturating_sub(1));
+        self.newmap_cell.1 = self.newmap_cell.1.min(matrix.height.saturating_sub(1));
+        let zone_of = |c: usize, r: usize| matrix.zones.get((r * 4) * matrix.width * 4 + c * 4).copied().unwrap_or(0xFFFF);
+        let open = self.ev.at().map(|a| (a.column, a.row));
+        ui.label(egui::RichText::new("The grid of the world: the number is the block, the colour is the map. Click a cell.").weak());
+        // The grid.
+        let mut clicked: Option<(usize, usize)> = None;
+        egui::Grid::new("world_grid").spacing([2.0, 2.0]).show(ui, |ui| {
+            for r in 0..matrix.height {
+                for c in 0..matrix.width {
+                    let id = matrix.ids[r * matrix.width + c];
+                    let zone = zone_of(c, r);
+                    let (text, fill) = if id == 0xFFFF {
+                        ("+".to_string(), ui.visuals().faint_bg_color)
+                    } else {
+                        (if open == Some((c, r)) { format!("{id} \u{25cf}") } else { id.to_string() }, zone_colour(zone))
+                    };
+                    let selected = self.newmap_cell == (c, r);
+                    let mut button = egui::Button::new(egui::RichText::new(text).size(11.0).color(if id == 0xFFFF { ui.visuals().weak_text_color() } else { egui::Color32::WHITE }))
+                        .fill(fill)
+                        .min_size(egui::vec2(40.0, 26.0));
+                    if selected {
+                        button = button.stroke(egui::Stroke::new(2.5f32, egui::Color32::from_rgb(255, 225, 60)));
+                    }
+                    let tip = if id == 0xFFFF {
+                        format!("Cell ({c}, {r}): empty")
+                    } else {
+                        format!("Cell ({c}, {r}): block {id}, map {} [{zone}]{}", events_view::map_name(zone), if open == Some((c, r)) { " (the block that is open)" } else { "" })
+                    };
+                    if ui.add(button).on_hover_text(tip).clicked() {
+                        clicked = Some((c, r));
+                    }
+                }
+                ui.end_row();
+            }
+        });
+        if let Some(cell) = clicked {
+            self.newmap_cell = cell;
+        }
+        // The maps, with their colours.
+        let mut zones: Vec<u16> = matrix.zones.iter().copied().filter(|z| *z != 0xFFFF).collect();
+        zones.sort_unstable();
+        zones.dedup();
+        ui.horizontal_wrapped(|ui| {
+            for z in &zones {
+                ui.label(egui::RichText::new(format!("\u{25a0} {} [{z}]", events_view::map_name(*z))).color(zone_colour(*z)));
+            }
+        });
+        ui.separator();
+        // The cell that is chosen.
+        let (c, r) = self.newmap_cell;
+        let slot = r * matrix.width + c;
+        let id = matrix.ids.get(slot).copied().unwrap_or(0xFFFF);
+        if id != 0xFFFF {
+            let zone = zone_of(c, r);
+            ui.label(format!("Cell ({c}, {r}): block {id}, map {} [{zone}].", events_view::map_name(zone)));
+            ui.horizontal(|ui| {
+                if ui.button("Open this block").on_hover_text("Edit this cell: the view goes there").clicked() {
+                    if id as usize != self.editor.block_id() {
+                        self.pending_block = Some(id as usize);
+                    }
+                    self.pending_cell = Some((c, r));
+                }
+                if ui.button("Empty this cell").on_hover_text("Takes the block out of the grid (the cell has no ground and no map)").clicked() {
+                    let mut layout = matrix.clone();
+                    layout.ids[slot] = 0xFFFF;
+                    for dz in 0..4 {
+                        for dx in 0..4 {
+                            let at = (r * 4 + dz) * layout.width * 4 + c * 4 + dx;
+                            if let Some(z) = layout.zones.get_mut(at) {
+                                *z = 0xFFFF;
+                            }
+                        }
+                    }
+                    self.status = match events::write_matrix_override(&self.arc_dir, &self.export_dir, self.ev.at().map_or(1, |a| a.matrix), &layout) {
+                        Ok(_) => {
+                            self.ev.matrix = Some(layout);
+                            self.ev.neigh_key = None;
+                            format!("The cell ({c}, {r}) is empty. Export, then start the game again.")
+                        }
+                        Err(message) => format!("Cannot empty the cell: {message}"),
+                    };
+                }
+            });
+            return false;
+        }
+        // An empty cell: choose the map to put in it.
+        ui.label(format!("Cell ({c}, {r}) is empty. Choose the map to put in it: it becomes a new map that copies it."));
+        if self.ev.maps.len() > 1 {
+            self.newmap_template = self.newmap_template.min(self.ev.maps.len() - 1);
+            let text = |z: &events::MapAt| format!("{} [{}]", events_view::map_name(z.map as u16), z.map);
+            let before = self.newmap_template;
+            egui::ComboBox::from_label("Map to put here").selected_text(text(&self.ev.maps[self.newmap_template])).width(260.0).show_ui(ui, |ui| {
+                for (i, z) in self.ev.maps.iter().enumerate() {
+                    ui.selectable_value(&mut self.newmap_template, i, text(z));
+                }
+            });
+            if self.newmap_template != before || self.newmap_block.is_none() {
+                // The ground follows: the block of the first cell of this map.
+                let wanted = self.ev.maps[self.newmap_template].map as u16;
+                if let Some(first) = matrix.zones.iter().position(|z| *z == wanted) {
+                    let (zc, zr) = ((first % (matrix.width * 4)) / 4, (first / (matrix.width * 4)) / 4);
+                    if let Some(block) = matrix.ids.get(zr * matrix.width + zc).copied().filter(|b| *b != 0xFFFF) {
+                        self.newmap_block = Some(block as usize);
+                    }
+                }
+            }
+        }
+        egui::CollapsingHeader::new("Ground and options").default_open(false).show(ui, |ui| {
+            let mut blocks: Vec<u16> = matrix.ids.iter().copied().filter(|b| *b != 0xFFFF).collect();
+            blocks.sort_unstable();
+            blocks.dedup();
+            let chosen = self.newmap_block.filter(|b| blocks.contains(&(*b as u16))).unwrap_or(self.editor.block_id());
+            let label = |id: u16| {
+                let cell = matrix.ids.iter().position(|b| *b == id).unwrap_or(0);
+                let zone = zone_of(cell % matrix.width, cell / matrix.width);
+                if zone == 0xFFFF { format!("block {id}") } else { format!("block {id} ({})", events_view::map_name(zone)) }
+            };
+            let mut picked = chosen as u16;
+            egui::ComboBox::from_label("Ground: the block to copy or to share").selected_text(label(picked)).show_ui(ui, |ui| {
+                for id in &blocks {
+                    ui.selectable_value(&mut picked, *id, label(*id));
+                }
+            });
+            self.newmap_block = Some(picked as usize);
+            ui.checkbox(&mut self.newmap_share, "Share the ground of this block (no copy)").on_hover_text("The new map uses the same block: a change of the ground shows in both places. Else the block has its own copy: the test world has only one free block, so only one copy can be made.");
+        });
+        ui.button("Make the map here").on_hover_text("Writes the block, the grid of the world and the file of the map on the SD card").clicked()
+    }
+
+    /// Makes a new map: a block (a copy of the open block), the cells of the grid that belong to
+    /// the map, and the file of the map.
+    fn create_map(&mut self, frame: &eframe::Frame) {
+        let result: Result<String, String> = (|| {
+            let at = self.ev.at().cloned().ok_or("no map is open")?;
+            let mut layout = self.ev.matrix.clone().ok_or("the grid of the world is not read")?;
+            let (c, r) = self.newmap_cell;
+            let slot = r * layout.width + c;
+            if layout.ids.get(slot).copied() != Some(0xFFFF) {
+                return Err("this cell has a block".into());
+            }
+            if layout.zones.len() != layout.width * 4 * layout.height * 4 {
+                return Err("this world has no grid of maps in its file".into());
+            }
+            let sd = self.export_dir.clone();
+            let zone = events::recyclable_zones(&self.arc_dir)
+                .into_iter()
+                .find(|z| *z != 0 && !std::path::Path::new(&sd).join("zone").join(format!("{z}.bin")).exists() && !layout.zones.contains(&(*z as u16)))
+                .ok_or("no map of the test world is free")?;
+            let source = self.newmap_block.filter(|b| layout.ids.contains(&(*b as u16))).unwrap_or(self.editor.block_id());
+            let block = if self.newmap_share {
+                source
+            } else {
+                events::recyclable_blocks(&self.arc_dir)
+                    .into_iter()
+                    .find(|b| !std::path::Path::new(&sd).join("land").join(format!("{b}.bin")).exists() && !layout.ids.contains(&(*b as u16)))
+                    .ok_or("no block of the test world is free: tick \"Share the ground of the open block\"")?
+            };
+            let template = self.ev.maps.get(self.newmap_template).map_or(at.map, |m| m.map);
+            // 1. The ground: a copy of the open block, with the number of the free block (or the same block).
+            if !self.newmap_share {
+                if source == self.editor.block_id() {
+                    self.editor.export_as(&sd, block)?;
+                } else if let Some(editor) = self.world.get(&source) {
+                    editor.export_as(&sd, block)?;
+                } else {
+                    Editor::new(&self.arc_dir, source)?.export_as(&sd, block)?;
+                }
+            }
+            // 2. The grid: the block, and the 4 x 4 cells of the block belong to the new map.
+            layout.ids[slot] = block as u16;
+            for dz in 0..4 {
+                for dx in 0..4 {
+                    layout.zones[(r * 4 + dz) * layout.width * 4 + c * 4 + dx] = zone as u16;
+                }
+            }
+            events::write_matrix_override(&self.arc_dir, &sd, at.matrix, &layout)?;
+            // 3. The file of the map: a copy of the file of a real map of the world, with no event.
+            events::write_zone_pack(&self.arc_dir, &sd, zone, template, &MapEvents::default())?;
+            Ok(format!("The map {zone} is made in the cell ({c}, {r}) of the world {}, with the block {block}{}. It has no name yet (the game calls it as the map {zone} of the test world). Export, then start the game again.", at.matrix, if self.newmap_share { format!(" (shared with the block {source})") } else { format!(", a copy of the block {source}") }))
+        })();
+        match result {
+            Ok(message) => {
+                self.status = message;
+                self.history.clear();
+                self.future.clear();
+                self.reset_events_state();
+                self.finish_reset(frame);
+            }
+            Err(message) => self.status = format!("Cannot make the map: {message}"),
+        }
+    }
+
     /// Puts the armed tile of the catalogue on the tiles of the block.
     fn fill_block(&mut self, frame: &eframe::Frame) {
         let Some(entry) = self.stamp.and_then(|i| self.tile_catalog.entries.get(i)) else {
@@ -1671,6 +1905,22 @@ impl Viewer {
         self.refresh_neighbours(frame);
     }
 
+    /// Says which cell of the grid of the world the open block is in (a block that is in two cells
+    /// has the first one when it is opened by its number).
+    fn set_current_cell(&mut self, (column, row): (usize, usize), frame: &eframe::Frame) {
+        let changed = self.ev.maps.iter().any(|m| m.column != column || m.row != row);
+        if !changed {
+            return;
+        }
+        for m in self.ev.maps.iter_mut() {
+            m.column = column;
+            m.row = row;
+        }
+        self.ev.neigh_key = None;
+        self.refresh(frame);
+        self.refresh_neighbours(frame);
+    }
+
     /// Writes the open block and the other blocks that have changes.
     fn export_all(&mut self) -> Result<String, String> {
         self.events_save_with(false);
@@ -1693,12 +1943,13 @@ impl Viewer {
     /// block, and how far it is from the open block. Only the blocks that are
     /// drawn can be reached.
     fn enter_world_block(&mut self, origin: Vec3, direction: Vec3, frame: &eframe::Frame) -> Option<Vec3> {
-        let (block, shift) = self.block_under_ray(origin, direction)?;
-        if block == self.editor.block_id() {
-            return None;
-        }
+        let (block, shift, cell) = self.block_under_ray(origin, direction)?;
         let old_target = self.target;
-        self.switch_block(block, frame);
+        // (The same block can be in two cells of the world: then only the cell that is open changes.)
+        if block != self.editor.block_id() {
+            self.switch_block(block, frame);
+        }
+        self.set_current_cell(cell, frame);
         self.target = old_target - shift;
         Some(shift)
     }
@@ -1706,7 +1957,7 @@ impl Viewer {
     /// The other block of the world that a ray goes through at the height of
     /// the target of the camera, with the shift of that block from this one.
     /// Only the blocks that are drawn can be reached.
-    fn block_under_ray(&self, origin: Vec3, direction: Vec3) -> Option<(usize, Vec3)> {
+    fn block_under_ray(&self, origin: Vec3, direction: Vec3) -> Option<(usize, Vec3, (usize, usize))> {
         if self.ev.neigh_radius == 0 || direction.y.abs() < 1e-4 {
             return None;
         }
@@ -1726,7 +1977,7 @@ impl Viewer {
             return None;
         }
         let id = *matrix.ids.get(row as usize * matrix.width + column as usize)? as usize;
-        (id < 857).then(|| (id, Vec3::new(dx as f32 * 720.0, 0.0, dz as f32 * 720.0)))
+        (id < 857).then(|| (id, Vec3::new(dx as f32 * 720.0, 0.0, dz as f32 * 720.0), (column as usize, row as usize)))
     }
 
     /// Opens a world: its first block.
@@ -2670,6 +2921,7 @@ impl eframe::App for Viewer {
         // (The events are edited in the panel of the properties, in the place of the selection.)
         let mut events_changed = false;
         let mut fill_now = false;
+        let mut create_map_now = false;
 
         if self.show_inspector {
             egui::SidePanel::left("inspector").resizable(true).default_width(350.0).width_range(250.0..=600.0).show(ctx, |ui| {
@@ -2740,6 +2992,11 @@ impl eframe::App for Viewer {
                             });
                             egui::CollapsingHeader::new(chrome::section_title("Events")).default_open(true).open(force_events).show(ui, |ui| {
                                 events_changed = self.events_ui(ui);
+                            });
+                            egui::CollapsingHeader::new(chrome::section_title("Grid of the world and new maps")).default_open(true).show(ui, |ui| {
+                                if self.new_map_ui(ui) {
+                                    create_map_now = true;
+                                }
                             });
                             egui::CollapsingHeader::new(chrome::section_title("Scripts of Sango")).default_open(false).show(ui, |ui| {
                                 if self.scripts_ui(ui) {
@@ -2868,7 +3125,9 @@ impl eframe::App for Viewer {
                         });
                         ui.add_space(4.0);
                         ui.label("Folder of the SD card");
-                        ui.text_edit_singleline(&mut self.export_dir);
+                        if ui.text_edit_singleline(&mut self.export_dir).changed() {
+                            events::set_sd_dir(&self.export_dir);
+                        }
                         ui.label("Folder where the plugin reads its text files (events, scripts)");
                         if ui.text_edit_singleline(&mut self.plugin_folder_text).on_hover_text("sango for the full plugin, sango/maker for Sango Maker: found from the plugin that is installed").changed() {
                             plugin_dir::set(std::path::Path::new(&self.plugin_folder_text));
@@ -2912,6 +3171,9 @@ impl eframe::App for Viewer {
         }
         if fill_now {
             self.fill_block(frame);
+        }
+        if create_map_now {
+            self.create_map(frame);
         }
         if self.events_mode {
             self.refresh_neighbours(frame);
@@ -3034,7 +3296,7 @@ impl eframe::App for Viewer {
                 let mut hit = self.ground_hit(origin, direction);
                 if hit.is_none() && !self.selected.is_empty() {
                     // The object goes to another block of the world: it leaves this block and enters that one.
-                    if let Some((block, _)) = self.block_under_ray(origin, direction).filter(|(b, _)| *b != self.editor.block_id()) {
+                    if let Some((block, _, _)) = self.block_under_ray(origin, direction).filter(|(b, _, _)| *b != self.editor.block_id()) {
                         let extra = self.selection_box().and_then(|(low, high)| self.capture_furniture(low, high));
                         match self.editor.portable_of_many(&self.selected) {
                             Ok(object) => {
@@ -3144,6 +3406,9 @@ impl eframe::App for Viewer {
             self.switch_block(block, frame);
         } else if let Some(matrix) = self.pending_world.take() {
             self.switch_world(matrix, frame);
+        }
+        if let Some(cell) = self.pending_cell.take() {
+            self.set_current_cell(cell, frame);
         }
         self.refresh_neighbours(frame);
         self.track_history();
