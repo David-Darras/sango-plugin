@@ -2553,3 +2553,114 @@ pub fn coll_head(arc_dir: &str, block: usize) -> Result<(), String> {
     println!("{}", b.collision_debug());
     Ok(())
 }
+
+/// Cuts what goes out of a block and checks that no triangle that is drawn goes out.
+pub fn cut_test(arc_dir: &str, block: usize) -> Result<(), String> {
+    let mut editor = crate::editor::Editor::new(arc_dir, block)?;
+    let before: usize = editor.meshes().iter().map(|(_, m)| m.indices.len() / 3).sum();
+    let removed = editor.cut_outside()?;
+    let after: usize = editor.meshes().iter().map(|(_, m)| m.indices.len() / 3).sum();
+    let mut out = 0usize;
+    for (part, m) in editor.meshes() {
+        if *part != 1 && *part != 5 {
+            continue;
+        }
+        for &i in &m.indices {
+            let p = m.positions[i as usize];
+            if p[0].abs() > 360.01 || p[2].abs() > 360.01 {
+                out += 1;
+            }
+        }
+    }
+    println!("triangles {before} -> {after} (removed {removed}); drawn corners outside: {out}");
+    Ok(())
+}
+
+/// Says which meshes of a block hold objects that one can select, and how wide the widest group of each mesh is.
+pub fn sel_test(arc_dir: &str, block: usize) -> Result<(), String> {
+    let from_file = std::env::var("SEL_FILE").ok();
+    let editor = match from_file {
+        Some(path) => crate::editor::Editor::from_block(crate::edit::EditableBlock::from_file(std::path::Path::new(&path), block)?, arc_dir, false)?,
+        None => crate::editor::Editor::new(arc_dir, block)?,
+    };
+    println!("clusters {} instances {}", editor.clusters.len(), editor.instances.len());
+    for (i, (part, mesh)) in editor.meshes().iter().enumerate() {
+        if *part != 1 {
+            continue;
+        }
+        let groups = crate::edit::mesh_groups(mesh);
+        let mut widest = 0.0f32;
+        for g in &groups {
+            let (mut lo, mut hi) = ([f32::MAX; 2], [f32::MIN; 2]);
+            for &v in g {
+                let p = mesh.positions[v];
+                lo[0] = lo[0].min(p[0]);
+                hi[0] = hi[0].max(p[0]);
+                lo[1] = lo[1].min(p[2]);
+                hi[1] = hi[1].max(p[2]);
+            }
+            widest = widest.max((hi[0] - lo[0]).max(hi[1] - lo[1]));
+        }
+        println!("mesh {i} {} groups {} widest {:.0} selectable {}", mesh.material, groups.len(), widest, editor.is_selectable(i));
+    }
+    Ok(())
+}
+
+/// Prints the heights of the ground of a block (the mesh of the ground and the collision model), and the
+/// attributes on its four borders.
+pub fn heights_of_block(arc_dir: &str, block: usize) -> Result<(), String> {
+    let b = match std::env::var("SEL_FILE") {
+        Ok(path) => crate::edit::EditableBlock::from_file(std::path::Path::new(&path), block)?,
+        Err(_) => crate::edit::EditableBlock::load(arc_dir, block)?,
+    };
+    let mut counts: std::collections::BTreeMap<i32, usize> = Default::default();
+    for (part, m) in &b.meshes {
+        if *part != 1 || !m.material.contains("kusa") {
+            continue;
+        }
+        for p in &m.positions {
+            *counts.entry((p[1] * 2.0).round() as i32).or_default() += 1;
+        }
+    }
+    let top: Vec<String> = { let mut v: Vec<_> = counts.into_iter().collect(); v.sort_by_key(|(_, n)| std::cmp::Reverse(*n)); v.into_iter().take(4).map(|(h, n)| format!("{}x{n}", h as f32 / 2.0)).collect() };
+    println!("block {block}: ground heights (height x vertices): {}", top.join(" "));
+    if let Ok(tris) = b.collision_triangles() {
+        let mut h: Vec<String> = tris.iter().take(4).map(|t| format!("{:.1}/{:.1}/{:.1}", t[0][1], t[1][1], t[2][1])).collect();
+        h.insert(0, format!("{} collision triangles", tris.len()));
+        println!("  collision: {}", h.join("  "));
+    }
+    let a = b.attributes()?;
+    let row = |r: usize| (0..a.width).map(|c| format!("{:x}", a.cells[r * a.width + c] >> 24)).collect::<Vec<_>>().join(",");
+    let col = |c: usize| (0..a.height).map(|r| format!("{:x}", a.cells[r * a.width + c] >> 24)).collect::<Vec<_>>().join(",");
+    println!("  top row   {}\n  bottom row {}\n  left col  {}\n  right col {}", row(0), row(a.height - 1), col(0), col(a.width - 1));
+    Ok(())
+}
+
+/// Prints the attributes (all the bits) of a column or a row of a block.
+pub fn attr_line(arc_dir: &str, block: usize, what: &str, index: usize) -> Result<(), String> {
+    let b = match std::env::var("SEL_FILE") {
+        Ok(path) => crate::edit::EditableBlock::from_file(std::path::Path::new(&path), block)?,
+        Err(_) => crate::edit::EditableBlock::load(arc_dir, block)?,
+    };
+    let a = b.attributes()?;
+    let list: Vec<String> = if what == "col" {
+        (0..a.height).map(|r| format!("{:08x}", a.cells[r * a.width + index])).collect()
+    } else {
+        (0..a.width).map(|c| format!("{:08x}", a.cells[index * a.width + c])).collect()
+    };
+    println!("{what} {index}: {}", list.join(" "));
+    Ok(())
+}
+
+/// Test: makes every tile of the blocks given free to walk, in the files of the SD card.
+pub fn free_all_tiles(sd_dir: &str, blocks: &[usize]) -> Result<(), String> {
+    for &id in blocks {
+        let path = std::path::Path::new(sd_dir).join("land").join(format!("{id}.bin"));
+        let mut b = crate::edit::EditableBlock::from_file(&path, id)?;
+        let a = b.attributes()?;
+        let cells = vec![0x0000_0020u32; a.cells.len()];
+        b.set_attributes(&crate::edit::Attributes { width: a.width, height: a.height, cells })?;
+        println!("{}", b.save(sd_dir)?.display());
+    }
+    Ok(())
+}

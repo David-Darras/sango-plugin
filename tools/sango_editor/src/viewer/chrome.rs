@@ -78,6 +78,7 @@ pub enum Confirm {
     ResetEvents,
     RotateRight,
     RotateLeft,
+    CutOutside,
 }
 
 /// A move of the camera that runs over a few frames.
@@ -370,6 +371,9 @@ impl Viewer {
                     if menu_item(ui, "Turn the block 90\u{b0} to the left", "", true) {
                         self.confirm = Some(Confirm::RotateLeft);
                     }
+                    if menu_item(ui, "Cut what goes out of the block", "", true) {
+                        self.confirm = Some(Confirm::CutOutside);
+                    }
                     if menu_item(ui, "Clear the whole block...", "", true) {
                         self.confirm = Some(Confirm::ClearBlock);
                     }
@@ -588,12 +592,12 @@ impl Viewer {
     pub(super) fn confirm_dialog(&mut self, ctx: &egui::Context) -> Option<Confirm> {
         let question = self.confirm?;
         // A turn of the block needs no question: turning it back undoes it.
-        if matches!(question, Confirm::RotateRight | Confirm::RotateLeft) {
+        if matches!(question, Confirm::RotateRight | Confirm::RotateLeft | Confirm::CutOutside) {
             self.confirm = None;
             return Some(question);
         }
         let (title, text, yes) = match question {
-            Confirm::RotateRight | Confirm::RotateLeft => return None,
+            Confirm::RotateRight | Confirm::RotateLeft | Confirm::CutOutside => return None,
             Confirm::ResetMap => (
                 "Reset the map to the game?",
                 "The events of this map (file and lines of map_events.txt) go back to the game, and so do the blocks where the map has events: the objects that you moved or added there are lost.",

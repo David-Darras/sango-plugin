@@ -844,7 +844,7 @@ impl Editor {
             // The ground: the meshes of the ground of the block, and the tiles that were put on it.
             let is_ground = |mesh: usize, vertex: usize| {
                 let tile = owner[mesh].get(vertex).copied().flatten().is_some_and(|i| self.instances[i].replaces.is_some());
-                tile || built_origin[mesh].is_some_and(|o| !self.selectable[o])
+                tile || (built_origin[mesh].is_some_and(|o| !self.selectable[o]) && owner[mesh].get(vertex).copied().flatten().is_none())
             };
             let mut heights: std::collections::HashMap<i32, usize> = Default::default();
             let mut ground: Vec<(usize, Vec<usize>)> = Vec::new();
@@ -890,7 +890,7 @@ impl Editor {
                         part == GRASS_PART
                             || (part == 1
                                 && (owner[mesh].get(v).copied().flatten().is_some_and(|i| self.instances[i].replaces.is_some())
-                                    || built_origin[mesh].is_some_and(|o| !self.selectable[o])))
+                                    || (built_origin[mesh].is_some_and(|o| !self.selectable[o]) && owner[mesh].get(v).copied().flatten().is_none())))
                     })
                     .collect();
                 for v in vertices {
@@ -909,7 +909,7 @@ impl Editor {
                 }
                 let is_ground = |v: usize| {
                     owner[mesh].get(v).copied().flatten().is_some_and(|i| self.instances[i].replaces.is_some())
-                        || built_origin[mesh].is_some_and(|o| !self.selectable[o])
+                        || (built_origin[mesh].is_some_and(|o| !self.selectable[o]) && owner[mesh].get(v).copied().flatten().is_none())
                 };
                 for t in m.indices.chunks_exact(3) {
                     let (Some(a), Some(b), Some(c)) = (m.positions.get(t[0] as usize), m.positions.get(t[1] as usize), m.positions.get(t[2] as usize)) else { continue };
@@ -1002,6 +1002,19 @@ impl Editor {
         self.built.id = id;
         self.from_archive = false;
         self.force_export = true;
+    }
+
+    /// Cuts what goes out of the square of the block (see `EditableBlock::cut_outside`). Like a turn,
+    /// the result is the new starting point of the block. Returns the number of triangles cut.
+    pub fn cut_outside(&mut self) -> Result<usize, String> {
+        let mut block = self.built.clone();
+        let removed = block.cut_outside(360.0)?;
+        let mut fresh = Editor::from_block(block, &self.arc_dir, false)?;
+        fresh.tileset = self.tileset;
+        fresh.pictures = std::mem::take(&mut self.pictures);
+        fresh.force_export = true;
+        *self = fresh;
+        Ok(removed)
     }
 
     /// True when the block must be written even without a step of undo (it was turned).
@@ -1854,7 +1867,7 @@ impl Editor {
         let size = std::fs::metadata(&path).map(|m| m.len()).unwrap_or(0);
         let mut message = format!("written {} ({} bytes)", path.display(), size);
         if let (Some(tileset), false) = (self.tileset, self.pictures.is_empty()) {
-            let (pack, compressed) = crate::data::tileset_pack(&self.arc_dir, tileset)?;
+            let (pack, compressed) = crate::data::tileset_pack_with_sd(&self.arc_dir, out_dir, tileset)?;
             let (_, parts) = crate::pack::split(&pack)?;
             let part = parts.get(crate::data::TILESET_PICTURES).ok_or("the tileset has no pictures")?;
             let wanted: Vec<crate::bch_edit::TextureBlob> = self.pictures.clone();

@@ -129,15 +129,35 @@ impl Viewer {
             return;
         }
         self.ev.loaded = true;
-        match crate::events::maps_of_block(&self.arc_dir, self.editor.block_id()) {
+        // A block that the user opens inside the world that is open stays in this world, even when the
+        // game uses the block in another world (a block taken from another world).
+        let world_ctx = self.keep_world.take();
+        let block_number = self.editor.block_id();
+        let from_world = world_ctx.as_ref().and_then(|(layout, maps)| {
+            let slot = layout.ids.iter().position(|b| *b as usize == block_number)?;
+            let (column, row) = (slot % layout.width, slot / layout.width);
+            let list: Vec<MapAt> = maps.iter().map(|m| MapAt { column, row, ..m.clone() }).collect();
+            let zone = layout.zones.get((row * 4) * layout.width * 4 + column * 4).copied().unwrap_or(0xFFFF) as usize;
+            Some((list, zone))
+        });
+        let found = match &from_world {
+            Some((list, _)) => Ok(list.clone()),
+            None => crate::events::maps_of_block(&self.arc_dir, block_number),
+        };
+        match found {
             Ok(maps) if !maps.is_empty() => {
                 // The map with the most events is the one that the user wants.
                 let mut best = (0, 0usize);
-                for (i, z) in maps.iter().enumerate() {
-                    if let Ok(e) = crate::events::read_map_events(&self.arc_dir, z.map) {
-                        let n = e.signs.len() + e.characters.len() + e.warps.len() + e.triggers.len();
-                        if n > best.1 {
-                            best = (i, n);
+                if let Some((_, zone)) = &from_world {
+                    // In the open world: the map of the cell.
+                    best = (maps.iter().position(|m| m.map == *zone).unwrap_or(0), 0);
+                } else {
+                    for (i, z) in maps.iter().enumerate() {
+                        if let Ok(e) = crate::events::read_map_events(&self.arc_dir, z.map) {
+                            let n = e.signs.len() + e.characters.len() + e.warps.len() + e.triggers.len();
+                            if n > best.1 {
+                                best = (i, n);
+                            }
                         }
                     }
                 }

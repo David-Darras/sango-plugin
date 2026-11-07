@@ -812,6 +812,11 @@ pub struct Viewer {
     newmap_share: bool,
     /// The map whose settings and scripts the new map copies (a place in the list of the maps of the open block).
     newmap_template: usize,
+    /// The grid and the maps of the world that is open, kept while another block of it opens.
+    keep_world: Option<(events::MatrixLayout, Vec<events::MapAt>)>,
+    /// The world that gives the ground of the new map (None: the open world), and its grid when it is another one.
+    newmap_world: Option<usize>,
+    newmap_other: Option<(usize, events::MatrixLayout)>,
     /// The block that gives the ground of the new map (None: the block that is open).
     newmap_block: Option<usize>,
     /// The cell of the grid that opens at the end of the frame (after its block).
@@ -1064,6 +1069,9 @@ impl Viewer {
             newmap_cell: (0, 0),
             newmap_share: false,
             newmap_template: 0,
+            keep_world: None,
+            newmap_world: None,
+            newmap_other: None,
             newmap_block: None,
             pending_cell: None,
             scripts: Default::default(),
@@ -1276,6 +1284,7 @@ impl Viewer {
                 }
             }
             Confirm::ClearBlock => self.clear_block(frame),
+            Confirm::CutOutside => self.cut_outside(frame),
             Confirm::RotateRight => self.rotate_block(1, frame),
             Confirm::RotateLeft => self.rotate_block(3, frame),
             Confirm::ResetEvents => {
@@ -1388,6 +1397,7 @@ impl Viewer {
         self.project_path = format!("block_{block}.msproj");
         let keep_show = self.ev.show;
         let keep_radius = self.ev.neigh_radius;
+        self.keep_world = self.ev.matrix.clone().filter(|m| m.ids.contains(&(block as u16))).map(|m| (m, self.ev.maps.clone()));
         self.ev = Default::default();
         self.ev.show = keep_show;
         self.ev.neigh_radius = keep_radius;
@@ -1566,6 +1576,13 @@ impl Viewer {
                     }
                     self.pending_cell = Some((c, r));
                 }
+                if ui.button("Add the missing pictures").on_hover_text("A block taken from another world needs its pictures in the tileset of this world, or the game stops (black screen)").clicked() {
+                    let map = self.ev.at().map_or(0, |a| a.map);
+                    self.status = match self.bring_pictures(id as usize, map) {
+                        Ok(message) => format!("{message} Start the game again."),
+                        Err(message) => format!("Cannot add the pictures: {message}"),
+                    };
+                }
                 if ui.button("Empty this cell").on_hover_text("Takes the block out of the grid (the cell has no ground and no map)").clicked() {
                     let mut layout = matrix.clone();
                     layout.ids[slot] = 0xFFFF;
@@ -1612,13 +1629,37 @@ impl Viewer {
             }
         }
         egui::CollapsingHeader::new("Ground and options").default_open(false).show(ui, |ui| {
-            let mut blocks: Vec<u16> = matrix.ids.iter().copied().filter(|b| *b != 0xFFFF).collect();
+            // The ground can come from any world: the blocks are the same files for all of them.
+            if self.worlds.is_empty() {
+                self.worlds = crate::events::list_worlds(&self.arc_dir).unwrap_or_default();
+            }
+            let current_world = self.ev.at().map_or(1, |a| a.matrix);
+            let world = self.newmap_world.unwrap_or(current_world);
+            let mut picked_world = world;
+            let world_text = self.worlds.iter().find(|w| w.matrix == world).map_or(format!("world {world}"), |w| format!("{} [{}]", Self::world_label(w), w.matrix));
+            egui::ComboBox::from_label("Ground from the world").selected_text(world_text).width(260.0).show_ui(ui, |ui| {
+                for w in &self.worlds {
+                    ui.selectable_value(&mut picked_world, w.matrix, format!("{} [{}]", Self::world_label(w), w.matrix));
+                }
+            });
+            if picked_world != world || self.newmap_world.is_none() && self.newmap_other.is_none() {
+                self.newmap_other = if picked_world == current_world { None } else { events::read_matrix(&self.arc_dir, &self.export_dir, picked_world).ok().map(|l| (picked_world, l)) };
+            }
+            if picked_world != world {
+                self.newmap_world = Some(picked_world);
+                self.newmap_block = None;
+            }
+            let layout_of_ground = match &self.newmap_other {
+                Some((w, l)) if *w == picked_world && picked_world != current_world => l.clone(),
+                _ => matrix.clone(),
+            };
+            let mut blocks: Vec<u16> = layout_of_ground.ids.iter().copied().filter(|b| *b != 0xFFFF).collect();
             blocks.sort_unstable();
             blocks.dedup();
-            let chosen = self.newmap_block.filter(|b| blocks.contains(&(*b as u16))).unwrap_or(self.editor.block_id());
+            let chosen = self.newmap_block.filter(|b| blocks.contains(&(*b as u16))).or(blocks.first().map(|b| *b as usize)).unwrap_or(self.editor.block_id());
             let label = |id: u16| {
-                let cell = matrix.ids.iter().position(|b| *b == id).unwrap_or(0);
-                let zone = zone_of(cell % matrix.width, cell / matrix.width);
+                let cell = layout_of_ground.ids.iter().position(|b| *b == id).unwrap_or(0);
+                let zone = layout_of_ground.zones.get(((cell / layout_of_ground.width) * 4) * layout_of_ground.width * 4 + (cell % layout_of_ground.width) * 4).copied().unwrap_or(0xFFFF);
                 if zone == 0xFFFF { format!("block {id}") } else { format!("block {id} ({})", events_view::map_name(zone)) }
             };
             let mut picked = chosen as u16;
@@ -1628,6 +1669,9 @@ impl Viewer {
                 }
             });
             self.newmap_block = Some(picked as usize);
+            if picked_world != current_world {
+                ui.label(egui::RichText::new("This block is from another world: it has the pictures of that world, so some textures can be wrong here.").weak());
+            }
             ui.checkbox(&mut self.newmap_share, "Share the ground of this block (no copy)").on_hover_text("The new map uses the same block: a change of the ground shows in both places. Else the block has its own copy: the test world has only one free block, so only one copy can be made.");
         });
         ui.button("Make the map here").on_hover_text("Writes the block, the grid of the world and the file of the map on the SD card").clicked()
@@ -1652,7 +1696,7 @@ impl Viewer {
                 .into_iter()
                 .find(|z| *z != 0 && !std::path::Path::new(&sd).join("zone").join(format!("{z}.bin")).exists() && !layout.zones.contains(&(*z as u16)))
                 .ok_or("no map of the test world is free")?;
-            let source = self.newmap_block.filter(|b| layout.ids.contains(&(*b as u16))).unwrap_or(self.editor.block_id());
+            let source = self.newmap_block.filter(|b| *b < 857).unwrap_or(self.editor.block_id());
             let block = if self.newmap_share {
                 source
             } else {
@@ -1672,6 +1716,8 @@ impl Viewer {
                     Editor::new(&self.arc_dir, source)?.export_as(&sd, block)?;
                 }
             }
+            // The pictures of the block that this world does not have.
+            let pictures = self.bring_pictures(source, at.map)?;
             // 2. The grid: the block, and the 4 x 4 cells of the block belong to the new map.
             layout.ids[slot] = block as u16;
             for dz in 0..4 {
@@ -1682,7 +1728,7 @@ impl Viewer {
             events::write_matrix_override(&self.arc_dir, &sd, at.matrix, &layout)?;
             // 3. The file of the map: a copy of the file of a real map of the world, with no event.
             events::write_zone_pack(&self.arc_dir, &sd, zone, template, &MapEvents::default())?;
-            Ok(format!("The map {zone} is made in the cell ({c}, {r}) of the world {}, with the block {block}{}. It has no name yet (the game calls it as the map {zone} of the test world). Export, then start the game again.", at.matrix, if self.newmap_share { format!(" (shared with the block {source})") } else { format!(", a copy of the block {source}") }))
+            Ok(format!("The map {zone} is made in the cell ({c}, {r}) of the world {}, with the block {block}{}. It has no name yet (the game calls it as the map {zone} of the test world). {pictures} Export, then start the game again.", at.matrix, if self.newmap_share { format!(" (shared with the block {source})") } else { format!(", a copy of the block {source}") }))
         })();
         match result {
             Ok(message) => {
@@ -1923,6 +1969,59 @@ impl Viewer {
         self.refresh_neighbours(frame);
     }
 
+    /// Puts in the tileset of a world the pictures that a block needs and the tileset does not have
+    /// (a block taken from another world): without them the game stops when it loads the block.
+    /// Returns what it did. `dest_map` is a map of the world that gets the block.
+    fn bring_pictures(&self, block: usize, dest_map: usize) -> Result<String, String> {
+        let dest = events::map_tileset(&self.arc_dir, dest_map).ok_or("the tileset of the world is not found")?;
+        let meshes = crate::edit::EditableBlock::load(&self.arc_dir, block)?.meshes;
+        let mut names: Vec<String> = meshes.iter().map(|(_, m)| m.texture.clone()).filter(|n| !n.is_empty()).collect();
+        names.sort();
+        names.dedup();
+        // The pictures of the other tilesets that use this block.
+        let mut blobs: Vec<crate::bch_edit::TextureBlob> = Vec::new();
+        let mut tilesets: Vec<usize> = Vec::new();
+        for at in events::maps_of_block(&self.arc_dir, block)? {
+            if let Some(t) = events::map_tileset(&self.arc_dir, at.map) {
+                if t != dest && !tilesets.contains(&t) {
+                    tilesets.push(t);
+                }
+            }
+        }
+        for t in tilesets {
+            let wanted: Vec<String> = names.iter().filter(|n| !blobs.iter().any(|b| &b.name == *n)).cloned().collect();
+            if let Ok(found) = crate::data::tileset_texture_blobs(&self.arc_dir, t, &wanted) {
+                blobs.extend(found);
+            }
+        }
+        if blobs.is_empty() {
+            return Ok("The tileset has all the pictures of the block.".into());
+        }
+        // The tileset as the SD card has it (with the pictures that were added before), else the game's.
+        let folder = std::path::Path::new(&self.export_dir).join("area");
+        let file = folder.join(format!("{dest}.bin"));
+        let (pack, compressed) = match std::fs::read(&file) {
+            Ok(bytes) if !bytes.is_empty() => {
+                if bytes.first() == Some(&0x11) { (crate::lz11::decompress(&bytes)?, true) } else { (bytes, false) }
+            }
+            _ => crate::data::tileset_pack(&self.arc_dir, dest)?,
+        };
+        let (_, parts) = crate::pack::split(&pack)?;
+        let part = parts.get(crate::data::TILESET_PICTURES).ok_or("the tileset has no pictures")?;
+        let bigger = crate::bch_edit::add_textures(part, &blobs)?;
+        if bigger.len() == part.len() {
+            return Ok("The tileset has all the pictures of the block.".into());
+        }
+        let mut padded = bigger;
+        padded.resize(padded.len().div_ceil(crate::pack::ALIGNMENT) * crate::pack::ALIGNMENT, 0);
+        let made = crate::pack::replace_part(&pack, crate::data::TILESET_PICTURES, &padded)?;
+        let bytes = if compressed { crate::lz11::compress(&made)? } else { made };
+        std::fs::create_dir_all(&folder).map_err(|e| format!("{}: {e}", folder.display()))?;
+        std::fs::write(&file, &bytes).map_err(|e| format!("{}: {e}", file.display()))?;
+        crate::edit::write_index(&folder, dest, bytes.len())?;
+        Ok(format!("{} pictures added to the tileset {dest} ({} bytes{}).", blobs.len(), bytes.len(), if bytes.len() > 860_000 { ", maybe too big for the game" } else { "" }))
+    }
+
     /// When the block of the open cell is also in other cells of the world, gives this cell a block
     /// of its own (a free block of the test world, which the open block's copy will fill) and
     /// writes the grid of the world. Returns the new number, or None when the block was not shared.
@@ -1944,6 +2043,35 @@ impl Viewer {
         self.ev.neigh_key = None;
         self.editor.set_block_id(free);
         Ok(Some(free))
+    }
+
+    /// Cuts what goes out of the square of the block. Like a turn, it cannot be undone with Ctrl+Z.
+    fn cut_outside(&mut self, frame: &eframe::Frame) {
+        let id = self.editor.block_id();
+        match self.editor.cut_outside() {
+            Ok(removed) => {
+                self.world.remove(&id);
+                self.neigh_heights.remove(&id);
+                self.history.clear();
+                self.future.clear();
+                self.history_base = None;
+                self.rows.clear();
+                self.visible.clear();
+                self.selected.clear();
+                self.placing = false;
+                self.stamp = None;
+                self.heights = None;
+                self.ev.neigh_key = None;
+                self.refresh(frame);
+                self.refresh_neighbours(frame);
+                if self.tile_mode {
+                    self.heights = Some(self.ground_heights());
+                    self.refresh(frame);
+                }
+                self.status = format!("What went out of the block is cut ({removed} triangles, and the objects outside). Export to write the block. Restore the original block to go back.");
+            }
+            Err(message) => self.status = format!("Cannot cut the block: {message}"),
+        }
     }
 
     /// Turns the open block by quarter turns around its centre. The window keeps the result as the
@@ -3405,6 +3533,11 @@ impl eframe::App for Viewer {
                 let ctrl = ctx.input(|i| i.modifiers.command);
                 let mut origin = origin;
                 let mut hit = self.pick(origin, direction, false);
+                // Ground of this block that goes beyond its square (a border of the model) is not what
+                // the user points at when there is another block there: the click goes to that block.
+                if hit.as_ref().is_some_and(|h| h.owner.is_none() && (h.point.x.abs() > BLOCK_HALF + 0.5 || h.point.z.abs() > BLOCK_HALF + 0.5)) {
+                    hit = None;
+                }
                 if hit.is_none() {
                     // A click on another block of the world opens that block, then selects what is under the pointer.
                     if let Some(shift) = self.enter_world_block(origin, direction, frame) {

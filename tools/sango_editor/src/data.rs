@@ -121,6 +121,18 @@ pub fn tileset_pack(arc_dir: &str, tileset: usize) -> Result<(Vec<u8>, bool), St
     if raw.first() == Some(&0x11) { Ok((lz11::decompress(raw)?, true)) } else { Ok((raw.clone(), false)) }
 }
 
+/// The tileset pack as the SD card has it (a file that the tool wrote, with the pictures that it
+/// added), else as the archive has it.
+pub fn tileset_pack_with_sd(arc_dir: &str, sd_dir: &str, tileset: usize) -> Result<(Vec<u8>, bool), String> {
+    let file = std::path::Path::new(sd_dir).join("area").join(format!("{tileset}.bin"));
+    if let Ok(bytes) = std::fs::read(&file) {
+        if !bytes.is_empty() {
+            return if bytes.first() == Some(&0x11) { Ok((lz11::decompress(&bytes)?, true)) } else { Ok((bytes, false)) };
+        }
+    }
+    tileset_pack(arc_dir, tileset)
+}
+
 /// The part of an tileset pack that holds the pictures.
 pub const TILESET_PICTURES: usize = TILESET_TEXTURE_PART;
 

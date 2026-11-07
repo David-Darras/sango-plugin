@@ -858,6 +858,112 @@ impl EditableBlock {
         Ok(removed)
     }
 
+    /// Cuts what goes out of the square of the block (from -limit to +limit): small objects (trees,
+    /// buildings) whose centre is outside are removed; for the ground, the triangles that are
+    /// completely outside are removed and the vertices that are outside go to the border. The
+    /// collision model is cut the same way. Returns how many triangles went away.
+    pub fn cut_outside(&mut self, limit: f32) -> Result<usize, String> {
+        let outside = |p: &[f32; 3]| p[0].abs() > limit + 0.01 || p[2].abs() > limit + 0.01;
+        let side = move |p: &[f32; 3]| -> u8 { (p[0] > limit) as u8 | ((p[0] < -limit) as u8) << 1 | ((p[2] > limit) as u8) << 2 | ((p[2] < -limit) as u8) << 3 };
+        let mut removed_total = 0usize;
+        for index in 0..self.meshes.len() {
+            let part = self.meshes[index].0;
+            if !MODEL_PARTS.contains(&part) {
+                continue;
+            }
+            let groups = mesh_groups(&self.meshes[index].1);
+            let mesh = &self.meshes[index].1;
+            // For each vertex: None for the ground (a big group), or the decision for a small object.
+            let mut small: Vec<Option<bool>> = vec![None; mesh.positions.len()];
+            for g in &groups {
+                let (mut lo, mut hi) = ([f32::MAX; 2], [f32::MIN; 2]);
+                for &v in g {
+                    let p = mesh.positions[v];
+                    lo[0] = lo[0].min(p[0]);
+                    hi[0] = hi[0].max(p[0]);
+                    lo[1] = lo[1].min(p[2]);
+                    hi[1] = hi[1].max(p[2]);
+                }
+                if (hi[0] - lo[0]).max(hi[1] - lo[1]) < 100.0 {
+                    let centre = [(lo[0] + hi[0]) / 2.0, 0.0, (lo[1] + hi[1]) / 2.0];
+                    for &v in g {
+                        small[v] = Some(outside(&centre));
+                    }
+                }
+            }
+            let mut kept: Vec<u32> = Vec::new();
+            for t in mesh.indices.chunks_exact(3) {
+                let drop = match small.get(t[0] as usize).copied().flatten() {
+                    Some(gone) => gone,
+                    None => {
+                        let sides: Vec<u8> = t.iter().map(|&i| mesh.positions.get(i as usize).map_or(0, side)).collect();
+                        sides[0] & sides[1] & sides[2] != 0
+                    }
+                };
+                if !drop {
+                    kept.extend_from_slice(t);
+                }
+            }
+            let removed = (mesh.indices.len() - kept.len()) / 3;
+            if removed > 0 {
+                let (part, mesh) = &mut self.meshes[index];
+                let base = self.ranges[*part].0;
+                let width = mesh.places.index_width;
+                let start = base + mesh.places.indices_at;
+                for k in 0..mesh.indices.len() {
+                    let value = kept.get(k).copied().unwrap_or(0);
+                    let at = start + k * width;
+                    if width == 2 {
+                        self.pack[at..at + 2].copy_from_slice(&(value as u16).to_le_bytes());
+                    } else {
+                        self.pack[at] = value as u8;
+                    }
+                }
+                let count_at = base + mesh.places.index_count_at;
+                self.pack[count_at..count_at + 4].copy_from_slice(&(kept.len() as u32).to_le_bytes());
+                mesh.indices = kept;
+                removed_total += removed;
+            }
+            // The vertices of the ground that are still outside go to the border.
+            let (part, mesh) = &mut self.meshes[index];
+            let base = self.ranges[*part].0;
+            let used: HashSet<usize> = mesh.indices.iter().map(|&i| i as usize).collect();
+            for v in 0..mesh.positions.len() {
+                if small.get(v).copied().flatten().is_some() || !used.contains(&v) {
+                    continue;
+                }
+                let p = mesh.positions[v];
+                if !outside(&p) {
+                    continue;
+                }
+                let moved = [p[0].clamp(-limit, limit), p[1], p[2].clamp(-limit, limit)];
+                let at = base + mesh.position_offsets[v];
+                for axis in [0usize, 2] {
+                    self.pack[at + 4 * axis..at + 4 * axis + 4].copy_from_slice(&moved[axis].to_le_bytes());
+                }
+                mesh.positions[v] = moved;
+            }
+        }
+        if let Ok(triangles) = self.collision_triangles() {
+            let mut cut: Vec<[[f32; 3]; 3]> = Vec::new();
+            for t in &triangles {
+                if side(&t[0]) & side(&t[1]) & side(&t[2]) != 0 {
+                    continue;
+                }
+                let mut out = *t;
+                for p in out.iter_mut() {
+                    p[0] = p[0].clamp(-limit, limit);
+                    p[2] = p[2].clamp(-limit, limit);
+                }
+                cut.push(out);
+            }
+            if cut.len() != triangles.len() || cut.iter().zip(&triangles).any(|(a, b)| a != b) {
+                self.set_collision(&cut)?;
+            }
+        }
+        Ok(removed_total)
+    }
+
     /// The mesh of this block that can take a piece of a foreign object.
     pub(crate) fn host_of(&self, part: &PortablePart) -> Result<usize, String> {
         self.meshes

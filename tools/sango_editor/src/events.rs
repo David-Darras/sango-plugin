@@ -707,10 +707,9 @@ pub fn write_map_override(arc_dir: &str, sd_dir: &str, map: usize, events: &MapE
 /// Gives the map its events of the game again: the file of the map leaves the
 /// SD card, and the lines of the map leave `map_events.txt`.
 pub fn reset_map(sd_dir: &str, map: usize) -> Result<String, String> {
-    let mut made = made_maps();
-    if made.contains(&map) {
-        made.retain(|m| *m != map);
-        set_made_maps(sd_dir, &made);
+    // The file of a map that the tool made is the whole map (the game has only an empty one for it): it stays.
+    if made_maps().contains(&map) {
+        return Ok("this map was made by the tool: its file stays".into());
     }
     let folder = PathBuf::from(sd_dir).join("zone");
     let file = folder.join(format!("{map}.bin"));
@@ -743,10 +742,9 @@ pub fn map_has_lines(sd_dir: &str, map: usize) -> bool {
 
 /// Takes the file of a map away from the SD card (the signs, the triggers and the warps of the game come back).
 pub fn remove_map_file(sd_dir: &str, map: usize) -> Result<(), String> {
-    let mut made = made_maps();
-    if made.contains(&map) {
-        made.retain(|m| *m != map);
-        set_made_maps(sd_dir, &made);
+    // The file of a map that the tool made is the whole map: it stays.
+    if made_maps().contains(&map) {
+        return Ok(());
     }
     let folder = PathBuf::from(sd_dir).join("zone");
     let file = folder.join(format!("{map}.bin"));
