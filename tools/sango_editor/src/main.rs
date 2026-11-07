@@ -155,6 +155,8 @@ fn main() {
         }
         Some("matrix-raw") if args.len() >= 4 => commands::matrix_raw(&args[2], number(3).unwrap_or(0)),
         Some("zones-unused") if args.len() >= 3 => commands::zones_unused(&args[2]),
+        Some("coll-head") if args.len() >= 4 => commands::coll_head(&args[2], block),
+        Some("rotate-test") if args.len() >= 5 => commands::rotate_test(&args[2], block, &args[4]),
         Some("zone-rewrite") if args.len() >= 6 => commands::zone_rewrite(&args[2], &args[3], number(4).unwrap_or(0), number(5).unwrap_or(0)),
         Some("garc-entries") if args.len() >= 4 => commands::garc_entries(&args[2], &args[3..].iter().filter_map(|n| n.parse().ok()).collect::<Vec<_>>()),
         Some("newmap-test") if args.len() >= 5 => commands::newmap_test(&args[2], block, &args[4]),

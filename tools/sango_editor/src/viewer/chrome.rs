@@ -76,6 +76,8 @@ pub enum Confirm {
     ClearBlock,
     FlattenBlock,
     ResetEvents,
+    RotateRight,
+    RotateLeft,
 }
 
 /// A move of the camera that runs over a few frames.
@@ -362,6 +364,12 @@ impl Viewer {
                     if menu_item(ui, "Flatten the terrain...", "", true) {
                         self.confirm = Some(Confirm::FlattenBlock);
                     }
+                    if menu_item(ui, "Turn the block 90\u{b0} to the right", "", true) {
+                        self.confirm = Some(Confirm::RotateRight);
+                    }
+                    if menu_item(ui, "Turn the block 90\u{b0} to the left", "", true) {
+                        self.confirm = Some(Confirm::RotateLeft);
+                    }
                     if menu_item(ui, "Clear the whole block...", "", true) {
                         self.confirm = Some(Confirm::ClearBlock);
                     }
@@ -457,6 +465,10 @@ impl Viewer {
                 }
                 if ui.add_enabled(self.can_redo(), egui::Button::new("Redo").min_size(egui::vec2(56.0, 28.0))).on_hover_text("Redo (Ctrl+Y)").clicked() {
                     cmd.action = Some(Action::Redo);
+                }
+                let reset = egui::Button::new(egui::RichText::new("Reset the world").color(egui::Color32::from_rgb(230, 120, 110))).min_size(egui::vec2(110.0, 28.0));
+                if ui.add(reset).on_hover_text("All the maps, all the blocks and the grid of this world go back to the game (asks first)").clicked() {
+                    self.confirm = Some(Confirm::ResetWorld);
                 }
                 ui.separator();
                 if ui.add(egui::Button::new("Export").min_size(egui::vec2(66.0, 28.0))).on_hover_text("Write the block on the SD card (Ctrl+E)").clicked() {
@@ -575,7 +587,13 @@ impl Viewer {
     /// The question before a reset. Returns the answer when it is yes.
     pub(super) fn confirm_dialog(&mut self, ctx: &egui::Context) -> Option<Confirm> {
         let question = self.confirm?;
+        // A turn of the block needs no question: turning it back undoes it.
+        if matches!(question, Confirm::RotateRight | Confirm::RotateLeft) {
+            self.confirm = None;
+            return Some(question);
+        }
         let (title, text, yes) = match question {
+            Confirm::RotateRight | Confirm::RotateLeft => return None,
             Confirm::ResetMap => (
                 "Reset the map to the game?",
                 "The events of this map (file and lines of map_events.txt) go back to the game, and so do the blocks where the map has events: the objects that you moved or added there are lost.",

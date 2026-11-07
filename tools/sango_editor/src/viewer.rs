@@ -1276,6 +1276,8 @@ impl Viewer {
                 }
             }
             Confirm::ClearBlock => self.clear_block(frame),
+            Confirm::RotateRight => self.rotate_block(1, frame),
+            Confirm::RotateLeft => self.rotate_block(3, frame),
             Confirm::ResetEvents => {
                 let maps: Vec<usize> = self.ev.maps.iter().map(|m| m.map).collect();
                 let mut failed = None;
@@ -1656,8 +1658,8 @@ impl Viewer {
             } else {
                 events::recyclable_blocks(&self.arc_dir)
                     .into_iter()
-                    .find(|b| !std::path::Path::new(&sd).join("land").join(format!("{b}.bin")).exists() && !layout.ids.contains(&(*b as u16)))
-                    .ok_or("no block of the test world is free: tick \"Share the ground of the open block\"")?
+                    .find(|b| !layout.ids.contains(&(*b as u16)))
+                    .ok_or("no block of the test world is free: tick \"Share the ground of this block\"")?
             };
             let template = self.ev.maps.get(self.newmap_template).map_or(at.map, |m| m.map);
             // 1. The ground: a copy of the open block, with the number of the free block (or the same block).
@@ -1921,6 +1923,68 @@ impl Viewer {
         self.refresh_neighbours(frame);
     }
 
+    /// When the block of the open cell is also in other cells of the world, gives this cell a block
+    /// of its own (a free block of the test world, which the open block's copy will fill) and
+    /// writes the grid of the world. Returns the new number, or None when the block was not shared.
+    fn own_block_for_cell(&mut self) -> Result<Option<usize>, String> {
+        let at = self.ev.at().cloned().ok_or("no map is open")?;
+        let mut layout = self.ev.matrix.clone().ok_or("the grid of the world is not read")?;
+        let slot = at.row * layout.width + at.column;
+        let id = layout.ids.get(slot).copied().ok_or("the cell is outside the grid")?;
+        if layout.ids.iter().filter(|b| **b == id).count() < 2 {
+            return Ok(None);
+        }
+        let free = events::recyclable_blocks(&self.arc_dir)
+            .into_iter()
+            .find(|b| !layout.ids.contains(&(*b as u16)))
+            .ok_or("this block is used by other cells and no block of the test world is free to give this cell its own copy")?;
+        layout.ids[slot] = free as u16;
+        events::write_matrix_override(&self.arc_dir, &self.export_dir, at.matrix, &layout)?;
+        self.ev.matrix = Some(layout);
+        self.ev.neigh_key = None;
+        self.editor.set_block_id(free);
+        Ok(Some(free))
+    }
+
+    /// Turns the open block by quarter turns around its centre. The window keeps the result as the
+    /// new block; turn it back to undo.
+    fn rotate_block(&mut self, quarters: usize, frame: &eframe::Frame) {
+        let cell = self.ev.at().map_or((0, 0), |a| (a.column, a.row));
+        // A block that other cells use too would turn there as well: this cell gets its own copy first.
+        let shared = match self.own_block_for_cell() {
+            Ok(new) => new,
+            Err(message) => {
+                self.status = format!("Cannot turn the block: {message}");
+                return;
+            }
+        };
+        let id = self.editor.block_id();
+        match self.editor.rotate_block(quarters, cell) {
+            Ok(()) => {
+                self.world.remove(&id);
+                self.neigh_heights.remove(&id);
+                self.history.clear();
+                self.future.clear();
+                self.history_base = None;
+                self.rows.clear();
+                self.visible.clear();
+                self.selected.clear();
+                self.placing = false;
+                self.stamp = None;
+                self.heights = None;
+                self.ev.neigh_key = None;
+                self.refresh(frame);
+                self.refresh_neighbours(frame);
+                if self.tile_mode {
+                    self.heights = Some(self.ground_heights());
+                    self.refresh(frame);
+                }
+                self.status = format!("{}The block is turned (ground, objects, grass, collision, tiles, door models). The events (characters, signs, warps, triggers) did not turn. Turn it the other way to go back. Export to write the block.", shared.map_or(String::new(), |b| format!("This cell has its own block now ({b}); the other cells keep theirs. ")));
+            }
+            Err(message) => self.status = format!("Cannot turn the block: {message}"),
+        }
+    }
+
     /// Writes the open block and the other blocks that have changes.
     fn export_all(&mut self) -> Result<String, String> {
         self.events_save_with(false);
@@ -1928,7 +1992,7 @@ impl Viewer {
         let mut message = self.editor.export(dir)?;
         let mut others = 0;
         for (id, editor) in &self.world {
-            if editor.can_undo() || editor.can_redo() {
+            if editor.can_undo() || editor.can_redo() || editor.must_export() {
                 editor.export(dir).map_err(|e| format!("block {id}: {e}"))?;
                 others += 1;
             }

@@ -472,6 +472,149 @@ impl EditableBlock {
         Ok(())
     }
 
+    /// A line that describes the collision part (for the tests).
+    pub fn collision_debug(&self) -> String {
+        let Some(&(start, end)) = self.ranges.get(2) else { return "no part".into() };
+        let d = &self.pack[start..end];
+        let w = |i: usize| d.get(4 * i..4 * i + 4).map_or(0, |b| u32::from_le_bytes([b[0], b[1], b[2], b[3]]));
+        let spans: Vec<String> = (0..20).map(|i| format!("{}:{}", w(8 + 8 * 20 + 2 * i), w(8 + 8 * 20 + 2 * i + 1))).collect();
+        format!("len {} head {:08x} {:08x} {:08x} {:08x} | {:08x} {:08x} {:08x} {:08x} | spans {}", d.len(), w(0), w(1), w(2), w(3), w(4), w(5), w(6), w(7), spans.join(" "))
+    }
+
+    /// The triangles of the collision model of the block (in units of the block), each one once.
+    pub fn collision_triangles(&self) -> Result<Vec<[[f32; 3]; 3]>, String> {
+        let &(start, end) = self.ranges.get(2).ok_or("the block has no collision part")?;
+        let data = &self.pack[start..end];
+        if data.len() < 32 || &data[0..4] != b"coll" {
+            return Err("the block has no collision model".into());
+        }
+        let word = |at: usize| -> Result<u32, String> {
+            data.get(at..at + 4).map(|b| u32::from_le_bytes([b[0], b[1], b[2], b[3]])).ok_or_else(|| "the collision model is cut".to_string())
+        };
+        let float = |at: usize| -> Result<f32, String> { word(at).map(f32::from_bits) };
+        let (levels, x, y, z) = (word(16)? as usize, word(20)? as usize, word(24)? as usize, word(28)? as usize);
+        let per_box = x * y * z;
+        if levels < 2 || per_box == 0 || per_box > 4096 {
+            return Err("the collision model has an unknown shape".into());
+        }
+        let mut boxes = 0usize;
+        let mut leaves = 1usize;
+        for _ in 1..levels {
+            leaves *= per_box;
+            boxes += leaves;
+        }
+        let spans_at = 32 + 32 * boxes;
+        let positions_at = spans_at + 8 * leaves;
+        let mut seen: std::collections::HashSet<[u32; 9]> = Default::default();
+        let mut out = Vec::new();
+        for leaf in 0..leaves {
+            let first = word(spans_at + 8 * leaf)? as i32;
+            let count = word(spans_at + 8 * leaf + 4)? as i32;
+            if first < 0 || count <= 0 {
+                continue;
+            }
+            for t in 0..(count as usize) / 3 {
+                let mut tri = [[0f32; 3]; 3];
+                for (k, p) in tri.iter_mut().enumerate() {
+                    let at = positions_at + 16 * (first as usize + 3 * t + k);
+                    *p = [float(at)?, float(at + 4)?, float(at + 8)?];
+                }
+                let key = [
+                    tri[0][0].to_bits(), tri[0][1].to_bits(), tri[0][2].to_bits(),
+                    tri[1][0].to_bits(), tri[1][1].to_bits(), tri[1][2].to_bits(),
+                    tri[2][0].to_bits(), tri[2][1].to_bits(), tri[2][2].to_bits(),
+                ];
+                if seen.insert(key) {
+                    out.push(tri);
+                }
+            }
+        }
+        Ok(out)
+    }
+
+    /// Turns the whole block around its centre by quarter turns (1 = a quarter turn so that what
+    /// was at the east is now at the south, 3 = the other way): the ground and the objects, the tall
+    /// grass, the collision model, the grid of tiles and the door models. `cell` is the place
+    /// (column, row) of the block in the grid of the world, which the door models need.
+    pub fn rotate_quarters(&mut self, quarters: usize, cell: (usize, usize)) -> Result<(), String> {
+        let q = quarters % 4;
+        if q == 0 {
+            return Ok(());
+        }
+        let yaw = q as f32 * std::f32::consts::FRAC_PI_2;
+        let turn = |x: f32, z: f32| -> (f32, f32) {
+            match q {
+                1 => (-z, x),
+                2 => (-x, -z),
+                _ => (z, -x),
+            }
+        };
+        let triangles = self.collision_triangles().ok();
+        for mesh in 0..self.meshes.len() {
+            if !MODEL_PARTS.contains(&self.meshes[mesh].0) {
+                continue;
+            }
+            let all: Vec<usize> = (0..self.meshes[mesh].1.positions.len()).collect();
+            self.transform(mesh, &all, [0.0, 0.0], yaw, [0.0; 3])?;
+            // The quarter turns are exact: the numbers that the sine and the cosine left are rounded away.
+            let base = self.ranges[self.meshes[mesh].0].0;
+            for v in 0..self.meshes[mesh].1.positions.len() {
+                let at = base + self.meshes[mesh].1.position_offsets[v];
+                for axis in [0usize, 2] {
+                    let value = self.meshes[mesh].1.positions[v][axis];
+                    let rounded = (value * 1000.0).round() / 1000.0;
+                    self.pack[at + 4 * axis..at + 4 * axis + 4].copy_from_slice(&rounded.to_le_bytes());
+                    self.meshes[mesh].1.positions[v][axis] = rounded;
+                }
+            }
+        }
+        // The grid of tiles.
+        let grid = self.attributes()?;
+        if grid.width != grid.height {
+            return Err("the grid of tiles is not square".into());
+        }
+        let size = grid.width;
+        let mut cells = grid.cells.clone();
+        for row in 0..size {
+            for column in 0..size {
+                let (c, r) = match q {
+                    1 => (size - 1 - row, column),
+                    2 => (size - 1 - column, size - 1 - row),
+                    _ => (row, size - 1 - column),
+                };
+                cells[r * size + c] = grid.cells[row * size + column];
+            }
+        }
+        self.set_attributes(&Attributes { width: size, height: size, cells })?;
+        // The door models: their place is in units of the world.
+        let mut props = self.props();
+        let (origin_x, origin_z) = (cell.0 as f32 * 720.0 + 360.0, cell.1 as f32 * 720.0 + 360.0);
+        for d in props.iter_mut() {
+            let (x, z) = turn(d.x - origin_x, d.z - origin_z);
+            d.x = origin_x + x;
+            d.z = origin_z + z;
+            d.turn[1] -= yaw;
+        }
+        self.set_props(&props)?;
+        // The collision model.
+        if let Some(triangles) = triangles {
+            let turned: Vec<[[f32; 3]; 3]> = triangles
+                .iter()
+                .map(|t| {
+                    let mut out = *t;
+                    for p in out.iter_mut() {
+                        let (x, z) = turn(p[0], p[2]);
+                        p[0] = x;
+                        p[2] = z;
+                    }
+                    out
+                })
+                .collect();
+            self.set_collision(&turned)?;
+        }
+        Ok(())
+    }
+
     /// Makes the collision of the block again from triangles (in units of the block): the
     /// game walks on this model, not on the pictures. The triangles are put in a grid of boxes
     /// (three levels, five by five boxes) so that the game finds them fast.

@@ -127,6 +127,8 @@ pub struct Editor {
     /// bring (the tileset gets those that it does not have, when the block is exported).
     tileset: Option<usize>,
     pictures: Vec<crate::bch_edit::TextureBlob>,
+    /// The block was turned: it is written even when nothing can be undone.
+    force_export: bool,
 }
 
 /// What tells a mesh from the others when the meshes change places.
@@ -358,6 +360,7 @@ impl Editor {
             built_origin: Vec::new(),
             tileset: None,
             pictures: Vec::new(),
+            force_export: false,
         };
         editor.rebuild()?;
         Ok(editor)
@@ -979,6 +982,33 @@ impl Editor {
     }
 
     /// How many changes can be undone.
+    /// Turns the whole block by quarter turns (see `EditableBlock::rotate_quarters`). The result is
+    /// the new starting point of the block: the steps of undo are lost (turn the block back to undo).
+    pub fn rotate_block(&mut self, quarters: usize, cell: (usize, usize)) -> Result<(), String> {
+        let mut block = self.built.clone();
+        block.rotate_quarters(quarters, cell)?;
+        let mut fresh = Editor::from_block(block, &self.arc_dir, false)?;
+        fresh.tileset = self.tileset;
+        fresh.pictures = std::mem::take(&mut self.pictures);
+        fresh.force_export = true;
+        *self = fresh;
+        Ok(())
+    }
+
+    /// Gives the block another number (the cell of the world that it is in gets its own copy). The
+    /// block is written under this number.
+    pub fn set_block_id(&mut self, id: usize) {
+        self.original.id = id;
+        self.built.id = id;
+        self.from_archive = false;
+        self.force_export = true;
+    }
+
+    /// True when the block must be written even without a step of undo (it was turned).
+    pub fn must_export(&self) -> bool {
+        self.force_export
+    }
+
     pub fn undo_depth(&self) -> usize {
         self.undo.len()
     }

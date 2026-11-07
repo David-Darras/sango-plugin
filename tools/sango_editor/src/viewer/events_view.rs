@@ -1840,9 +1840,6 @@ impl Viewer {
             if ui.button("Restore the events of the world").on_hover_text("All the events of all the maps of this world go back to the game; the blocks are not touched").clicked() {
                 self.confirm = Some(super::chrome::Confirm::ResetEvents);
             }
-            if ui.button("Reset the whole world").on_hover_text("All the maps, all the blocks and the grid of this world go back to the game").clicked() {
-                self.confirm = Some(super::chrome::Confirm::ResetWorld);
-            }
             if let Some((kind, index)) = self.ev.selected {
                 if ui.button("Duplicate").on_hover_text("Put a copy of this event one tile to the side, ready to be moved (D, or Ctrl+C then Ctrl+V)").clicked() {
                     self.event_copy();

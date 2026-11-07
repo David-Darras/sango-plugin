@@ -2500,3 +2500,56 @@ pub fn zone_rewrite(arc_dir: &str, sd_dir: &str, zone: usize, template: usize) -
     println!("{text}");
     Ok(())
 }
+
+/// Turns a block by a quarter turn, then back, and checks that nothing is lost.
+pub fn rotate_test(arc_dir: &str, block: usize, out_dir: &str) -> Result<(), String> {
+    let original = crate::edit::EditableBlock::load(arc_dir, block)?;
+    let triangles = original.collision_triangles()?;
+    println!("collision: {} triangles", triangles.len());
+    let cells = original.attributes()?.cells;
+    let mut editor = crate::editor::Editor::new(arc_dir, block)?;
+    editor.rotate_block(1, (2, 4))?;
+    let turned = editor.meshes().to_vec();
+    let after = editor.export(out_dir)?;
+    println!("turned once: {after}");
+    let reread = crate::edit::EditableBlock::from_file(&std::path::Path::new(out_dir).join("land").join(format!("{block}.bin")), block)?;
+    println!("collision after: {} triangles", reread.collision_triangles()?.len());
+    let (mut moved, mut total) = (0usize, 0usize);
+    for ((pa, a), (pb, b)) in original.meshes.iter().zip(&turned) {
+        if pa != pb || a.positions.len() != b.positions.len() {
+            return Err("the meshes changed".into());
+        }
+        for (p, q) in a.positions.iter().zip(&b.positions) {
+            total += 1;
+            // (x, z) -> (-z, x)
+            if (q[0] + p[2]).abs() < 0.01 && (q[2] - p[0]).abs() < 0.01 && (q[1] - p[1]).abs() < 0.01 {
+                moved += 1;
+            }
+        }
+    }
+    println!("vertices turned right: {moved} / {total}");
+    for _ in 0..3 {
+        editor.rotate_block(1, (2, 4))?;
+    }
+    let back = editor.meshes().to_vec();
+    let mut far = 0usize;
+    for ((_, a), (_, b)) in original.meshes.iter().zip(&back) {
+        for (p, q) in a.positions.iter().zip(&b.positions) {
+            if (0..3).any(|k| (p[k] - q[k]).abs() > 0.02) {
+                far += 1;
+            }
+        }
+    }
+    println!("vertices not back after 4 turns: {far}");
+    let _ = cells;
+    let back_block = crate::edit::EditableBlock::from_file(&std::path::Path::new(out_dir).join("land").join(format!("{block}.bin")), block);
+    println!("file readable: {}", back_block.is_ok());
+    Ok(())
+}
+
+/// Prints the head of the collision part of a block.
+pub fn coll_head(arc_dir: &str, block: usize) -> Result<(), String> {
+    let b = crate::edit::EditableBlock::load(arc_dir, block)?;
+    println!("{}", b.collision_debug());
+    Ok(())
+}
