@@ -62,7 +62,9 @@ struct Pokemon {
   u16 special_defense;
   u16 speed;
 
-  TypeId types[3];
+  TypeId type_1;
+  TypeId type_2;
+  TypeId type_3;
   Gender gender;
 
   u8 stat_attack;

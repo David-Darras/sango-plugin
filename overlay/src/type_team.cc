@@ -67,7 +67,8 @@ constexpr TypedMove kTypedMoves[] = {
 // moves.
 struct TeamMember {
   SpeciesId species;
-  TypeId type[2];
+  TypeId type_1;
+  TypeId type_2;
   MoveId moves[4];
   ItemId item;
 };
@@ -75,27 +76,27 @@ struct TeamMember {
 constexpr TeamMember kTeam[] = {
     // One Pokémon with two new types and four moves of four other new types:
     // all the new types are on one screen (the choice of the move).
-    {SpeciesId::kCelebi, {kTypeCosmic, kTypeTime},
+    {SpeciesId::kCelebi, kTypeCosmic, kTypeTime,
      {kMovePrismLance, kMoveSonicRequiem, kMoveIonStorm, kMoveDreamfall},
      kItemPlasmaCore},
     // A new type and a type of the game.
-    {SpeciesId::kExploud, {TypeId::kNormal, kTypeSound},
+    {SpeciesId::kExploud, TypeId::kNormal, kTypeSound,
      {MoveId::kHyperVoice, MoveId::kBoomburst, MoveId::kEchoedVoice,
       MoveId::kScreech},
      kItemDreamPillow},
-    {SpeciesId::kLanturn, {TypeId::kWater, kTypeLight},
+    {SpeciesId::kLanturn, TypeId::kWater, kTypeLight,
      {MoveId::kFlashCannon, MoveId::kSignalBeam, MoveId::kDazzlingGleam,
       MoveId::kAuroraBeam},
      ItemId::kLeftovers},
-    {SpeciesId::kMagnezone, {kTypePlasma, TypeId::kSteel},
+    {SpeciesId::kMagnezone, kTypePlasma, TypeId::kSteel,
      {MoveId::kZapCannon, MoveId::kDischarge, MoveId::kElectroBall,
       MoveId::kChargeBeam},
      ItemId::kNone},
-    {SpeciesId::kMusharna, {TypeId::kPsychic, kTypeDream},
+    {SpeciesId::kMusharna, TypeId::kPsychic, kTypeDream,
      {MoveId::kDreamEater, MoveId::kHypnosis, MoveId::kNightmare,
       MoveId::kYawn},
      ItemId::kNone},
-    {SpeciesId::kDialga, {TypeId::kSteel, kTypeTime},
+    {SpeciesId::kDialga, TypeId::kSteel, kTypeTime,
      {MoveId::kRoarOfTime, MoveId::kFutureSight, MoveId::kDoomDesire,
       MoveId::kIronHead},
      ItemId::kNone},
@@ -130,8 +131,8 @@ void PatchTypedPokemon() {
   for (const TeamMember& member : kTeam) {
     auto& data =
         pokemon::SpeciesData::GetInstance(member.species, FormId::kNormal);
-    data.type[0] = member.type[0];
-    data.type[1] = member.type[1];
+    data.type_1 = member.type_1;
+    data.type_2 = member.type_2;
   }
 #endif
 }

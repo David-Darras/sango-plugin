@@ -481,9 +481,9 @@ void LoadBattlePokemonDataPage(MainApplication& app, void* args) {
      .WithSuggestions(SuggestMoves)
      .Add("PP 4", pkm.moves[3].view.pp)
      .AddSection("Types")
-     .AddType("Type 1", pkm.types[0])
-     .AddType("Type 2", pkm.types[1])
-     .AddType("Type 3", pkm.types[2])
+     .AddType("Type 1", pkm.type_1)
+     .AddType("Type 2", pkm.type_2)
+     .AddType("Type 3", pkm.type_3)
      .WithDescription("The third type comes from a move, for example "
                       "Forest's Curse.")
      .AddSection("Effort Values")

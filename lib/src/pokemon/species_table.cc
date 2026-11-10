@@ -183,7 +183,6 @@ void SpeciesTable::BuildTable(u8* game_table) {
   for (u32 i = 0; i < species_entries; i++) {
     auto* entry = (SpeciesData*)(out + i * kEntrySize);
     if (entry->form_index != 0) entry->form_index += SpeciesTable::kAddedCount;
-    if (entry->form_index_2 != 0) entry->form_index_2 += SpeciesTable::kAddedCount;
   }
 
   for (u32 i = 0; i < SpeciesTable::kExtraCount; i++) {
@@ -191,8 +190,7 @@ void SpeciesTable::BuildTable(u8* game_table) {
     std::memcpy(entry, Extra(i).data, kEntrySize);
     FixAbilities(entry, (SpeciesData*)out);
     entry->form_index = 0;
-    entry->form_index_2 = 0;
-    entry->form_count = 1;
+    entry->total_form_count = 1;
   }
 
   // The species of the product start with the data of an other species.
@@ -203,15 +201,14 @@ void SpeciesTable::BuildTable(u8* game_table) {
     std::memcpy(entry, out + static_cast<u16>(added.data_from) * kEntrySize,
                 kEntrySize);
     entry->form_index = 0;
-    entry->form_index_2 = 0;
-    entry->form_count = 1;
+    entry->total_form_count = 1;
   }
 
   u32 next = kEntries + SpeciesTable::kAddedCount;
   for (u32 i = 0; i < kAlolanFormCount; i++) {
     const AlolanForm& form = kAlolanForms[i];
     auto* base = (SpeciesData*)(out + form.species * kEntrySize);
-    const u32 existing = base->form_count > 1 ? base->form_count - 1u : 0u;
+    const u32 existing = base->total_form_count > 1 ? base->total_form_count - 1u : 0u;
     const u32 first = next;
     for (u32 k = 0; k < existing; k++) {
       std::memcpy(out + next * kEntrySize,
@@ -222,11 +219,9 @@ void SpeciesTable::BuildTable(u8* game_table) {
     std::memcpy(entry, form.data, kEntrySize);
     FixAbilities(entry, base);
     entry->form_index = 0;
-    entry->form_index_2 = 0;
-    entry->form_count = 1;
+    entry->total_form_count = 1;
     base->form_index = (u16)first;
-    base->form_index_2 = (u16)first;
-    base->form_count = (u8)(existing + 2);
+    base->total_form_count = (u8)(existing + 2);
     next++;
   }
 }

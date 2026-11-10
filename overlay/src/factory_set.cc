@@ -179,7 +179,8 @@ bool Contains(const MoveId* list, u32 count, MoveId move) {
 
 struct Profile {
   u32 base[6];
-  TypeId types[2];
+  TypeId type_1;
+  TypeId type_2;
   bool is_physical;
   bool is_fast;
   bool is_bulky;
@@ -197,8 +198,8 @@ Profile MakeProfile(const SpeciesData& data) {
   profile.base[kStatSpecialAttack] = data.base_special_attack;
   profile.base[kStatSpecialDefense] = data.base_special_defense;
   profile.base[kStatSpeed] = data.base_speed;
-  profile.types[0] = data.type[0];
-  profile.types[1] = data.type[1];
+  profile.type_1 = data.type_1;
+  profile.type_2 = data.type_2;
 
   const u32 attack = data.base_attack;
   const u32 special = data.base_special_attack;
@@ -217,7 +218,7 @@ Profile MakeProfile(const SpeciesData& data) {
 }
 
 bool IsStab(const Profile& profile, TypeId type) {
-  return type == profile.types[0] || type == profile.types[1];
+  return type == profile.type_1 || type == profile.type_2;
 }
 
 u32 CollectMoves(SpeciesId species, MoveId* out, u32 capacity, u32 max_level) {
@@ -326,10 +327,10 @@ MoveChoice ChooseMoves(SpeciesId species, const Profile& profile, ItemId item) {
   }
   chosen.Add(stab);
 
-  if (profile.types[0] != profile.types[1]) {
-    const TypeId other = chosen.HasType(profile.types[0])
-                           ? profile.types[1]
-                           : profile.types[0];
+  if (profile.type_1 != profile.type_2) {
+    const TypeId other = chosen.HasType(profile.type_1)
+                           ? profile.type_2
+                           : profile.type_1;
     chosen.Add(PickAttack(profile, learnable, count, chosen, Want::kStab, false,
                           other));
   }

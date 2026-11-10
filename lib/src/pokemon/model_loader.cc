@@ -154,8 +154,8 @@ bool ModelLoader::LoadPokemon(LoadedModel* out, SpeciesId species, FormId form,
   // A Pokémon that flies or floats does not walk.
   {
     const SpeciesData& data = SpeciesData::GetInstance(species, form);
-    out->walk.can_walk = data.type[0] != TypeId::kFlying &&
-                         data.type[1] != TypeId::kFlying &&
+    out->walk.can_walk = data.type_1 != TypeId::kFlying &&
+                         data.type_2 != TypeId::kFlying &&
                          data.ability[0] != AbilityId::kLevitate &&
                          data.ability[1] != AbilityId::kLevitate &&
                          data.ability[2] != AbilityId::kLevitate;

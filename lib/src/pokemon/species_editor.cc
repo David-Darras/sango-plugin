@@ -193,14 +193,14 @@ void SpeciesChanges::Apply(const Change& change) {
       data.base_speed = v[5];
       break;
     case Kind::kTypes:
-      data.type[0] = static_cast<TypeId>(v[0]);
-      data.type[1] = static_cast<TypeId>(v[1]);
+      data.type_1 = static_cast<TypeId>(v[0]);
+      data.type_2 = static_cast<TypeId>(v[1]);
       break;
     case Kind::kAbilities:
       for (u32 i = 0; i < 3; i++) data.ability[i] = static_cast<AbilityId>(v[i]);
       break;
     case Kind::kCatchRate:
-      data.capture_rate = v[0];
+      data.catch_rate = v[0];
       break;
     case Kind::kTm: {
       u32& bits = data.technical_moves[v[0] / 32];

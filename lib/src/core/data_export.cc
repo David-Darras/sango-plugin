@@ -138,15 +138,15 @@ bool DataExport::WriteSpecies(SpeciesId species) {
   writer.Add("]\nstats = %u, %u, %u, %u, %u, %u\ntypes = ", data.base_hp,
              data.base_attack, data.base_defense, data.base_special_attack,
              data.base_special_defense, data.base_speed);
-  writer.AddName(NameKind::kType, static_cast<u32>(data.type[0]));
+  writer.AddName(NameKind::kType, static_cast<u32>(data.type_1));
   writer.Add(", ");
-  writer.AddName(NameKind::kType, static_cast<u32>(data.type[1]));
+  writer.AddName(NameKind::kType, static_cast<u32>(data.type_2));
   writer.Add("\nabilities = ");
   for (u32 i = 0; i < 3; i++) {
     if (i != 0) writer.Add(", ");
     writer.AddName(NameKind::kAbility, static_cast<u32>(data.ability[i]));
   }
-  writer.Add("\ncatch rate = %u\n", data.capture_rate);
+  writer.Add("\ncatch rate = %u\n", data.catch_rate);
   return writer.WriteTo(SANGO_DATA_PATH(u"export_species.txt"));
 }
 

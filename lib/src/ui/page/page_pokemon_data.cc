@@ -127,42 +127,41 @@ void LoadSpeciesDataPage(MainApplication& app, void* args) {
      .Add("Speed", data.base_speed);
 
   app.AddSection("Types and Abilities")
-     .AddType("Type 1", data.type[0])
-     .AddType("Type 2", data.type[1])
+     .AddType("Type 1", data.type_1)
+     .AddType("Type 2", data.type_2)
      .AddAbility("Ability 1", data.ability[0])
      .AddAbility("Ability 2", data.ability[1])
      .AddAbility("Hidden Ability", data.ability[2]);
 
   app.AddSection("Wild Pokemon")
-     .Add("Catch Rate", data.capture_rate)
+     .Add("Catch Rate", data.catch_rate)
      .WithDescription("3: hard to catch (legendary Pokemon). 255: easy to "
                       "catch.")
-     .AddItem("Held Item 1", data.give_item[0])
-     .AddItem("Held Item 2", data.give_item[1])
-     .AddItem("Held Item 3", data.give_item[2])
-     .Add("Gender Ratio", data.gender)
+     .AddItem("Held Item (50%)", data.held_item_50)
+     .AddItem("Held Item (5%)", data.held_item_5)
+     .Add("Gender Ratio", data.gender_ratio)
      .WithDescription("0: male only. 254: female only. 255: no gender. "
-                      "127: half male, half female.")
-     .Add("Escape Rate", data.escape_rate);
+                      "127: half male, half female.");
 
   app.AddSection("Rewards")
-     .Add("Exp. Yield", data.give_experience)
-     .Add("EV Yield HP", &data.give_effort_values, 0, 2)
-     .Add("EV Yield Attack", &data.give_effort_values, 2, 2)
-     .Add("EV Yield Defense", &data.give_effort_values, 4, 2)
-     .Add("EV Yield Speed", &data.give_effort_values, 6, 2)
-     .Add("EV Yield Sp. Atk", &data.give_effort_values, 8, 2)
-     .Add("EV Yield Sp. Def", &data.give_effort_values, 10, 2);
+     .Add("Exp. Yield", data.base_experience)
+     .Add("EV Yield HP", &data.ev_yield, 0, 2)
+     .Add("EV Yield Attack", &data.ev_yield, 2, 2)
+     .Add("EV Yield Defense", &data.ev_yield, 4, 2)
+     .Add("EV Yield Speed", &data.ev_yield, 6, 2)
+     .Add("EV Yield Sp. Atk", &data.ev_yield, 8, 2)
+     .Add("EV Yield Sp. Def", &data.ev_yield, 10, 2)
+     .Add("Burrowed Entry", &data.ev_yield, 12, 1);
 
   app.AddSection("Breeding and Size")
      .Add("Base Friendship", data.base_friendship)
-     .Add("Egg Cycles", data.egg_hatch_steps)
-     .WithDescription("The number of step cycles to hatch an Egg.")
+     .Add("Hatch Time", data.hatch_time)
+     .WithDescription("The number of step cycles to hatch an Egg. (1 cycle = 256 steps)")
      .Add("Height", data.height)
      .WithDescription("In tenths of a meter: 7 is 0.7 m.")
      .Add("Weight", data.weight)
      .WithDescription("In tenths of a kilogram: 69 is 6.9 kg.")
-     .Add("Form Count", data.form_count)
+     .Add("Form Count", data.total_form_count)
      .WithReadOnly();
 
   u32* tm_bits = &data.technical_moves[tm_index / 32];

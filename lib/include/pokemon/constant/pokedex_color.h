@@ -1,0 +1,44 @@
+/*
+* Copyright (C) 2026  David Darras
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+/**
+ * @file color.h
+ * @brief The pokedex color of a species.
+ */
+
+#pragma once
+
+#include <types.h>
+
+namespace pokemon {
+
+/// Pokedex Color.
+enum class PokedexColor : u8 {
+  kRed = 0,
+  kBlue = 1,
+  kYellow = 2,
+  kGreen = 3,
+  kBlack = 4,
+  kBrown = 5,
+  kPurple = 6,
+  kGray = 7,
+  kWhite = 8,
+  kPink = 9,
+  kCount = 10
+};
+
+} // namespace pokemon
