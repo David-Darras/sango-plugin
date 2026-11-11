@@ -123,7 +123,7 @@ impl DataScripts {
 }
 
 fn file_path(sd_dir: &str) -> PathBuf {
-    // The folder of the plugin (sango or sango/maker), else the folder that was given.
+    // The folder that was chosen for the plugin, else the folder that was given.
     crate::plugin_dir::get(Path::new(sd_dir)).join("scripts.txt")
 }
 

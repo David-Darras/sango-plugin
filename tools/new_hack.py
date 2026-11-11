@@ -25,7 +25,7 @@ PROJECT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # The folders of the project that are not products, and the products of the
 # project.
 RESERVED = {
-    "assets", "build", "debug", "dist", "docs", "kaizo", "lib", "maker", "overlay",
+    "assets", "build", "debug", "dist", "docs", "kaizo", "lib", "overlay",
     "private", "release", "release-overlay", "tools",
 }
 

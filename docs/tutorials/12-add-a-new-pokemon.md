@@ -9,10 +9,6 @@ Sangoat uses the model of Gogoat.
 [Tutorial 16](16-change-a-species.md).
 **Game:** Alpha Sapphire only. In X, the library does not add species.
 
-> **Tip:** Sango Maker does the same without code: `[new Sangoat, Skiddo,
-> Gogoat]` in `species.txt` (see
-> [Tutorial 18](18-make-a-rom-hack-without-code.md)).
-
 ## How it works
 
 The game has 721 species. The library adds 297 species of generations VII,

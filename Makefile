@@ -4,11 +4,11 @@
 # Usage (from the devkitPro shell):
 #   make                  builds all the products of the selected game
 #   make overlay          builds one product (the name of its folder: overlay,
-#                         kaizo, maker, myhack...)
+#                         kaizo, myhack...)
 #   make GAME=XY          builds for Pokemon X instead of Alpha Sapphire
 #   make run-overlay      builds one product, copies it to the SD card of the
 #                         emulator and starts the game (needs config.mk)
-#   make release-pack     builds the Alpha Sapphire plugin and Sango Maker,
+#   make release-pack     builds the Alpha Sapphire plugin
 #                         and makes dist/Sango-Plugin-<version>.zip
 #   make release          makes the zip, then publishes it on GitHub (needs gh)
 #   make clean            removes all the build output
@@ -114,7 +114,6 @@ LIB_INCLUDES	:=	lib/include \
 # The settings of each product:
 #   overlay/  sango_plugin.3gx: every page of the library under one menu
 #   kaizo/    sango_kaizo.3gx: the ROM hack
-#   maker/    sango_maker.3gx: Sango Maker, a ROM hack without code
 # The data folder of a product on the SD card (see lib/include/core/data_folder.h):
 # sdmc:/sango for the overlay, sdmc:/sango/<product> for the others.
 define PRODUCT_SETTINGS
@@ -172,18 +171,16 @@ clean:
 	@echo clean ...
 	@rm -fr $(foreach p,$(PRODUCTS),release-$(p) debug-$(p)) release debug dist *.elf *.3gx
 
-# `make release-pack` builds the overlay and Sango Maker for Alpha Sapphire and
-# puts them in dist/Sango-Plugin-<version>.zip with a README.txt, the example
-# files of maker/data and the web editor of tools/maker_editor.
+# `make release-pack` builds the overlay for Alpha Sapphire and puts it in
+# dist/Sango-Plugin-<version>.zip with a README.txt.
 # `make release` then publishes the zip on GitHub (`make release DRAFT=1`
 # makes a draft, `make release YES=1` does not ask first).
 .PHONY: release-pack release
 
 release-pack:
-	@$(MAKE) --no-print-directory GAME=ORAS overlay maker
+	@$(MAKE) --no-print-directory GAME=ORAS overlay
 	@$(PYTHON) tools/release.py pack --version $(PLUGIN_VERSION) \
 		--plugin $(overlay_TARGET)-release.3gx \
-		--maker-plugin $(maker_TARGET)-release.3gx \
 		--pokemon-models-url "$(POKEMON_MODELS_URL)" \
 		--overworld-models-url "$(OVERWORLD_MODELS_URL)" \
 		--music-url "$(MUSIC_URL)" \

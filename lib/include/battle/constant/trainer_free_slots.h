@@ -19,8 +19,8 @@
  * @file trainer_free_slots.h
  * @brief The trainers of the game that nothing uses.
  *
- * These trainers have no name, no map and a Zigzagoon of level 5. Sango Maker
- * gives them to the new trainers of trainers.txt. The list comes from
+ * These trainers have no name, no map and a Zigzagoon of level 5. A product
+ * gives them to its new trainers. The list comes from
  * tools/export_trainers.py (see its --free-slots option).
  */
 

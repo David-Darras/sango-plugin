@@ -118,7 +118,7 @@ script::NativeScript::Register(kCandyGiver, CandyGiver);
 <td width="50%" valign="top">
 
 ### 🛠️ For ROM hack makers
-- **18 step-by-step tutorials** for beginners
+- **Step-by-step tutorials** for beginners
 - An in-game menu to explore and edit everything while the game runs
 - Typed game structures, documented with Doxygen
 - One library, as many ROM hacks as you want
@@ -170,7 +170,6 @@ script::NativeScript::Register(kCandyGiver, CandyGiver);
 |--------------------------------------------------------|---|---|
 | <img src="assets/readme/menu.png" width="200"> | **The overlay** (`overlay/`) | Every page of the library in one menu. Explore and test the game. |
 | <img src="assets/kaizo/battle-triple.jpg" width="200"> | **[Pokémon Sango Kaizo](kaizo.md)** (`kaizo/`) | A difficult version of Alpha Sapphire: Nuzlocke rules, level caps, competitive trainers, custom moves and abilities, quality-of-life features. |
-|      | **Sango Maker** (`maker/`) | A ROM hack without code: text files on the SD card change the wild Pokémon, the trainers, the species and the story. [Tutorial 18](docs/tutorials/18-make-a-rom-hack-without-code.md). |
 
 Your ROM hack is the next line of this table. **[Start here.](docs/tutorials/01-create-your-rom-hack.md)**
 
@@ -214,9 +213,8 @@ lib/          the library: all the features and the game structures
   src/        the sources
 overlay/      the overlay: all the pages in one menu
 kaizo/        Pokémon Sango Kaizo
-maker/        Sango Maker: a ROM hack without code
 docs/         the documentation and the tutorials
-tools/        helper scripts and the Sango Maker Editor (tools/maker_editor)
+tools/        helper scripts
 ```
 
 ## Supported games

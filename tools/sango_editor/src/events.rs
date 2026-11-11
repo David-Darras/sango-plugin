@@ -1023,7 +1023,7 @@ pub fn merge_file(old: &str, map: usize, base: &MapEvents, now: &MapEvents) -> S
 
 /// The place of the file in the folder of the SD card.
 pub fn file_path(sd_dir: &str) -> PathBuf {
-    // The folder of the plugin (sango or sango/maker), else the folder that was given.
+    // The folder that was chosen for the plugin, else the folder that was given.
     crate::plugin_dir::get(&PathBuf::from(sd_dir)).join("map_events.txt")
 }
 

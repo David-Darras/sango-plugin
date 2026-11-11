@@ -20,7 +20,7 @@
  * @brief A move of a learnset and an evolution, for pokemon::Species.
  *
  * The file has no game structure: the tests of tests/ compile it on a
- * computer (see core/maker_reader.h).
+ * computer.
  */
 
 #pragma once

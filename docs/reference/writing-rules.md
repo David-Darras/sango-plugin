@@ -51,8 +51,8 @@ The plugin runs inside the memory of the game. It must stay small.
 - No RTTI (`dynamic_cast`, `typeid`).
 - No `std::string`, no `std::vector`, no `new` in a loop. Use fixed arrays
   (`core::FixedList`).
-- A file that the tests compile on a computer (`core/maker_reader.cc`,
-  `core/utf8.cc`) includes `core/types.h` and the enum classes, not
+- A file that the tests compile on a computer (`core/utf8.cc`,
+  `core/parse_float.cc`) includes `core/types.h` and the enum classes, not
   `common.h`. See [Tests](tests.md).
 - A member of a singleton has a constant start value (`= 0`, `= nullptr`,
   `= {}`) or a `constexpr` constructor. Then the singleton is a constant of

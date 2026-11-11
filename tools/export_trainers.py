@@ -7,7 +7,7 @@ that has them:
 
   python tools/export_trainers.py <folder of the archives> [output file]
       [--pkpawn <pkpawn-local>] [--sango <source folder>]
-      [--enum lib/include/battle/constant/trainer.h] [--maker trainers.txt]
+      [--enum lib/include/battle/constant/trainer.h]
       [--classes lib/include/battle/constant/trainer_class.h]
       [--free-slots lib/include/battle/constant/trainer_free_slots.h]
       [--class-records lib/include/battle/constant/trainer_class_records.h]
@@ -16,15 +16,13 @@ With --pkpawn, the tool also reads the scripts of the maps (it decompiles them
 with pkpawn-local) to find the trainers that scripts start: rivals, leaders and
 the Elite Four. With --sango, it also reads the rematches of the trainers. With
 --enum, it writes the names of all the trainers into the header of TrainerId
-(after the marker line): a map, a title and a name. With --maker, it writes the
-trainers of the game in the format of trainers.txt (Sango Maker), to change
-them in the tool of tools/maker_editor. With --classes, it writes the names of
-the trainer classes (Youngster, Lass...) into the header of TrainerClassId. With
---free-slots, it writes the numbers of the empty trainers of the game (no name,
-no map, a Zigzagoon of level 5): Sango Maker gives them to the new trainers.
-With --class-records, it writes the data of the 280 trainer classes and the
-numbers of the classes that no trainer uses: Sango Maker gives them to the new
-classes.
+(after the marker line): a map, a title and a name. With --classes, it writes
+the names of the trainer classes (Youngster, Lass...) into the header of
+TrainerClassId. With --free-slots, it writes the numbers of the empty trainers
+of the game (no name, no map, a Zigzagoon of level 5): a product gives them to
+its new trainers. With --class-records, it writes the data of the 280 trainer
+classes and the numbers of the classes that no trainer uses: a product gives
+them to its new classes.
 
 Without an output file, the list goes to the screen. The list is for you:
 keep it in private/, not in the repository.
@@ -256,8 +254,8 @@ FREE_SLOTS_HEADER = """/*
  * @file trainer_free_slots.h
  * @brief The trainers of the game that nothing uses.
  *
- * These trainers have no name, no map and a Zigzagoon of level 5. Sango Maker
- * gives them to the new trainers of trainers.txt. The list comes from
+ * These trainers have no name, no map and a Zigzagoon of level 5. A product
+ * gives them to its new trainers. The list comes from
  * tools/export_trainers.py (see its --free-slots option).
  */
 
@@ -309,7 +307,7 @@ CLASS_RECORDS_HEADER = """/*
  *
  * Each class has 16 bytes: the model sequence, the sex and the plural, the
  * group, the battle effect, the 3D model, the 2D picture, the character on the
- * map and the music of the sight. Sango Maker copies these data to make a new
+ * map and the music of the sight. A product copies these data to make a new
  * class. The list comes from tools/export_trainers.py (see its
  * --class-records option).
  */
@@ -435,72 +433,6 @@ def write_enum(path, rows, places, maps, rematches):
   print("%d names in %s" % (sum(len(v) for v in groups.values()), path))
 
 
-def write_maker(path, trainers, teams, texts, header):
-  """Writes the trainers of the game in the format of trainers.txt.
-
-  A hack maker copies the sections to change into sango/maker/trainers.txt, or
-  opens the file in tools/maker_editor. The sections have the names of
-  TrainerId. The abilities, natures and forms of the teams are not written.
-  """
-  species = read_lines(texts[TEXT_SPECIES][0])
-  moves = read_lines(texts[TEXT_MOVES][0])
-  items = read_lines(texts[TEXT_ITEMS][0])
-  names = read_lines(texts[TEXT_TRAINER_NAME][0])
-  constants = read_constants(header)
-  formats = ["Single", "Double", "Triple", "Rotation", "Horde"]
-  out = ["# All the trainers of the game, as they are in the game.",
-         "# Copy the sections to change into sango/maker/trainers.txt.", ""]
-  for number, parts in enumerate(trainers):
-    data = parts[0]
-    if len(data) < 22 or number == 0:
-      continue
-    has_moves = struct.unpack_from("<H", data, 0)[0] & 1
-    has_item = struct.unpack_from("<H", data, 0)[0] >> 1 & 1
-    fight, count = struct.unpack_from("<BB", data, 6)
-    held = struct.unpack_from("<4H", data, 8)
-    ai = data[16]
-    money = data[21]
-    constant = constants.get(number)
-    out.append("[%s]" % (words_of(constant[1:]) if constant else number))
-    out.append("format = %s" % (formats[fight] if fight < len(formats)
-                                 else formats[0]))
-    if number < len(names) and names[number]:
-      out.append("name = %s" % names[number])
-    flags = [n for bit, n in ((1, "Casual"), (2, "Competitive"),
-                              (4, "Strategist")) if ai & bit]
-    if flags:
-      out.append("ai = " + ", ".join(flags))
-    used = [items[i] for i in held if 0 < i < len(items)]
-    if used:
-      out.append("items = " + ", ".join(used))
-    out.append("money = %d" % money)
-    team = teams[number][0]
-    size = 8 + 2 * has_item + 8 * has_moves
-    for i in range(count):
-      record = team[i * size:(i + 1) * size]
-      if len(record) < size:
-        break
-      level, kind = struct.unpack_from("<HH", record, 2)
-      line = "pokemon = %s, level %d" % (
-          species[kind] if kind < len(species) else kind, level)
-      at = 8
-      if has_item:
-        item = struct.unpack_from("<H", record, at)[0]
-        at += 2
-        if 0 < item < len(items):
-          line += ", item " + items[item]
-      if has_moves:
-        ids = struct.unpack_from("<4H", record, at)
-        known = [moves[m] for m in ids if 0 < m < len(moves)]
-        if known:
-          line += ", moves " + " / ".join(known)
-      out.append(line)
-    out.append("")
-  with open(path, "w", encoding="utf-8", newline="\n") as f:
-    f.write("\n".join(out))
-  print("%d trainers in %s" % (len(trainers) - 1, path))
-
-
 def split_arguments(text):
   """Splits the text of the arguments of a call at the top-level commas."""
   arguments = []
@@ -611,11 +543,6 @@ def main():
   if "--pkpawn" in arguments:
     at = arguments.index("--pkpawn")
     pkpawn = arguments[at + 1]
-    del arguments[at:at + 2]
-  maker_path = None
-  if "--maker" in arguments:
-    at = arguments.index("--maker")
-    maker_path = arguments[at + 1]
     del arguments[at:at + 2]
   enum_path = None
   if "--enum" in arguments:
@@ -736,11 +663,6 @@ def main():
     class_data = garc.read_garc(os.path.join(folder, "TrTypeData.garc"))
     write_class_records(records_path, [entry[0] for entry in class_data],
                         used_classes)
-  if maker_path:
-    write_maker(maker_path, trainers, teams, texts,
-                os.path.join(here, "..", "lib", "include", "battle",
-                             "constant", "trainer.h"))
-
   text = "\n".join(out) + "\n"
   if len(arguments) > 1:
     with open(arguments[1], "w", encoding="utf-8", newline="\n") as f:

@@ -149,10 +149,6 @@ fn main() {
         Some("scripts-test") if args.len() >= 4 => commands::scripts_test(&args[2], &args[3]),
         Some("characters-file-test") if args.len() >= 5 => commands::characters_file_test(&args[2], number(3).unwrap_or(0), &args[4]),
         Some("map-settings") if args.len() >= 4 => commands::map_settings(&args[2], number(3).unwrap_or(0)),
-        Some("plugin-dir") if args.len() >= 3 => {
-            println!("{}", plugin_dir::detect(&args[2]).display());
-            Ok(())
-        }
         Some("matrix-raw") if args.len() >= 4 => commands::matrix_raw(&args[2], number(3).unwrap_or(0)),
         Some("zones-unused") if args.len() >= 3 => commands::zones_unused(&args[2]),
         Some("free-all-tiles") if args.len() >= 4 => commands::free_all_tiles(&args[2], &args[3..].iter().filter_map(|n| n.parse().ok()).collect::<Vec<_>>()),

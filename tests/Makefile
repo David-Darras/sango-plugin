@@ -1,8 +1,7 @@
 # Builds and runs the tests on a computer: make -C tests
 #
 # The tests use the g++ of the computer, not devkitPro. They compile only the
-# pure files of the library: the files without game structures (see
-# lib/include/core/maker_reader.h).
+# pure files of the library: the files without game structures.
 
 ROOT     := $(abspath ..)
 CXX      ?= g++
@@ -11,8 +10,7 @@ CXXFLAGS := -std=gnu++11 -Wall -Wextra -Wno-unused-parameter -O1 -DGAME_ORAS \
             -I$(ROOT)/lib/include -I$(ROOT)/lib/src -I$(ROOT)/tests/host
 
 # The pure files of the library.
-LIB_SOURCES := $(ROOT)/lib/src/core/maker_reader.cc \
-               $(ROOT)/lib/src/core/parse_float.cc \
+LIB_SOURCES := $(ROOT)/lib/src/core/parse_float.cc \
                $(ROOT)/lib/src/core/utf8.cc
 TEST_SOURCES := $(wildcard $(ROOT)/tests/*.cc)
 
@@ -22,11 +20,6 @@ OUT := $(ROOT)/debug-tests/run_tests
 .PHONY: all clean
 all: $(OUT)
 	$(OUT)
-	@if command -v node >/dev/null 2>&1; then \
-	  node maker_editor_test.js; \
-	else \
-	  echo "node is not installed: the test of the editor did not run"; \
-	fi
 
 $(OUT): $(LIB_SOURCES) $(TEST_SOURCES) $(wildcard $(ROOT)/tests/*.h)
 	@mkdir -p $(dir $@)

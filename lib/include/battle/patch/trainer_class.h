@@ -47,8 +47,6 @@ namespace battle {
  * battle::TrainerClasses::Set(TrainerId::kRoute102YoungsterCalvin,
  *                             TrainerClassId::kLass);
  * @endcode
- *
- * In Sango Maker, use the key `class` in trainers.txt: `class = Lass`.
  */
 class TrainerClasses {
   MAKE_SINGLETON(TrainerClasses)

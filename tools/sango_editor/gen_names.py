@@ -9,15 +9,36 @@ game ORAS uses (the part inside `#ifndef GAME_XY`, not the part inside
   python tools/sango_editor/gen_names.py
 """
 
-import json
 import os
 import re
+import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(os.path.dirname(HERE))
 SOURCE = os.path.join(REPO, "lib", "src", "ui", "page", "enum_names.cc")
-NAMES_JS = os.path.join(REPO, "tools", "maker_editor", "names.js")
 OUT = os.path.join(HERE, "src", "names.rs")
+
+sys.path.insert(0, os.path.join(REPO, "tools"))
+import gen_data_names
+
+
+def item_names():
+    """The readable names of the items, in the order of their numbers.
+
+    The names come from the item enum of the library. The empty and the unknown
+    values are skipped, so the number of an item is its index plus one.
+    """
+    seen = set()
+    names = []
+    enum = ("lib/include/pokemon/constant/item.h", "ItemId")
+    for name, _ in gen_data_names.read_names(*enum):
+        readable = gen_data_names.pretty(name)
+        if (readable in ("None", "XXX", "YYY") or readable.startswith("Unknow")
+                or gen_data_names.normalize(readable) in seen):
+            continue
+        seen.add(gen_data_names.normalize(readable))
+        names.append(readable)
+    return names
 
 
 def read_arrays(path):
@@ -71,10 +92,8 @@ def main():
     out.append("")
     out.append(rust_array("MAP_NAMES", arrays["kMapNames"]))
     out.append("")
-    # The names of the items come from the names of the data files of the plugin.
-    with open(NAMES_JS, encoding="utf-8") as f:
-        text = f.read()
-    items = json.loads(text[text.index("{"):text.rindex("}") + 1])["item"]
+    # The names of the items come from the item enum of the library.
+    items = item_names()
     out.append(rust_array("ITEM_NAMES", items))
     out.append("")
     with open(OUT, "w", encoding="utf-8", newline="\n") as f:

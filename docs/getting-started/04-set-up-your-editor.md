@@ -27,7 +27,6 @@ in the devkitPro shell.
         "${workspaceFolder}/lib/src",
         "${workspaceFolder}/overlay/include",
         "${workspaceFolder}/kaizo/include",
-        "${workspaceFolder}/maker/include",
         "C:/devkitPro/libctru/include"
       ],
       "defines": [
@@ -65,7 +64,7 @@ project(sango-plugin)
 set(CMAKE_CXX_STANDARD 11)
 
 include_directories(lib/include lib/src
-                    overlay/include kaizo/include maker/include
+                    overlay/include kaizo/include
                     "C:/devkitPro/libctru/include")
 
 add_definitions(-D__3DS__ -DGAME_ORAS -DUSE_SANGO_PLUGIN
@@ -73,7 +72,7 @@ add_definitions(-D__3DS__ -DGAME_ORAS -DUSE_SANGO_PLUGIN
                 -DPLUGIN_CREATOR="you")
 
 file(GLOB_RECURSE SOURCES lib/*.cc lib/*.h overlay/*.cc overlay/*.h
-                          kaizo/*.cc kaizo/*.h maker/*.cc maker/*.h)
+                          kaizo/*.cc kaizo/*.h)
 add_executable(${PROJECT_NAME} ${SOURCES})
 ```
 

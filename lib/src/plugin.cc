@@ -214,8 +214,7 @@ void UpdateFrame() {
   ui::ScreenshotMode::Update();
   core::CheatCodeManager::GetInstance().Update();
 
-  // The features of AddFrameListener(), for example the files of Sango
-  // Maker, before the characters that they add.
+  // The features of AddFrameListener(), before the characters that they add.
   frame_listeners.Emit();
   overworld::MapCharacter::Update();
   overworld::PlacedDecorations::Update();

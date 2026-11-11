@@ -3,17 +3,12 @@
 
 Usage (the Makefile calls it):
   release.py pack    --version 7.6.0 --plugin sango_plugin-release.3gx
-                     --maker-plugin sango_maker-release.3gx
   release.py publish --version 7.6.0 [--draft] [--yes]
 
-The zip has the layout of the SD card for the players, and a folder for the
-modders:
+The zip has the layout of the SD card for the players:
   luma/plugins/000400000011C500/sango_plugin.3gx    the plugin (players)
   sango/types/, sango/items/                        the icons of the plugin
   sango/names/                                      the names of the menus
-  sango_maker/luma/plugins/000400000011C500/sango_maker-release.3gx
-  sango_maker/sango/maker/*.txt                     the examples (maker/data)
-  maker_editor/index.html, maker_editor/names.js    the web editor
   README.txt
 """
 
@@ -29,9 +24,6 @@ TITLE_ID = "000400000011C500"
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ASSETS = os.path.join(ROOT, "assets", "release")
 DIST = os.path.join(ROOT, "dist")
-MAKER_DATA = os.path.join(ROOT, "maker", "data")
-MAKER_EDITOR = os.path.join(ROOT, "tools", "maker_editor")
-MAKER_PLUGIN_NAME = "sango_maker-release.3gx"
 
 
 def fill(text, version, pokemon_url, overworld_url, music_url, trainer_url="",
@@ -75,23 +67,9 @@ def add_folder(z, folder, target, text_crlf=False):
             z.write(path, "%s/%s" % (target, name))
 
 
-def add_maker(z, maker_plugin):
-    """Adds Sango Maker: its plugin, the example files and the web editor."""
-    z.write(maker_plugin, "sango_maker/luma/plugins/%s/%s"
-            % (TITLE_ID, MAKER_PLUGIN_NAME))
-    add_folder(z, MAKER_DATA, "sango_maker/sango/maker", text_crlf=True)
-    if not os.path.isfile(os.path.join(MAKER_EDITOR, "names.js")):
-        sys.exit("tools/maker_editor/names.js does not exist. "
-                 "Make it with tools/gen_data_names.py.")
-    add_folder(z, MAKER_EDITOR, "maker_editor")
-
-
 def pack(args):
     if not os.path.isfile(args.plugin):
         sys.exit("The plugin file does not exist: %s (build it first)" % args.plugin)
-    if not os.path.isfile(args.maker_plugin):
-        sys.exit("The Sango Maker file does not exist: %s (build it first: make maker)"
-                 % args.maker_plugin)
     os.makedirs(DIST, exist_ok=True)
 
     readme = fill(read_asset("README.txt"), args.version, args.pokemon_models_url,
@@ -129,8 +107,8 @@ def pack(args):
                 with Image.open(os.path.join(items_dir, name)) as image:
                     data = png_to_item_icon.convert(image)
                 z.writestr("sango/items/%s.bclim" % name[:-4], data)
-        # The names of the menus and of the data files (sdmc:/sango/names):
-        # the plugin reads them from the SD card, they are not in the plugin.
+        # The names of the menus (sdmc:/sango/names): the plugin reads them
+        # from the SD card, they are not in the plugin.
         names_dir = tempfile.mkdtemp(prefix="sango-names-")
         try:
             subprocess.run([sys.executable,
@@ -141,7 +119,6 @@ def pack(args):
                 z.write(os.path.join(names_dir, name), "sango/names/%s" % name)
         finally:
             shutil.rmtree(names_dir, ignore_errors=True)
-        add_maker(z, args.maker_plugin)
     shutil.copyfile(args.plugin, os.path.join(DIST, "sango_plugin.3gx"))
 
     print("Release pack: %s" % target)
@@ -203,7 +180,6 @@ def main():
     p = sub.add_parser("pack")
     p.add_argument("--version", required=True)
     p.add_argument("--plugin", required=True)
-    p.add_argument("--maker-plugin", required=True)
     p.add_argument("--pokemon-models-url", default="")
     p.add_argument("--overworld-models-url", default="")
     p.add_argument("--music-url", default="")

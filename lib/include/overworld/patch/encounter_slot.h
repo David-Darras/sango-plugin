@@ -20,7 +20,7 @@
  * @brief One wild Pokémon of an encounter table.
  *
  * The file has no game structure: the tests of tests/ compile it on a
- * computer (see core/maker_reader.h).
+ * computer.
  */
 
 #pragma once

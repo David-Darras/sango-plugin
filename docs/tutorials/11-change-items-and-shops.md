@@ -132,9 +132,6 @@ Each shop id has its own list: call `SetItems` one time for each shop.
 Without the last parameter, the list is for the shops that have no list of
 their own. A shop has 60 items at most.
 
-> **Tip:** Sango Maker does the same without code: see `shops.txt` and
-> `items.txt` in [Tutorial 18](18-make-a-rom-hack-without-code.md).
-
 ## Part 3: Sell Pokémon
 
 `pokemon::CustomShop` can also sell Pokémon in the normal Poké Marts. This

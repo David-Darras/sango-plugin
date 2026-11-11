@@ -34,7 +34,6 @@ lib/              the library: all the features and all the game structures
   src/            the sources, one folder for each domain
 overlay/          the overlay product: all the pages in one menu
 kaizo/            the kaizo product: the ROM hack Pokémon Sango Kaizo
-maker/            the maker product: Sango Maker, a ROM hack without code
 tests/            the tests on a computer (see Tests in the reference)
 docs/             this documentation
 assets/           images and data files

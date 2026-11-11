@@ -1017,8 +1017,7 @@ impl Viewer {
         }
         let target = if low.x <= high.x { (low + high) * 0.5 } else { Vec3::ZERO };
         let early_dir = std::env::var("APPDATA").map(|a| format!("{a}/Azahar/sdmc/sango")).ok().filter(|d| std::path::Path::new(d).is_dir()).unwrap_or_else(|| "out".to_string());
-        let plugin_folder = plugin_dir::detect(&early_dir);
-        plugin_dir::migrate(std::path::Path::new(&early_dir), &plugin_folder);
+        let plugin_folder = std::path::PathBuf::from(&early_dir);
         plugin_dir::set(&plugin_folder);
         events::set_sd_dir(&early_dir);
         let default_dir = std::env::var("APPDATA")
@@ -3321,7 +3320,7 @@ impl eframe::App for Viewer {
                             events::set_sd_dir(&self.export_dir);
                         }
                         ui.label("Folder where the plugin reads its text files (events, scripts)");
-                        if ui.text_edit_singleline(&mut self.plugin_folder_text).on_hover_text("sango for the full plugin, sango/maker for Sango Maker: found from the plugin that is installed").changed() {
+                        if ui.text_edit_singleline(&mut self.plugin_folder_text).on_hover_text("The folder sango of the SD card, unless the plugin reads another folder").changed() {
                             plugin_dir::set(std::path::Path::new(&self.plugin_folder_text));
                         }
                         ui.label("Emulator program");

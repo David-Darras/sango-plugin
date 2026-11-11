@@ -21,7 +21,7 @@
  *
  * Each class has 16 bytes: the model sequence, the sex and the plural, the
  * group, the battle effect, the 3D model, the 2D picture, the character on the
- * map and the music of the sight. Sango Maker copies these data to make a new
+ * map and the music of the sight. A product copies these data to make a new
  * class. The list comes from tools/export_trainers.py (see its
  * --class-records option).
  */

@@ -12,7 +12,7 @@ When you do not know a game term, search it on Bulbapedia.
 |---|---|
 | **Plugin** | A `.3gx` file. Luma3DS (on a console) or Azahar (on a computer) loads it with the game. The plugin runs inside the memory of the game. |
 | **Library** | The shared code in `lib/`. It contains all the features and all the game structures. It does nothing alone. |
-| **Product** | One plugin that uses the library: `overlay`, `kaizo`, `maker`, or your own ROM hack. Each product has its own folder, with a `.plgInfo` file and a `src/` folder. `tools/new_hack.py` makes a new product. |
+| **Product** | One plugin that uses the library: `overlay`, `kaizo`, or your own ROM hack. Each product has its own folder, with a `.plgInfo` file and a `src/` folder. `tools/new_hack.py` makes a new product. |
 | **ROM hack** | A modified version of a game. With this project, a ROM hack is a product. The game files on the cartridge do not change. |
 | **Overlay** | The product that shows all the pages of the library in one menu. Use it to explore and test the game. |
 | **Feature** | A class of the library that changes one part of the game. Examples: `battle::Battle`, `overworld::Camera`. A feature is a singleton. |
