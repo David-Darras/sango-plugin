@@ -106,6 +106,12 @@ public:
   /// of the archive.
   static bool RegisterItemData(u32 item_id, const u8* data);
 
+  /// Makes the game read the Pokédex data file that Sango Studio wrote
+  /// (sdmc:/sango-studio/pokemon/pokedex_data.bin) in place of the file of
+  /// the archive. @a size is the size of the file of the studio: 0 gives the
+  /// file of the archive back. core::StudioFiles calls it.
+  static void SetPokedexDataFile(u32 size);
+
   /// Returns true when the archive of a stream is `archive_id`.
   static bool IsArchive(const u32* archive_data, const ArchiveId archive_id);
   /// Returns true when the archive of a queued read is `archive_id`.

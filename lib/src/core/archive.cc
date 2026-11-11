@@ -131,6 +131,7 @@ static constexpr u32 kTrainerModelToken = 0xA0000000;
 static constexpr u32 kTrainerSequenceToken = 0x90000000;
 static constexpr u32 kTrainerLayoutToken = 0x70000000;
 static constexpr u32 kBackgroundToken = 0x60000000;
+static constexpr u32 kStudioToken = 0x10000000;
 static constexpr u32 kTokenMask = 0xF0000000;
 static constexpr u32 kFileIdMask = ~kTokenMask;
 static OverrideEntry pokemon_entries[6144];
@@ -151,6 +152,11 @@ static c16 item_icon_paths[kMaxItemIcons][96];
 static constexpr u32 kMaxItemData = 128;
 static OverrideEntry item_data_entries[kMaxItemData];
 static u8 item_data_raw[kMaxItemData][Archive::kItemDataFileSize];
+// The Pokédex data file of Sango Studio: SetPokedexDataFile() fills this list.
+static constexpr u32 kPokedexDataFile = 1;
+static const c16 kStudioPokedexPath[] =
+    u"sdmc:/sango-studio/pokemon/pokedex_data.bin";
+static OverrideEntry studio_pokedex_entries[1];
 static OverrideSet override_sets[] = {
     {ArchiveId::kPokemonModel, u"sdmc:/sango/pokemodel/index.bin",
      u"sdmc:/sango/pokemodel/%d.pc", kPokemonToken, false, pokemon_entries,
@@ -198,6 +204,10 @@ static OverrideSet override_sets[] = {
      kMaxItemIcons, 0, true},
     {ArchiveId::kItemData, u"", u"", kItemDataToken, true, item_data_entries,
      kMaxItemData, 0, true},
+    // The Pokédex data file of Sango Studio. The list is in memory: no index
+    // file, so the set is already loaded.
+    {ArchiveId::kPokedexData, u"", u"", kStudioToken, true,
+     studio_pokedex_entries, 1, 0, true},
 };
 
 static OverrideSet* FindSet(const u32* archive) {
@@ -267,9 +277,10 @@ static void Trace(OverrideSet* set, u32 what, u32 file_id, u32 size) {
   static bool opened = false;
   static u32 lines = 0;
   if (set == nullptr || !set->whole_file || lines >= 400) return;
-  // The sets of the item icons and of the item data are in memory: no log.
+  // The sets of the item icons, of the item data and of the studio are in
+  // memory: no log.
   if (set->archive == ArchiveId::kItemIcon ||
-      set->archive == ArchiveId::kItemData) {
+      set->archive == ArchiveId::kItemData || set->token == kStudioToken) {
     return;
   }
   if (!opened) {
@@ -373,6 +384,14 @@ static void ServeFile(OverrideSet& set, u32 file_id, void* buffer, u32 size) {
   }
   if (set.archive == ArchiveId::kItemIcon) {
     ServeItemIcon(file_id, buffer, size);
+    return;
+  }
+  if (set.token == kStudioToken) {
+    sys::File file;
+    if (OpenSd(&file, kStudioPokedexPath)) {
+      file.Read(buffer, size);
+      file.Close();
+    }
     return;
   }
   c16 path[64];
@@ -637,6 +656,15 @@ bool Archive::RegisterItemIcon(u32 file_id, const c16* path) {
   set.entries[set.count].size = LzStoreSize(length);
   set.count++;
   return true;
+}
+
+void Archive::SetPokedexDataFile(u32 size) {
+  for (OverrideSet& set : override_sets) {
+    if (set.token != kStudioToken) continue;
+    set.entries[0].file_id = kPokedexDataFile;
+    set.entries[0].size = size;
+    set.count = size != 0 ? 1 : 0;
+  }
 }
 
 bool Archive::RegisterItemData(u32 item_id, const u8* data) {
