@@ -26,6 +26,7 @@
 
 #include <cstring>
 
+#include "battle/patch/studio_abilities.h"
 #include "core/patch/archive.h"
 #include "core/problems.h"
 #include "pokemon/native/species_data.h"
@@ -43,6 +44,7 @@ constexpr const c16* kPokedexPath =
 const c16 kFolderPrefix[] = u"sdmc:/sango-studio/";
 const c8 kSpeciesFolder[] = "pokemon/data/";
 const c8 kPokedexFile[] = "pokemon/pokedex_data.bin";
+const c8 kAbilityFolder[] = "ability/";
 
 /// The header of reload.bin: "SREL", the counter, the number of paths.
 constexpr u32 kSignature = 0x4C455253;
@@ -125,6 +127,7 @@ void StudioFiles::Update() {
   // The data of the species is ready in the overworld or in a battle.
   if (!pokemon::SpeciesChanges::IsReady()) return;
   if (++frame % kPollFrames != 0) return;
+  battle::StudioAbilities::RefreshLanguage();
   sys::File file;
   if (!OpenStudio(&file, kReloadPath)) return;
   u8 header[kHeaderSize];
@@ -138,8 +141,12 @@ void StudioFiles::Update() {
   if (signature != kSignature) return;
   auto& self = GetInstance();
   if (self.loaded_ && counter == self.counter_) return;
+  const bool first_load = !self.loaded_;
   self.loaded_ = true;
   self.counter_ = counter;
+  // reload.bin keeps the last paths only: the first load reads every ability
+  // file, so an old ability is not forgotten.
+  if (first_load) battle::StudioAbilities::LoadAll();
   LoadAll();
 }
 
@@ -168,6 +175,10 @@ void StudioFiles::Apply(const c8* path) {
   }
   if (std::strcmp(path, kPokedexFile) == 0) {
     RefreshPokedexData();
+    return;
+  }
+  if (std::memcmp(path, kAbilityFolder, sizeof(kAbilityFolder) - 1) == 0) {
+    battle::StudioAbilities::Apply(path);
     return;
   }
   // A file of a later version of the studio: this plugin does not read it.
@@ -211,15 +222,17 @@ void StudioFiles::ApplySpeciesData(const c8* path) {
   }
   auto& entry = SpeciesData::GetInstance(static_cast<SpeciesId>(species),
                                          static_cast<FormId>(form));
-  // The places of the forms belong to the table of the plugin: the plugin
+  // The places of the forms (and of their models) belong to the table of the plugin: the plugin
   // can move the forms (for example for the forms that it adds).
   const u16 form_index = entry.form_index;
+  const u16 form_model_index = entry.form_model_index;
   const u8 total_form_count = entry.total_form_count;
   std::memcpy(&entry, bytes, sizeof(SpeciesData));
   entry.form_index = form_index;
+  entry.form_model_index = form_model_index;
   entry.total_form_count = total_form_count;
 #else
-  (void)name;
+  (void)path;
 #endif
 }
 

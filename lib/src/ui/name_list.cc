@@ -26,6 +26,7 @@
 
 #include <cstring>
 
+#include "battle/patch/game_extension.h"
 #include "battle/patch/item_extension.h"
 #include "core/constant/archive_id.h"
 #include "core/game_file.h"
@@ -312,6 +313,12 @@ bool IsNumber(const c16* text) {
 }
 } // namespace
 
+u32 GetLastAbilityId() {
+  constexpr u32 kLastGameAbility = 0xBF;
+  const u32 last = battle::GameExtension::GetLastAbilityId();
+  return last > kLastGameAbility ? last : kLastGameAbility;
+}
+
 NameSource NameList::GetSource(const PageItem& entry) {
   if (entry.GetArraySize() != 0) return NameSource::kArray;
   switch (entry.GetType()) {
@@ -350,6 +357,14 @@ bool NameList::GetName(const PageItem& entry, u32 value, c16* out,
       }
     }
 #endif
+    // The same for the new abilities (the ones of the overlay and the ones of
+    // Sango Studio): the text file of the game has no line for them.
+    if (source == NameSource::kAbility &&
+        battle::GameExtension::FindAbility(static_cast<AbilityId>(value)) !=
+            nullptr &&
+        AskGameName(source, value, out, capacity)) {
+      return true;
+    }
     const s32 index = GetGameIndex(source);
     if (CopyGameName(index, value, out, capacity)) return true;
     // XY, or no text file: ask the game (slower).

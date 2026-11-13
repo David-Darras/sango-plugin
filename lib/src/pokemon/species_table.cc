@@ -183,6 +183,9 @@ void SpeciesTable::BuildTable(u8* game_table) {
   for (u32 i = 0; i < species_entries; i++) {
     auto* entry = (SpeciesData*)(out + i * kEntrySize);
     if (entry->form_index != 0) entry->form_index += SpeciesTable::kAddedCount;
+    if (entry->form_model_index != 0) {
+      entry->form_model_index += SpeciesTable::kAddedCount;
+    }
   }
 
   for (u32 i = 0; i < SpeciesTable::kExtraCount; i++) {
@@ -190,6 +193,7 @@ void SpeciesTable::BuildTable(u8* game_table) {
     std::memcpy(entry, Extra(i).data, kEntrySize);
     FixAbilities(entry, (SpeciesData*)out);
     entry->form_index = 0;
+    entry->form_model_index = 0;
     entry->total_form_count = 1;
   }
 
@@ -201,6 +205,7 @@ void SpeciesTable::BuildTable(u8* game_table) {
     std::memcpy(entry, out + static_cast<u16>(added.data_from) * kEntrySize,
                 kEntrySize);
     entry->form_index = 0;
+    entry->form_model_index = 0;
     entry->total_form_count = 1;
   }
 
@@ -219,8 +224,10 @@ void SpeciesTable::BuildTable(u8* game_table) {
     std::memcpy(entry, form.data, kEntrySize);
     FixAbilities(entry, base);
     entry->form_index = 0;
+    entry->form_model_index = 0;
     entry->total_form_count = 1;
     base->form_index = (u16)first;
+    base->form_model_index = (u16)first;
     base->total_form_count = (u8)(existing + 2);
     next++;
   }

@@ -54,6 +54,12 @@ struct Theme;
  */
 const c8** GetTypeNames(u32* count);
 /**
+ * Gives the highest ability number that a list of the menu shows: 191 (the
+ * last ability of the game), or more when a product or Sango Studio added
+ * abilities (see battle::GameExtension::AddAbility()).
+ */
+u32 GetLastAbilityId();
+/**
  * @brief The menu of the plugin.
  *
  * The menu shows one page at a time. A page is a function that adds entries
@@ -349,7 +355,7 @@ public:
   MainApplication& AddAbility(const c8* name, u8& var) {
     if (entries_count_ < kMaxEntries) {
       entries_[entries_count_++].Initialize(name, (void*)&var, kTypeAbility);
-      WithBounds(0, 0xBF);
+      WithBounds(0, GetLastAbilityId());
     }
     return *this;
   }

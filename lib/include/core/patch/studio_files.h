@@ -35,6 +35,9 @@
  * - pokemon/pokedex_data.bin: the Pokédex data file (the shapes and the
  *   chain of the forms). The game reads it in place of the file of the
  *   archive (see core::Archive::SetPokedexDataFile).
+ * - ability/[id].bin: a new ability that the user made in the studio (an id
+ *   from 192 to 255). The plugin reads all these files at the first load, then
+ *   each file that reload.bin lists. See battle::StudioAbilities.
  */
 
 #pragma once

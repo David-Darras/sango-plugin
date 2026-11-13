@@ -182,6 +182,20 @@ public:
   static bool AddAbility(const AbilitySpec& spec);
 
   /**
+   * @brief Replaces the description of an ability that was added.
+   * @param spec The new description. Its id selects the ability.
+   * @return false when no added ability has this id.
+   *
+   * The battle uses the new reactions at the next battle. core::StudioFiles
+   * uses this function when the user changes an ability in Sango Studio.
+   */
+  static bool UpdateAbility(const AbilitySpec& spec);
+
+  /// Returns the highest id of the abilities that were added, or 0 when there
+  /// is none. The lists of the menu use it to show the new abilities.
+  static u32 GetLastAbilityId();
+
+  /**
    * @brief Adds a new type, or changes the name and the icon of a type of the
    *        game (ORAS only).
    *

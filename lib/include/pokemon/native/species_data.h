@@ -96,7 +96,9 @@ struct SpeciesData {
   AbilityId ability[3];
   u8 unused_2;
   u16 form_index; ///< The index of the first form in the table, or 0.
-  u16 unused_3;
+  /// The index of the first model of the other forms in the table, or 0. The
+  /// game reads it next to form_index: both must move together.
+  u16 form_model_index;
   /// The number of total forms.
   u8 total_form_count;
   PokedexColor color;

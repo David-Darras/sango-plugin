@@ -131,6 +131,32 @@ make myhack
 2. Open the summary of the first Pokémon: the ability is **Quick Start**.
 3. Start a battle. The banner "Quick Start" shows, and the Speed increases.
 
+## Make the ability with Sango Studio, without code
+
+You can also make a new ability in Sango Studio. You write no code.
+
+1. Open the page **Ability**, then the tab **New abilities**.
+2. Type a name and a description in English, then click **Make the ability**.
+3. Build the reactions with the menus: **When** (a moment), **If** (conditions),
+   **Then** (actions). Change the texts in the other languages if you want.
+4. Click **Save**. The studio writes `sdmc:/sango-studio/ability/<id>.bin`.
+
+The plugin reads the file (see `battle/patch/studio_abilities.h`) and registers
+the ability, like `GameExtension::AddAbility()` does. It works in the overlay
+and in each product that calls `core::StudioFiles::Load()`. While the game
+runs, the plugin reads the file again when you save it, and the battle uses the
+new reactions at the next battle.
+
+Rules to know:
+
+- The ids of the studio go from 192 to 255. The overlay uses 248 to 255 for its
+  examples: do not use these ids in the studio.
+- The plugin keeps 32 abilities of the studio at the same time.
+- When you delete an ability in the studio, its reactions stop at once, but its
+  name stays in the lists until the game restarts.
+- The plugin shows the text of the language of the game. When the player changes
+  the language, the plugin reads the texts again.
+
 ## Useful moments
 
 The moments are in `lib/include/battle/constant/moment_kind.h`.
