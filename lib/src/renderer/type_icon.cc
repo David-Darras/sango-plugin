@@ -105,7 +105,9 @@ bool IsTypeIcon(const LayoutTexture& texture) {
 const battle::TypeSpec* FindImageType(u32 type) {
   if (type >= kMaxTypes) return nullptr;
   const battle::TypeSpec* spec = battle::GameExtension::FindType(type);
-  return spec != nullptr && spec->name != nullptr ? spec : nullptr;
+  return spec != nullptr && (spec->name != nullptr || spec->icon_path != nullptr)
+             ? spec
+             : nullptr;
 }
 
 // Reads the image of a type from the SD card, and asks the game to make a

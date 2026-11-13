@@ -1,9 +1,13 @@
 # Tutorial 14: Add a type
 
-In this tutorial, you add a seventh new type: **Storm**. The overlay already has
-six new types (Cosmic, Sound, Light, Plasma, Dream and Time): they are in
-`overlay/src/custom_types.cc`, and you can use them as examples. You can also
-use the same function to change the name and the icon of a type of the game.
+In this tutorial, you add a new type: **Storm**. The plugin has no new type, but there are
+six example icons (Cosmic, Sound, Light, Plasma, Dream and Time):
+they are in `assets/types`, and you can use them as examples. You can also use the
+same function to change the name and the
+icon of a type of the game.
+
+> **No code?** In Sango Studio, the page **Type** adds a type with a name and
+> an image. The studio puts the type in the chart with the value x1 everywhere.
 
 **Time:** 20 minutes.
 **You need:** [Tutorial 1](01-create-your-rom-hack.md) and [Tutorial 4](04-add-a-move.md).
@@ -15,7 +19,7 @@ use the same function to change the name and the icon of a type of the game.
 The game has 18 types, with the numbers 0 (Normal) to 17 (Fairy). It uses the
 number 18 for "no type": a Pokémon with one type has 18 for its second type.
 A new type has a number from 19 to 31 (`TypeId::kFirstCustom` to
-`TypeId::kLastCustom`). The overlay uses the numbers 19 to 24, so Storm gets 25.
+`TypeId::kLastCustom`). Storm is the first one, so it gets 19.
 
 `battle::GameExtension` makes the game accept the number:
 
@@ -63,10 +67,7 @@ python tools/png_to_bclim.py assets/types/Storm.png Storm.bclim
 | Your ROM hack `myhack` | `sdmc:/sango/myhack/types/Storm.bclim` |
 | The overlay | `sdmc:/sango/types/Storm.bclim` |
 
-See [Data folder](../reference/glossary.md). For the overlay, the release
-script (`make release-pack`) makes the BCLIM files of all the PNG files of
-`assets/types` by itself, and it puts them in the zip: keep the PNG file in
-the project.
+See [Data folder](../reference/glossary.md). Keep the PNG file in the project.
 
 ## Step 2: Add the type
 
@@ -82,7 +83,7 @@ the number of the type:
 
 namespace myhack {
 /// The number of the type Storm.
-constexpr TypeId kTypeStorm = static_cast<TypeId>(25);
+constexpr TypeId kTypeStorm = static_cast<TypeId>(19);
 } // namespace myhack
 ```
 
@@ -99,8 +100,6 @@ void SetUpHack() {
 }
 ```
 
-In the overlay, the numbers are in `overlay/include/custom_battle.h`, and
-`RegisterCustomTypes()` (`overlay/src/custom_types.cc`) calls `AddType()`.
 
 The fields are:
 
@@ -141,9 +140,9 @@ of the table are the 18 types of the game, then the new types in the order of
 their numbers (19 is the number 18 of the table):
 
 ```cpp
-// 25 types: the 18 of the game and the 7 new types (19 to 25).
-static const battle::TypeMultiplier kChart[25 * 25] = { /* ... */ };
-battle::GameExtension::SetTypeChart(kChart, 25);
+// 20 types: the 18 of the game, the number 18 ("no type") and Storm (19).
+static const battle::TypeMultiplier kChart[20 * 20] = { /* ... */ };
+battle::GameExtension::SetTypeChart(kChart, 20);
 ```
 
 The cells of the types of the game replace the type chart of the game when a
@@ -157,9 +156,8 @@ test your values.
 
 ## Step 4: Give the type to a Pokémon and to a move
 
-Use the number of the type in the data of the game. The overlay does it in
-`overlay/src/type_team.cc`. Include `pokemon/native/move_data.h` at the top
-of the file:
+Use the number of the type in the data of the game, for example like this.
+Include `pokemon/native/move_data.h` at the top of the file:
 
 ```cpp
 // A move of the game gets the type.
@@ -191,3 +189,16 @@ the species data and the page of the moves).
   animation of a move) keep the choice of the game.
 
 **Next:** [Tutorial 15: Add an item](15-add-an-item.md)
+
+## Add a type with Sango Studio
+
+Sango Studio writes the new types in `sdmc:/sango-studio/type/`, and the plugin
+reads them at the start (`battle/patch/studio_types.h`): the list
+`types.csv` (the names in all the languages), the icons in `icon/` and the type
+chart `chart.bin`. The plugin registers the types with `AddType()` and gives
+the cells of the chart to `TypeChart::Set()`. You write no code.
+
+- A change of the list or of the chart shows when the game reads `reload.bin`
+  again. A new icon shows after the game restarts.
+- A type that you delete in the studio stays in the lists until the game
+  restarts.

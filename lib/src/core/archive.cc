@@ -131,7 +131,12 @@ static constexpr u32 kTrainerModelToken = 0xA0000000;
 static constexpr u32 kTrainerSequenceToken = 0x90000000;
 static constexpr u32 kTrainerLayoutToken = 0x70000000;
 static constexpr u32 kBackgroundToken = 0x60000000;
-static constexpr u32 kStudioToken = 0x10000000;
+// The fake offset of the Pokédex data file of Sango Studio. It is not a token
+// of the four high bits: the offsets of the model archive (1 GB) take all the
+// values below 0x40000000. A read is the one of the studio only when its
+// archive is the Pokédex data (see ReadHook).
+static constexpr u32 kStudioToken = 0x3F000000;
+static constexpr u32 kStudioMask = 0xFF000000;
 static constexpr u32 kTokenMask = 0xF0000000;
 static constexpr u32 kFileIdMask = ~kTokenMask;
 static OverrideEntry pokemon_entries[6144];
@@ -520,6 +525,17 @@ void Archive::GetInfoHook(u32* archive, u32 file_id, u32* info) {
 
 void Archive::ReadHook(u32* archive, u32 offset, u32 size,
                                 void* buffer, u32* read) {
+  // The Pokédex data file of Sango Studio: a fake offset in the archive of the
+  // Pokédex data (a real offset of this small archive never has this value).
+  if (IsArchive(archive, ArchiveId::kPokedexData) &&
+      (offset & kStudioMask) == kStudioToken) {
+    for (OverrideSet& studio : override_sets) {
+      if (studio.token != kStudioToken) continue;
+      ServeFile(studio, offset & ~kStudioMask, buffer, size);
+      if (read != nullptr) *read = size;
+      return;
+    }
+  }
   OverrideSet* set = FindSetByToken(offset);
   if (set != nullptr) {
     const u32 file_id = offset & kFileIdMask;
@@ -608,6 +624,20 @@ void* Archive::LoadCompressedHook(u32* archive, u32 file_id, void* heap_work,
                               out_size);
 }
 
+// True when the text ends with `ending`.
+static bool EndsWith(const c16* text, const c16* ending) {
+  if (text == nullptr) return false;
+  u32 length = 0;
+  while (text[length] != 0) length++;
+  u32 ending_length = 0;
+  while (ending[ending_length] != 0) ending_length++;
+  if (ending_length > length) return false;
+  for (u32 i = 0; i < ending_length; i++) {
+    if (text[length - ending_length + i] != ending[i]) return false;
+  }
+  return true;
+}
+
 // The game reads a part of an archive in a thread, with the offset that the
 // archive gave. For a file of the SD card, the offset has the token of the set.
 // The plugin copies the file to the buffer at once. The thread then reads four
@@ -618,6 +648,14 @@ static bool FileStartAsyncReadHook(void* file, void* heap, const c16* filename,
                                    void* buffer, u32 priority, void* callback,
                                    void* work) {
   OverrideSet* set = FindSetByToken(offset);
+  // The Pokédex data file of the studio: its fake offset is only valid in the
+  // file of the Pokédex data (the id 132 is the file a/1/3/2).
+  if (set == nullptr && (offset & kStudioMask) == kStudioToken &&
+      EndsWith(filename, u"a/1/3/2")) {
+    for (OverrideSet& studio : override_sets) {
+      if (studio.token == kStudioToken) set = &studio;
+    }
+  }
   if (set != nullptr && set->whole_file) {
     static u32 scratch[4];
     const u32 file_id = offset & kFileIdMask;

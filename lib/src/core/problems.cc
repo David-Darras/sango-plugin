@@ -109,7 +109,9 @@ void CheckCharacters() {
 void CheckTypeIcons() {
   for (u32 id = 0; id < battle::GameExtension::kMaxTypes; id++) {
     const battle::TypeSpec* spec = battle::GameExtension::FindType(id);
-    if (spec == nullptr || spec->name == nullptr) continue;
+    if (spec == nullptr || spec->name == nullptr || spec->icon_path != nullptr) {
+      continue;
+    }
     c16 path[96];
     if (battle::GameExtension::GetTypeIconPath(*spec, path, SIZE(path)) &&
         !IsFileOnSdCard(path)) {

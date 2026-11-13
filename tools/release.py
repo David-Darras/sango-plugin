@@ -7,7 +7,7 @@ Usage (the Makefile calls it):
 
 The zip has the layout of the SD card for the players:
   luma/plugins/000400000011C500/sango_plugin.3gx    the plugin (players)
-  sango/types/, sango/items/                        the icons of the plugin
+  sango/items/                                      the icons of the plugin
   sango/names/                                      the names of the menus
   README.txt
 """
@@ -87,17 +87,9 @@ def pack(args):
     with zipfile.ZipFile(target, "w", zipfile.ZIP_DEFLATED) as z:
         z.write(args.plugin, "luma/plugins/%s/sango_plugin.3gx" % TITLE_ID)
         z.writestr("README.txt", readme.replace("\r\n", "\n").replace("\n", "\r\n"))
-        # The icons of the new types (sdmc:/sango/types): the PNG files of
-        # assets/types become BCLIM files here (the files are not in the repo).
-        types_dir = os.path.join(ROOT, "assets", "types")
+        # The plugin has no new type: the user adds types with Sango Studio.
         sys.path.insert(0, os.path.join(ROOT, "tools"))
-        import png_to_bclim
         from PIL import Image
-        for name in sorted(os.listdir(types_dir)):
-            if name.endswith(".png"):
-                with Image.open(os.path.join(types_dir, name)) as image:
-                    data = png_to_bclim.convert(image)
-                z.writestr("sango/types/%s.bclim" % name[:-4], data)
         # The icons of the new items (sdmc:/sango/items): the same, with the
         # format of the item icons.
         items_dir = os.path.join(ROOT, "assets", "items")

@@ -192,9 +192,9 @@ static void GiveQuickCharm(void* args) {
 
 Add `.Add("Give Quick Charm", GiveQuickCharm)` to `LoadPartyPage`.
 
-The overlay does it for the test team: the button **Receive The New Type Team**
-(page **Pokémon**) gives Plasma Core to the first Pokémon and Dream Pillow to the
-second.
+The overlay has test buttons in the section **Item Test** (page **Pokémon**, with
+SANGO_TEST): **Give Plasma Core** and **Give Dream Pillow** give an item to the
+first Pokémon of the party.
 
 ## Use the item in the Bag
 

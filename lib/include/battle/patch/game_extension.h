@@ -120,6 +120,11 @@ struct TypeSpec {
   /// For a new type: the type of the game that gives its colour to the buttons
   /// of the moves in a battle (for example TypeId::kDragon).
   TypeId colour_type;
+  /// Optional: the full path of the icon file, when it is not
+  /// `types/<name>.bclim` of the data folder. Sango Studio gives it (the file
+  /// `sdmc:/sango-studio/type/icon/<id>.bclim`). Null uses the name. A type of
+  /// the game with a null name and a path changes only its icon.
+  const c16* icon_path;
 };
 
 /**
@@ -194,6 +199,10 @@ public:
   /// Returns the highest id of the abilities that were added, or 0 when there
   /// is none. The lists of the menu use it to show the new abilities.
   static u32 GetLastAbilityId();
+
+  /// Replaces the description of a type that was added (the same id). Returns
+  /// false when no description has this id.
+  static bool UpdateType(const TypeSpec& spec);
 
   /**
    * @brief Adds a new type, or changes the name and the icon of a type of the

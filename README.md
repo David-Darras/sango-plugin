@@ -133,7 +133,7 @@ script::NativeScript::Register(kCandyGiver, CandyGiver);
 - **Add a type**, or change the name and the icon of a type of the game
 - Its own **type chart**, with a **table editor** on the bottom screen
 - Icons with the style of the game (a tool draws them)
-- Six examples: Cosmic, Sound, Light, Plasma, Dream and Time
+- Add types without code in **Sango Studio** (Type page)
 - [Tutorial 14](docs/tutorials/14-add-a-type.md)
 
 </td>

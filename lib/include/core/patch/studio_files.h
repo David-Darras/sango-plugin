@@ -38,6 +38,8 @@
  * - ability/[id].bin: a new ability that the user made in the studio (an id
  *   from 192 to 255). The plugin reads all these files at the first load, then
  *   each file that reload.bin lists. See battle::StudioAbilities.
+ * - type/types.csv, type/icon/[id].bclim and type/chart.bin: the new types,
+ *   the icons and the type chart that the user made. See battle::StudioTypes.
  */
 
 #pragma once

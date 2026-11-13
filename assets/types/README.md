@@ -1,11 +1,12 @@
 # The icons of the new types
 
-The files of this folder are the icons of the types of the overlay
-(`overlay/src/custom_types.cc`). Each icon is a PNG of 50 x 20 pixels, and its
-file has the name of the type, with a capital (`Cosmic.png` for the type
-"Cosmic"): the game reads the file `sdmc:/sango/types/<name>.bclim`. The
-release script (`tools/release.py`) makes the BCLIM files that the game reads
-from these PNG files, and it puts them in `sango/types/` of the zip.
+The files of this folder are example icons for the tutorial
+[Add a type](../../docs/tutorials/14-add-a-type.md). The plugin and its overlay
+have no new type: the user adds types with Sango Studio, or in the code of a
+product (`battle::GameExtension::AddType()`). Each icon is a PNG of 50 x 20
+pixels, and its file has the name of the type, with a capital (`Cosmic.png` for
+the type "Cosmic"): the game reads the file `sdmc:/sango/types/<name>.bclim`.
+The release script does not put these files in the zip.
 
 To make an icon again, or to make a new one:
 

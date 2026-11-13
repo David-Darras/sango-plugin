@@ -27,6 +27,7 @@
 #include <cstring>
 
 #include "battle/patch/studio_abilities.h"
+#include "battle/patch/studio_types.h"
 #include "core/patch/archive.h"
 #include "core/problems.h"
 #include "pokemon/native/species_data.h"
@@ -45,6 +46,7 @@ const c16 kFolderPrefix[] = u"sdmc:/sango-studio/";
 const c8 kSpeciesFolder[] = "pokemon/data/";
 const c8 kPokedexFile[] = "pokemon/pokedex_data.bin";
 const c8 kAbilityFolder[] = "ability/";
+const c8 kTypeFolder[] = "type/";
 
 /// The header of reload.bin: "SREL", the counter, the number of paths.
 constexpr u32 kSignature = 0x4C455253;
@@ -128,6 +130,7 @@ void StudioFiles::Update() {
   if (!pokemon::SpeciesChanges::IsReady()) return;
   if (++frame % kPollFrames != 0) return;
   battle::StudioAbilities::RefreshLanguage();
+  battle::StudioTypes::RefreshLanguage();
   sys::File file;
   if (!OpenStudio(&file, kReloadPath)) return;
   u8 header[kHeaderSize];
@@ -146,7 +149,10 @@ void StudioFiles::Update() {
   self.counter_ = counter;
   // reload.bin keeps the last paths only: the first load reads every ability
   // file, so an old ability is not forgotten.
-  if (first_load) battle::StudioAbilities::LoadAll();
+  if (first_load) {
+    battle::StudioTypes::LoadAll();
+    battle::StudioAbilities::LoadAll();
+  }
   LoadAll();
 }
 
@@ -175,6 +181,10 @@ void StudioFiles::Apply(const c8* path) {
   }
   if (std::strcmp(path, kPokedexFile) == 0) {
     RefreshPokedexData();
+    return;
+  }
+  if (std::memcmp(path, kTypeFolder, sizeof(kTypeFolder) - 1) == 0) {
+    battle::StudioTypes::Apply(path);
     return;
   }
   if (std::memcmp(path, kAbilityFolder, sizeof(kAbilityFolder) - 1) == 0) {

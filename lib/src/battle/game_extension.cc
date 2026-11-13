@@ -181,6 +181,14 @@ u32 GameExtension::GetLastAbilityId() {
   return last;
 }
 
+bool GameExtension::UpdateType(const TypeSpec& spec) {
+  auto& self = GetInstance();
+  const u32 id = static_cast<u32>(spec.id);
+  if (id >= kMaxTypes || !self.is_type_used_[id]) return false;
+  self.types_[id] = spec;
+  return true;
+}
+
 bool GameExtension::AddType(const TypeSpec& spec) {
   auto& self = GetInstance();
   const u32 id = static_cast<u32>(spec.id);
@@ -201,6 +209,15 @@ bool GameExtension::GetTypeIconPath(const TypeSpec& spec, c16* path,
                                     u32 capacity) {
   static const c16 kFolder[] = SANGO_DATA_PATH(u"types/");
   static const c16 kExtension[] = u".bclim";
+  if (spec.icon_path != nullptr) {
+    u32 at = 0;
+    for (const c16* c = spec.icon_path; *c != 0; c++) {
+      if (at + 1 >= capacity) return false;
+      path[at++] = *c;
+    }
+    path[at] = 0;
+    return true;
+  }
   if (spec.name == nullptr) return false;
   u32 length = 0;
   for (const c16* c = kFolder; *c != 0; c++) {
