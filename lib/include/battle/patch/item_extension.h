@@ -101,6 +101,10 @@ struct ItemSpec {
   /// The Bag then plays the animation of the HP bar, like a medicine: the bar
   /// goes down when the HP go down.
   bool changes_hp;
+  /// Optional: the full path of the icon file, when it is not
+  /// `items/<name>.bclim` of the data folder. Sango Studio gives it. Null uses
+  /// the name.
+  const c16* icon_path;
 };
 
 /**
@@ -154,6 +158,10 @@ public:
 
   /// Returns the new item with this id, or null.
   static const ItemSpec* FindItem(ItemId id);
+
+  /// Replaces the description of an item that was added (the same id). Returns
+  /// false when no added item has this id. The icon stays the first one.
+  static bool UpdateItem(const ItemSpec& spec);
 
   /// Returns the number of added items.
   static u32 GetCount() { return GetInstance().items_.Count(); }
@@ -225,7 +233,9 @@ private:
   c16 use_message_[128] = {};
   bool has_use_message_ = false;
   s32 hp_delta_ = 0;
-  bool is_data_given_ = false;
+  /// For each added item: true when its data was given to the game. An item
+  /// that the studio adds later, or that changes, gets its data again.
+  bool is_data_given_[kMaxItems] = {};
 };
 
 } // namespace battle

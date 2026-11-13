@@ -319,6 +319,12 @@ u32 GetLastAbilityId() {
   return last > kLastGameAbility ? last : kLastGameAbility;
 }
 
+u32 GetLastMoveId() {
+  constexpr u32 kLastGameMove = 0x26E;
+  const u32 last = battle::GameExtension::GetLastMoveId();
+  return last > kLastGameMove ? last : kLastGameMove;
+}
+
 NameSource NameList::GetSource(const PageItem& entry) {
   if (entry.GetArraySize() != 0) return NameSource::kArray;
   switch (entry.GetType()) {
@@ -357,6 +363,13 @@ bool NameList::GetName(const PageItem& entry, u32 value, c16* out,
       }
     }
 #endif
+    // The same for the new moves: the text file of the game has no line for
+    // them.
+    if (source == NameSource::kMove &&
+        battle::GameExtension::FindMove(static_cast<MoveId>(value)) != nullptr &&
+        AskGameName(source, value, out, capacity)) {
+      return true;
+    }
     // The same for the new abilities (the ones of the overlay and the ones of
     // Sango Studio): the text file of the game has no line for them.
     if (source == NameSource::kAbility &&

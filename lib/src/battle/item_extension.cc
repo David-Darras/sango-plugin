@@ -150,6 +150,15 @@ bool ItemExtension::GetIconPath(const ItemSpec& spec, c16* path,
                                 u32 capacity) {
   static const c16 kFolder[] = SANGO_DATA_PATH(u"items/");
   static const c16 kExtension[] = u".bclim";
+  if (spec.icon_path != nullptr) {
+    u32 at = 0;
+    for (const c16* c = spec.icon_path; *c != 0; c++) {
+      if (at + 1 >= capacity) return false;
+      path[at++] = *c;
+    }
+    path[at] = 0;
+    return true;
+  }
   if (spec.name == nullptr) return false;
   u32 length = 0;
   for (const c16* c = kFolder; *c != 0; c++) {
@@ -165,6 +174,17 @@ bool ItemExtension::GetIconPath(const ItemSpec& spec, c16* path,
     path[length++] = *c;
   }
   path[length] = 0;
+  return true;
+}
+
+bool ItemExtension::UpdateItem(const ItemSpec& spec) {
+  auto& self = GetInstance();
+  ItemSpec* current = self.items_.Find(
+      [&spec](const ItemSpec& entry) { return entry.id == spec.id; });
+  if (current == nullptr) return false;
+  *current = spec;
+  // The data of the item changed: Update() gives it to the game again.
+  self.is_data_given_[current - &self.items_[0]] = false;
   return true;
 }
 
@@ -231,19 +251,21 @@ void ItemExtension::PatchBattleLoad() {
 void ItemExtension::Update() {
 #ifdef GAME_ORAS
   auto& self = GetInstance();
-  if (self.is_data_given_ || self.items_.Count() == 0) return;
+  if (self.items_.Count() == 0) return;
   if (core::GameManager::GetInstance().GetSystemHeap() == nullptr ||
       !core::ProcessManager::IsOverworldActive()) {
     return;
   }
+  // Each item gets its data one time. An item that Sango Studio adds while the
+  // game runs, or that it changes, is not given yet: it gets its data now.
   for (u32 i = 0; i < self.items_.Count(); i++) {
     const ItemId id = self.items_[i].id;
-    if (!IsNewItem(id)) continue;
+    if (!IsNewItem(id) || self.is_data_given_[i]) continue;
     pokemon::ItemData data(id);
     core::Archive::RegisterItemData(static_cast<u32>(id),
                                     reinterpret_cast<const u8*>(&data));
+    self.is_data_given_[i] = true;
   }
-  self.is_data_given_ = true;
 #endif
 }
 
@@ -366,10 +388,12 @@ void ItemExtension::ItemDataHook(pokemon::ItemData* item, ItemId id,
   const bool uses_template = spec != nullptr && IsNewItem(id);
   item_data_hook(item, uses_template ? kTemplateItem : id, heap);
   if (spec == nullptr) return;
+  // The data of the spec first (the studio gives all the bytes of the item),
+  // then the flags of the Bag: patch_data must not take the button "Use" away.
+  if (spec->patch_data != nullptr) spec->patch_data(*item);
   if (spec->use != nullptr || spec->evolve_into != nullptr) {
     MakeUsableInBag(*item, *spec);
   }
-  if (spec->patch_data != nullptr) spec->patch_data(*item);
   item->id = id;
 }
 

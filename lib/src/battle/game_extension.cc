@@ -173,6 +173,23 @@ bool GameExtension::UpdateAbility(const AbilitySpec& spec) {
   return true;
 }
 
+bool GameExtension::UpdateMove(const MoveSpec& spec) {
+  auto& self = GetInstance();
+  MoveSpec* current = self.moves_.Find(
+      [&spec](const MoveSpec& entry) { return entry.id == spec.id; });
+  if (current == nullptr) return false;
+  *current = spec;
+  return true;
+}
+
+u32 GameExtension::GetLastMoveId() {
+  u32 last = 0;
+  for (const MoveSpec& spec : GetInstance().moves_) {
+    if (static_cast<u32>(spec.id) > last) last = static_cast<u32>(spec.id);
+  }
+  return last;
+}
+
 u32 GameExtension::GetLastAbilityId() {
   u32 last = 0;
   for (const AbilitySpec& spec : GetInstance().abilities_) {

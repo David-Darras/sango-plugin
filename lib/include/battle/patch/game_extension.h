@@ -204,6 +204,14 @@ public:
   /// false when no description has this id.
   static bool UpdateType(const TypeSpec& spec);
 
+  /// Replaces the description of a move that was added (the same id). Returns
+  /// false when no added move has this id.
+  static bool UpdateMove(const MoveSpec& spec);
+
+  /// Returns the highest id of the moves that were added, or 0 when there is
+  /// none. The lists of the menu use it to show the new moves.
+  static u32 GetLastMoveId();
+
   /**
    * @brief Adds a new type, or changes the name and the icon of a type of the
    *        game (ORAS only).

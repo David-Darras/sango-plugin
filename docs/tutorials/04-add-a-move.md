@@ -206,6 +206,29 @@ The values come from the data of the game. The page **Game Data > Move Data** of
 the overlay shows the data of all the moves: use it to copy the values of a
 similar move.
 
+## Make the move with Sango Studio, without code
+
+You can also make a new move in Sango Studio:
+
+1. Open the page **Move** and click **+ New move**. The new move starts like the
+   move that was open (the same data).
+2. Change it like the other moves: the **General** tab for the data (type,
+   damage kind, power, accuracy, PP, priority, target...), the **Text** tab for
+   the name and the description in every language.
+3. In the **Reactions** tab, build the reactions with the menus: **When** (a
+   moment of the move), **If** (conditions), **Then** (actions).
+4. Click **Save**. The studio writes `sdmc:/sango-studio/move/custom/<id>.bin`.
+5. Click **Save**. The studio writes `sdmc:/sango-studio/move/custom/<id>.bin`.
+
+The plugin reads the file (see `battle/patch/studio_moves.h`) and registers the
+move with `GameExtension::AddMove()`. The ids of the studio go from 900 to 931,
+and the plugin keeps 32 moves of the studio at the same time. A move without
+animation plays the animation of Tackle.
+
+The changes that you make to a move of the game in the page **Move** go to
+`move/data/<id>.bin`: the plugin gives this data to the game each time it loads
+the move.
+
 ## What you learned
 
 - A new move has an id above 621 and a `battle::MoveSpec`.

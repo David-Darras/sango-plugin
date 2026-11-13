@@ -60,6 +60,12 @@ const c8** GetTypeNames(u32* count);
  */
 u32 GetLastAbilityId();
 /**
+ * Gives the highest move number that a list of the menu shows: 622 (the last
+ * move of the game), or more when a product or Sango Studio added moves (see
+ * battle::GameExtension::AddMove()).
+ */
+u32 GetLastMoveId();
+/**
  * @brief The menu of the plugin.
  *
  * The menu shows one page at a time. A page is a function that adds entries
@@ -364,7 +370,7 @@ public:
   MainApplication& AddMove(const c8* name, u16& var) {
     if (entries_count_ < kMaxEntries) {
       entries_[entries_count_++].Initialize(name, (void*)&var, kTypeMove);
-      WithBounds(0, 0x26E);
+      WithBounds(0, GetLastMoveId());
     }
     return *this;
   }

@@ -135,10 +135,10 @@ make myhack
 
 You can also make a new ability in Sango Studio. You write no code.
 
-1. Open the page **Ability**, then the tab **New abilities**.
-2. Type a name and a description in English, then click **Make the ability**.
-3. Build the reactions with the menus: **When** (a moment), **If** (conditions),
-   **Then** (actions). Change the texts in the other languages if you want.
+1. Open the page **Ability** and click **+ New ability**.
+2. In the **Text** tab, write the name and the description in each language.
+3. In the **Reactions** tab, build the reactions with the menus: **When** (a
+   moment), **If** (conditions), **Then** (actions).
 4. Click **Save**. The studio writes `sdmc:/sango-studio/ability/<id>.bin`.
 
 The plugin reads the file (see `battle/patch/studio_abilities.h`) and registers

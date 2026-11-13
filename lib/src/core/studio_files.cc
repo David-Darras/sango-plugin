@@ -27,6 +27,8 @@
 #include <cstring>
 
 #include "battle/patch/studio_abilities.h"
+#include "battle/patch/studio_items.h"
+#include "battle/patch/studio_moves.h"
 #include "battle/patch/studio_types.h"
 #include "core/patch/archive.h"
 #include "core/problems.h"
@@ -47,6 +49,8 @@ const c8 kSpeciesFolder[] = "pokemon/data/";
 const c8 kPokedexFile[] = "pokemon/pokedex_data.bin";
 const c8 kAbilityFolder[] = "ability/";
 const c8 kTypeFolder[] = "type/";
+const c8 kMoveFolder[] = "move/";
+const c8 kItemFolder[] = "item/";
 
 /// The header of reload.bin: "SREL", the counter, the number of paths.
 constexpr u32 kSignature = 0x4C455253;
@@ -131,6 +135,8 @@ void StudioFiles::Update() {
   if (++frame % kPollFrames != 0) return;
   battle::StudioAbilities::RefreshLanguage();
   battle::StudioTypes::RefreshLanguage();
+  battle::StudioMoves::RefreshLanguage();
+  battle::StudioItems::RefreshLanguage();
   sys::File file;
   if (!OpenStudio(&file, kReloadPath)) return;
   u8 header[kHeaderSize];
@@ -152,6 +158,8 @@ void StudioFiles::Update() {
   if (first_load) {
     battle::StudioTypes::LoadAll();
     battle::StudioAbilities::LoadAll();
+    battle::StudioMoves::LoadAll();
+    battle::StudioItems::LoadAll();
   }
   LoadAll();
 }
@@ -185,6 +193,14 @@ void StudioFiles::Apply(const c8* path) {
   }
   if (std::memcmp(path, kTypeFolder, sizeof(kTypeFolder) - 1) == 0) {
     battle::StudioTypes::Apply(path);
+    return;
+  }
+  if (std::memcmp(path, kMoveFolder, sizeof(kMoveFolder) - 1) == 0) {
+    battle::StudioMoves::Apply(path);
+    return;
+  }
+  if (std::memcmp(path, kItemFolder, sizeof(kItemFolder) - 1) == 0) {
+    battle::StudioItems::Apply(path);
     return;
   }
   if (std::memcmp(path, kAbilityFolder, sizeof(kAbilityFolder) - 1) == 0) {

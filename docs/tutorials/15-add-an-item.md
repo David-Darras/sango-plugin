@@ -323,6 +323,27 @@ removes HP, and the HP stay between 1 and the maximum HP. Set the last field of
 the `ItemSpec` (`changes_hp`) to `true`: the Bag then plays the animation of the HP
 bar like for a medicine, and the bar counts down when the HP go down.
 
+## Make the item with Sango Studio, without code
+
+You can also make a new item in Sango Studio:
+
+1. Open the page **Item** and click **+ New item**. The new item starts like the
+   item that was open (the same data and picture).
+2. Change it like the other items: the **General** tab for the data (price,
+   pocket, effects...) and the picture (**Import PNG...**), the **Text** tab for
+   the name, the description and the message of the Bag in every language.
+3. In the **Reactions** tab, say what the item does when the player uses it on a
+   Pokémon in the Bag (change the HP, make the Pokémon shiny, go to the next
+   ability, set the level, add EVs) and what it does when a Pokémon holds it in
+   a battle (reactions with the menus **When**, **If** and **Then**).
+4. Click **Save**. The studio writes `sdmc:/sango-studio/item/custom/<id>.bin` and
+   the picture `<id>.bclim`.
+
+The plugin reads the files (see `battle/patch/studio_items.h`) and registers the
+item with `ItemExtension::AddItem()`. The ids of the studio go from 900 to 931,
+and the plugin keeps 32 items of the studio at the same time. The changes that
+you make to an item of the game in the page **Item** go to `item/data/<id>.bin`.
+
 ## Change an item of the game
 
 You can also change an item that the game has (ids 1 to 775) with the same

@@ -6,8 +6,9 @@ they are in `assets/types`, and you can use them as examples. You can also use t
 same function to change the name and the
 icon of a type of the game.
 
-> **No code?** In Sango Studio, the page **Type** adds a type with a name and
-> an image. The studio puts the type in the chart with the value x1 everywhere.
+> **No code?** In Sango Studio, the page **Type** has the button **+ Add a type**.
+> The type starts with the value x1 everywhere in the chart. Then you change it
+> like the other types: its name, its picture and its effects.
 
 **Time:** 20 minutes.
 **You need:** [Tutorial 1](01-create-your-rom-hack.md) and [Tutorial 4](04-add-a-move.md).

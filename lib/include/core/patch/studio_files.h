@@ -40,6 +40,10 @@
  *   each file that reload.bin lists. See battle::StudioAbilities.
  * - type/types.csv, type/icon/[id].bclim and type/chart.bin: the new types,
  *   the icons and the type chart that the user made. See battle::StudioTypes.
+ * - move/data/[id].bin and move/custom/[id].bin: the changed moves of the game
+ *   and the new moves. See battle::StudioMoves.
+ * - item/data/[id].bin, item/custom/[id].bin and item/custom/[id].bclim: the
+ *   changed items and the new items. See battle::StudioItems.
  */
 
 #pragma once
