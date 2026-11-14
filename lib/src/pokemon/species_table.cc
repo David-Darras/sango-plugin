@@ -36,6 +36,8 @@
 #include "core/problems.h"
 #include "core/memory.h"
 #include "core/native/process_manager.h"
+#include "system/native/core.h"
+#include "system/native/file.h"
 #include "overworld/patch/whos_that_pokemon.h"
 #include "pokemon/address.h"
 
@@ -52,6 +54,128 @@ static constexpr u32 kSecondCarrierBase = 256;
 static constexpr u32 kNativeModel = 0x8000;
 static constexpr u32 kGen7Base = SpeciesTable::kSpeciesCount + 3;
 static constexpr u16 kGen7Carrier = 494;
+
+// The names of the species of the game that the user changed in Sango Studio:
+// the file of the texts of the language (the file 98 of its archive) that the
+// studio copies in sdmc:/sango-studio/archive/<archive>/98.bin. The game reads
+// its list of names once, before the plugin can change what it reads, so the
+// names are replaced here, when the game asks for one.
+namespace {
+constexpr u32 kNameCharacters = 24;
+constexpr u32 kNameCacheSize = 64;
+bool text_file_tried = false;
+bool text_file_there = false;
+sys::Language text_file_language = sys::Language::kNone;
+c16 text_file_path[64];
+
+// A name that was read: the species, and the name (empty when the studio has
+// no name for it).
+struct CachedName {
+  u16 species;
+  c16 name[kNameCharacters + 1];
+};
+CachedName name_cache[kNameCacheSize];
+
+// The archive of the texts of a language (71 Japanese, 72 Japanese with
+// kanji, then English, French, Italian, German, Spanish and Korean).
+u32 TextArchive(sys::Language language) {
+  switch (language) {
+  case sys::Language::kJapanese: return 71;
+  case sys::Language::kEnglish: return 73;
+  case sys::Language::kFrench: return 74;
+  case sys::Language::kItalian: return 75;
+  case sys::Language::kGerman: return 76;
+  case sys::Language::kSpanish: return 77;
+  case sys::Language::kKorean: return 78;
+  default: return 0;
+  }
+}
+
+// Looks for the file of the language that the game reads. The cache of the
+// names is emptied when the language changes.
+void FindNameFile() {
+  const sys::Language language = sys::Core::GetInstance().GetLanguage();
+  if (text_file_tried && language == text_file_language) return;
+  text_file_tried = true;
+  text_file_language = language;
+  text_file_there = false;
+  std::memset(name_cache, 0, sizeof(name_cache));
+  const u32 archive = TextArchive(language);
+  if (archive == 0) return;
+  const c16 prefix[] = u"sdmc:/sango-studio/archive/";
+  u32 at = 0;
+  for (u32 i = 0; prefix[i] != 0; i++) text_file_path[at++] = prefix[i];
+  text_file_path[at++] = u'0' + (archive / 10);
+  text_file_path[at++] = u'0' + (archive % 10);
+  const c16 suffix[] = u"/98.bin";
+  for (u32 i = 0; suffix[i] != 0; i++) text_file_path[at++] = suffix[i];
+  text_file_path[at] = 0;
+  sys::File file;
+  file.Open(text_file_path, sys::File::kRead);
+  text_file_there = file.IsOpen();
+}
+
+// Reads some bytes of the file of the studio, at a place of the file.
+bool ReadNameFile(u32 place, void* buffer, u32 size) {
+  sys::File file;
+  file.Open(text_file_path, sys::File::kRead);
+  if (!file.IsOpen()) return false;
+  const s32 read = file.Read(buffer, size, place);
+  return read == static_cast<s32>(size);
+}
+
+// Reads the name of a species in the file of the studio: the lines are
+// hidden with a key (see the file format in Sango Studio).
+bool ReadStudioName(u16 species, c16* out) {
+  u8 header[4];
+  if (!ReadNameFile(0, header, 4)) return false;
+  u16 lines;
+  std::memcpy(&lines, header + 2, 2);
+  if (species == 0 || species >= lines) return false;
+  u8 entry[8];
+  if (!ReadNameFile(20 + 8 * static_cast<u32>(species), entry, 8)) return false;
+  u32 start;
+  u16 length;
+  std::memcpy(&start, entry, 4);
+  std::memcpy(&length, entry + 4, 2);
+  if (length > kNameCharacters + 8) length = kNameCharacters + 8;
+  u8 raw[2 * (kNameCharacters + 8)];
+  if (!ReadNameFile(16 + start, raw, 2 * static_cast<u32>(length))) return false;
+  u16 key = static_cast<u16>(0x7C89 + 0x2983 * species);
+  u32 count = 0;
+  for (u32 i = 0; i < length; i++) {
+    u16 character;
+    std::memcpy(&character, raw + 2 * i, 2);
+    character ^= key;
+    key = static_cast<u16>((key << 3) | (key >> 13));
+    if (character == 0 || count >= kNameCharacters) break;
+    out[count++] = character;
+  }
+  out[count] = 0;
+  return count != 0;
+}
+
+// Writes the name of a species of the game from the file of the studio.
+// Returns false when the studio has no name for it.
+bool StudioGameName(u16 species, c16* out, u32 capacity) {
+  FindNameFile();
+  if (!text_file_there || capacity < kNameCharacters + 1) return false;
+  CachedName& slot = name_cache[species % kNameCacheSize];
+  if (slot.species != species) {
+    slot.species = species;
+    slot.name[0] = 0;
+    ReadStudioName(species, slot.name);
+  }
+  if (slot.name[0] == 0) return false;
+  u32 i = 0;
+  while (slot.name[i] != 0) {
+    out[i] = slot.name[i];
+    i++;
+  }
+  out[i] = 0;
+  return true;
+}
+} // namespace
 
 // Returns the data of a species of a pack, or null. The ids follow the order
 // of the file: the index is the id minus the first id.
@@ -245,6 +369,27 @@ void SpeciesTable::Update() {
 #endif
 }
 
+// Writes the first calls of the name hook in sdmc:/sango/name_trace.log: the
+// species, the language, the size of the file of the studio and whether a name
+// was replaced. It shows if the game uses this function for the names it shows.
+static void TraceName(u16 species, bool replaced) {
+  static sys::File file;
+  static bool opened = false;
+  static u32 lines = 0;
+  if (lines >= 40) return;
+  if (!opened) {
+    opened = true;
+    sys::File::CreateDirectory(u"sdmc:/sango");
+    file.Open(u"sdmc:/sango/name_trace.log");
+  }
+  if (!file.IsOpen()) return;
+  lines++;
+  file.WriteText(u"species %u language %u file %u replaced %u\n", species,
+                 static_cast<u32>(text_file_language),
+                 text_file_there ? 1 : 0,
+                 replaced ? 1 : 0);
+}
+
 void SpeciesTable::GetSpeciesNameHook(String* output, u16 species) {
   if (output != nullptr && overworld::WhosThatPokemon::AreNamesHidden()) {
     output->Set(u"???");
@@ -261,6 +406,11 @@ void SpeciesTable::GetSpeciesNameHook(String* output, u16 species) {
     return;
   }
   get_species_name_hook(output, species);
+  c16 changed[kNameCharacters + 1];
+  const bool replaced = output != nullptr && species <= kSpeciesCount &&
+                        StudioGameName(species, changed, kNameCharacters + 1);
+  if (replaced) output->Set(changed);
+  TraceName(species, replaced);
 }
 
 void SpeciesTable::GetDefaultNicknameHook(c16* output, u16 species) {
@@ -273,6 +423,11 @@ void SpeciesTable::GetDefaultNicknameHook(c16* output, u16 species) {
   } else {
     const NewSpeciesEntry* added = FindNewSpecies(species);
     if (added != nullptr) name = added->name;
+  }
+  c16 changed[kNameCharacters + 1];
+  if (name == nullptr && output != nullptr && species <= kSpeciesCount &&
+      StudioGameName(species, changed, kNameCharacters + 1)) {
+    name = changed;
   }
   if (name == nullptr || output == nullptr) {
     get_default_nickname_hook(output, species);

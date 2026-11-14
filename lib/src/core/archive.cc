@@ -182,15 +182,15 @@ static const c16 kStudioPokedexPath[] =
     u"sdmc:/sango-studio/pokemon/pokedex_data.bin";
 static OverrideEntry studio_pokedex_entries[1];
 // The icons of the species that Sango Studio changed: the index file lists them.
-static constexpr u32 kMaxSpeciesIcons = 1024;
+static constexpr u32 kMaxSpeciesIcons = 512;
 static OverrideEntry species_icon_entries[kMaxSpeciesIcons];
 // The changed files of the other small archives of Sango Studio.
-static constexpr u32 kMaxStudioFiles = 1024;
+static constexpr u32 kMaxStudioFiles = 512;
 static OverrideEntry level_up_entries[kMaxStudioFiles];
 static OverrideEntry egg_move_entries[kMaxStudioFiles];
 static OverrideEntry evolution_entries[kMaxStudioFiles];
 static OverrideEntry growth_entries[16];
-static constexpr u32 kMaxTextFiles = 512;
+static constexpr u32 kMaxTextFiles = 128;
 static OverrideEntry text_entries[8][kMaxTextFiles];
 static OverrideSet override_sets[] = {
     {ArchiveId::kPokemonModel, u"sdmc:/sango/pokemodel/index.bin",
@@ -365,6 +365,9 @@ static void Trace(OverrideSet* set, u32 what, u32 file_id, u32 size) {
   }
   if (!opened) {
     opened = true;
+    // The folders may not be there (a user who has no overworld models).
+    sys::File::CreateDirectory(u"sdmc:/sango");
+    sys::File::CreateDirectory(u"sdmc:/sango/overworld_model");
     file.Open(u"sdmc:/sango/overworld_model/trace.log");
   }
   if (!file.IsOpen()) return;
@@ -552,7 +555,35 @@ static u32 ReplacedSize(OverrideSet* set, u32 file_id) {
   return set->whole_file ? size : LzStoreSize(size);
 }
 
+// Writes a line "archive file" in sdmc:/sango/text_trace.log for the first
+// reads of the files of the texts of the game (the archives 71 to 78): it shows
+// which language the game reads, and which files.
+static void TraceText(u32* archive, u32 file_id) {
+  static sys::File file;
+  static bool opened = false;
+  static u32 lines = 0;
+  static u32 seen[64][2];
+  if (lines >= 64) return;
+  for (u32 number = 71; number <= 78; number++) {
+    if (!Archive::IsArchive(archive, static_cast<ArchiveId>(number))) continue;
+    for (u32 i = 0; i < lines; i++) {
+      if (seen[i][0] == number && seen[i][1] == file_id) return;
+    }
+    seen[lines][0] = number;
+    seen[lines][1] = file_id;
+    if (!opened) {
+      opened = true;
+      sys::File::CreateDirectory(u"sdmc:/sango");
+      file.Open(u"sdmc:/sango/text_trace.log");
+    }
+    lines++;
+    if (file.IsOpen()) file.WriteText(u"%u %u\n", number, file_id);
+    return;
+  }
+}
+
 u32 Archive::GetFileSizeHook(u32* archive, u32 file_id) {
+  TraceText(archive, file_id);
   file_id = RemapItemFile(archive, file_id);
   file_id = ReplacedStreamFile(archive, file_id);
   if (IsArchive(archive, ArchiveId::kBattleMoveAnimation)) {
@@ -569,6 +600,7 @@ u32 Archive::GetFileSizeHook(u32* archive, u32 file_id) {
 }
 
 u32 Archive::GetFileSizeHook2(u32* archive, u32 file_id) {
+  TraceText(archive, file_id);
   file_id = RemapItemFile(archive, file_id);
   file_id = ReplacedStreamFile(archive, file_id);
   if (IsArchive(archive, ArchiveId::kBattleMoveAnimation)) {
@@ -585,6 +617,7 @@ u32 Archive::GetFileSizeHook2(u32* archive, u32 file_id) {
 }
 
 void Archive::GetInfoHook(u32* archive, u32 file_id, u32* info) {
+  TraceText(archive, file_id);
   file_id = RemapItemFile(archive, file_id);
   file_id = ReplacedStreamFile(archive, file_id);
   OverrideSet* set = FindSet(archive);
@@ -645,6 +678,7 @@ void Archive::ReadHook(u32* archive, u32 offset, u32 size,
 }
 
 u32 Archive::LoadDataHook2(u32* archive, u32 file_id, void* buffer) {
+  TraceText(archive, file_id);
   file_id = RemapItemFile(archive, file_id);
   file_id = ReplacedStreamFile(archive, file_id);
   if (IsArchive(archive, ArchiveId::kBattleMoveAnimation)) {
@@ -686,6 +720,7 @@ u32 Archive::LoadDataHook2(u32* archive, u32 file_id, void* buffer) {
 
 void* Archive::LoadCompressedHook(u32* archive, u32 file_id, void* heap_work,
                                   void* heap_data, s32 align, u32* out_size) {
+  TraceText(archive, file_id);
   file_id = RemapItemFile(archive, file_id, false);
   file_id = ReplacedStreamFile(archive, file_id);
   OverrideSet* set = FindSet(archive);
