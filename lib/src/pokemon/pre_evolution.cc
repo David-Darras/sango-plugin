@@ -85,7 +85,7 @@ const u16 kPreEvolution[kGameSpeciesCount] = {
 
 // The species that the plugin and the product add (722 and after): the
 // library has their evolutions, so the table is built from them the first time.
-constexpr u32 kExtraLimit = 1100;
+constexpr u32 kExtraLimit = 1200;
 static_assert(SpeciesTable::kFirstNewSpecies + SpeciesTable::kMaxNewSpecies <=
                   kExtraLimit,
               "kExtraLimit is too small");

@@ -17,11 +17,12 @@
 
 /**
  * @file species_table.h
- * @brief Adds the species of generations VII, VIII and IX to the game.
+ * @brief Adds the species of the packs of Sango Studio to the game.
  *
  * The new species come after the 721 species of the game. Their data is in
- * lib/src/pokemon/data/gen7_species.inc and gen8_species.inc. Their models
- * use the model slots of existing species (the carriers).
+ * the file that Sango Studio writes (see pokemon/patch/species_packs.h): the
+ * plugin has no data about them. Their models use the model slots of
+ * existing species (the carriers).
  *
  * After them, the table keeps kMaxNewSpecies places for the species of the
  * product (see pokemon::NewSpecies()).
@@ -33,6 +34,7 @@
 #include "core/fixed_list.h"
 #include "pokemon/constant/form.h"
 #include "pokemon/constant/species.h"
+#include "pokemon/patch/species_packs.h"
 #include "system/native/string.h"
 
 namespace pokemon {
@@ -49,15 +51,16 @@ public:
   static constexpr u16 kSpeciesCount = 721;
   static constexpr u32 kEntries = 826;
   static constexpr u32 kEntrySize = 0x50;
-  static constexpr u32 kAlolanCount = 202;
-  static constexpr u32 kGen7Count = 81;
-  static constexpr u32 kGen8Count = 216;
-  static constexpr u32 kExtraCount = kGen7Count + kGen8Count;
+  /// The number of species that the packs can add.
+  static constexpr u32 kMaxPackSpecies = SpeciesPacks::kMaxSpecies;
+  /// The number of entries for the forms of the packs. A form of a species
+  /// that has forms also copies them, so this is more than the forms.
+  static constexpr u32 kFormSlots = 384;
   /// The number of species that a product can add.
   static constexpr u32 kMaxNewSpecies = 64;
   /// The number of entries between the species of the game and their forms.
-  static constexpr u32 kAddedCount = kExtraCount + kMaxNewSpecies;
-  static constexpr u32 kTotalEntries = kEntries + kAlolanCount + kAddedCount;
+  static constexpr u32 kAddedCount = kMaxPackSpecies + kMaxNewSpecies;
+  static constexpr u32 kTotalEntries = kEntries + kFormSlots + kAddedCount;
 
   static void Initialize();
   /// Puts the bigger table in place. The library calls it at each frame.
@@ -66,7 +69,7 @@ public:
   static bool IsBuilt() { return GetInstance().is_built_; }
   /// Changes the model of a new species into the model of its carrier.
   static void PatchModelRequest(PokeInfo* info);
-  /// Returns true for a species that the plugin or the product adds (the ids
+  /// Returns true for a species that a pack or the product adds (the ids
   /// after 723).
   static bool IsAddedSpecies(u16 species);
   /// The old name of IsAddedSpecies().
@@ -85,11 +88,10 @@ public:
                               SpeciesId model, FormId model_form);
   /// Writes the evolutions of a new species.
   static bool PatchEvolutionTable(u16 species, EvolutionData* table);
-  static u16 kFirstGen7Species;
-  static constexpr u16 kFirstGen8Species = 805;
-  static constexpr u32 kGen8Skipped = 0;
+  /// The id of the first species of the packs.
+  static constexpr u16 kFirstPackSpecies = SpeciesPacks::kFirstSpecies;
   /// The id of the first species of the product.
-  static constexpr u16 kFirstNewSpecies = kFirstGen8Species + kGen8Count;
+  static constexpr u16 kFirstNewSpecies = kFirstPackSpecies + kMaxPackSpecies;
 
 private:
   /// A species of the product.
@@ -104,6 +106,8 @@ private:
   static const NewSpeciesEntry* FindNewSpecies(u16 species);
   static void BuildTable(u8* game_table);
   static void GetSpeciesNameHook(String* output, u16 species);
+  /// The name that a Pokémon gets as its nickname (12 characters at most).
+  static void GetDefaultNicknameHook(c16* output, u16 species);
   static void LoadMovepoolHook(u16 species, u8 form);
 
   bool is_built_ = false;

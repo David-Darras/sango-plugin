@@ -86,13 +86,18 @@ u32 LanguageColumn(sys::Language language) {
   }
 }
 
-/// Writes "sdmc:/sango-studio/type/icon/<id>.bclim".
-void MakeIconPath(u32 id, c16* out) {
+/// Writes "sdmc:/sango-studio/type/icon/<folder>/<id>.bclim", or without the
+/// language folder when `folder` is null.
+void MakeIconPath(u32 id, c16* out, const c16* folder = nullptr) {
   static const c16 kIcon[] = u"icon/";
   static const c16 kSuffix[] = u".bclim";
   u32 at = 0;
   for (const c16* c = kFolder; *c != 0; c++) out[at++] = *c;
   for (const c16* c = kIcon; *c != 0; c++) out[at++] = *c;
+  if (folder != nullptr) {
+    for (const c16* c = folder; *c != 0; c++) out[at++] = *c;
+    out[at++] = u'/';
+  }
   c16 digits[4];
   u32 count = 0;
   do {
@@ -102,6 +107,20 @@ void MakeIconPath(u32 id, c16* out) {
   while (count > 0) out[at++] = digits[--count];
   for (const c16* c = kSuffix; *c != 0; c++) out[at++] = *c;
   out[at] = 0;
+}
+
+/// The folder of the icons of a language. Null for English and for a language
+/// without folder.
+const c16* LanguageFolder(sys::Language language) {
+  switch (language) {
+  case sys::Language::kJapanese: return u"ja";
+  case sys::Language::kFrench: return u"fr";
+  case sys::Language::kItalian: return u"it";
+  case sys::Language::kGerman: return u"de";
+  case sys::Language::kSpanish: return u"es";
+  case sys::Language::kKorean: return u"ko";
+  default: return nullptr;
+  }
 }
 
 /// Writes the path of one of the files of the folder (for example "types.csv").
@@ -308,7 +327,14 @@ void LoadGameIcons() {
   for (u32 id = 0; id < kGameTypeCount; id++) {
     if (is_game_icon_set[id]) continue;
     MakeIconPath(id, game_icon_paths[id]);
-    if (!FileExists(game_icon_paths[id])) continue;
+    // A file for the language of the game is enough: the renderer picks the
+    // file that fits the language.
+    c16 language_path[kPathSize + 8];
+    if (!FileExists(game_icon_paths[id]) &&
+        !StudioTypes::GetLanguageIconPath(id, language_path,
+                                          SIZE(language_path))) {
+      continue;
+    }
     is_game_icon_set[id] = true;
     TypeSpec spec;
     spec.id = static_cast<TypeId>(id);
@@ -336,6 +362,23 @@ void StudioTypes::Apply(const c8* path) {
   }
   // The icons are read by the game when it needs them (see renderer/
   // type_icon.cc): a changed icon shows after the game restarts.
+}
+
+bool StudioTypes::GetLanguageIconPath(u32 id, c16* path, u32 capacity) {
+  const c16* folder = LanguageFolder(sys::Core::GetInstance().GetLanguage());
+  if (folder == nullptr || capacity < kPathSize + 8) return false;
+  MakeIconPath(id, path, folder);
+  if (FileExists(path)) return true;
+  // The Japanese icons can be in the folder of the kanji.
+  if (sys::Core::GetInstance().GetLanguage() == sys::Language::kJapanese) {
+    MakeIconPath(id, path, u"ja_kanji");
+    if (FileExists(path)) return true;
+  }
+  return false;
+}
+
+bool StudioTypes::IsEnglish() {
+  return LanguageFolder(sys::Core::GetInstance().GetLanguage()) == nullptr;
 }
 
 void StudioTypes::RefreshLanguage() {

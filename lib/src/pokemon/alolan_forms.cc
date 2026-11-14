@@ -29,7 +29,7 @@
 #include <cstring>
 #include "core/hook.h"
 #include "pokemon/patch/species_table.h"
-#include "pokemon/data/alolan_form.inc"
+#include "pokemon/patch/species_packs.h"
 #include "pokemon/address.h"
 
 namespace pokemon {
@@ -48,31 +48,37 @@ void AlolanForms::Initialize() {
                                         GetMegaEvolvedFormNoHook);
 }
 
+// The extra forms are in the file that Sango Studio writes (see
+// pokemon/patch/species_packs.h). They keep the order of the file.
 bool AlolanForms::HasForm(u16 species) {
   return FormCount(species) != 0;
 }
 
 u32 AlolanForms::FormCount(u16 species) {
+  SpeciesPacks::Load();
   u32 count = 0;
-  for (u32 i = 0; i < kFormCount; i++) {
-    if (kAlolanForms[i].species == species) count++;
+  for (u32 i = 0; i < SpeciesPacks::FormCount(); i++) {
+    if (SpeciesPacks::GetForm(i).species == species) count++;
   }
   return count;
 }
 
 u32 AlolanForms::GetForm(u16 species, u32 rank) {
-  for (u32 i = 0; i < kFormCount; i++) {
-    if (kAlolanForms[i].species != species) continue;
-    if (rank == 0) return kAlolanForms[i].form;
+  SpeciesPacks::Load();
+  for (u32 i = 0; i < SpeciesPacks::FormCount(); i++) {
+    if (SpeciesPacks::GetForm(i).species != species) continue;
+    if (rank == 0) return SpeciesPacks::GetForm(i).form;
     rank--;
   }
   return 0;
 }
 
 u32 AlolanForms::GetModelForm(u16 species, u32 form) {
-  for (u32 i = 0; i < kFormCount; i++) {
-    if (kAlolanForms[i].species == species && kAlolanForms[i].form == form) {
-      return kAlolanForms[i].model_form;
+  SpeciesPacks::Load();
+  for (u32 i = 0; i < SpeciesPacks::FormCount(); i++) {
+    const PackForm& entry = SpeciesPacks::GetForm(i);
+    if (entry.species == species && entry.form == form) {
+      return entry.model_form;
     }
   }
   return 0;
@@ -90,9 +96,8 @@ u32 AlolanForms::GetFormByItem(u16 species, ItemId item) {
 }
 
 bool AlolanForms::IsLifeOrbSpecies(u16 species) {
-  for (u32 i = 0; i < kLifeOrbCount; i++) {
-    if (kLifeOrbSpecies[i] == species) return true;
-  }
+  // No species keeps the Life Orb for a model of the game alone.
+  (void)species;
   return false;
 }
 

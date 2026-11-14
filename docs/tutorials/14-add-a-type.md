@@ -6,9 +6,9 @@ they are in `assets/types`, and you can use them as examples. You can also use t
 same function to change the name and the
 icon of a type of the game.
 
-> **No code?** In Sango Studio, the page **Type** has the button **+ Add a type**.
+> **No code?** In Sango Studio, the page **Type** has the button **+ New type**.
 > The type starts with the value x1 everywhere in the chart. Then you change it
-> like the other types: its name, its picture and its effects.
+> like the other types: its name and its icon (Text tab), its effects (General tab).
 
 **Time:** 20 minutes.
 **You need:** [Tutorial 1](01-create-your-rom-hack.md) and [Tutorial 4](04-add-a-move.md).
@@ -199,6 +199,12 @@ reads them at the start (`battle/patch/studio_types.h`): the list
 chart `chart.bin`. The plugin registers the types with `AddType()` and gives
 the cells of the chart to `TypeChart::Set()`. You write no code.
 
+- The icon has the name of the type written on it, so each language has its own.
+  The English icon is `icon/<id>.bclim`; the icon of another language is
+  `icon/<language>/<id>.bclim` (`ja`, `ja_kanji`, `fr`, `it`, `de`, `es`, `ko`). In the
+  Text tab of the studio, each language shows the icon of the language next to
+  the name. A new type without an icon in a language shows its English icon. A
+  type of the game without a file keeps the icon of the game in that language.
 - A change of the list or of the chart shows when the game reads `reload.bin`
   again. A new icon shows after the game restarts.
 - A type that you delete in the studio stays in the lists until the game

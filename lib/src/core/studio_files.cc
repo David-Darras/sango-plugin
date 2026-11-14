@@ -34,6 +34,7 @@
 #include "core/problems.h"
 #include "pokemon/native/species_data.h"
 #include "pokemon/patch/species_editor.h"
+#include "pokemon/patch/species_table.h"
 #include "plugin.h"
 #include "system/native/file.h"
 
@@ -225,7 +226,7 @@ void StudioFiles::ApplySpeciesData(const c8* path) {
   }
   const SpeciesData* table = SpeciesData::GetTable();
   if (table == nullptr) return;
-  if (species == 0 || species > 1020) {
+  if (species == 0 || species >= pokemon::SpeciesTable::kFirstNewSpecies) {
     Problems::Add(u"studio: the species %u does not exist", species);
     return;
   }

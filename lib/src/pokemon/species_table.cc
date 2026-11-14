@@ -37,15 +37,13 @@
 #include "core/memory.h"
 #include "core/native/process_manager.h"
 #include "overworld/patch/whos_that_pokemon.h"
-#include "pokemon/data/alolan_form.inc"
-#include "pokemon/data/gen7_species.inc"
-#include "pokemon/data/gen8_species.inc"
 #include "pokemon/address.h"
 
 namespace pokemon {
 
 namespace {
 core::Hook<void(String*, u16)> get_species_name_hook;
+core::Hook<void(c16*, u16)> get_default_nickname_hook;
 core::Hook<void(u16, u8)> load_movepool_hook;
 } // namespace
 
@@ -53,28 +51,13 @@ static constexpr u16 kGen9Carrier = 721;
 static constexpr u32 kSecondCarrierBase = 256;
 static constexpr u32 kNativeModel = 0x8000;
 static constexpr u32 kGen7Base = SpeciesTable::kSpeciesCount + 3;
-static constexpr u32 kAlolanFormCount = sizeof(kAlolanForms) / sizeof(kAlolanForms[0]);
+static constexpr u16 kGen7Carrier = 494;
 
-static const Gen7Species& Extra(u32 i) {
-  return i < SpeciesTable::kGen7Count ? kGen7Species[i]
-                                      : kGen8Species[i - SpeciesTable::kGen7Count];
-}
-
-u16 SpeciesTable::kFirstGen7Species = kGen7Species[0].species;
-
-// Returns the data of a species of the library, or null. The ids follow the
-// order of the tables (724 to 1020): the index is the id minus the first id.
-static const Gen7Species* FindExtra(u16 species) {
-  const u32 index = static_cast<u32>(species - kGen7Species[0].species);
-  if (species >= kGen7Species[0].species && index < SpeciesTable::kExtraCount &&
-      Extra(index).species == species) {
-    return &Extra(index);
-  }
-  // A table with a gap: look at all the entries.
-  for (u32 i = 0; i < SpeciesTable::kExtraCount; i++) {
-    if (Extra(i).species == species) return &Extra(i);
-  }
-  return nullptr;
+// Returns the data of a species of a pack, or null. The ids follow the order
+// of the file: the index is the id minus the first id.
+static const PackSpecies* FindExtra(u16 species) {
+  SpeciesPacks::Load();
+  return SpeciesPacks::FindSpecies(species);
 }
 
 bool SpeciesTable::IsAddedSpecies(u16 species) {
@@ -136,7 +119,7 @@ void SpeciesTable::PatchModelRequest(PokeInfo* info) {
     info->form = added->model_form;
     return;
   }
-  const Gen7Species* extra = FindExtra(species);
+  const PackSpecies* extra = FindExtra(species);
   if (extra != nullptr) {
     const u32 form_model = info->form != FormId::kNormal
         ? AlolanForms::GetModelForm(species, static_cast<u32>(info->form)) : 0;
@@ -171,6 +154,7 @@ void SpeciesTable::BuildTable(u8* game_table) {
   auto& feat = GetInstance();
   u8* out = feat.table_;
 
+  SpeciesPacks::Load();
   const u32 species_entries = kGen7Base;
   const u32 form_entries = kEntries - species_entries;
   // The places of the species of the product stay empty when they are not used.
@@ -188,9 +172,9 @@ void SpeciesTable::BuildTable(u8* game_table) {
     }
   }
 
-  for (u32 i = 0; i < SpeciesTable::kExtraCount; i++) {
+  for (u32 i = 0; i < SpeciesPacks::SpeciesCount(); i++) {
     auto* entry = (SpeciesData*)(out + (kGen7Base + i) * kEntrySize);
-    std::memcpy(entry, Extra(i).data, kEntrySize);
+    std::memcpy(entry, SpeciesPacks::GetSpecies(i).data, kEntrySize);
     FixAbilities(entry, (SpeciesData*)out);
     entry->form_index = 0;
     entry->form_model_index = 0;
@@ -210,10 +194,16 @@ void SpeciesTable::BuildTable(u8* game_table) {
   }
 
   u32 next = kEntries + SpeciesTable::kAddedCount;
-  for (u32 i = 0; i < kAlolanFormCount; i++) {
-    const AlolanForm& form = kAlolanForms[i];
+  for (u32 i = 0; i < SpeciesPacks::FormCount(); i++) {
+    const PackForm& form = SpeciesPacks::GetForm(i);
+    if (form.species == 0 || form.species >= kEntries + kAddedCount) continue;
     auto* base = (SpeciesData*)(out + form.species * kEntrySize);
     const u32 existing = base->total_form_count > 1 ? base->total_form_count - 1u : 0u;
+    if (next + existing + 1 > kTotalEntries) {
+      core::Problems::Add(u"species table: no room for the forms of %u",
+                          form.species);
+      break;
+    }
     const u32 first = next;
     for (u32 k = 0; k < existing; k++) {
       std::memcpy(out + next * kEntrySize,
@@ -260,7 +250,7 @@ void SpeciesTable::GetSpeciesNameHook(String* output, u16 species) {
     output->Set(u"???");
     return;
   }
-  const Gen7Species* extra = FindExtra(species);
+  const PackSpecies* extra = FindExtra(species);
   if (extra != nullptr) {
     if (output != nullptr) output->Set(extra->name);
     return;
@@ -273,15 +263,38 @@ void SpeciesTable::GetSpeciesNameHook(String* output, u16 species) {
   get_species_name_hook(output, species);
 }
 
+void SpeciesTable::GetDefaultNicknameHook(c16* output, u16 species) {
+  // The game reads the name in its list of 721 names: for a species of a pack
+  // or of the product, the nickname is the name of the species.
+  const c16* name = nullptr;
+  const PackSpecies* extra = FindExtra(species);
+  if (extra != nullptr) {
+    name = extra->name;
+  } else {
+    const NewSpeciesEntry* added = FindNewSpecies(species);
+    if (added != nullptr) name = added->name;
+  }
+  if (name == nullptr || output == nullptr) {
+    get_default_nickname_hook(output, species);
+    return;
+  }
+  u32 length = 0;
+  while (name[length] != 0 && length < 12) {
+    output[length] = name[length];
+    length++;
+  }
+  output[length] = 0;
+}
+
 void SpeciesTable::LoadMovepoolHook(u16 species, u8 form) {
-  const Gen7Species* extra = FindExtra(species);
+  const PackSpecies* extra = FindExtra(species);
   if (extra != nullptr) {
     load_movepool_hook(1, 0);
     auto& pool = Movepool::Object();
     pool.species = static_cast<SpeciesId>(species);
     pool.form = static_cast<FormId>(form);
     u32 count = 0;
-    for (u32 k = 0; k < Gen7Species::kMoveMax; k++) {
+    for (u32 k = 0; k < PackSpecies::kMoveMax; k++) {
       const u16 move = extra->moves[k].move;
       if (move == 0) break;
       if (move >= static_cast<u16>(MoveId::kCount)) continue;
@@ -312,11 +325,11 @@ void SpeciesTable::LoadMovepoolHook(u16 species, u8 form) {
 }
 
 bool SpeciesTable::PatchEvolutionTable(u16 species, EvolutionData* table) {
-  const Gen7Species* extra = FindExtra(species);
+  const PackSpecies* extra = FindExtra(species);
   if (extra != nullptr) {
     std::memset(table, 0, sizeof(*table));
-    for (u32 k = 0; k < Gen7Species::kEvolutionMax; k++) {
-      const Gen7Evolution& evolution = extra->evolutions[k];
+    for (u32 k = 0; k < PackSpecies::kEvolutionMax; k++) {
+      const PackEvolution& evolution = extra->evolutions[k];
       table->data[k].method = static_cast<EvolutionMethod>(evolution.method);
       table->data[k].arg = evolution.arg;
       table->data[k].species = static_cast<SpeciesId>(evolution.species);
@@ -337,6 +350,8 @@ void SpeciesTable::Initialize() {
     WRITE32(address::kSpeciesBound[i], kTotalEntries - 1);
   }
   get_species_name_hook.Install(address::kGetSpeciesName, GetSpeciesNameHook);
+  get_default_nickname_hook.Install(address::kGetDefaultNickname,
+                                    GetDefaultNicknameHook);
   load_movepool_hook.Install(address::kLoadMovepool, LoadMovepoolHook);
 }
 

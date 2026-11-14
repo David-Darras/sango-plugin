@@ -29,8 +29,15 @@
  *   `colour_type` is the type of the game (0 to 17) whose colour the buttons
  *   of the moves use in a battle. A language column that is empty means "the
  *   English name". The older header `id,name,colour_type` is read too.
- * - `type/icon/[id].bclim`: the icon of a type (50 x 20 pixels, RGBA4). It can
- *   be the icon of a new type or the icon of a type of the game (0 to 17).
+ * - `type/icon/[id].bclim`: the English icon of a type (50 x 20 pixels,
+ *   RGBA4). It can be the icon of a new type or the icon of a type of the game
+ *   (0 to 17). The icon has the name of the type written on it, so each
+ *   language has its own: the file of another language is
+ *   `type/icon/[language]/[id].bclim`, with the folder `ja`, `ja_kanji`, `fr`,
+ *   `it`, `de`, `es` or `ko`. A new type without a file for the language of
+ *   the game shows its English icon; a type of the game without a file keeps
+ *   the icon of the game in that language (the English file is only for
+ *   English).
  * - `type/chart.bin`: the whole type chart. The signature `TCHT`, the version
  *   1 (32 bits), the number of types on a side (32, 32 bits), then 32 x 32
  *   cells, one row for each attacking type, with the values of
@@ -73,6 +80,16 @@ public:
   /// Takes the names of the language of the game again when the player changes
   /// the language. Call it often: it is cheap.
   static void RefreshLanguage();
+
+  /// Writes the path of the icon of a type in the language of the game, when
+  /// the game is not in English and the file exists. Returns false otherwise:
+  /// the caller then uses the English file (see IsEnglish()).
+  static bool GetLanguageIconPath(u32 id, c16* path, u32 capacity);
+
+  /// Returns true when the game is in English (or in a language without
+  /// folder). The English icon file is the icon of every language for a new
+  /// type, and the icon of English only for a type of the game.
+  static bool IsEnglish();
 };
 
 } // namespace battle

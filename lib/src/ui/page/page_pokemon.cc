@@ -109,21 +109,19 @@ static bool PutInBox(u32 slot, SpeciesId species, FormId form,
 static void FillBoxesWithAll(void*) {
   if (savedata::PokemonTeam::GetInstance().count == 0) return;
   u32 slot = 0;
-  for (u32 i = 0; i < pokemon::SpeciesTable::kGen7Count; i++) {
-    const auto species =
-        static_cast<SpeciesId>(pokemon::SpeciesTable::kFirstGen7Species + i);
-    if (!PutInBox(slot++, species, FormId::kNormal, FormId::kNormal)) return;
-  }
-  for (u32 i = pokemon::SpeciesTable::kGen8Skipped;
-       i < pokemon::SpeciesTable::kGen8Count; i++) {
+  // The species of the packs of Sango Studio. An empty place is a species that
+  // the user removed.
+  for (u32 i = 0; i < pokemon::SpeciesPacks::SpeciesCount(); i++) {
+    if (pokemon::SpeciesPacks::IsEmpty(pokemon::SpeciesPacks::GetSpecies(i))) {
+      continue;
+    }
     const auto species = static_cast<SpeciesId>(
-      pokemon::SpeciesTable::kFirstGen8Species +
-      (i - pokemon::SpeciesTable::kGen8Skipped));
+        pokemon::SpeciesTable::kFirstPackSpecies + i);
     if (pokemon::SpeciesData::GetInstance(species).base_hp == 0) continue;
     if (!PutInBox(slot++, species, FormId::kNormal, FormId::kNormal)) return;
   }
-  const u16 last = static_cast<u16>(pokemon::SpeciesTable::kFirstGen8Species +
-                                    pokemon::SpeciesTable::kGen8Count);
+  const u16 last = static_cast<u16>(pokemon::SpeciesTable::kFirstPackSpecies +
+                                    pokemon::SpeciesPacks::SpeciesCount());
   for (u16 i = 1; i < last; i++) {
     for (u32 rank = 0; rank < pokemon::AlolanForms::FormCount(i); rank++) {
       if (!PutInBox(slot++, static_cast<SpeciesId>(i),

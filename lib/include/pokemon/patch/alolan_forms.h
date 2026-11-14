@@ -21,7 +21,8 @@
  *
  * A Pokémon changes into its extra form in battle, like a Mega Evolution,
  * when it holds the item of the form (Life Orb, Choice Band, Choice Specs or
- * Choice Scarf). The data is in lib/src/pokemon/data/alolan_form.inc.
+ * Choice Scarf). The data is in the file of Sango Studio (see
+ * pokemon/patch/species_packs.h).
  */
 
 #pragma once
@@ -39,10 +40,6 @@ class AlolanForms {
   MAKE_SINGLETON(AlolanForms)
 
 public:
-  /// The number of extra forms. The sizes of the species table are in
-  /// pokemon::SpeciesTable.
-  static constexpr u32 kFormCount = 138;
-
   /// Adds the extra forms of a species to its Mega Evolution table.
   static bool PatchMegaTable(SpeciesId species, MegaEvolutionData* table);
   static void Initialize();

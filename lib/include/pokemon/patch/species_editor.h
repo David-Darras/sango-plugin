@@ -135,7 +135,7 @@ private:
  * @brief Adds a new species to the game. Alpha Sapphire only.
  *
  * Call it in SetUpHack(). The first new species gets the id
- * kFirstNewSpeciesId (1021), the next one gets 1022, and so on (see
+ * kFirstNewSpeciesId (1108), the next one gets 1109, and so on (see
  * NewSpeciesId()). 64 new species at most.
  *
  * The new species starts with the data and the learnset of @a data_from. It
@@ -155,7 +155,7 @@ Species NewSpecies(const c16* name, SpeciesId data_from,
                    FormId model_form = FormId::kNormal);
 
 /// The id of the first species of NewSpecies().
-constexpr u16 kFirstNewSpeciesId = 1021;
+constexpr u16 kFirstNewSpeciesId = 1108;
 
 /// Returns the id that the call number @a number of NewSpecies() gives (0 for
 /// the first call). Use it to write the id in global tables.

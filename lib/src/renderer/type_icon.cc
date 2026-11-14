@@ -30,6 +30,7 @@
 
 #include "battle/address.h"
 #include "battle/patch/game_extension.h"
+#include "battle/patch/studio_types.h"
 #include "core/game_file.h"
 #include "core/heap_buffer.h"
 #include "core/hook.h"
@@ -113,6 +114,16 @@ const battle::TypeSpec* FindImageType(u32 type) {
 // Reads the image of a type from the SD card, and asks the game to make a
 // texture of it. Returns the texture, or null.
 const LayoutTexture* LoadTypeImage(u32 type) {
+  // The icon has the name of the type written on it: another language, other
+  // images. The images are read again when the player changes the language.
+  static bool is_english = true;
+  static bool is_language_known = false;
+  const bool now_english = battle::StudioTypes::IsEnglish();
+  if (!is_language_known || now_english != is_english) {
+    is_language_known = true;
+    is_english = now_english;
+    for (u32 i = 0; i < kMaxTypes; i++) states[i] = State::kNotTried;
+  }
   if (states[type] == State::kReady) return &textures[type];
   if (states[type] == State::kFailed) return nullptr;
   states[type] = State::kFailed;
@@ -120,8 +131,13 @@ const LayoutTexture* LoadTypeImage(u32 type) {
   if (spec == nullptr) return nullptr;
 
   c16 path[80];
-  if (!battle::GameExtension::GetTypeIconPath(*spec, path, SIZE(path))) {
-    return nullptr;
+  if (!battle::StudioTypes::GetLanguageIconPath(type, path, SIZE(path))) {
+    // The English file is the icon of a type of the game in English only; a
+    // new type shows it in every language that has no file of its own.
+    if (type < kGameTypeCount && !is_english) return nullptr;
+    if (!battle::GameExtension::GetTypeIconPath(*spec, path, SIZE(path))) {
+      return nullptr;
+    }
   }
   core::HeapBuffer file(kMaxFileSize);
   if (!file.IsValid()) return nullptr;
