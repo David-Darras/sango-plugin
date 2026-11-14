@@ -137,6 +137,11 @@ static constexpr u32 kBackgroundToken = 0x60000000;
 // archive is the Pokédex data (see ReadHook).
 static constexpr u32 kStudioToken = 0x3F000000;
 static constexpr u32 kStudioMask = 0xFF000000;
+// The fake offset of the icons of the species that Sango Studio writes in
+// sdmc:/sango-studio/pokemon/icon. Like the token of the studio, it is not a
+// token of the four high bits: it is valid only in the archive of the icons
+// (a/0/9/1), which is small.
+static constexpr u32 kIconToken = 0x3E000000;
 static constexpr u32 kTokenMask = 0xF0000000;
 static constexpr u32 kFileIdMask = ~kTokenMask;
 static OverrideEntry pokemon_entries[6144];
@@ -162,6 +167,9 @@ static constexpr u32 kPokedexDataFile = 1;
 static const c16 kStudioPokedexPath[] =
     u"sdmc:/sango-studio/pokemon/pokedex_data.bin";
 static OverrideEntry studio_pokedex_entries[1];
+// The icons of the species that Sango Studio changed: the index file lists them.
+static constexpr u32 kMaxSpeciesIcons = 1024;
+static OverrideEntry species_icon_entries[kMaxSpeciesIcons];
 static OverrideSet override_sets[] = {
     {ArchiveId::kPokemonModel, u"sdmc:/sango/pokemodel/index.bin",
      u"sdmc:/sango/pokemodel/%d.pc", kPokemonToken, false, pokemon_entries,
@@ -213,6 +221,12 @@ static OverrideSet override_sets[] = {
     // file, so the set is already loaded.
     {ArchiveId::kPokedexData, u"", u"", kStudioToken, true,
      studio_pokedex_entries, 1, 0, true},
+    // The icons of the species: the files of Sango Studio have the same bytes
+    // as the files of the archive (compressed), and the index file has the
+    // number of files, then (file id, size) for each one, sorted by file id.
+    {ArchiveId::kPokemonIcon, u"sdmc:/sango-studio/pokemon/icon/index.bin",
+     u"sdmc:/sango-studio/pokemon/icon/%d.bin", kIconToken, true,
+     species_icon_entries, kMaxSpeciesIcons, 0, false},
 };
 
 static OverrideSet* FindSet(const u32* archive) {
@@ -536,6 +550,17 @@ void Archive::ReadHook(u32* archive, u32 offset, u32 size,
       return;
     }
   }
+  // The icons of the species that Sango Studio changed.
+  if (IsArchive(archive, ArchiveId::kPokemonIcon) &&
+      (offset & kStudioMask) == kIconToken) {
+    for (OverrideSet& icons : override_sets) {
+      if (icons.token != kIconToken) continue;
+      Trace(&icons, 4, offset & ~kStudioMask, size);
+      ServeFile(icons, offset & ~kStudioMask, buffer, size);
+      if (read != nullptr) *read = size;
+      return;
+    }
+  }
   OverrideSet* set = FindSetByToken(offset);
   if (set != nullptr) {
     const u32 file_id = offset & kFileIdMask;
@@ -656,9 +681,16 @@ static bool FileStartAsyncReadHook(void* file, void* heap, const c16* filename,
       if (studio.token == kStudioToken) set = &studio;
     }
   }
+  // The icons of the species that Sango Studio changed (the file a/0/9/1).
+  if (set == nullptr && (offset & kStudioMask) == kIconToken &&
+      EndsWith(filename, u"a/0/9/1")) {
+    for (OverrideSet& icons : override_sets) {
+      if (icons.token == kIconToken) set = &icons;
+    }
+  }
   if (set != nullptr && set->whole_file) {
     static u32 scratch[4];
-    const u32 file_id = offset & kFileIdMask;
+    const u32 file_id = offset & (set->token == kIconToken ? ~kStudioMask : kFileIdMask);
     Trace(set, 3, file_id, size);
     ServeFile(*set, file_id, buffer, size);
     return file_async_read_hook(file, heap, filename, 0, 4, 4, scratch,
