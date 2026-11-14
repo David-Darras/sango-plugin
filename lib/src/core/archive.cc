@@ -142,6 +142,20 @@ static constexpr u32 kStudioMask = 0xFF000000;
 // token of the four high bits: it is valid only in the archive of the icons
 // (a/0/9/1), which is small.
 static constexpr u32 kIconToken = 0x3E000000;
+// The same for the other small archives that Sango Studio replaces file by
+// file: the level-up moves, the egg moves, the evolutions, the experience
+// tables and the texts of the eight languages. The files of the SD card have
+// the bytes of the files of the archive (these archives are not compressed).
+static constexpr u32 kLevelUpToken = 0x3D000000;
+static constexpr u32 kEggMoveToken = 0x3C000000;
+static constexpr u32 kEvolutionToken = 0x3B000000;
+static constexpr u32 kGrowthToken = 0x3A000000;
+static constexpr u32 kTextTokenFirst = 0x32000000;  // + 0x01000000 * language
+// True for the fake offset of a small archive: the token has no bit in the
+// four high bits alone (a real offset of these archives is far smaller).
+static constexpr bool IsSmallToken(u32 token) {
+  return token != 0 && token < 0x40000000;
+}
 static constexpr u32 kTokenMask = 0xF0000000;
 static constexpr u32 kFileIdMask = ~kTokenMask;
 static OverrideEntry pokemon_entries[6144];
@@ -170,6 +184,14 @@ static OverrideEntry studio_pokedex_entries[1];
 // The icons of the species that Sango Studio changed: the index file lists them.
 static constexpr u32 kMaxSpeciesIcons = 1024;
 static OverrideEntry species_icon_entries[kMaxSpeciesIcons];
+// The changed files of the other small archives of Sango Studio.
+static constexpr u32 kMaxStudioFiles = 1024;
+static OverrideEntry level_up_entries[kMaxStudioFiles];
+static OverrideEntry egg_move_entries[kMaxStudioFiles];
+static OverrideEntry evolution_entries[kMaxStudioFiles];
+static OverrideEntry growth_entries[16];
+static constexpr u32 kMaxTextFiles = 512;
+static OverrideEntry text_entries[8][kMaxTextFiles];
 static OverrideSet override_sets[] = {
     {ArchiveId::kPokemonModel, u"sdmc:/sango/pokemodel/index.bin",
      u"sdmc:/sango/pokemodel/%d.pc", kPokemonToken, false, pokemon_entries,
@@ -227,6 +249,45 @@ static OverrideSet override_sets[] = {
     {ArchiveId::kPokemonIcon, u"sdmc:/sango-studio/pokemon/icon/index.bin",
      u"sdmc:/sango-studio/pokemon/icon/%d.bin", kIconToken, true,
      species_icon_entries, kMaxSpeciesIcons, 0, false},
+    // The moves, the evolutions and the experience tables: the files are in
+    // sdmc:/sango-studio/archive/<number of the archive>.
+    {ArchiveId::kLevelUpMove, u"sdmc:/sango-studio/archive/191/index.bin",
+     u"sdmc:/sango-studio/archive/191/%d.bin", kLevelUpToken, true,
+     level_up_entries, kMaxStudioFiles, 0, false},
+    {ArchiveId::kEggMove, u"sdmc:/sango-studio/archive/190/index.bin",
+     u"sdmc:/sango-studio/archive/190/%d.bin", kEggMoveToken, true,
+     egg_move_entries, kMaxStudioFiles, 0, false},
+    {ArchiveId::kEvolutionTable, u"sdmc:/sango-studio/archive/192/index.bin",
+     u"sdmc:/sango-studio/archive/192/%d.bin", kEvolutionToken, true,
+     evolution_entries, kMaxStudioFiles, 0, false},
+    {ArchiveId::kGrowthTable, u"sdmc:/sango-studio/archive/194/index.bin",
+     u"sdmc:/sango-studio/archive/194/%d.bin", kGrowthToken, true,
+     growth_entries, 16, 0, false},
+    // The texts of the game, one archive for each language.
+    {ArchiveId::kGameTextJapanese, u"sdmc:/sango-studio/archive/71/index.bin",
+     u"sdmc:/sango-studio/archive/71/%d.bin", kTextTokenFirst, true,
+     text_entries[0], kMaxTextFiles, 0, false},
+    {ArchiveId::kGameTextKanji, u"sdmc:/sango-studio/archive/72/index.bin",
+     u"sdmc:/sango-studio/archive/72/%d.bin", kTextTokenFirst + 0x01000000,
+     true, text_entries[1], kMaxTextFiles, 0, false},
+    {ArchiveId::kGameTextEnglish, u"sdmc:/sango-studio/archive/73/index.bin",
+     u"sdmc:/sango-studio/archive/73/%d.bin", kTextTokenFirst + 0x02000000,
+     true, text_entries[2], kMaxTextFiles, 0, false},
+    {ArchiveId::kGameTextFrench, u"sdmc:/sango-studio/archive/74/index.bin",
+     u"sdmc:/sango-studio/archive/74/%d.bin", kTextTokenFirst + 0x03000000,
+     true, text_entries[3], kMaxTextFiles, 0, false},
+    {ArchiveId::kGameTextItalian, u"sdmc:/sango-studio/archive/75/index.bin",
+     u"sdmc:/sango-studio/archive/75/%d.bin", kTextTokenFirst + 0x04000000,
+     true, text_entries[4], kMaxTextFiles, 0, false},
+    {ArchiveId::kGameTextGerman, u"sdmc:/sango-studio/archive/76/index.bin",
+     u"sdmc:/sango-studio/archive/76/%d.bin", kTextTokenFirst + 0x05000000,
+     true, text_entries[5], kMaxTextFiles, 0, false},
+    {ArchiveId::kGameTextSpanish, u"sdmc:/sango-studio/archive/77/index.bin",
+     u"sdmc:/sango-studio/archive/77/%d.bin", kTextTokenFirst + 0x06000000,
+     true, text_entries[6], kMaxTextFiles, 0, false},
+    {ArchiveId::kGameTextKorean, u"sdmc:/sango-studio/archive/78/index.bin",
+     u"sdmc:/sango-studio/archive/78/%d.bin", kTextTokenFirst + 0x07000000,
+     true, text_entries[7], kMaxTextFiles, 0, false},
 };
 
 static OverrideSet* FindSet(const u32* archive) {
@@ -550,13 +611,17 @@ void Archive::ReadHook(u32* archive, u32 offset, u32 size,
       return;
     }
   }
-  // The icons of the species that Sango Studio changed.
-  if (IsArchive(archive, ArchiveId::kPokemonIcon) &&
-      (offset & kStudioMask) == kIconToken) {
-    for (OverrideSet& icons : override_sets) {
-      if (icons.token != kIconToken) continue;
-      Trace(&icons, 4, offset & ~kStudioMask, size);
-      ServeFile(icons, offset & ~kStudioMask, buffer, size);
+  // The small archives that Sango Studio replaces file by file (the icons of
+  // the species, the moves, the evolutions, the experience tables, the texts).
+  // The fake offset is valid only in the archive of the set.
+  if (IsSmallToken(offset & kStudioMask)) {
+    for (OverrideSet& small : override_sets) {
+      if (small.token == kStudioToken || small.token != (offset & kStudioMask)) {
+        continue;
+      }
+      if (!IsArchive(archive, small.archive)) continue;
+      Trace(&small, 4, offset & ~kStudioMask, size);
+      ServeFile(small, offset & ~kStudioMask, buffer, size);
       if (read != nullptr) *read = size;
       return;
     }
@@ -681,16 +746,29 @@ static bool FileStartAsyncReadHook(void* file, void* heap, const c16* filename,
       if (studio.token == kStudioToken) set = &studio;
     }
   }
-  // The icons of the species that Sango Studio changed (the file a/0/9/1).
-  if (set == nullptr && (offset & kStudioMask) == kIconToken &&
-      EndsWith(filename, u"a/0/9/1")) {
-    for (OverrideSet& icons : override_sets) {
-      if (icons.token == kIconToken) set = &icons;
+  // The small archives of Sango Studio: the file of the archive is the last
+  // part of the name that the game gives (for example "a/0/9/1").
+  if (set == nullptr && IsSmallToken(offset & kStudioMask)) {
+    for (OverrideSet& small : override_sets) {
+      if (small.token == kStudioToken || small.token != (offset & kStudioMask)) {
+        continue;
+      }
+      const u32 number = static_cast<u32>(small.archive);
+      c16 name[16];
+      name[0] = u'a';
+      name[1] = u'/';
+      name[2] = u'0' + (number / 100);
+      name[3] = u'/';
+      name[4] = u'0' + ((number / 10) % 10);
+      name[5] = u'/';
+      name[6] = u'0' + (number % 10);
+      name[7] = 0;
+      if (EndsWith(filename, name)) set = &small;
     }
   }
   if (set != nullptr && set->whole_file) {
     static u32 scratch[4];
-    const u32 file_id = offset & (set->token == kIconToken ? ~kStudioMask : kFileIdMask);
+    const u32 file_id = offset & (IsSmallToken(set->token) ? ~kStudioMask : kFileIdMask);
     Trace(set, 3, file_id, size);
     ServeFile(*set, file_id, buffer, size);
     return file_async_read_hook(file, heap, filename, 0, 4, 4, scratch,
