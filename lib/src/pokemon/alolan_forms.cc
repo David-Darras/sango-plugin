@@ -38,8 +38,6 @@ namespace {
 core::Hook<u32(void*, void*)> get_mega_evolved_form_no_hook;
 } // namespace
 
-static constexpr ItemId kFormItems[] = {ItemId::kLifeOrb, ItemId::kChoiceBand,
-                                        ItemId::kChoiceSpecs, ItemId::kChoiceScarf};
 static constexpr u32 kMaxRoutes = 3;
 
 void AlolanForms::Initialize() {
@@ -84,13 +82,15 @@ u32 AlolanForms::GetModelForm(u16 species, u32 form) {
   return 0;
 }
 
-ItemId AlolanForms::GetItem(u32 rank) {
-  return rank < SIZE(kFormItems) ? kFormItems[rank] : ItemId::kNone;
-}
-
 u32 AlolanForms::GetFormByItem(u16 species, ItemId item) {
-  for (u32 rank = 0; rank < SIZE(kFormItems); rank++) {
-    if (kFormItems[rank] == item) return GetForm(species, rank);
+  if (item == ItemId::kNone) return 0;
+  SpeciesPacks::Load();
+  for (u32 i = 0; i < SpeciesPacks::FormCount(); i++) {
+    const PackForm& entry = SpeciesPacks::GetForm(i);
+    if (entry.species == species &&
+        entry.mega_item == static_cast<u16>(item)) {
+      return entry.form;
+    }
   }
   return 0;
 }
@@ -121,17 +121,22 @@ bool AlolanForms::PatchMegaTable(SpeciesId species, MegaEvolutionData* table) {
   const u32 count = FormCount(static_cast<u16>(species));
   if (count != 0) {
     if (SpeciesTable::IsAddedSpecies(static_cast<u16>(species))) std::memset(table, 0, sizeof(*table));
+    // Each form of the species that has an item is a route, in the order of
+    // the file (Sango Studio gives the item of each form).
     u32 route = 0;
-    for (u32 rank = 0; rank < count; rank++) {
+    for (u32 i = 0; i < SpeciesPacks::FormCount(); i++) {
+      const PackForm& entry = SpeciesPacks::GetForm(i);
+      if (entry.species != static_cast<u16>(species) || entry.mega_item == 0) {
+        continue;
+      }
       while (route < kMaxRoutes &&
              table->entry[route].method != MegaEvolutionMethod::kNone) {
         route++;
       }
       if (route >= kMaxRoutes) break;
-      table->entry[route].form =
-          static_cast<FormId>(GetForm(static_cast<u16>(species), rank));
+      table->entry[route].form = static_cast<FormId>(entry.form);
       table->entry[route].method = MegaEvolutionMethod::kItem;
-      table->entry[route].item = GetItem(rank);
+      table->entry[route].item = static_cast<ItemId>(entry.mega_item);
       route++;
     }
     return true;

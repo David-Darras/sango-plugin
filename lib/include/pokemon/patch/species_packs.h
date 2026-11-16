@@ -80,7 +80,9 @@ struct PackForm {
   u16 form;
   u16 model_form;
   u8 data[0x50];
-  u8 padding[2];
+  /// The item that changes a Pokémon of the species into this form in a
+  /// battle, like a Mega Evolution. 0: no change.
+  u16 mega_item;
 };
 static_assert(sizeof(PackForm) == 88,
               "PackForm must have the layout of the file");
