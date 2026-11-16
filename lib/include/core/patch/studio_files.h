@@ -29,10 +29,10 @@
  * file, filled with zeros. The studio raises the counter after each write.
  *
  * The files:
- * - pokemon/data/[species]_[form].bin: the data of one species or of one
+ * - species/data/[species]_[form].bin: the data of one species or of one
  *   form (80 bytes, the layout of pokemon::SpeciesData). The plugin writes
  *   the data over the entry of the table of the species.
- * - pokemon/pokedex_data.bin: the Pokédex data file (the shapes and the
+ * - species/pokedex_data.bin: the Pokédex data file (the shapes and the
  *   chain of the forms). The game reads it in place of the file of the
  *   archive (see core::Archive::SetPokedexDataFile).
  * - ability/[id].bin: a new ability that the user made in the studio (an id
@@ -44,15 +44,18 @@
  *   and the new moves. See battle::StudioMoves.
  * - item/data/[id].bin, item/custom/[id].bin and item/custom/[id].bclim: the
  *   changed items and the new items. See battle::StudioItems.
- * - pokemon/icon/[file].bin and pokemon/icon/index.bin: the icons of the
- *   species. archive/[archive]/[file].bin and archive/[archive]/index.bin: the
- *   level-up moves (191), the egg moves (190), the evolutions (192), the
- *   experience tables (194), the cries (100: the wave archives) and the texts
- *   (71 to 78). The files have the bytes
- *   of the files of the archive, and the index lists their numbers and sizes.
- *   The game reads them in place of the files of the archive (see
- *   core::Archive, the sets of the small archives). The plugin reads the index
- *   at the first read: the game must restart after a change.
+ * - species/icon/[file].bin, species/cry/[file].bin,
+ *   species/level_up_moves/[file].bin, species/egg_moves/[file].bin,
+ *   species/evolution/[file].bin, leveling_rate/[file].bin and
+ *   game_text/[language]/[file].bin: the files of the game that the user
+ *   replaced, named by their number in the archive (the icons 91, the cries
+ *   100, the level-up moves 191, the egg moves 190, the evolutions 192, the
+ *   experience tables 194, the texts 71 to 78). A folder also has index.bin,
+ *   the list of its files (the number of files, then the number and the size
+ *   of each). The files have the bytes of the files of the archive. The game
+ *   reads them in place of the files of the archive (see core::Archive, the
+ *   sets of the small archives). The plugin reads the list at the first read:
+ *   the game must restart after a change.
  */
 
 #pragma once
@@ -86,7 +89,7 @@ private:
   /// Loads one file from its path in reload.bin.
   static void Apply(const c8* path);
   /// Loads the data of one species or form
-  /// ("pokemon/data/[species]_[form].bin").
+  /// ("species/data/[species]_[form].bin").
   static void ApplySpeciesData(const c8* path);
   /// Tells core::Archive the size of the Pokédex data file of the studio.
   static void RefreshPokedexData();

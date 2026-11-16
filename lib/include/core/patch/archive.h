@@ -68,7 +68,7 @@ public:
   static void Initialize();
 
   /// Returns true when a file of the SD card replaces or adds the file
-  /// `file_id` of the archive (for example the files of sdmc:/sango/pokemodel).
+  /// `file_id` of the archive (for example the files of sdmc:/sango-studio/species/model).
   /// The game reads a file that is not in the archive and not on the SD card
   /// without an answer: check it before you use a new file number.
   static bool HasSdFile(ArchiveId archive_id, u32 file_id);
@@ -107,7 +107,7 @@ public:
   static bool RegisterItemData(u32 item_id, const u8* data);
 
   /// Makes the game read the Pokédex data file that Sango Studio wrote
-  /// (sdmc:/sango-studio/pokemon/pokedex_data.bin) in place of the file of
+  /// (sdmc:/sango-studio/species/pokedex_data.bin) in place of the file of
   /// the archive. @a size is the size of the file of the studio: 0 gives the
   /// file of the archive back. core::StudioFiles calls it.
   static void SetPokedexDataFile(u32 size);

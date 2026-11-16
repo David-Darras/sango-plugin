@@ -44,10 +44,10 @@ namespace {
 /// The folder of Sango Studio on the SD card.
 constexpr const c16* kReloadPath = u"sdmc:/sango-studio/reload.bin";
 constexpr const c16* kPokedexPath =
-    u"sdmc:/sango-studio/pokemon/pokedex_data.bin";
+    u"sdmc:/sango-studio/species/pokedex_data.bin";
 const c16 kFolderPrefix[] = u"sdmc:/sango-studio/";
-const c8 kSpeciesFolder[] = "pokemon/data/";
-const c8 kPokedexFile[] = "pokemon/pokedex_data.bin";
+const c8 kSpeciesFolder[] = "species/data/";
+const c8 kPokedexFile[] = "species/pokedex_data.bin";
 const c8 kAbilityFolder[] = "ability/";
 const c8 kTypeFolder[] = "type/";
 const c8 kMoveFolder[] = "move/";

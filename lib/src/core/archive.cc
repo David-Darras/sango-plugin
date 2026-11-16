@@ -138,14 +138,15 @@ static constexpr u32 kBackgroundToken = 0x60000000;
 static constexpr u32 kStudioToken = 0x3F000000;
 static constexpr u32 kStudioMask = 0xFF000000;
 // The fake offset of the icons of the species that Sango Studio writes in
-// sdmc:/sango-studio/pokemon/icon. Like the token of the studio, it is not a
+// sdmc:/sango-studio/species/icon. Like the token of the studio, it is not a
 // token of the four high bits: it is valid only in the archive of the icons
 // (a/0/9/1), which is small.
 static constexpr u32 kIconToken = 0x3E000000;
 // The same for the other small archives that Sango Studio replaces file by
 // file: the level-up moves, the egg moves, the evolutions, the experience
-// tables and the texts of the eight languages. The files of the SD card have
-// the bytes of the files of the archive (these archives are not compressed).
+// tables (leveling_rate) and the texts of the eight languages (game_text). The
+// files of the SD card have the bytes of the files of the archive (these
+// archives are not compressed).
 static constexpr u32 kLevelUpToken = 0x3D000000;
 static constexpr u32 kEggMoveToken = 0x3C000000;
 static constexpr u32 kEvolutionToken = 0x3B000000;
@@ -182,7 +183,7 @@ static u8 item_data_raw[kMaxItemData][Archive::kItemDataFileSize];
 // The Pokédex data file of Sango Studio: SetPokedexDataFile() fills this list.
 static constexpr u32 kPokedexDataFile = 1;
 static const c16 kStudioPokedexPath[] =
-    u"sdmc:/sango-studio/pokemon/pokedex_data.bin";
+    u"sdmc:/sango-studio/species/pokedex_data.bin";
 static OverrideEntry studio_pokedex_entries[1];
 // The icons of the species that Sango Studio changed: the index file lists them.
 static constexpr u32 kMaxSpeciesIcons = 512;
@@ -198,8 +199,8 @@ static OverrideEntry voice_entries[kMaxVoiceFiles];
 static constexpr u32 kMaxTextFiles = 128;
 static OverrideEntry text_entries[8][kMaxTextFiles];
 static OverrideSet override_sets[] = {
-    {ArchiveId::kPokemonModel, u"sdmc:/sango/pokemodel/index.bin",
-     u"sdmc:/sango/pokemodel/%d.pc", kPokemonToken, false, pokemon_entries,
+    {ArchiveId::kPokemonModel, u"sdmc:/sango-studio/species/model/index.bin",
+     u"sdmc:/sango-studio/species/model/%d.pc", kPokemonToken, false, pokemon_entries,
      6144, 0, false},
     {ArchiveId::kOverworldModel, u"sdmc:/sango/overworld_model/index.bin",
      u"sdmc:/sango/overworld_model/%d.bin", kOverworldToken, true, overworld_entries,
@@ -251,51 +252,50 @@ static OverrideSet override_sets[] = {
     // The icons of the species: the files of Sango Studio have the same bytes
     // as the files of the archive (compressed), and the index file has the
     // number of files, then (file id, size) for each one, sorted by file id.
-    {ArchiveId::kPokemonIcon, u"sdmc:/sango-studio/pokemon/icon/index.bin",
-     u"sdmc:/sango-studio/pokemon/icon/%d.bin", kIconToken, true,
+    {ArchiveId::kPokemonIcon, u"sdmc:/sango-studio/species/icon/index.bin",
+     u"sdmc:/sango-studio/species/icon/%d.bin", kIconToken, true,
      species_icon_entries, kMaxSpeciesIcons, 0, false},
-    // The moves, the evolutions and the experience tables: the files are in
-    // sdmc:/sango-studio/archive/<number of the archive>.
-    {ArchiveId::kLevelUpMove, u"sdmc:/sango-studio/archive/191/index.bin",
-     u"sdmc:/sango-studio/archive/191/%d.bin", kLevelUpToken, true,
+    // The moves, the evolutions and the experience tables.
+    {ArchiveId::kLevelUpMove, u"sdmc:/sango-studio/species/level_up_moves/index.bin",
+     u"sdmc:/sango-studio/species/level_up_moves/%d.bin", kLevelUpToken, true,
      level_up_entries, kMaxStudioFiles, 0, false},
-    {ArchiveId::kEggMove, u"sdmc:/sango-studio/archive/190/index.bin",
-     u"sdmc:/sango-studio/archive/190/%d.bin", kEggMoveToken, true,
+    {ArchiveId::kEggMove, u"sdmc:/sango-studio/species/egg_moves/index.bin",
+     u"sdmc:/sango-studio/species/egg_moves/%d.bin", kEggMoveToken, true,
      egg_move_entries, kMaxStudioFiles, 0, false},
-    {ArchiveId::kEvolutionTable, u"sdmc:/sango-studio/archive/192/index.bin",
-     u"sdmc:/sango-studio/archive/192/%d.bin", kEvolutionToken, true,
+    {ArchiveId::kEvolutionTable, u"sdmc:/sango-studio/species/evolution/index.bin",
+     u"sdmc:/sango-studio/species/evolution/%d.bin", kEvolutionToken, true,
      evolution_entries, kMaxStudioFiles, 0, false},
-    {ArchiveId::kGrowthTable, u"sdmc:/sango-studio/archive/194/index.bin",
-     u"sdmc:/sango-studio/archive/194/%d.bin", kGrowthToken, true,
+    {ArchiveId::kGrowthTable, u"sdmc:/sango-studio/leveling_rate/index.bin",
+     u"sdmc:/sango-studio/leveling_rate/%d.bin", kGrowthToken, true,
      growth_entries, 16, 0, false},
     // The cries: the files of the wave archives that the user replaced.
-    {ArchiveId::kPokemonVoice, u"sdmc:/sango-studio/archive/100/index.bin",
-     u"sdmc:/sango-studio/archive/100/%d.bin", kVoiceToken, true,
+    {ArchiveId::kPokemonVoice, u"sdmc:/sango-studio/species/cry/index.bin",
+     u"sdmc:/sango-studio/species/cry/%d.bin", kVoiceToken, true,
      voice_entries, kMaxVoiceFiles, 0, false},
     // The texts of the game, one archive for each language.
-    {ArchiveId::kGameTextJapanese, u"sdmc:/sango-studio/archive/71/index.bin",
-     u"sdmc:/sango-studio/archive/71/%d.bin", kTextTokenFirst, true,
+    {ArchiveId::kGameTextJapanese, u"sdmc:/sango-studio/game_text/ja/index.bin",
+     u"sdmc:/sango-studio/game_text/ja/%d.bin", kTextTokenFirst, true,
      text_entries[0], kMaxTextFiles, 0, false},
-    {ArchiveId::kGameTextKanji, u"sdmc:/sango-studio/archive/72/index.bin",
-     u"sdmc:/sango-studio/archive/72/%d.bin", kTextTokenFirst + 0x01000000,
+    {ArchiveId::kGameTextKanji, u"sdmc:/sango-studio/game_text/ja_kanji/index.bin",
+     u"sdmc:/sango-studio/game_text/ja_kanji/%d.bin", kTextTokenFirst + 0x01000000,
      true, text_entries[1], kMaxTextFiles, 0, false},
-    {ArchiveId::kGameTextEnglish, u"sdmc:/sango-studio/archive/73/index.bin",
-     u"sdmc:/sango-studio/archive/73/%d.bin", kTextTokenFirst + 0x02000000,
+    {ArchiveId::kGameTextEnglish, u"sdmc:/sango-studio/game_text/en/index.bin",
+     u"sdmc:/sango-studio/game_text/en/%d.bin", kTextTokenFirst + 0x02000000,
      true, text_entries[2], kMaxTextFiles, 0, false},
-    {ArchiveId::kGameTextFrench, u"sdmc:/sango-studio/archive/74/index.bin",
-     u"sdmc:/sango-studio/archive/74/%d.bin", kTextTokenFirst + 0x03000000,
+    {ArchiveId::kGameTextFrench, u"sdmc:/sango-studio/game_text/fr/index.bin",
+     u"sdmc:/sango-studio/game_text/fr/%d.bin", kTextTokenFirst + 0x03000000,
      true, text_entries[3], kMaxTextFiles, 0, false},
-    {ArchiveId::kGameTextItalian, u"sdmc:/sango-studio/archive/75/index.bin",
-     u"sdmc:/sango-studio/archive/75/%d.bin", kTextTokenFirst + 0x04000000,
+    {ArchiveId::kGameTextItalian, u"sdmc:/sango-studio/game_text/it/index.bin",
+     u"sdmc:/sango-studio/game_text/it/%d.bin", kTextTokenFirst + 0x04000000,
      true, text_entries[4], kMaxTextFiles, 0, false},
-    {ArchiveId::kGameTextGerman, u"sdmc:/sango-studio/archive/76/index.bin",
-     u"sdmc:/sango-studio/archive/76/%d.bin", kTextTokenFirst + 0x05000000,
+    {ArchiveId::kGameTextGerman, u"sdmc:/sango-studio/game_text/de/index.bin",
+     u"sdmc:/sango-studio/game_text/de/%d.bin", kTextTokenFirst + 0x05000000,
      true, text_entries[5], kMaxTextFiles, 0, false},
-    {ArchiveId::kGameTextSpanish, u"sdmc:/sango-studio/archive/77/index.bin",
-     u"sdmc:/sango-studio/archive/77/%d.bin", kTextTokenFirst + 0x06000000,
+    {ArchiveId::kGameTextSpanish, u"sdmc:/sango-studio/game_text/es/index.bin",
+     u"sdmc:/sango-studio/game_text/es/%d.bin", kTextTokenFirst + 0x06000000,
      true, text_entries[6], kMaxTextFiles, 0, false},
-    {ArchiveId::kGameTextKorean, u"sdmc:/sango-studio/archive/78/index.bin",
-     u"sdmc:/sango-studio/archive/78/%d.bin", kTextTokenFirst + 0x07000000,
+    {ArchiveId::kGameTextKorean, u"sdmc:/sango-studio/game_text/ko/index.bin",
+     u"sdmc:/sango-studio/game_text/ko/%d.bin", kTextTokenFirst + 0x07000000,
      true, text_entries[7], kMaxTextFiles, 0, false},
 };
 
@@ -505,7 +505,7 @@ static bool raw_loaded = false;
 static void LoadRawTable() {
   if (raw_loaded) return;
   sys::File file;
-  if (!OpenSd(&file, u"sdmc:/sango/pokemodel/0.raw")) return;
+  if (!OpenSd(&file, u"sdmc:/sango-studio/species/model/0.raw")) return;
   u32 size = 0;
   file.Read(&size, 4);
   if (size != 0 && size <= kMaxRawSize) {

@@ -56,8 +56,8 @@ static constexpr u32 kGen7Base = SpeciesTable::kSpeciesCount + 3;
 static constexpr u16 kGen7Carrier = 494;
 
 // The names of the species of the game that the user changed in Sango Studio:
-// the file of the texts of the language (the file 98 of its archive) that the
-// studio copies in sdmc:/sango-studio/archive/<archive>/98.bin. The game reads
+// the file of the texts of the language (the file 98) that the studio writes
+// in sdmc:/sango-studio/game_text/<language>/98.bin. The game reads
 // its list of names once, before the plugin can change what it reads, so the
 // names are replaced here, when the game asks for one.
 namespace {
@@ -76,18 +76,18 @@ struct CachedName {
 };
 CachedName name_cache[kNameCacheSize];
 
-// The archive of the texts of a language (71 Japanese, 72 Japanese with
-// kanji, then English, French, Italian, German, Spanish and Korean).
-u32 TextArchive(sys::Language language) {
+// The folder of the texts of a language in the folder of the studio
+// (game_text/<folder>): ja, ja_kanji, en, fr, it, de, es, ko.
+const c16* TextFolder(sys::Language language) {
   switch (language) {
-  case sys::Language::kJapanese: return 71;
-  case sys::Language::kEnglish: return 73;
-  case sys::Language::kFrench: return 74;
-  case sys::Language::kItalian: return 75;
-  case sys::Language::kGerman: return 76;
-  case sys::Language::kSpanish: return 77;
-  case sys::Language::kKorean: return 78;
-  default: return 0;
+  case sys::Language::kJapanese: return u"ja";
+  case sys::Language::kEnglish: return u"en";
+  case sys::Language::kFrench: return u"fr";
+  case sys::Language::kItalian: return u"it";
+  case sys::Language::kGerman: return u"de";
+  case sys::Language::kSpanish: return u"es";
+  case sys::Language::kKorean: return u"ko";
+  default: return nullptr;
   }
 }
 
@@ -100,13 +100,12 @@ void FindNameFile() {
   text_file_language = language;
   text_file_there = false;
   std::memset(name_cache, 0, sizeof(name_cache));
-  const u32 archive = TextArchive(language);
-  if (archive == 0) return;
-  const c16 prefix[] = u"sdmc:/sango-studio/archive/";
+  const c16* folder = TextFolder(language);
+  if (folder == nullptr) return;
+  const c16 prefix[] = u"sdmc:/sango-studio/game_text/";
   u32 at = 0;
   for (u32 i = 0; prefix[i] != 0; i++) text_file_path[at++] = prefix[i];
-  text_file_path[at++] = u'0' + (archive / 10);
-  text_file_path[at++] = u'0' + (archive % 10);
+  for (u32 i = 0; folder[i] != 0; i++) text_file_path[at++] = folder[i];
   const c16 suffix[] = u"/98.bin";
   for (u32 i = 0; suffix[i] != 0; i++) text_file_path[at++] = suffix[i];
   text_file_path[at] = 0;
