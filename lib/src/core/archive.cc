@@ -151,6 +151,9 @@ static constexpr u32 kEggMoveToken = 0x3C000000;
 static constexpr u32 kEvolutionToken = 0x3B000000;
 static constexpr u32 kGrowthToken = 0x3A000000;
 static constexpr u32 kTextTokenFirst = 0x32000000;  // + 0x01000000 * language
+// The cries: the sequences and the wave archives of the Pokémon (the archive
+// 100), not compressed.
+static constexpr u32 kVoiceToken = 0x31000000;
 // True for the fake offset of a small archive: the token has no bit in the
 // four high bits alone (a real offset of these archives is far smaller).
 static constexpr bool IsSmallToken(u32 token) {
@@ -190,6 +193,8 @@ static OverrideEntry level_up_entries[kMaxStudioFiles];
 static OverrideEntry egg_move_entries[kMaxStudioFiles];
 static OverrideEntry evolution_entries[kMaxStudioFiles];
 static OverrideEntry growth_entries[16];
+static constexpr u32 kMaxVoiceFiles = 256;
+static OverrideEntry voice_entries[kMaxVoiceFiles];
 static constexpr u32 kMaxTextFiles = 128;
 static OverrideEntry text_entries[8][kMaxTextFiles];
 static OverrideSet override_sets[] = {
@@ -263,6 +268,10 @@ static OverrideSet override_sets[] = {
     {ArchiveId::kGrowthTable, u"sdmc:/sango-studio/archive/194/index.bin",
      u"sdmc:/sango-studio/archive/194/%d.bin", kGrowthToken, true,
      growth_entries, 16, 0, false},
+    // The cries: the files of the wave archives that the user replaced.
+    {ArchiveId::kPokemonVoice, u"sdmc:/sango-studio/archive/100/index.bin",
+     u"sdmc:/sango-studio/archive/100/%d.bin", kVoiceToken, true,
+     voice_entries, kMaxVoiceFiles, 0, false},
     // The texts of the game, one archive for each language.
     {ArchiveId::kGameTextJapanese, u"sdmc:/sango-studio/archive/71/index.bin",
      u"sdmc:/sango-studio/archive/71/%d.bin", kTextTokenFirst, true,

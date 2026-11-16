@@ -47,7 +47,8 @@
  * - pokemon/icon/[file].bin and pokemon/icon/index.bin: the icons of the
  *   species. archive/[archive]/[file].bin and archive/[archive]/index.bin: the
  *   level-up moves (191), the egg moves (190), the evolutions (192), the
- *   experience tables (194) and the texts (71 to 78). The files have the bytes
+ *   experience tables (194), the cries (100: the wave archives) and the texts
+ *   (71 to 78). The files have the bytes
  *   of the files of the archive, and the index lists their numbers and sizes.
  *   The game reads them in place of the files of the archive (see
  *   core::Archive, the sets of the small archives). The plugin reads the index
