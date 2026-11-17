@@ -129,6 +129,9 @@ public:
     return true;
   }
 
+  /// True when this plugin knows the table of the numbers of the game.
+  static bool Available() { return kTable != 0; }
+
   /// Reads a number. Returns false when the moment has no such number.
   static bool Read(SituationKey key, s32* value) {
     Table* table = GetTable();
@@ -168,6 +171,15 @@ private:
   }
 };
 
+/// Reads a number of the moment. A number that the moment does not have gives
+/// 0: the read of the game reports an error for it (and costs time).
+s32 Value(SituationKey key) {
+  if (!MomentValues::Available()) return Situation::Get(key);
+  s32 value = 0;
+  MomentValues::Read(key, &value);
+  return value;
+}
+
 /// The number that a moment multiplies: the power of a move has its own,
 /// all the other moments use the shared multiplier.
 SituationKey MultiplierKey(u16 moment) {
@@ -177,7 +189,7 @@ SituationKey MultiplierKey(u16 moment) {
 
 /// Returns the data of the move of the moment, or null.
 const pokemon::MoveData* CurrentMove() {
-  const s32 id = Situation::Get(SituationKey::kMoveId);
+  const s32 id = Value(SituationKey::kMoveId);
   if (id <= 0 || id >= 1000) return nullptr;
   return &pokemon::MoveData::GetInstance(static_cast<MoveId>(id));
 }
@@ -186,11 +198,11 @@ const pokemon::MoveData* CurrentMove() {
 UID ResolveTarget(u8 target, UID owner) {
   switch (target) {
   case kTargetPokemonOfMoment:
-    return UID{static_cast<u8>(Situation::Get(SituationKey::kPokemonId))};
+    return UID{static_cast<u8>(Value(SituationKey::kPokemonId))};
   case kTargetMoveUser:
-    return UID{static_cast<u8>(Situation::Get(SituationKey::kMoveUserId))};
+    return UID{static_cast<u8>(Value(SituationKey::kMoveUserId))};
   case kTargetFirstTarget:
-    return UID{static_cast<u8>(Situation::Get(SituationKey::kTargetId1))};
+    return UID{static_cast<u8>(Value(SituationKey::kTargetId1))};
   default:
     return owner;
   }
@@ -200,18 +212,18 @@ UID ResolveTarget(u8 target, UID owner) {
 bool Test(const Condition& condition, Controller* controller, UID owner) {
   switch (condition.kind) {
   case kPokemonIsOwner:
-    return Situation::Get(SituationKey::kPokemonId) == owner.value;
+    return Value(SituationKey::kPokemonId) == owner.value;
   case kMoveUserIsOwner:
-    return Situation::Get(SituationKey::kMoveUserId) == owner.value;
+    return Value(SituationKey::kMoveUserId) == owner.value;
   case kMoveTypeIs:
-    return Situation::Get(SituationKey::kMoveType) == condition.arg;
+    return Value(SituationKey::kMoveType) == condition.arg;
   case kWeatherIs:
-    return Situation::Get(SituationKey::kWeather) == condition.arg;
+    return Value(SituationKey::kWeather) == condition.arg;
   case kTargetFainted: {
-    const u32 count = Situation::Get(SituationKey::kTargetCount);
+    const u32 count = Value(SituationKey::kTargetCount);
     for (u32 i = 0; i < count && i < 6; i++) {
       const u32 key = static_cast<u32>(SituationKey::kTargetId1) + i;
-      UID id{static_cast<u8>(Situation::Get(static_cast<SituationKey>(key)))};
+      UID id{static_cast<u8>(Value(static_cast<SituationKey>(key)))};
       Pokemon* target = controller->GetPokemon(id);
       if (target != nullptr && target->hp == 0) return true;
     }
@@ -226,7 +238,7 @@ bool Test(const Condition& condition, Controller* controller, UID owner) {
                static_cast<u32>(condition.arg < 0 ? 0 : condition.arg);
   }
   case kDefenderIsOwner:
-    return Situation::Get(SituationKey::kMoveRecipientId) == owner.value;
+    return Value(SituationKey::kMoveRecipientId) == owner.value;
   case kMoveCategoryIs: {
     const pokemon::MoveData* move = CurrentMove();
     return move != nullptr &&
@@ -234,9 +246,9 @@ bool Test(const Condition& condition, Controller* controller, UID owner) {
   }
   case kSuperEffective:
     // 4 is the normal effectiveness (see TypeMultiplier).
-    return Situation::Get(SituationKey::kTypeEffectiveness) > 4;
+    return Value(SituationKey::kTypeEffectiveness) > 4;
   case kNoSubstitute:
-    return Situation::Get(SituationKey::kSubstituteFlag) == 0;
+    return Value(SituationKey::kSubstituteFlag) == 0;
   case kHpNotFull: {
     Pokemon* owner_pokemon = controller->GetPokemon(owner);
     return owner_pokemon != nullptr && owner_pokemon->hp < owner_pokemon->max_hp;

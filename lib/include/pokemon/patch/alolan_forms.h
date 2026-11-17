@@ -20,8 +20,8 @@
  * @brief Adds extra forms to species: Alolan, Galarian, new Mega Evolutions...
  *
  * A Pokémon changes into its extra form in battle, like a Mega Evolution,
- * when it holds the item of the form. Sango Studio gives the item of each
- * form in its file (see pokemon/patch/species_packs.h).
+ * when it meets the condition of the form. Sango Studio gives the condition
+ * of each form in its file (see pokemon/patch/species_packs.h).
  */
 
 #pragma once
@@ -50,8 +50,10 @@ public:
   static u32 GetForm(u16 species, u32 rank = 0);
   /// Returns the form of the model of an extra form.
   static u32 GetModelForm(u16 species, u32 form);
-  /// Returns the extra form of an item, or 0.
-  static u32 GetFormByItem(u16 species, ItemId item);
+  /// Returns the extra form that the Pokémon can change into now, or 0. A
+  /// form has one condition: no condition, a held item, a known move or an
+  /// ability. `pokemon` is the data of the Pokémon.
+  static u32 FindMegaForm(u16 species, void* pokemon);
   /// Returns true when the Life Orb changes the species.
   static bool IsLifeOrbSpecies(u16 species);
 

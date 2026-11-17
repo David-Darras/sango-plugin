@@ -33,7 +33,7 @@ namespace {
 
 constexpr u32 kHeaderSize = 16;
 constexpr u32 kSignature = 0x54505353; // 'SSPT'
-constexpr u32 kVersion = 1;
+constexpr u32 kVersion = 2;
 
 PackSpecies species_list[SpeciesPacks::kMaxSpecies];
 PackForm form_list[SpeciesPacks::kMaxForms];

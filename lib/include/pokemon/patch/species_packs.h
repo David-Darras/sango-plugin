@@ -80,9 +80,11 @@ struct PackForm {
   u16 form;
   u16 model_form;
   u8 data[0x50];
-  /// The item that changes a Pokémon of the species into this form in a
-  /// battle, like a Mega Evolution. 0: no change.
-  u16 mega_item;
+  /// What lets a Pokémon of the species change into this form in a battle,
+  /// like a Mega Evolution. The 3 high bits are the kind (0 never, 1 no
+  /// condition, 2 a held item, 3 a known move, 4 an ability) and the 13 low
+  /// bits are the number of the item, of the move or of the ability.
+  u16 mega;
 };
 static_assert(sizeof(PackForm) == 88,
               "PackForm must have the layout of the file");

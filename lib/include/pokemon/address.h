@@ -93,6 +93,11 @@ constexpr uptr kLoadMegaEvolutionTable = GAME_ADDRESS(0x00168108, 0x00168974);
 constexpr uptr kGetMegaEvolvedFormNo = GAME_ADDRESS(0, 0x004D09E8);
 constexpr uptr kCoreDataGetSpecies = GAME_ADDRESS(0, 0x00153310);
 constexpr uptr kCoreDataGetItem = GAME_ADDRESS(0, 0x004D3094);
+/// Returns true when the Pokémon knows a move (the Pokémon, the move).
+constexpr uptr kCoreDataHasMove = GAME_ADDRESS(0, 0x004D347C);
+/// Returns the ability of the data of a Pokémon (the data is at +12 of the
+/// Pokémon).
+constexpr uptr kPokemonDataGetAbility = GAME_ADDRESS(0, 0x004D1934);
 constexpr uptr kSpeciesBound[] = {
     GAME_ADDRESS(0, 0x00168868), GAME_ADDRESS(0, 0x003B0ACC),
     GAME_ADDRESS(0, 0x003B0C14), GAME_ADDRESS(0, 0x00139FB4)};

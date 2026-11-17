@@ -82,13 +82,46 @@ u32 AlolanForms::GetModelForm(u16 species, u32 form) {
   return 0;
 }
 
-u32 AlolanForms::GetFormByItem(u16 species, ItemId item) {
-  if (item == ItemId::kNone) return 0;
+namespace {
+// The kinds of condition in the file (the 3 high bits of PackForm::mega).
+constexpr u16 kNever = 0;
+constexpr u16 kNoCondition = 1;
+constexpr u16 kHeldItem = 2;
+constexpr u16 kKnownMove = 3;
+constexpr u16 kAbility = 4;
+constexpr u16 kNumberMask = 0x1FFF;
+
+/// Returns true when the Pokémon meets the condition of a form.
+bool MeetsCondition(u16 condition, void* pokemon) {
+  const u16 kind = condition >> 13;
+  const u16 number = condition & kNumberMask;
+  switch (kind) {
+  case kNoCondition:
+    return true;
+  case kHeldItem:
+    return core::GameFunction<u16(void*)>::Call(address::kCoreDataGetItem,
+                                                pokemon) == number;
+  case kKnownMove:
+    return core::GameFunction<bool(void*, u16)>::Call(
+        address::kCoreDataHasMove, pokemon, number);
+  case kAbility: {
+    void* data = reinterpret_cast<void*>(READ32(
+        reinterpret_cast<uptr>(pokemon) + 12));
+    return core::GameFunction<u8(void*)>::Call(
+               address::kPokemonDataGetAbility, data) == number;
+  }
+  default: // kNever and the kinds that this plugin does not know.
+    return false;
+  }
+}
+} // namespace
+
+u32 AlolanForms::FindMegaForm(u16 species, void* pokemon) {
   SpeciesPacks::Load();
   for (u32 i = 0; i < SpeciesPacks::FormCount(); i++) {
     const PackForm& entry = SpeciesPacks::GetForm(i);
-    if (entry.species == species &&
-        entry.mega_item == static_cast<u16>(item)) {
+    if (entry.species == species && entry.mega != kNever &&
+        MeetsCondition(entry.mega, pokemon)) {
       return entry.form;
     }
   }
@@ -107,10 +140,7 @@ u32 AlolanForms::GetMegaEvolvedFormNoHook(void* manager, void* poke) {
         core::GameFunction<u16(void*)>::Call(
             address::kCoreDataGetSpecies, poke);
     if (HasForm(species)) {
-      const auto item = static_cast<ItemId>(
-          core::GameFunction<u16(void*)>::Call(
-              address::kCoreDataGetItem, poke));
-      const u32 form = GetFormByItem(species, item);
+      const u32 form = FindMegaForm(species, poke);
       if (form != 0) return form;
     }
   }
@@ -126,7 +156,7 @@ bool AlolanForms::PatchMegaTable(SpeciesId species, MegaEvolutionData* table) {
     u32 route = 0;
     for (u32 i = 0; i < SpeciesPacks::FormCount(); i++) {
       const PackForm& entry = SpeciesPacks::GetForm(i);
-      if (entry.species != static_cast<u16>(species) || entry.mega_item == 0) {
+      if (entry.species != static_cast<u16>(species) || entry.mega == kNever) {
         continue;
       }
       while (route < kMaxRoutes &&
@@ -135,8 +165,15 @@ bool AlolanForms::PatchMegaTable(SpeciesId species, MegaEvolutionData* table) {
       }
       if (route >= kMaxRoutes) break;
       table->entry[route].form = static_cast<FormId>(entry.form);
-      table->entry[route].method = MegaEvolutionMethod::kItem;
-      table->entry[route].item = static_cast<ItemId>(entry.mega_item);
+      if ((entry.mega >> 13) == kHeldItem) {
+        // The game shows that the item is a Mega Stone of the species.
+        table->entry[route].method = MegaEvolutionMethod::kItem;
+        table->entry[route].item = static_cast<ItemId>(entry.mega & kNumberMask);
+      } else {
+        // The other conditions are checked by FindMegaForm().
+        table->entry[route].method = MegaEvolutionMethod::kRayquaza;
+        table->entry[route].item = ItemId::kNone;
+      }
       route++;
     }
     return true;
