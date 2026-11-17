@@ -31,10 +31,12 @@
 #include "battle/constant/status_condition.h"
 #include "battle/constant/terrain_kind.h"
 #include "battle/constant/weather.h"
+#include "battle/constant/field_position.h"
 #include "battle/native/controller.h"
 #include "battle/native/mutation.h"
 #include "battle/native/pokemon.h"
 #include "battle/native/situation.h"
+#include "pokemon/native/move_data.h"
 #include "system/native/core.h"
 
 namespace battle {
@@ -50,8 +52,14 @@ enum ConditionKind : u8 {
   kTargetFainted = 5,
   kOnlyOnce = 6,
   kHpBelow = 7,
+  kDefenderIsOwner = 8,
+  kMoveCategoryIs = 9,
+  kSuperEffective = 10,
+  kNoSubstitute = 11,
+  kHpNotFull = 12,
+  kMoveMakesContact = 13,
 };
-constexpr u8 kLastCondition = kHpBelow;
+constexpr u8 kLastCondition = kMoveMakesContact;
 
 enum ActionKind : u8 {
   kChangeStat = 1,
@@ -61,8 +69,12 @@ enum ActionKind : u8 {
   kHeal = 5,
   kChangeType = 6,
   kUseMove = 7,
+  kMultiplyValue = 8,
+  kDamageHp = 9,
+  kConsumeItem = 10,
+  kRaiseCritical = 11,
 };
-constexpr u8 kLastAction = kUseMove;
+constexpr u8 kLastAction = kRaiseCritical;
 
 // The targets of an action in the files.
 enum Target : u8 {
@@ -74,6 +86,101 @@ enum Target : u8 {
 
 constexpr u32 kConditionSize = 3;
 constexpr u32 kActionSize = 7;
+
+/// The numbers of the moment that a reaction can change: the power of the
+/// move, the damage, the speed, the accuracy, the critical hit stage...
+///
+/// A reaction reads them with Situation::Get(). Situation::Set() adds a new
+/// number, it does not change the one that the battle is using. So this class
+/// changes the table of the numbers itself. ORAS only.
+class MomentValues {
+public:
+  /// What a reaction may do with a number.
+  static constexpr u8 kFree = 0; ///< Any new value.
+  static constexpr u8 kOnce = 1; ///< One new value, one time.
+  static constexpr u8 kDone = 2; ///< The one new value was written.
+  static constexpr u8 kRatio = 3; ///< A multiplication only.
+
+  /// Multiplies a number that accepts it, by `percent` / 100.
+  static void Multiply(SituationKey key, s32 percent) {
+    Table* table = GetTable();
+    const s32 place = Find(table, key);
+    if (place < 0 || table->state[place] != kRatio) return;
+    // The number has 12 bits of fraction.
+    const s64 ratio = (static_cast<s64>(percent) * 4096) / 100;
+    s64 value = (static_cast<s64>(table->value[place]) * ratio + 0x800) >> 12;
+    if (table->largest[place] != 0 || table->smallest[place] != 0) {
+      if (value < table->smallest[place]) value = table->smallest[place];
+      if (value > table->largest[place]) value = table->largest[place];
+    }
+    table->value[place] = static_cast<s32>(value);
+  }
+
+  /// Writes a number that the battle lets the reactions write.
+  static bool Write(SituationKey key, s32 value) {
+    Table* table = GetTable();
+    const s32 place = Find(table, key);
+    if (place < 0) return false;
+    if (table->state[place] != kFree && table->state[place] != kOnce) {
+      return false;
+    }
+    table->value[place] = value;
+    if (table->state[place] == kOnce) table->state[place] = kDone;
+    return true;
+  }
+
+  /// Reads a number. Returns false when the moment has no such number.
+  static bool Read(SituationKey key, s32* value) {
+    Table* table = GetTable();
+    const s32 place = Find(table, key);
+    if (place < 0) return false;
+    *value = table->value[place];
+    return true;
+  }
+
+private:
+  static constexpr u32 kSize = 96;
+  struct Table {
+    u32 first; ///< The first place of the numbers of the current moment.
+    u16 key[kSize];
+    s32 value[kSize];
+    s32 largest[kSize]; ///< The largest result of a multiplication.
+    s32 smallest[kSize]; ///< The smallest result of a multiplication.
+    u8 state[kSize];
+  };
+  static_assert(sizeof(Table) == 1444, "Table must have the layout of the game");
+
+  // The table of the battle code of ORAS. The game of X and Y has another
+  // address that this plugin does not know: the functions do nothing there.
+  static constexpr uptr kTable = GAME_ADDRESS(0, 0x0815A628);
+
+  static Table* GetTable() {
+    static Table empty = {};
+    return kTable == 0 ? &empty : reinterpret_cast<Table*>(kTable);
+  }
+
+  /// The place of a number in the part of the table of the moment.
+  static s32 Find(const Table* table, SituationKey key) {
+    for (u32 p = table->first; p < kSize && table->key[p] != 0; p++) {
+      if (table->key[p] == static_cast<u16>(key)) return static_cast<s32>(p);
+    }
+    return -1;
+  }
+};
+
+/// The number that a moment multiplies: the power of a move has its own,
+/// all the other moments use the shared multiplier.
+SituationKey MultiplierKey(u16 moment) {
+  return moment == 61 ? SituationKey::kMovePowerMultiplier
+                      : SituationKey::kMultiplier;
+}
+
+/// Returns the data of the move of the moment, or null.
+const pokemon::MoveData* CurrentMove() {
+  const s32 id = Situation::Get(SituationKey::kMoveId);
+  if (id <= 0 || id >= 1000) return nullptr;
+  return &pokemon::MoveData::GetInstance(static_cast<MoveId>(id));
+}
 
 /// Returns the battle id that a target of an action means.
 UID ResolveTarget(u8 target, UID owner) {
@@ -118,6 +225,26 @@ bool Test(const Condition& condition, Controller* controller, UID owner) {
            static_cast<u32>(owner_pokemon->max_hp) *
                static_cast<u32>(condition.arg < 0 ? 0 : condition.arg);
   }
+  case kDefenderIsOwner:
+    return Situation::Get(SituationKey::kMoveRecipientId) == owner.value;
+  case kMoveCategoryIs: {
+    const pokemon::MoveData* move = CurrentMove();
+    return move != nullptr &&
+           static_cast<s32>(move->damage_category) == condition.arg;
+  }
+  case kSuperEffective:
+    // 4 is the normal effectiveness (see TypeMultiplier).
+    return Situation::Get(SituationKey::kTypeEffectiveness) > 4;
+  case kNoSubstitute:
+    return Situation::Get(SituationKey::kSubstituteFlag) == 0;
+  case kHpNotFull: {
+    Pokemon* owner_pokemon = controller->GetPokemon(owner);
+    return owner_pokemon != nullptr && owner_pokemon->hp < owner_pokemon->max_hp;
+  }
+  case kMoveMakesContact: {
+    const pokemon::MoveData* move = CurrentMove();
+    return move != nullptr && (move->flags & 1) != 0;
+  }
   default:
     return true;
   }
@@ -132,7 +259,7 @@ T* Make(Controller* controller, MutationKind kind, UID owner,
   return mutation;
 }
 
-void Run(const Action& action, Controller* controller, UID owner) {
+void Run(const Action& action, u16 moment, Controller* controller, UID owner) {
   const UID target = ResolveTarget(action.target, owner);
   switch (action.kind) {
   case kChangeStat: {
@@ -200,6 +327,47 @@ void Run(const Action& action, Controller* controller, UID owner) {
     controller->ExecuteMove(controller->GetPokemon(owner),
                             static_cast<MoveId>(action.a));
     break;
+  case kMultiplyValue:
+    // b is the multiplier in percent (150 is x1.5).
+    if (action.b > 0) MomentValues::Multiply(MultiplierKey(moment), action.b);
+    break;
+  case kDamageHp: {
+    Pokemon* pokemon = controller->GetPokemon(target);
+    if (pokemon == nullptr || pokemon->hp == 0) break;
+    u32 amount = static_cast<u32>(pokemon->max_hp) *
+                 static_cast<u32>(action.a < 0 ? 0 : action.a) / 100;
+    if (amount == 0) amount = 1;
+    if (amount > pokemon->hp) amount = pokemon->hp;
+    auto* mutation = Make<DealDamageMutation>(
+        controller, MutationKind::kDealDamage, owner, action);
+    mutation->damage_amount = static_cast<u16>(amount);
+    mutation->target_id = target;
+    mutation->ignore_if_semi_invulnerable = 0;
+    mutation->play_visual_effect = 0;
+    mutation->visual_effect_id = 0;
+    mutation->effect_start_position = FieldPosition::kNone;
+    mutation->effect_end_position = FieldPosition::kNone;
+    mutation->message.id = MutationMessageId::kNone;
+    controller->Apply(mutation);
+    break;
+  }
+  case kConsumeItem: {
+    auto* mutation = Make<ConsumeItemMutation>(
+        controller, MutationKind::kConsumeItem, target, action);
+    mutation->skip_action = 0;
+    mutation->skip_berry_eaten_flag = 0;
+    mutation->message.id = MutationMessageId::kNone;
+    controller->Apply(mutation);
+    break;
+  }
+  case kRaiseCritical: {
+    // a is the number of stages to add to the critical hit stage.
+    s32 stage = 0;
+    if (MomentValues::Read(SituationKey::kCriticalHitStage, &stage)) {
+      MomentValues::Write(SituationKey::kCriticalHitStage, stage + action.a);
+    }
+    break;
+  }
   default:
     break;
   }
@@ -317,7 +485,7 @@ void Execute(const Rule& rule, u32 rule_index, Controller* controller,
   if (only_once) local_state[0] |= (1 << rule_index);
 
   for (u32 i = 0; i < rule.action_count; i++) {
-    Run(rule.actions[i], controller, owner);
+    Run(rule.actions[i], rule.moment, controller, owner);
   }
 }
 
