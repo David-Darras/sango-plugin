@@ -202,22 +202,22 @@ static OverrideSet override_sets[] = {
     {ArchiveId::kPokemonModel, u"sdmc:/sango-studio/species/model/index.bin",
      u"sdmc:/sango-studio/species/model/%d.pc", kPokemonToken, false, pokemon_entries,
      6144, 0, false},
-    {ArchiveId::kOverworldModel, u"sdmc:/sango/overworld_model/index.bin",
-     u"sdmc:/sango/overworld_model/%d.bin", kOverworldToken, true, overworld_entries,
+    {ArchiveId::kOverworldModel, u"sdmc:/sango-studio/overworld/model/index.bin",
+     u"sdmc:/sango-studio/overworld/model/%d.bin", kOverworldToken, true, overworld_entries,
      1024, 0, false},
-    {ArchiveId::kMapLandData, u"sdmc:/sango/land/index.bin",
-     u"sdmc:/sango/land/%d.bin", kLandToken, true, land_entries, 1024, 0,
+    {ArchiveId::kMapLandData, u"sdmc:/sango-studio/overworld/land/index.bin",
+     u"sdmc:/sango-studio/overworld/land/%d.bin", kLandToken, true, land_entries, 1024, 0,
      false},
-    {ArchiveId::kOverworldArea, u"sdmc:/sango/area/index.bin",
-     u"sdmc:/sango/area/%d.bin", kAreaToken, true, area_entries, 512, 0,
+    {ArchiveId::kOverworldArea, u"sdmc:/sango-studio/overworld/area/index.bin",
+     u"sdmc:/sango-studio/overworld/area/%d.bin", kAreaToken, true, area_entries, 512, 0,
      false},
-    {ArchiveId::kMapMatrix, u"sdmc:/sango/matrix/index.bin",
-     u"sdmc:/sango/matrix/%d.bin", kMatrixToken, true, matrix_entries, 512, 0,
+    {ArchiveId::kMapMatrix, u"sdmc:/sango-studio/overworld/matrix/index.bin",
+     u"sdmc:/sango-studio/overworld/matrix/%d.bin", kMatrixToken, true, matrix_entries, 512, 0,
      false},
     // The packs of the zones (the events: characters, warps, signs, triggers)
-    // that Sango Editor writes.
-    {ArchiveId::kZoneData, u"sdmc:/sango/zone/index.bin",
-     u"sdmc:/sango/zone/%d.bin", kZoneToken, true, zone_entries, 1024, 0,
+    // that the Overworld page of Sango Studio writes.
+    {ArchiveId::kZoneData, u"sdmc:/sango-studio/overworld/zone/index.bin",
+     u"sdmc:/sango-studio/overworld/zone/%d.bin", kZoneToken, true, zone_entries, 1024, 0,
      false},
     // The models of the trainers of X and Y: the files after the last file of
     // the archive (see battle::TrainerModelExtension).
@@ -357,7 +357,7 @@ static bool ItemDataIsRegistered(u32 file_id) {
   return false;
 }
 
-// Writes a line "code file size" in sdmc:/sango/overworld_model/trace.log. It shows
+// Writes a line "code file size" in sdmc:/sango-studio/overworld/model/trace.log. It shows
 // how the game reads the files that the SD card replaces. The codes: 1 size
 // of a file, 2 information of a file, 3 read in a thread, 4 read with the
 // offset.
@@ -375,9 +375,10 @@ static void Trace(OverrideSet* set, u32 what, u32 file_id, u32 size) {
   if (!opened) {
     opened = true;
     // The folders may not be there (a user who has no overworld models).
-    sys::File::CreateDirectory(u"sdmc:/sango");
-    sys::File::CreateDirectory(u"sdmc:/sango/overworld_model");
-    file.Open(u"sdmc:/sango/overworld_model/trace.log");
+    sys::File::CreateDirectory(u"sdmc:/sango-studio");
+    sys::File::CreateDirectory(u"sdmc:/sango-studio/overworld");
+    sys::File::CreateDirectory(u"sdmc:/sango-studio/overworld/model");
+    file.Open(u"sdmc:/sango-studio/overworld/model/trace.log");
   }
   if (!file.IsOpen()) return;
   lines++;
