@@ -10,7 +10,8 @@ CXXFLAGS := -std=gnu++11 -Wall -Wextra -Wno-unused-parameter -O1 -DGAME_ORAS \
             -I$(ROOT)/lib/include -I$(ROOT)/lib/src -I$(ROOT)/tests/host
 
 # The pure files of the library.
-LIB_SOURCES := $(ROOT)/lib/src/core/parse_float.cc \
+LIB_SOURCES := $(ROOT)/lib/src/core/formula.cc \
+               $(ROOT)/lib/src/core/parse_float.cc \
                $(ROOT)/lib/src/core/utf8.cc
 TEST_SOURCES := $(wildcard $(ROOT)/tests/*.cc)
 

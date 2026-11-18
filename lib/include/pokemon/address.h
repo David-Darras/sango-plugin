@@ -37,6 +37,14 @@ constexpr uptr kUtilsGetPokemonMinimumExperience = GAME_ADDRESS(0x001681BC, 0x00
 constexpr uptr kUtilsGetPokemonLevelFromExperience =
     GAME_ADDRESS(0x00168D60, 0x0014FDAC);
 constexpr uptr kUtilsIsShiny = GAME_ADDRESS(0x00168AC8, 0x00168F48);
+/// The calculation of the six statistics and the effect of the nature.
+constexpr uptr kCalcMaxHp = GAME_ADDRESS(0x00168DA8, 0x001690C8);
+constexpr uptr kCalcAttack = GAME_ADDRESS(0x00150280, 0x0014FCF4);
+constexpr uptr kCalcDefense = GAME_ADDRESS(0x001502B0, 0x0014FD24);
+constexpr uptr kCalcSpecialAttack = GAME_ADDRESS(0x001502E0, 0x0014FDF4);
+constexpr uptr kCalcSpecialDefense = GAME_ADDRESS(0x00150310, 0x0014FE24);
+constexpr uptr kCalcSpeed = GAME_ADDRESS(0x00150250, 0x0014FCC4);
+constexpr uptr kCalcNatureCorrection = GAME_ADDRESS(0x00168C20, 0x00169024);
 constexpr uptr kUtilsToShiny = GAME_ADDRESS(0x00168B68, 0x00168F6C);
 constexpr uptr kUtilsToNormal = GAME_ADDRESS(0x00168BC8, 0x00168FCC);
 constexpr uptr kGetSpeciesName = GAME_ADDRESS(0x00399BB8, 0x003B08F8);

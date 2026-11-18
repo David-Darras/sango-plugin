@@ -31,6 +31,7 @@
 #include "battle/patch/trainer_model_extension.h"
 #include "battle/patch/move_choreography.h"
 #include "pokemon/patch/custom_shop.h"
+#include "pokemon/patch/studio_formulas.h"
 
 #include "core/constant/archive_id.h"
 #include "core/hook.h"
@@ -72,6 +73,12 @@ constexpr u32 kMoveDescriptionFile = 16;
 constexpr u32 kAbilityDescriptionFile = 36;
 constexpr u32 kAbilityNameFile = 37;
 constexpr u32 kTypeNameFile = 18;
+// The text file of the names of the natures (ORAS). Sango Studio gives new names to the natures, and names to the new natures (25 to 31).
+#ifdef GAME_ORAS
+constexpr u32 kNatureNameFile = 51;
+#else
+constexpr u32 kNatureNameFile = 0xFFFFFFFFu;
+#endif
 constexpr u32 kGameTypeCount = 18;
 constexpr u32 kItemNameFile1 = 113;
 constexpr u32 kItemNameFile2 = 116;
@@ -443,6 +450,12 @@ uptr GameExtension::GetBattleMoveHandlerHook(Pokemon* pkm, MoveId move,
 
 void GameExtension::MessageGetStringHook(Message* self, u32 str_id,
                                          String* output) {
+  // A nature has the name of natures.csv of Sango Studio, when the file has one.
+  if (self->file_id == kNatureNameFile &&
+      pokemon::StudioFormulas::PatchNatureName(str_id, output)) {
+    core::TextEditor::OnString(self, str_id, output);
+    return;
+  }
   // The text file of the types has 18 texts: a new type has its name here,
   // and the game does not read its text.
   if (self->file_id == kTypeNameFile && str_id >= kGameTypeCount &&

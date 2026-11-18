@@ -34,7 +34,11 @@ namespace {
 core::Hook<bool(u32, u32)> is_shiny_hook;
 core::Hook<u32(u32, u32)> to_shiny_hook;
 core::Hook<u32(u32, u32)> to_normal_hook;
+/// The chance that Sango Studio sets, in 65536ths: Shiny::kGameThreshold for the chance of the game.
+u32 threshold = Shiny::kGameThreshold;
 } // namespace
+
+void Shiny::SetThreshold(u32 value) { threshold = value; }
 
 void Shiny::Initialize() {
   is_shiny_hook.Install(core::address::kIsShiny, IsShinyHook);
@@ -43,24 +47,31 @@ void Shiny::Initialize() {
 }
 
 u32 Shiny::ToShinyHook(u32 id, u32 pid) {
-  if (GetInstance().rate == ShinyRate::kOff)
+  if (GetInstance().rate == ShinyRate::kOff && threshold == kGameThreshold)
     return to_shiny_hook(id, pid);
   return kForcedShiny;
 }
 
 u32 Shiny::ToNormalHook(u32 id, u32 pid) {
-  if (GetInstance().rate == ShinyRate::kOff)
+  if (GetInstance().rate == ShinyRate::kOff && threshold == kGameThreshold)
     return to_normal_hook(id, pid);
   return kForcedNormal;
 }
 
 bool Shiny::IsShinyHook(u32 id, u32 pid) {
   const ShinyRate rate = GetInstance().rate;
-  if (rate == ShinyRate::kOff)
+  if (rate == ShinyRate::kOff && threshold == kGameThreshold)
     return is_shiny_hook(id, pid);
 
   if (pid == kForcedShiny) return true;
   if (pid == kForcedNormal) return false;
+
+  if (rate == ShinyRate::kOff) {
+    // The test of the game with another limit: the four halves of the two numbers (the 16 bits)
+    // give a number from 0 to 65535, and a number under the limit is shiny.
+    const u32 mix = (id >> 16) ^ (id & 0xFFFFu) ^ (pid >> 16) ^ (pid & 0xFFFFu);
+    return mix < threshold;
+  }
 
   // k1_1 checks no bit, k1_2 checks one bit, k1_4 two bits...
   const u32 bits = static_cast<u32>(rate) - 1u;

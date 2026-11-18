@@ -33,6 +33,7 @@
 #include "core/patch/archive.h"
 #include "core/problems.h"
 #include "pokemon/native/species_data.h"
+#include "pokemon/patch/studio_formulas.h"
 #include "pokemon/patch/species_editor.h"
 #include "pokemon/patch/species_table.h"
 #include "plugin.h"
@@ -138,6 +139,7 @@ void StudioFiles::Update() {
   battle::StudioTypes::RefreshLanguage();
   battle::StudioMoves::RefreshLanguage();
   battle::StudioItems::RefreshLanguage();
+  pokemon::StudioFormulas::RefreshLanguage();
   sys::File file;
   if (!OpenStudio(&file, kReloadPath)) return;
   u8 header[kHeaderSize];
@@ -161,6 +163,7 @@ void StudioFiles::Update() {
     battle::StudioAbilities::LoadAll();
     battle::StudioMoves::LoadAll();
     battle::StudioItems::LoadAll();
+    pokemon::StudioFormulas::LoadAll();
   }
   LoadAll();
 }
@@ -190,6 +193,10 @@ void StudioFiles::Apply(const c8* path) {
   }
   if (std::strcmp(path, kPokedexFile) == 0) {
     RefreshPokedexData();
+    return;
+  }
+  if (pokemon::StudioFormulas::Owns(path)) {
+    pokemon::StudioFormulas::Apply(path);
     return;
   }
   if (std::memcmp(path, kTypeFolder, sizeof(kTypeFolder) - 1) == 0) {

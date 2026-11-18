@@ -47,6 +47,15 @@ struct Shiny : public ShinySettings {
 
   static void Initialize();
 
+  /// The value of SetThreshold() that keeps the chance of the game.
+  static constexpr u32 kGameThreshold = 0xFFFFFFFFu;
+
+  /// Sets the chance of a shiny Pokémon with an exact number: `threshold` out of 65536 (0 never, 65536
+  /// always, 16 is the chance of the game: 1 out of 4096). kGameThreshold keeps the chance of the game.
+  /// The setting `rate` has priority when it is not kOff. Sango Studio uses it (see
+  /// pokemon/patch/studio_formulas.h).
+  static void SetThreshold(u32 threshold);
+
 private:
   static u32 ToShinyHook(u32 id, u32 pid);
   static u32 ToNormalHook(u32 id, u32 pid);

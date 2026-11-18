@@ -82,6 +82,7 @@
 #include "pokemon/patch/species_table.h"
 #include "pokemon/patch/model_replacement.h"
 #include "pokemon/patch/shiny.h"
+#include "pokemon/patch/studio_formulas.h"
 #include "renderer/patch/lighting.h"
 #include "renderer/patch/model_filter.h"
 #include "renderer/patch/model_viewer.h"
@@ -158,6 +159,7 @@ void InitializeEngine() {
   core::AppLauncher::Initialize();
   ui::AppStatus::Initialize();
   pokemon::Shiny::Initialize();
+  pokemon::StudioFormulas::Initialize();
   battle::GameExtension::Initialize();
   battle::TrainerModelExtension::Initialize();
   battle::ItemExtension::Initialize();

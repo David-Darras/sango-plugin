@@ -54,6 +54,8 @@ When you do not know a game term, search it on Bulbapedia.
 | **Map** | One place of the overworld: a route, a town, a building or a floor. A map has an id (`MapId`). The game data and the code also call a map a *zone*. |
 | **Tile** | One square of the ground of a map. The positions of the characters are in tiles. |
 | **Character** | A person or a Pokémon that stands in the overworld. The player is also a character. |
+| **Facing** | The way that a character looks: up, down, left, right, or one of the four diagonals (`overworld::Facing`). The game data also call it a *direction*. |
+| **Script variable** | A number that a script reads and writes (`script::ScriptVariable`). The game data also call it an *event work value*. |
 | **Model** | The 3D object of a character, of a Pokémon or of a prop. A model has an id (`ModelId`). |
 | **Species** | A kind of Pokémon, for example Pikachu. A species has an id (`SpeciesId`) that is equal to its National Pokédex number. |
 | **Form** | A variant of a species, for example Alolan Raichu or Mega Charizard X. A form has an id (`FormId`). |
