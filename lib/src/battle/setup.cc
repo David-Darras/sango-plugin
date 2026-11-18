@@ -27,6 +27,7 @@
 #include "pokemon/native/ability_slot.h"
 #include "battle/patch/battle.h"
 #include "battle/patch/trainer_team.h"
+#include "battle/patch/studio_trainers.h"
 #include "core/hook.h"
 #include "overworld/patch/tall_grass.h"
 #include "overworld/patch/placed_decorations.h"
@@ -66,6 +67,8 @@ void Setup::SetupTrainerHook(Config* config, void* game_manager,
   // The teams of TrainerTeams replace the teams of the game, then the
   // functions of the product change the battle.
   if (feat.apply_trainer_teams) TrainerTeams::Apply(*config, trainer_id);
+  // What Sango Studio adds to the team: the nature, the EVs, the start of the battle...
+  StudioTrainers::Apply(*config, trainer_id);
   feat.on_trainer_battle.Emit(*config, trainer_id);
 }
 

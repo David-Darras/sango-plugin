@@ -27,6 +27,7 @@
 #include "battle/patch/item_extension.h"
 #include "battle/patch/type_chart.h"
 #include "battle/patch/trainer_class.h"
+#include "battle/patch/studio_trainers.h"
 #include "battle/patch/trainer_model_extension.h"
 #include "battle/patch/move_animation.h"
 #include "pokemon/patch/custom_shop.h"
@@ -406,6 +407,16 @@ bool GameExtension::PatchAbilityDescription(AbilityId ability, String* output) {
 // The game registers one listener for the ability of each Pokemon in battle.
 // For a new ability, the listener gets the reactions of the AbilitySpec.
 uptr GameExtension::GetBattleAbilityHandlerHook(Pokemon* pkm) {
+  // The effects of the start of the battle that a trainer of Sango Studio
+  // asks for: the first Pokémon that enters gets one more listener.
+  if (StudioTrainers::WantsStartListener()) {
+    StudioTrainers::StartListenerMade();
+    u32 count = 0;
+    const ReactionTable* table = StudioTrainers::StartReactions(&count);
+    Broadcaster::RegisterReactions(ListenerSource::kAbility, 0xFFFE,
+                                   PriorityTier::kActiveMoveDefault, 1000,
+                                   UID{pkm->uid}, table, count);
+  }
   const AbilitySpec* spec = FindAbility(pkm->ability);
   if (spec != nullptr) {
     return Broadcaster::RegisterReactions(

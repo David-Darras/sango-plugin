@@ -151,6 +151,16 @@ static constexpr u32 kLevelUpToken = 0x3D000000;
 static constexpr u32 kEggMoveToken = 0x3C000000;
 static constexpr u32 kEvolutionToken = 0x3B000000;
 static constexpr u32 kGrowthToken = 0x3A000000;
+// The data, the teams and the classes of the trainers that Sango Studio
+// writes (the archives 36, 38 and 37).
+static constexpr u32 kTrainerDataToken = 0x30000000;
+static constexpr u32 kTrainerClassToken = 0x2F000000;
+static constexpr u32 kTrainerTeamToken = 0x2E000000;
+// The pictures of the trainers that Sango Studio writes (the archive 160).
+static constexpr u32 kTrainerPictureToken = 0x2D000000;
+// The battle models of the trainers that Sango Studio writes (the archive
+// 133): the files replace the models of the game by their number.
+static constexpr u32 kStudioTrainerModelToken = 0x2C000000;
 static constexpr u32 kTextTokenFirst = 0x32000000;  // + 0x01000000 * language
 // The cries: the sequences and the wave archives of the Pokémon (the archive
 // 100), not compressed.
@@ -194,6 +204,12 @@ static OverrideEntry level_up_entries[kMaxStudioFiles];
 static OverrideEntry egg_move_entries[kMaxStudioFiles];
 static OverrideEntry evolution_entries[kMaxStudioFiles];
 static OverrideEntry growth_entries[16];
+static constexpr u32 kMaxTrainerFiles = 1024;
+static OverrideEntry trainer_data_entries[kMaxTrainerFiles];
+static OverrideEntry trainer_class_entries[kMaxTrainerFiles];
+static OverrideEntry trainer_team_entries[kMaxTrainerFiles];
+static OverrideEntry trainer_picture_entries[kMaxTrainerFiles];
+static OverrideEntry studio_trainer_model_entries[256];
 static constexpr u32 kMaxVoiceFiles = 256;
 static OverrideEntry voice_entries[kMaxVoiceFiles];
 static constexpr u32 kMaxTextFiles = 128;
@@ -268,6 +284,27 @@ static OverrideSet override_sets[] = {
     {ArchiveId::kGrowthTable, u"sdmc:/sango-studio/leveling_rate/index.bin",
      u"sdmc:/sango-studio/leveling_rate/%d.bin", kGrowthToken, true,
      growth_entries, 16, 0, false},
+    // The trainers: their data, their classes and their teams.
+    {ArchiveId::kTrainerData, u"sdmc:/sango-studio/trainer/data/index.bin",
+     u"sdmc:/sango-studio/trainer/data/%d.bin", kTrainerDataToken, true,
+     trainer_data_entries, kMaxTrainerFiles, 0, false},
+    {ArchiveId::kTrainerTypeData, u"sdmc:/sango-studio/trainer/class/index.bin",
+     u"sdmc:/sango-studio/trainer/class/%d.bin", kTrainerClassToken, true,
+     trainer_class_entries, kMaxTrainerFiles, 0, false},
+    {ArchiveId::kTrainerPokemonData, u"sdmc:/sango-studio/trainer/pokemon/index.bin",
+     u"sdmc:/sango-studio/trainer/pokemon/%d.bin", kTrainerTeamToken, true,
+     trainer_team_entries, kMaxTrainerFiles, 0, false},
+    // The pictures of the trainers: the files have the bytes of the files of
+    // the archive (compressed).
+    {ArchiveId::kTrainerTexture, u"sdmc:/sango-studio/trainer/picture/index.bin",
+     u"sdmc:/sango-studio/trainer/picture/%d.bin", kTrainerPictureToken, true,
+     trainer_picture_entries, kMaxTrainerFiles, 0, false},
+    // The battle models of the trainers: the files have the bytes of the files
+    // of the archive (compressed). This set comes after the one of the models of
+    // X and Y: a file that Sango Studio replaces is found first.
+    {ArchiveId::kTrainerModel, u"sdmc:/sango-studio/trainer/model/index.bin",
+     u"sdmc:/sango-studio/trainer/model/%d.bin", kStudioTrainerModelToken, true,
+     studio_trainer_model_entries, 256, 0, false},
     // The cries: the files of the wave archives that the user replaced.
     {ArchiveId::kPokemonVoice, u"sdmc:/sango-studio/species/cry/index.bin",
      u"sdmc:/sango-studio/species/cry/%d.bin", kVoiceToken, true,
@@ -299,11 +336,18 @@ static OverrideSet override_sets[] = {
      true, text_entries[7], kMaxTextFiles, 0, false},
 };
 
-static OverrideSet* FindSet(const u32* archive) {
+static u32 OverrideSize(OverrideSet& set, u32 file_id);
+
+// The set of an archive. When several sets are for the archive, the first one
+// that replaces the file wins; else the first set of the archive.
+static OverrideSet* FindSet(const u32* archive, u32 file_id) {
+  OverrideSet* first = nullptr;
   for (OverrideSet& set : override_sets) {
-    if (Archive::IsArchive(archive, set.archive)) return &set;
+    if (!Archive::IsArchive(archive, set.archive)) continue;
+    if (first == nullptr) first = &set;
+    if (OverrideSize(set, file_id) != 0) return &set;
   }
-  return nullptr;
+  return first;
 }
 
 static OverrideSet* FindSetByToken(u32 offset) {
@@ -600,7 +644,7 @@ u32 Archive::GetFileSizeHook(u32* archive, u32 file_id) {
     const u32 patched = battle::MoveAnimations::PatchedSize(archive, file_id);
     if (patched) return patched;
   }
-  OverrideSet* set = FindSet(archive);
+  OverrideSet* set = FindSet(archive, file_id);
   const u32 replaced = ReplacedSize(set, file_id);
   if (replaced) {
     Trace(set, 1, file_id, replaced);
@@ -617,7 +661,7 @@ u32 Archive::GetFileSizeHook2(u32* archive, u32 file_id) {
     const u32 patched = battle::MoveAnimations::PatchedSize(archive, file_id);
     if (patched) return patched;
   }
-  OverrideSet* set = FindSet(archive);
+  OverrideSet* set = FindSet(archive, file_id);
   const u32 replaced = ReplacedSize(set, file_id);
   if (replaced) {
     Trace(set, 1, file_id, replaced);
@@ -630,7 +674,7 @@ void Archive::GetInfoHook(u32* archive, u32 file_id, u32* info) {
   TraceText(archive, file_id);
   file_id = RemapItemFile(archive, file_id);
   file_id = ReplacedStreamFile(archive, file_id);
-  OverrideSet* set = FindSet(archive);
+  OverrideSet* set = FindSet(archive, file_id);
   const u32 replaced = info != nullptr ? ReplacedSize(set, file_id) : 0;
   if (replaced) {
     Trace(set, 2, file_id, replaced);
@@ -697,7 +741,7 @@ u32 Archive::LoadDataHook2(u32* archive, u32 file_id, void* buffer) {
       return patched;
     }
   }
-  OverrideSet* set = FindSet(archive);
+  OverrideSet* set = FindSet(archive, file_id);
   if (set != nullptr && set->whole_file) {
     // The game reads the whole file at once (a small file, for example).
     const u32 size = OverrideSize(*set, file_id);
@@ -733,7 +777,7 @@ void* Archive::LoadCompressedHook(u32* archive, u32 file_id, void* heap_work,
   TraceText(archive, file_id);
   file_id = RemapItemFile(archive, file_id, false);
   file_id = ReplacedStreamFile(archive, file_id);
-  OverrideSet* set = FindSet(archive);
+  OverrideSet* set = FindSet(archive, file_id);
   if (set != nullptr && !set->whole_file) {
     const u32 size = OverrideSize(*set, file_id);
     if (size) {
