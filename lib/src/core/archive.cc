@@ -164,6 +164,18 @@ static constexpr u32 kStudioTrainerModelToken = 0x2C000000;
 // The choreographies of the moves that Sango Studio writes (the archive 34): the
 // files replace the choreographies of the game by their number.
 static constexpr u32 kStudioChoreographyToken = 0x2B000000;
+// The particle effects that Sango Studio writes (the archive 31): the files
+// replace the effects of the game by their number.
+static constexpr u32 kStudioEffectToken = 0x2A000000;
+// The scripts that Sango Studio writes: the field scripts (the archive 29), the
+// AI of the trainers (7) and the scripts of Pokémon-Amie (89). The files
+// replace the files of the game by their number.
+static constexpr u32 kStudioFieldScriptToken = 0x29000000;
+static constexpr u32 kStudioBattleAiToken = 0x28000000;
+static constexpr u32 kStudioAmieScriptToken = 0x27000000;
+// The screen of the DexNav that Sango Studio writes (the archive 248, one file):
+// the pictures and the layout of the bottom screen.
+static constexpr u32 kStudioDexNavToken = 0x26000000;
 static constexpr u32 kTextTokenFirst = 0x32000000;  // + 0x01000000 * language
 // The cries: the sequences and the wave archives of the Pokémon (the archive
 // 100), not compressed.
@@ -214,6 +226,11 @@ static OverrideEntry trainer_team_entries[kMaxTrainerFiles];
 static OverrideEntry trainer_picture_entries[kMaxTrainerFiles];
 static OverrideEntry studio_trainer_model_entries[256];
 static OverrideEntry studio_choreography_entries[1024];
+static OverrideEntry studio_effect_entries[2048];
+static OverrideEntry studio_field_script_entries[128];
+static OverrideEntry studio_battle_ai_entries[32];
+static OverrideEntry studio_amie_script_entries[8];
+static OverrideEntry studio_dex_nav_entries[4];
 static constexpr u32 kMaxVoiceFiles = 256;
 static OverrideEntry voice_entries[kMaxVoiceFiles];
 static constexpr u32 kMaxTextFiles = 128;
@@ -312,9 +329,30 @@ static OverrideSet override_sets[] = {
     // The choreographies of the moves: the files have the bytes of the files of the
     // archive (compressed).
     {ArchiveId::kBattleMoveChoreography,
-     u"sdmc:/sango-studio/choreography/sequence/index.bin",
-     u"sdmc:/sango-studio/choreography/sequence/%d.bin", kStudioChoreographyToken,
+     u"sdmc:/sango-studio/choreography/index.bin",
+     u"sdmc:/sango-studio/choreography/%d.bin", kStudioChoreographyToken,
      true, studio_choreography_entries, 1024, 0, false},
+    // The particle effects: the files have the bytes of the files of the
+    // archive (compressed).
+    {ArchiveId::kMoveEffectParticle, u"sdmc:/sango-studio/effect/index.bin",
+     u"sdmc:/sango-studio/effect/%d.bin", kStudioEffectToken, true,
+     studio_effect_entries, 2048, 0, false},
+    // The scripts: the files have the bytes of the files of the archive
+    // (compressed).
+    {ArchiveId::kOverworldScript, u"sdmc:/sango-studio/script/field/index.bin",
+     u"sdmc:/sango-studio/script/field/%d.bin", kStudioFieldScriptToken, true,
+     studio_field_script_entries, 128, 0, false},
+    {ArchiveId::kBattleAi, u"sdmc:/sango-studio/script/ai/index.bin",
+     u"sdmc:/sango-studio/script/ai/%d.bin", kStudioBattleAiToken, true,
+     studio_battle_ai_entries, 32, 0, false},
+    {ArchiveId::kPokemonAmieScript, u"sdmc:/sango-studio/script/amie/index.bin",
+     u"sdmc:/sango-studio/script/amie/%d.bin", kStudioAmieScriptToken, true,
+     studio_amie_script_entries, 8, 0, false},
+    // The DexNav: one file with the bytes of the file of the archive
+    // (compressed).
+    {ArchiveId::kDexNav, u"sdmc:/sango-studio/dexnav/index.bin",
+     u"sdmc:/sango-studio/dexnav/%d.bin", kStudioDexNavToken, true,
+     studio_dex_nav_entries, 4, 0, false},
     // The cries: the files of the wave archives that the user replaced.
     {ArchiveId::kPokemonVoice, u"sdmc:/sango-studio/species/cry/index.bin",
      u"sdmc:/sango-studio/species/cry/%d.bin", kVoiceToken, true,
