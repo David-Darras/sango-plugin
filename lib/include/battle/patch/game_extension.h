@@ -87,7 +87,7 @@ struct MoveSpec {
   void (*patch_data)(pokemon::MoveData& move);
   /// Selects the battle animation of the move. Can be null.
   /// Set `id` to the animation to play. Set `is_move` to false when `id` is
-  /// not a move id. You can also use battle::MoveAnimations::Define() to make
+  /// not a move id. You can also use battle::MoveChoreographies::Define() to make
   /// a new animation.
   void (*patch_animation)(u32& id, bool& is_move);
   /// The reactions of the move: what it does in battle, and when.
@@ -262,7 +262,7 @@ public:
   static const AbilitySpec* FindAbility(AbilityId id);
 
 private:
-  static constexpr u32 kMoveAnimationCount = GAME_CONSTANT(0x26A, 0);
+  static constexpr u32 kMoveChoreographyCount = GAME_CONSTANT(0x26A, 0);
 
   static void BattleLoadAnimationHook(uptr self, u32 id, bool is_move);
   static void BattleLoadEffectHook(uptr self, u32 archive_id, u32 file_id,

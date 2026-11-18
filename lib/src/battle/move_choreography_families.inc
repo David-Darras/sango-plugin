@@ -1,8 +1,8 @@
 /**
- * @file move_animation_families.inc
- * @brief The families of the move animation files.
+ * @file move_choreography_families.inc
+ * @brief The families of the move choreography files.
  *
- * This file is generated from the move animation data. Do not change it by hand.
+ * This file is generated from the move choreography data. Do not change it by hand.
  */
 
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,

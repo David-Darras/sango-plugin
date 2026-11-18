@@ -4,7 +4,7 @@
 # Remove a name when its singleton becomes a constant of the program.
 battle::EffectStyles
 battle::GameExtension
-battle::MoveAnimations
+battle::MoveChoreographies
 core::CheatCodeManager
 core::TextEditor
 kaizo::Painter

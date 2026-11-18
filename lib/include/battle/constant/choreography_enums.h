@@ -16,10 +16,10 @@
  */
 
 /**
- * @file animation_enums.h
- * @brief The values of the steps of the move animations.
+ * @file choreography_enums.h
+ * @brief The values of the steps of the move choreographies.
  *
- * This file is generated from the move animation data. Do not change it by hand.
+ * This file is generated from the move choreography data. Do not change it by hand.
  */
 
 #pragma once
@@ -29,7 +29,7 @@
 namespace battle {
 
 /// The Pokémon that a step uses.
-enum class AnimationTarget : s32 {
+enum class ChoreographyTarget : s32 {
   kAttacker = 0,
   kDefender = 1,
   kDefenderCenter = 2,
@@ -71,7 +71,7 @@ enum class BodyPoint : s32 {
   kLowerJaw = 20,
 };
 
-/// An animation of a Pokémon model.
+/// A choreography of a Pokémon model.
 enum class PokemonPose : s32 {
   kIdle = 0,
   kContactAttack = 1,

@@ -16,10 +16,10 @@
  */
 
 /**
- * @file move_animation.h
- * @brief Changes the move animations, or makes new ones.
+ * @file move_choreography.h
+ * @brief Changes the move choreographies, or makes new ones.
  *
- * @see docs/tutorials/06-make-a-move-animation.md
+ * @see docs/tutorials/06-make-a-move-choreography.md
  */
 
 #pragma once
@@ -27,8 +27,8 @@
 #include <functional>
 
 #include "common.h"
-#include "battle/constant/animation_enums.h"
-#include "battle/constant/animation_step_kind.h"
+#include "battle/constant/choreography_enums.h"
+#include "battle/constant/choreography_step_kind.h"
 #include "battle/constant/effect_model_id.h"
 #include "battle/constant/overlay_layout_id.h"
 #include "battle/constant/effect_id.h"
@@ -36,7 +36,7 @@
 
 namespace battle {
 
-class MoveAnimation;
+class MoveChoreography;
 
 /// A layer of a particle effect. An effect has up to 8 layers.
 enum class EffectLayer : u32 {
@@ -52,7 +52,7 @@ enum class EffectLayer : u32 {
 };
 
 /// A value at a frame.
-struct AnimationKey {
+struct ChoreographyKey {
   s32 frame;
   Vec3 value;
 };
@@ -62,14 +62,14 @@ struct ChainWindow {
   s32 end_frame;
 };
 
-/// One step of a move animation. MoveAnimation returns it.
-class AnimationStep {
+/// One step of a move choreography. MoveChoreography returns it.
+class ChoreographyStep {
 public:
-  AnimationStep() : animation_(nullptr), offset_(0) {}
+  ChoreographyStep() : choreography_(nullptr), offset_(0) {}
 
-  INLINE bool IsValid() const { return animation_ != nullptr; }
+  INLINE bool IsValid() const { return choreography_ != nullptr; }
 
-  AnimationStepKind kind() const;
+  ChoreographyStepKind kind() const;
   s32 start_frame() const;
   s32 end_frame() const;
   u16 group() const;
@@ -89,31 +89,31 @@ public:
   void SetText(u32 index, const char* text, u32 length);
 
 private:
-  friend class MoveAnimation;
+  friend class MoveChoreography;
 
-  AnimationStep(MoveAnimation* animation, u32 offset)
-    : animation_(animation), offset_(offset) {
+  ChoreographyStep(MoveChoreography* choreography, u32 offset)
+    : choreography_(choreography), offset_(offset) {
   }
 
   u8* Values() const;
   bool HasValue(u32 index, u32 width) const;
 
-  MoveAnimation* animation_;
+  MoveChoreography* choreography_;
   u32 offset_;
 };
 
 /**
- * @brief A move animation: a list of steps.
+ * @brief A move choreography: a list of steps.
  *
  * Each step has a start frame, an end frame and a group. The functions of
- * move_animation_steps.inc add the steps (for example EffectSpawn()). The
- * other functions change the effects of the animation.
+ * move_choreography_steps.inc add the steps (for example EffectSpawn()). The
+ * other functions change the effects of the choreography.
  */
-class MoveAnimation {
+class MoveChoreography {
 public:
-  typedef std::function<void(AnimationStep&)> StepVisitor;
+  typedef std::function<void(ChoreographyStep&)> StepVisitor;
 
-  MoveAnimation(u8* data, u32 size, u32 capacity)
+  MoveChoreography(u8* data, u32 size, u32 capacity)
     : data_(data), size_(size), capacity_(capacity) {
   }
 
@@ -124,26 +124,26 @@ public:
 
   /// Returns the number of steps.
   u32 step_count() const;
-  /// Returns the last frame of the animation.
+  /// Returns the last frame of the choreography.
   s32 last_frame() const;
 
   /// Returns a step.
-  AnimationStep StepAt(u32 index);
+  ChoreographyStep StepAt(u32 index);
   /// Returns the first step of a type (after `skip` steps of this type).
-  AnimationStep First(AnimationStepKind kind, u32 skip = 0);
+  ChoreographyStep First(ChoreographyStepKind kind, u32 skip = 0);
   /// Returns the number of steps of a type.
-  u32 Count(AnimationStepKind kind) const;
+  u32 Count(ChoreographyStepKind kind) const;
   /// Calls a function for each step of a type.
-  void ForEach(AnimationStepKind kind, const StepVisitor& visitor);
+  void ForEach(ChoreographyStepKind kind, const StepVisitor& visitor);
 
   /// Adds an empty step. Use the typed functions instead (EffectSpawn()...).
-  AnimationStep Add(AnimationStepKind kind, s32 start_frame, s32 end_frame,
+  ChoreographyStep Add(ChoreographyStepKind kind, s32 start_frame, s32 end_frame,
                     u16 group = 0,
                     StepCondition condition = StepCondition::kAlways);
   /// Removes a step.
-  bool Remove(const AnimationStep& step);
+  bool Remove(const ChoreographyStep& step);
   /// Removes all the steps of a type.
-  u32 RemoveAll(AnimationStepKind kind);
+  u32 RemoveAll(ChoreographyStepKind kind);
 
   /// Changes the size of all the effects.
   void ScaleEffects(f32 factor);
@@ -202,12 +202,12 @@ public:
   /// Changes the size of all the models.
   void ScaleModels(f32 factor);
 
-#include "battle/patch/move_animation_steps.inc"
+#include "battle/patch/move_choreography_steps.inc"
 
-  /// Returns true when the data is a valid animation file.
+  /// Returns true when the data is a valid choreography file.
   static bool Validate(const u8* data, u32 size, u32* used_size);
 
-  /// A limit of the engine that an animation breaks.
+  /// A limit of the engine that a choreography breaks.
   enum class LimitProblem : u32 {
     kNone = 0,
     kGroupOutOfRange,
@@ -218,7 +218,7 @@ public:
   LimitProblem FindLimitProblem(u32* step_index, u32* limit) const;
 
 private:
-  friend class AnimationStep;
+  friend class ChoreographyStep;
 
   bool NextOffset(u32 offset, u32* next) const;
   u32 InsertionOffset(s32 start_frame) const;
@@ -230,50 +230,50 @@ private:
 };
 
 /**
- * @brief Registers the changed animations and the new animations.
+ * @brief Registers the changed choreographies and the new choreographies.
  *
  * @code
- * battle::MoveAnimations::Edit(MoveId::kThunderbolt, EditThunderbolt);
- * battle::MoveAnimations::Define(kMyMove, BuildMyMoveAnimation);
+ * battle::MoveChoreographies::Edit(MoveId::kThunderbolt, EditThunderbolt);
+ * battle::MoveChoreographies::Define(kMyMove, BuildMyMoveChoreography);
  * @endcode
  */
-class MoveAnimations {
-  MAKE_SINGLETON(MoveAnimations)
+class MoveChoreographies {
+  MAKE_SINGLETON(MoveChoreographies)
 
 public:
-  /// A function that changes or builds an animation.
-  typedef void (*Editor)(MoveAnimation& animation);
+  /// A function that changes or builds a choreography.
+  typedef void (*Editor)(MoveChoreography& choreography);
 
   static constexpr u32 kMaxEditors = 64;
 
   static constexpr u32 kMaxDefinitions = 32;
 
-  /// Changes the animation of a move of the game. 64 editors at most.
+  /// Changes the choreography of a move of the game. 64 editors at most.
   static bool Edit(pokemon::MoveId move, Editor editor);
-  /// Changes an animation file by its file id.
+  /// Changes a choreography file by its file id.
   static bool EditFile(u32 file_id, Editor editor);
-  /// Makes a new animation for a move. 32 animations at most.
+  /// Makes a new choreography for a move. 32 choreographies at most.
   static bool Define(pokemon::MoveId move, Editor build);
-  /// Removes all the editors and all the new animations.
+  /// Removes all the editors and all the new choreographies.
   static void Clear();
-  /// Makes the library build the changed animations again, for example after
+  /// Makes the library build the changed choreographies again, for example after
   /// a change of the settings that an editor reads.
   static void Invalidate();
 
-  /// Selects the file of a move that has a new animation. The library calls it.
+  /// Selects the file of a move that has a new choreography. The library calls it.
   static bool Resolve(pokemon::MoveId move, u32* id, bool* is_move);
 
-  /// Returns the animation file of a move.
+  /// Returns the choreography file of a move.
   static u32 FileOf(pokemon::MoveId move);
   static bool HasEditor(u32 file_id);
 
   static u32 PatchedSize(u32* archive, u32 file_id);
   static bool Serve(u32* archive, u32 file_id, void* buffer, u32* size);
-  static void ApplyEditors(u32 file_id, MoveAnimation& animation);
-  static void ApplyDefinition(u32 index, MoveAnimation& animation);
+  static void ApplyEditors(u32 file_id, MoveChoreography& choreography);
+  static void ApplyDefinition(u32 index, MoveChoreography& choreography);
   static u32 ScratchOwner(u32 file_id);
 
-  /// Loads the effect files only when an animation uses them.
+  /// Loads the effect files only when a choreography uses them.
   static void LoadEffectsOnDemand(bool enabled = true);
   static bool AreEffectsOnDemand();
 

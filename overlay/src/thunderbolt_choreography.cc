@@ -16,11 +16,11 @@
  */
 
 /**
- * @file thunderbolt_animation.cc
- * @brief Example: a big new animation for Thunderbolt, built step by step.
+ * @file thunderbolt_choreography.cc
+ * @brief Example: a big new choreography for Thunderbolt, built step by step.
  */
 
-#include "battle/patch/move_animation.h"
+#include "battle/patch/move_choreography.h"
 
 namespace battle {
 
@@ -109,8 +109,8 @@ Vec3 FlashColor(u32 index) {
               kFlashColors[slot][2]);
 }
 
-void PlaySound(MoveAnimation& a, GroupPool& sounds, s32 frame, s32 sound_id,
-               s32 volume, s32 pitch, AnimationTarget target,
+void PlaySound(MoveChoreography& a, GroupPool& sounds, s32 frame, s32 sound_id,
+               s32 volume, s32 pitch, ChoreographyTarget target,
                const Vec3& offset) {
   const u16 group = sounds.Acquire(frame, frame + kSoundLength);
   if (group == kNoGroup) return;
@@ -119,14 +119,14 @@ void PlaySound(MoveAnimation& a, GroupPool& sounds, s32 frame, s32 sound_id,
                           PositionAdjust::kNormal, group);
 }
 
-void LaunchBolt(MoveAnimation& a, GroupPool& effects, EffectId effect,
+void LaunchBolt(MoveChoreography& a, GroupPool& effects, EffectId effect,
                 s32 start, s32 life, const Vec3& tilt, f32 first_scale,
                 f32 last_scale, const Vec3& spin) {
   const u16 group = effects.Acquire(start, start + life);
   if (group == kNoGroup) return;
   a.EffectSpawn(start, start + life, effect, false,
                   EffectDrawOrder::kStandard, group);
-  a.EffectGlideToPokemon(start, start, AnimationTarget::kAttacker,
+  a.EffectGlideToPokemon(start, start, ChoreographyTarget::kAttacker,
                            BodyPoint::kCenter, Vec3(0.0f, -20.0f, 0.0f),
                            PositionAdjust::kNormal, group);
   a.EffectTurn(start, start, tilt, false, group);
@@ -137,14 +137,14 @@ void LaunchBolt(MoveAnimation& a, GroupPool& effects, EffectId effect,
   a.EffectTurn(start, start + life, spin, false, group);
 }
 
-void LaunchImpact(MoveAnimation& a, GroupPool& effects, EffectId effect,
+void LaunchImpact(MoveChoreography& a, GroupPool& effects, EffectId effect,
                   s32 start, s32 life, const Vec3& offset, f32 first_scale,
                   f32 last_scale, const Vec3& spin) {
   const u16 group = effects.Acquire(start, start + life);
   if (group == kNoGroup) return;
   a.EffectSpawn(start, start + life, effect, false,
                   EffectDrawOrder::kStandard, group);
-  a.EffectGlideToPokemon(start, start, AnimationTarget::kDefender,
+  a.EffectGlideToPokemon(start, start, ChoreographyTarget::kDefender,
                            BodyPoint::kCenter, offset, PositionAdjust::kNormal,
                            group);
   a.EffectResize(start, start,
@@ -154,14 +154,14 @@ void LaunchImpact(MoveAnimation& a, GroupPool& effects, EffectId effect,
   a.EffectTurn(start, start + life, spin, false, group);
 }
 
-void AddCharge(MoveAnimation& a, GroupPool& effects, GroupPool& sounds) {
-  PlaySound(a, sounds, 1, 852276, 100, 127, AnimationTarget::kAttacker,
+void AddCharge(MoveChoreography& a, GroupPool& effects, GroupPool& sounds) {
+  PlaySound(a, sounds, 1, 852276, 100, 127, ChoreographyTarget::kAttacker,
             Vec3(0.0f, 0.0f, 0.0f));
 
   const u16 orb = effects.Acquire(2, 52);
   a.EffectSpawn(2, 52, EffectId::kElectroBall, false,
                   EffectDrawOrder::kStandard, orb);
-  a.EffectGlideToPokemon(2, 2, AnimationTarget::kAttacker,
+  a.EffectGlideToPokemon(2, 2, ChoreographyTarget::kAttacker,
                            BodyPoint::kHeadTop, Vec3(0.0f, 35.0f, 0.0f),
                            PositionAdjust::kNormal, orb);
   a.EffectResize(2, 2, Vec3(0.3f, 0.3f, 0.3f), orb);
@@ -171,7 +171,7 @@ void AddCharge(MoveAnimation& a, GroupPool& effects, GroupPool& sounds) {
   const u16 aura = effects.Acquire(3, 60);
   a.EffectSpawn(3, 60, EffectId::kSpark0, false, EffectDrawOrder::kStandard,
                   aura);
-  a.EffectGlideToPokemon(3, 3, AnimationTarget::kAttacker,
+  a.EffectGlideToPokemon(3, 3, ChoreographyTarget::kAttacker,
                            BodyPoint::kCenter, Vec3(0.0f, 0.0f, 0.0f),
                            PositionAdjust::kNormal, aura);
   a.EffectResize(3, 3, Vec3(1.0f, 1.0f, 1.0f), aura);
@@ -181,23 +181,23 @@ void AddCharge(MoveAnimation& a, GroupPool& effects, GroupPool& sounds) {
   const u16 halo = effects.Acquire(14, 60);
   a.EffectSpawn(14, 60, EffectId::kParabolicCharge1, false,
                   EffectDrawOrder::kStandard, halo);
-  a.EffectGlideToPokemon(14, 14, AnimationTarget::kAttacker,
+  a.EffectGlideToPokemon(14, 14, ChoreographyTarget::kAttacker,
                            BodyPoint::kCenter, Vec3(0.0f, 0.0f, 0.0f),
                            PositionAdjust::kNormal, halo);
   a.EffectResize(14, 14, Vec3(2.0f, 2.0f, 2.0f), halo);
   a.EffectResize(14, 45, Vec3(10.0f, 10.0f, 10.0f), halo);
 
-  a.PokemonShake(5, 38, AnimationTarget::kAttacker, 0.0f, 20.0f, 8.0f, 0.0f,
+  a.PokemonShake(5, 38, ChoreographyTarget::kAttacker, 0.0f, 20.0f, 8.0f, 0.0f,
                  Axis::kY);
-  a.PokemonPlayAttackPose(36, 36, AnimationTarget::kAttacker,
+  a.PokemonPlayAttackPose(36, 36, ChoreographyTarget::kAttacker,
                           PokemonPose::kRangedAttack);
-  a.CameraGlideToPokemon(2, 14, AnimationTarget::kAttacker, BodyPoint::kCenter,
+  a.CameraGlideToPokemon(2, 14, ChoreographyTarget::kAttacker, BodyPoint::kCenter,
                          Vec3(-80.0f, 25.0f, 250.0f), Vec3(0.0f, 15.0f, 0.0f),
                          0.0f, PositionAdjust::kNormal, MoveCurve::kEaseInOut,
                          false);
 }
 
-void AddBarrage(MoveAnimation& a, GroupPool& effects, GroupPool& sounds) {
+void AddBarrage(MoveChoreography& a, GroupPool& effects, GroupPool& sounds) {
   for (u32 i = 0; i < kVolleyCount; i++) {
     const s32 frame = kVolleyFirstFrame + kVolleySpacing * (s32)i;
     const EffectId effect = kBoltEffects[i % 6];
@@ -208,19 +208,19 @@ void AddBarrage(MoveAnimation& a, GroupPool& effects, GroupPool& sounds) {
                4.0f + 0.4f * (f32)(i % 4),
                Vec3(0.0f, 0.0f, 120.0f * spin_direction));
     PlaySound(a, sounds, frame, 852195, 90, -60 + 20 * (s32)(i % 5),
-              AnimationTarget::kAttacker, Vec3(0.0f, 0.0f, 0.0f));
+              ChoreographyTarget::kAttacker, Vec3(0.0f, 0.0f, 0.0f));
 
     a.BackdropColor(frame, frame + 2, FlashColor(i), 0.9f);
     a.BackdropColor(frame + 2, frame + 9, Vec3(0.05f, 0.05f, 0.25f), 0.6f);
   }
 
-  a.CameraGlideToPokemon(40, 56, AnimationTarget::kDefender,
+  a.CameraGlideToPokemon(40, 56, ChoreographyTarget::kDefender,
                          BodyPoint::kCenter, Vec3(120.0f, 10.0f, 330.0f),
                          Vec3(0.0f, 15.0f, 0.0f), 0.0f,
                          PositionAdjust::kNormal, MoveCurve::kLinear, false);
 }
 
-void AddImpactStorm(MoveAnimation& a, GroupPool& effects,
+void AddImpactStorm(MoveChoreography& a, GroupPool& effects,
                     GroupPool& sounds) {
   for (u32 i = 0; i < kImpactCount; i++) {
     const s32 frame = kImpactFirstFrame + kImpactSpacing * (s32)i;
@@ -232,56 +232,56 @@ void AddImpactStorm(MoveAnimation& a, GroupPool& effects,
                  4.5f + 0.5f * (f32)(i % 3),
                  Vec3(0.0f, 360.0f + 90.0f * (f32)(i % 3), 180.0f));
     PlaySound(a, sounds, frame, 852037, 95, -40 + 25 * (s32)(i % 4),
-              AnimationTarget::kDefender, Vec3(0.0f, 0.0f, 0.0f));
+              ChoreographyTarget::kDefender, Vec3(0.0f, 0.0f, 0.0f));
 
     const Vec3 color = FlashColor(i + 2);
-    a.PokemonTint(frame, frame + 6, AnimationTarget::kDefender, color, 1.0f,
+    a.PokemonTint(frame, frame + 6, ChoreographyTarget::kDefender, color, 1.0f,
                   color, 0.0f);
     a.BackdropColor(frame, frame + 2, color, 0.8f);
     a.BackdropColor(frame + 2, frame + 8, Vec3(0.05f, 0.05f, 0.25f), 0.6f);
   }
 
-  a.PokemonPlayPose(64, 64, AnimationTarget::kDefender, PokemonPose::kHurt);
-  a.PokemonPlayPose(102, 102, AnimationTarget::kDefender, PokemonPose::kHurt);
-  a.PokemonPlayPose(140, 140, AnimationTarget::kDefender, PokemonPose::kHurt);
-  a.PokemonShake(62, 78, AnimationTarget::kDefender, 0.0f, 20.0f, 8.0f, 0.0f,
+  a.PokemonPlayPose(64, 64, ChoreographyTarget::kDefender, PokemonPose::kHurt);
+  a.PokemonPlayPose(102, 102, ChoreographyTarget::kDefender, PokemonPose::kHurt);
+  a.PokemonPlayPose(140, 140, ChoreographyTarget::kDefender, PokemonPose::kHurt);
+  a.PokemonShake(62, 78, ChoreographyTarget::kDefender, 0.0f, 20.0f, 8.0f, 0.0f,
                  Axis::kY);
-  a.PokemonShake(100, 116, AnimationTarget::kDefender, 0.0f, 20.0f, 8.0f, 0.0f,
+  a.PokemonShake(100, 116, ChoreographyTarget::kDefender, 0.0f, 20.0f, 8.0f, 0.0f,
                  Axis::kY);
-  a.PokemonShake(138, 154, AnimationTarget::kDefender, 0.0f, 20.0f, 8.0f, 0.0f,
+  a.PokemonShake(138, 154, ChoreographyTarget::kDefender, 0.0f, 20.0f, 8.0f, 0.0f,
                  Axis::kY);
 
   a.CameraRumble(62, 100, 8.0f, 2.0f, 12.0f, Axis::kY);
   a.CameraRumble(100, 138, 12.0f, 4.0f, 10.0f, Axis::kX);
-  a.CameraGlideToPokemon(70, 90, AnimationTarget::kDefender,
+  a.CameraGlideToPokemon(70, 90, ChoreographyTarget::kDefender,
                          BodyPoint::kCenter, Vec3(-140.0f, 60.0f, 260.0f),
                          Vec3(0.0f, 20.0f, 0.0f), 0.0f,
                          PositionAdjust::kNormal, MoveCurve::kEaseInOut,
                          false);
-  a.CameraGlideToPokemon(95, 118, AnimationTarget::kDefender,
+  a.CameraGlideToPokemon(95, 118, ChoreographyTarget::kDefender,
                          BodyPoint::kCenter, Vec3(0.0f, 220.0f, 240.0f),
                          Vec3(0.0f, 10.0f, 0.0f), 0.0f,
                          PositionAdjust::kNormal, MoveCurve::kEaseInOut,
                          false);
-  a.CameraGlideToPokemon(120, 142, AnimationTarget::kDefender,
+  a.CameraGlideToPokemon(120, 142, ChoreographyTarget::kDefender,
                          BodyPoint::kCenter, Vec3(160.0f, 30.0f, 180.0f),
                          Vec3(0.0f, 20.0f, 0.0f), 0.0f,
                          PositionAdjust::kNormal, MoveCurve::kFastStart,
                          false);
 
-  a.HealthBarApplyDamage(70, 70, AnimationTarget::kDefender, true);
+  a.HealthBarApplyDamage(70, 70, ChoreographyTarget::kDefender, true);
 }
 
-void AddFinale(MoveAnimation& a, GroupPool& effects, GroupPool& sounds) {
-  PlaySound(a, sounds, 150, 852349, 110, -60, AnimationTarget::kDefender,
+void AddFinale(MoveChoreography& a, GroupPool& effects, GroupPool& sounds) {
+  PlaySound(a, sounds, 150, 852349, 110, -60, ChoreographyTarget::kDefender,
             Vec3(0.0f, 0.0f, 0.0f));
-  PlaySound(a, sounds, 152, 852035, 100, -30, AnimationTarget::kDefender,
+  PlaySound(a, sounds, 152, 852035, 100, -30, ChoreographyTarget::kDefender,
             Vec3(0.0f, 300.0f, 0.0f));
 
   const u16 flash = effects.Acquire(150, 195);
   a.EffectSpawn(150, 195, EffectId::kThunder2, false,
                   EffectDrawOrder::kStandard, flash);
-  a.EffectGlideToPokemon(150, 150, AnimationTarget::kDefender,
+  a.EffectGlideToPokemon(150, 150, ChoreographyTarget::kDefender,
                            BodyPoint::kOrigin, Vec3(0.0f, 1.0f, 0.0f),
                            PositionAdjust::kNormal, flash);
   a.EffectResize(150, 150, Vec3(4.0f, 4.0f, 4.0f), flash);
@@ -290,7 +290,7 @@ void AddFinale(MoveAnimation& a, GroupPool& effects, GroupPool& sounds) {
   const u16 burst = effects.Acquire(152, 195);
   a.EffectSpawn(152, 195, EffectId::kThunder1, false,
                   EffectDrawOrder::kStandard, burst);
-  a.EffectGlideToPokemon(152, 152, AnimationTarget::kDefender,
+  a.EffectGlideToPokemon(152, 152, ChoreographyTarget::kDefender,
                            BodyPoint::kOrigin, Vec3(0.0f, 1.0f, 0.0f),
                            PositionAdjust::kNormal, burst);
   a.EffectResize(152, 152, Vec3(2.0f, 2.0f, 2.0f), burst);
@@ -302,15 +302,15 @@ void AddFinale(MoveAnimation& a, GroupPool& effects, GroupPool& sounds) {
     a.BackdropColor(frame, frame + 1, FlashColor(k), 1.0f);
   }
   a.CameraRumble(150, 175, 30.0f, 5.0f, 5.0f, Axis::kY);
-  a.PokemonPlayPose(152, 152, AnimationTarget::kDefender, PokemonPose::kHurt);
-  a.PokemonTint(152, 185, AnimationTarget::kDefender, Vec3(1.0f, 0.9f, 0.3f),
+  a.PokemonPlayPose(152, 152, ChoreographyTarget::kDefender, PokemonPose::kHurt);
+  a.PokemonTint(152, 185, ChoreographyTarget::kDefender, Vec3(1.0f, 0.9f, 0.3f),
                 1.0f, Vec3(1.0f, 0.9f, 0.3f), 0.0f);
   a.CameraRestore(168, 190, false, MoveCurve::kFastStart, false);
   a.BackdropColor(172, 192, Vec3(0.0f, 0.0f, 0.0f), 0.0f);
   a.BackdropColorToggle(196, 196, false, Vec3(0.0f, 0.0f, 0.0f), 0.0f);
 }
 
-void ApplyPalettes(MoveAnimation& a) {
+void ApplyPalettes(MoveChoreography& a) {
   for (u32 i = 0; i < sizeof(kPalettes) / sizeof(kPalettes[0]); i++) {
     const Palette& palette = kPalettes[i];
     a.RecolorEffect(palette.effect,
@@ -325,14 +325,14 @@ void ApplyPalettes(MoveAnimation& a) {
 
 }
 
-void BuildThunderboltAnimation(MoveAnimation& a) {
+void BuildThunderboltChoreography(MoveChoreography& a) {
   GroupPool effects(10);
   GroupPool sounds(6);
 
   a.CameraRestore(0, 0, false, MoveCurve::kLinear, false);
   a.Sound3dSetup(0, 0, 0, 1.0f, 11.3f, 200.0f, 200.0f, 300.0f);
   a.HealthBarShowAll(0, 0, false);
-  a.HealthBarShow(0, 0, AnimationTarget::kDefender, true);
+  a.HealthBarShow(0, 0, ChoreographyTarget::kDefender, true);
   a.BackdropColorToggle(0, 0, true, Vec3(0.0f, 0.0f, 0.0f), 0.0f);
   a.BackdropColor(0, 20, Vec3(0.05f, 0.05f, 0.25f), 0.6f);
 
@@ -343,8 +343,8 @@ void BuildThunderboltAnimation(MoveAnimation& a) {
   ApplyPalettes(a);
 }
 
-void RegisterThunderboltAnimation() {
-  MoveAnimations::Define(MoveId::kThunderbolt, BuildThunderboltAnimation);
+void RegisterThunderboltChoreography() {
+  MoveChoreographies::Define(MoveId::kThunderbolt, BuildThunderboltChoreography);
 }
 
 }

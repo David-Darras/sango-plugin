@@ -16,10 +16,10 @@
  */
 
 /**
- * @file animation_step_kind.h
- * @brief The types of the steps of the move animations.
+ * @file choreography_step_kind.h
+ * @brief The types of the steps of the move choreographies.
  *
- * This file is generated from the move animation data. Do not change it by hand.
+ * This file is generated from the move choreography data. Do not change it by hand.
  */
 
 #pragma once
@@ -28,8 +28,8 @@
 
 namespace battle {
 
-/// The type of a step of a move animation. See battle::MoveAnimation.
-enum class AnimationStepKind : u16 {
+/// The type of a step of a move choreography. See battle::MoveChoreography.
+enum class ChoreographyStepKind : u16 {
   kSectionPokemon = 0,
   kPokemonTeleport = 1,
   kPokemonShift = 2,
@@ -245,6 +245,6 @@ enum class AnimationStepKind : u16 {
   kNote = 212,
 };
 
-constexpr u32 kAnimationStepKindCount = 213;
+constexpr u32 kChoreographyStepKindCount = 213;
 
 }

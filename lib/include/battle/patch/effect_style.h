@@ -19,7 +19,7 @@
  * @file effect_style.h
  * @brief Changes the particle effects of the battles: colors, size, life...
  *
- * Use the functions of battle::MoveAnimation (ColorEffect()...) instead.
+ * Use the functions of battle::MoveChoreography (ColorEffect()...) instead.
  */
 
 #pragma once

@@ -28,7 +28,7 @@
 
 namespace battle {
 
-/// The id of a model of a move animation. See battle::MoveAnimation::ModelSpawn().
+/// The id of a model of a move animation. See battle::MoveChoreography::ModelSpawn().
 enum class EffectModelId : s32 {
   kBattleScene1VisibilityAnimation = 0,
   kTopsyTurvyModel = 3,

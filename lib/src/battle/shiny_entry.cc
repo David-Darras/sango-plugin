@@ -24,7 +24,7 @@
 
 #include "battle/patch/shiny_entry.h"
 
-#include "battle/patch/move_animation.h"
+#include "battle/patch/move_choreography.h"
 
 namespace battle {
 
@@ -61,17 +61,17 @@ Vec3 HueToColor(f32 hue) {
   }
 }
 
-void EditAnimation(MoveAnimation& animation) {
+void EditAnimation(MoveChoreography& animation) {
   if (!ShinyEntry::GetInstance().is_enabled) return;
 
   // The animation lasts longer, so that the last bursts can end.
-  auto shift = [](AnimationStep& step) {
+  auto shift = [](ChoreographyStep& step) {
     if (step.start_frame() < kClosingFrame) return;
     step.SetStartFrame(step.start_frame() + kExtraFrames);
     step.SetEndFrame(step.end_frame() + kExtraFrames);
   };
-  animation.ForEach(AnimationStepKind::kBackdropColor, shift);
-  animation.ForEach(AnimationStepKind::kBackdropColorToggle, shift);
+  animation.ForEach(ChoreographyStepKind::kBackdropColor, shift);
+  animation.ForEach(ChoreographyStepKind::kBackdropColorToggle, shift);
   animation.SetDuration(animation.last_frame() + kExtraFrames);
   const s32 last = animation.last_frame();
 
@@ -86,7 +86,7 @@ void EditAnimation(MoveAnimation& animation) {
                           EffectDrawOrder::kStandard, group,
                           StepCondition::kRareOnly);
     animation.EffectGlideToPokemonRotated(
-        start, start, AnimationTarget::kDefender, BodyPoint::kCenter,
+        start, start, ChoreographyTarget::kDefender, BodyPoint::kCenter,
         Vec3(places[i][0] * kSpread, places[i][1] * kSpread, 0.0f), 0.0f,
         PositionAdjust::kNormal, group, StepCondition::kRareOnly);
     animation.EffectResize(start, start, Vec3(2.0f, 2.0f, 2.0f), group,
@@ -107,10 +107,10 @@ void EditAnimation(MoveAnimation& animation) {
 } // namespace
 
 void ShinyEntry::Initialize() {
-  MoveAnimations::EditFile(kShinyEntryFile, EditAnimation);
+  MoveChoreographies::EditFile(kShinyEntryFile, EditAnimation);
 }
 
 void ShinyEntry::Refresh() {
-  MoveAnimations::Invalidate();
+  MoveChoreographies::Invalidate();
 }
 } // namespace battle

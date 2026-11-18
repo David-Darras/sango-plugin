@@ -71,7 +71,7 @@
 #include "battle/patch/battle.h"
 #include "battle/patch/game_extension.h"
 #include "battle/patch/item_extension.h"
-#include "battle/patch/move_animation.h"
+#include "battle/patch/move_choreography.h"
 #include "battle/patch/setup.h"
 #include "battle/patch/trainer_team.h"
 #include "battle/patch/type_chart.h"

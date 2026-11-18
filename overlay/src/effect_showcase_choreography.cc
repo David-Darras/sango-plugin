@@ -16,14 +16,14 @@
  */
 
 /**
- * @file effect_showcase_animation.cc
- * @brief Example: an animation that shows the effects of the game, 10 at a time.
+ * @file effect_showcase_choreography.cc
+ * @brief Example: a choreography that shows the effects of the game, 10 at a time.
  *
- * Use it to find an effect for your animations.
+ * Use it to find an effect for your choreographies.
  */
 
 #include "battle/constant/effect_id.h"
-#include "battle/patch/move_animation.h"
+#include "battle/patch/move_choreography.h"
 #include "ui/log.h"
 
 namespace battle {
@@ -44,7 +44,7 @@ u32 next_effect = kFirstEffect;
 
 }
 
-void BuildEffectShowcaseAnimation(MoveAnimation& a) {
+void BuildEffectShowcaseChoreography(MoveChoreography& a) {
   u32 first = next_effect;
   if (first >= kMoveEffectCount) first = kFirstEffect;
   u32 count = kMoveEffectCount - first;
@@ -54,16 +54,16 @@ void BuildEffectShowcaseAnimation(MoveAnimation& a) {
   ui::Log::Print(u"Effect showcase: effects %d to %d", (s32)first,
                             (s32)(first + count - 1));
 
-  MoveAnimations::LoadEffectsOnDemand();
+  MoveChoreographies::LoadEffectsOnDemand();
 
   const u32 batches = (count + kEffectsPerBatch - 1) / kEffectsPerBatch;
   const s32 end = kFirstFrame + (s32)batches * kFramesPerBatch;
 
   a.CameraRestore(0, 0, false, MoveCurve::kLinear, false);
   a.HealthBarShowAll(0, 0, false);
-  a.HealthBarShow(0, 0, AnimationTarget::kDefender, true);
+  a.HealthBarShow(0, 0, ChoreographyTarget::kDefender, true);
 
-  a.CameraGlideToPokemon(2, 14, AnimationTarget::kDefender, BodyPoint::kCenter,
+  a.CameraGlideToPokemon(2, 14, ChoreographyTarget::kDefender, BodyPoint::kCenter,
                          Vec3(100.0f, 5.0f, 320.0f), Vec3(0.0f, 15.0f, 0.0f),
                          0.0f, PositionAdjust::kNormal, MoveCurve::kLinear,
                          false);
@@ -76,7 +76,7 @@ void BuildEffectShowcaseAnimation(MoveAnimation& a) {
 
     a.EffectSpawn(frame, frame + kFramesAlive, kMoveEffects[first + i],
                   false, EffectDrawOrder::kStandard, group);
-    a.EffectGlideToPokemon(frame, frame, AnimationTarget::kDefender,
+    a.EffectGlideToPokemon(frame, frame, ChoreographyTarget::kDefender,
                            BodyPoint::kCenter, Vec3(x, 0.0f, 0.0f),
                            PositionAdjust::kNormal, group);
     a.EffectResize(frame, frame,
@@ -89,8 +89,8 @@ void BuildEffectShowcaseAnimation(MoveAnimation& a) {
                             (s32)a.size(), end + 20);
 }
 
-void RegisterEffectShowcaseAnimation() {
-  MoveAnimations::Define(MoveId::kThunderbolt, BuildEffectShowcaseAnimation);
+void RegisterEffectShowcaseChoreography() {
+  MoveChoreographies::Define(MoveId::kThunderbolt, BuildEffectShowcaseChoreography);
 }
 
 }

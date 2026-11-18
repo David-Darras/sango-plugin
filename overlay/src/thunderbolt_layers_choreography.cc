@@ -16,11 +16,11 @@
  */
 
 /**
- * @file thunderbolt_layers_animation.cc
- * @brief Example: an animation that colors each layer of an effect.
+ * @file thunderbolt_layers_choreography.cc
+ * @brief Example: a choreography that colors each layer of an effect.
  */
 
-#include "battle/patch/move_animation.h"
+#include "battle/patch/move_choreography.h"
 
 namespace battle {
 
@@ -34,7 +34,7 @@ constexpr bool kShowFirstLayer = false;
 constexpr bool kShowSecondLayer = false;
 constexpr bool kShowThirdLayer = true;
 
-void StyleImpactLayers(MoveAnimation& a) {
+void StyleImpactLayers(MoveChoreography& a) {
   const EffectId impact = EffectId::kThunderboltZapCannonDischarge;
 
   a.LoopEffect(impact);
@@ -54,13 +54,13 @@ void StyleImpactLayers(MoveAnimation& a) {
 
 }
 
-void BuildThunderboltLayersAnimation(MoveAnimation& a) {
+void BuildThunderboltLayersChoreography(MoveChoreography& a) {
   a.CameraRestore(0, 0, false, MoveCurve::kLinear, false);
   a.Sound3dSetup(0, 0, 0, 1.0f, 11.3f, 200.0f, 200.0f, 300.0f);
   a.HealthBarShowAll(0, 0, false);
-  a.HealthBarShow(0, 0, AnimationTarget::kDefender, true);
+  a.HealthBarShow(0, 0, ChoreographyTarget::kDefender, true);
 
-  a.CameraGlideToPokemon(2, 14, AnimationTarget::kDefender, BodyPoint::kCenter,
+  a.CameraGlideToPokemon(2, 14, ChoreographyTarget::kDefender, BodyPoint::kCenter,
                          Vec3(100.0f, 5.0f, 320.0f), Vec3(0.0f, 15.0f, 0.0f),
                          0.0f, PositionAdjust::kNormal, MoveCurve::kLinear,
                          false);
@@ -68,21 +68,21 @@ void BuildThunderboltLayersAnimation(MoveAnimation& a) {
   a.Sound3dPlay(kImpactStart, kImpactStart, 852037, 589827, 90, 0, 40, false,
                 1);
   a.Sound3dGlideToPokemon(kImpactStart, kImpactStart,
-                          AnimationTarget::kDefender, BodyPoint::kWaist,
+                          ChoreographyTarget::kDefender, BodyPoint::kWaist,
                           Vec3(0.0f, 0.0f, 0.0f), PositionAdjust::kNormal, 1);
 
   a.EffectSpawn(kImpactStart, kImpactEnd,
                   EffectId::kThunderboltZapCannonDischarge, false,
                   EffectDrawOrder::kStandard, 0);
   a.EffectGlideToPokemon(kImpactStart, kImpactStart,
-                           AnimationTarget::kDefender, BodyPoint::kCenter,
+                           ChoreographyTarget::kDefender, BodyPoint::kCenter,
                            Vec3(0.0f, 0.0f, 0.0f), PositionAdjust::kNormal, 0);
   a.EffectResize(kImpactStart, kImpactStart, Vec3(2.5f, 2.5f, 2.5f), 0);
 
   a.PokemonPlayPose(kImpactStart + 5, kImpactStart + 5,
-                    AnimationTarget::kDefender, PokemonPose::kHurt);
+                    ChoreographyTarget::kDefender, PokemonPose::kHurt);
   a.HealthBarApplyDamage(kImpactStart + 20, kImpactStart + 20,
-                         AnimationTarget::kDefender, true);
+                         ChoreographyTarget::kDefender, true);
 
   a.CameraRestore(kImpactEnd - 20, kImpactEnd, false, MoveCurve::kFastStart,
                 false);
@@ -90,8 +90,8 @@ void BuildThunderboltLayersAnimation(MoveAnimation& a) {
   StyleImpactLayers(a);
 }
 
-void RegisterThunderboltLayersAnimation() {
-  MoveAnimations::Define(MoveId::kThunderbolt, BuildThunderboltLayersAnimation);
+void RegisterThunderboltLayersChoreography() {
+  MoveChoreographies::Define(MoveId::kThunderbolt, BuildThunderboltLayersChoreography);
 }
 
 }

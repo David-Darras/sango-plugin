@@ -24,7 +24,7 @@
 
 #include "core/patch/archive.h"
 #include <cstring>
-#include "battle/patch/move_animation.h"
+#include "battle/patch/move_choreography.h"
 #include "battle/patch/trainer_class.h"
 #include "battle/patch/trainer_model_extension.h"
 #include "battle/patch/effect_style.h"
@@ -161,6 +161,9 @@ static constexpr u32 kTrainerPictureToken = 0x2D000000;
 // The battle models of the trainers that Sango Studio writes (the archive
 // 133): the files replace the models of the game by their number.
 static constexpr u32 kStudioTrainerModelToken = 0x2C000000;
+// The choreographies of the moves that Sango Studio writes (the archive 34): the
+// files replace the choreographies of the game by their number.
+static constexpr u32 kStudioChoreographyToken = 0x2B000000;
 static constexpr u32 kTextTokenFirst = 0x32000000;  // + 0x01000000 * language
 // The cries: the sequences and the wave archives of the Pokémon (the archive
 // 100), not compressed.
@@ -210,6 +213,7 @@ static OverrideEntry trainer_class_entries[kMaxTrainerFiles];
 static OverrideEntry trainer_team_entries[kMaxTrainerFiles];
 static OverrideEntry trainer_picture_entries[kMaxTrainerFiles];
 static OverrideEntry studio_trainer_model_entries[256];
+static OverrideEntry studio_choreography_entries[1024];
 static constexpr u32 kMaxVoiceFiles = 256;
 static OverrideEntry voice_entries[kMaxVoiceFiles];
 static constexpr u32 kMaxTextFiles = 128;
@@ -243,7 +247,7 @@ static OverrideSet override_sets[] = {
     // The introductions and the background of the trainers of X and Y: new
     // files of the archive of the battle animations and of the layouts of the
     // intros. The game gets them with the replacements of the extension.
-    {ArchiveId::kBattleMoveAnimation,
+    {ArchiveId::kBattleMoveChoreography,
      u"sdmc:/sango/trainer_model/sequence/index.bin",
      u"sdmc:/sango/trainer_model/sequence/%d.bin", kTrainerSequenceToken, true,
      trainer_sequence_entries, 64, 0, false},
@@ -305,6 +309,12 @@ static OverrideSet override_sets[] = {
     {ArchiveId::kTrainerModel, u"sdmc:/sango-studio/trainer/model/index.bin",
      u"sdmc:/sango-studio/trainer/model/%d.bin", kStudioTrainerModelToken, true,
      studio_trainer_model_entries, 256, 0, false},
+    // The choreographies of the moves: the files have the bytes of the files of the
+    // archive (compressed).
+    {ArchiveId::kBattleMoveChoreography,
+     u"sdmc:/sango-studio/choreography/sequence/index.bin",
+     u"sdmc:/sango-studio/choreography/sequence/%d.bin", kStudioChoreographyToken,
+     true, studio_choreography_entries, 1024, 0, false},
     // The cries: the files of the wave archives that the user replaced.
     {ArchiveId::kPokemonVoice, u"sdmc:/sango-studio/species/cry/index.bin",
      u"sdmc:/sango-studio/species/cry/%d.bin", kVoiceToken, true,
@@ -537,7 +547,7 @@ static void ServeFile(OverrideSet& set, u32 file_id, void* buffer, u32 size) {
   if (!OpenSd(&file, path)) return;
   file.Read(buffer, size);
   file.Close();
-  if (set.archive == ArchiveId::kBattleMoveAnimation) {
+  if (set.archive == ArchiveId::kBattleMoveChoreography) {
     battle::TrainerModelExtension::PatchPlayerPicture(file_id, buffer, size);
   }
 }
@@ -640,8 +650,8 @@ u32 Archive::GetFileSizeHook(u32* archive, u32 file_id) {
   TraceText(archive, file_id);
   file_id = RemapItemFile(archive, file_id);
   file_id = ReplacedStreamFile(archive, file_id);
-  if (IsArchive(archive, ArchiveId::kBattleMoveAnimation)) {
-    const u32 patched = battle::MoveAnimations::PatchedSize(archive, file_id);
+  if (IsArchive(archive, ArchiveId::kBattleMoveChoreography)) {
+    const u32 patched = battle::MoveChoreographies::PatchedSize(archive, file_id);
     if (patched) return patched;
   }
   OverrideSet* set = FindSet(archive, file_id);
@@ -657,8 +667,8 @@ u32 Archive::GetFileSizeHook2(u32* archive, u32 file_id) {
   TraceText(archive, file_id);
   file_id = RemapItemFile(archive, file_id);
   file_id = ReplacedStreamFile(archive, file_id);
-  if (IsArchive(archive, ArchiveId::kBattleMoveAnimation)) {
-    const u32 patched = battle::MoveAnimations::PatchedSize(archive, file_id);
+  if (IsArchive(archive, ArchiveId::kBattleMoveChoreography)) {
+    const u32 patched = battle::MoveChoreographies::PatchedSize(archive, file_id);
     if (patched) return patched;
   }
   OverrideSet* set = FindSet(archive, file_id);
@@ -735,9 +745,9 @@ u32 Archive::LoadDataHook2(u32* archive, u32 file_id, void* buffer) {
   TraceText(archive, file_id);
   file_id = RemapItemFile(archive, file_id);
   file_id = ReplacedStreamFile(archive, file_id);
-  if (IsArchive(archive, ArchiveId::kBattleMoveAnimation)) {
+  if (IsArchive(archive, ArchiveId::kBattleMoveChoreography)) {
     u32 patched = 0;
-    if (battle::MoveAnimations::Serve(archive, file_id, buffer, &patched)) {
+    if (battle::MoveChoreographies::Serve(archive, file_id, buffer, &patched)) {
       return patched;
     }
   }

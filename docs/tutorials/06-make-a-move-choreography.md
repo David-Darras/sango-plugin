@@ -1,16 +1,16 @@
-# Tutorial 6: Make a move animation
+# Tutorial 6: Make a move choreography
 
-In this tutorial, you change the animation of a move of the game.
-Then you make a new animation for Thunderclap, the move of [Tutorial 4](04-add-a-move.md).
+In this tutorial, you change the choreography of a move of the game.
+Then you make a new choreography for Thunderclap, the move of [Tutorial 4](04-add-a-move.md).
 
 **Time:** 30 minutes.
 **You need:** [Tutorial 4](04-add-a-move.md).
 
-> **Note:** The move animation tools work only on Alpha Sapphire.
+> **Note:** The move choreography tools work only on Alpha Sapphire.
 
-## How a move animation works
+## How a move choreography works
 
-A move animation is a list of **steps**. Each step has:
+A move choreography is a list of **steps**. Each step has:
 
 - a start frame and an end frame (the game shows 30 frames each second),
 - an action: move the camera, show an effect, play a sound, play a pose...
@@ -23,32 +23,32 @@ The next steps "move group 1" and "resize group 1" change this effect.
 |---|---|
 | **Effect** | A particle effect of the game: lightning, fire, water drops... It has an id (`battle::EffectId`). |
 | **Layer** | One part of an effect. An effect has up to 8 layers (`battle::EffectLayer`). |
-| **Model** | A 3D object of an animation (`battle::EffectModelId`). |
-| **Attacker**, **Defender** | The Pokémon that uses the move and the Pokémon that receives it (`battle::AnimationTarget`). |
+| **Model** | A 3D object of a choreography (`battle::EffectModelId`). |
+| **Attacker**, **Defender** | The Pokémon that uses the move and the Pokémon that receives it (`battle::ChoreographyTarget`). |
 
-The class `battle::MoveAnimation` has one function for each type of step.
-The list is in `lib/include/battle/patch/move_animation_steps.inc`.
+The class `battle::MoveChoreography` has one function for each type of step.
+The list is in `lib/include/battle/patch/move_choreography_steps.inc`.
 
-## Part 1: Change an animation of the game
+## Part 1: Change a choreography of the game
 
-`MoveAnimations::Edit(move, editor)` changes the animation of a move.
-The editor is a function that receives the animation of the game.
+`MoveChoreographies::Edit(move, editor)` changes the choreography of a move.
+The editor is a function that receives the choreography of the game.
 
 Make the file `myhack/src/my_animations.cc`:
 
 ```cpp
 /**
  * @file my_animations.cc
- * @brief The move animations of my ROM hack.
+ * @brief The move choreographies of my ROM hack.
  */
 
-#include "battle/patch/move_animation.h"
+#include "battle/patch/move_choreography.h"
 
 namespace myhack {
 namespace {
 
 // Thunderbolt becomes red, and its effects are 1.5 times bigger.
-void EditThunderbolt(battle::MoveAnimation& a) {
+void EditThunderbolt(battle::MoveChoreography& a) {
   a.ColorEffects(Color8(255, 60, 60, 255));
   a.ScaleEffects(1.5f);
 }
@@ -56,7 +56,7 @@ void EditThunderbolt(battle::MoveAnimation& a) {
 } // namespace
 
 void RegisterAnimations() {
-  battle::MoveAnimations::Edit(MoveId::kThunderbolt, EditThunderbolt);
+  battle::MoveChoreographies::Edit(MoveId::kThunderbolt, EditThunderbolt);
 }
 
 } // namespace myhack
@@ -82,9 +82,9 @@ Build and test: use Thunderbolt in a battle. The lightning is red.
 The same functions exist for one effect: `ColorEffect(effect, color)`,
 `ScaleEffectSize(effect, factor)`, `DisableEffect(effect, layer)`...
 
-## Part 2: Make a new animation
+## Part 2: Make a new choreography
 
-`MoveAnimations::Define(move, builder)` makes a new animation from zero.
+`MoveChoreographies::Define(move, builder)` makes a new choreography from zero.
 The builder adds the steps one by one.
 
 Change `myhack/src/my_animations.cc`:
@@ -102,37 +102,37 @@ namespace {
 
 using namespace battle;
 
-void BuildThunderclapAnimation(MoveAnimation& a) {
+void BuildThunderclapAnimation(MoveChoreography& a) {
   // Frame 0: put the camera in its normal place, set up the 3D sound,
   // and show only the health bar of the defender.
   a.CameraRestore(0, 0, false, MoveCurve::kLinear, false);
   a.Sound3dSetup(0, 0, 0, 1.0f, 11.3f, 200.0f, 200.0f, 300.0f);
   a.HealthBarShowAll(0, 0, false);
-  a.HealthBarShow(0, 0, AnimationTarget::kDefender, true);
+  a.HealthBarShow(0, 0, ChoreographyTarget::kDefender, true);
 
   // Frames 2 to 14: the camera moves to the defender.
-  a.CameraGlideToPokemon(2, 14, AnimationTarget::kDefender, BodyPoint::kCenter,
+  a.CameraGlideToPokemon(2, 14, ChoreographyTarget::kDefender, BodyPoint::kCenter,
                          Vec3(100.0f, 5.0f, 320.0f), Vec3(0.0f, 15.0f, 0.0f),
                          0.0f, PositionAdjust::kNormal, MoveCurve::kLinear,
                          false);
 
   // Frame 15: a sound at the defender (group 1).
   a.Sound3dPlay(15, 15, 852037, 589827, 90, 0, 40, false, 1);
-  a.Sound3dGlideToPokemon(15, 15, AnimationTarget::kDefender, BodyPoint::kWaist,
+  a.Sound3dGlideToPokemon(15, 15, ChoreographyTarget::kDefender, BodyPoint::kWaist,
                           Vec3(0.0f, 0.0f, 0.0f), PositionAdjust::kNormal, 1);
 
   // Frames 15 to 75: the lightning effect on the defender (group 0).
   a.EffectSpawn(15, 75, EffectId::kThunderboltZapCannonDischarge, false,
                 EffectDrawOrder::kStandard, 0);
-  a.EffectGlideToPokemon(15, 15, AnimationTarget::kDefender, BodyPoint::kCenter,
+  a.EffectGlideToPokemon(15, 15, ChoreographyTarget::kDefender, BodyPoint::kCenter,
                          Vec3(0.0f, 0.0f, 0.0f), PositionAdjust::kNormal, 0);
   a.EffectResize(15, 15, Vec3(2.5f, 2.5f, 2.5f), 0);
 
   // Frame 20: the defender plays its "hurt" pose.
-  a.PokemonPlayPose(20, 20, AnimationTarget::kDefender, PokemonPose::kHurt);
+  a.PokemonPlayPose(20, 20, ChoreographyTarget::kDefender, PokemonPose::kHurt);
 
   // Frame 35: the health bar shows the damage.
-  a.HealthBarApplyDamage(35, 35, AnimationTarget::kDefender, true);
+  a.HealthBarApplyDamage(35, 35, ChoreographyTarget::kDefender, true);
 
   // Frames 55 to 75: the camera goes back.
   a.CameraRestore(55, 75, false, MoveCurve::kFastStart, false);
@@ -146,14 +146,14 @@ void BuildThunderclapAnimation(MoveAnimation& a) {
 } // namespace
 
 void RegisterAnimations() {
-  battle::MoveAnimations::Edit(MoveId::kThunderbolt, EditThunderbolt);
-  battle::MoveAnimations::Define(kMoveThunderclap, BuildThunderclapAnimation);
+  battle::MoveChoreographies::Edit(MoveId::kThunderbolt, EditThunderbolt);
+  battle::MoveChoreographies::Define(kMoveThunderclap, BuildThunderclapAnimation);
 }
 
 } // namespace myhack
 ```
 
-When a move has a defined animation, the library ignores its `patch_animation`.
+When a move has a defined choreography, the library ignores its `patch_animation`.
 In [Tutorial 4](04-add-a-move.md), you can set `patch_animation` to `nullptr`.
 
 ## Find the effects and the values
@@ -162,16 +162,16 @@ In [Tutorial 4](04-add-a-move.md), you can set `patch_animation` to `nullptr`.
   from the moves that use them: `kThunderboltZapCannonDischarge` is an effect
   of Thunderbolt and of Zap Cannon.
 - **The models:** `lib/include/battle/constant/effect_model_id.h`.
-- **The positions, poses and curves:** `lib/include/battle/constant/animation_enums.h`.
-- **The values of a real animation:** copy the values of a move that looks
+- **The positions, poses and curves:** `lib/include/battle/constant/choreography_enums.h`.
+- **The values of a real choreography:** copy the values of a move that looks
   like your move. The examples of the overlay are good models:
-  `overlay/src/thunderbolt_animation.cc`, `overlay/src/absolute_zero_animation.cc`.
-- **Preview all the effects:** `overlay/src/effect_showcase_animation.cc`
+  `overlay/src/thunderbolt_choreography.cc`, `overlay/src/absolute_zero_choreography.cc`.
+- **Preview all the effects:** `overlay/src/effect_showcase_choreography.cc`
   shows the effects of the game 10 at a time.
 
 ## The limits of the engine
 
-The game stops if an animation uses too many objects at the same time:
+The game stops if a choreography uses too many objects at the same time:
 
 | Object | Groups at most |
 |---|---|
@@ -183,18 +183,18 @@ Do not spawn a new object in a group that is still alive. An effect stays
 alive after its last frame, because its particles need time to disappear.
 The library cannot see this, and the game stops when a group gets a new
 effect too early. The safe way is to give each effect its own group: an
-animation has room for 10 effects. Use a group again only a long time
+choreography has room for 10 effects. Use a group again only a long time
 after the first effect.
 
-The library checks these limits before the animation plays.
-If your animation breaks a limit, the library plays the animation of the game
-instead, and your animation does not show. Make your animation smaller.
+The library checks these limits before the choreography plays.
+If your choreography breaks a limit, the library plays the choreography of the game
+instead, and your choreography does not show. Make your choreography smaller.
 
 ## What you learned
 
-- An animation is a list of steps with frames and groups.
-- `MoveAnimations::Edit` changes an animation of the game.
-- `MoveAnimations::Define` makes a new animation.
+- A choreography is a list of steps with frames and groups.
+- `MoveChoreographies::Edit` changes a choreography of the game.
+- `MoveChoreographies::Define` makes a new choreography.
 - The engine has limits on the number of objects.
 
 **Next:** [Tutorial 7: Change the wild Pokémon](07-change-wild-pokemon.md)

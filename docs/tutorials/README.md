@@ -13,7 +13,7 @@ Before you start, build the plugin one time:
 | 3 | [Add a hook](03-add-a-hook.md) | Replace a function of the game. |
 | 4 | [Add a move](04-add-a-move.md) | Make a new move with its data and its effect. |
 | 5 | [Add an ability](05-add-an-ability.md) | Make a new ability. |
-| 6 | [Make a move animation](06-make-a-move-animation.md) | Change an animation or make a new one. |
+| 6 | [Make a move choreography](06-make-a-move-choreography.md) | Change a choreography or make a new one. |
 | 7 | [Change the wild Pokémon](07-change-wild-pokemon.md) | Choose the wild Pokémon of each map. |
 | 8 | [Change the trainer teams](08-change-trainer-teams.md) | Give new Pokémon to the trainers. |
 | 9 | [Write an overworld script](09-write-an-overworld-script.md) | Add a character that talks and gives items. |

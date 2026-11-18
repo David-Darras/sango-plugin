@@ -40,8 +40,8 @@ void Install();
 }
 
 namespace battle {
-void RegisterAbsoluteZeroAnimation();
-void RegisterThunderboltAnimation();
+void RegisterAbsoluteZeroChoreography();
+void RegisterThunderboltChoreography();
 }
 
 static void EveryFrame() {
@@ -61,8 +61,8 @@ void Initialize() {
 #ifdef SANGO_TEST
   battle::RegisterTestFoes();
   ui::PageExtensions::GetInstance().pokemon_page = battle::AddItemTestEntries;
-  battle::RegisterAbsoluteZeroAnimation();
-  battle::RegisterThunderboltAnimation();
+  battle::RegisterAbsoluteZeroChoreography();
+  battle::RegisterThunderboltChoreography();
 #endif
 
   script::Install();

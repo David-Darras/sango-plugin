@@ -68,7 +68,7 @@ enum class ArchiveId : u32 {
   kMoveEffectParticle = 31,
   kMoveEffectModel = 32,
   kMoveEffectLayout = 33, ///< The layouts of the battle intros.
-  kBattleMoveAnimation = 34,
+  kBattleMoveChoreography = 34,
   kPokemonAmieEffect = 35, ///< The emotions of the Pokémon in Pokémon-Amie.
   kTrainerData = 36,
   kTrainerTypeData = 37, ///< The trainer classes.

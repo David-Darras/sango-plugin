@@ -34,7 +34,7 @@ The project uses a style near the
 
 | Item | Style | Example |
 |---|---|---|
-| Types and functions | `PascalCase` | `MoveAnimation`, `GetInstance()` |
+| Types and functions | `PascalCase` | `MoveChoreography`, `GetInstance()` |
 | Variables and members | `snake_case` | `trainer_id`, `is_enabled` |
 | Private members | `snake_case_` | `count_` |
 | Constants and enum values | `kPascalCase` | `kMaxEntries`, `SpeciesId::kPikachu` |

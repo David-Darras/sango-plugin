@@ -29,7 +29,7 @@
 #include "battle/patch/trainer_class.h"
 #include "battle/patch/studio_trainers.h"
 #include "battle/patch/trainer_model_extension.h"
-#include "battle/patch/move_animation.h"
+#include "battle/patch/move_choreography.h"
 #include "pokemon/patch/custom_shop.h"
 
 #include "core/constant/archive_id.h"
@@ -312,7 +312,7 @@ void GameExtension::Initialize() {
 
 void GameExtension::BattleLoadEffectHook(uptr self, u32 archive_id,
                                          u32 file_id, u32 type) {
-  if (MoveAnimations::AreEffectsOnDemand() &&
+  if (MoveChoreographies::AreEffectsOnDemand() &&
       archive_id == static_cast<u32>(core::ArchiveId::kMoveEffectParticle)) {
     return;
   }
@@ -321,15 +321,15 @@ void GameExtension::BattleLoadEffectHook(uptr self, u32 archive_id,
 
 void GameExtension::BattleLoadAnimationHook(uptr self, u32 id, bool is_move) {
   TrainerModelExtension::OnPlaySequence(self, id, is_move);
-  MoveAnimations::LoadEffectsOnDemand(false);
+  MoveChoreographies::LoadEffectsOnDemand(false);
   // A new move has an id after the last animation of the game: the game
   // would not take it for a move.
   const bool is_new_move =
       is_move && FindMove(static_cast<MoveId>(id)) != nullptr;
-  if (kMoveAnimationCount != 0) is_move = id < kMoveAnimationCount;
+  if (kMoveChoreographyCount != 0) is_move = id < kMoveChoreographyCount;
   if (is_move || is_new_move) {
     is_move = true;
-    MoveAnimations::Resolve(static_cast<MoveId>(id), &id, &is_move);
+    MoveChoreographies::Resolve(static_cast<MoveId>(id), &id, &is_move);
   }
   if (is_move) {
     const MoveSpec* spec = FindMove(static_cast<MoveId>(id));

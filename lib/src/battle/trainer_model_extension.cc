@@ -159,11 +159,11 @@ void TrainerModelExtension::Select(TrainerId trainer) {
 
   // The introduction of X and Y, with its background and its camera.
   const u32 sequence = kFirstSequenceFile + value;
-  if (core::Archive::HasSdFile(core::ArchiveId::kBattleMoveAnimation,
+  if (core::Archive::HasSdFile(core::ArchiveId::kBattleMoveChoreography,
                                sequence) &&
       core::Archive::HasSdFile(core::ArchiveId::kMoveEffectLayout,
                                kLayoutFile)) {
-    core::Archive::ReplaceFile(core::ArchiveId::kBattleMoveAnimation,
+    core::Archive::ReplaceFile(core::ArchiveId::kBattleMoveChoreography,
                                kCarrierSequenceFile, sequence);
     enemy_sequence_ = sequence;
     core::Archive::ReplaceFile(
@@ -191,7 +191,7 @@ void TrainerModelExtension::SelectGameModel(u32 model) {
   // of the carrier. A model without an introduction of its own keeps it.
   const u32 sequence = GetGameIntroduction(model);
   if (sequence != 0 && sequence != kCarrierSequenceFile) {
-    core::Archive::ReplaceFile(core::ArchiveId::kBattleMoveAnimation,
+    core::Archive::ReplaceFile(core::ArchiveId::kBattleMoveChoreography,
                                kCarrierSequenceFile, sequence);
     enemy_sequence_ = sequence;
     is_introduction_replaced_ = true;
@@ -278,7 +278,7 @@ void TrainerModelExtension::Restore() {
     TrainerModelManager::GetInstance().SetFiles(kCarrier, original_);
   }
   if (is_introduction_replaced_) {
-    core::Archive::RemoveReplacement(core::ArchiveId::kBattleMoveAnimation,
+    core::Archive::RemoveReplacement(core::ArchiveId::kBattleMoveChoreography,
                                      kCarrierSequenceFile);
     core::Archive::RemoveReplacement(core::ArchiveId::kMoveEffectModel,
                                      kCarrierLoseCameraFile);
@@ -352,10 +352,10 @@ bool TrainerModelExtension::StartSideEntryHook(uptr scene, bool is_player,
     self.player_introduction_ = PlayerIntroduction::kDone;
     // The sequence of the trainer is the one of the enemy again.
     if (self.enemy_sequence_ != 0) {
-      core::Archive::ReplaceFile(core::ArchiveId::kBattleMoveAnimation,
+      core::Archive::ReplaceFile(core::ArchiveId::kBattleMoveChoreography,
                                  kCarrierSequenceFile, self.enemy_sequence_);
     } else {
-      core::Archive::RemoveReplacement(core::ArchiveId::kBattleMoveAnimation,
+      core::Archive::RemoveReplacement(core::ArchiveId::kBattleMoveChoreography,
                                        kCarrierSequenceFile);
     }
   }
@@ -421,7 +421,7 @@ void TrainerModelExtension::StartPlayerIntroduction(uptr scene) {
   u32 sequence = 0;
   const bool is_picture =
       use_player_picture &&
-      core::Archive::HasSdFile(core::ArchiveId::kBattleMoveAnimation,
+      core::Archive::HasSdFile(core::ArchiveId::kBattleMoveChoreography,
                                kPictureSequenceFile);
   if (is_picture) {
     sequence = kPictureSequenceFile;
@@ -431,7 +431,7 @@ void TrainerModelExtension::StartPlayerIntroduction(uptr scene) {
   // The introductions of X and Y have a layout of their own.
   const bool needs_layout =
       !is_picture && sequence < kFirstOrasPlayerSequenceFile;
-  if (!core::Archive::HasSdFile(core::ArchiveId::kBattleMoveAnimation,
+  if (!core::Archive::HasSdFile(core::ArchiveId::kBattleMoveChoreography,
                                 sequence) ||
       (needs_layout &&
        !core::Archive::HasSdFile(core::ArchiveId::kMoveEffectLayout,
@@ -449,7 +449,7 @@ void TrainerModelExtension::StartPlayerIntroduction(uptr scene) {
   core::GameFunction<void(uptr)>::Call(address::kAddTrainerModelToScene, trainer);
   WRITE32(scene + target_offset_, kPlayerPlace);
   WRITE32(scene + target_offset_ + 4, kPlayerFriendPlace);
-  core::Archive::ReplaceFile(core::ArchiveId::kBattleMoveAnimation,
+  core::Archive::ReplaceFile(core::ArchiveId::kBattleMoveChoreography,
                              kCarrierSequenceFile, sequence);
   core::GameFunction<void(uptr, u32)>::Call(address::kStartSequence, scene,
                                             kCarrierSequenceFile);

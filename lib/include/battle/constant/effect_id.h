@@ -32,7 +32,7 @@
 
 namespace battle {
 
-/// The id of a particle effect. See battle::MoveAnimation::EffectSpawn().
+/// The id of a particle effect. See battle::MoveChoreography::EffectSpawn().
 enum class EffectId : s32 {
   kNoMoveStatusVisuals = 0,
   kMegaPunchMegaKickHyperBeamEggBombFreezeShock = 2,

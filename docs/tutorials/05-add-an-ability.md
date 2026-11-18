@@ -190,4 +190,4 @@ The moments are in `lib/include/battle/constant/moment_kind.h`.
 - A reaction checks the situation, then asks for a mutation.
 - `GameExtension::AddAbility` registers the ability.
 
-**Next:** [Tutorial 6: Make a move animation](06-make-a-move-animation.md)
+**Next:** [Tutorial 6: Make a move choreography](06-make-a-move-choreography.md)
