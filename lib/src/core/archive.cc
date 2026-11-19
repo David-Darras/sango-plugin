@@ -405,19 +405,31 @@ static OverrideSet* FindSetByToken(u32 offset) {
   return nullptr;
 }
 
+// The threads of the game ask for files at the same time on a console. The
+// index of a set must be read by one thread, and the other threads must wait
+// for the end of the read: a thread that sees an index that is not read yet
+// thinks that the file is not on the SD card, and the game reads its own
+// archive at an offset that does not exist.
+static LightLock override_index_lock = 1;
+
 static void LoadOverrideIndex(OverrideSet& set) {
-  if (set.loaded) return;
-  // Try once: with no index file, the game calls this for each file it reads,
-  // and a new try on the SD card each time makes the game freeze.
-  set.loaded = true;
-  sys::File file;
-  if (!OpenSd(&file, set.index_path)) return;
-  u32 count = 0;
-  file.Read(&count, 4);
-  if (count > set.capacity) count = set.capacity;
-  file.Read(set.entries, count * sizeof(OverrideEntry));
-  file.Close();
-  set.count = count;
+  if (__atomic_load_n(&set.loaded, __ATOMIC_ACQUIRE)) return;
+  LightLock_Lock(&override_index_lock);
+  if (!set.loaded) {
+    // Try once: with no index file, the game calls this for each file it
+    // reads, and a new try on the SD card each time makes the game freeze.
+    sys::File file;
+    if (OpenSd(&file, set.index_path)) {
+      u32 count = 0;
+      file.Read(&count, 4);
+      if (count > set.capacity) count = set.capacity;
+      file.Read(set.entries, count * sizeof(OverrideEntry));
+      file.Close();
+      set.count = count;
+    }
+    __atomic_store_n(&set.loaded, true, __ATOMIC_RELEASE);
+  }
+  LightLock_Unlock(&override_index_lock);
 }
 
 // Returns the size of the file of the SD card, or 0 when it is not there.
@@ -453,28 +465,47 @@ static bool ItemDataIsRegistered(u32 file_id) {
 // how the game reads the files that the SD card replaces. The codes: 1 size
 // of a file, 2 information of a file, 3 read in a thread, 4 read with the
 // offset.
-static void Trace(OverrideSet* set, u32 what, u32 file_id, u32 size) {
+static LightLock trace_lock = 1;
+
+static void WriteTrace(u32 what, u32 file_id, u32 size) {
   static sys::File file;
   static bool opened = false;
   static u32 lines = 0;
-  if (set == nullptr || !set->whole_file || lines >= 400) return;
+  if (lines >= 600) return;
+  // Threads of the game write here at the same time on a console.
+  LightLock_Lock(&trace_lock);
+  if (lines < 600) {
+    if (!opened) {
+      opened = true;
+      // The folders may not be there (a user who has no overworld models).
+      sys::File::CreateDirectory(u"sdmc:/sango-studio");
+      sys::File::CreateDirectory(u"sdmc:/sango-studio/overworld");
+      sys::File::CreateDirectory(u"sdmc:/sango-studio/overworld/model");
+      file.Open(u"sdmc:/sango-studio/overworld/model/trace.log");
+    }
+    if (file.IsOpen()) {
+      lines++;
+      file.WriteText(u"%u %u %u\n", what, file_id, size);
+    }
+  }
+  LightLock_Unlock(&trace_lock);
+}
+
+static void Trace(OverrideSet* set, u32 what, u32 file_id, u32 size) {
+  if (set == nullptr) return;
   // The sets of the item icons, of the item data and of the studio are in
   // memory: no log.
   if (set->archive == ArchiveId::kItemIcon ||
       set->archive == ArchiveId::kItemData || set->token == kStudioToken) {
     return;
   }
-  if (!opened) {
-    opened = true;
-    // The folders may not be there (a user who has no overworld models).
-    sys::File::CreateDirectory(u"sdmc:/sango-studio");
-    sys::File::CreateDirectory(u"sdmc:/sango-studio/overworld");
-    sys::File::CreateDirectory(u"sdmc:/sango-studio/overworld/model");
-    file.Open(u"sdmc:/sango-studio/overworld/model/trace.log");
-  }
-  if (!file.IsOpen()) return;
-  lines++;
-  file.WriteText(u"%u %u %u\n", what, file_id, size);
+  WriteTrace(what, file_id, size);
+}
+
+// A line for a file of the models that the species add (the numbers of these
+// files are after the last file of the archive), whatever the set.
+static void TraceId(u32 what, u32 file_id, u32 size) {
+  if (file_id >= 8000 && file_id < 20000) WriteTrace(what, file_id, size);
 }
 
 static constexpr u32 kSpeciesTableFile = 0;
@@ -483,7 +514,10 @@ static void ServeLz(OverrideSet& set, u32 file_id, void* buffer, u32 size) {
   c16 path[64];
   Utils::Format(path, set.file_format, file_id);
   sys::File file;
-  if (!OpenSd(&file, path)) return;
+  if (!OpenSd(&file, path)) {
+    Trace(&set, 11, file_id, size);
+    return;
+  }
   u32 raw = 0;
   file.Read(&raw, 4);
   u8* out = (u8*)buffer;
@@ -505,6 +539,8 @@ static void ServeLz(OverrideSet& set, u32 file_id, void* buffer, u32 size) {
     }
   }
   file.Close();
+  // The size of the data in the file and the bytes written to the buffer.
+  Trace(&set, 12, raw, static_cast<u32>(out - static_cast<u8*>(buffer)));
 }
 
 static OverrideSet& GetItemIconSet() {
@@ -685,6 +721,7 @@ static void TraceText(u32* archive, u32 file_id) {
 }
 
 u32 Archive::GetFileSizeHook(u32* archive, u32 file_id) {
+  TraceId(30, file_id, 0);
   TraceText(archive, file_id);
   file_id = RemapItemFile(archive, file_id);
   file_id = ReplacedStreamFile(archive, file_id);
@@ -702,6 +739,7 @@ u32 Archive::GetFileSizeHook(u32* archive, u32 file_id) {
 }
 
 u32 Archive::GetFileSizeHook2(u32* archive, u32 file_id) {
+  TraceId(31, file_id, 0);
   TraceText(archive, file_id);
   file_id = RemapItemFile(archive, file_id);
   file_id = ReplacedStreamFile(archive, file_id);
@@ -719,6 +757,7 @@ u32 Archive::GetFileSizeHook2(u32* archive, u32 file_id) {
 }
 
 void Archive::GetInfoHook(u32* archive, u32 file_id, u32* info) {
+  TraceId(32, file_id, 0);
   TraceText(archive, file_id);
   file_id = RemapItemFile(archive, file_id);
   file_id = ReplacedStreamFile(archive, file_id);
@@ -735,6 +774,7 @@ void Archive::GetInfoHook(u32* archive, u32 file_id, u32* info) {
 
 void Archive::ReadHook(u32* archive, u32 offset, u32 size,
                                 void* buffer, u32* read) {
+  if (offset >= 0x40000000) WriteTrace(37, offset, size);
   // The Pokédex data file of Sango Studio: a fake offset in the archive of the
   // Pokédex data (a real offset of this small archive never has this value).
   if (IsArchive(archive, ArchiveId::kPokedexData) &&
@@ -771,6 +811,7 @@ void Archive::ReadHook(u32* archive, u32 offset, u32 size,
       Trace(set, 4, file_id, size);
       ServeFile(*set, file_id, buffer, size);
     } else {
+      Trace(set, 6, file_id, size);
       ServeLz(*set, file_id, buffer, size);
     }
     if (read != nullptr) *read = size;
@@ -780,6 +821,7 @@ void Archive::ReadHook(u32* archive, u32 offset, u32 size,
 }
 
 u32 Archive::LoadDataHook2(u32* archive, u32 file_id, void* buffer) {
+  TraceId(33, file_id, 0);
   TraceText(archive, file_id);
   file_id = RemapItemFile(archive, file_id);
   file_id = ReplacedStreamFile(archive, file_id);
@@ -807,6 +849,7 @@ u32 Archive::LoadDataHook2(u32* archive, u32 file_id, void* buffer) {
     }
     const u32 size = OverrideSize(*set, file_id);
     if (size) {
+      Trace(set, 7, file_id, LzStoreSize(size));
       ServeLz(*set, file_id, buffer, LzStoreSize(size));
       return LzStoreSize(size);
     }
@@ -822,6 +865,7 @@ u32 Archive::LoadDataHook2(u32* archive, u32 file_id, void* buffer) {
 
 void* Archive::LoadCompressedHook(u32* archive, u32 file_id, void* heap_work,
                                   void* heap_data, s32 align, u32* out_size) {
+  TraceId(34, file_id, 0);
   TraceText(archive, file_id);
   file_id = RemapItemFile(archive, file_id, false);
   file_id = ReplacedStreamFile(archive, file_id);
@@ -829,6 +873,7 @@ void* Archive::LoadCompressedHook(u32* archive, u32 file_id, void* heap_work,
   if (set != nullptr && !set->whole_file) {
     const u32 size = OverrideSize(*set, file_id);
     if (size) {
+      Trace(set, 10, file_id, size);
       void* buffer = core::GameFunction<void*(void*, u32, u32)>::Call(
           sys::address::kHeapAlloc, heap_data, size, align ? align : 4);
       if (buffer != nullptr) {
@@ -838,9 +883,19 @@ void* Archive::LoadCompressedHook(u32* archive, u32 file_id, void* heap_work,
         if (OpenSd(&file, path)) {
           u32 raw = 0;
           file.Read(&raw, 4);
-          file.Read(buffer, size);
+          // The data of the file is the decompressed data: `raw` bytes.
+          const u32 length = raw < size ? raw : size;
+          file.Read(buffer, length);
           file.Close();
-          if (out_size != nullptr) *out_size = size;
+          if (length < size) {
+            std::memset(static_cast<u8*>(buffer) + length, 0, size - length);
+          }
+          // The graphics chip and the other cores read this memory without
+          // the cache of this core: the game does the same flush after it
+          // decompresses a file. A console needs it, an emulator does not.
+          svcFlushProcessDataCache(CUR_PROCESS_HANDLE,
+                                   reinterpret_cast<u32>(buffer), size);
+          if (out_size != nullptr) *out_size = length;
           return buffer;
         }
         core::GameFunction<void(void*)>::Call(sys::address::kHeapFree, buffer);
@@ -875,6 +930,7 @@ static bool FileStartAsyncReadHook(void* file, void* heap, const c16* filename,
                                    void* buffer, u32 priority, void* callback,
                                    void* work) {
   OverrideSet* set = FindSetByToken(offset);
+  if (offset >= 0x40000000) WriteTrace(38, offset, size);
   // The Pokédex data file of the studio: its fake offset is only valid in the
   // file of the Pokédex data (the id 132 is the file a/1/3/2).
   if (set == nullptr && (offset & kStudioMask) == kStudioToken &&
@@ -909,6 +965,22 @@ static bool FileStartAsyncReadHook(void* file, void* heap, const c16* filename,
     Trace(set, 3, file_id, size);
     ServeFile(*set, file_id, buffer, size);
     return file_async_read_hook(file, heap, filename, 0, 4, 4, scratch,
+                                priority, callback, work);
+  }
+  // A set that is not a whole file (the models of the species): the game must
+  // not read its own archive at the fake offset. The plugin gives the data as
+  // the synchronous read does, and the thread reads four real bytes.
+  if (set != nullptr && !set->whole_file) {
+    static u32 scratch_models[4];
+    const u32 file_id = offset & kFileIdMask;
+    if (set->archive == ArchiveId::kPokemonModel &&
+        file_id == kSpeciesTableFile) {
+      ServeRaw(buffer, size);
+    } else {
+      Trace(set, 8, file_id, size);
+      ServeLz(*set, file_id, buffer, size);
+    }
+    return file_async_read_hook(file, heap, filename, 0, 4, 4, scratch_models,
                                 priority, callback, work);
   }
   return file_async_read_hook(file, heap, filename, offset, size, size_again,
@@ -997,6 +1069,7 @@ bool Archive::IsArchive(const ArchiveInput* input, const ArchiveId archive_id) {
 bool Archive::ReadFileAsync2(u32* archive, void* heap, u32 file_id,
                                   void* buffer,
                                   u32 p4, u32 p5, u32 p6) {
+  TraceId(35, file_id, 0);
   auto& feat = GetInstance();
   file_id = RemapItemFile(archive, file_id);
   file_id = ReplacedStreamFile(archive, file_id);
@@ -1007,6 +1080,7 @@ bool Archive::ReadFileAsync2(u32* archive, void* heap, u32 file_id,
 }
 
 bool Archive::ReadFileAsync(void* file_manager, ArchiveInput* input) {
+  TraceId(36, input->file_id, 0);
   auto& feat = GetInstance();
   battle::EffectStyles::TrackRead(input);
   input->file_id = ReplacedQueuedFile(input, input->file_id);
