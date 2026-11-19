@@ -443,7 +443,13 @@ Thread threadCreate(ThreadFunc entry, void* argument, size_t stack_size,
 
   // The new thread uses the standard files of the current thread.
   _REENT_INIT_PTR(&thread->reent);
-  const struct _reent* current = boot::GetThreadVars()->reent;
+  // A thread of the game has no thread data of the plugin in its TLS (its
+  // pointer is null): the standard files come from GetGameThreadVars().
+  const boot::ThreadVars* current_vars = boot::GetThreadVars();
+  const struct _reent* current =
+      current_vars->magic == boot::kThreadVarsMagic
+          ? current_vars->reent
+          : boot::GetGameThreadVars()->reent;
   thread->reent._stdin = current->_stdin;
   thread->reent._stdout = current->_stdout;
   thread->reent._stderr = current->_stderr;
