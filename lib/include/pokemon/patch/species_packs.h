@@ -112,6 +112,16 @@ public:
   /// Returns true for an empty place: a species that was removed.
   static bool IsEmpty(const PackSpecies& species);
 
+  /// Returns the file of the icon for a species of a pack and a form, in the
+  /// archive of the Pokémon icons, or 0xFFFFFFFF when the table of the icons
+  /// (`species/icon_map.bin`) has none. Sango Studio writes the table.
+  static u32 IconFile(u16 species, u16 form);
+
+  /// Makes the game find the icon of a species of a pack in the boxes, the
+  /// party and the other lists: the function of the game that gives the file
+  /// of an icon knows only the species of the game.
+  static void InstallIconHook();
+
   /// Returns the number of forms.
   static u32 FormCount();
   /// Returns the form at this place (0 to FormCount() - 1).

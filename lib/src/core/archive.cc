@@ -211,7 +211,7 @@ static const c16 kStudioPokedexPath[] =
     u"sdmc:/sango-studio/species/pokedex_data.bin";
 static OverrideEntry studio_pokedex_entries[1];
 // The icons of the species that Sango Studio changed: the index file lists them.
-static constexpr u32 kMaxSpeciesIcons = 512;
+static constexpr u32 kMaxSpeciesIcons = 1280;
 static OverrideEntry species_icon_entries[kMaxSpeciesIcons];
 // The changed files of the other small archives of Sango Studio.
 static constexpr u32 kMaxStudioFiles = 512;

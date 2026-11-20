@@ -35,6 +35,7 @@
 #include "battle/patch/item_extension.h"
 #include "core/heap_buffer.h"
 #include "pokemon/constant/type.h"
+#include "pokemon/patch/species_packs.h"
 #include "renderer/patch/type_icon.h"
 #include "system/native/graphics.h"
 #include "ui/log.h"
@@ -502,12 +503,20 @@ void IconPool::LoadFileIcon(Slot& slot) {
       break;
     case IconKind::kPokemon:
       // Species 0 has an icon with an other format.
-      if (item == 0 || item >= SIZE(kPokemonIconFiles)) {
+      archive = ArchiveId::kPokemonIcon;
+      if (item >= SIZE(kPokemonIconFiles)) {
+        // A species of a pack: Sango Studio gives its file.
+        file_id = pokemon::SpeciesPacks::IconFile(static_cast<u16>(item), 0);
+        if (file_id == 0xFFFFFFFF) {
+          slot.SetEmpty();
+          return;
+        }
+      } else if (item == 0) {
         slot.SetEmpty();
         return;
+      } else {
+        file_id = kPokemonIconFiles[item];
       }
-      archive = ArchiveId::kPokemonIcon;
-      file_id = kPokemonIconFiles[item];
       break;
     default:
       slot.SetEmpty();

@@ -507,6 +507,7 @@ void SpeciesTable::Initialize() {
   get_default_nickname_hook.Install(address::kGetDefaultNickname,
                                     GetDefaultNicknameHook);
   load_movepool_hook.Install(address::kLoadMovepool, LoadMovepoolHook);
+  SpeciesPacks::InstallIconHook();
 }
 
 } // namespace pokemon

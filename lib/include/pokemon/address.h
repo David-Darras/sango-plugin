@@ -48,6 +48,9 @@ constexpr uptr kCalcNatureCorrection = GAME_ADDRESS(0x00168C20, 0x00169024);
 constexpr uptr kUtilsToShiny = GAME_ADDRESS(0x00168B68, 0x00168F6C);
 constexpr uptr kUtilsToNormal = GAME_ADDRESS(0x00168BC8, 0x00168FCC);
 constexpr uptr kGetSpeciesName = GAME_ADDRESS(0x00399BB8, 0x003B08F8);
+/// The function of the Pokémon icons that gives the file of the archive 91 for
+/// a species, a form, a sex and an egg flag. XY: not known.
+constexpr uptr kGetIconFile = GAME_ADDRESS(0, 0x0041EC98);
 constexpr uptr kGetDefaultNickname = GAME_ADDRESS(0x0014F500, 0x00139E40);
 constexpr uptr kSetAbilityName = GAME_ADDRESS(0x004287C8, 0x0045108C);
 constexpr uptr kSetMoveName = GAME_ADDRESS(0x0042820C, 0x004509F4);
