@@ -43,6 +43,12 @@ namespace core {
  *   ".dspadpcm.bcstm", then "|", then the title that the menu shows. Without
  *   "|", the title is the name.
  *
+ * The same hook reads the sound effects from a copy of the sound archive:
+ * when the file `sdmc:/sango/sound/sango_sound.bcsar` exists, the game reads
+ * the sounds that the archive holds (the sequences, the banks and the waves)
+ * from it. Sango Studio writes this file when the user replaces a sound
+ * effect. It has the size and the layout of the archive of the game. The SD
+ * card is asked one time: restart the game after a change.
  * The hook is automatic: plugin::InitializeEngine() installs it.
  */
 class MusicFiles {

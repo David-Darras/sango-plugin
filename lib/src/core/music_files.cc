@@ -18,7 +18,7 @@
 /**
  * @file music_files.cc
  * @brief Plays the music files of the SD card instead of the music files of
- *        the game.
+ *        the game, and reads the copy of the sound archive of the SD card.
  *
  * The declarations are in core/patch/music_files.h.
  */
@@ -77,6 +77,26 @@ bool Exists(const char* path) {
   if (!file.IsOpen()) return false;
   file.Close();
   return true;
+}
+
+// The copy of the sound archive that Sango Studio writes when the user replaces
+// a sound effect. It has the size and the layout of the archive of the game, so
+// the places that the game reads in it (the sequences, the banks and the waves)
+// are the same.
+constexpr const char* kArchiveName = "sango_sound.bcsar";
+constexpr const char* kArchiveCopy = "sdmc:/sango/sound/sango_sound.bcsar";
+
+// Returns true when the SD card has the copy of the sound archive. The SD card
+// is asked one time: the game reads the archive many times, and a change of the
+// copy needs a restart of the game.
+bool HasArchiveCopy() {
+  static bool is_known = false;
+  static bool exists = false;
+  if (!is_known) {
+    is_known = true;
+    exists = Exists(kArchiveCopy);
+  }
+  return exists;
 }
 
 } // namespace
@@ -157,6 +177,12 @@ HOOK(void*, OpenStreamFile,
                       pending, kExtension);
         found = Exists(redirected);
       }
+    }
+    // The game opens the sound archive to read the sounds that it holds (the
+    // begin and the length are the place of one sound in the archive).
+    if (std::strcmp(name, kArchiveName) == 0 && HasArchiveCopy()) {
+      return original(stream, kArchiveCopy, begin, length, is_tryable, callback,
+                      argument);
     }
     if (!found && std::strlen(name) + kFolderLength < kPathCapacity) {
       std::snprintf(redirected, sizeof(redirected), "%s%s", kFolder, name);
