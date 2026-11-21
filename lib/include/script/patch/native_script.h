@@ -60,7 +60,7 @@ class NativeScript {
   MAKE_SINGLETON(NativeScript)
 
 public:
-  static constexpr u32 kMaxScripts = 256;
+  static constexpr u32 kMaxScripts = 512;
   static constexpr u32 kStackSize = 32 * 1024;
   static constexpr u32 kMessageCapacity = 512;
   static constexpr s32 kBorrowedScriptId = (s32)ScriptId::kDoNothing;

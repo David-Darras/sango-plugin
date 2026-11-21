@@ -46,6 +46,7 @@
 #include "overworld/patch/map_editor.h"
 #include "overworld/patch/zone_settings.h"
 #include "script/patch/data_scripts.h"
+#include "script/patch/studio_events.h"
 #include "overworld/patch/trigger_editor.h"
 #include "core/patch/process_patch.h"
 #include "core/patch/music_lock.h"
@@ -140,6 +141,7 @@ void InitializeEngine() {
   core::ScriptLoader::Initialize();
   script::NativeScript::Initialize();
   script::DataScripts::Initialize();
+  script::StudioEvents::Initialize();
   overworld::ZoneSettings::Initialize();
   overworld::AutoSurf::Initialize();
   overworld::PlacedDecorations::Initialize();

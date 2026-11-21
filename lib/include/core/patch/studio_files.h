@@ -44,6 +44,9 @@
  *   and the new moves. See battle::StudioMoves.
  * - item/data/[id].bin, item/custom/[id].bin and item/custom/[id].bclim: the
  *   changed items and the new items. See battle::StudioItems.
+ * - event/[number].bin: an event that the user made on the page Events of the
+ *   studio (script number 32100 plus the number). The plugin reads the file
+ *   each time that the event starts. See script::StudioEvents.
  * - species/icon/[file].bin, item/icon/[file].bin, species/cry/[file].bin,
  *   species/level_up_moves/[file].bin, species/egg_moves/[file].bin,
  *   species/evolution/[file].bin, leveling_rate/[file].bin and
