@@ -44,12 +44,12 @@
  *   and the new moves. See battle::StudioMoves.
  * - item/data/[id].bin, item/custom/[id].bin and item/custom/[id].bclim: the
  *   changed items and the new items. See battle::StudioItems.
- * - species/icon/[file].bin, species/cry/[file].bin,
+ * - species/icon/[file].bin, item/icon/[file].bin, species/cry/[file].bin,
  *   species/level_up_moves/[file].bin, species/egg_moves/[file].bin,
  *   species/evolution/[file].bin, leveling_rate/[file].bin and
  *   game_text/[language]/[file].bin: the files of the game that the user
- *   replaced, named by their number in the archive (the icons 91, the cries
- *   100, the level-up moves 191, the egg moves 190, the evolutions 192, the
+ *   replaced, named by their number in the archive (the icons 91, the item
+ *   icons 92, the cries 100, the level-up moves 191, the egg moves 190, the evolutions 192, the
  *   experience tables 194, the texts 71 to 78). A folder also has index.bin,
  *   the list of its files (the number of files, then the number and the size
  *   of each). The files have the bytes of the files of the archive. The game

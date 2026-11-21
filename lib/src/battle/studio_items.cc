@@ -75,6 +75,8 @@ struct BagAction {
 /// Everything that the feature keeps for one new item.
 struct Entry {
   bool used;
+  /// True when the file of the item is missing: the item shows "???".
+  bool placeholder;
   u16 id;
   u8 rule_count;
   bool can_use_in_bag;
@@ -286,7 +288,37 @@ void Publish(u32 slot) {
   }
 }
 
-/// Reads the file of a new item. A missing file removes its reactions.
+/// Gives an id of the studio the name "???" and no effect. A save can hold an
+/// item whose file the user removed; the Bag needs data for it, or the game
+/// stops.
+void SetPlaceholder(u32 id) {
+  u32 slot = StudioItems::kMaxItems;
+  for (u32 i = 0; i < StudioItems::kMaxItems; i++) {
+    if (entries[i].used && entries[i].id == id) slot = i;
+  }
+  if (slot == StudioItems::kMaxItems) {
+    for (u32 i = 0; i < StudioItems::kMaxItems; i++) {
+      if (!entries[i].used) {
+        slot = i;
+        break;
+      }
+    }
+  }
+  if (slot == StudioItems::kMaxItems) return;
+  if (entries[slot].used && entries[slot].placeholder) return;
+  static Entry fresh;
+  fresh = Entry();
+  fresh.used = true;
+  fresh.placeholder = true;
+  fresh.id = static_cast<u16>(id);
+  static const c16 kUnknown[] = u"???";
+  std::memcpy(fresh.name, kUnknown, sizeof(kUnknown));
+  std::memcpy(fresh.description, kUnknown, sizeof(kUnknown));
+  entries[slot] = fresh;
+  Publish(slot);
+}
+
+/// Reads the file of a new item. A missing file gives the item the name "???".
 void LoadCustom(u32 id) {
   static const c16 kFolder[] = u"sdmc:/sango-studio/item/custom/";
   static const c16 kSuffix[] = u".bin";
@@ -300,11 +332,7 @@ void LoadCustom(u32 id) {
     if (entries[i].used && entries[i].id == id) slot = i;
   }
   if (size == 0) {
-    if (slot < StudioItems::kMaxItems && entries[slot].rule_count != 0) {
-      entries[slot].rule_count = 0;
-      entries[slot].bag_action_count = 0;
-      Publish(slot);
-    }
+    SetPlaceholder(id);
     return;
   }
 

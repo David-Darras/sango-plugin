@@ -180,6 +180,11 @@ static constexpr u32 kTextTokenFirst = 0x32000000;  // + 0x01000000 * language
 // The cries: the sequences and the wave archives of the Pokémon (the archive
 // 100), not compressed.
 static constexpr u32 kVoiceToken = 0x31000000;
+// The fonts that Sango Studio replaces (the archive 167), not compressed.
+static constexpr u32 kFontToken = 0x25000000;
+// The item icons that Sango Studio replaces (the archive 92), compressed as in
+// the archive.
+static constexpr u32 kStudioItemIconToken = 0x24000000;
 // True for the fake offset of a small archive: the token has no bit in the
 // four high bits alone (a real offset of these archives is far smaller).
 static constexpr bool IsSmallToken(u32 token) {
@@ -233,6 +238,9 @@ static OverrideEntry studio_amie_script_entries[8];
 static OverrideEntry studio_dex_nav_entries[4];
 static constexpr u32 kMaxVoiceFiles = 256;
 static OverrideEntry voice_entries[kMaxVoiceFiles];
+static OverrideEntry font_entries[16];
+static constexpr u32 kMaxStudioItemIcons = 1024;
+static OverrideEntry studio_item_icon_entries[kMaxStudioItemIcons];
 static constexpr u32 kMaxTextFiles = 128;
 static OverrideEntry text_entries[8][kMaxTextFiles];
 static OverrideSet override_sets[] = {
@@ -357,6 +365,17 @@ static OverrideSet override_sets[] = {
     {ArchiveId::kPokemonVoice, u"sdmc:/sango-studio/species/cry/index.bin",
      u"sdmc:/sango-studio/species/cry/%d.bin", kVoiceToken, true,
      voice_entries, kMaxVoiceFiles, 0, false},
+    // The fonts: the files have the bytes of the font files of the archive.
+    {ArchiveId::kFont, u"sdmc:/sango-studio/font/index.bin",
+     u"sdmc:/sango-studio/font/%d.bin", kFontToken, true,
+     font_entries, 16, 0, false},
+    // The item icons that Sango Studio replaces (the Item page and the icon
+    // packs): the files have the bytes of the files of the archive (CLIM images
+    // compressed with LZ11). This set comes after the set of the new items, so
+    // the icons of the new items keep their own files.
+    {ArchiveId::kItemIcon, u"sdmc:/sango-studio/item/icon/index.bin",
+     u"sdmc:/sango-studio/item/icon/%d.bin", kStudioItemIconToken, true,
+     studio_item_icon_entries, kMaxStudioItemIcons, 0, false},
     // The texts of the game, one archive for each language.
     {ArchiveId::kGameTextJapanese, u"sdmc:/sango-studio/game_text/ja/index.bin",
      u"sdmc:/sango-studio/game_text/ja/%d.bin", kTextTokenFirst, true,
@@ -495,8 +514,8 @@ static void Trace(OverrideSet* set, u32 what, u32 file_id, u32 size) {
   if (set == nullptr) return;
   // The sets of the item icons, of the item data and of the studio are in
   // memory: no log.
-  if (set->archive == ArchiveId::kItemIcon ||
-      set->archive == ArchiveId::kItemData || set->token == kStudioToken) {
+  if (set->token == kItemIconToken || set->archive == ArchiveId::kItemData ||
+      set->token == kStudioToken) {
     return;
   }
   WriteTrace(what, file_id, size);
@@ -545,7 +564,7 @@ static void ServeLz(OverrideSet& set, u32 file_id, void* buffer, u32 size) {
 
 static OverrideSet& GetItemIconSet() {
   for (OverrideSet& set : override_sets) {
-    if (set.archive == ArchiveId::kItemIcon) return set;
+    if (set.token == kItemIconToken) return set;
   }
   return override_sets[0];
 }
@@ -603,7 +622,7 @@ static void ServeFile(OverrideSet& set, u32 file_id, void* buffer, u32 size) {
     ServeItemData(file_id, buffer, size);
     return;
   }
-  if (set.archive == ArchiveId::kItemIcon) {
+  if (set.token == kItemIconToken) {
     ServeItemIcon(file_id, buffer, size);
     return;
   }

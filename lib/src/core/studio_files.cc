@@ -31,6 +31,7 @@
 #include "battle/patch/studio_moves.h"
 #include "battle/patch/studio_types.h"
 #include "core/patch/archive.h"
+#include "core/patch/studio_fonts.h"
 #include "core/problems.h"
 #include "pokemon/native/species_data.h"
 #include "pokemon/patch/studio_formulas.h"
@@ -164,6 +165,7 @@ void StudioFiles::Update() {
     battle::StudioMoves::LoadAll();
     battle::StudioItems::LoadAll();
     pokemon::StudioFormulas::LoadAll();
+    core::StudioFonts::LoadAll();
   }
   LoadAll();
 }
@@ -193,6 +195,10 @@ void StudioFiles::Apply(const c8* path) {
   }
   if (std::strcmp(path, kPokedexFile) == 0) {
     RefreshPokedexData();
+    return;
+  }
+  if (core::StudioFonts::Owns(path)) {
+    core::StudioFonts::Apply(path);
     return;
   }
   if (pokemon::StudioFormulas::Owns(path)) {
