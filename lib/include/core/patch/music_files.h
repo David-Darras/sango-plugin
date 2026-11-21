@@ -31,20 +31,20 @@ namespace core {
  * @brief Replaces a music file of the game by a file of the SD card.
  *
  * The game plays its music from streams (".bcstm" files) of the folder
- * "sound" of the ROM. The folder `sdmc:/sango/bgm/` has the files of the SD
+ * "sound" of the ROM. The folder `sdmc:/sango-studio/music/` has the files of the SD
  * card. They must be DSP-ADPCM ".bcstm" files, as the files of the game.
  * There are two ways to use them:
  *
  * - Same name: when a file has the name of a music file of the game, for
  *   example `bgm_sg_ajito.dspadpcm.bcstm`, the game plays it in place of the
  *   file of the game.
- * - PlayFile(): plays any file of the list `sdmc:/sango/bgm/list.txt`. The
+ * - PlayFile(): plays any file of the list `sdmc:/sango-studio/music/list.txt`. The
  *   list has one line for each file: the name of the file without
  *   ".dspadpcm.bcstm", then "|", then the title that the menu shows. Without
  *   "|", the title is the name.
  *
  * The same hook reads the sound effects from a copy of the sound archive:
- * when the file `sdmc:/sango/sound/sango_sound.bcsar` exists, the game reads
+ * when the file `sdmc:/sango-studio/music/sango_sound.bcsar` exists, the game reads
  * the sounds that the archive holds (the sequences, the banks and the waves)
  * from it. Sango Studio writes this file when the user replaces a sound
  * effect. It has the size and the layout of the archive of the game. The SD

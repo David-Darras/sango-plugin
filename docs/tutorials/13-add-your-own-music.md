@@ -22,7 +22,7 @@ not an mp3 file. The tool `tools/add_music.py` converts your file in two steps:
    sound with a rate of 32 kHz.
 2. `VGAudioCli` writes the `.bcstm` file.
 
-The plugin reads the list `sdmc:/sango/bgm/list.txt`. Each line has the name of a
+The plugin reads the list `sdmc:/sango-studio/music/list.txt`. Each line has the name of a
 file and the title that the menu shows, with `|` between the two:
 
 ```text
@@ -51,11 +51,11 @@ python tools/add_music.py --setup
 python tools/add_music.py "My Song.mp3" --title "Victory Fanfare"
 ```
 
-The tool writes the result in the folder `sdmc/sango/bgm`:
+The tool writes the result in the folder `sdmc/sango-studio/music`:
 
 ```text
-sdmc/sango/bgm/list.txt
-sdmc/sango/bgm/my_victory_fanfare.dspadpcm.bcstm
+sdmc/sango-studio/music/list.txt
+sdmc/sango-studio/music/my_victory_fanfare.dspadpcm.bcstm
 ```
 
 Run the command again for each file. The tool adds each music to `list.txt`.
@@ -80,7 +80,7 @@ change this:
 
 Copy the folder `sango` of `sdmc` to the root of the SD card of the console.
 
-- On a console: `sdmc:/sango/bgm/`.
+- On a console: `sdmc:/sango-studio/music/`.
 - On Azahar: the folder `sdmc` of the emulator.
 
 ## Step 4: Play the music
@@ -102,7 +102,7 @@ plays your file each time it plays this music.
 1. Find the name in the folder `sound` of the RomFS of the game, for example
    `bgm_sg_art_gallery.dspadpcm.bcstm`.
 2. Convert your file.
-3. Rename the result to this name, in `sdmc/sango/bgm`.
+3. Rename the result to this name, in `sdmc/sango-studio/music`.
 
 ```bash
 python tools/add_music.py "My Song.mp3"
@@ -120,7 +120,7 @@ Get the folder `sound` of the RomFS of Pokémon X or Y. It has the `.aac` files.
 Convert all the files:
 
 ```bash
-python tools/aac_to_bcstm.py path/to/xy/sound sdmc/sango/bgm
+python tools/aac_to_bcstm.py path/to/xy/sound sdmc/sango-studio/music
 ```
 
 The conversion of about 230 files takes 6 minutes. The tool uses the Bulbapedia
@@ -140,7 +140,7 @@ a known title keeps its name, written in words.
 
 | Problem | What to do |
 |---|---|
-| The entry **SD Music** is not in the menu | `list.txt` is not in `sdmc:/sango/bgm/`. Check the folder on the SD card. |
+| The entry **SD Music** is not in the menu | `list.txt` is not in `sdmc:/sango-studio/music/`. Check the folder on the SD card. |
 | `ffmpeg is not installed` | Install `ffmpeg`, then open a new terminal. |
 | `VGAudioCli is not installed` | Run `python tools/add_music.py --setup`. |
 | The music is silent | The file is not a `.bcstm` made by the tool. Convert it again. |

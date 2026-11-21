@@ -55,8 +55,8 @@ Make the "sango" folder if it does not exist.
 
 3. Music (the music of Pokemon X and Y, optional):
      {{MUSIC_URL}}
-   Make the folder  sango/bgm/  and unzip the pack in it.
-   You must get sango/bgm/list.txt and the music files next to it.
+   Make the folder  sango-studio/music/  and unzip the pack in it.
+   You must get sango-studio/music/list.txt and the music files next to it.
 
 4. Trainer models (the battle models of the trainers of Pokemon X and Y,
    optional):

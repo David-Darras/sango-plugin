@@ -89,7 +89,7 @@ void LoadSoundPage(MainApplication& app, void* args) {
     app.Add("SD Music", sd_music)
         .WithArray(sd_music_names, sd_music_count)
         .WithCallback(PlaySdMusic)
-        .WithDescription("Press {A} to play a file of sdmc:/sango/bgm/list.txt.");
+        .WithDescription("Press {A} to play a file of sdmc:/sango-studio/music/list.txt.");
   }
 }
 } // namespace ui

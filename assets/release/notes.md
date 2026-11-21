@@ -32,7 +32,7 @@ Sango Plugin {{VERSION}} for Pokémon Alpha Sapphire v1.4 (no ROM patch).
    - Overworld models (the 3D models of the characters, needed for the new characters): {{OVERWORLD_MODELS_URL}}
      → unzip in `sango/overworld_model/`
    - Optional, the music of Pokémon X and Y: {{MUSIC_URL}}
-     → unzip in `sango/bgm/` (the pack has its own `list.txt`)
+     → unzip in `sango-studio/music/` (the pack has its own `list.txt`)
    - Optional, the trainer models of Pokémon X and Y (the models, their introductions and their motions): {{TRAINER_MODELS_URL}}
      → unzip in `sango/trainer_model/` (the pack has the folders `sequence` and `layout`)
    - Optional, the tall grass of Pokémon X and Y (one file, `grass.pc`, not in an archive): {{GRASS_URL}}

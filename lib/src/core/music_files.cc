@@ -36,8 +36,8 @@
 namespace core {
 namespace {
 
-constexpr const char* kFolder = "sdmc:/sango/bgm/";
-constexpr u32 kFolderLength = 16;
+constexpr const char* kFolder = "sdmc:/sango-studio/music/";
+constexpr u32 kFolderLength = 25;
 constexpr const char* kExtension = ".dspadpcm.bcstm";
 constexpr u32 kPathCapacity = 128;
 constexpr u32 kListCapacity = 32 * 1024;
@@ -84,7 +84,7 @@ bool Exists(const char* path) {
 // the places that the game reads in it (the sequences, the banks and the waves)
 // are the same.
 constexpr const char* kArchiveName = "sango_sound.bcsar";
-constexpr const char* kArchiveCopy = "sdmc:/sango/sound/sango_sound.bcsar";
+constexpr const char* kArchiveCopy = "sdmc:/sango-studio/music/sango_sound.bcsar";
 
 // Returns true when the SD card has the copy of the sound archive. The SD card
 // is asked one time: the game reads the archive many times, and a change of the
@@ -107,7 +107,7 @@ u32 MusicFiles::LoadList() {
   count_ = 0;
   names_[0][0] = '\0';
   titles_[0][0] = '\0';
-  const u32 size = sys::File::ReadAll(u"sdmc:/sango/bgm/list.txt", text,
+  const u32 size = sys::File::ReadAll(u"sdmc:/sango-studio/music/list.txt", text,
                                       kListCapacity - 1);
   text[size] = '\0';
   // A line is "name|title". `part` 0 reads the name, 1 reads the title.
