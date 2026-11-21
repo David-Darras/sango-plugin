@@ -185,6 +185,15 @@ static constexpr u32 kFontToken = 0x25000000;
 // The item icons that Sango Studio replaces (the archive 92), compressed as in
 // the archive.
 static constexpr u32 kStudioItemIconToken = 0x24000000;
+// The layouts (the menus) that Sango Studio replaces: every archive that has
+// layouts uses this token. The set of the archive is found by the archive, so
+// the token can be the same for all of them. The files have the bytes of the
+// files of the archive (compressed). A real offset of these archives is far
+// smaller than this token (the biggest one is 42 MB).
+static constexpr u32 kLayoutToken = 0x23000000;
+// The files of the battle backgrounds that Sango Studio replaces (the archive
+// 136), compressed as in the archive.
+static constexpr u32 kStudioBackgroundToken = 0x22000000;
 // True for the fake offset of a small archive: the token has no bit in the
 // four high bits alone (a real offset of these archives is far smaller).
 static constexpr bool IsSmallToken(u32 token) {
@@ -243,6 +252,11 @@ static constexpr u32 kMaxStudioItemIcons = 1024;
 static OverrideEntry studio_item_icon_entries[kMaxStudioItemIcons];
 static constexpr u32 kMaxTextFiles = 128;
 static OverrideEntry text_entries[8][kMaxTextFiles];
+// The changed files of the archives with layouts (see tools/gen_layout_sets.py):
+// the sets of these archives share this list of entries.
+static OverrideEntry studio_background_entries[160];
+#include "core/data/layout_pool.inc"
+static OverrideEntry layout_entries[kLayoutPoolSize];
 static OverrideSet override_sets[] = {
     {ArchiveId::kPokemonModel, u"sdmc:/sango-studio/species/model/index.bin",
      u"sdmc:/sango-studio/species/model/%d.pc", kPokemonToken, false, pokemon_entries,
@@ -401,6 +415,14 @@ static OverrideSet override_sets[] = {
     {ArchiveId::kGameTextKorean, u"sdmc:/sango-studio/game_text/ko/index.bin",
      u"sdmc:/sango-studio/game_text/ko/%d.bin", kTextTokenFirst + 0x07000000,
      true, text_entries[7], kMaxTextFiles, 0, false},
+    // The pieces of the battle backgrounds (the ground, the plate...): the files
+    // have the bytes of the files of the archive. This set comes after the one of
+    // the pieces of X and Y: a piece that Sango Studio replaces is found first.
+    {ArchiveId::kBattleBackground, u"sdmc:/sango-studio/battle/background/index.bin",
+     u"sdmc:/sango-studio/battle/background/%d.bin", kStudioBackgroundToken, true,
+     studio_background_entries, 160, 0, false},
+    // The layouts of the menus: one set for each archive that has some.
+#include "core/data/layout_sets.inc"
 };
 
 static u32 OverrideSize(OverrideSet& set, u32 file_id);
