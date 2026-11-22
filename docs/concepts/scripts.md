@@ -117,7 +117,7 @@ models at most for your characters.
 The full list is in `lib/include/script/patch/context.h`.
 
 The texts can show values: `{player}`, `{money}` and `{var:N}`. The library
-also translates them. See [Translate your ROM hack](../tutorials/17-translate-your-rom-hack.md).
+shows them.
 
 ### Battles
 

@@ -68,7 +68,7 @@ struct PaneState {
  * the changes, and the editor reads it at the start.
  */
 class LayoutEditor {
-  MAKE_SINGLETON(LayoutEditor)
+  MAKE_LAZY_SINGLETON(LayoutEditor)
 public:
   static constexpr u32 kMaxRoots = 12;
   static constexpr u32 kMaxEdits = 24;

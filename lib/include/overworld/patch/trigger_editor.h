@@ -52,7 +52,7 @@ namespace overworld {
  * when the event starts. 65535 means no script: the event does nothing.
  */
 class TriggerEditor {
-  MAKE_SINGLETON(TriggerEditor)
+  MAKE_LAZY_SINGLETON(TriggerEditor)
 public:
   static constexpr u32 kMaxSigns = 40;
   static constexpr u32 kMaxTriggers = 40;

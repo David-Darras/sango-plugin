@@ -33,11 +33,13 @@
 #include "core/patch/archive.h"
 #include "core/patch/studio_fonts.h"
 #include "core/problems.h"
+#include "pokemon/edit_pokemon.h"
 #include "pokemon/native/species_data.h"
 #include "pokemon/patch/studio_formulas.h"
 #include "pokemon/patch/species_editor.h"
 #include "pokemon/patch/species_table.h"
 #include "plugin.h"
+#include "savedata/native/pokemon_team.h"
 #include "system/native/file.h"
 
 namespace core {
@@ -122,6 +124,25 @@ void FullPath(const c8* relative, c16* out, u32 capacity) {
   }
   out[at] = 0;
 }
+
+#ifdef GAME_ORAS
+/// The party keeps the calculated data (the stats and the HP) of each Pokémon: after a change of the
+/// base stats, the Pokémon of this species and form calculate them again. The boxes have no calculated
+/// data, the game calculates it when a Pokémon leaves the box.
+void RefreshParty(SpeciesId species, FormId form) {
+  auto& party = savedata::PokemonTeam::GetInstance();
+  for (u32 i = 0; i < party.count && i < savedata::PokemonTeam::kMaxSlots; i++) {
+    savedata::PokemonParam* pokemon = party.pokemons[i];
+    if (pokemon == nullptr) continue;
+    bool is_match = false;
+    {
+      pokemon::EditPokemon edit(*pokemon, false);
+      is_match = edit->species == species && edit->form == form;
+    }
+    if (is_match) pokemon->UpdateRuntimeData();
+  }
+}
+#endif
 
 } // namespace
 
@@ -271,6 +292,7 @@ void StudioFiles::ApplySpeciesData(const c8* path) {
   entry.form_index = form_index;
   entry.form_model_index = form_model_index;
   entry.total_form_count = total_form_count;
+  RefreshParty(static_cast<SpeciesId>(species), static_cast<FormId>(form));
 #else
   (void)path;
 #endif

@@ -45,6 +45,8 @@
 
 #pragma once
 
+#include <cstdlib>
+
 /// Removes the copy and the move of a class, and makes its constructor
 /// private. The class must supply GetInstance().
 #define SINGLETON(ClassName)\
@@ -68,6 +70,27 @@ ClassName& operator=(ClassName&&)      = delete;\
 static inline __attribute__((always_inline)) ClassName& GetInstance() {\
 static ClassName instance;\
 return instance;\
+}\
+private:\
+ClassName() = default;\
+public:
+
+/// Makes a big class a singleton whose object is built at the first call of GetInstance(), on the
+/// heap, instead of in the memory of the plugin. Use it for a class with big arrays that the user
+/// may never open (an editor). The object is never freed.
+#define MAKE_LAZY_SINGLETON(ClassName)\
+public:\
+ClassName(const ClassName&)            = delete;\
+ClassName& operator=(const ClassName&) = delete;\
+ClassName(ClassName&&)                 = delete;\
+ClassName& operator=(ClassName&&)      = delete;\
+static inline __attribute__((always_inline)) ClassName& GetInstance() {\
+static ClassName* instance = nullptr;\
+if (instance == nullptr) {\
+instance = new ClassName();\
+if (instance == nullptr) abort();\
+}\
+return *instance;\
 }\
 private:\
 ClassName() = default;\

@@ -42,7 +42,7 @@ struct TileEdit {
 
 /// Changes the attributes of single tiles. The changes are saved to the SD card.
 class TileEditor {
-  MAKE_SINGLETON(TileEditor)
+  MAKE_LAZY_SINGLETON(TileEditor)
 
 public:
   static constexpr u32 kMaxEdits = 1024;

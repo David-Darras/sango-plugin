@@ -25,7 +25,6 @@
 #include "battle/patch/trainer_team.h"
 #include "battle/native/config.h"
 #include "core/problems.h"
-#include "core/translations.h"
 #include "savedata/native/pokemon_team.h"
 
 namespace battle {
@@ -73,7 +72,7 @@ void TrainerTeam::ApplyTo(Config& config) const {
     }
     if (money != 0) trainer->money_calculation_coefficient = money;
     if (name != nullptr && trainer->name != nullptr) {
-      trainer->name->Set(core::Translate(name));
+      trainer->name->Set(name);
     }
   }
 }

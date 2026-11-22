@@ -142,7 +142,7 @@ const battle::TrainerTeam kRivalTeam =
 
 | Function | What it changes |
 |---|---|
-| `WithName(u"Name")` | The name of the trainer in the battle. The library translates it (see [Tutorial 17](17-translate-your-rom-hack.md)). |
+| `WithName(u"Name")` | The name of the trainer in the battle. The library shows it. |
 | `WithAi(flags)` | The AI: `kCasual`, `kCompetitive`, `kStrategist`. Combine them with `\|`. |
 | `WithItems(item1, ...)` | The items that the trainer uses in the battle (4 at most). |
 | `WithMoney(value)` | The prize money: the game multiplies it by the level of the last Pokémon. |

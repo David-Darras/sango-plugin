@@ -152,8 +152,19 @@ private:
     u32 bone_count;
     u32 version;
     bool is_valid;
-    f32 original[kMaxRuntimeBones * 12];
-    f32 edited[kMaxRuntimeBones * 12];
+    /// The number of bones that the two buffers can hold (0: no buffer).
+    u32 capacity;
+    /// The matrices of the game, and the matrices after the changes: 12 floats
+    /// for each bone. They are allocated when the model is first changed, and
+    /// freed when the model is removed.
+    f32* original;
+    f32* edited;
+
+    /// Makes room for `bones` bones. Returns false when the heap has no room:
+    /// the model then keeps the matrices of the game.
+    bool Reserve(u32 bones);
+    /// Frees the buffers and forgets the model.
+    void Release();
   };
 
   static void MeshDrawHook(void* mesh, void* helper, void* state, void* extra);

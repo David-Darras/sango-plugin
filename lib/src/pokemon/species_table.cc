@@ -25,6 +25,7 @@
 #include "pokemon/patch/species_table.h"
 #include "pokemon/patch/alolan_forms.h"
 #include "pokemon/patch/species_editor.h"
+#include <cstdlib>
 #include <cstring>
 #include "pokemon/constant/ability.h"
 #include "pokemon/native/database.h"
@@ -275,13 +276,21 @@ static void FixAbilities(SpeciesData* entry, const SpeciesData* fallback) {
 
 void SpeciesTable::BuildTable(u8* game_table) {
   auto& feat = GetInstance();
+  // The table is on the heap: the plugin has no static memory for it.
+  if (feat.table_ == nullptr) {
+    feat.table_ = static_cast<u8*>(std::malloc(kTotalEntries * kEntrySize));
+    if (feat.table_ == nullptr) {
+      core::Problems::Add(u"species: no room for the table of the species");
+      return;
+    }
+  }
   u8* out = feat.table_;
 
   SpeciesPacks::Load();
   const u32 species_entries = kGen7Base;
   const u32 form_entries = kEntries - species_entries;
   // The places of the species of the product stay empty when they are not used.
-  std::memset(out, 0, sizeof(feat.table_));
+  std::memset(out, 0, kTotalEntries * kEntrySize);
   std::memcpy(out, game_table, species_entries * kEntrySize);
   std::memcpy(out + (species_entries + SpeciesTable::kAddedCount) * kEntrySize,
               game_table + species_entries * kEntrySize,
@@ -362,6 +371,7 @@ void SpeciesTable::Update() {
   if (game_table == nullptr) return;
   feat.is_built_ = true;
   BuildTable(game_table);
+  if (feat.table_ == nullptr) return;
   db.species = (SpeciesData*)feat.table_;
   // The new species and forms exist now: apply the changes of the product.
   SpeciesChanges::ApplyPending();

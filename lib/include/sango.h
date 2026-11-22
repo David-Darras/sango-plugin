@@ -99,8 +99,7 @@
 #include "script/patch/context.h"
 #include "script/patch/native_script.h"
 
-// Tools: translations, hooks, random numbers, music, log.
-#include "core/translations.h"
+// Tools: hooks, random numbers, music, log.
 #include "core/hook.h"
 #include "core/patch/music_lock.h"
 #include "core/utils.h"

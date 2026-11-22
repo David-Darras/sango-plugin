@@ -27,7 +27,6 @@
 #include <cstring>
 
 #include "battle/constant/trainer_class_records.h"
-#include "core/translations.h"
 #include "system/native/string.h"
 #include "ui/log.h"
 
@@ -170,7 +169,7 @@ bool TrainerClasses::PatchTitle(u32 class_id, sys::String* output) {
   const Definition* definition =
       FindDefinition(static_cast<TrainerClassId>(class_id));
   if (definition == nullptr || definition->title[0] == 0) return false;
-  output->Set(core::Translate(definition->title));
+  output->Set(definition->title);
   return true;
 }
 

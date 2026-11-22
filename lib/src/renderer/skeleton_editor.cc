@@ -590,11 +590,39 @@ void SkeletonEditor::OnModelRemoved(const H3dModel* model) {
     if (info.model == model) info.model = nullptr;
   }
   for (Runtime& runtime : self.runtimes_) {
-    if (runtime.model == model) {
-      runtime.model = nullptr;
-      runtime.is_valid = false;
-    }
+    if (runtime.model == model) runtime.Release();
   }
+}
+
+bool SkeletonEditor::Runtime::Reserve(u32 bones) {
+  if (capacity >= bones && original != nullptr) return true;
+  std::free(original);
+  std::free(edited);
+  original = static_cast<f32*>(std::malloc(bones * 12 * sizeof(f32)));
+  edited = static_cast<f32*>(std::malloc(bones * 12 * sizeof(f32)));
+  if (original == nullptr || edited == nullptr) {
+    std::free(original);
+    std::free(edited);
+    original = nullptr;
+    edited = nullptr;
+    capacity = 0;
+    is_valid = false;
+    return false;
+  }
+  capacity = bones;
+  // The buffers are new: the changes of the last frame are not in them.
+  is_valid = false;
+  return true;
+}
+
+void SkeletonEditor::Runtime::Release() {
+  std::free(original);
+  std::free(edited);
+  original = nullptr;
+  edited = nullptr;
+  capacity = 0;
+  model = nullptr;
+  is_valid = false;
 }
 
 SkeletonEditor::Edit* SkeletonEditor::Find(u32 skeleton, u32 bone) {
@@ -695,9 +723,11 @@ void SkeletonEditor::ApplyToModel(const H3dModel* model) {
   if (runtime == nullptr) {
     runtime = &runtimes_[next_runtime_];
     next_runtime_ = (next_runtime_ + 1) % kMaxRuntimes;
+    // The slot may still hold another model: its buffers are reused or replaced.
+    runtime->Release();
     runtime->model = model;
-    runtime->is_valid = false;
   }
+  if (!runtime->Reserve(count)) return;
 
   const bool is_unchanged =
       runtime->is_valid && runtime->bone_count == count &&

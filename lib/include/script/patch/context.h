@@ -30,7 +30,6 @@
 #include "common.h"
 #include "battle/constant/trainer.h"
 #include "core/constant/event_flag.h"
-#include "core/translations.h"
 #include "overworld/constant/action_command.h"
 #include "overworld/constant/facing.h"
 #include "overworld/constant/map.h"
@@ -789,7 +788,7 @@ private:
     auto* block = (MessageLanguageBlock*)(header + 1);
     auto* string = (c16*)(block + 1);
     // The translation of the text, then the values of its {names}.
-    const u32 length = ExpandText(core::Translate(text), string, capacity);
+    const u32 length = ExpandText(text, string, capacity);
 
     header->language_count = 1;
     header->string_count = 1;

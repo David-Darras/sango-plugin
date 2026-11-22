@@ -112,7 +112,8 @@ private:
 
   bool is_built_ = false;
   core::FixedList<NewSpeciesEntry, kMaxNewSpecies> new_species_;
-  alignas(4) u8 table_[kTotalEntries * kEntrySize];
+  /// The table of the species, allocated on the heap when it is built (kTotalEntries * kEntrySize bytes).
+  u8* table_ = nullptr;
 };
 
 } // namespace pokemon

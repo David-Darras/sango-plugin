@@ -46,6 +46,21 @@ core::Hook<void(void*, EntryAnimationData*)> start_entry_animation_hook;
 core::Hook<void(uptr, u16)> play_animation_hook;
 core::Hook<void(uptr)> update_view_hook;
 core::Hook<void(uptr, uptr, uptr)> pokemon_model_settings_hook;
+// The update of the model of one Pokémon (sub_47748C, Alpha Sapphire): it reads the model at +0x1D0
+// too, and it runs for each Pokémon of the list that the game keeps (the PC box has them).
+/// The offset of the 3D model of a Pokémon model (PokeModel) in the game (Alpha Sapphire).
+constexpr uptr kModelPointerOffset = 0x1D0;
+#ifdef GAME_ORAS
+constexpr uptr kPokemonModelUpdate = 0x0047748C;
+core::Hook<void(uptr)> pokemon_model_update_hook;
+
+// The game calls the update of a model for a Pokémon whose model was never created (for example in
+// the PC box): the game reads the model at +0x1D0 and crashes. Without the model, do nothing.
+void PokemonModelUpdateHook(uptr model) {
+  if (model == 0 || READ32(model + kModelPointerOffset) == 0) return;
+  pokemon_model_update_hook(model);
+}
+#endif
 core::Hook<bool(u32, u32, u32, u32, u32, u32)> check_pokemon_captured_hook;
 core::Hook<void(uptr, u16, u32)> update_gauge_hook;
 core::Hook<u32(u32, u32, u32, u32, u32, u32)> ball_catch_rate_hook;
@@ -69,6 +84,9 @@ void Battle::Initialize() {
                               address::kVtable);
   update_view_hook.Install(address::kUpdateView, UpdateViewHook,
                            address::kVtable);
+#ifdef GAME_ORAS
+  pokemon_model_update_hook.Install(kPokemonModelUpdate, PokemonModelUpdateHook);
+#endif
   pokemon_model_settings_hook.Install(pokemon::address::kPokemonModelSettings,
                                       PokemonModelSettingsHook);
   check_pokemon_captured_hook.Install(
@@ -240,6 +258,9 @@ void Battle::UpdateViewHook(uptr self) {
 }
 
 void Battle::PokemonModelSettingsHook(uptr model, uptr p0, uptr p1) {
+  // The game calls this function (0x46F950) for a Pokémon whose model was never created (for example
+  // in the PC box): the game then reads the model at +0x1D0 and crashes. Without the model, do nothing.
+  if (model == 0 || READ32(model + kModelPointerOffset) == 0) return;
   pokemon_model_settings_hook(model, p0, p1);
   if (!GetInstance().fix_pokemon_size) return;
 

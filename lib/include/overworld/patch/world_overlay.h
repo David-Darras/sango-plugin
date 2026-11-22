@@ -53,7 +53,7 @@ namespace overworld {
  * menu and of the overlay together can fill the command list of the GPU.
  */
 class WorldOverlay {
-  MAKE_SINGLETON(WorldOverlay)
+  MAKE_LAZY_SINGLETON(WorldOverlay)
 public:
   /// The largest radius: (2 x 8 + 1)^2 = 289 tiles at most.
   static constexpr u32 kMaxRadius = 8;

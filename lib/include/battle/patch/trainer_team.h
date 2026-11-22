@@ -307,8 +307,7 @@ struct TrainerTeam {
     items[3] = fourth;
     return *this;
   }
-  /// Sets the name of the trainer. Use u"..." text. It is translated (see
-  /// core::Translations).
+  /// Sets the name of the trainer. Use u"..." text. It is shown as it is written.
   TrainerTeam& WithName(const c16* name) {
     this->name = name;
     return *this;

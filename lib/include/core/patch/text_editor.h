@@ -65,7 +65,7 @@ struct RecentText {
  * this content.
  */
 class TextEditor {
-  MAKE_SINGLETON(TextEditor)
+  MAKE_LAZY_SINGLETON(TextEditor)
 public:
   /// The longest text, without the end character. A longer text is not kept.
   static constexpr u32 kMaxLength = 160;

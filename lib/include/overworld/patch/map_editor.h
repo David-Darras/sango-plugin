@@ -54,7 +54,7 @@ namespace overworld {
  * original tiles again, clear the edits and load the map again.
  */
 class MapEditor {
-  MAKE_SINGLETON(MapEditor)
+  MAKE_LAZY_SINGLETON(MapEditor)
 public:
   static constexpr u32 kMaxRuns = 1536;
   static constexpr u32 kMaxHistory = 1536;

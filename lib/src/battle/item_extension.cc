@@ -46,7 +46,6 @@
 #include "savedata/native/pokemon_param.h"
 #include "system/address.h"
 #include "core/problems.h"
-#include "core/translations.h"
 
 namespace battle {
 
@@ -206,14 +205,14 @@ u32 ItemExtension::GetIconFile(ItemId id) {
 bool ItemExtension::PatchName(ItemId item, String* output) {
   const ItemSpec* spec = FindItem(item);
   if (spec == nullptr || spec->name == nullptr) return false;
-  output->Set(core::Translate(spec->name));
+  output->Set(spec->name);
   return true;
 }
 
 bool ItemExtension::PatchDescription(ItemId item, String* output) {
   const ItemSpec* spec = FindItem(item);
   if (spec == nullptr || spec->description == nullptr) return false;
-  output->Set(core::Translate(spec->description));
+  output->Set(spec->description);
   return true;
 }
 
