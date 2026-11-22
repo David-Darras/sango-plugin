@@ -55,9 +55,9 @@ static void EveryFrame() {
 
 void Initialize() {
   plugin::InitializeEngine();
-  battle::RegisterCustomAbilities();
-  battle::RegisterCustomMoves();
-  battle::RegisterCustomItems();
+  // battle::RegisterCustomAbilities();
+  // battle::RegisterCustomMoves();
+  // battle::RegisterCustomItems();
 #ifdef SANGO_TEST
   battle::RegisterTestFoes();
   ui::PageExtensions::GetInstance().pokemon_page = battle::AddItemTestEntries;

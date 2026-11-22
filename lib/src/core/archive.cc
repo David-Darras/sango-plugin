@@ -439,9 +439,15 @@ static OverrideSet* FindSet(const u32* archive, u32 file_id) {
   return first;
 }
 
+// The tokens of the small archives (below 0x40000000) use the high byte, not
+// the high four bits: an icon of Sango Studio (0x3E000000) has the high four
+// bits of the trainer data (0x30000000). Such an offset must match its own
+// token only, else it is read as a trainer file.
 static OverrideSet* FindSetByToken(u32 offset) {
   for (OverrideSet& set : override_sets) {
-    if ((offset & kTokenMask) == set.token) return &set;
+    if ((offset & kTokenMask) != set.token) continue;
+    if (IsSmallToken(set.token) && (offset & kStudioMask) != set.token) continue;
+    return &set;
   }
   return nullptr;
 }
