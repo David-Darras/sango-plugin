@@ -25,7 +25,9 @@
 #include "pokemon/patch/alolan_forms.h"
 #include "pokemon/constant/item.h"
 #include "pokemon/constant/mega_evolution_method.h"
+#include "pokemon/native/database.h"
 #include "pokemon/native/mega_evolution_data.h"
+#include "pokemon/native/mega_evolution_table.h"
 #include <cstring>
 #include "core/hook.h"
 #include "pokemon/patch/species_table.h"
@@ -142,6 +144,21 @@ u32 AlolanForms::GetMegaEvolvedFormNoHook(void* manager, void* poke) {
     if (HasForm(species)) {
       const u32 form = FindMegaForm(species, poke);
       if (form != 0) return form;
+    }
+    auto* mega_evolve = Database::GetInstance().mega_evolution;
+    if (mega_evolve != nullptr && mega_evolve->data != nullptr) {
+      for (u32 i = 0; i < kMaxRoutes; i++) {
+        const auto& entry = mega_evolve->data->entry[i];
+        if (entry.method == MegaEvolutionMethod::kRayquaza) {
+          const u16 move = static_cast<u16>(entry.item);
+          if (move != 0) {
+            if (core::GameFunction<bool(void*, u16)>::Call(
+                    address::kCoreDataHasMove, poke, move)) {
+              return static_cast<u32>(entry.form);
+            }
+          }
+        }
+      }
     }
   }
   return get_mega_evolved_form_no_hook(manager, poke);

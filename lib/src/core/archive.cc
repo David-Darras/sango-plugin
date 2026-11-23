@@ -194,6 +194,9 @@ static constexpr u32 kLayoutToken = 0x23000000;
 // The files of the battle backgrounds that Sango Studio replaces (the archive
 // 136), compressed as in the archive.
 static constexpr u32 kStudioBackgroundToken = 0x22000000;
+// The fake offset of the mega evolution tables that Sango Studio writes
+// (the archive 193), not compressed.
+static constexpr u32 kMegaEvolutionToken = 0x21000000;
 // True for the fake offset of a small archive: the token has no bit in the
 // four high bits alone (a real offset of these archives is far smaller).
 static constexpr bool IsSmallToken(u32 token) {
@@ -232,6 +235,8 @@ static constexpr u32 kMaxStudioFiles = 512;
 static OverrideEntry level_up_entries[kMaxStudioFiles];
 static OverrideEntry egg_move_entries[kMaxStudioFiles];
 static OverrideEntry evolution_entries[kMaxStudioFiles];
+static constexpr u32 kMaxMegaEvolutionFiles = 128;
+static OverrideEntry mega_evolution_entries[kMaxMegaEvolutionFiles];
 static OverrideEntry growth_entries[16];
 static constexpr u32 kMaxTrainerFiles = 1024;
 static OverrideEntry trainer_data_entries[kMaxTrainerFiles];
@@ -324,6 +329,10 @@ static OverrideSet override_sets[] = {
     {ArchiveId::kEvolutionTable, u"sdmc:/sango-studio/species/evolution/index.bin",
      u"sdmc:/sango-studio/species/evolution/%d.bin", kEvolutionToken, true,
      evolution_entries, kMaxStudioFiles, 0, false},
+    {ArchiveId::kMegaEvolutionTable,
+     u"sdmc:/sango-studio/species/mega_evolution/index.bin",
+     u"sdmc:/sango-studio/species/mega_evolution/%d.bin", kMegaEvolutionToken,
+     true, mega_evolution_entries, kMaxMegaEvolutionFiles, 0, false},
     {ArchiveId::kGrowthTable, u"sdmc:/sango-studio/leveling_rate/index.bin",
      u"sdmc:/sango-studio/leveling_rate/%d.bin", kGrowthToken, true,
      growth_entries, 16, 0, false},
