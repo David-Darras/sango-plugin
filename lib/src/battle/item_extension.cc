@@ -77,13 +77,19 @@ bool HasReactions(const ItemSpec* spec) {
          spec->reaction_count != 0;
 }
 
+// Registers reactions of an item for a Pokémon that holds it.
+uptr RegisterTable(Pokemon* pkm, ItemId item, const ReactionTable* reactions,
+                   u32 count) {
+  if (reactions == nullptr || count == 0) return 0;
+  return Broadcaster::RegisterReactions(
+      ListenerSource::kHeldItem, static_cast<u32>(item),
+      PriorityTier::kHeldItemDefault, pkm->speed, UID{pkm->uid}, reactions,
+      count);
+}
+
 // Registers the reactions of an item for a Pokémon that holds it.
 uptr RegisterReactions(Pokemon* pkm, const ItemSpec* spec) {
-  if (spec->reactions == nullptr || spec->reaction_count == 0) return 0;
-  return Broadcaster::RegisterReactions(
-      ListenerSource::kHeldItem, static_cast<u32>(spec->id),
-      PriorityTier::kHeldItemDefault, pkm->speed, UID{pkm->uid},
-      spec->reactions, spec->reaction_count);
+  return RegisterTable(pkm, spec->id, spec->reactions, spec->reaction_count);
 }
 } // namespace
 
@@ -510,15 +516,50 @@ void ItemExtension::ItemNameHook(pokemon::ItemData* item, String* output,
   item_name_hook(item, output, heap);
 }
 
+bool ItemExtension::ReplaceGameItem(ItemId item,
+                                    const ReactionTable* reactions,
+                                    u32 count) {
+  auto& self = GetInstance();
+  GameItemReactions* entry = self.game_items_.Find(
+      [item](const GameItemReactions& e) { return e.item == item; });
+  if (entry != nullptr) {
+    entry->reactions = reactions;
+    entry->count = count;
+    return true;
+  }
+  if (count == 0) return true;
+  if (self.game_items_.IsFull()) {
+    core::Problems::Add(u"item %u: more than %u items of the game with rules",
+                        static_cast<u32>(item), kMaxGameItems);
+    return false;
+  }
+  self.game_items_.Add(GameItemReactions{item, reactions, count});
+  return true;
+}
+
+const ItemExtension::GameItemReactions* ItemExtension::FindGameItem(
+    ItemId item) {
+  const GameItemReactions* entry = GetInstance().game_items_.Find(
+      [item](const GameItemReactions& e) { return e.item == item; });
+  return entry != nullptr && entry->count != 0 ? entry : nullptr;
+}
+
 uptr ItemExtension::RegisterItemHook(Pokemon* pkm) {
   const ItemSpec* spec = FindItem(pkm->item);
-  if (!HasReactions(spec)) return register_item_hook(pkm);
-  return RegisterReactions(pkm, spec);
+  if (HasReactions(spec)) return RegisterReactions(pkm, spec);
+  // An item of the game with the reactions of Sango Studio: they replace the
+  // code of the game.
+  const GameItemReactions* game = FindGameItem(pkm->item);
+  if (game != nullptr) {
+    return RegisterTable(pkm, pkm->item, game->reactions, game->count);
+  }
+  return register_item_hook(pkm);
 }
 
 void ItemExtension::RegisterItemCheckedHook(Pokemon* pkm) {
   const ItemSpec* spec = FindItem(pkm->item);
-  if (!HasReactions(spec)) {
+  const GameItemReactions* game = FindGameItem(pkm->item);
+  if (!HasReactions(spec) && game == nullptr) {
     register_item_checked_hook(pkm);
     return;
   }
@@ -527,13 +568,22 @@ void ItemExtension::RegisterItemCheckedHook(Pokemon* pkm) {
       core::GameFunction<u32(u32, u32)>::Call(
           address::kItemListenerCheck, pkm->uid, kCheckNumber) !=
       0;
-  if (!is_refused) RegisterReactions(pkm, spec);
+  if (is_refused) return;
+  if (HasReactions(spec)) {
+    RegisterReactions(pkm, spec);
+  } else {
+    RegisterTable(pkm, pkm->item, game->reactions, game->count);
+  }
 }
 
 uptr ItemExtension::RegisterTemporaryItemHook(Pokemon* pkm, ItemId item) {
   const ItemSpec* spec = FindItem(item);
-  if (!HasReactions(spec)) return register_temporary_item_hook(pkm, item);
-  return RegisterReactions(pkm, spec);
+  if (HasReactions(spec)) return RegisterReactions(pkm, spec);
+  const GameItemReactions* game = FindGameItem(item);
+  if (game != nullptr) {
+    return RegisterTable(pkm, item, game->reactions, game->count);
+  }
+  return register_temporary_item_hook(pkm, item);
 }
 
 } // namespace battle

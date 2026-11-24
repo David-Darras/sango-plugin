@@ -163,6 +163,24 @@ public:
   /// false when no added item has this id. The icon stays the first one.
   static bool UpdateItem(const ItemSpec& spec);
 
+  /// The most held items of the game with reactions in place of their code.
+  static constexpr u32 kMaxGameItems = 16;
+
+  /**
+   * @brief Replaces the code of a held item of the game in battle with
+   *        reactions.
+   * @param item An item of the game.
+   * @param reactions The reactions. The function keeps the pointer.
+   * @param count The number of reactions. 0 gives the code of the game back.
+   * @return false when the list is full.
+   *
+   * The data, the name and the icon of the item do not change. Omega Ruby and
+   * Alpha Sapphire only. battle::StudioItems uses this function for the files
+   * `item/rules/<id>.bin` of Sango Studio.
+   */
+  static bool ReplaceGameItem(ItemId item, const ReactionTable* reactions,
+                              u32 count);
+
   /// Returns the number of added items.
   static u32 GetCount() { return GetInstance().items_.Count(); }
   /// Returns an added item (index from 0 to GetCount() - 1).
@@ -209,6 +227,9 @@ private:
   static constexpr u32 kIconTableSize = kLastId + 1;
 
   static void MakeIconTable();
+  struct GameItemReactions;
+  /// The reactions that replace the code of an item of the game, or null.
+  static const GameItemReactions* FindGameItem(ItemId item);
   static bool RecoverCheckHook(void* pokemon, u16 item, u16 move, void* heap);
   static bool RecoverHook(void* pokemon, u16 item, u16 move, u16 place,
                           void* helper, void* heap);
@@ -226,6 +247,13 @@ private:
   static uptr RegisterTemporaryItemHook(Pokemon* pkm, ItemId item);
 
   core::FixedList<ItemSpec, kMaxItems> items_;
+  /// The reactions that replace the code of some held items of the game.
+  struct GameItemReactions {
+    ItemId item;
+    const ReactionTable* reactions;
+    u32 count;
+  };
+  core::FixedList<GameItemReactions, kMaxGameItems> game_items_;
   u32 icon_table_[kIconTableSize] = {};
   bool is_icon_table_ready_ = false;
   u32 current_text_file_ = 0;

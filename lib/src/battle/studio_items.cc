@@ -100,7 +100,17 @@ struct Change {
   u8 data[kDataSize];
 };
 
+/// The rules that replace the code of a held item of the game in battle.
+struct GameRules {
+  bool used;
+  u16 id;
+  u8 rule_count;
+  studio::Rule rules[studio::kMaxRules];
+  ReactionTable table[studio::kMaxRules];
+};
+
 Entry entries[StudioItems::kMaxItems];
+GameRules game_rules[StudioItems::kMaxGameRules];
 Change changes[StudioItems::kMaxChanges];
 u8 file_buffer[kMaxFileSize];
 sys::Language loaded_language = sys::Language::kNone;
@@ -126,6 +136,102 @@ const Reaction kReactions[studio::kMaxRules] = {
     RunRule<0>, RunRule<1>, RunRule<2>, RunRule<3>,
     RunRule<4>, RunRule<5>, RunRule<6>, RunRule<7>,
 };
+
+GameRules* FindGameRules(u32 id) {
+  for (GameRules& entry : game_rules) {
+    if (entry.used && entry.id == id) return &entry;
+  }
+  return nullptr;
+}
+
+/// The reaction of the rule number kRule of a held item of the game.
+template <u32 kRule>
+void RunGameRule(Listener* self, Controller* controller, UID owner,
+                 s32* local_state) {
+  const GameRules* entry = FindGameRules(self->source_id);
+  if (entry == nullptr || kRule >= entry->rule_count) return;
+  studio::Execute(entry->rules, kRule, controller, owner, local_state);
+}
+
+const Reaction kGameReactions[studio::kMaxRules] = {
+    RunGameRule<0>, RunGameRule<1>, RunGameRule<2>, RunGameRule<3>,
+    RunGameRule<4>, RunGameRule<5>, RunGameRule<6>, RunGameRule<7>,
+};
+
+/// Reads the rules of a held item of the game ("item/rules/<id>.bin"): the
+/// text "SIRL", the version 1, the 16-bit id, the number of rules, then the
+/// rules. A missing file gives the code of the game back.
+void LoadGameRules(u32 id) {
+  static const c16 kFolder[] = u"sdmc:/sango-studio/item/rules/";
+  static const c16 kSuffix[] = u".bin";
+  c16 path[96];
+  studio::MakePath(kFolder, id, kSuffix, path);
+  const u32 size = sys::File::ReadAll(path, file_buffer, kMaxFileSize);
+  GameRules* entry = FindGameRules(id);
+  if (size == 0) {
+    if (entry != nullptr) {
+      entry->rule_count = 0;
+      ItemExtension::ReplaceGameItem(static_cast<ItemId>(id), entry->table, 0);
+    }
+    return;
+  }
+  if (size < kHeaderSize || std::memcmp(file_buffer, "SIRL", 4) != 0 ||
+      file_buffer[4] != kVersion || studio::Read16(file_buffer + 5) != id ||
+      file_buffer[7] > studio::kMaxRules) {
+    core::Problems::Add(u"item %u: the rules file is not valid", id);
+    return;
+  }
+  if (entry == nullptr) {
+    for (GameRules& slot : game_rules) {
+      if (!slot.used) {
+        entry = &slot;
+        break;
+      }
+    }
+    if (entry == nullptr) {
+      core::Problems::Add(u"item %u: more than %u items of the game with rules",
+                          id, StudioItems::kMaxGameRules);
+      return;
+    }
+  }
+  // Read into a copy: a wrong file must not break rules that work.
+  static GameRules fresh;
+  fresh = GameRules();
+  fresh.used = true;
+  fresh.id = static_cast<u16>(id);
+  fresh.rule_count = file_buffer[7];
+  studio::Reader reader(file_buffer + kHeaderSize, size - kHeaderSize);
+  if (!studio::ReadRules(&reader, fresh.rule_count, fresh.rules)) {
+    core::Problems::Add(u"item %u: the rules file is cut or has a wrong value",
+                        id);
+    return;
+  }
+  for (u32 i = 0; i < fresh.rule_count; i++) {
+    fresh.table[i].moment = static_cast<MomentKind>(fresh.rules[i].moment);
+    fresh.table[i].reaction = kGameReactions[i];
+  }
+  *entry = fresh;
+  ItemExtension::ReplaceGameItem(static_cast<ItemId>(id), entry->table,
+                                 entry->rule_count);
+}
+
+/// Reads "item/rules/list.bin": the held items of the game that have rules.
+/// The layout: the text "SILS", the version 1, 3 bytes 0, then one bit for
+/// each item (bit `id % 8` of the byte `id / 8`), for the ids 0 to 1023.
+void LoadGameRulesList() {
+  static const c16 kListPath[] = u"sdmc:/sango-studio/item/rules/list.bin";
+  constexpr u32 kListHeader = 8;
+  constexpr u32 kListSize = kListHeader + 128;
+  u8 list[kListSize] = {};
+  const u32 size = sys::File::ReadAll(kListPath, list, kListSize);
+  if (size < kListSize || std::memcmp(list, "SILS", 4) != 0 ||
+      list[4] != kVersion) {
+    return;
+  }
+  for (u32 id = 1; id < ItemExtension::kGameItemCount; id++) {
+    if ((list[kListHeader + id / 8] >> (id % 8)) & 1) LoadGameRules(id);
+  }
+}
 
 // ---------------------------------------------------------------------------
 // The Bag.
@@ -461,11 +567,13 @@ bool ReadId(const c8* at, u32* id) {
 void StudioItems::LoadAll() {
   loaded_language = sys::Core::GetInstance().GetLanguage();
   for (u32 id = kFirstId; id <= kLastId; id++) LoadCustom(id);
+  LoadGameRulesList();
 }
 
 void StudioItems::Apply(const c8* path) {
   static const c8 kCustom[] = "item/custom/";
   static const c8 kData[] = "item/data/";
+  static const c8 kRules[] = "item/rules/";
   u32 id = 0;
   if (std::memcmp(path, kCustom, sizeof(kCustom) - 1) == 0) {
     // The icons ("<id>.bclim") are read by the game when it needs them.
@@ -481,6 +589,15 @@ void StudioItems::Apply(const c8* path) {
       return;
     }
     LoadChange(id);
+  } else if (std::memcmp(path, kRules, sizeof(kRules) - 1) == 0) {
+    const c8* name = path + sizeof(kRules) - 1;
+    // The list changes with the files: each file comes with its own path.
+    if (std::strcmp(name, "list.bin") == 0) return;
+    if (!ReadId(name, &id) || id == 0 || id >= ItemExtension::kGameItemCount) {
+      core::Problems::Add(u"studio: an item rules file has a wrong name");
+      return;
+    }
+    LoadGameRules(id);
   }
 }
 

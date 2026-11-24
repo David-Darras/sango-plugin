@@ -344,6 +344,22 @@ item with `ItemExtension::AddItem()`. The ids of the studio go from 900 to 931,
 and the plugin keeps 32 items of the studio at the same time. The changes that
 you make to an item of the game in the page **Item** go to `item/data/<id>.bin`.
 
+## Change the code of a held item of the game with Sango Studio
+
+Some held items of the game have code for their effect in battle (Leftovers,
+Life Orb, Charcoal...). The **Reactions** tab of such an item shows this code as
+rules when the rules can do the same thing, and else says why it cannot. Change
+a value and click **Save**:
+
+- The studio writes `sdmc:/sango-studio/item/rules/<id>.bin` (the rules) and
+  `sdmc:/sango-studio/item/rules/list.bin` (the items that have a file).
+- The plugin calls `ItemExtension::ReplaceGameItem()`: in battle, the item runs
+  the rules and not the code of the game. Its data, its name and its icon stay.
+- **Back to the code of the game** deletes the file.
+
+The plugin keeps the rules of 16 items of the game at the same time. Omega Ruby
+and Alpha Sapphire only.
+
 ## Change an item of the game
 
 You can also change an item that the game has (ids 1 to 775) with the same

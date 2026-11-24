@@ -78,6 +78,9 @@ public:
   static constexpr u32 kMaxItems = 32;
   /// The most changed items of the game.
   static constexpr u32 kMaxChanges = 64;
+  /// The most held items of the game whose code the rules of the studio
+  /// replace.
+  static constexpr u32 kMaxGameRules = 16;
   static constexpr u32 kMaxBagActions = 6;
   static constexpr u32 kNameSize = 28;
   static constexpr u32 kDescriptionSize = 96;
