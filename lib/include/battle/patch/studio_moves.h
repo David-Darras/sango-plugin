@@ -64,15 +64,19 @@ public:
   static constexpr u32 kMaxMoves = 32;
   /// The most changed moves of the game.
   static constexpr u32 kMaxChanges = 96;
+  /// The most moves of the game whose code the rules of the studio replace.
+  static constexpr u32 kMaxGameRules = 16;
   static constexpr u32 kNameSize = 28;
   static constexpr u32 kDescriptionSize = 96;
 
-  /// Reads the files `move/custom/900.bin` to `move/custom/931.bin`. Call it
-  /// one time after the SD card is ready.
+  /// Reads the files `move/custom/900.bin` to `move/custom/931.bin`, and the
+  /// files `move/rules/<id>.bin` that `move/rules/list.bin` lists (the rules
+  /// that replace the code of a move of the game). Call it one time after the
+  /// SD card is ready.
   static void LoadAll();
 
   /// Reads one file again. `path` is the path in reload.bin, for example
-  /// "move/custom/900.bin" or "move/data/85.bin".
+  /// "move/custom/900.bin", "move/data/85.bin" or "move/rules/506.bin".
   static void Apply(const c8* path);
 
   /// Takes the texts of the language of the game again when the player changes

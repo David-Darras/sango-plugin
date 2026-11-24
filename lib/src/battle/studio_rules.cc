@@ -73,8 +73,10 @@ enum ConditionKind : u8 {
   kNotVeryEffective = 25,
   kHpFull = 26,
   kMoveTypeWasChanged = 27,
+  kOwnerHoldsNoItem = 28,
+  kOtherHpBelow = 29,
 };
-constexpr u8 kLastCondition = kMoveTypeWasChanged;
+constexpr u8 kLastCondition = kOtherHpBelow;
 
 enum ActionKind : u8 {
   kChangeStat = 1,
@@ -97,8 +99,11 @@ enum ActionKind : u8 {
   kRaisePriority = 18,
   kMultiplyEffectChance = 19,
   kForceCritical = 20,
+  kNeverMiss = 21,
+  kFixedDamage = 22,
+  kLeaveOneHp = 23,
 };
-constexpr u8 kLastAction = kForceCritical;
+constexpr u8 kLastAction = kLeaveOneHp;
 
 // The targets of an action in the files.
 enum Target : u8 {
@@ -127,6 +132,8 @@ constexpr u8 kFirstSideIds = 12;
 constexpr u32 kStatusCount = 38;
 // The critical-hit stage that always gives a critical hit.
 constexpr s32 kAlwaysCritical = 3;
+// The reason of a survival with 1 HP: the move of the attacker (False Swipe).
+constexpr s32 kSurvivedByAttackerMove = 2;
 // The groups of moves that the game keeps in its code: biting (Strong Jaw),
 // aura and pulse (Mega Launcher), ball and bomb (Bulletproof), powder
 // (Overcoat).
@@ -352,8 +359,14 @@ bool Test(const Condition& condition, Controller* controller, UID owner,
     return Value(SituationKey::kMoveUserId) == owner.value;
   case kMoveTypeIs:
     return MoveType() == condition.arg;
-  case kWeatherIs:
-    return Value(SituationKey::kWeather) == condition.arg;
+  case kWeatherIs: {
+    // The weather of the field. X and Y read the value of the moment (only
+    // the moments of a weather change have it).
+    const s32 weather = controller->HasFieldWeather()
+                            ? static_cast<s32>(controller->GetFieldWeather())
+                            : Value(SituationKey::kWeather);
+    return weather == condition.arg;
+  }
   case kTargetFainted: {
     const u32 count = Value(SituationKey::kTargetCount);
     for (u32 i = 0; i < count && i < 6; i++) {
@@ -458,6 +471,19 @@ bool Test(const Condition& condition, Controller* controller, UID owner,
   case kMoveTypeWasChanged:
     return local_state[kStateMoveType] != 0 &&
            MoveType() == local_state[kStateMoveType] - 1;
+  case kOwnerHoldsNoItem: {
+    const Pokemon* pokemon = controller->GetPokemon(owner);
+    return pokemon != nullptr && pokemon->item == ItemId::kNone;
+  }
+  case kOtherHpBelow: {
+    UID other{0};
+    if (!OtherPokemon(owner, &other)) return false;
+    const Pokemon* pokemon = controller->GetPokemon(other);
+    if (pokemon == nullptr || pokemon->max_hp == 0) return false;
+    return static_cast<u32>(pokemon->hp) * 100 <
+           static_cast<u32>(pokemon->max_hp) *
+               static_cast<u32>(condition.arg < 0 ? 0 : condition.arg);
+  }
   default:
     return true;
   }
@@ -716,6 +742,35 @@ bool Run(const Action& action, u16 moment, Controller* controller, UID owner,
   case kForceCritical:
     MomentValues::Write(SituationKey::kCriticalHitStage, kAlwaysCritical);
     break;
+  case kNeverMiss:
+    // The moment asks "skip the accuracy check?" with the shared flag.
+    MomentValues::Write(SituationKey::kCheckResultFlag, 1);
+    break;
+  case kFixedDamage: {
+    // a > 0: the HP. 0: the level of the user. a < 0: -a percent of the HP
+    // that the target has now.
+    s32 damage = action.a;
+    if (action.a == 0) {
+      const Pokemon* user = controller->GetPokemon(owner);
+      damage = user == nullptr ? 1 : user->level;
+    } else if (action.a < 0) {
+      UID target{0};
+      if (!PokemonId(SituationKey::kMoveRecipientId, &target)) break;
+      const Pokemon* pokemon = controller->GetPokemon(target);
+      if (pokemon == nullptr) break;
+      damage = static_cast<s32>(pokemon->hp) * -action.a / 100;
+    }
+    if (damage < 1) damage = 1;
+    MomentValues::Write(SituationKey::kFixedDamageAmount, damage);
+    break;
+  }
+  case kLeaveOneHp:
+    // The shared flag tells that the damage comes from a move.
+    if (Value(SituationKey::kCheckResultFlag) != 0) {
+      MomentValues::Write(SituationKey::kSurvivalReason,
+                          kSurvivedByAttackerMove);
+    }
+    break;
   default:
     break;
   }
@@ -826,13 +881,21 @@ bool ReadRules(Reader* reader, u32 count, Rule* rules) {
   return true;
 }
 
-void Execute(const Rule& rule, u32 rule_index, Controller* controller,
+void Execute(const Rule* rules, u32 rule_index, Controller* controller,
              UID owner, s32* local_state) {
-  // A new move of the owner: the type that the ability gave to the last move
-  // is forgotten, before the conditions (the move can keep its type).
+  const Rule& rule = rules[rule_index];
+  // A new move of the owner: the first rule that can change the type of the
+  // move forgets the type that the last move got, before the conditions (the
+  // move can keep its type). The next rules keep what the first one did.
   if (rule.moment == kMomentMoveData && ChangesMoveType(rule) &&
       Value(SituationKey::kPokemonId) == owner.value) {
-    local_state[kStateMoveType] = 0;
+    bool first = true;
+    for (u32 i = 0; i < rule_index; i++) {
+      if (rules[i].moment == kMomentMoveData && ChangesMoveType(rules[i])) {
+        first = false;
+      }
+    }
+    if (first) local_state[kStateMoveType] = 0;
   }
   bool only_once = false;
   for (u32 i = 0; i < rule.condition_count; i++) {

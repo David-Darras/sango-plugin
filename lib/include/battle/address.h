@@ -73,6 +73,9 @@ constexpr uptr kControllerSetWeather = GAME_ADDRESS(0x006F4004, 0x00741CC0);
 // the code of Intimidate of ORAS; X and Y have no address yet.
 constexpr uptr kControllerGetFrontPosition = GAME_ADDRESS(0, 0x00743AB4);
 constexpr uptr kControllerListArea = GAME_ADDRESS(0, 0x00742B5C);
+// The weather of the field (none when Air Lock or Cloud Nine is in battle).
+// Found in the code of Swift Swim of ORAS.
+constexpr uptr kControllerGetFieldWeather = GAME_ADDRESS(0, 0x00742D94);
 constexpr uptr kBroadcasterRegister = GAME_ADDRESS(0x006F6308, 0x00743EFC);
 constexpr uptr kBroadcasterFindListener = GAME_ADDRESS(0x006F6708, 0x007442FC);
 constexpr uptr kBroadcasterUnregister = GAME_ADDRESS(0x006F6514, 0x00744108);

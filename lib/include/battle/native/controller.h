@@ -89,6 +89,17 @@ public:
         address::kControllerListArea, this, kFoeArea | position, ids);
   }
 
+  /// True when this plugin knows the address of GetFieldWeather().
+  STATIC_INLINE bool HasFieldWeather() {
+    return address::kControllerGetFieldWeather != 0;
+  }
+
+  /// Returns the weather of the field. Call HasFieldWeather() first.
+  INLINE Weather GetFieldWeather() {
+    return core::GameFunction<Weather(Controller*)>::Call(
+        address::kControllerGetFieldWeather, this);
+  }
+
   /// Returns the battle data of a Pokémon.
   INLINE Pokemon* GetPokemon(UID uid) {
     return core::GameFunction<Pokemon*(Controller*, UID)>::Call(

@@ -68,7 +68,17 @@ struct Change {
   u8 data[kDataSize];
 };
 
+/// The rules that replace the code of a move of the game in battle.
+struct GameRules {
+  bool used;
+  u16 id;
+  u8 rule_count;
+  studio::Rule rules[studio::kMaxRules];
+  ReactionTable table[studio::kMaxRules];
+};
+
 Entry entries[StudioMoves::kMaxMoves];
+GameRules game_rules[StudioMoves::kMaxGameRules];
 Change changes[StudioMoves::kMaxChanges];
 u8 file_buffer[kMaxFileSize];
 sys::Language loaded_language = sys::Language::kNone;
@@ -88,12 +98,33 @@ void RunRule(Listener* self, Controller* controller, UID owner,
              s32* local_state) {
   const Entry* entry = FindEntry(self->source_id);
   if (entry == nullptr || kRule >= entry->rule_count) return;
-  studio::Execute(entry->rules[kRule], kRule, controller, owner, local_state);
+  studio::Execute(entry->rules, kRule, controller, owner, local_state);
 }
 
 const Reaction kReactions[studio::kMaxRules] = {
     RunRule<0>, RunRule<1>, RunRule<2>, RunRule<3>,
     RunRule<4>, RunRule<5>, RunRule<6>, RunRule<7>,
+};
+
+GameRules* FindGameRules(u32 id) {
+  for (GameRules& entry : game_rules) {
+    if (entry.used && entry.id == id) return &entry;
+  }
+  return nullptr;
+}
+
+/// The reaction of the rule number kRule of a move of the game.
+template <u32 kRule>
+void RunGameRule(Listener* self, Controller* controller, UID owner,
+                 s32* local_state) {
+  const GameRules* entry = FindGameRules(self->source_id);
+  if (entry == nullptr || kRule >= entry->rule_count) return;
+  studio::Execute(entry->rules, kRule, controller, owner, local_state);
+}
+
+const Reaction kGameReactions[studio::kMaxRules] = {
+    RunGameRule<0>, RunGameRule<1>, RunGameRule<2>, RunGameRule<3>,
+    RunGameRule<4>, RunGameRule<5>, RunGameRule<6>, RunGameRule<7>,
 };
 
 /// Gives the data of the studio to a new move. The function of a slot knows
@@ -261,6 +292,81 @@ void LoadChange(u32 id) {
   Listen();
 }
 
+/// Reads the rules of a move of the game ("move/rules/<id>.bin"): the layout
+/// is the text "SMRL", the version 1, the 16-bit id, the number of rules, then
+/// the rules. A missing file gives the code of the game back.
+void LoadGameRules(u32 id) {
+  static const c16 kFolder[] = u"sdmc:/sango-studio/move/rules/";
+  static const c16 kSuffix[] = u".bin";
+  c16 path[96];
+  studio::MakePath(kFolder, id, kSuffix, path);
+  const u32 size = sys::File::ReadAll(path, file_buffer, kMaxFileSize);
+  GameRules* entry = FindGameRules(id);
+  if (size == 0) {
+    if (entry != nullptr) {
+      entry->rule_count = 0;
+      GameExtension::ReplaceGameMove(static_cast<MoveId>(id), entry->table, 0);
+    }
+    return;
+  }
+  if (size < kHeaderSize || std::memcmp(file_buffer, "SMRL", 4) != 0 ||
+      file_buffer[4] != kVersion || studio::Read16(file_buffer + 5) != id ||
+      file_buffer[7] > studio::kMaxRules) {
+    core::Problems::Add(u"move %u: the rules file is not valid", id);
+    return;
+  }
+  if (entry == nullptr) {
+    for (GameRules& slot : game_rules) {
+      if (!slot.used) {
+        entry = &slot;
+        break;
+      }
+    }
+    if (entry == nullptr) {
+      core::Problems::Add(u"move %u: more than %u moves of the game with rules",
+                          id, StudioMoves::kMaxGameRules);
+      return;
+    }
+  }
+  // Read into a copy: a wrong file must not break rules that work.
+  static GameRules fresh;
+  fresh = GameRules();
+  fresh.used = true;
+  fresh.id = static_cast<u16>(id);
+  fresh.rule_count = file_buffer[7];
+  studio::Reader reader(file_buffer + kHeaderSize, size - kHeaderSize);
+  if (!studio::ReadRules(&reader, fresh.rule_count, fresh.rules)) {
+    core::Problems::Add(u"move %u: the rules file is cut or has a wrong value",
+                        id);
+    return;
+  }
+  for (u32 i = 0; i < fresh.rule_count; i++) {
+    fresh.table[i].moment = static_cast<MomentKind>(fresh.rules[i].moment);
+    fresh.table[i].reaction = kGameReactions[i];
+  }
+  *entry = fresh;
+  GameExtension::ReplaceGameMove(static_cast<MoveId>(id), entry->table,
+                                 entry->rule_count);
+}
+
+/// Reads "move/rules/list.bin": the moves of the game that have rules. The
+/// layout: the text "SMLS", the version 1, 3 bytes 0, then one bit for each
+/// move (bit `id % 8` of the byte `id / 8`), for the ids 0 to 1023.
+void LoadGameRulesList() {
+  static const c16 kListPath[] = u"sdmc:/sango-studio/move/rules/list.bin";
+  constexpr u32 kListHeader = 8;
+  constexpr u32 kListSize = kListHeader + 128;
+  u8 list[kListSize] = {};
+  const u32 size = sys::File::ReadAll(kListPath, list, kListSize);
+  if (size < kListSize || std::memcmp(list, "SMLS", 4) != 0 ||
+      list[4] != kVersion) {
+    return;
+  }
+  for (u32 id = 1; id < StudioMoves::kFirstId; id++) {
+    if ((list[kListHeader + id / 8] >> (id % 8)) & 1) LoadGameRules(id);
+  }
+}
+
 /// Reads the number of a path: "<folder>/<id>.bin". Gives false for a wrong
 /// path.
 bool ReadId(const c8* at, u32* id) {
@@ -281,11 +387,13 @@ bool ReadId(const c8* at, u32* id) {
 void StudioMoves::LoadAll() {
   loaded_language = sys::Core::GetInstance().GetLanguage();
   for (u32 id = kFirstId; id <= kLastId; id++) LoadCustom(id);
+  LoadGameRulesList();
 }
 
 void StudioMoves::Apply(const c8* path) {
   static const c8 kCustom[] = "move/custom/";
   static const c8 kData[] = "move/data/";
+  static const c8 kRules[] = "move/rules/";
   u32 id = 0;
   if (std::memcmp(path, kCustom, sizeof(kCustom) - 1) == 0) {
     if (!ReadId(path + sizeof(kCustom) - 1, &id) || id < kFirstId ||
@@ -300,6 +408,15 @@ void StudioMoves::Apply(const c8* path) {
       return;
     }
     LoadChange(id);
+  } else if (std::memcmp(path, kRules, sizeof(kRules) - 1) == 0) {
+    const c8* name = path + sizeof(kRules) - 1;
+    // The list changes with the files: each file comes with its own path.
+    if (std::strcmp(name, "list.bin") == 0) return;
+    if (!ReadId(name, &id) || id == 0 || id >= kFirstId) {
+      core::Problems::Add(u"studio: a move rules file has a wrong name");
+      return;
+    }
+    LoadGameRules(id);
   }
 }
 

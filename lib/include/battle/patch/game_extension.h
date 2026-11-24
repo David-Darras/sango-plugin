@@ -209,6 +209,23 @@ public:
    */
   static bool ReplaceGameAbility(const AbilitySpec& spec);
 
+  /// The most moves of the game with reactions in place of their code.
+  static constexpr u32 kMaxGameMoves = 32;
+
+  /**
+   * @brief Replaces the code of a move of the game in battle with reactions.
+   * @param move A move of the game.
+   * @param reactions The reactions. The function keeps the pointer.
+   * @param count The number of reactions. 0 gives the code of the game back.
+   * @return false when the list is full.
+   *
+   * The data, the name and the animation of the move do not change.
+   * battle::StudioMoves uses this function for the files `move/rules/<id>.bin`
+   * of Sango Studio.
+   */
+  static bool ReplaceGameMove(MoveId move, const ReactionTable* reactions,
+                              u32 count);
+
   /// Returns the highest id of the abilities that were added, or 0 when there
   /// is none. The lists of the menu use it to show the new abilities.
   static u32 GetLastAbilityId();
@@ -312,6 +329,13 @@ private:
 
   core::FixedList<MoveSpec, kMaxMoves> moves_;
   core::FixedList<AbilitySpec, kMaxAbilities> abilities_;
+  /// The reactions that replace the code of some moves of the game.
+  struct GameMoveReactions {
+    MoveId move;
+    const ReactionTable* reactions;
+    u32 count;
+  };
+  core::FixedList<GameMoveReactions, kMaxGameMoves> game_moves_;
   TypeSpec types_[kMaxTypes];
   bool is_type_used_[kMaxTypes] = {};
 };

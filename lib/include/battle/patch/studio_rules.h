@@ -118,10 +118,10 @@ bool ReadTexts(Reader* reader, u32 text_count, c16* const* outs,
 /// value that this version does not know.
 bool ReadRules(Reader* reader, u32 count, Rule* rules);
 
-/// Runs a rule of an ability, of a move or of an item. `rule_index` is the
-/// place of the rule: the listener keeps one bit for each rule in the first
-/// number of `local_state`, for the condition "only the first time".
-void Execute(const Rule& rule, u32 rule_index, Controller* controller,
+/// Runs the rule number `rule_index` of the rules of an ability, of a move or
+/// of an item. The listener keeps one bit for each rule in the first number of
+/// `local_state`, for the condition "only the first time".
+void Execute(const Rule* rules, u32 rule_index, Controller* controller,
              UID owner, s32* local_state);
 
 /// Writes the full path of a file of the studio: `folder`, the number `id`,

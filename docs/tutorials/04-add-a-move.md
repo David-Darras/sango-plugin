@@ -218,7 +218,6 @@ You can also make a new move in Sango Studio:
 3. In the **Reactions** tab, build the reactions with the menus: **When** (a
    moment of the move), **If** (conditions), **Then** (actions).
 4. Click **Save**. The studio writes `sdmc:/sango-studio/move/custom/<id>.bin`.
-5. Click **Save**. The studio writes `sdmc:/sango-studio/move/custom/<id>.bin`.
 
 The plugin reads the file (see `battle/patch/studio_moves.h`) and registers the
 move with `GameExtension::AddMove()`. The ids of the studio go from 900 to 931,
@@ -228,6 +227,23 @@ animation plays the animation of Tackle.
 The changes that you make to a move of the game in the page **Move** go to
 `move/data/<id>.bin`: the plugin gives this data to the game each time it loads
 the move.
+
+## Change the code of a move of the game with Sango Studio
+
+Some moves of the game have code for their special effect (Hex, Weather Ball,
+Sonic Boom...). The **Reactions** tab of such a move shows this code as rules
+when the rules can do the same thing. Change a value and click **Save**:
+
+- The studio writes `sdmc:/sango-studio/move/rules/<id>.bin` (the rules) and
+  `sdmc:/sango-studio/move/rules/list.bin` (the moves that have a file).
+- The plugin calls `GameExtension::ReplaceGameMove()`: in battle, the move runs
+  the rules and not the code of the game. Its data, its name and its animation
+  stay.
+- **Back to the code of the game** deletes the file.
+
+A move of the game without code can get rules too (**Add my own rules**). The
+plugin keeps the rules of 16 moves of the game at the same time. Omega Ruby and
+Alpha Sapphire only.
 
 ## What you learned
 

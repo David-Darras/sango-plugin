@@ -119,7 +119,7 @@ void RunRule(Listener* self, Controller* controller, UID owner,
              s32* local_state) {
   const Entry* entry = FindEntry(self->source_id);
   if (entry == nullptr || kRule >= entry->rule_count) return;
-  studio::Execute(entry->rules[kRule], kRule, controller, owner, local_state);
+  studio::Execute(entry->rules, kRule, controller, owner, local_state);
 }
 
 const Reaction kReactions[studio::kMaxRules] = {

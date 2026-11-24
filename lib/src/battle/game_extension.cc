@@ -194,6 +194,27 @@ bool GameExtension::ReplaceGameAbility(const AbilitySpec& spec) {
   return true;
 }
 
+bool GameExtension::ReplaceGameMove(MoveId move,
+                                    const ReactionTable* reactions,
+                                    u32 count) {
+  auto& self = GetInstance();
+  GameMoveReactions* entry = self.game_moves_.Find(
+      [move](const GameMoveReactions& e) { return e.move == move; });
+  if (entry != nullptr) {
+    entry->reactions = reactions;
+    entry->count = count;
+    return true;
+  }
+  if (count == 0) return true;
+  if (self.game_moves_.IsFull()) {
+    core::Problems::Add(u"move %u: more than %u moves of the game with rules",
+                        static_cast<u32>(move), kMaxGameMoves);
+    return false;
+  }
+  self.game_moves_.Add(GameMoveReactions{move, reactions, count});
+  return true;
+}
+
 bool GameExtension::UpdateMove(const MoveSpec& spec) {
   auto& self = GetInstance();
   MoveSpec* current = self.moves_.Find(
@@ -465,6 +486,16 @@ uptr GameExtension::GetBattleMoveHandlerHook(Pokemon* pkm, MoveId move,
         ListenerSource::kActiveMove, static_cast<u32>(move),
         PriorityTier::kActiveMoveDefault, x, UID{pkm->uid},
         spec->reactions, spec->reaction_count);
+  }
+  // A move of the game with the reactions of Sango Studio: they replace the
+  // code of the game.
+  const GameMoveReactions* game = GetInstance().game_moves_.Find(
+      [move](const GameMoveReactions& e) { return e.move == move; });
+  if (game != nullptr && game->count != 0) {
+    return Broadcaster::RegisterReactions(
+        ListenerSource::kActiveMove, static_cast<u32>(move),
+        PriorityTier::kActiveMoveDefault, x, UID{pkm->uid}, game->reactions,
+        game->count);
   }
   return get_battle_move_handler_hook(pkm, move, x);
 }
