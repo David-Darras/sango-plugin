@@ -81,80 +81,88 @@ enum class SituationKey : u8 {
   /// true when the Pokémon is in the sky or underground (Fly, Dig...).
   kIsSemiInvulnerable = 34,
   kFailureReason = 35,
-  kTurnCount = 36,
+  /// The damage of the confusion. The game never reads it.
+  kConfusionDamage = 36,
+  kTurnCount = 37,
 
-  // Accuracy and evasion.
-  kBaseAccuracyPercent = 37,
-  kBonusAccuracyPercent = 38,
-  kAccuracyStage = 39,
-  kEvasionStage = 40,
-  kFinalAccuracyPercent = 41,
+  // The secondary effect and the accuracy.
+  /// The chance of the secondary effect in the data of the move, in percent.
+  kDefaultEffectChance = 38,
+  /// The chance of the secondary effect now, in percent (Serene Grace
+  /// doubles it).
+  kEffectChance = 39,
+  kAccuracyStage = 40,
+  kEvasionStage = 41,
 
   // Multi-strike moves.
   kMaxHitCount = 42,
   kHitCount = 43,
 
-  kCriticalHitStage = 44,
+  kAccuracyPercent = 44, ///< The chance to hit, in percent.
+  kCriticalHitStage = 45,
 
   // The held item.
-  kItemId = 45,
-  kItemReactionEnabled = 46, ///< true when the held items can react.
+  kItemId = 46,
+  kItemReactionEnabled = 47, ///< true when the held items can react.
 
-  kSpeedValue = 47,
+  kSpeedValue = 48,
 
   // The damage calculation.
-  kMovePower = 48,
-  kMovePowerMultiplier = 49,
-  kDamageAmount = 50,
-  kBasePowerValue = 51,
-  kDefenseValue = 52,
-  kMultiplier = 53,
-  kSecondaryMultiplier = 54,
+  kMovePower = 49,
+  kMovePowerMultiplier = 50,
+  kDamageAmount = 51,
+  kBasePowerValue = 52,
+  kDefenseValue = 53,
+  kMultiplier = 54,
+  kSecondaryMultiplier = 55,
   /// The damage of a fixed-damage move (Seismic Toss...).
-  kFixedDamageAmount = 55,
-  kTypeEffectiveness = 56,
+  kFixedDamageAmount = 56,
+  kTypeEffectiveness = 57,
 
-  kWeather = 57,
+  kWeather = 58,
   /// Why the Pokémon did not faint (Sturdy, Focus Sash, Endure...).
-  kSurvivalReason = 58,
-  kSwapTargetId = 59,
+  kSurvivalReason = 59,
+  kSwapTargetId = 60,
 
-  kVisualEffectId = 60,
-  kVisualSwapCount = 61,
-  kMoveExecutionMode = 62, ///< The move can run, must fail, or must stop.
+  kVisualEffectId = 61,
+  kVisualSwapCount = 62,
+  kMoveExecutionMode = 63, ///< The move can run, must fail, or must stop.
   /// The address of extra data of the moment (for example, the values of a
   /// message).
-  kExtraDataPointer = 63,
+  kExtraDataPointer = 64,
 
   // The result flags.
-  kNoEffectFlag = 64,
-  kFailedFlag = 65,
-  kMissedFlag = 66,
+  kNoEffectFlag = 65,
+  kFailedFlag = 66,
+  kMissedFlag = 67,
   /// Shows the failure message also when it is not a real failure.
-  kShowFailureMessageFlag = 67,
-  kStabFlag = 68, ///< The same-type attack bonus (STAB) applies.
-  kCriticalHitFlag = 69,
-  kSubstituteFlag = 70, ///< A substitute blocked the move.
-  kOvercoatGuardFlag = 71, ///< Overcoat blocks the weather or the powder.
-  kSheerForceFlag = 72, ///< Sheer Force removes the secondary effect.
-  kItemSwapFlag = 73, ///< An item exchange (Trick, Switcheroo).
-  kResetStatsFlag = 74, ///< Resets the stat stages of this Pokémon.
-  /// Resets the stat stages of all the Pokémon (like Haze).
-  kResetAllStatsFlag = 75,
-  kDelayedAttackFlag = 76,
-  kMagicCoatFlag = 77, ///< Magic Coat sent the move back.
-  kShowMessageFlag = 78,
-  kFixedValueFlag = 79, ///< Goes with kFixedDamageAmount.
-  kBerryFlag = 80,
-  kCheckResultFlag = 81, ///< A shared yes or no result for many checks.
-  kBurnPreventedFlag = 82,
+  kShowFailureMessageFlag = 68,
+  kStabFlag = 69, ///< The same-type attack bonus (STAB) applies.
+  kCriticalHitFlag = 70,
+  kSubstituteFlag = 71, ///< A substitute blocked the move.
+  /// Shield Dust blocks the secondary effect.
+  kShieldDustGuardFlag = 72,
+  kSheerForceFlag = 73, ///< Sheer Force removes the secondary effect.
+  kItemUsedFlag = 74, ///< The held item was used.
+  kItemSwapFlag = 75, ///< An item exchange (Trick, Switcheroo).
+  /// Ignores the stat stages of this Pokémon (like Unaware).
+  kIgnoreStatsFlag = 76,
+  /// Ignores the stat stages of all the Pokémon.
+  kIgnoreAllStatsFlag = 77,
+  kDelayedAttackFlag = 78,
+  kMagicCoatFlag = 79, ///< Magic Coat sent the move back.
+  kShowMessageFlag = 80,
+  kFixedValueFlag = 81, ///< Goes with kFixedDamageAmount.
+  kBerryFlag = 82,
+  kCheckResultFlag = 83, ///< A shared yes or no result for many checks.
+  kBurnPreventedFlag = 84,
 
-  kFieldSide = 83,
-  kTeamEffectId = 84,
-  kAuraBreakFlag = 85,
-  kAuraPendingFlag = 86, ///< An aura effect waits to apply.
-  kEffectNumber = 87, ///< The number of a visual or mechanical effect.
+  kFieldSide = 85,
+  kTeamEffectId = 86,
+  kAuraBreakFlag = 87,
+  kAuraPendingFlag = 88, ///< An aura effect waits to apply.
+  kEffectNumber = 89, ///< The number of a visual or mechanical effect.
 
-  kCount = 88,
+  kCount = 90,
 };
 }

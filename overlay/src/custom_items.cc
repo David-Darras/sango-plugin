@@ -194,18 +194,13 @@ const c16* UseKnife(pokemon::CoreData& pokemon) {
 // Philosopher Stone: the holder cannot die. The moves of the other Pokemon have
 // no effect on it, a move that would make it faint leaves 1 HP, and the holder
 // recovers the HP that it lost (a move, poison, weather...).
-// The numbers of two values of the moment. The game counts them one more than
-// SituationKey::kNoEffectFlag and SituationKey::kSurvivalReason (the library
-// misses a value before them), so the stone uses the numbers of the game.
-constexpr SituationKey kNoEffectKey = static_cast<SituationKey>(65);
-constexpr SituationKey kSurvivalKey = static_cast<SituationKey>(59);
 
 void PhilosopherStoneBlock(Listener* self, Controller* controller, UID owner,
                            s32* local_state) {
   if (Situation::Get(SituationKey::kMoveRecipientId) != owner.value) return;
   // A move of the holder on itself (Swords Dance...) works.
   if (Situation::Get(SituationKey::kMoveUserId) == owner.value) return;
-  Situation::Set(kNoEffectKey, 1);
+  Situation::Set(SituationKey::kNoEffectFlag, 1);
 }
 
 // A move that would make the holder faint leaves it with 1 HP, like Endure.
@@ -215,7 +210,7 @@ void PhilosopherStoneEndure(Listener* self, Controller* controller, UID owner,
   constexpr s32 kSurvivedByItem = 3;
   // The Pokémon that receives the move: this check has no Pokémon of the moment.
   if (Situation::Get(SituationKey::kMoveRecipientId) != owner.value) return;
-  Situation::Set(kSurvivalKey, kSurvivedByItem);
+  Situation::Set(SituationKey::kSurvivalReason, kSurvivedByItem);
 }
 
 void PhilosopherStoneHeal(Listener* self, Controller* controller, UID owner,

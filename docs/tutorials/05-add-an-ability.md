@@ -151,11 +151,30 @@ Rules to know:
 
 - The ids of the studio go from 192 to 255. The overlay uses 248 to 255 for its
   examples: do not use these ids in the studio.
-- The plugin keeps 32 abilities of the studio at the same time.
+- The studio makes 32 new abilities at most.
 - When you delete an ability in the studio, its reactions stop at once, but its
   name stays in the lists until the game restarts.
 - The plugin shows the text of the language of the game. When the player changes
   the language, the plugin reads the texts again.
+
+## Change an ability of the game with Sango Studio
+
+The **Reactions** tab of an ability of the game (1 to 191) shows what the game
+does, written as rules, for the abilities that the rules can express
+(Intimidate, Volt Absorb, Technician...). Change a value and click **Save**:
+
+- The studio writes `sdmc:/sango-studio/ability/<id>.bin` with empty texts (the
+  ability keeps the name and the description of the game) and
+  `sdmc:/sango-studio/ability/game.bin`, the list of the abilities of the game
+  that have a file.
+- The plugin calls `GameExtension::ReplaceGameAbility()`: the battle runs the
+  rules of the file and not the code of the game for this ability.
+- **Back to the code of the game** deletes the file: the game runs its code
+  again at the next battle.
+
+The plugin keeps 48 abilities of the studio at the same time: the new ones and
+the abilities of the game that have a file. The rules of the abilities of the
+game work in Omega Ruby and Alpha Sapphire only.
 
 ## Useful moments
 

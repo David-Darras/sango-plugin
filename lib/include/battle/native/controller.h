@@ -66,6 +66,29 @@ public:
         address::kControllerFillMessageSlot, message, p0, id);
   }
 
+  /// The number of positions on the field (the value of "no position" too).
+  static constexpr u8 kPositionCount = 10;
+
+  /// Returns the position on the field of a Pokémon that is in front, or
+  /// kPositionCount. Returns kPositionCount on X and Y (no address).
+  INLINE u8 GetFrontPosition(UID uid) {
+    if (address::kControllerGetFrontPosition == 0) return kPositionCount;
+    return core::GameFunction<u8(Controller*, u8)>::Call(
+        address::kControllerGetFrontPosition, this, uid.value);
+  }
+
+  /// Writes the ids of the foes next to a position (at most kPositionCount
+  /// ids) and returns their number. Returns 0 on X and Y (no address).
+  INLINE u32 ListFoesNextTo(u8 position, u8* ids) {
+    if (address::kControllerListArea == 0 || position >= kPositionCount) {
+      return 0;
+    }
+    // The area of the foes is 1, in the high byte of the value.
+    constexpr u32 kFoeArea = 1 << 8;
+    return core::GameFunction<u8(Controller*, u32, u8*)>::Call(
+        address::kControllerListArea, this, kFoeArea | position, ids);
+  }
+
   /// Returns the battle data of a Pokémon.
   INLINE Pokemon* GetPokemon(UID uid) {
     return core::GameFunction<Pokemon*(Controller*, UID)>::Call(

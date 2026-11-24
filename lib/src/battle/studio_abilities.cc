@@ -96,7 +96,29 @@ void Publish(Entry* entry) {
   }
 }
 
-/// Reads the file of an ability. A missing file removes its reactions.
+/// Puts the reactions of an ability of the game in place of its code. Without
+/// reactions, the game runs its code again.
+void PublishGame(Entry* entry) {
+  const AbilitySpec spec = {static_cast<AbilityId>(entry->id), entry->name,
+                            entry->description, entry->table,
+                            entry->rule_count};
+  GameExtension::ReplaceGameAbility(spec);
+}
+
+/// True for an ability of the game.
+bool IsGameId(u32 id) {
+  return id >= StudioAbilities::kFirstGameId &&
+         id <= StudioAbilities::kLastGameId;
+}
+
+/// True for an id that can have a file.
+bool IsFileId(u32 id) {
+  return IsGameId(id) ||
+         (id >= StudioAbilities::kFirstId && id <= StudioAbilities::kLastId);
+}
+
+/// Reads the file of an ability. A missing file removes its reactions: an
+/// ability of the game runs its code again.
 void Load(u32 id) {
   static const c16 kFolder[] = u"sdmc:/sango-studio/ability/";
   static const c16 kSuffix[] = u".bin";
@@ -107,7 +129,11 @@ void Load(u32 id) {
   if (size == 0) {
     if (entry != nullptr && entry->rule_count != 0) {
       entry->rule_count = 0;
-      Publish(entry);
+      if (IsGameId(id)) {
+        PublishGame(entry);
+      } else {
+        Publish(entry);
+      }
     }
     return;
   }
@@ -153,7 +179,30 @@ void Load(u32 id) {
     fresh.table[i].reaction = kReactions[i];
   }
   *entry = fresh;
-  Publish(entry);
+  if (IsGameId(id)) {
+    PublishGame(entry);
+  } else {
+    Publish(entry);
+  }
+}
+
+/// Reads `ability/game.bin`: the abilities of the game that have a file. The
+/// layout: the text "SAGL", the version 1, 3 bytes 0, then one bit for each
+/// ability (bit `id % 8` of the byte `id / 8`).
+void LoadGameAbilities() {
+  static const c16 kListPath[] = u"sdmc:/sango-studio/ability/game.bin";
+  constexpr u32 kListHeader = 8;
+  constexpr u32 kListSize = kListHeader + 32;
+  u8 list[kListSize] = {};
+  const u32 size = sys::File::ReadAll(kListPath, list, kListSize);
+  if (size < kListSize || std::memcmp(list, "SAGL", 4) != 0 ||
+      list[4] != kVersion) {
+    return;
+  }
+  for (u32 id = StudioAbilities::kFirstGameId;
+       id <= StudioAbilities::kLastGameId; id++) {
+    if ((list[kListHeader + id / 8] >> (id % 8)) & 1) Load(id);
+  }
 }
 
 } // namespace
@@ -161,6 +210,7 @@ void Load(u32 id) {
 void StudioAbilities::LoadAll() {
   loaded_language = sys::Core::GetInstance().GetLanguage();
   for (u32 id = kFirstId; id <= kLastId; id++) Load(id);
+  LoadGameAbilities();
 }
 
 void StudioAbilities::Apply(const c8* path) {
@@ -173,7 +223,7 @@ void StudioAbilities::Apply(const c8* path) {
     if (id > 1000) return;
     at++;
   }
-  if (std::strcmp(at, ".bin") != 0 || id < kFirstId || id > kLastId) {
+  if (std::strcmp(at, ".bin") != 0 || !IsFileId(id)) {
     core::Problems::Add(u"studio: an ability file has a wrong name");
     return;
   }

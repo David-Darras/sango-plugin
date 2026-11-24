@@ -30,6 +30,16 @@
 namespace sys {
 
 /**
+ * @brief Message header block inside the text data.
+ */
+struct MsgHeaderBlock {
+  u16 num_langs;
+  u16 num_strings;
+  u32 max_lang_block_size;
+  u32 reserved;
+};
+
+/**
  * @brief A text file of the game: for example the names of the moves.
  *
  * Each text has an index (`str_id`) in the file.
@@ -42,7 +52,8 @@ struct Message {
   u32 file_id; ///< The number of the text file.
   Language language; ///< The language of the texts.
   u8 padding[3];
-  uptr _0, _1, _2;
+  const MsgHeaderBlock* data_header;
+  uptr _1, _2;
 
   /// Copies the text with the index `str_id` into `output`.
   INLINE void GetString(u32 str_id, String* output) {
@@ -50,6 +61,9 @@ struct Message {
         sys::address::kMessageGetString, this, str_id, output);
   }
 };
+
+static_assert(offsetof(Message, data_header) == 0x18,
+              "Message::data_header must be at offset 0x18");
 
 } // namespace sys
 

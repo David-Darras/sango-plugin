@@ -37,6 +37,7 @@
 #include "battle/native/pokemon.h"
 #include "battle/native/situation.h"
 #include "pokemon/native/move_data.h"
+#include "core/utils.h"
 #include "system/native/core.h"
 
 namespace battle {
@@ -58,8 +59,22 @@ enum ConditionKind : u8 {
   kNoSubstitute = 11,
   kHpNotFull = 12,
   kMoveMakesContact = 13,
+  kPokemonIsFoe = 14,
+  kCausedByOther = 15,
+  kOwnerHasStatus = 16,
+  kOtherHasStatus = 17,
+  kOtherHasAbility = 18,
+  kPowerAtMost = 19,
+  kMoveIsStab = 20,
+  kCriticalHit = 21,
+  kMoveHasFlag = 22,
+  kMoveInGroup = 23,
+  kChance = 24,
+  kNotVeryEffective = 25,
+  kHpFull = 26,
+  kMoveTypeWasChanged = 27,
 };
-constexpr u8 kLastCondition = kMoveMakesContact;
+constexpr u8 kLastCondition = kMoveTypeWasChanged;
 
 enum ActionKind : u8 {
   kChangeStat = 1,
@@ -73,8 +88,17 @@ enum ActionKind : u8 {
   kDamageHp = 9,
   kConsumeItem = 10,
   kRaiseCritical = 11,
+  kBlockStatDrop = 12,
+  kBlockStatus = 13,
+  kBlockMove = 14,
+  kBlockFlinch = 15,
+  kBlockCritical = 16,
+  kChangeMoveType = 17,
+  kRaisePriority = 18,
+  kMultiplyEffectChance = 19,
+  kForceCritical = 20,
 };
-constexpr u8 kLastAction = kRaiseCritical;
+constexpr u8 kLastAction = kForceCritical;
 
 // The targets of an action in the files.
 enum Target : u8 {
@@ -82,7 +106,35 @@ enum Target : u8 {
   kTargetPokemonOfMoment = 1,
   kTargetMoveUser = 2,
   kTargetFirstTarget = 3,
+  kTargetFoes = 4,
 };
+
+// The moments that some actions need (see MomentKind).
+constexpr u16 kMomentMovePower = 61;
+constexpr u16 kMomentMoveData = 40;
+constexpr u16 kMomentFlinchChance = 117;
+
+// The places in the memory of the listener (local_state).
+constexpr u32 kStateOnce = 0; ///< One bit for each rule: "only the first time".
+constexpr u32 kStateMoveType = 1; ///< 1 + the type that the ability gave.
+
+// The value of the type effectiveness for a normal hit (x1). A smaller value
+// is not very effective, 0 is no effect.
+constexpr s32 kNormalEffectiveness = 7;
+// A Pokémon id from 0 to 11 is on the first side, from 12 on the second side.
+constexpr u8 kFirstSideIds = 12;
+// The number of status conditions of a Pokémon in battle.
+constexpr u32 kStatusCount = 38;
+// The critical-hit stage that always gives a critical hit.
+constexpr s32 kAlwaysCritical = 3;
+// The groups of moves that the game keeps in its code: biting (Strong Jaw),
+// aura and pulse (Mega Launcher), ball and bomb (Bulletproof), powder
+// (Overcoat).
+const u16 kBitingMoves[] = {44, 242, 305, 422, 423, 424, 158};
+const u16 kPulseMoves[] = {399, 396, 505, 618, 352, 406};
+const u16 kBallMoves[] = {140, 411, 247, 301, 311, 360, 412, 486, 121, 188, 396,
+                          402, 426, 545, 296, 331, 443, 491, 190, 192, 439};
+const u16 kPowderMoves[] = {78, 79, 77, 147, 600, 178};
 
 constexpr u32 kConditionSize = 3;
 constexpr u32 kActionSize = 7;
@@ -180,43 +232,126 @@ s32 Value(SituationKey key) {
   return value;
 }
 
+/// Reads a number of the moment. Returns false when the moment has no such
+/// number (on X and Y, always true: the game gives 0).
+bool Has(SituationKey key, s32* value) {
+  if (!MomentValues::Available()) {
+    *value = Situation::Get(key);
+    return true;
+  }
+  return MomentValues::Read(key, value);
+}
+
+/// Reads the id of a Pokémon of the moment. Returns false when the moment has
+/// no such Pokémon.
+bool PokemonId(SituationKey key, UID* id) {
+  s32 value = 0;
+  if (!Has(key, &value) || value < 0 || value >= 0xFF) return false;
+  *id = UID{static_cast<u8>(value)};
+  return true;
+}
+
 /// The number that a moment multiplies: the power of a move has its own,
 /// all the other moments use the shared multiplier.
 SituationKey MultiplierKey(u16 moment) {
-  return moment == 61 ? SituationKey::kMovePowerMultiplier
-                      : SituationKey::kMultiplier;
+  return moment == kMomentMovePower ? SituationKey::kMovePowerMultiplier
+                                    : SituationKey::kMultiplier;
 }
 
 /// Returns the data of the move of the moment, or null.
 const pokemon::MoveData* CurrentMove() {
-  const s32 id = Value(SituationKey::kMoveId);
-  if (id <= 0 || id >= 1000) return nullptr;
+  s32 id = 0;
+  if (!Has(SituationKey::kMoveId, &id) || id <= 0 || id >= 1000) {
+    return nullptr;
+  }
   return &pokemon::MoveData::GetInstance(static_cast<MoveId>(id));
 }
 
-/// Returns the battle id that a target of an action means.
-UID ResolveTarget(u8 target, UID owner) {
-  switch (target) {
-  case kTargetPokemonOfMoment:
-    return UID{static_cast<u8>(Value(SituationKey::kPokemonId))};
-  case kTargetMoveUser:
-    return UID{static_cast<u8>(Value(SituationKey::kMoveUserId))};
-  case kTargetFirstTarget:
-    return UID{static_cast<u8>(Value(SituationKey::kTargetId1))};
-  default:
-    return owner;
+/// Returns the type of the move of the moment: the type of the moment (it can
+/// change, like with Refrigerate), else the type of the data. -1 for none.
+s32 MoveType() {
+  s32 type = 0;
+  if (Has(SituationKey::kMoveType, &type)) return type;
+  const pokemon::MoveData* move = CurrentMove();
+  return move == nullptr ? -1 : static_cast<s32>(move->type);
+}
+
+/// True when two Pokémon are on the two sides of the battle.
+bool AreFoes(UID a, UID b) {
+  return (a.value < kFirstSideIds) != (b.value < kFirstSideIds);
+}
+
+/// The other Pokémon of the move: the target when the owner uses the move,
+/// the user when the owner is hit. Returns false when there is none.
+bool OtherPokemon(UID owner, UID* other) {
+  UID user{0};
+  if (!PokemonId(SituationKey::kMoveUserId, &user)) return false;
+  if (user.value != owner.value) {
+    *other = user;
+    return true;
+  }
+  return PokemonId(SituationKey::kMoveRecipientId, other) ||
+         PokemonId(SituationKey::kTargetId1, other);
+}
+
+/// True when a Pokémon has a status condition. 0 is any of paralysis, sleep,
+/// freeze, burn and poison.
+bool HasStatus(const Pokemon* pokemon, s32 status) {
+  if (pokemon == nullptr) return false;
+  // The low 3 bits of a status condition tell how it lasts: 0 is "absent".
+  if (status == 0) {
+    for (u32 i = static_cast<u32>(StatusCondition::kParalysis);
+         i <= static_cast<u32>(StatusCondition::kPoison); i++) {
+      if ((pokemon->status_condition[i] & 7) != 0) return true;
+    }
+    return false;
+  }
+  if (status < 0 || static_cast<u32>(status) >= kStatusCount) return false;
+  return (pokemon->status_condition[status] & 7) != 0;
+}
+
+/// True when a status condition of the moment is the one of an action. 0 is
+/// any of paralysis, sleep, freeze, burn and poison.
+bool StatusMatches(s32 status, s32 wanted) {
+  if (wanted == 0) {
+    return status >= static_cast<s32>(StatusCondition::kParalysis) &&
+           status <= static_cast<s32>(StatusCondition::kPoison);
+  }
+  return status == wanted;
+}
+
+/// True when a move is in a list.
+template <u32 kCount>
+bool InList(const u16 (&list)[kCount], s32 move) {
+  for (u16 entry : list) {
+    if (entry == move) return true;
+  }
+  return false;
+}
+
+/// True when the move of the moment is in a group of moves of the game.
+bool MoveInGroup(s32 group) {
+  s32 move = 0;
+  if (!Has(SituationKey::kMoveId, &move)) return false;
+  switch (group) {
+  case 1: return InList(kBitingMoves, move);
+  case 2: return InList(kPulseMoves, move);
+  case 3: return InList(kBallMoves, move);
+  case 4: return InList(kPowderMoves, move);
+  default: return false;
   }
 }
 
 /// Returns true when a condition is true. OnlyOnce is handled by the caller.
-bool Test(const Condition& condition, Controller* controller, UID owner) {
+bool Test(const Condition& condition, Controller* controller, UID owner,
+          const s32* local_state) {
   switch (condition.kind) {
   case kPokemonIsOwner:
     return Value(SituationKey::kPokemonId) == owner.value;
   case kMoveUserIsOwner:
     return Value(SituationKey::kMoveUserId) == owner.value;
   case kMoveTypeIs:
-    return Value(SituationKey::kMoveType) == condition.arg;
+    return MoveType() == condition.arg;
   case kWeatherIs:
     return Value(SituationKey::kWeather) == condition.arg;
   case kTargetFainted: {
@@ -245,8 +380,7 @@ bool Test(const Condition& condition, Controller* controller, UID owner) {
            static_cast<s32>(move->damage_category) == condition.arg;
   }
   case kSuperEffective:
-    // 4 is the normal effectiveness (see TypeMultiplier).
-    return Value(SituationKey::kTypeEffectiveness) > 4;
+    return Value(SituationKey::kTypeEffectiveness) > kNormalEffectiveness;
   case kNoSubstitute:
     return Value(SituationKey::kSubstituteFlag) == 0;
   case kHpNotFull: {
@@ -257,8 +391,101 @@ bool Test(const Condition& condition, Controller* controller, UID owner) {
     const pokemon::MoveData* move = CurrentMove();
     return move != nullptr && (move->flags & 1) != 0;
   }
+  case kPokemonIsFoe: {
+    UID id{0};
+    return PokemonId(SituationKey::kPokemonId, &id) && AreFoes(id, owner);
+  }
+  case kCausedByOther: {
+    UID user{0};
+    return PokemonId(SituationKey::kMoveUserId, &user) &&
+           user.value != owner.value;
+  }
+  case kOwnerHasStatus:
+    return HasStatus(controller->GetPokemon(owner), condition.arg);
+  case kOtherHasStatus: {
+    UID other{0};
+    return OtherPokemon(owner, &other) &&
+           HasStatus(controller->GetPokemon(other), condition.arg);
+  }
+  case kOtherHasAbility: {
+    UID other{0};
+    if (!OtherPokemon(owner, &other)) return false;
+    const Pokemon* pokemon = controller->GetPokemon(other);
+    return pokemon != nullptr &&
+           static_cast<s32>(pokemon->ability) == condition.arg;
+  }
+  case kPowerAtMost: {
+    s32 power = 0;
+    if (!Has(SituationKey::kMovePower, &power)) {
+      const pokemon::MoveData* move = CurrentMove();
+      if (move == nullptr) return false;
+      power = move->power;
+    }
+    return power > 0 && power <= condition.arg;
+  }
+  case kMoveIsStab: {
+    UID user{0};
+    if (!PokemonId(SituationKey::kMoveUserId, &user) &&
+        !PokemonId(SituationKey::kPokemonId, &user)) {
+      return false;
+    }
+    const Pokemon* pokemon = controller->GetPokemon(user);
+    const s32 type = MoveType();
+    return pokemon != nullptr && type >= 0 &&
+           (static_cast<s32>(pokemon->type_1) == type ||
+            static_cast<s32>(pokemon->type_2) == type ||
+            static_cast<s32>(pokemon->type_3) == type);
+  }
+  case kCriticalHit:
+    return Value(SituationKey::kCriticalHitFlag) != 0;
+  case kMoveHasFlag: {
+    const pokemon::MoveData* move = CurrentMove();
+    return move != nullptr && condition.arg >= 0 && condition.arg < 32 &&
+           ((move->flags >> condition.arg) & 1) != 0;
+  }
+  case kMoveInGroup:
+    return MoveInGroup(condition.arg);
+  case kChance:
+    return static_cast<s32>(core::Utils::GetRandomValue(100)) < condition.arg;
+  case kNotVeryEffective: {
+    const s32 effectiveness = Value(SituationKey::kTypeEffectiveness);
+    return effectiveness > 0 && effectiveness < kNormalEffectiveness;
+  }
+  case kHpFull: {
+    Pokemon* owner_pokemon = controller->GetPokemon(owner);
+    return owner_pokemon != nullptr && owner_pokemon->hp == owner_pokemon->max_hp;
+  }
+  case kMoveTypeWasChanged:
+    return local_state[kStateMoveType] != 0 &&
+           MoveType() == local_state[kStateMoveType] - 1;
   default:
     return true;
+  }
+}
+
+/// Writes the Pokémon that a target of an action means. Returns their number.
+u32 ResolveTargets(u8 target, Controller* controller, UID owner,
+                   UID (&out)[Controller::kPositionCount]) {
+  switch (target) {
+  case kTargetPokemonOfMoment:
+    return PokemonId(SituationKey::kPokemonId, &out[0]) ? 1 : 0;
+  case kTargetMoveUser:
+    return PokemonId(SituationKey::kMoveUserId, &out[0]) ? 1 : 0;
+  case kTargetFirstTarget:
+    return PokemonId(SituationKey::kTargetId1, &out[0]) ? 1 : 0;
+  case kTargetFoes: {
+    u8 ids[Controller::kPositionCount] = {};
+    const u32 count =
+        controller->ListFoesNextTo(controller->GetFrontPosition(owner), ids);
+    u32 kept = 0;
+    for (u32 i = 0; i < count && i < Controller::kPositionCount; i++) {
+      out[kept++] = UID{ids[i]};
+    }
+    return kept;
+  }
+  default:
+    out[0] = owner;
+    return 1;
   }
 }
 
@@ -271,33 +498,28 @@ T* Make(Controller* controller, MutationKind kind, UID owner,
   return mutation;
 }
 
-void Run(const Action& action, u16 moment, Controller* controller, UID owner) {
-  const UID target = ResolveTarget(action.target, owner);
+/// Shows or hides the banner of the ability of the owner.
+void Banner(Controller* controller, UID owner, bool show) {
+  controller->Apply(controller->Create(
+      show ? MutationKind::kShowAbilityBanner : MutationKind::kHideAbilityBanner,
+      owner));
+}
+
+/// The item that makes a weather of an ability last 8 turns, as in the game.
+ItemId WeatherRock(s32 weather) {
+  switch (static_cast<Weather>(weather)) {
+  case Weather::kHarshSunlight: return ItemId::kHeatRock;
+  case Weather::kRain: return ItemId::kDampRock;
+  case Weather::kHail: return ItemId::kIcyRock;
+  case Weather::kSandstorm: return ItemId::kSmoothRock;
+  default: return ItemId::kNone;
+  }
+}
+
+/// Runs the action on one target.
+void RunOn(const Action& action, Controller* controller, UID owner,
+           UID target) {
   switch (action.kind) {
-  case kChangeStat: {
-    auto* mutation = Make<AdjustStatStageMutation>(
-        controller, MutationKind::kAdjustStatStage, owner, action);
-    mutation->target_count = 1;
-    mutation->target_ids[0] = target;
-    mutation->stage_kind = static_cast<StatStageEffectKind>(action.a);
-    mutation->stage_delta = static_cast<s8>(action.b);
-    controller->Apply(mutation);
-    break;
-  }
-  case kSetWeather:
-    controller->SetWeather(owner, static_cast<Weather>(action.a),
-                           ItemId::kNone, action.b != 0);
-    break;
-  case kSetTerrain: {
-    auto* mutation = Make<AddFieldEffectMutation>(
-        controller, MutationKind::kAddFieldEffect, owner, action);
-    mutation->effect = FieldEffectKind::kTerrain;
-    mutation->terrain = static_cast<TerrainKind>(action.a);
-    mutation->duration.raw = 1;
-    mutation->message.id = MutationMessageId::kNone;
-    controller->Apply(mutation);
-    break;
-  }
   case kGiveStatus: {
     auto* mutation = Make<InflictStatusMutation>(
         controller, MutationKind::kInflictStatus, owner, action);
@@ -335,14 +557,6 @@ void Run(const Action& action, u16 moment, Controller* controller, UID owner) {
     controller->Apply(mutation);
     break;
   }
-  case kUseMove:
-    controller->ExecuteMove(controller->GetPokemon(owner),
-                            static_cast<MoveId>(action.a));
-    break;
-  case kMultiplyValue:
-    // b is the multiplier in percent (150 is x1.5).
-    if (action.b > 0) MomentValues::Multiply(MultiplierKey(moment), action.b);
-    break;
   case kDamageHp: {
     Pokemon* pokemon = controller->GetPokemon(target);
     if (pokemon == nullptr || pokemon->hp == 0) break;
@@ -363,9 +577,65 @@ void Run(const Action& action, u16 moment, Controller* controller, UID owner) {
     controller->Apply(mutation);
     break;
   }
+  default:
+    break;
+  }
+}
+
+/// Runs an action. Returns false when the next actions of the rule must not
+/// run (a move that "Block the move" could not block).
+bool Run(const Action& action, u16 moment, Controller* controller, UID owner,
+         s32* local_state, bool more_actions) {
+  switch (action.kind) {
+  case kChangeStat: {
+    UID targets[Controller::kPositionCount];
+    const u32 count = ResolveTargets(action.target, controller, owner, targets);
+    if (count == 0) break;
+    auto* mutation = Make<AdjustStatStageMutation>(
+        controller, MutationKind::kAdjustStatStage, owner, action);
+    mutation->target_count = static_cast<u8>(count);
+    for (u32 i = 0; i < count; i++) mutation->target_ids[i] = targets[i];
+    mutation->stage_kind = static_cast<StatStageEffectKind>(action.a);
+    mutation->stage_delta = static_cast<s8>(action.b);
+    // Intimidate of the game shows "won't go any lower" for each foe.
+    if (action.target == kTargetFoes) mutation->show_failure_message = 1;
+    controller->Apply(mutation);
+    break;
+  }
+  case kGiveStatus:
+  case kHeal:
+  case kChangeType:
+  case kDamageHp: {
+    UID targets[Controller::kPositionCount];
+    const u32 count = ResolveTargets(action.target, controller, owner, targets);
+    for (u32 i = 0; i < count; i++) RunOn(action, controller, owner, targets[i]);
+    break;
+  }
+  case kSetWeather:
+    controller->SetWeather(owner, static_cast<Weather>(action.a),
+                           WeatherRock(action.a), action.b != 0);
+    break;
+  case kSetTerrain: {
+    auto* mutation = Make<AddFieldEffectMutation>(
+        controller, MutationKind::kAddFieldEffect, owner, action);
+    mutation->effect = FieldEffectKind::kTerrain;
+    mutation->terrain = static_cast<TerrainKind>(action.a);
+    mutation->duration.raw = 1;
+    mutation->message.id = MutationMessageId::kNone;
+    controller->Apply(mutation);
+    break;
+  }
+  case kUseMove:
+    controller->ExecuteMove(controller->GetPokemon(owner),
+                            static_cast<MoveId>(action.a));
+    break;
+  case kMultiplyValue:
+    // b is the multiplier in percent (150 is x1.5).
+    if (action.b > 0) MomentValues::Multiply(MultiplierKey(moment), action.b);
+    break;
   case kConsumeItem: {
     auto* mutation = Make<ConsumeItemMutation>(
-        controller, MutationKind::kConsumeItem, target, action);
+        controller, MutationKind::kConsumeItem, owner, action);
     mutation->skip_action = 0;
     mutation->skip_berry_eaten_flag = 0;
     mutation->message.id = MutationMessageId::kNone;
@@ -380,9 +650,84 @@ void Run(const Action& action, u16 moment, Controller* controller, UID owner) {
     }
     break;
   }
+  case kBlockStatDrop: {
+    // The moment has the change (a negative amount is a drop) and the stat.
+    s32 amount = 0;
+    s32 stat = 0;
+    if (!Has(SituationKey::kAmount, &amount) || amount >= 0) break;
+    if (action.a != 0 &&
+        (!Has(SituationKey::kConditionCategory, &stat) || stat != action.a)) {
+      break;
+    }
+    MomentValues::Write(SituationKey::kFailedFlag, 1);
+    break;
+  }
+  case kBlockStatus: {
+    s32 status = 0;
+    if (Has(SituationKey::kStatusId, &status) &&
+        StatusMatches(status, action.a)) {
+      MomentValues::Write(SituationKey::kFailedFlag, 1);
+    }
+    break;
+  }
+  case kBlockMove:
+    if (!MomentValues::Write(SituationKey::kNoEffectFlag, 1)) return false;
+    // The next actions show their own result: the game skips its message
+    // "It doesn't affect...".
+    if (more_actions) MomentValues::Write(SituationKey::kCheckResultFlag, 1);
+    if (action.banner) {
+      Banner(controller, owner, true);
+      Banner(controller, owner, false);
+    }
+    break;
+  case kBlockFlinch:
+  case kBlockCritical:
+    MomentValues::Write(SituationKey::kFailedFlag, 1);
+    break;
+  case kChangeMoveType:
+    if (MomentValues::Write(SituationKey::kMoveType, action.a)) {
+      local_state[kStateMoveType] = action.a + 1;
+    }
+    break;
+  case kRaisePriority: {
+    s32 priority = 0;
+    if (MomentValues::Read(SituationKey::kMovePriority, &priority)) {
+      MomentValues::Write(SituationKey::kMovePriority, priority + action.a);
+    }
+    break;
+  }
+  case kMultiplyEffectChance: {
+    if (action.b <= 0) break;
+    // The chance of a flinch has one doubling flag only (like Serene Grace).
+    if (moment == kMomentFlinchChance) {
+      if (action.b >= 200) {
+        MomentValues::Write(SituationKey::kCriticalHitFlag, 1);
+      }
+      break;
+    }
+    s32 chance = 0;
+    if (MomentValues::Read(SituationKey::kEffectChance, &chance)) {
+      s32 next = chance * action.b / 100;
+      if (next > 100) next = 100;
+      MomentValues::Write(SituationKey::kEffectChance, next);
+    }
+    break;
+  }
+  case kForceCritical:
+    MomentValues::Write(SituationKey::kCriticalHitStage, kAlwaysCritical);
+    break;
   default:
     break;
   }
+  return true;
+}
+
+/// True when the rule has the action "Change the type of the move".
+bool ChangesMoveType(const Rule& rule) {
+  for (u32 i = 0; i < rule.action_count; i++) {
+    if (rule.actions[i].kind == kChangeMoveType) return true;
+  }
+  return false;
 }
 
 bool IsKnownCondition(u8 kind) {
@@ -483,21 +828,31 @@ bool ReadRules(Reader* reader, u32 count, Rule* rules) {
 
 void Execute(const Rule& rule, u32 rule_index, Controller* controller,
              UID owner, s32* local_state) {
+  // A new move of the owner: the type that the ability gave to the last move
+  // is forgotten, before the conditions (the move can keep its type).
+  if (rule.moment == kMomentMoveData && ChangesMoveType(rule) &&
+      Value(SituationKey::kPokemonId) == owner.value) {
+    local_state[kStateMoveType] = 0;
+  }
   bool only_once = false;
   for (u32 i = 0; i < rule.condition_count; i++) {
     const Condition& condition = rule.conditions[i];
     if (condition.kind == kOnlyOnce) {
       only_once = true;
       // The listener keeps one bit for each rule in its first number.
-      if ((local_state[0] & (1 << rule_index)) != 0) return;
+      if ((local_state[kStateOnce] & (1 << rule_index)) != 0) return;
       continue;
     }
-    if (!Test(condition, controller, owner)) return;
+    if (!Test(condition, controller, owner, local_state)) return;
   }
-  if (only_once) local_state[0] |= (1 << rule_index);
+  if (only_once) local_state[kStateOnce] |= (1 << rule_index);
 
   for (u32 i = 0; i < rule.action_count; i++) {
-    Run(rule.actions[i], rule.moment, controller, owner);
+    const bool more = i + 1 < rule.action_count;
+    if (!Run(rule.actions[i], rule.moment, controller, owner, local_state,
+             more)) {
+      return;
+    }
   }
 }
 

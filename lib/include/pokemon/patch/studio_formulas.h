@@ -105,6 +105,10 @@ public:
   /// file has no name for it: the caller keeps the text of the game.
   static bool PatchNatureName(u32 nature, String* output);
 
+  /// Formats the Trainer Memo string (file 28) for the given nature (0 to 24).
+  /// Returns false when the nature was not renamed: the game keeps its vanilla sentence.
+  static bool PatchNatureTrainerMemo(u32 nature, String* output);
+
   /// The change of a statistic that a nature gives, in percent (0 when the nature does not change it).
   static s32 NatureChange(u32 nature, Stat stat);
 };

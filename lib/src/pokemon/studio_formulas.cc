@@ -74,7 +74,46 @@ bool natures_loaded = false;
 constexpr u32 kNameSize = 20;
 c16 nature_names[StudioFormulas::kMaxNatures][kNameSize];
 bool nature_has_line[StudioFormulas::kMaxNatures];
+u8 nature_color[StudioFormulas::kMaxNatures];
 sys::Language names_language = sys::Language::kNone;
+
+/// Built-in names of the 25 vanilla natures in all eight languages.
+const c16* const kGameNatureNames[8][kGameNatures] = {
+    // 0: English
+    {u"Hardy", u"Lonely", u"Brave", u"Adamant", u"Naughty", u"Bold", u"Docile", u"Relaxed", u"Impish",
+     u"Lax", u"Timid", u"Hasty", u"Serious", u"Jolly", u"Naive", u"Modest", u"Mild", u"Quiet", u"Bashful",
+     u"Rash", u"Calm", u"Gentle", u"Sassy", u"Careful", u"Quirky"},
+    // 1: Japanese
+    {u"がんばりや", u"さみしがり", u"ゆうかん", u"いじっぱり", u"やんちゃ", u"ずぶとい", u"すなお", u"のんき",
+     u"わんぱく", u"のうてんき", u"おくびょう", u"せっかち", u"まじめ", u"ようき", u"むじゃき", u"ひかえめ",
+     u"おっとり", u"れいせい", u"てれや", u"うっかりや", u"おだやか", u"おとなしい", u"なまいき", u"しんちょう",
+     u"きまぐれ"},
+    // 2: Japanese (kanji)
+    {u"がんばりや", u"さみしがり", u"ゆうかん", u"いじっぱり", u"やんちゃ", u"ずぶとい", u"すなお", u"のんき",
+     u"わんぱく", u"のうてんき", u"おくびょう", u"せっかち", u"まじめ", u"ようき", u"むじゃき", u"ひかえめ",
+     u"おっとり", u"れいせい", u"てれや", u"うっかりや", u"おだやか", u"おとなしい", u"なまいき", u"しんちょう",
+     u"きまぐれ"},
+    // 3: French
+    {u"Hardi", u"Solo", u"Brave", u"Rigide", u"Mauvais", u"Assuré", u"Docile", u"Relax", u"Malin",
+     u"Lâche", u"Timide", u"Pressé", u"Sérieux", u"Jovial", u"Naïf", u"Modeste", u"Doux", u"Discret",
+     u"Pudique", u"Foufou", u"Calme", u"Gentil", u"Malpoli", u"Prudent", u"Bizarre"},
+    // 4: Italian
+    {u"Ardita", u"Schiva", u"Audace", u"Decisa", u"Birbona", u"Sicura", u"Docile", u"Placida", u"Scaltra",
+     u"Fiacca", u"Timida", u"Lesta", u"Seria", u"Allegra", u"Ingenua", u"Modesta", u"Mite", u"Quieta",
+     u"Ritrosa", u"Ardente", u"Calma", u"Gentile", u"Vivace", u"Cauta", u"Furba"},
+    // 5: German
+    {u"Robust", u"Solo", u"Mutig", u"Hart", u"Frech", u"Kühn", u"Sanft", u"Locker", u"Pfiffig", u"Lasch",
+     u"Scheu", u"Hastig", u"Ernst", u"Froh", u"Naiv", u"Mäßig", u"Mild", u"Ruhig", u"Zaghaft", u"Hitzig",
+     u"Still", u"Zart", u"Forsch", u"Sacht", u"Kauzig"},
+    // 6: Spanish
+    {u"fuerte", u"huraña", u"audaz", u"firme", u"pícara", u"osada", u"dócil", u"plácida", u"agitada",
+     u"floja", u"miedosa", u"activa", u"seria", u"alegre", u"ingenua", u"modesta", u"afable", u"mansa",
+     u"tímida", u"alocada", u"serena", u"amable", u"grosera", u"cauta", u"rara"},
+    // 7: Korean
+    {u"노력", u"외로움", u"용감", u"고집", u"개구쟁이", u"대담", u"온순", u"무사태평", u"장난꾸러기", u"촐랑",
+     u"겁쟁이", u"성급", u"성실", u"명랑", u"천진난만", u"조심", u"의젓", u"냉정", u"수줍음", u"덜렁", u"차분",
+     u"얌전", u"건방", u"신중", u"변덕"},
+};
 
 /// The place of the name for the language of the game, among the eight name columns of natures.csv (English,
 /// Japanese, Japanese with kanji, French, Italian, German, Spanish, Korean).
@@ -104,6 +143,7 @@ void ResetNatures() {
     for (u32 stat = 0; stat < 5; stat++) {
       nature_change[nature][stat] = nature < kGameNatures ? static_cast<s16>(10 * kGameSigns[nature][stat]) : 0;
     }
+    nature_color[nature] = 2;
   }
   natures_loaded = false;
 }
@@ -240,13 +280,14 @@ void ReadNatureName(u32 nature, const c8* cursor, const c8* end) {
   const u32 index = nature;
   nature_has_line[index] = true;
   nature_names[index][0] = 0;
+  nature_color[index] = 2;
   const u32 wanted = NameColumn(names_language);
-  const c8* field_start[8];
-  u32 field_length[8];
+  const c8* field_start[9];
+  u32 field_length[9];
   u32 count = 0;
   if (cursor < end && *cursor == ',') {
     const c8* at = cursor + 1;
-    while (count < 8) {
+    while (count < 9) {
       const c8* stop = at;
       while (stop < end && *stop != ',' && *stop != '\r') stop++;
       field_start[count] = at;
@@ -256,12 +297,34 @@ void ReadNatureName(u32 nature, const c8* cursor, const c8* end) {
       at = stop + 1;
     }
   }
-  // A new nature without a name in this language takes the English name. A nature of the game without a name keeps
+  // A nature without a name in this language takes the English name. A nature of the game without a name keeps
   // the name of the game.
   u32 column = wanted;
-  if (!(wanted < count && field_length[wanted] != 0)) column = nature >= kGameNatures ? 0 : count;
+  if (!(wanted < count && field_length[wanted] != 0)) {
+    column = (count > 0 && field_length[0] != 0) ? 0 : count;
+  }
   if (column < count && field_length[column] != 0) {
     core::Utf8ToUtf16(field_start[column], field_length[column], nature_names[index], kNameSize);
+  }
+  if (count > 8 && field_length[8] > 0) {
+    const c8* color_at = field_start[8];
+    u32 color_len = field_length[8];
+    while (color_len > 0 && (*color_at == ' ' || *color_at == '\t')) {
+      color_at++;
+      color_len--;
+    }
+    if (color_len > 0) {
+      const c8 c = color_at[0];
+      if (c == '1' || c == 'r' || c == 'R') {
+        nature_color[index] = 1;
+      } else if (c == '3' || c == 'g' || c == 'G') {
+        nature_color[index] = 3;
+      } else if (c == '0' || c == 'n' || c == 'N' || c == 'd' || c == 'D') {
+        nature_color[index] = 0;
+      } else {
+        nature_color[index] = 2;
+      }
+    }
   }
 }
 
@@ -357,6 +420,91 @@ bool StudioFormulas::PatchNatureName(u32 nature, String* output) {
   text[at++] = static_cast<c16>(u'0' + number % 10);
   text[at] = 0;
   output->Set(text);
+  return true;
+}
+
+bool StudioFormulas::PatchNatureTrainerMemo(u32 nature, String* output) {
+  if (!natures_loaded || nature >= kMaxNatures) return false;
+  const u32 index = nature;
+  if (!nature_has_line[index]) return false;
+  // A nature of the game without a custom name and default blue color keeps its text of the game.
+  if (nature < kGameNatures && nature_names[index][0] == 0 && nature_color[index] == 2) return false;
+
+  const sys::Language lang = sys::Core::GetInstance().GetLanguage();
+  const c16* name_ptr = nature_names[index];
+  c16 default_name[kNameSize];
+  if (name_ptr[0] == 0) {
+    if (nature < kGameNatures) {
+      const u32 col = NameColumn(lang);
+      name_ptr = kGameNatureNames[col][nature];
+    } else {
+      c16 text[kNameSize] = {u'N', u'a', u't', u'u', u'r', u'e', u' '};
+      u32 at = 7;
+      const u32 number = nature + 1;
+      if (number >= 10) text[at++] = static_cast<c16>(u'0' + number / 10);
+      text[at++] = static_cast<c16>(u'0' + number % 10);
+      text[at] = 0;
+      for (u32 i = 0; i <= at; i++) default_name[i] = text[i];
+      name_ptr = default_name;
+    }
+  }
+
+  c16 memo[128] = {};
+  u32 len = 0;
+  auto append = [&](const c16* str) {
+    while (*str && len + 1 < SIZE(memo)) memo[len++] = *str++;
+  };
+  auto append_tag = [&](const c16* tag, u32 count) {
+    for (u32 i = 0; i < count && len + 1 < SIZE(memo); i++) memo[len++] = tag[i];
+  };
+
+  // Color tags in Gen 6 message files:
+  // 0x0010 (TAG), 0x0002 (code), 0xFF00 (opcode), [param: 1 = red, 2 = blue, 3 = green, 0 = default].
+  const u8 color_id = nature_color[index];
+  const c16 kColorTag[] = {0x0010, 0x0002, static_cast<c16>(0xFF00), static_cast<c16>(color_id)};
+  static const c16 kResetTag[] = {0x0010, 0x0002, static_cast<c16>(0xFF00), 0x0000};
+
+  auto append_colored_name = [&]() {
+    if (color_id != 0) append_tag(kColorTag, 4);
+    append(name_ptr);
+    if (color_id != 0) append_tag(kResetTag, 4);
+  };
+
+  switch (lang) {
+    case sys::Language::kFrench:
+      append_colored_name();
+      append(u" de nature.");
+      break;
+    case sys::Language::kSpanish:
+      append(u"Naturaleza ");
+      append_colored_name();
+      append(u".");
+      break;
+    case sys::Language::kItalian:
+      append(u"Natura ");
+      append_colored_name();
+      append(u".");
+      break;
+    case sys::Language::kGerman:
+      append(u"Wesen: ");
+      append_colored_name();
+      break;
+    case sys::Language::kJapanese:
+      append_colored_name();
+      append(u"な\u3000せいかく。");
+      break;
+    case sys::Language::kKorean:
+      append_colored_name();
+      append(u"한 성격.");
+      break;
+    case sys::Language::kEnglish:
+    default:
+      append(u"Nature: ");
+      append_colored_name();
+      break;
+  }
+  memo[len] = 0;
+  output->Set(memo, len);
   return true;
 }
 

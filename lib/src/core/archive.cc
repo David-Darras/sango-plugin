@@ -237,7 +237,8 @@ static OverrideEntry egg_move_entries[kMaxStudioFiles];
 static OverrideEntry evolution_entries[kMaxStudioFiles];
 static constexpr u32 kMaxMegaEvolutionFiles = 128;
 static OverrideEntry mega_evolution_entries[kMaxMegaEvolutionFiles];
-static OverrideEntry growth_entries[16];
+static constexpr u32 kMaxGrowthFiles = 16;
+static OverrideEntry growth_entries[kMaxGrowthFiles];
 static constexpr u32 kMaxTrainerFiles = 1024;
 static OverrideEntry trainer_data_entries[kMaxTrainerFiles];
 static OverrideEntry trainer_class_entries[kMaxTrainerFiles];
@@ -335,7 +336,7 @@ static OverrideSet override_sets[] = {
      true, mega_evolution_entries, kMaxMegaEvolutionFiles, 0, false},
     {ArchiveId::kGrowthTable, u"sdmc:/sango-studio/leveling_rate/index.bin",
      u"sdmc:/sango-studio/leveling_rate/%d.bin", kGrowthToken, true,
-     growth_entries, 16, 0, false},
+     growth_entries, kMaxGrowthFiles, 0, false},
     // The trainers: their data, their classes and their teams.
     {ArchiveId::kTrainerData, u"sdmc:/sango-studio/trainer/data/index.bin",
      u"sdmc:/sango-studio/trainer/data/%d.bin", kTrainerDataToken, true,

@@ -74,6 +74,19 @@ struct String {
     }
   }
 
+  /// Copies a text with an explicit length in characters.
+  void Set(const c16* input, u32 len) {
+    if (capacity == 0) {
+      is_initialized = false;
+      return;
+    }
+    if (len >= capacity) len = capacity - 1;
+    for (u32 i = 0; i < len; i++) buffer[i] = input[i];
+    buffer[len] = 0;
+    size = static_cast<u16>(len);
+    is_initialized = true;
+  }
+
   void* vtable;
   c16* buffer;
   u16 capacity; ///< The size of the buffer, in characters.

@@ -69,8 +69,13 @@ public:
   /// The first id and the last id of an ability of the studio.
   static constexpr u32 kFirstId = 192;
   static constexpr u32 kLastId = 255;
-  /// The most abilities that the studio can add at the same time.
-  static constexpr u32 kMaxAbilities = 32;
+  /// The first id and the last id of an ability of the game. A file of an
+  /// ability of the game replaces the code of the game with its rules.
+  static constexpr u32 kFirstGameId = 1;
+  static constexpr u32 kLastGameId = 191;
+  /// The most abilities that the studio can add or change at the same time:
+  /// 32 new abilities and 16 abilities of the game.
+  static constexpr u32 kMaxAbilities = 48;
   /// The limits of one ability. The studio uses the same limits.
   static constexpr u32 kMaxRules = 8;
   static constexpr u32 kMaxConditions = 6;
@@ -80,7 +85,8 @@ public:
   static constexpr u32 kNameSize = 28;
   static constexpr u32 kDescriptionSize = 96;
 
-  /// Reads the files `ability/192.bin` to `ability/255.bin`. Call it one time
+  /// Reads the files `ability/192.bin` to `ability/255.bin`, and the files of
+  /// the abilities of the game that `ability/game.bin` lists. Call it one time
   /// after the SD card is ready.
   static void LoadAll();
 

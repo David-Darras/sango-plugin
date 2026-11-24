@@ -68,6 +68,11 @@ constexpr uptr kControllerFillMessageSlot = GAME_ADDRESS(0x006F65E4, 0x007441D8)
 constexpr uptr kControllerGetPokemon = GAME_ADDRESS(0x006FD7E8, 0x0074BC4C);
 constexpr uptr kControllerExecuteMove = GAME_ADDRESS(0x006C4028, 0x0070EC48);
 constexpr uptr kControllerSetWeather = GAME_ADDRESS(0x006F4004, 0x00741CC0);
+// The position on the field of a Pokémon that is in front, and the list of
+// the Pokémon of an area around a position (the foes of Intimidate). Found in
+// the code of Intimidate of ORAS; X and Y have no address yet.
+constexpr uptr kControllerGetFrontPosition = GAME_ADDRESS(0, 0x00743AB4);
+constexpr uptr kControllerListArea = GAME_ADDRESS(0, 0x00742B5C);
 constexpr uptr kBroadcasterRegister = GAME_ADDRESS(0x006F6308, 0x00743EFC);
 constexpr uptr kBroadcasterFindListener = GAME_ADDRESS(0x006F6708, 0x007442FC);
 constexpr uptr kBroadcasterUnregister = GAME_ADDRESS(0x006F6514, 0x00744108);

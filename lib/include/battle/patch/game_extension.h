@@ -196,6 +196,19 @@ public:
    */
   static bool UpdateAbility(const AbilitySpec& spec);
 
+  /**
+   * @brief Replaces the code of an ability of the game with reactions.
+   * @param spec The reactions. Its id is an ability of the game (1 to
+   *        AbilityId::kCount - 1). An empty name or description keeps the
+   *        text of the game. With 0 reactions, the game runs its own code
+   *        again.
+   * @return false when the list is full.
+   *
+   * core::StudioFiles uses this function when the user changes the reaction
+   * of an ability of the game in Sango Studio.
+   */
+  static bool ReplaceGameAbility(const AbilitySpec& spec);
+
   /// Returns the highest id of the abilities that were added, or 0 when there
   /// is none. The lists of the menu use it to show the new abilities.
   static u32 GetLastAbilityId();

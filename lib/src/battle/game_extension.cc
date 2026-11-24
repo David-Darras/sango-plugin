@@ -75,8 +75,10 @@ constexpr u32 kTypeNameFile = 18;
 // The text file of the names of the natures (ORAS). Sango Studio gives new names to the natures, and names to the new natures (25 to 31).
 #ifdef GAME_ORAS
 constexpr u32 kNatureNameFile = 51;
+constexpr u32 kTrainerMemoFile = 28;
 #else
 constexpr u32 kNatureNameFile = 0xFFFFFFFFu;
+constexpr u32 kTrainerMemoFile = 0xFFFFFFFFu;
 #endif
 constexpr u32 kGameTypeCount = 18;
 constexpr u32 kItemNameFile1 = 113;
@@ -177,6 +179,18 @@ bool GameExtension::UpdateAbility(const AbilitySpec& spec) {
       [&spec](const AbilitySpec& entry) { return entry.id == spec.id; });
   if (current == nullptr) return false;
   *current = spec;
+  return true;
+}
+
+bool GameExtension::ReplaceGameAbility(const AbilitySpec& spec) {
+  if (UpdateAbility(spec)) return true;
+  auto& self = GetInstance();
+  if (self.abilities_.IsFull()) {
+    core::Problems::Add(u"ability %u: more than %u new abilities",
+                        static_cast<u32>(spec.id), kMaxAbilities);
+    return false;
+  }
+  self.abilities_.Add(spec);
   return true;
 }
 
@@ -390,7 +404,10 @@ bool GameExtension::PatchMoveDescription(MoveId move, String* output) {
 
 bool GameExtension::PatchAbilityName(AbilityId ability, String* output) {
   const AbilitySpec* spec = FindAbility(ability);
-  if (spec == nullptr) return false;
+  // An ability of the game with new reactions keeps its name.
+  if (spec == nullptr || spec->name == nullptr || spec->name[0] == 0) {
+    return false;
+  }
   output->Set(spec->name);
   return true;
 }
@@ -405,7 +422,10 @@ bool GameExtension::PatchTypeName(u32 type, String* output) {
 
 bool GameExtension::PatchAbilityDescription(AbilityId ability, String* output) {
   const AbilitySpec* spec = FindAbility(ability);
-  if (spec == nullptr) return false;
+  if (spec == nullptr || spec->description == nullptr ||
+      spec->description[0] == 0) {
+    return false;
+  }
   output->Set(spec->description);
   return true;
 }
@@ -423,8 +443,10 @@ uptr GameExtension::GetBattleAbilityHandlerHook(Pokemon* pkm) {
                                    PriorityTier::kActiveMoveDefault, 1000,
                                    UID{pkm->uid}, table, count);
   }
+  // An ability of the game without reactions runs the code of the game.
   const AbilitySpec* spec = FindAbility(pkm->ability);
-  if (spec != nullptr) {
+  if (spec != nullptr &&
+      (spec->reaction_count != 0 || pkm->ability >= AbilityId::kCount)) {
     return Broadcaster::RegisterReactions(
         ListenerSource::kAbility, static_cast<u32>(pkm->ability),
         PriorityTier::kActiveMoveDefault, 1000, UID{pkm->uid},
@@ -447,17 +469,46 @@ uptr GameExtension::GetBattleMoveHandlerHook(Pokemon* pkm, MoveId move,
   return get_battle_move_handler_hook(pkm, move, x);
 }
 
+namespace {
+INLINE bool IsNatureFile(const Message* msg) {
+  if (msg->file_id == kNatureNameFile) return true;
+  if (msg->data_header != nullptr) {
+    const u16 count = msg->data_header->num_strings;
+    if ((count == 26 || count == pokemon::StudioFormulas::kGameNatures) &&
+        msg->data_header->max_lang_block_size < 1000) {
+      return true;
+    }
+  }
+  return false;
+}
+
+INLINE bool IsTypeFile(const Message* msg) {
+  if (msg->file_id == kTypeNameFile) return true;
+  if (msg->data_header != nullptr &&
+      msg->data_header->num_strings == kGameTypeCount) {
+    return true;
+  }
+  return false;
+}
+} // namespace
+
 void GameExtension::MessageGetStringHook(Message* self, u32 str_id,
                                          String* output) {
+  // Trainer memo in Pokemon summary: "Jolly nature." -> replaces with custom nature name.
+  if (self->file_id == kTrainerMemoFile && str_id < pokemon::StudioFormulas::kGameNatures &&
+      pokemon::StudioFormulas::PatchNatureTrainerMemo(str_id, output)) {
+    core::TextEditor::OnString(self, str_id, output);
+    return;
+  }
   // A nature has the name of natures.csv of Sango Studio, when the file has one.
-  if (self->file_id == kNatureNameFile &&
+  if (IsNatureFile(self) &&
       pokemon::StudioFormulas::PatchNatureName(str_id, output)) {
     core::TextEditor::OnString(self, str_id, output);
     return;
   }
   // The text file of the types has 18 texts: a new type has its name here,
   // and the game does not read its text.
-  if (self->file_id == kTypeNameFile && str_id >= kGameTypeCount &&
+  if (IsTypeFile(self) && str_id >= kGameTypeCount &&
       PatchTypeName(str_id, output)) {
     core::TextEditor::OnString(self, str_id, output);
     return;
