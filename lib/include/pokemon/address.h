@@ -100,6 +100,16 @@ constexpr uptr kItemIconTableUser2 = GAME_ADDRESS(0, 0x0041E5A0);
 constexpr uptr kItemIconTableUser3 = GAME_ADDRESS(0, 0x0041E73C);
 constexpr uptr kItemDataGetParam = GAME_ADDRESS(0x004A3D3C, 0x004D3C84);
 constexpr uptr kLoadEvolutionTable = GAME_ADDRESS(0x0039A23C, 0x003B1108);
+/// Makes a Pokémon evolve (the Pokémon, the next species, the place of the
+/// evolution in the table). The form stays the same.
+constexpr uptr kCoreEvolve = GAME_ADDRESS(0x0039E830, 0x003B5588);
+/// Changes the form of a Pokémon (the Pokémon, the form): the ability, the
+/// gender and the stats follow.
+constexpr uptr kCoreChangeForm = GAME_ADDRESS(0x0039D56C, 0x003B4458);
+/// The species and the form of the data of a Pokémon (the data is at +12 of
+/// the Pokémon).
+constexpr uptr kAccessorGetSpecies = GAME_ADDRESS(0x001532BC, 0x00153318);
+constexpr uptr kAccessorGetForm = GAME_ADDRESS(0x00153284, 0x001532E0);
 constexpr uptr kLoadMegaEvolutionTable = GAME_ADDRESS(0x00168108, 0x00168974);
 constexpr uptr kGetMegaEvolvedFormNo = GAME_ADDRESS(0, 0x004D09E8);
 constexpr uptr kCoreDataGetSpecies = GAME_ADDRESS(0, 0x00153310);

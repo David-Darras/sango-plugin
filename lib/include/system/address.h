@@ -110,6 +110,15 @@ constexpr uptr kMessageGetString = GAME_ADDRESS(0x0013A498, 0x00139A34);
 /// file number. ORAS only.
 constexpr uptr kGetTextOfFile = GAME_ADDRESS(0, 0x00451440);
 constexpr uptr kStringVtable = GAME_ADDRESS(0x0059B9F8, 0x005DE3BC);
+/// The function of the text boxes that does a tag of a text while the
+/// text is drawn (the object of the text box, the code, the state of the
+/// drawing). core/text_tags.cc hooks it.
+constexpr uptr kDoTextTag = GAME_ADDRESS(0x003F7EB0, 0x0041A8A0);
+/// Makes the colours of the corners of the letters again from the colours
+/// and the gradient mode of a text writer (the writer).
+constexpr uptr kTextWriterUpdateColors = GAME_ADDRESS(0x00323CB4, 0x00338360);
+/// Gives the character after a tag (the start of the tag).
+constexpr uptr kTextSkipTag = GAME_ADDRESS(0x0014EB64, 0x0014E040);
 constexpr uptr kEntrypoint =
     GAME_ADDRESS(0x001220D0, 0x00122938); // The function of each frame that plugin::Start() hooks
 constexpr uptr kGameManager = GAME_ADDRESS(0x005EDA08, 0x0062F7C4);

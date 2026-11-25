@@ -36,6 +36,10 @@ public:
 
 private:
   static void LoadEvolveTableHook(SpeciesId species, u32 b, u32 c, u32 d);
+  /// After an evolution, gives the Pokémon the form that Sango Studio chose
+  /// for this evolution (`species/evolution_form/<species>_<form>.bin`: one
+  /// byte for each place of the evolution table, 0xFF keeps the form).
+  static void EvolveHook(void* pokemon, u32 next_species, u32 place);
   static void PatchEvolve(SpeciesId species);
 };
 

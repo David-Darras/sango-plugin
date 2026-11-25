@@ -32,16 +32,66 @@
 #include "pokemon/native/database.h"
 #include "pokemon/native/evolution_table.h"
 #include "pokemon/address.h"
+#include "system/native/file.h"
 
 namespace pokemon {
 
 namespace {
 core::Hook<void(SpeciesId, u32, u32, u32)> load_evolve_table_hook;
+core::Hook<void(void*, u32, u32)> evolve_hook;
+
+/// The number of places in the evolution table of a species.
+constexpr u32 kEvolutionPlaces = 8;
+/// The value of a place that keeps the form of the Pokémon.
+constexpr u8 kKeepForm = 0xFF;
+
+/// Writes a number in a path. Returns the place after it.
+u32 PutNumber(c16* out, u32 at, u32 number) {
+  c16 digits[6];
+  u32 count = 0;
+  do {
+    digits[count++] = static_cast<c16>(u'0' + number % 10);
+    number /= 10;
+  } while (number != 0);
+  while (count > 0) out[at++] = digits[--count];
+  return at;
+}
+
+/// The species and the form of a Pokémon.
+void SpeciesAndForm(void* pokemon, u32* species, u32* form) {
+  const uptr data = READ32(reinterpret_cast<uptr>(pokemon) + 12);
+  *species = core::GameFunction<u32(uptr)>::Call(address::kAccessorGetSpecies, data) & 0xFFFF;
+  *form = core::GameFunction<u32(uptr)>::Call(address::kAccessorGetForm, data) & 0xFF;
+}
 } // namespace
 
 void Evolution::Initialize() {
   load_evolve_table_hook.Install(address::kLoadEvolutionTable,
                                  LoadEvolveTableHook);
+  evolve_hook.Install(address::kCoreEvolve, EvolveHook);
+}
+
+void Evolution::EvolveHook(void* pokemon, u32 next_species, u32 place) {
+  u32 species = 0;
+  u32 form = 0;
+  SpeciesAndForm(pokemon, &species, &form);
+  evolve_hook(pokemon, next_species, place);
+  if (place >= kEvolutionPlaces) return;
+  static const c16 kFolder[] = u"sdmc:/sango-studio/species/evolution_form/";
+  c16 path[80];
+  u32 at = 0;
+  for (const c16* c = kFolder; *c != 0; c++) path[at++] = *c;
+  at = PutNumber(path, at, species);
+  path[at++] = u'_';
+  at = PutNumber(path, at, form);
+  for (const c16* c = u".bin"; *c != 0; c++) path[at++] = *c;
+  path[at] = 0;
+  u8 forms[kEvolutionPlaces] = {};
+  if (sys::File::ReadAll(path, forms, sizeof(forms)) != sizeof(forms)) return;
+  const u8 target = forms[place & 0xFF];
+  if (target == kKeepForm) return;
+  core::GameFunction<void(void*, u32)>::Call(address::kCoreChangeForm, pokemon,
+                                             target);
 }
 
 void Evolution::LoadEvolveTableHook(SpeciesId species, u32 b, u32 c, u32 d) {
