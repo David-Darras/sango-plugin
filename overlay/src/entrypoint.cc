@@ -29,6 +29,7 @@
 
 #include "plugin.h"
 #include "core/patch/studio_files.h"
+#include "core/patch/studio_save.h"
 #include "custom_battle.h"
 #include "net/network.h"
 #include "net/remote_avatars.h"
@@ -67,6 +68,7 @@ void Initialize() {
 
   script::Install();
   core::StudioFiles::Load();
+  core::StudioSave::Load();
 #ifdef GAME_ORAS
   net::RemoteAvatars::Initialize();
 #endif

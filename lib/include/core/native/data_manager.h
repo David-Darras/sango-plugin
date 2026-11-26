@@ -22,6 +22,8 @@
 
 #pragma once
 
+#include <cstddef>
+
 #include "core/native/game_manager.h"
 #include "overworld/constant/facing.h"
 #include "overworld/constant/map.h"
@@ -71,6 +73,11 @@ public:
 
   /// Returns the state of the wild encounters.
   INLINE overworld::EncounterState& GetEncounterState() const {
+    // The members before this one have the sizes of the game.
+    static_assert(offsetof(DataManager, player_zone_id_) == 0x124,
+                  "place of the player");
+    static_assert(offsetof(DataManager, encounter_) == GAME_CONSTANT(392, 388),
+                  "place of the encounters");
     return *encounter_;
   }
 
@@ -112,10 +119,13 @@ private:
   u32 season_;
   void* _5[3];
   u8 locations_[4 * 56];
+  /// The object of the player starts here, with the table of its functions.
+  /// Its data follow: the map, then the direction.
+  void* player_vtable_;
   MapId player_zone_id_;
   overworld::Facing player_direction_;
   u8 _6;
-  u8 _2[GAME_CONSTANT(392, 388) - 0x124];
+  u8 _2[GAME_CONSTANT(392, 388) - 0x128];
 
   overworld::EncounterState* encounter_;
 

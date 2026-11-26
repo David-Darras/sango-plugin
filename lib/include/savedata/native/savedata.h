@@ -101,6 +101,19 @@ public:
 #endif
   }
 
+  /// Returns the data of one segment and writes its size in bytes: the same
+  /// bytes as the block with this number in the save file. Null when the
+  /// segment does not exist.
+  u8* GetSegmentData(u32 index, u32* size) {
+    if (index >= kSegmentCount || segments_[index] == nullptr) return nullptr;
+    void* segment = segments_[index];
+    // Each segment starts with the table of its functions: the fourth one
+    // gives the address of the data, and the fifth one its size.
+    const uptr* functions = *reinterpret_cast<const uptr* const*>(segment);
+    *size = reinterpret_cast<u32 (*)(void*)>(functions[4])(segment);
+    return reinterpret_cast<u8* (*)(void*)>(functions[3])(segment);
+  }
+
   /// The size of the reserved segment.
   static constexpr u32 kReservedSize = 2000;
   static constexpr u32 kReservedIndex = 47;
