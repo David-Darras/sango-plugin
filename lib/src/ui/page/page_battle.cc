@@ -81,7 +81,7 @@ static void LoadPlayerPicturePage(MainApplication& app, void*) {
      .WithDescription("On: the player shows the 2D picture of a class, like "
                       "a trainer with a 2D picture, and no 3D model. The "
                       "introduction needs the files of "
-                      "sango/trainer_model/sequence. Applies at the next "
+                      "sango-studio/trainer/xy_sequence. Applies at the next "
                       "battle.");
   if (!picture_classes.IsLoaded()) picture_classes.Load("trainerclass");
   if (picture_classes.IsLoaded()) {
@@ -174,7 +174,7 @@ void LoadBattleSettingsPage(MainApplication& app, void* args) {
      .WithArray(kPlayerModelNames, SIZE(kPlayerModelNames))
      .WithDescription("The 3D model of the player in the battle: it throws "
                       "the Poke Ball. The models of X and Y need the files "
-                      "of sango/trainer_model. Applies at the next battle.")
+                      "of sango-studio/trainer/xy_model. Applies at the next battle.")
      .Add("Player Picture", LoadPlayerPicturePage)
      .WithDescription("A 2D picture of a class in place of the 3D model of "
                       "the player.")
@@ -378,10 +378,10 @@ void LoadStaticEncounterPage(MainApplication& app, void* args) {
          .WithArray(names.GetNames(), names.GetCount())
          .WithDescription("Game Default: the game chooses. ORAS: a piece of "
                           "ORAS. XY: a piece of Pokemon X and Y (it needs the "
-                          "folder sango/battle_background). Applies to the "
+                          "pack of the backgrounds of X and Y). Applies to the "
                           "battle that this page starts.");
     } else {
-      app.Add("The names are missing: copy the folder sango/names.");
+      app.Add("The names are missing: install the pack of the backgrounds of X and Y.");
       break;
     }
   }

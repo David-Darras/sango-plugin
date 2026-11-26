@@ -46,16 +46,17 @@ namespace battle {
  * start of the next battle, it puts the files of the place back. The camera and
  * the entrance are the ones of the carrier (Trevor, the place of a friend).
  *
- * The files of the models are in sdmc:/sango/trainer_model. The tool
- * tools/export_xy_trainer_models.py writes them. Without the files, the
- * battle shows no model for the trainer.
+ * The files of the models are in sdmc:/sango-studio/trainer/xy_model. The
+ * pack "Characters and trainers of X and Y" of Sango Studio writes them (made
+ * with tools/export_xy_trainer_models.py). Without the files, the battle shows
+ * no model for the trainer.
  *
  * The introduction of the battle is the introduction of the trainer in
  * Pokémon X and Y, with its background and its camera. The extension makes the
  * game read the files of X and Y instead of the files of the introduction of
  * the carrier (the sequence and the camera of the defeat), during the battle.
- * Without the files of sequence and layout (sango/trainer_model/sequence and
- * layout), the battle uses the introduction of the carrier.
+ * Without the files of sequence and layout (sango-studio/trainer/xy_sequence
+ * and xy_layout), the battle uses the introduction of the carrier.
  *
  * A battle against two trainers (a multi battle) shows the model for both.
  *
@@ -89,7 +90,7 @@ public:
    *
    * 0: the model of the game (May or Brendan). 1 to 15: a model of ORAS, in the
    * order of TrainerModelId. 16 to 28: a model of X and Y, in the order of
-   * XyTrainerModelId (it needs the files of sango/trainer_model). The change
+   * XyTrainerModelId (it needs the files of sango-studio/trainer/xy_model). The change
    * applies at the next battle. The animations come from the model: a model
    * that has no throwing motion shows the Pokémon without the throw.
    */

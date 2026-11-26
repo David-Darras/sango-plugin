@@ -31,8 +31,9 @@ namespace battle {
  *
  * ORAS already has Serena, Calem, Malva, Holocaster, Shauna, Tierno and
  * Trevor (see TrainerModelId). These models are the others. They come from
- * the files of X and Y: tools/export_xy_trainer_models.py writes them in
- * sdmc:/sango/trainer_model. TrainerModelExtension shows them.
+ * the files of X and Y: the pack "Characters and trainers of X and Y" of
+ * Sango Studio puts them in sdmc:/sango-studio/trainer/xy_model.
+ * TrainerModelExtension shows them.
  */
 enum class XyTrainerModelId : u8 {
   kSycamore = 0,

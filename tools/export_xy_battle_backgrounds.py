@@ -18,8 +18,9 @@ of the program SPICA (Windows only, see tools/convert_bch.ps1), and writes each
 piece as a new file after the 158 files of the archive of ORAS (a/1/3/6): the
 piece number n (0 is the first) is the file 158 + n.
 
-Copy the folder "battle_background" to sdmc:/sango/ and the folder "names" to
-sdmc:/sango/. The file list.txt shows the kind and the names of each piece, and
+Sango Studio puts the files in a pack (module/pack, bin add_characters, kinds
+background, background_choices and name_list): the pack writes them in
+sdmc:/sango-studio/battle/xy_background and sdmc:/sango-studio/names. The file list.txt shows the kind and the names of each piece, and
 oras_list.txt shows the same for the files of ORAS.
 
 These files are data of the game: do not share them.

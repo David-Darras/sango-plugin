@@ -15,7 +15,8 @@ base pack and three packs of motions. The tool writes:
   <out_dir>/trainer_model/index.bin   the list of the files
   <out_dir>/trainer_model/<n>.bin     one file (n is a number of the table)
 
-Copy the folder "trainer_model" to sdmc:/sango/. The models use the numbers 75
+Sango Studio puts the files in a pack (module/pack, bin add_characters): the
+pack writes them in sdmc:/sango-studio/trainer/xy_model. The models use the numbers 75
 and after, which are the numbers after the last file of the archive of ORAS.
 The order of the models is the order of battle::XyTrainerModelId.
 

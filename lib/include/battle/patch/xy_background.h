@@ -29,7 +29,8 @@ namespace battle {
 /**
  * @brief Gives a battle pieces of a background of X and Y (ORAS only).
  *
- * The files are in sdmc:/sango/battle_background (see
+ * The files are in sdmc:/sango-studio/battle/xy_background: the pack
+ * "Battle backgrounds of X and Y" of Sango Studio writes them (made with
  * tools/export_xy_battle_backgrounds.py). A background has several pieces
  * (the ground, the plate, the far ground, the background behind), and each
  * piece is one file of the archive of the backgrounds. This feature makes the

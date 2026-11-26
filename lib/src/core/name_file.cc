@@ -39,12 +39,16 @@ constexpr u32 kMaxNames = 20000;
 // The size of the beginning of a file: its size and the number of names.
 constexpr u32 kHeaderSize = 8;
 
-// Makes the path "sdmc:/sango/names/<kind>.bin".
-bool MakePath(const c8* kind, c16* path, u32 capacity) {
-  static const c16 kPrefix[] = u"sdmc:/sango/names/";
+// The folders of the lists: the folder of Sango Studio (the packs write lists
+// there), then the folder of the plugin.
+const c16* const kPrefixes[] = {u"sdmc:/sango-studio/names/",
+                                u"sdmc:/sango/names/"};
+
+// Makes the path "<prefix><kind>.bin".
+bool MakePath(const c16* prefix, const c8* kind, c16* path, u32 capacity) {
   static const c16 kSuffix[] = u".bin";
   u32 length = 0;
-  for (const c16* p = kPrefix; *p != 0; p++) {
+  for (const c16* p = prefix; *p != 0; p++) {
     if (length + 1 >= capacity) return false;
     path[length++] = *p;
   }
@@ -86,9 +90,14 @@ bool SameName(const c8* a, const c8* b) {
 bool NameFile::Load(const c8* kind) {
   Unload();
   c16 path[96];
-  if (!MakePath(kind, path, sizeof(path) / sizeof(path[0]))) return false;
   sys::File file;
-  file.Open(path, sys::File::kRead);
+  for (const c16* prefix : kPrefixes) {
+    if (!MakePath(prefix, kind, path, sizeof(path) / sizeof(path[0]))) {
+      return false;
+    }
+    file.Open(path, sys::File::kRead);
+    if (file.IsOpen()) break;
+  }
   if (!file.IsOpen()) return false;
 
   u32 header[2] = {};

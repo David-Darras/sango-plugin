@@ -144,7 +144,7 @@ void TrainerModelExtension::Select(TrainerId trainer) {
                                        files.cinematic_motions};
   for (u16 number : numbers) {
     if (!core::Archive::HasSdFile(core::ArchiveId::kTrainerModel, number)) {
-      ui::Log::Print(u"trainer model: no file %u in sango/trainer_model",
+      ui::Log::Print(u"trainer model: no file %u in sango-studio/trainer/xy_model",
                      static_cast<u32>(number));
       return;
     }
@@ -171,7 +171,7 @@ void TrainerModelExtension::Select(TrainerId trainer) {
         kLoseCameraFiles[value]);
     is_introduction_replaced_ = true;
   } else {
-    ui::Log::Print(u"trainer model: no sequence in sango/trainer_model");
+    ui::Log::Print(u"trainer model: no sequence in sango-studio/trainer/xy_sequence");
   }
 }
 

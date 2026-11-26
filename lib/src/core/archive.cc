@@ -197,6 +197,13 @@ static constexpr u32 kStudioBackgroundToken = 0x22000000;
 // The fake offset of the mega evolution tables that Sango Studio writes
 // (the archive 193), not compressed.
 static constexpr u32 kMegaEvolutionToken = 0x21000000;
+// The PSS icons that Sango Studio replaces (the archive 108), the models of
+// the player in the Soar sequence (the archive 254) and the pack of the
+// introduction (the archive 269, with the portraits of the choice of the
+// character). The files have the bytes of the files of the archives.
+static constexpr u32 kPlayerIconToken = 0x1F000000;
+static constexpr u32 kSoaringModelToken = 0x1E000000;
+static constexpr u32 kIntroToken = 0x1D000000;
 // True for the fake offset of a small archive: the token has no bit in the
 // four high bits alone (a real offset of these archives is far smaller).
 static constexpr bool IsSmallToken(u32 token) {
@@ -256,6 +263,10 @@ static OverrideEntry voice_entries[kMaxVoiceFiles];
 static OverrideEntry font_entries[16];
 static constexpr u32 kMaxStudioItemIcons = 1024;
 static OverrideEntry studio_item_icon_entries[kMaxStudioItemIcons];
+static constexpr u32 kMaxPlayerIcons = 320;
+static OverrideEntry player_icon_entries[kMaxPlayerIcons];
+static OverrideEntry soaring_model_entries[4];
+static OverrideEntry intro_entries[2];
 static constexpr u32 kMaxTextFiles = 128;
 static OverrideEntry text_entries[8][kMaxTextFiles];
 // The changed files of the archives with layouts (see tools/gen_layout_sets.py):
@@ -285,24 +296,25 @@ static OverrideSet override_sets[] = {
      u"sdmc:/sango-studio/overworld/zone/%d.bin", kZoneToken, true, zone_entries, 1024, 0,
      false},
     // The models of the trainers of X and Y: the files after the last file of
-    // the archive (see battle::TrainerModelExtension).
-    {ArchiveId::kTrainerModel, u"sdmc:/sango/trainer_model/index.bin",
-     u"sdmc:/sango/trainer_model/%d.bin", kTrainerModelToken, true,
+    // the archive (see battle::TrainerModelExtension). The pack of X and Y of
+    // Sango Studio writes them.
+    {ArchiveId::kTrainerModel, u"sdmc:/sango-studio/trainer/xy_model/index.bin",
+     u"sdmc:/sango-studio/trainer/xy_model/%d.bin", kTrainerModelToken, true,
      trainer_model_entries, 256, 0, false},
     // The introductions and the background of the trainers of X and Y: new
     // files of the archive of the battle animations and of the layouts of the
     // intros. The game gets them with the replacements of the extension.
     {ArchiveId::kBattleMoveChoreography,
-     u"sdmc:/sango/trainer_model/sequence/index.bin",
-     u"sdmc:/sango/trainer_model/sequence/%d.bin", kTrainerSequenceToken, true,
+     u"sdmc:/sango-studio/trainer/xy_sequence/index.bin",
+     u"sdmc:/sango-studio/trainer/xy_sequence/%d.bin", kTrainerSequenceToken, true,
      trainer_sequence_entries, 64, 0, false},
-    {ArchiveId::kMoveEffectLayout, u"sdmc:/sango/trainer_model/layout/index.bin",
-     u"sdmc:/sango/trainer_model/layout/%d.bin", kTrainerLayoutToken, true,
+    {ArchiveId::kMoveEffectLayout, u"sdmc:/sango-studio/trainer/xy_layout/index.bin",
+     u"sdmc:/sango-studio/trainer/xy_layout/%d.bin", kTrainerLayoutToken, true,
      trainer_layout_entries, 8, 0, false},
     // The pieces of the battle backgrounds of X and Y: new files after the
     // last file of the archive (see battle::XyBackground).
-    {ArchiveId::kBattleBackground, u"sdmc:/sango/battle_background/index.bin",
-     u"sdmc:/sango/battle_background/%d.bin", kBackgroundToken, true,
+    {ArchiveId::kBattleBackground, u"sdmc:/sango-studio/battle/xy_background/index.bin",
+     u"sdmc:/sango-studio/battle/xy_background/%d.bin", kBackgroundToken, true,
      background_entries, 128, 0, false},
     // The files of the icons have the paths that RegisterItemIcon() got. The
     // list is in memory: no index file, so the set is already loaded.
@@ -400,6 +412,20 @@ static OverrideSet override_sets[] = {
     {ArchiveId::kItemIcon, u"sdmc:/sango-studio/item/icon/index.bin",
      u"sdmc:/sango-studio/item/icon/%d.bin", kStudioItemIconToken, true,
      studio_item_icon_entries, kMaxStudioItemIcons, 0, false},
+    // The PSS icons: the files have the bytes of the files of the archive (CLIM
+    // images with a palette, compressed with LZ11).
+    {ArchiveId::kPlayerIcon, u"sdmc:/sango-studio/player/icon/index.bin",
+     u"sdmc:/sango-studio/player/icon/%d.bin", kPlayerIconToken, true,
+     player_icon_entries, kMaxPlayerIcons, 0, false},
+    // The packs of the player in the Soar sequence (compressed).
+    {ArchiveId::kSoaringCharacter,
+     u"sdmc:/sango-studio/player/soaring_model/index.bin",
+     u"sdmc:/sango-studio/player/soaring_model/%d.bin", kSoaringModelToken, true,
+     soaring_model_entries, 4, 0, false},
+    // The pack of the introduction: one file.
+    {ArchiveId::kIntroMovie, u"sdmc:/sango-studio/player/intro/index.bin",
+     u"sdmc:/sango-studio/player/intro/%d.bin", kIntroToken, true,
+     intro_entries, 2, 0, false},
     // The texts of the game, one archive for each language.
     {ArchiveId::kGameTextJapanese, u"sdmc:/sango-studio/game_text/ja/index.bin",
      u"sdmc:/sango-studio/game_text/ja/%d.bin", kTextTokenFirst, true,
@@ -449,15 +475,16 @@ static OverrideSet* FindSet(const u32* archive, u32 file_id) {
   return first;
 }
 
-// The tokens of the small archives (below 0x40000000) use the high byte, not
-// the high four bits: an icon of Sango Studio (0x3E000000) has the high four
-// bits of the trainer data (0x30000000). Such an offset must match its own
-// token only, else it is read as a trainer file.
+// The set of a fake offset that has its token in the four high bits. A set with
+// a small token (below 0x40000000) is never found here: a real offset of a large
+// archive can have the same bits. The models of the species go up to 1 GB, so
+// 0x30000000, the token of the trainer data, is also a real offset of their
+// archive. A small token is valid only with its own archive (see ReadHook and
+// FileStartAsyncReadHook).
 static OverrideSet* FindSetByToken(u32 offset) {
   for (OverrideSet& set : override_sets) {
-    if ((offset & kTokenMask) != set.token) continue;
-    if (IsSmallToken(set.token) && (offset & kStudioMask) != set.token) continue;
-    return &set;
+    if (IsSmallToken(set.token)) continue;
+    if ((offset & kTokenMask) == set.token) return &set;
   }
   return nullptr;
 }

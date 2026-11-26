@@ -36,10 +36,10 @@ namespace battle {
 namespace {
 constexpr u32 kMaxValues = 512;
 const c16* const kChoicePaths[XyBackground::kKindCount] = {
-    u"sdmc:/sango/battle_background/choices_G.bin",
-    u"sdmc:/sango/battle_background/choices_F.bin",
-    u"sdmc:/sango/battle_background/choices_B.bin",
-    u"sdmc:/sango/battle_background/choices_O.bin",
+    u"sdmc:/sango-studio/battle/xy_background/choices_G.bin",
+    u"sdmc:/sango-studio/battle/xy_background/choices_F.bin",
+    u"sdmc:/sango-studio/battle/xy_background/choices_B.bin",
+    u"sdmc:/sango-studio/battle/xy_background/choices_O.bin",
 };
 const c8* const kKindNames[XyBackground::kKindCount] = {
     "bgground", "bgfar", "bgback", "bgplate"};
@@ -81,7 +81,7 @@ void XyBackground::Apply() {
     if (target >= kFirstNewFile &&
         !core::Archive::HasSdFile(core::ArchiveId::kBattleBackground,
                                   target)) {
-      ui::Log::Print(u"background: no file %u in sango/battle_background",
+      ui::Log::Print(u"background: no file %u in sango-studio/battle/xy_background",
                      target);
       continue;
     }
