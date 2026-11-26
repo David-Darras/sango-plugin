@@ -148,9 +148,9 @@ void LoadTitleScreenPage(MainApplication& app, void* args) {
   auto& title_screen = TitleScreen::GetInstance();
 
   app.AddSection("Title Screen")
-     .Add("Custom Title Screen", title_screen.is_enabled)
-     .WithDescription("On: the title screen uses the settings of this page.")
      .Add("No Delay", title_screen.no_delay)
+     .WithDescription("The title screen of the game is the one with the "
+                      "videos 3 and 86, and the cry of Kyogre.")
      .Add("No Shadow", title_screen.no_shadow)
      .Add("Skip To Frame", title_screen.skip_to_frame)
      .AddSection("Videos and Cry")

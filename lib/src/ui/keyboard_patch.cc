@@ -41,14 +41,20 @@ core::Hook<void(uptr, u32, bool, u32)> update_keys_hook;
 void KeyboardPatch::Initialize() {
   update_keys_hook.Install(core::address::kKeyboardUpdateKeys, UpdateKeys,
                            address::kKeyboardVtable);
-
-  // Disable the word filter of the keyboard. The player can then type all
-  // the words and the phone numbers.
-  WRITE32(address::kKeyboardWordFilter, 0xE3A00000);
-  ARM_RET(address::kKeyboardWordFilterReturn);
 }
 
 void KeyboardPatch::PatchLoad() {
+  if (!GetInstance().is_enabled) return;
+
+  // Disable the word filter of the keyboard. The player can then type all
+  // the words and the phone numbers.
+  svcInvalidateEntireInstructionCache();
+  WRITE32(address::kKeyboardWordFilter, 0xE3A00000);
+  ARM_RET(address::kKeyboardWordFilterReturn);
+  svcFlushProcessDataCache(CUR_PROCESS_HANDLE, address::kKeyboardWordFilter, 4);
+  svcFlushProcessDataCache(CUR_PROCESS_HANDLE,
+                           address::kKeyboardWordFilterReturn, 4);
+
   MEMORY_SCOPE(sys::address::kMemoryRegionKeyboard, 0x7000);
   // L refreshes the keyboard.
   ARM_NOP(address::kKeyboardRefreshOnL);
@@ -99,6 +105,10 @@ void KeyboardPatch::UpdateKeys(uptr self, u32 layout_id, bool is_qwerty,
                           u32 key_count) {
   auto& controller = sys::Controller::GetInstance();
   auto& kb = GetInstance();
+  if (!kb.is_enabled) {
+    update_keys_hook(self, layout_id, is_qwerty, key_count);
+    return;
+  }
   static u16 offset = 0;
 
   if (controller.IsKeyPressed(Key::kR)) {

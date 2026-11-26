@@ -28,6 +28,7 @@
 #include "overworld/patch/day_care.h"
 #include "system/native/sound.h"
 #include "overworld/address.h"
+#include "overworld/patch/field_move.h"
 #include "system/address.h"
 
 namespace overworld {
@@ -47,6 +48,7 @@ void Overworld::PatchLoad() {
   feat.on_overworld_load.Emit();
 
   DayCare::PatchLoad();
+  FieldMove::PatchFlyCheck();
 
   if (address::kSimulateButtonPress) {
     ARM_NOP(address::kSimulateButtonPress);

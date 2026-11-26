@@ -31,6 +31,7 @@ namespace renderer {
 struct LightingSettings {
   f32 outline_scale = 0.0f; ///< The width of the outlines. 0: the width of the game.
   bool use_outline = true; ///< false: no outlines.
+  bool use_outline_color = false; ///< true: the outlines have `outline_color`.
   Color outline_color = Color(0, 0, 0, 1);
   bool use_ambient_light = false;
   Color ambient_color = Color(1, 1, 1, 1);

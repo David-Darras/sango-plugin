@@ -155,6 +155,8 @@ public:
   /// The number of characters that the product can add, on all the maps.
   /// A map shows 32 characters at most: the characters of the game first.
   static constexpr u32 kMaxRequests = 128;
+  /// true: the example characters of the products show on their maps.
+  bool show_examples = false;
   bool is_logging_enabled = false;
 
   static void Initialize();

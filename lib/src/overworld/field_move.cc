@@ -30,8 +30,24 @@
 
 namespace overworld {
 
+namespace {
+/// The instruction of the game that checks if Fly works here.
+u32 fly_check = 0;
+} // namespace
+
 void FieldMove::Initialize() {
-  if (address::kFlyCheck) ARM_NOP(address::kFlyCheck);
+  if (address::kFlyCheck) fly_check = READ32(address::kFlyCheck);
+}
+
+void FieldMove::PatchFlyCheck() {
+  if (address::kFlyCheck == 0 || fly_check == 0) return;
+  // NOP in place of the check, or the instruction of the game again.
+  const u32 wanted = GetInstance().fly_anywhere ? 0xE1A00000 : fly_check;
+  // Nothing is written as long as the setting stays off.
+  if (READ32(address::kFlyCheck) == wanted) return;
+  svcInvalidateEntireInstructionCache();
+  WRITE32(address::kFlyCheck, wanted);
+  svcFlushProcessDataCache(CUR_PROCESS_HANDLE, address::kFlyCheck, 4);
 }
 
 void FieldMove::Execute(FieldMoveId move) {

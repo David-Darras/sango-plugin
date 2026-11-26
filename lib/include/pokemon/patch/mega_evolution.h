@@ -37,6 +37,9 @@ class MegaEvolution {
   MAKE_SINGLETON(MegaEvolution)
 
 public:
+  /// true: Mime Jr. can Mega Evolve with the Life Orb (a form of the plugin).
+  bool has_mega_mime_jr = false;
+
   static void Initialize();
 
 private:

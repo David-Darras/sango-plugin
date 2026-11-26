@@ -27,6 +27,7 @@
 #include "core/problems.h"
 #include "ui/page/pages.h"
 #include "ui/performance_overlay.h"
+#include "ui/patch/keyboard_patch.h"
 
 namespace ui {
 namespace {
@@ -107,6 +108,10 @@ void LoadSystemPage(MainApplication& app, void* args) {
           core::GameSpeed::GetInstance().freeze_in_menu)
      .WithDescription("The game stops while the menu is open (not in walk "
                       "mode). The menu then has all the time of the frame.")
+     .Add("Free Keyboard", KeyboardPatch::GetInstance().is_enabled)
+     .WithDescription("L and R turn the pages of all the characters in the "
+                      "keyboard of the game, and it takes every word. It "
+                      "applies the next time the keyboard opens.")
      .Add("Black Box (frame_trace.txt)", core::FrameTrace::is_enabled)
      .WithDescription("Writes the state of the menu and of the GPU to the SD "
                       "card three times each second, to find a crash. It can "

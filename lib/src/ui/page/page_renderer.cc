@@ -65,6 +65,7 @@ void LoadLightPage(MainApplication& app, void* args) {
      .WithFactor(0.1f)
      .WithDescription("The width of the outlines. 0: the width of the "
                       "game.")
+     .Add("Use Outline Color", ctx.use_outline_color)
      .Add("Outline Color", LoadColorPage, &ctx.outline_color)
      .AddSection("Ambient Light")
      .Add("Use Ambient Light", ctx.use_ambient_light)

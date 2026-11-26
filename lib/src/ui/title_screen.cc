@@ -40,9 +40,21 @@ void TitleScreen::Initialize() {
                              core::address::kTitleScreenVtable);
 }
 
+bool TitleScreen::IsChanged() {
+  const TitleScreenSettings game;
+  const auto& title = GetInstance();
+  return title.no_delay != game.no_delay ||
+         title.no_shadow != game.no_shadow ||
+         title.top_video != game.top_video ||
+         title.bottom_video != game.bottom_video ||
+         title.pokemon_cry_species != game.pokemon_cry_species ||
+         title.pokemon_cry_volume != game.pokemon_cry_volume ||
+         title.skip_to_frame != game.skip_to_frame;
+}
+
 void TitleScreen::PatchLoad() {
   auto& title = GetInstance();
-  if (!title.is_enabled || core::address::kTitleScreenTopVideoId == 0) return;
+  if (!IsChanged() || core::address::kTitleScreenTopVideoId == 0) return;
 
   MEMORY_SCOPE(sys::address::kMemoryRegionTitleScreen, 0x1E000);
   title.skipped_ = false;
@@ -61,9 +73,8 @@ void TitleScreen::PatchLoad() {
 
 void TitleScreen::SequenceSyncHook(uptr display) {
   auto& title = GetInstance();
-  // PatchLoad() prepares the title screen only for these conditions.
-  const bool is_active =
-      title.is_enabled && core::address::kTitleScreenTopVideoId != 0;
+  // The offsets of the frames are the ones of the title screen of ORAS.
+  const bool is_active = core::address::kTitleScreenTopVideoId != 0;
   if (is_active && title.skip_to_frame != 0 && !title.skipped_ &&
       READ32(display + kTopFrameOffset) > 0) {
     title.skipped_ = true;

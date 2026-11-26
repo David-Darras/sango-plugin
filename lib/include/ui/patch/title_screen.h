@@ -29,15 +29,15 @@
 
 namespace ui {
 
-/// The settings of ui::TitleScreen.
+/// The settings of ui::TitleScreen. With the values that they have here, the
+/// title screen is the one of the game (Alpha Sapphire).
 struct TitleScreenSettings {
-  bool is_enabled = true;
   bool no_delay = false;
   bool no_shadow = false;
-  VideoId top_video = VideoId::kTitleOmegaRuby;
-  VideoId bottom_video = VideoId::kPrimoGroudon;
-  SpeciesId pokemon_cry_species = SpeciesId::kGroudon;
-  f32 pokemon_cry_volume = 0.8f;
+  VideoId top_video = VideoId::kTitleAlphaSapphire;
+  VideoId bottom_video = VideoId::kPrimoKyogre;
+  SpeciesId pokemon_cry_species = SpeciesId::kKyogre;
+  f32 pokemon_cry_volume = 0.7f;
   u32 skip_to_frame = 0;
 };
 static_assert(std::is_standard_layout<TitleScreenSettings>::value,
@@ -50,6 +50,8 @@ class TitleScreen : public TitleScreenSettings {
 public:
   static void Initialize();
   static void PatchLoad();
+  /// Returns true when a setting is not the one of the game.
+  static bool IsChanged();
 
 private:
   static constexpr u32 kTopFrameOffset = 0x98;

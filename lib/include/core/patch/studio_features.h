@@ -17,7 +17,7 @@
 
 /**
  * @file studio_features.h
- * @brief The features that Sango Studio turns on or off.
+ * @brief The features that Sango Studio sets.
  */
 
 #pragma once
@@ -26,18 +26,23 @@
 
 namespace core {
 /**
- * @brief Turns features of the plugin on or off, as the Features page of Sango
- * Studio asks.
+ * @brief Sets the features of the plugin, as the Features page of Sango Studio
+ * asks.
  *
- * The file is `sdmc:/sango-studio/features.ini`. Its section `[features]` has
- * one line for each feature that the user changed, with 1 (on) or 0 (off). A
- * feature without a line keeps the value that the product gives it. The menu
- * of the plugin can still change a feature while the game runs.
+ * Without settings, the game is the game: every feature is off. The file is
+ * `sdmc:/sango-studio/features.ini`. Its section `[features]` has one line for
+ * each setting that the user changed. A setting without a line keeps the value
+ * that the product gives it. The menu of the plugin can still change a setting
+ * while the game runs.
+ *
+ * A value is a number: 1 or 0 for a switch, a whole number for a choice or a
+ * species, a decimal number, or a color as RRGGBB in hexadecimal.
  *
  * @code
  * [features]
- * title_screen = 0
- * shiny_entry = 1
+ * battle.hp_gradient = 1
+ * graphics.outline_color = FF8000
+ * flight.speed = 1.5
  * @endcode
  */
 class StudioFeatures {

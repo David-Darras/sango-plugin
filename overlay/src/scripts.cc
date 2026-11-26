@@ -411,7 +411,8 @@ void Install() {
       overworld::Character(static_cast<MapId>(264), ModelId::kTeamFlareAdminMale)
           .At(593, 492)
           .WithFacing(overworld::Facing::kRight)
-          .WithScript(ScriptId::kPokemonXGreeter));
+          .WithScript(ScriptId::kPokemonXGreeter)
+          .EnabledBy(&overworld::MapCharacter::GetInstance().show_examples));
 #else
   NativeScript::Register(ScriptId::kLittlerootGreeter,
                          LittlerootGreeter);
@@ -421,7 +422,8 @@ void Install() {
           .At(47, 77, 6)
           .WithMovement(17)
           .WithFacing(overworld::Facing::kDown)
-          .WithScript(ScriptId::kLittlerootGreeter));
+          .WithScript(ScriptId::kLittlerootGreeter)
+          .EnabledBy(&overworld::MapCharacter::GetInstance().show_examples));
 #endif
 }
 }

@@ -40,6 +40,11 @@
 #include "ui/patch/app_status.h"
 #include "ui/patch/title_screen.h"
 #include "core/address.h"
+#include "battle/patch/trainer_model_extension.h"
+#include "overworld/patch/field_move.h"
+#include "overworld/patch/run_animation.h"
+#include "pokemon/patch/mega_evolution.h"
+#include "ui/patch/keyboard_patch.h"
 
 namespace {
 bool IsCaptureAllowed() { return !kaizo::CapturedEvent::Check(); }
@@ -72,7 +77,7 @@ void OnProcessLoad(uptr vtable) {
       vtable == core::address::kCinematicVtable) {
     kaizo::ShouldReplacePokemonModel(true);
   } else if (vtable == core::address::kTitleScreenVtable) {
-    if (ui::TitleScreen::GetInstance().is_enabled) {
+    if (ui::TitleScreen::IsChanged()) {
       kaizo::ShouldReplacePokemonModel(true);
     }
   } else if (vtable == core::address::kSelectStarterVtable) {
@@ -123,6 +128,12 @@ void InstallCallbacks() {
 
   overworld::Overworld::GetInstance().on_overworld_load = OnOverworldLoad;
   pokemon::ItemCustomizer::GetInstance().on_item_data = kaizo::PatchItemData;
+  // The features that are off in the library and that Kaizo has.
+  overworld::RunAnimation::GetInstance().enabled = true;
+  battle::TrainerModelExtension::GetInstance().is_enabled = true;
+  ui::KeyboardPatch::GetInstance().is_enabled = true;
+  overworld::FieldMove::GetInstance().fly_anywhere = true;
+  pokemon::MegaEvolution::GetInstance().has_mega_mime_jr = true;
   // Kaizo has the summary editor, with only the nature, the ability and the
   // form (the editor is off by default).
   ui::AppStatus::GetInstance().is_enabled = true;

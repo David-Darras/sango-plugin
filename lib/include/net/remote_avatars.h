@@ -39,7 +39,7 @@ class RemoteAvatars {
 public:
   static constexpr u32 kPoolSize = 4;
 
-  bool is_enabled = true;
+  bool is_enabled = false;
 
   bool is_pool_enabled = true;
   bool is_local_outfit_enabled = true;

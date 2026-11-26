@@ -23,6 +23,7 @@
 
 #include "overworld/patch/auto_surf.h"
 #include "overworld/patch/day_care.h"
+#include "overworld/patch/field_move.h"
 #include "overworld/patch/healer_follower.h"
 #include "overworld/patch/player_cheats.h"
 #include "overworld/patch/pokemon_flight.h"
@@ -58,6 +59,11 @@ void LoadCheatsPage(MainApplication& app, void* args) {
      .Add("Run Frames Per Tile", swarm.run_frames)
      .WithArray(kStepFrames, SIZE(kStepFrames))
      .WithDescription("The same, when the player runs. The game uses 4.")
+#endif
+#ifdef GAME_ORAS
+     .Add("Fly Anywhere", overworld::FieldMove::GetInstance().fly_anywhere)
+     .WithDescription("Fly works inside and in the caves too. It applies at "
+                      "the next map.")
 #endif
      .Add("Auto Surf", overworld::AutoSurf::GetInstance().is_enabled)
      .WithDescription("The player surfs at once when walking into water.")

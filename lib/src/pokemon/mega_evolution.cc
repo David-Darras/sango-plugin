@@ -53,7 +53,7 @@ void MegaEvolution::LoadMegaEvolutionTableHook(SpeciesId species) {
   auto& mega_evolve_table = *Database::GetInstance().mega_evolution;
   auto& table = *mega_evolve_table.data;
   if (AlolanForms::PatchMegaTable(species, &table)) return;
-  if (species == SpeciesId::kMimeJr) {
+  if (species == SpeciesId::kMimeJr && GetInstance().has_mega_mime_jr) {
     table.entry[0].form = kFormMimeJrMega;
     table.entry[0].method = MegaEvolutionMethod::kItem;
     table.entry[0].item = ItemId::kLifeOrb;

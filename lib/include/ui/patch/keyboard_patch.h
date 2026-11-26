@@ -31,6 +31,9 @@ class KeyboardPatch {
   MAKE_SINGLETON(KeyboardPatch)
 
 public:
+  /// true: L and R turn the pages of all the characters, and the keyboard takes
+  /// every word. Off by default: the keyboard is the one of the game.
+  bool is_enabled = false;
   bool is_opened = false;
   u8 page = 0;
 

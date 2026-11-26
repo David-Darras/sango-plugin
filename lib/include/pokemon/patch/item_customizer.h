@@ -64,9 +64,10 @@ public:
   /// The number of game instructions that the EV limit patch changes.
   static constexpr u32 kLimitPatchCount = 9;
 
-private:
   /// Writes or removes the EV limit patch to match `remove_limit`.
   static void UpdateLimitPatch();
+
+private:
 
   // The first instructions of the game function read the pc register: a
   // normal hook cannot move them, so the hook rewrites the full function.

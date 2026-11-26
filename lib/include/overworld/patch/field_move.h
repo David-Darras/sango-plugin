@@ -31,7 +31,13 @@ namespace overworld {
 struct FieldMove {
   MAKE_SINGLETON(FieldMove)
 
+  /// true: Fly works from every place (inside, in a cave...).
+  bool fly_anywhere = false;
+
   static void Initialize();
+  /// Writes the check of Fly as the setting asks. Overworld::PatchLoad() calls
+  /// it.
+  static void PatchFlyCheck();
   /// Uses a field move, like the menu of the game. For Fly, use
   /// core::AppLauncher::DoFly().
   static void Execute(FieldMoveId move);

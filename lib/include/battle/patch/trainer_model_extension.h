@@ -78,7 +78,7 @@ public:
 
   /// false: the extension does nothing. The battles are the battles of the
   /// game.
-  bool is_enabled = true;
+  bool is_enabled = false;
 
   /// The number of choices of player_model.
   static constexpr u8 kPlayerModelCount =

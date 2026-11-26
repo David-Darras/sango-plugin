@@ -86,8 +86,9 @@ void PatchBattle() {
   battle.no_shader = false;
   battle.mega_restriction = false;
   battle.same_ratio_for_all_pokeball = true;
-  battle.is_long_encounter_animation = false;
-  battle.is_long_mega_evolve_animation = true;
+  battle.encounter_animation = battle::AnimationLength::kShort;
+  battle.mega_evolve_animation = battle::AnimationLength::kLong;
+  battle.fixed_camera = true;
   battle.show_enemy_pov = false;
   battle.show_fade_in = true;
   battle.show_pokeball_animation = false;

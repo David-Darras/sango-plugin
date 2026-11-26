@@ -248,7 +248,7 @@ void Battle::UpdateGaugeHook(uptr gauge, u16 max_hp, u32 new_hp) {
 }
 
 void Battle::UpdateViewHook(uptr self) {
-  if (kCameraOffset != 0) {
+  if (kCameraOffset != 0 && GetInstance().fixed_camera) {
     u32* camera = *(u32**)(self + kCameraOffset);
     camera[4] = 0; ///< Do not use the split view.
     camera[5] = 0x7FFFFFFF; ///< Disable the camera animation.
@@ -275,14 +275,18 @@ void Battle::PlayAnimationHook(uptr view_manager, u16 id) {
 
 void Battle::StartEntryAnimationHook(void* p0, EntryAnimationData* data) {
   auto& config = GetInstance();
-  data->skip_pokeball_animation = !config.show_pokeball_animation;
-  data->is_long_encounter_animation = config.is_long_encounter_animation;
-  data->use_trainer_pov = !config.show_enemy_pov;
-  data->show_fade_in = config.show_fade_in;
-  data->skip_pokeball_animation = !config.show_pokeball_animation;
-  data->show_shiny_animation = config.show_shiny_animation;
-  if (kHasTrainerVisibilityFlag)
-    data->dont_show_trainer = !config.show_trainer_animation;
+  // Only a setting that is not the one of the game changes the data: the
+  // game chooses the rest for each battle.
+  if (config.encounter_animation != AnimationLength::kGame) {
+    data->is_long_encounter_animation =
+        config.encounter_animation == AnimationLength::kLong;
+  }
+  if (config.show_enemy_pov) data->use_trainer_pov = false;
+  if (config.show_fade_in) data->show_fade_in = true;
+  if (!config.show_pokeball_animation) data->skip_pokeball_animation = true;
+  if (!config.show_shiny_animation) data->show_shiny_animation = false;
+  if (kHasTrainerVisibilityFlag && !config.show_trainer_animation)
+    data->dont_show_trainer = true;
 
   TrainerModelExtension::OnEntryAnimation(data->view, data->trainer_model);
   start_entry_animation_hook(p0, data);
@@ -290,8 +294,11 @@ void Battle::StartEntryAnimationHook(void* p0, EntryAnimationData* data) {
 
 void Battle::StartMegaEvolutionAnimationHook(void* view, u8 target,
                                              bool is_long_animation) {
-  start_mega_evolution_animation_hook(
-      view, target, GetInstance().is_long_mega_evolve_animation);
+  const AnimationLength length = GetInstance().mega_evolve_animation;
+  if (length != AnimationLength::kGame) {
+    is_long_animation = length == AnimationLength::kLong;
+  }
+  start_mega_evolution_animation_hook(view, target, is_long_animation);
 }
 
 bool Battle::LevelUpHook(void* self, Team* team,

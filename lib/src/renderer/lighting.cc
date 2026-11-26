@@ -47,20 +47,24 @@ void Lighting::Initialize() {
 void Lighting::ChangeOutlineScaleHook(void* outline_manager, f32 screen_width,
                                   f32 screen_height, f32 scale) {
   auto& ctx = GetInstance();
-  static bool was_enabled = false;
+  static bool had_color = false;
   auto set_color = (void (*)(void*, f32, f32, f32, f32))address::kChangeOutlineColor;
 
-  if (ctx.use_outline) {
+  const bool has_color = ctx.use_outline && ctx.use_outline_color;
+  if (has_color) {
     set_color(outline_manager, ctx.outline_color.r, ctx.outline_color.g,
               ctx.outline_color.b, ctx.outline_color.a);
-  } else {
-    if (was_enabled) set_color(outline_manager, 0.0f, 0.0f, 0.0f, 1.0f);
-    ctx.outline_scale = scale;
+  } else if (had_color) {
+    // The black of the game again.
+    set_color(outline_manager, 0.0f, 0.0f, 0.0f, 1.0f);
   }
-  was_enabled = ctx.use_outline;
+  had_color = has_color;
 
+  // A width of 0 draws no outline. The setting 0 keeps the width of the game.
+  f32 width = ctx.outline_scale > 0.0f ? ctx.outline_scale : scale;
+  if (!ctx.use_outline) width = 0.0f;
   change_outline_scale_hook(outline_manager, screen_width, screen_height,
-                            ctx.outline_scale);
+                            width);
 }
 
 void Lighting::ChangeAmbientLightColorHook(void* light_manager, Color* color) {

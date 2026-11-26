@@ -53,6 +53,9 @@ namespace ui {
 #include "battle/data/trainer.inc"
 #endif
 
+// The choices of battle::AnimationLength.
+static const c8* ANIMATION_LENGTHS[] = {"Game", "Long", "Short"};
+
 // The battle options.
 
 #ifdef GAME_ORAS
@@ -149,8 +152,12 @@ void LoadBattleSettingsPage(MainApplication& app, void* args) {
      .Add("No Shader", ctx.no_shader)
      .WithDescription("Turns off the shaders of the battle.")
      .AddSection("Animations")
-     .Add("Long Mega Evolution Animation", ctx.is_long_mega_evolve_animation)
-     .Add("Long Encounter Animation", ctx.is_long_encounter_animation)
+     .Add("Mega Evolution Animation", ctx.mega_evolve_animation)
+     .WithArray(ANIMATION_LENGTHS, SIZE(ANIMATION_LENGTHS))
+     .Add("Encounter Animation Length", ctx.encounter_animation)
+     .WithArray(ANIMATION_LENGTHS, SIZE(ANIMATION_LENGTHS))
+     .Add("Fixed Camera", ctx.fixed_camera)
+     .WithDescription("No split view and no camera animation in battle.")
      .Add("Show Enemy POV", ctx.show_enemy_pov)
      .Add("Show Trainer Animation", ctx.show_trainer_animation)
      .Add("Show Poke Ball Animation", ctx.show_pokeball_animation)

@@ -53,7 +53,6 @@ void Initialize() {
       overworld::CameraState::kTps;
 
   auto& title = ui::TitleScreen::GetInstance();
-  title.is_enabled = true;
   title.no_shadow = true;
   title.no_delay = true;
   title.top_video = VideoId::kPrimoKyogre;

@@ -26,16 +26,18 @@
 
 #include "common.h"
 #include "core/event.h"
+#include "battle/constant/animation_length.h"
 #include "battle/native/entry_animation_data.h"
 #include "battle/native/level_up_data.h"
 #include "battle/native/team.h"
 
 namespace battle {
 
-/// The settings of battle::Battle.
+/// The settings of battle::Battle. With the values that they have here, the
+/// battles are the ones of the game.
 struct BattleSettings {
-  bool is_long_mega_evolve_animation = true;
-  bool is_long_encounter_animation = true;
+  AnimationLength mega_evolve_animation = AnimationLength::kGame;
+  AnimationLength encounter_animation = AnimationLength::kGame;
   bool show_enemy_pov = false;
   bool show_trainer_animation = true;
   bool show_pokeball_animation = true;
@@ -46,7 +48,8 @@ struct BattleSettings {
   bool hp_gradient = false; ///< Colors the HP bar with a gradient from magenta to cyan.
   bool can_use_item = true;
   bool same_ratio_for_all_pokeball = false;
-  bool fix_pokemon_size = true; ///< Shows the Pokémon with their real sizes.
+  bool fix_pokemon_size = false; ///< Shows the Pokémon with their real sizes.
+  bool fixed_camera = false; ///< No split view and no camera animation.
   bool sync_team_hp = false; ///< When one Pokémon of the first team faints, all the Pokémon of this team faint.
   bool inverse_stats = false; ///< Exchanges the physical and the special stats.
   bool metronome_only = false; ///< All the moves are Metronome.

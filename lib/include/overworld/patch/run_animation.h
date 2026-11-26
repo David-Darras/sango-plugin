@@ -32,7 +32,7 @@ class RunAnimation {
   MAKE_SINGLETON(RunAnimation)
 
 public:
-  bool enabled = true;
+  bool enabled = false;
 
   static void Initialize();
 
