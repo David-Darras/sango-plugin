@@ -204,6 +204,11 @@ static constexpr u32 kMegaEvolutionToken = 0x21000000;
 static constexpr u32 kPlayerIconToken = 0x1F000000;
 static constexpr u32 kSoaringModelToken = 0x1E000000;
 static constexpr u32 kIntroToken = 0x1D000000;
+// The title screen that Sango Studio changes: the models of the scene (the
+// archive 152, compressed as in the archive) and the two sequences that play
+// it (the archive 162, not compressed).
+static constexpr u32 kTitleDataToken = 0x1C000000;
+static constexpr u32 kTitleSequenceToken = 0x1B000000;
 // True for the fake offset of a small archive: the token has no bit in the
 // four high bits alone (a real offset of these archives is far smaller).
 static constexpr bool IsSmallToken(u32 token) {
@@ -267,6 +272,8 @@ static constexpr u32 kMaxPlayerIcons = 320;
 static OverrideEntry player_icon_entries[kMaxPlayerIcons];
 static OverrideEntry soaring_model_entries[4];
 static OverrideEntry intro_entries[2];
+static OverrideEntry title_data_entries[16];
+static OverrideEntry title_sequence_entries[4];
 static constexpr u32 kMaxTextFiles = 128;
 static OverrideEntry text_entries[8][kMaxTextFiles];
 // The changed files of the archives with layouts (see tools/gen_layout_sets.py):
@@ -426,6 +433,14 @@ static OverrideSet override_sets[] = {
     {ArchiveId::kIntroMovie, u"sdmc:/sango-studio/player/intro/index.bin",
      u"sdmc:/sango-studio/player/intro/%d.bin", kIntroToken, true,
      intro_entries, 2, 0, false},
+    // The title screen. The pictures of the logo are layouts: the set of the
+    // layouts of the same archive has them.
+    {ArchiveId::kCutsceneData, u"sdmc:/sango-studio/title/data/index.bin",
+     u"sdmc:/sango-studio/title/data/%d.bin", kTitleDataToken, true,
+     title_data_entries, 16, 0, false},
+    {ArchiveId::kCutsceneSequence, u"sdmc:/sango-studio/title/sequence/index.bin",
+     u"sdmc:/sango-studio/title/sequence/%d.bin", kTitleSequenceToken, true,
+     title_sequence_entries, 4, 0, false},
     // The texts of the game, one archive for each language.
     {ArchiveId::kGameTextJapanese, u"sdmc:/sango-studio/game_text/ja/index.bin",
      u"sdmc:/sango-studio/game_text/ja/%d.bin", kTextTokenFirst, true,

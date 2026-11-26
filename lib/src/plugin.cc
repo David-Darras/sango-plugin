@@ -74,6 +74,7 @@
 #include "overworld/patch/trade.h"
 #include "overworld/patch/weather_override.h"
 #include "core/patch/time_override.h"
+#include "core/patch/studio_features.h"
 #include "overworld/patch/wild_encounter.h"
 #include "pokemon/patch/custom_shop.h"
 #include "pokemon/patch/evolution.h"
@@ -200,6 +201,9 @@ void OpenMenu(ui::Painter& painter, PageLoader root_page) {
 void Start(void (*every_frame)()) {
   // The settings of the product are complete: check them.
   core::Problems::CheckHack();
+  // The features that Sango Studio turns on or off, over the ones of the
+  // product.
+  core::StudioFeatures::Apply();
   entrypoint_hook.Install(sys::address::kEntrypoint, every_frame);
 }
 
