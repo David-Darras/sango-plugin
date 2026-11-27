@@ -98,6 +98,11 @@ public:
   /// pack that does not fit (the same numbers are in module/pack/src/library.rs).
   static constexpr u32 kMaxSpecies = 384;
   static constexpr u32 kMaxForms = 256;
+  /// The file of the cry of the first species of a pack, in the archive of
+  /// the cries: the file of a species is this number plus its place. The files
+  /// are after the files of the archive. Sango Studio writes them in
+  /// `species/cry` (the same number is in module/cry/src/lib.rs).
+  static constexpr u32 kFirstCryFile = 5000;
 
   /// Reads `species/table.bin` from the SD card. It tries one time: the next
   /// calls do nothing. Without the file, there is no species and no form.

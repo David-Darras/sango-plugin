@@ -34,6 +34,7 @@
 #include "pokemon/native/movepool.h"
 #include "pokemon/native/species_data.h"
 #include "core/hook.h"
+#include "core/patch/archive.h"
 #include "core/problems.h"
 #include "core/memory.h"
 #include "core/native/process_manager.h"
@@ -48,6 +49,11 @@ namespace {
 core::Hook<void(String*, u16)> get_species_name_hook;
 core::Hook<void(c16*, u16)> get_default_nickname_hook;
 core::Hook<void(u16, u8)> load_movepool_hook;
+core::Hook<void(u32, u32, u32, u32, u32)> play_cry_hook;
+core::Hook<void(void*, u32, u32, void*)> load_cry_files_hook;
+// The wave archive that replaces the one of the cry that the game loads now, or
+// 0. It is set only while the game starts the cry of an added species.
+u32 cry_file = 0;
 } // namespace
 
 static constexpr u16 kGen9Carrier = 721;
@@ -488,6 +494,42 @@ void SpeciesTable::LoadMovepoolHook(u16 species, u8 form) {
                                 static_cast<FormId>(form));
 }
 
+// The table of the cries of the game stops at the species 721: an added species
+// must never reach it. With a file of Sango Studio, the game plays the cry of
+// the first species with the wave archive of that file. Without one, a species
+// of a product has the cry of its first species, a species of a pack has the
+// cry of the species whose model it shows, else the cry of the first species.
+void SpeciesTable::PlayCryHook(u32 voice, u32 species, u32 form, u32 kind,
+                               u32 in_3d) {
+  if (species < kFirstPackSpecies) {
+    play_cry_hook(voice, species, form, kind, in_3d);
+    return;
+  }
+  u32 other = 1;
+  const PackSpecies* extra = FindExtra(static_cast<u16>(species));
+  const NewSpeciesEntry* added = FindNewSpecies(static_cast<u16>(species));
+  if (extra != nullptr) {
+    const u32 file =
+        SpeciesPacks::kFirstCryFile + (species - kFirstPackSpecies);
+    const u32 model = extra->model_form & ~kNativeModel;
+    if (core::Archive::HasSdFile(core::ArchiveId::kPokemonVoice, file)) {
+      cry_file = file;
+    } else if ((extra->model_form & kNativeModel) != 0 && model != 0 &&
+               model <= kSpeciesCount) {
+      other = model;
+    }
+  } else if (added != nullptr) {
+    other = static_cast<u16>(added->data_from);
+  }
+  play_cry_hook(voice, other, 0, kind, in_3d);
+  cry_file = 0;
+}
+
+void SpeciesTable::LoadCryFilesHook(void* player, u32 sequence, u32 wave,
+                                    void* heap) {
+  load_cry_files_hook(player, sequence, cry_file != 0 ? cry_file : wave, heap);
+}
+
 bool SpeciesTable::PatchEvolutionTable(u16 species, EvolutionData* table) {
   const PackSpecies* extra = FindExtra(species);
   if (extra != nullptr) {
@@ -518,6 +560,10 @@ void SpeciesTable::Initialize() {
                                     GetDefaultNicknameHook);
   load_movepool_hook.Install(address::kLoadMovepool, LoadMovepoolHook);
   SpeciesPacks::InstallIconHook();
+  if (address::kPlayCry != 0 && address::kLoadCryFiles != 0) {
+    play_cry_hook.Install(address::kPlayCry, PlayCryHook);
+    load_cry_files_hook.Install(address::kLoadCryFiles, LoadCryFilesHook);
+  }
 }
 
 } // namespace pokemon

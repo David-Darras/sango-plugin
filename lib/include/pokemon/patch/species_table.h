@@ -109,6 +109,12 @@ private:
   /// The name that a Pokémon gets as its nickname (12 characters at most).
   static void GetDefaultNicknameHook(c16* output, u16 species);
   static void LoadMovepoolHook(u16 species, u8 form);
+  /// The game has no cry for an added species: it gets the cry of Sango
+  /// Studio, or the cry of a species of the game.
+  static void PlayCryHook(u32 voice, u32 species, u32 form, u32 kind,
+                          u32 in_3d);
+  static void LoadCryFilesHook(void* player, u32 sequence, u32 wave,
+                               void* heap);
 
   bool is_built_ = false;
   core::FixedList<NewSpeciesEntry, kMaxNewSpecies> new_species_;

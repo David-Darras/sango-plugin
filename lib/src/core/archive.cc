@@ -263,7 +263,8 @@ static OverrideEntry studio_field_script_entries[128];
 static OverrideEntry studio_battle_ai_entries[32];
 static OverrideEntry studio_amie_script_entries[8];
 static OverrideEntry studio_dex_nav_entries[4];
-static constexpr u32 kMaxVoiceFiles = 256;
+// The cries of the game that changed, and one cry for each species of a pack.
+static constexpr u32 kMaxVoiceFiles = 640;
 static OverrideEntry voice_entries[kMaxVoiceFiles];
 static OverrideEntry font_entries[16];
 static constexpr u32 kMaxStudioItemIcons = 1024;

@@ -195,8 +195,9 @@ pokemon::NewSpecies(u"Blazewing", SpeciesId::kCharmeleon,
 - No new 3D model: the species uses the model of an existing species.
   To change only the look of a Pokémon, see
   [Tutorial 10](10-replace-models.md).
-- The library does not give a Pokédex entry, an icon or a cry to the new
-  species. Test them in the game before you release your ROM hack.
+- The library does not give a Pokédex entry or an icon to the new species.
+- The new species has the cry of its `data_from` species.
+- Test these points in the game before you release your ROM hack.
 
 ## Problems
 

@@ -174,6 +174,10 @@ constexpr uptr kHeapNew = GAME_ADDRESS(0, 0x001235A8);
 /// Plays the cry of a Pokémon. Arguments: the voice (0), the species, the form,
 /// the kind of cry (0), and true for a cry in 3D. ORAS only.
 constexpr uptr kPlayCry = GAME_ADDRESS(0, 0x004500C0);
+/// Reads the two files of a cry for a voice player: the player, the file of
+/// the sequence, the file of the wave archive and a heap. kPlayCry calls it.
+/// ORAS only.
+constexpr uptr kLoadCryFiles = GAME_ADDRESS(0, 0x0044CC78);
 /// The voice players of the game: the number of players is at +12 of the first
 /// address, and the second address is the array of players. ORAS only.
 constexpr uptr kVoiceManager = GAME_ADDRESS(0, 0x005F4F88);
